@@ -1,18 +1,36 @@
 # Dragon — Laboratório Pessoal
 
-> **Projeto intelectual pessoal de Mário César Nascimento, PhD. Todos os direitos reservados.**
+> **Projeto autoral privado de Mário César Nascimento, PhD. Todos os direitos reservados.**
 
-O **Dragon** será um espaço pessoal para criação e desenvolvimento de atividades educacionais, jogos, casos, experiências interativas e outros materiais autorais.
+O **Dragon** é um laboratório pessoal de criação e desenvolvimento de experiências interativas, jogos, casos, narrativas e materiais educacionais autorais.
 
-## Situação atual
+## Projeto em desenvolvimento
 
-Repositório em preparação. Os conteúdos serão adicionados progressivamente.
+O repositório reúne atualmente protótipos e componentes do **MOSAICO**, incluindo:
 
-## Autoria e titularidade declarada
+- mesa e interface principal do jogo;
+- casos e fragmentos narrativos;
+- experimentos de ambientação e interação;
+- recursos visuais e arquivos de apoio;
+- documentação técnica e registros de continuidade do desenvolvimento.
 
-**Autor e titular declarado:** Mário César Nascimento, PhD  
+Os arquivos representam etapas de trabalho em evolução e podem conter versões experimentais, intermediárias ou ainda não consolidadas.
+
+## Acesso restrito
+
+Este repositório e todo o seu conteúdo destinam-se exclusivamente ao autor e às pessoas por ele expressamente autorizadas. O acesso ao repositório não concede licença de uso, reprodução, adaptação, redistribuição, publicação ou exploração do material.
+
+Não publique links de demonstração, arquivos, capturas extensas, documentação interna ou qualquer parte do projeto sem autorização prévia e escrita do titular.
+
+## Autoria e titularidade
+
+**Autor e titular:** Mário César Nascimento, PhD  
 **Perfil responsável:** [DrMarioNascimento](https://github.com/DrMarioNascimento)
 
-## Condições de uso
+## Licença
 
-Quando publicados, os materiais poderão ser acessados para uso educacional funcional nos termos de [LICENSE.md](LICENSE.md). A disponibilização pública não autoriza cópia, adaptação, republicação ou exploração comercial.
+O conteúdo está sujeito à [Licença Proprietária — Todos os Direitos Reservados](LICENSE.md). Nenhum uso é autorizado além daquele expressamente concedido por escrito pelo titular.
+
+---
+
+**Prof. Mário César Nascimento, PhD ©**
