@@ -1093,7 +1093,7 @@
 </div>
 
 <div id="abertura-participante" class="hidden" aria-hidden="true">
-  <video id="video-abertura-participante" playsinline preload="metadata"
+  <video id="video-abertura-participante" playsinline webkit-playsinline preload="auto"
          poster="img/capa-vertical.jpg"></video>
   <div class="abertura-participante-portao">
     <div class="abertura-participante-intro">
@@ -1921,16 +1921,36 @@ function abrirAberturaParticipante(aoConcluir){
     caixa.setAttribute("aria-hidden","true");
     if(aoConcluir) aoConcluir();
   }
+  function prontoParaTentar(){
+    assistir.disabled=false;
+    assistir.textContent="Assistir à abertura";
+  }
+  function erroAoTocar(){
+    caixa.classList.remove("tocando");
+    prontoParaTentar();
+    avisa("Não foi possível iniciar o vídeo. Toque novamente ou use Pular abertura.");
+  }
   function tocar(){
-    telaCheia();
-    caixa.classList.add("tocando");
-    video.muted=false; video.volume=1;
+    /* No Safari móvel, pedir tela cheia antes de play() pode consumir o
+       gesto que libera mídia com som. A própria camada já ocupa a tela. */
+    assistir.disabled=true;
+    assistir.textContent="Iniciando…";
+    video.playsInline=true;
+    video.setAttribute("playsinline","");
+    video.setAttribute("webkit-playsinline","");
+    video.muted=false;
+    video.defaultMuted=false;
+    video.volume=1;
     try{video.currentTime=0;}catch(e){}
-    var promessa=video.play();
-    if(promessa&&promessa.catch) promessa.catch(function(){
-      caixa.classList.remove("tocando");
-      avisa("Toque novamente para iniciar a abertura com som.");
-    });
+    var promessa;
+    try{ promessa=video.play(); }catch(e){ erroAoTocar(); return; }
+    if(promessa&&promessa.then){
+      promessa.then(function(){ caixa.classList.add("tocando"); prontoParaTentar(); })
+              .catch(erroAoTocar);
+    }else{
+      caixa.classList.add("tocando");
+      prontoParaTentar();
+    }
   }
 
   /* A orientacao em que a abertura comecou escolhe o arquivo. Girar o
@@ -1939,10 +1959,10 @@ function abrirAberturaParticipante(aoConcluir){
   try{vertical=window.matchMedia("(orientation: portrait)").matches;}catch(e){
     vertical=window.innerHeight>window.innerWidth;
   }
-  video.src=vertical?"img/abertura-vertical.mp4":"img/abertura.mp4";
+  video.src=vertical?"img/abertura-vertical.mp4?v=2":"img/abertura.mp4";
   video.load();
   video.onended=concluir;
-  video.onerror=concluir;
+  video.onerror=erroAoTocar;
   assistir.onclick=tocar;
   pular.onclick=concluir;
   caixa.classList.remove("tocando","hidden");
