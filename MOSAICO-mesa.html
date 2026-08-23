@@ -1378,7 +1378,7 @@ function telaEncenacao(){
       '<div class="fala">'+esc(flex(r.fala,fm))+'</div>'+
       '<div class="pos">'+esc(flex(r.pos,fm))+'</div>'+
     '</div>'+
-    '<button class="btn btn-ambar" onclick="terminei()">Terminei</button>';
+    '<button class="btn btn-ambar" onclick="terminei()">Toque para concluir sua apresenta&ccedil;&atilde;o!</button>';
 }
 
 /* So aqui o jogador descobre quem era — e ja leva a pista da noite. */
@@ -1477,7 +1477,7 @@ function telaMosaico(){
   if(feito) return '<span class="eyebrow">N&uacute;cleo '+esc(nucleo)+'</span><h2>Mosaico conclu&iacute;do.</h2><p class="lead">A ordem foi registrada pelo servidor. Aguarde os demais n&uacute;cleos.</p>';
   var opts='<option value="">Escolha…</option>'+(CASO.publicas||[]).map(function(p){return opcao(p.id,p.hora+' — '+p.txt);}).join('');
   var campos=''; for(var i=0;i<6;i++) campos+='<label>'+(i+1)+'&ordm;<select id="mos-'+i+'">'+opts+'</select></label>';
-  return '<span class="eyebrow">Mosaico coletivo &middot; N&uacute;cleo '+esc(nucleo)+'</span><h2>Reconstruam a linha do tempo.</h2><p class="lead">Conversem em grupo. A primeira ordem correta enviada trava a coloca&ccedil;&atilde;o do n&uacute;cleo.</p><div class="card">'+campos+'</div><button class="btn btn-ambar" onclick="enviarMosaico()">Enviar ordem do n&uacute;cleo</button>';
+  return '<span class="eyebrow">Mosaico coletivo &middot; N&uacute;cleo '+esc(nucleo)+'</span><h2>Reconstruam a linha do tempo.</h2><p class="lead">Quanto mais r&aacute;pido o seu grupo concluir, melhor ser&aacute; sua coloca&ccedil;&atilde;o.</p><div class="card">'+campos+'</div><button class="btn btn-ambar" onclick="enviarMosaico()">Enviar ordem do n&uacute;cleo</button>';
 }
 
 function telaCooperacao(){

@@ -181,6 +181,8 @@ O celular permanece com cada jogador durante toda a encenação. A pessoa lê su
 
 Comandos de ação devem explicitar ação e consequência. Na revelação da pista, usar **“Toque para adicionar a pista ao Arquivo e seguir com o caso”** e o botão **“Adicionar ao Arquivo”**; evitar “Guarde” isolado, que pode ser confundido visualmente com “Aguarde”.
 
+Na apresentação, o botão de conclusão usa **“Toque para concluir sua apresentação!”**. No Mosaico coletivo, a orientação temporal é **“Quanto mais rápido o seu grupo concluir, melhor será sua colocação.”**
+
 ### 5.3 O nome desaparece
 
 Antes da tarefa, o telão mostra o nome. Depois, mostra apenas o arquétipo. O nome não reaparece na votação nem no resultado.
