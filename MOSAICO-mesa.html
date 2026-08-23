@@ -281,6 +281,14 @@
   .caso-card{max-width:600px;margin:auto}.caso-card .publica:last-child{margin-bottom:4px}
   .tarefa-frame{width:100%;height:min(72vh,720px);border:1px solid var(--linha);border-radius:8px;
     background:#05070c;display:block;margin:14px 0}
+  .revelacao-final{max-width:920px;margin:0 auto}.revelacao-final .card{margin-bottom:14px}
+  .revelacao-chave{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:22px 0}
+  .revelacao-chave .card{margin:0;border-top:2px solid rgba(232,164,76,.58)}
+  .revelacao-chave b{display:block;color:var(--ambar);font-size:12px;letter-spacing:.13em;text-transform:uppercase;margin-bottom:7px}
+  .revelacao-passos{counter-reset:passo}.revelacao-passos .card{position:relative;padding-left:58px}
+  .revelacao-passos .card:before{counter-increment:passo;content:counter(passo);position:absolute;left:18px;top:18px;color:var(--ambar);font:600 24px var(--serif)}
+  .confianca-valor{font:600 28px var(--serif);color:var(--frio)}.confianca-valor.neg{color:var(--vermelho)}
+  .controle-revelacao{max-width:460px;margin:24px auto 0}
   .menu-mestre-fundo{position:fixed;inset:0;z-index:43;background:rgba(2,5,9,.94);
     padding:max(18px,env(safe-area-inset-top)) 16px max(82px,env(safe-area-inset-bottom));overflow-y:auto}
   .menu-mestre-card{max-width:600px;margin:auto}
@@ -885,7 +893,7 @@ var PUBLICAS=[
 ];
 var HORA_FASE={ sala:"21:00", escuro:"21:00", cena:null, encenacao:null,
                 votacao:"21:23", constelacao:"21:26", inclinacao:"21:28",
-                resultado:"21:23", historia:"21:23" };
+                resultado:"21:51", historia:"21:51" };
 /* Nenhum destes rotulos pode entregar o que vem. A surpresa e o jogo. */
 var CAP_FASE={
   sala:"A tempestade chegou antes dos convidados",
@@ -940,6 +948,23 @@ CASO.configuracao={limitesSegundos:{performance:60,constelacao:180,inclinacao:18
 CASO.tarefas={
   constelacao:{titulo:"Constelação Indoor",arquivo:"MOSAICO-24.3-constelacao-indoor.html?embed=1",pista:{id:"tarefa-constelacao",hora:"21:26",txt:"Os pontos só formam um desenho quando observados na ordem certa. A marca recente na trava do cofre é o ponto fixo da sequência."}},
   inclinacao:{titulo:"Inclinação–Fragmento",arquivo:"MOSAICO-24.4-inclinacao-fragmento.html?embed=1",pista:{id:"tarefa-inclinacao",hora:"21:28",txt:"O pequeno objeto metálico não atravessou a sala: caiu próximo ao cofre e foi deslocado depois da queda."}}
+};
+CASO.revelacaoFinal={
+  titulo:"A verdade na Casa da Costa",
+  sintese:"O Herdeiro entrou na casa para recuperar um documento escondido e usou a oscilação de energia para abrir o cofre. A marca recente na trava liga sua ação ao cofre; o pequeno objeto metálico que caiu nas proximidades fecha a lacuna física do acontecimento.",
+  historia:[
+    "O Herdeiro sabia que um documento permanecia escondido no cofre da Casa da Costa. Antes da queda de energia, aproximou-se da trava e a manipulou, deixando a marca recente observada no início da noite.",
+    "A porta entreaberta, a cortina em movimento e os ruídos do andar superior sugeriam uma invasão, mas a janela continuava trancada. Esses sinais desviavam a atenção sem explicar o ponto central: alguém presente na casa conhecia o cofre.",
+    "Quando a luz oscilou, o Herdeiro aproveitou a confusão para abrir o cofre e recuperar o documento. Durante a ação, um pequeno componente metálico caiu perto da trava e foi deslocado depois da queda, produzindo parte dos sons e movimentos percebidos no escuro.",
+    "A constelação fixou a sequência na marca da trava. A inclinação localizou o fragmento junto ao cofre. Quando os dois sinais foram combinados às pistas privadas, o aparente conjunto de fenômenos isolados tornou-se uma única ação coerente."
+  ],
+  evidencias:[
+    {titulo:"Marca recente na trava",texto:"É a prova-chave: demonstra manipulação recente do cofre e conecta a ação ao ponto exato onde o documento estava escondido."},
+    {titulo:"Pequeno objeto metálico",texto:"Resolve a lacuna material: caiu junto ao cofre e foi deslocado depois, explicando sons e movimentos percebidos durante a escuridão."},
+    {titulo:"Janela trancada",texto:"Enfraquece a hipótese de entrada pela janela. A porta e a cortina criavam aparência de invasão, mas não comprovavam acesso externo."},
+    {titulo:"Sombras e ruídos",texto:"Eram sinais reais, porém insuficientes isoladamente. Ganham sentido apenas quando relacionados à abertura do cofre e ao fragmento deslocado."},
+    {titulo:"Constelação e inclinação",texto:"As rodadas sensoriais confirmam o ponto fixo da sequência e a posição física do fragmento, aproximando os indícios da conclusão."}
+  ]
 };
 
 function aplicarCaso(c){
@@ -1078,7 +1103,7 @@ function nomeRodada(fase){
     cooperacao:"Jogador ajuda seu grupo",
     mercado:"Jogador contra jogador",
     deducao:"Jogador contra o caso",
-    resultado:"Resultado final"
+    resultado:((STATE.doc&&STATE.doc.revelacaoEtapa)||0)>=4?"Resultado final":"Revelação final"
   };
   return nomes[fase]||"MOSAICO";
 }
@@ -1103,7 +1128,11 @@ function controlesMestreMovel(){
   else if(fase==="cooperacao") botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();abrirMercado()">Abrir mercado</button>';
   else if(fase==="mercado") botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();abrirDeducao()">Abrir dedu&ccedil;&atilde;o</button>';
   else if(fase==="deducao") autoInfo='<div class="card"><b>C&aacute;lculo autom&aacute;tico</b><p class="muted">'+STATE.v5.deducoes.length+' de '+js.length+' respostas recebidas. O placar ser&aacute; calculado automaticamente.</p></div>';
-  else if(fase==="resultado") botoes+='<button class="btn btn-frio" onclick="alternarMenuMestre();voltarParaSala()">Nova rodada</button>';
+  else if(fase==="resultado"){
+    var etapa=etapaRevelacao();
+    if(etapa<4) botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();avancarRevelacao()">'+esc(rotuloProximaRevelacao(etapa))+'</button>';
+    else autoInfo='<div class="card"><b>Revela&ccedil;&atilde;o conclu&iacute;da</b><p class="muted">O placar final est&aacute; vis&iacute;vel. Encerre a sala quando terminar.</p></div>';
+  }
   var conectados=js.map(function(j){var status=fase==="sala"?(j.pronto?'pronto':'aguardando prontid&atilde;o'):'conectado';return '<div class="conectado-item"><span>'+esc(j.nome)+'</span><span class="muted">'+status+'</span></div>';}).join('')||'<p class="muted">Nenhum participante conectado.</p>';
   var m=STATE.mesa, qr=m?'https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=8&data='+encodeURIComponent(m.link):'';
   var painel=STATE.menuMestreAberto?'<div class="menu-mestre-fundo" onclick="if(event.target===this)alternarMenuMestre()"><div class="menu-mestre-card">'+
@@ -1156,7 +1185,7 @@ function orientacaoCaso(fase){
   if(fase==="cooperacao") return "Registre em segredo quem mais colaborou com o seu núcleo.";
   if(fase==="mercado") return "Avalie as ofertas. Comprar, vender ou recusar são decisões possíveis.";
   if(fase==="deducao") return "Complete sua acusação final. Depois de enviar, a resposta não poderá ser alterada.";
-  if(fase==="resultado") return "Confira o resultado final da investigação.";
+  if(fase==="resultado") return etapaRevelacao()<4?"Acompanhe a reconstrução final do caso.":"Confira o placar final da investigação.";
   return "Acompanhe as instruções desta rodada.";
 }
 function painelCasoMovel(){
@@ -1297,6 +1326,10 @@ function telaPainel(){
   if(!m) return telaInicio();
   var js=ordenados(STATE.jogadores);
   var fase=(STATE.doc&&STATE.doc.fase)||"sala";
+  if(fase==="resultado"){
+    var etapa=etapaRevelacao(), controle=etapa<4?'<div class="controle-revelacao"><button class="btn btn-ambar" onclick="avancarRevelacao()">'+esc(rotuloProximaRevelacao(etapa))+'</button></div>':'';
+    return cabecalhoRodada(fase)+'<div class="revelacao-final">'+telaResultado()+controle+'</div>';
+  }
   var grade="";
 
   if(!js.length){
@@ -1578,23 +1611,42 @@ function telaVotacao(){
     '<div class="pers-lista">'+ops+'</div>';
 }
 
+function etapaRevelacao(){return Math.max(0,Math.min(4,Number((STATE.doc&&STATE.doc.revelacaoEtapa)||0)));}
+function rotuloProximaRevelacao(etapa){return ["Mostrar como aconteceu","Revelar evidências","Revelar confiabilidade","Mostrar placar"][etapa]||"";}
+function rotuloDeducao(grupo,id){
+  var lista=((CASO.deducao||{})[grupo]||[]), item=lista.find(function(x){return x.id===id;});
+  return item?(item.rotulo||item.nome||id):id;
+}
 function telaResultado(){
-  var js=ordenados(STATE.jogadores).slice().sort(function(a,b){ return (b.total||0)-(a.total||0); });
-  var grade="";
+  var etapa=etapaRevelacao(), rev=CASO.revelacaoFinal||{}, sol=CASO.solucao||{};
+  if(etapa===0){
+    var suspeito=personagemPor(sol.suspeito);
+    return '<span class="eyebrow">A verdade</span><h2>'+esc(rev.titulo||"A verdade foi reconstruída")+'</h2><p class="lead">'+esc(rev.sintese||"")+'</p><div class="revelacao-chave">'+
+      '<div class="card"><b>Suspeito principal</b>'+esc(nomePers(suspeito,"m"))+'</div>'+
+      '<div class="card"><b>Motivo</b>'+esc(rotuloDeducao("motivos",sol.motivo))+'</div>'+
+      '<div class="card"><b>Ação decisiva</b>'+esc(rotuloDeducao("acoes",sol.acao))+'</div>'+
+      '<div class="card"><b>Prova-chave</b>'+esc(rotuloDeducao("provas",sol.prova))+'</div>'+
+      '<div class="card"><b>Lacuna resolvida</b>'+esc(rotuloDeducao("lacunas",sol.lacuna))+'</div></div>';
+  }
+  if(etapa===1){
+    var historia=(rev.historia||CASO.historia||[]).map(function(p){return '<div class="card"><p>'+esc(p)+'</p></div>';}).join('');
+    return '<span class="eyebrow">Como aconteceu</span><h2>A noite em ordem.</h2><div class="revelacao-passos">'+historia+'</div>';
+  }
+  if(etapa===2){
+    var evidencias=(rev.evidencias||[]).map(function(e){return '<div class="card"><b>'+esc(e.titulo)+'</b><p class="muted">'+esc(e.texto)+'</p></div>';}).join('');
+    var qualidades=Object.keys(CASO.pistas||{}).map(function(k){var p=CASO.pistas[k], per=personagemPor(k);return '<div class="card"><span class="eyebrow">'+esc((p.qualidade||"mediana").toUpperCase())+'</span><b>'+esc(nomePers(per,"m"))+'</b><p class="muted">'+esc(p.txt)+'</p></div>';}).join('');
+    return '<span class="eyebrow">O papel das evidências</span><h2>Nem todo sinal tinha o mesmo peso.</h2>'+evidencias+'<h3 style="margin:26px 0 14px">Qualidade objetiva das pistas privadas</h3><div class="grade">'+qualidades+'</div>';
+  }
+  if(etapa===3){
+    var confiancas=ordenados(STATE.jogadores).map(function(j){var p=personagemPor(j.personagem), e=j.economiaDetalhe||{}, c=Number(e.confiabilidade)||0;return '<div class="jog"><div class="av">'+(p?p.av:"👤")+'</div><div class="nm">'+esc(nomePers(p,j.forma))+'</div><div class="confianca-valor '+(c<0?'neg':'')+'">'+(c>0?'+':'')+c+'</div><div class="est">Confiabilidade</div></div>';}).join('');
+    return '<span class="eyebrow">Validação ex post</span><h2>Preço pedido × qualidade real.</h2><p class="lead">Pistas boas oferecidas por preço justo fortaleceram a Confiabilidade. Pistas fracas vendidas caro reduziram o resultado e, quando negativo, bloquearam a Qualidade do Gasto.</p><div class="grade">'+confiancas+'</div><p class="muted" style="text-align:center">O resultado dos votos cegos continua oculto.</p>';
+  }
+  var js=ordenados(STATE.jogadores).slice().sort(function(a,b){ return (b.total||0)-(a.total||0); }), grade="";
   for(var i=0;i<js.length;i++){
     var j=js[i], p=personagemPor(j.personagem);
-    grade+='<div class="jog'+(i===0?' st-atuando':'')+'">'+
-      '<div class="av">'+(p?p.av:"👤")+'</div>'+
-      '<div class="nm">'+esc(nomePers(p,j.forma))+'</div>'+
-      '<div class="pers">&nbsp;</div>'+
-      '<div class="pt">'+(j.total||0)+'</div>'+
-      '<div class="est">pontos</div>'+
-    '</div>';
+    grade+='<div class="jog'+(i===0?' st-atuando':'')+'"><div class="av">'+(p?p.av:"👤")+'</div><div class="nm">'+esc(nomePers(p,j.forma))+'</div><div class="pers">'+(i===0?'1º lugar':'&nbsp;')+'</div><div class="pt">'+(j.total||0)+'</div><div class="est">pontos</div></div>';
   }
-  return '<span class="eyebrow">Placar final</span>'+
-    '<h2>A verdade foi reconstru&iacute;da.</h2>'+
-    '<div class="grade" style="margin-top:22px">'+grade+'</div>'+
-    '<p class="muted" style="text-align:center">Tempo 32% &middot; Qualidade 13% &middot; Coopera&ccedil;&atilde;o 30% &middot; Economia 20% &middot; Performance 5%</p>';
+  return '<span class="eyebrow">Placar final</span><h2>A verdade foi reconstruída.</h2><div class="grade" style="margin-top:22px">'+grade+'</div><p class="muted" style="text-align:center">Tempo 32% &middot; Qualidade 13% &middot; Cooperação 30% &middot; Economia 20% &middot; Performance 5%</p>';
 }
 
 function telaTarefaSensor(tipo){
@@ -2195,6 +2247,11 @@ async function enviarDeducao(){
   dados.pistasUsadas=Array.from(document.querySelectorAll('input[name="pista-usada"]:checked')).map(function(x){return x.value;});
   var FB=await esperarFB(); await FB.gravarServidor(STATE.eu.codigo,'deducoes',STATE.eu.id,dados,'submetidoEm');
 }
+async function avancarRevelacao(){
+  if(!souMestreDaMesa()||!STATE.doc||STATE.doc.fase!=="resultado") return;
+  var atual=etapaRevelacao(); if(atual>=4) return;
+  var FB=await esperarFB(); await FB.atualizarMesa(STATE.mesa.codigo,{revelacaoEtapa:atual+1});
+}
 async function finalizarPartida(){
   var sol=CASO.solucao||{}, deducoes=STATE.v5.deducoes.map(function(d){
     var campos=['motivo','acao','prova','lacuna'].reduce(function(n,k){return n+(d[k]===sol[k]?1:0);},0);
@@ -2223,7 +2280,7 @@ async function finalizarPartida(){
   var placar=MosaicoV5.calcular({jogadores:STATE.jogadores,deducoes:deducoes,negociacoes:negociacoes,coopColetiva:coletivo,coopIndividual:coopInd,performance:perf});
   var FB=await esperarFB();
   for(var i=0;i<placar.length;i++) await FB.atualizarJogador(STATE.mesa.codigo,placar[i].id,{total:placar[i].total,pontuacao:placar[i].componentes,economiaDetalhe:placar[i].economia});
-  await FB.atualizarMesa(STATE.mesa.codigo,{fase:'resultado',reveladaEmMs:Date.now(),solucao:sol});
+  await FB.atualizarMesa(STATE.mesa.codigo,{fase:'resultado',revelacaoEtapa:0,reveladaEmMs:Date.now(),solucao:sol});
 }
 
 /* Encerra a mesa: marca ativa:false. Quem esta jogando ve o aviso e sai,

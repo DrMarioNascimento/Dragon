@@ -516,7 +516,7 @@ A entrada está limitada a doze participantes. Acima de seis, os seis arquétipo
 
 ### 13.4 História final
 
-Os parágrafos existem no JSON, mas ainda não há tela funcional de revelação da história completa.
+Implementada como uma revelação sincronizada em cinco etapas: **A verdade**, **Como aconteceu**, **Evidências**, **Confiabilidade** e **Placar**. O mestre avança cada etapa; todos os celulares e o telão acompanham pelo campo `revelacaoEtapa` da sala. Os votos cegos permanecem ocultos.
 
 ### 13.5 Placar consolidado
 
@@ -554,11 +554,11 @@ Mesas de teste antigas no Firestore devem ser removidas periodicamente.
 ## 16. Ordem recomendada de implementação
 
 1. publicar e validar `firestore.rules` no projeto Firebase;
-2. revelação narrativa completa do caso;
-3. ampliar o elenco para sessões acima de seis pessoas;
-4. modo interativo alternativo para aparelhos sem sensores;
-5. proteção efetiva das pistas em backend confiável;
-6. testes de integração da reconexão com o Firestore e playtest presencial.
+2. ampliar o elenco para sessões acima de seis pessoas;
+3. modo interativo alternativo para aparelhos sem sensores;
+4. proteção efetiva das pistas em backend confiável;
+5. testes de integração da reconexão e da revelação final com o Firestore;
+6. playtest presencial completo.
 
 ---
 

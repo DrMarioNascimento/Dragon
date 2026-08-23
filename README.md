@@ -32,7 +32,7 @@ Não publique links de demonstração, arquivos, capturas extensas, documentaç�
 4. Mosaico coletivo por núcleos e voto interno cego;
 5. Mercado Cego com moedas, preços configuráveis e registro das compras;
 6. dedução final com Suspeito, Motivo, Ação, Prova e Lacuna;
-7. revelação e placar de Tempo (32%), Qualidade (13%), Cooperação (30%), Economia e Risco (20%) e Performance (5%).
+7. revelação sincronizada em cinco telas — verdade, história, evidências, Confiabilidade e placar — seguida do resultado de Tempo (32%), Qualidade (13%), Cooperação (30%), Economia e Risco (20%) e Performance (5%).
 
 Os parâmetros do caso ficam em `casos/casa-da-costa.json`. O cálculo puro e testável fica em `js/mosaico-v5.js`. Todos os pontos do jogo são inteiros.
 
