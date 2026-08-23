@@ -164,6 +164,19 @@ grep -i "encena\|interpreta" MOSAICO-mesa.html
 
 No modo **Com telão**, durante a abertura/encenação, o painel não mostra nem destaca a pessoa da vez. Exibe apenas **“Observe o ambiente e escute os sons!”**. O celular individual é o único indicador de quem deve agir.
 
+O topo da interface identifica sempre a rodada atual, em cor contrastante e tipografia ampliada:
+
+| Fases internas | Nome exibido |
+|---|---|
+| `sala` | Preparação da mesa |
+| `encenacao` e `votacao` | Apresentação |
+| `mosaico` e `cooperacao` | Jogador ajuda seu grupo |
+| `mercado` | Jogador contra jogador |
+| `deducao` | Jogador contra o caso |
+| `resultado` | Resultado final |
+
+No modo Sem telão, o mesmo cabeçalho aparece nos celulares.
+
 ### 5.3 O nome desaparece
 
 Antes da tarefa, o telão mostra o nome. Depois, mostra apenas o arquétipo. O nome não reaparece na votação nem no resultado.

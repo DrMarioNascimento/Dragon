@@ -142,6 +142,16 @@
   /* o painel e projetado: precisa de largura e de leitura a distancia */
   #app.largo{max-width:1180px;padding-left:28px;padding-right:28px}
   .painel-cols{display:grid;grid-template-columns:1fr;gap:24px;align-items:start}
+  .rodada-telao{text-align:center;margin:2px auto 18px;padding:13px 22px;
+    width:min(92%,820px);border:1px solid rgba(72,190,210,.65);border-radius:8px;
+    background:linear-gradient(135deg,rgba(25,91,107,.9),rgba(9,35,49,.94));
+    color:#bdf5ff;box-shadow:0 0 34px rgba(72,190,210,.18)}
+  .rodada-telao .rotulo{display:block;font-size:clamp(10px,2vw,13px);font-weight:800;
+    letter-spacing:.3em;text-transform:uppercase;color:var(--ambar);margin-bottom:5px}
+  .rodada-telao .nome{display:block;font-family:var(--serif);font-size:clamp(28px,5vw,52px);
+    line-height:1.05;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+  .rodada-celular{margin:0 auto 20px;padding:10px 14px;width:100%}
+  .rodada-celular .nome{font-size:clamp(22px,7vw,32px)}
   /* Telao deitado: duas colunas lado a lado. */
   @media(min-width:900px) and (min-aspect-ratio: 1/1){
     .painel-cols{grid-template-columns:1.25fr .75fr;gap:34px}
@@ -166,6 +176,8 @@
     #app.largo .publica .pq{font-size:1.9vw}
     #app.largo .publicas-vazio,#app.largo .vazio{font-size:2.6vw}
     #app.largo .barra .conta{font-size:2vw}
+    #app.largo .rodada-telao .rotulo{font-size:1.4vw}
+    #app.largo .rodada-telao .nome{font-size:4vw}
     #app.largo .btn{font-size:1.8vw;padding:2.4vh 3vw}
     #app.largo .muted{font-size:1.8vw}
   }
@@ -1003,6 +1015,22 @@ function avisoLocal(){
 function modoAtual(){
   return (STATE.doc&&STATE.doc.modo)||(STATE.mesa&&STATE.mesa.modo)||STATE.modoMesa||"com-telao";
 }
+function nomeRodada(fase){
+  var nomes={
+    sala:"Preparação da mesa",
+    encenacao:"Apresentação",
+    votacao:"Apresentação",
+    mosaico:"Jogador ajuda seu grupo",
+    cooperacao:"Jogador ajuda seu grupo",
+    mercado:"Jogador contra jogador",
+    deducao:"Jogador contra o caso",
+    resultado:"Resultado final"
+  };
+  return nomes[fase]||"MOSAICO";
+}
+function cabecalhoRodada(fase, classe){
+  return '<div class="rodada-telao '+(classe||'')+'"><span class="rotulo">Rodada atual</span><span class="nome">'+esc(nomeRodada(fase))+'</span></div>';
+}
 function souMestreDaMesa(){
   var codigo=(STATE.eu&&STATE.eu.codigo)||(STATE.mesa&&STATE.mesa.codigo)||"";
   try{return !!codigo&&sessionStorage.getItem("mosaico_mestre_codigo")===codigo;}catch(e){return false;}
@@ -1067,7 +1095,7 @@ function render(){
     case "resultado":   h=telaResultado(); break;
     default:            h=telaInicio();
   }
-  if(STATE.eu && modoAtual()==="sem-telao") h+=muralColetivoMovel();
+  if(STATE.eu && modoAtual()==="sem-telao") h=cabecalhoRodada((STATE.doc&&STATE.doc.fase)||"sala","rodada-celular")+h+muralColetivoMovel();
   if(STATE.eu && souMestreDaMesa() && modoAtual()==="sem-telao") h+=controlesMestreMovel();
   app.innerHTML=h;
 }
@@ -1230,7 +1258,7 @@ function telaPainel(){
     acao='<button class="btn btn-frio" onclick="voltarParaSala()">Voltar &agrave; sala</button>';
   }
 
-  return '<div class="barra">'+
+  return cabecalhoRodada(fase)+'<div class="barra">'+
       '<span class="conta">'+js.length+' na mesa</span>'+
       '<span class="selo ok">'+(modoAtual()==="sem-telao"?'Sem tel&atilde;o':'Com tel&atilde;o')+'</span>'+
       '<span class="selo '+(m.fb?"ok":"esperando")+'">'+(m.fb?"Ao vivo":"Conectando…")+'</span>'+
