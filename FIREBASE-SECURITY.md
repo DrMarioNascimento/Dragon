@@ -7,6 +7,7 @@ O arquivo `firestore.rules` é a fonte versionada das permissões do projeto `mo
 - toda operação exige autenticação;
 - somente o UID que criou a sala pode alterar fases, encerrá-la e publicar o placar;
 - cada participante cria apenas o documento correspondente ao próprio UID;
+- uma pessoa autenticada com o código de uma sala ativa pode consultar a lista de jogadores necessária à entrada;
 - alterações ordinárias ficam limitadas a prontidão, personagem e Arquivo do próprio jogador;
 - compras validam, na mesma transação, oferta, comprador, vendedor, preço e variação das moedas;
 - votos de Performance e Cooperação são únicos, sem voto em si e legíveis apenas pelo autor e pelo mestre;

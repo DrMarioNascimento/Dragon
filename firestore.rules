@@ -69,7 +69,9 @@ service cloud.firestore {
       allow delete: if false;
 
       match /jogadores/{playerId} {
-        allow read: if inside(roomId);
+        /* A entrada consulta a lista antes de criar o próprio documento,
+           para respeitar o limite e evitar personagem duplicado. */
+        allow read: if signedIn() && active(roomId);
         allow create: if active(roomId)
           && signedIn()
           && playerId == request.auth.uid
@@ -122,7 +124,9 @@ service cloud.firestore {
       }
 
       match /tarefas/{taskId} {
-        allow read: if master(roomId) || resource.data.jogadorId == request.auth.uid;
+        allow read: if master(roomId)
+          || taskId == request.auth.uid + '_constelacao'
+          || taskId == request.auth.uid + '_inclinacao';
         allow create: if active(roomId)
           && request.resource.data.jogadorId == request.auth.uid
           && request.resource.data.tarefa in ['constelacao', 'inclinacao']
