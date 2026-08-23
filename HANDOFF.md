@@ -177,7 +177,9 @@ O topo da interface identifica sempre a rodada atual, em cor contrastante e tipo
 
 No modo Sem telão, o mesmo cabeçalho aparece nos celulares.
 
-Comandos de ação devem explicitar ação e consequência. Na revelação da pista, usar **“Toque para guardar a pista no Arquivo e seguir com o caso”** e o botão **“Guardar no Arquivo”**; evitar “Guarde” isolado, que pode ser confundido visualmente com “Aguarde”.
+O celular permanece com cada jogador durante toda a encenação. A pessoa lê sua instrução no próprio aparelho e mantém a tela voltada somente para si, protegendo a pista privada. Nunca orientar que o celular seja deixado sobre a mesa.
+
+Comandos de ação devem explicitar ação e consequência. Na revelação da pista, usar **“Toque para adicionar a pista ao Arquivo e seguir com o caso”** e o botão **“Adicionar ao Arquivo”**; evitar “Guarde” isolado, que pode ser confundido visualmente com “Aguarde”.
 
 ### 5.3 O nome desaparece
 

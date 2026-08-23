@@ -1340,8 +1340,8 @@ function telaEsperando(){
     '<div class="revelacao">'+
       '<div class="pulso" style="margin:0 auto 26px"></div>'+
       '<h2 class="rv-nome">A casa vai<br>come&ccedil;ar.</h2>'+
-      '<p class="lead rv-desc" style="margin-bottom:0">Deixe o celular sobre a mesa. '+
-      'Ele acende sozinho quando for a sua vez.</p>'+
+      '<p class="lead rv-desc" style="margin-bottom:0">Mantenha o celular com voc&ecirc; e proteja sua tela. '+
+      'Ele mostrar&aacute; as instru&ccedil;&otilde;es quando chegar a sua vez.</p>'+
     '</div>'+
     '<div class="contagem-prontos">'+contaProntos()+' de '+js.length+' prontos</div>';
 }
@@ -1356,7 +1356,7 @@ function telaEncenacao(){
     /* o nome pode aparecer — o personagem nao */
     return '<div id="escuro"><div class="pulso"></div>'+
       '<div class="quem">'+(atual?esc(atual.nome):"&mdash;")+'</div>'+
-      '<div class="sub">Deixe o celular sobre a mesa e observe o ambiente.</div></div>';
+      '<div class="sub">Mantenha o celular com voc&ecirc;, proteja sua tela e observe o ambiente.</div></div>';
   }
 
   if(STATE.contando>0){
@@ -1370,6 +1370,7 @@ function telaEncenacao(){
 
   /* sem o nome do personagem: quem esta atuando ainda nao sabe quem e */
   return '<span class="eyebrow">&Eacute; a sua vez</span>'+
+    '<p class="muted" style="text-align:center">Leia no seu celular e mantenha a tela voltada somente para voc&ecirc;.</p>'+
     '<div class="roteiro">'+
       '<div class="quem">Fa&ccedil;a agora, em voz alta</div>'+
       '<div class="rub">'+esc(flex(r.rub,fm))+'</div>'+
@@ -1393,9 +1394,9 @@ function telaRevelacao(){
     (pista?'<div class="pista-card">'+
       '<span class="ph">'+esc(pista.hora)+' &middot; sua pista</span>'+
       '<div class="pt">'+esc(pista.txt)+'</div></div>':'')+
-    '<p class="muted" style="text-align:center;margin:18px 0 8px">Toque para guardar a pista no Arquivo e seguir com o caso.</p>'+
+    '<p class="muted" style="text-align:center;margin:18px 0 8px">Toque para adicionar a pista ao Arquivo e seguir com o caso.</p>'+
     '<button class="btn btn-ambar" style="margin-top:8px" '+
-      'onclick="guardarPista()">Guardar no Arquivo</button>';
+      'onclick="guardarPista()">Adicionar ao Arquivo</button>';
 }
 
 function telaEncerrada(){
