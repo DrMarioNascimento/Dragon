@@ -553,9 +553,12 @@
 
   /* ================= TELAS DO JOGADOR (celular) ================= */
 
-  /* espera: a arte manda, o botao Pronto ancora embaixo */
-  body.t-espera #arte{ background-image:url("img/aguardando.jpg"); opacity:1; }
-  body.t-espera #arte::after{
+  /* Duas artes, dois momentos:
+     - chegou e ainda nao se declarou pronto -> a casa no penhasco
+     - declarou pronto, esperando os outros  -> o celular e as pecas   */
+  body.t-espera #arte{ background-image:url("img/capa-vertical.jpg"); opacity:1; }
+  body.t-pronto #arte{ background-image:url("img/aguardando.jpg"); opacity:1; }
+  body.t-espera #arte::after, body.t-pronto #arte::after{
     background:linear-gradient(180deg,
       rgba(5,7,12,.05) 0%, rgba(5,7,12,.12) 30%, rgba(5,7,12,.30) 100%);
   }
@@ -914,8 +917,12 @@ function avisoLocal(){
    ============================================================ */
 function render(){
   var app=document.getElementById("app");
+  var esperandoPronto = STATE.tela==="esperando" && !souPronto();
   app.className = (STATE.tela==="painel") ? "largo"
-                : (STATE.tela==="inicio") ? "capa" : "";
+                : (STATE.tela==="inicio") ? "capa"
+                : (STATE.tela==="esperando") ? "espera" : "";
+  document.body.classList.toggle("t-espera", esperandoPronto);
+  document.body.classList.toggle("t-pronto", STATE.tela==="esperando" && !esperandoPronto);
   /* toggle em vez de sobrescrever: com-video precisa sobreviver ao render */
   document.body.classList.toggle("t-painel", STATE.tela==="painel");
   document.body.classList.toggle("t-inicio", STATE.tela==="inicio");
@@ -1054,11 +1061,19 @@ function telaPainel(){
 
   var acao="";
   if(fase==="sala"){
-    /* o rotulo nao pode entregar o que vem: a encenacao e uma TAREFA
-       do jogo, e a surpresa faz parte dela */
-    acao='<button class="btn btn-ambar" '+(js.length<2?'disabled':'')+
+    /* Quem abriu a mesa e o ultimo gate: mesmo com todos prontos, o inicio
+       so acontece quando ele libera — assim da para esperar atrasados.
+       O rotulo nao entrega o que vem; a tarefa e surpresa.             */
+    var prontos=contaProntos();
+    var todosProntos = js.length>=2 && prontos===js.length;
+    acao='<button class="btn btn-ambar" '+(todosProntos?'':'disabled')+
          ' onclick="iniciarEncenacao()">Come&ccedil;ar o jogo</button>'+
-         (js.length<2?'<p class="muted">Precisa de pelo menos duas pessoas.</p>':'');
+         '<p class="muted" style="text-align:center">'+
+         (js.length<2 ? 'Precisa de pelo menos duas pessoas.'
+                      : prontos+' de '+js.length+' prontos'+
+                        (todosProntos?' &mdash; pode come&ccedil;ar quando quiser.'
+                                     :'. Esperando os que faltam.'))+
+         '</p>';
   } else if(fase==="encenacao"){
     /* o telao diz QUEM esta na vez, mas nunca qual personagem */
     var vez=STATE.doc.vez||0;
@@ -1115,22 +1130,46 @@ function modalQr(){
 
 /* O personagem e segredo ate a hora. Nem o proprio jogador sabe quem
    pegou: ele recebe a rubrica e a fala, interpreta, e so depois descobre. */
+function souPronto(){
+  if(!STATE.eu) return false;
+  for(var i=0;i<STATE.jogadores.length;i++)
+    if(STATE.jogadores[i].id===STATE.eu.id) return STATE.jogadores[i].pronto===true;
+  return false;
+}
+function contaProntos(){
+  var n=0;
+  for(var i=0;i<STATE.jogadores.length;i++) if(STATE.jogadores[i].pronto===true) n++;
+  return n;
+}
+
 function telaEsperando(){
   var js=ordenados(STATE.jogadores);
+  var pronto=souPronto();
   var cls=STATE.revelando?" revela":"";
   if(STATE.revelando) setTimeout(function(){ STATE.revelando=false; },2600);
-  return '<span class="eyebrow">Voc&ecirc; est&aacute; na casa</span>'+
-    '<div class="revelacao'+cls+'">'+
-      '<div class="rv-av">🕯️</div>'+
-      '<h2 class="rv-nome">A casa j&aacute;<br>decidiu.</h2>'+
-      '<p class="lead rv-desc" style="margin-bottom:0">Voc&ecirc; ainda n&atilde;o sabe quem &eacute; '+
-      'nesta noite. Vai descobrir na hora.</p>'+
+
+  if(!pronto){
+    return '<span class="eyebrow">Voc&ecirc; est&aacute; na casa</span>'+
+      '<div class="revelacao'+cls+'">'+
+        '<div class="rv-av">🕯️</div>'+
+        '<h2 class="rv-nome">A casa j&aacute;<br>decidiu.</h2>'+
+        '<p class="lead rv-desc" style="margin-bottom:0">Voc&ecirc; ainda n&atilde;o sabe quem &eacute; '+
+        'nesta noite. Vai descobrir na hora.</p>'+
+      '</div>'+
+      '<button class="btn btn-ambar" onclick="marcarPronto()">Estou pronto para jogar</button>'+
+      '<p class="muted" style="text-align:center;margin-top:14px">'+
+        contaProntos()+' de '+js.length+' j&aacute; est&atilde;o prontos.</p>';
+  }
+
+  /* declarou pronto: troca a arte e fica assim ate chegar a vez */
+  return '<span class="eyebrow">Pronto</span>'+
+    '<div class="revelacao">'+
+      '<div class="pulso" style="margin:0 auto 26px"></div>'+
+      '<h2 class="rv-nome">A casa vai<br>come&ccedil;ar.</h2>'+
+      '<p class="lead rv-desc" style="margin-bottom:0">Guarde o celular. '+
+      'Ele acende sozinho quando for a sua vez.</p>'+
     '</div>'+
-    '<div class="card"><span class="eyebrow">Na casa agora</span>'+
-      '<p class="muted" style="font-size:clamp(17px,4.6vw,21px)">'+
-      js.map(function(j){return esc(j.nome);}).join(" &middot; ")+'</p></div>'+
-    '<p class="muted" style="text-align:center;margin-top:24px">'+
-      'A casa ainda est&aacute; recebendo. Aguarde.</p>';
+    '<div class="contagem-prontos">'+contaProntos()+' de '+js.length+' prontos</div>';
 }
 
 function telaEncenacao(){
@@ -1387,7 +1426,8 @@ async function entrarNaMesa(){
     try{ sessionStorage.setItem("mosaico_eu",JSON.stringify(STATE.eu)); }catch(e){}
 
     await FB.entrarJogador(codigo,id,{
-      nome:nome, personagem:sorteado, forma:forma, status:"pronto",
+      nome:nome, personagem:sorteado, forma:forma,
+      pronto:false,          /* so o proprio jogador se declara pronto */
       entrouMs:Date.now(), votos:0
     });
     _unsubJog=FB.ouvirJogadores(codigo,function(l){ STATE.jogadores=l; sincronizarJogador(); });
@@ -1497,6 +1537,12 @@ async function terminei(){
 function guardarPista(){
   STATE.travaTela=false;
   sincronizarJogador();
+}
+
+async function marcarPronto(){
+  if(!STATE.eu) return;
+  var FB=await esperarFB();
+  await FB.atualizarJogador(STATE.eu.codigo, STATE.eu.id, { pronto:true });
 }
 
 async function pularVez(){
