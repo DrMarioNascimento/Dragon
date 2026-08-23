@@ -1,6 +1,6 @@
 # Dragon — Laboratório Pessoal
 
-> **Projeto autoral privado de Mário César Nascimento, PhD. Todos os direitos reservados.**
+> **Repositório público para consulta. Obra autoral proprietária de Mário César Nascimento, PhD. Todos os direitos reservados.**
 
 O **Dragon** é um laboratório pessoal de criação e desenvolvimento de experiências interativas, jogos, casos, narrativas e materiais educacionais autorais.
 
@@ -16,11 +16,25 @@ O repositório reúne atualmente protótipos e componentes do **MOSAICO**, inclu
 
 Os arquivos representam etapas de trabalho em evolução e podem conter versões experimentais, intermediárias ou ainda não consolidadas.
 
-## Acesso restrito
+## Acesso e licença
 
-Este repositório e todo o seu conteúdo destinam-se exclusivamente ao autor e às pessoas por ele expressamente autorizadas. O acesso ao repositório não concede licença de uso, reprodução, adaptação, redistribuição, publicação ou exploração do material.
+O repositório é público, mas visibilidade não equivale a licença aberta. O acesso ao código e aos materiais não concede autorização de uso, reprodução, adaptação, redistribuição, publicação ou exploração.
 
 Não publique links de demonstração, arquivos, capturas extensas, documentação interna ou qualquer parte do projeto sem autorização prévia e escrita do titular.
+
+## Fluxo consolidado do jogo
+
+`MOSAICO-mesa.html` implementa a pontuação V5 em fases sucessivas:
+
+1. História que Pula e voto cego de Performance;
+2. Mosaico coletivo por núcleos e voto interno cego;
+3. Mercado Cego com moedas, preços configuráveis e registro das compras;
+4. dedução final com Suspeito, Motivo, Ação, Prova e Lacuna;
+5. revelação e placar de Tempo (32%), Qualidade (13%), Cooperação (30%), Economia e Risco (20%) e Performance (5%).
+
+Os parâmetros do caso ficam em `casos/casa-da-costa.json`. O cálculo puro e testável fica em `js/mosaico-v5.js`. Todos os pontos do jogo são inteiros.
+
+Para publicar, configure o Firebase no final de `MOSAICO-mesa.html`, habilite autenticação anônima e aplique regras compatíveis com as novas coleções (`jogadores`, `votos`, `votosCooperacao`, `nucleos`, `ofertas`, `negociacoes`, `deducoes` e `publicas`). Antes de uma sessão real, teste as regras no emulador do Firebase; o jogo não deve depender de regras abertas em modo de teste.
 
 ## Autoria e titularidade
 

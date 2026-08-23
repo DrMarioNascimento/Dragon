@@ -65,6 +65,8 @@ Dragon/
 ├── MOSAICO-24.4-inclinacao-fragmento.html
 ├── casos/
 │   └── casa-da-costa.json
+├── js/
+│   └── mosaico-v5.js
 ├── img/
 │   ├── abertura.mp4
 │   ├── aguardando.jpg
@@ -112,8 +114,16 @@ O código atual entrega a primeira experiência jogável:
 - pista privada armazenada no Firestore;
 - menu **Minhas pistas**;
 - cronologia pública;
-- votação sem auto-voto;
-- prêmio da mesa;
+- voto cego de Performance sem auto-voto;
+- divisão automática em núcleos de 2 ou 3 participantes;
+- Mosaico Coletivo com colocação registrada pelo servidor;
+- voto interno cego, restrito ao núcleo e sem auto-voto;
+- Mercado Cego com 9 moedas iniciais e preços configuráveis de 1/3/5;
+- compra transacional de pistas e transferência de moedas;
+- formulário completo de Dedução Final;
+- registro temporal da resposta no servidor;
+- pontuação V5 inteira e placar consolidado;
+- calibração ex post da Confiabilidade, com bloqueio da Qualidade do Gasto quando negativa;
 - encerramento da sala;
 - carregamento opcional de caso por `?caso=nome`;
 - manifesto para instalação;
@@ -123,11 +133,11 @@ O código atual entrega a primeira experiência jogável:
 
 No Firestore:
 
-`sala` → `encenacao` → `votacao` → `resultado`
+`sala` → `encenacao` → `votacao` → `mosaico` → `cooperacao` → `mercado` → `deducao` → `resultado`
 
 Telas locais:
 
-`inicio`, `entrar`, `esperando`, `encenacao`, `revelacao`, `votacao`, `resultado`, `encerrada`, `painel`.
+`inicio`, `entrar`, `esperando`, `encenacao`, `revelacao`, `votacao`, `mosaico`, `cooperacao`, `mercado`, `deducao`, `resultado`, `encerrada`, `painel`.
 
 O resultado atual é apenas o **prêmio da mesa**. Não é o placar completo de dedução descrito nas seções seguintes.
 
@@ -465,7 +475,7 @@ A senha do mestre no cliente não constitui segurança. Antes de uso ampliado:
 
 ### 13.3 Limite de jogadores
 
-O código atual repete arquétipos acima de seis participantes. Até existirem novos arquétipos, a entrada do sétimo jogador deve ser bloqueada.
+A entrada está limitada a doze participantes. Acima de seis, os seis arquétipos do caso se repetem; novos arquétipos continuam recomendados antes de playtests maiores.
 
 ### 13.4 História final
 
@@ -473,17 +483,11 @@ Os parágrafos existem no JSON, mas ainda não há tela funcional de revelação
 
 ### 13.5 Placar consolidado
 
-Tempo, Qualidade, Cooperação, Economia, Performance, Dedução Final, mercado, núcleos e escore completo ainda são especificação, não implementação.
+Tempo, Qualidade, Cooperação, Economia, Performance, Dedução Final, mercado, núcleos e escore completo estão implementados em `MOSAICO-mesa.html` e `js/mosaico-v5.js`.
 
 ### 13.6 Parâmetros de playtest
 
-Ainda devem ser definidos:
-
-- moedas iniciais;
-- faixas numéricas de preço baixo, justo e alto;
-- tempo-limite das votações;
-- tempo-limite da Dedução Final;
-- metadados de qualidade de cada pista.
+O caso define valores iniciais configuráveis: 9 moedas, preços baixo/justo/alto de 1/3/5, limites de 60/60/480/300 segundos e qualidade objetiva das pistas. Os valores são parâmetros de playtest, não constantes irreversíveis do motor.
 
 ---
 
@@ -512,20 +516,13 @@ Mesas de teste antigas no Firestore devem ser removidas periodicamente.
 
 ## 16. Ordem recomendada de implementação
 
-1. reconexão;
-2. regras seguras do Firestore;
-3. bloqueio temporário em seis jogadores;
-4. revelação da história final;
-5. Dedução Final;
-6. registro das pistas utilizadas;
-7. núcleos e Mosaico Coletivo;
-8. voto interno cego;
-9. Performance;
-10. mercado e moedas;
-11. cálculo bilateral de Confiabilidade e Qualidade do Gasto;
-12. placar ponderado;
-13. integração opcional dos módulos sensoriais;
-14. testes automatizados e playtest.
+1. reconexão após recarregar a página;
+2. regras seguras do Firestore e identidade própria do mestre;
+3. revelação narrativa completa do caso;
+4. aplicar automaticamente os tempos-limite configurados;
+5. ampliar o elenco para sessões acima de seis pessoas;
+6. integração opcional dos módulos sensoriais;
+7. testes de integração com o Firestore e playtest presencial.
 
 ---
 
@@ -551,7 +548,7 @@ Em caso de conflito:
 4. comportamento implementado no código;
 5. documentos históricos.
 
-O código atual não deve ser interpretado como implementação automática de todas as regras consolidadas. As seções de pontuação descrevem o alvo de desenvolvimento.
+O motor V5 implementa as regras consolidadas de pontuação. As limitações restantes estão registradas na seção 13 e não alteram os pesos do placar.
 
 ---
 

@@ -1,4 +1,4 @@
-# Dragon — Licença Proprietária e Confidencial
+# Dragon — Licença Proprietária — Todos os Direitos Reservados
 
 Copyright © 2026 Mário César Nascimento. Todos os direitos reservados.
 
@@ -6,9 +6,9 @@ Copyright © 2026 Mário César Nascimento. Todos os direitos reservados.
 
 O projeto **Dragon**, incluindo o **MOSAICO** e seus protótipos, atividades, jogos, casos, narrativas, códigos-fonte, estruturas de dados, interfaces, elementos visuais, textos, mecânicas, documentação, organização didática e demais componentes originais, é de titularidade de **Mário César Nascimento**, ressalvados eventuais componentes de terceiros, que permanecem sujeitos às respectivas licenças.
 
-## 2. Natureza privada do projeto
+## 2. Natureza proprietária e visibilidade pública
 
-Este projeto é privado, proprietário e destinado exclusivamente ao titular e às pessoas por ele expressamente autorizadas.
+Este projeto é proprietário. O repositório pode ser disponibilizado publicamente para consulta, demonstração ou transparência de desenvolvimento, sem que essa visibilidade transforme a obra em software livre ou conceda licença de uso.
 
 O acesso ao repositório, a um arquivo, a uma demonstração ou a uma cópia de trabalho não constitui cessão, transferência, renúncia, licença implícita ou autorização de uso além do estritamente necessário à finalidade expressamente indicada pelo titular.
 

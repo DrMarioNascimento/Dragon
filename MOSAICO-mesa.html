@@ -745,6 +745,7 @@
 <div id="cortina"><div id="cortina-txt"></div></div>
 <div id="app"></div>
 
+<script src="js/mosaico-v5.js"></script>
 <script>
 /* ============================================================
    MOSAICO — mesa, painel e encenacao
@@ -914,6 +915,7 @@ var STATE = {
   doc:null,         /* documento da mesa em tempo real */
   votos:[],
   publicas:[],
+  v5:{ performance:[], cooperacao:[], nucleos:[], ofertas:[], negociacoes:[], deducoes:[] },
   qrAberto:false,
   senhaAberta:false,
   revelando:false,
@@ -923,7 +925,13 @@ var STATE = {
   contando:0,
   jaVotei:false
 };
-var _unsubJog=null, _unsubMesa=null, _unsubVotos=null, _unsubPub=null, _timerContagem=null;
+var _unsubJog=null, _unsubMesa=null, _unsubVotos=null, _unsubPub=null, _unsubV5=[], _timerContagem=null;
+function assinarV5(FB,codigo){
+  _unsubV5.forEach(function(f){try{f();}catch(e){}}); _unsubV5=[];
+  [['votosCooperacao','cooperacao'],['nucleos','nucleos'],['ofertas','ofertas'],['negociacoes','negociacoes'],['deducoes','deducoes']].forEach(function(par){
+    _unsubV5.push(FB.ouvirColecao(codigo,par[0],function(lista){STATE.v5[par[1]]=lista;render();}));
+  });
+}
 
 /* ---------- utilidades ---------- */
 function esc(s){
@@ -1011,6 +1019,10 @@ function render(){
     case "revelacao":   h=telaRevelacao(); break;
     case "encerrada":   h=telaEncerrada(); break;
     case "votacao":     h=telaVotacao(); break;
+    case "mosaico":     h=telaMosaico(); break;
+    case "cooperacao":  h=telaCooperacao(); break;
+    case "mercado":     h=telaMercado(); break;
+    case "deducao":     h=telaDeducao(); break;
     case "resultado":   h=telaResultado(); break;
     default:            h=telaInicio();
   }
@@ -1105,7 +1117,7 @@ function telaPainel(){
         '<div class="nm">'+esc(titulo)+'</div>'+
         '<div class="pers">'+(sub?esc(sub):"&mdash;")+'</div>'+
         '<div class="est">'+est+'</div>'+
-        (fase==="resultado"?'<div class="pt">'+(j.votos||0)+'</div>':'')+
+        (fase==="resultado"?'<div class="pt">'+(j.total||0)+'</div>':'')+
       '</div>';
     }
   }
@@ -1157,7 +1169,15 @@ function telaPainel(){
     acao='<div class="card"><span class="eyebrow">Vota&ccedil;&atilde;o aberta</span>'+
          '<p class="muted">'+STATE.votos.length+' de '+js.length+' j&aacute; votaram. '+
          'Ningu&eacute;m pode votar em si.</p></div>'+
-         '<button class="btn btn-ambar" onclick="fecharVotacao()">Fechar e mostrar o placar</button>';
+         '<button class="btn btn-ambar" onclick="fecharVotacao()">Fechar voto e formar n&uacute;cleos</button>';
+  } else if(fase==="mosaico"){
+    acao='<div class="card"><span class="eyebrow">Mosaico coletivo</span><p class="muted">'+STATE.v5.nucleos.filter(function(n){return n.concluidoEm||n.concluidoMs;}).length+' n&uacute;cleo(s) conclu&iacute;do(s).</p></div><button class="btn btn-ambar" onclick="abrirVotoCooperacao()">Encerrar mosaico e abrir voto interno</button>';
+  } else if(fase==="cooperacao"){
+    acao='<div class="card"><span class="eyebrow">Voto interno cego</span><p class="muted">'+STATE.v5.cooperacao.length+' voto(s) recebidos. Os nomes e o resultado permanecem ocultos.</p></div><button class="btn btn-ambar" onclick="abrirMercado()">Encerrar voto e abrir Mercado Cego</button>';
+  } else if(fase==="mercado"){
+    acao='<div class="card"><span class="eyebrow">Mercado Cego</span><p class="muted">'+STATE.v5.negociacoes.length+' compra(s) conclu&iacute;da(s).</p></div><button class="btn btn-ambar" onclick="abrirDeducao()">Fechar mercado e abrir dedu&ccedil;&atilde;o</button>';
+  } else if(fase==="deducao"){
+    acao='<div class="card"><span class="eyebrow">Dedu&ccedil;&atilde;o final</span><p class="muted">'+STATE.v5.deducoes.length+' de '+js.length+' respostas enviadas.</p></div><button class="btn btn-ambar" onclick="finalizarPartida()" '+(STATE.v5.deducoes.length<js.length?'disabled':'')+'>Revelar e calcular placar</button>';
   } else if(fase==="resultado"){
     acao='<button class="btn btn-frio" onclick="voltarParaSala()">Voltar &agrave; sala</button>';
   }
@@ -1312,6 +1332,7 @@ function telaEncerrada(){
 function sairDaMesa(){
   if(_unsubJog) _unsubJog(); if(_unsubMesa) _unsubMesa();
   if(_unsubVotos) _unsubVotos(); if(_unsubPub) _unsubPub();
+  _unsubV5.forEach(function(f){try{f();}catch(e){}}); _unsubV5=[];
   _unsubJog=_unsubMesa=_unsubVotos=_unsubPub=null;
   try{ sessionStorage.removeItem("mosaico_eu"); }catch(e){}
   STATE.eu=null; STATE.jogadores=[]; STATE.doc=null;
@@ -1324,7 +1345,7 @@ function telaVotacao(){
   if(STATE.jaVotei){
     return '<span class="eyebrow">Vota&ccedil;&atilde;o</span>'+
       '<h2>Seu voto est&aacute; guardado.</h2>'+
-      '<p class="lead">'+STATE.votos.length+' de '+js.length+' j&aacute; votaram.</p>';
+      '<p class="lead">Seu voto &eacute; cego. O resultado detalhado n&atilde;o ser&aacute; revelado.</p>';
   }
   var ops="";
   for(var i=0;i<js.length;i++){
@@ -1337,16 +1358,14 @@ function telaVotacao(){
       '<span class="txt"><span class="nm">'+esc(nomePers(p,j.forma))+'</span>'+
       '<span class="desc">'+esc(descPers(p,j.forma))+'</span></span></button>';
   }
-  return '<span class="eyebrow">Vota&ccedil;&atilde;o</span>'+
-    '<h2>Qual interpreta&ccedil;&atilde;o ficou na cabe&ccedil;a?</h2>'+
-    '<p class="lead">Um voto s&oacute;. Voc&ecirc; n&atilde;o aparece na lista.</p>'+
+  return '<span class="eyebrow">Performance &middot; voto cego</span>'+
+    '<h2>Quem mais contribuiu para o clima e a divers&atilde;o?</h2>'+
+    '<p class="lead">Um voto s&oacute;, sem votar em si. O resultado n&atilde;o ser&aacute; exibido.</p>'+
     '<div class="pers-lista">'+ops+'</div>';
 }
 
 function telaResultado(){
-  var js=ordenados(STATE.jogadores).slice().sort(function(a,b){
-    return (b.votos||0)-(a.votos||0);
-  });
+  var js=ordenados(STATE.jogadores).slice().sort(function(a,b){ return (b.total||0)-(a.total||0); });
   var grade="";
   for(var i=0;i<js.length;i++){
     var j=js[i], p=personagemPor(j.personagem);
@@ -1354,15 +1373,60 @@ function telaResultado(){
       '<div class="av">'+(p?p.av:"👤")+'</div>'+
       '<div class="nm">'+esc(nomePers(p,j.forma))+'</div>'+
       '<div class="pers">&nbsp;</div>'+
-      '<div class="pt">'+(j.votos||0)+'</div>'+
-      '<div class="est">'+((j.votos||0)===1?"voto":"votos")+'</div>'+
+      '<div class="pt">'+(j.total||0)+'</div>'+
+      '<div class="est">pontos</div>'+
     '</div>';
   }
-  return '<span class="eyebrow">Cena 1 &middot; Encerrada</span>'+
-    '<h2>A mesa escolheu.</h2>'+
+  return '<span class="eyebrow">Placar final</span>'+
+    '<h2>A verdade foi reconstru&iacute;da.</h2>'+
     '<div class="grade" style="margin-top:22px">'+grade+'</div>'+
-    '<p class="muted" style="text-align:center">Estes pontos formam o pr&ecirc;mio da mesa, '+
-    'separado do placar de dedu&ccedil;&atilde;o.</p>';
+    '<p class="muted" style="text-align:center">Tempo 32% &middot; Qualidade 13% &middot; Coopera&ccedil;&atilde;o 30% &middot; Economia 20% &middot; Performance 5%</p>';
+}
+
+function meuJogador(){
+  if(!STATE.eu) return null;
+  return STATE.jogadores.find(function(j){return j.id===STATE.eu.id;})||null;
+}
+function opcao(valor, rotulo){ return '<option value="'+esc(valor)+'">'+esc(rotulo)+'</option>'; }
+
+function telaMosaico(){
+  var eu=meuJogador(), nucleo=eu&&eu.nucleo;
+  var feito=(STATE.v5.nucleos||[]).some(function(n){return String(n.id)===String(nucleo)&&(n.concluidoEm||n.concluidoMs);});
+  if(feito) return '<span class="eyebrow">N&uacute;cleo '+esc(nucleo)+'</span><h2>Mosaico conclu&iacute;do.</h2><p class="lead">A ordem foi registrada pelo servidor. Aguarde os demais n&uacute;cleos.</p>';
+  var opts='<option value="">Escolha…</option>'+(CASO.publicas||[]).map(function(p){return opcao(p.id,p.hora+' — '+p.txt);}).join('');
+  var campos=''; for(var i=0;i<6;i++) campos+='<label>'+(i+1)+'&ordm;<select id="mos-'+i+'">'+opts+'</select></label>';
+  return '<span class="eyebrow">Mosaico coletivo &middot; N&uacute;cleo '+esc(nucleo)+'</span><h2>Reconstruam a linha do tempo.</h2><p class="lead">Conversem em grupo. A primeira ordem correta enviada trava a coloca&ccedil;&atilde;o do n&uacute;cleo.</p><div class="card">'+campos+'</div><button class="btn btn-ambar" onclick="enviarMosaico()">Enviar ordem do n&uacute;cleo</button>';
+}
+
+function telaCooperacao(){
+  var eu=meuJogador();
+  if(!eu) return '';
+  var ja=(STATE.v5.cooperacao||[]).some(function(v){return v.de===eu.id;});
+  if(ja) return '<span class="eyebrow">Voto interno cego</span><h2>Voto guardado.</h2><p class="lead">O resultado n&atilde;o ser&aacute; revelado ao grupo.</p>';
+  var membros=STATE.jogadores.filter(function(j){return j.nucleo===eu.nucleo&&j.id!==eu.id;});
+  if(membros.length===1) return '<span class="eyebrow">Coopera&ccedil;&atilde;o &middot; n&uacute;cleo de 2</span><h2>Divis&atilde;o autom&aacute;tica.</h2><p class="lead">Cada integrante recebe 5 pontos individuais; n&atilde;o h&aacute; voto.</p>';
+  return '<span class="eyebrow">Coopera&ccedil;&atilde;o &middot; voto interno cego</span><h2>Quem mais colaborou com o grupo?</h2><p class="lead">Voc&ecirc; n&atilde;o pode votar em si. O resultado permanece oculto.</p><div class="pers-lista">'+membros.map(function(j){return '<button class="pers-op" onclick="votarCooperacao(\''+j.id+'\')"><span class="av">🤝</span><span class="txt"><span class="nm">'+esc(j.nome)+'</span></span></button>';}).join('')+'</div>';
+}
+
+function telaMercado(){
+  var eu=meuJogador(); if(!eu) return '';
+  var cfg=CASO.configuracao||MosaicoV5.CONFIG_PADRAO, minhas=minhasPistas();
+  var propria=minhas.find(function(p){return !p.adquirida;});
+  var aberta=(STATE.v5.ofertas||[]).find(function(o){return o.vendedorId===eu.id&&o.status==='aberta';});
+  var criar=propria&&!aberta?'<div class="card"><b>Oferecer sua pista</b><p class="muted">A qualidade real permanece oculta at&eacute; a conclus&atilde;o.</p><select id="faixa-oferta">'+Object.keys(cfg.precos).map(function(k){return opcao(k,k+' — '+cfg.precos[k]+' moedas');}).join('')+'</select><button class="btn btn-sm" onclick="criarOferta()">Publicar oferta cega</button></div>':'';
+  var ofertas=(STATE.v5.ofertas||[]).filter(function(o){return o.status==='aberta'&&o.vendedorId!==eu.id;});
+  var lista=ofertas.map(function(o){return '<div class="card"><b>Pista de '+esc(o.vendedorNome)+'</b><p class="muted">Preço '+esc(o.faixaPreco)+': '+o.preco+' moedas.</p><button class="btn btn-sm btn-ambar" onclick="comprarOferta(\''+o.id+'\')" '+(eu.moedas<o.preco?'disabled':'')+'>Comprar</button></div>';}).join('')||'<p class="muted">Nenhuma oferta aberta agora.</p>';
+  return '<span class="eyebrow">Mercado Cego</span><h2>'+inteiroSeguro(eu.moedas)+' moedas</h2><p class="lead">Preço &times; qualidade ser&aacute; calibrado ex post, quando a solu&ccedil;&atilde;o revelar o valor real da pista.</p>'+criar+lista;
+}
+function inteiroSeguro(v){return Math.trunc(Number(v)||0);}
+
+function telaDeducao(){
+  var eu=meuJogador();
+  if((STATE.v5.deducoes||[]).some(function(d){return d.id===eu.id;})) return '<span class="eyebrow">Acusa&ccedil;&atilde;o final</span><h2>Resposta registrada.</h2><p class="lead">A ordem de envio foi gravada. Aguarde a revela&ccedil;&atilde;o.</p>';
+  function sel(id, lista, primeiro){return '<label>'+primeiro+'<select id="'+id+'"><option value="">Escolha…</option>'+lista.map(function(x){return opcao(x.id,x.rotulo||nomePers(x,eu.forma));}).join('')+'</select></label>';}
+  var d=CASO.deducao||{}, adquiridas=minhasPistas().filter(function(p){return p.adquirida;});
+  var checks=adquiridas.map(function(p){return '<label><input type="checkbox" name="pista-usada" value="'+esc(p.id)+'"> '+esc(p.hora+' — '+p.txt)+'</label>';}).join('')||'<p class="muted">Voc&ecirc; n&atilde;o adquiriu pistas no mercado.</p>';
+  return '<span class="eyebrow">Dedu&ccedil;&atilde;o final</span><h2>Monte sua acusa&ccedil;&atilde;o.</h2><div class="card">'+sel('ded-suspeito',CASO.elenco,'Suspeito principal')+sel('ded-motivo',d.motivos||[],'Motivo')+sel('ded-acao',d.acoes||[],'A&ccedil;&atilde;o decisiva')+sel('ded-prova',d.provas||[],'Prova-chave')+sel('ded-lacuna',d.lacunas||[],'Lacuna resolvida')+'<p><b>Pistas adquiridas usadas na dedu&ccedil;&atilde;o</b></p>'+checks+'</div><button class="btn btn-ambar" onclick="enviarDeducao()">Enviar resposta final</button>';
 }
 
 /* ============================================================
@@ -1483,6 +1547,7 @@ async function criarMesa(){
     _unsubPub=FB.ouvirPublicas(codigo,function(p){
       STATE.publicas=p; render();
     });
+    assinarV5(FB,codigo);
     render();
   }catch(e){
     console.error(e);
@@ -1538,6 +1603,9 @@ async function entrarNaMesa(){
 
     /* quem ja esta na casa define o que sobrou para sortear */
     var jaEstao=await FB.listarJogadores(codigo);
+    if(jaEstao.filter(function(j){return j.id!==id;}).length>=12){
+      abrirCortina(); alert("A mesa já atingiu o limite deste caso."); return;
+    }
     var ocupados=[];
     for(var j=0;j<jaEstao.length;j++)
       if(jaEstao[j].id!==id && jaEstao[j].personagem) ocupados.push(jaEstao[j].personagem);
@@ -1549,12 +1617,14 @@ async function entrarNaMesa(){
     await FB.entrarJogador(codigo,id,{
       nome:nome, personagem:sorteado, forma:forma,
       pronto:false,          /* so o proprio jogador se declara pronto */
-      entrouMs:Date.now(), votos:0
+      entrouMs:Date.now(), votos:0,
+      moedas:((CASO.configuracao||{}).moedasIniciais||9), total:0
     });
     _unsubJog=FB.ouvirJogadores(codigo,function(l){ STATE.jogadores=l; sincronizarJogador(); });
     _unsubMesa=FB.ouvirMesa(codigo,function(d){ STATE.doc=d||{fase:"sala",vez:0}; sincronizarJogador(); });
     _unsubVotos=FB.ouvirVotos(codigo,function(v){ STATE.votos=v; });
     _unsubPub=FB.ouvirPublicas(codigo,function(p){ STATE.publicas=p; });
+    assinarV5(FB,codigo);
     STATE.tela="esperando";
     render();
 
@@ -1611,6 +1681,10 @@ function sincronizarJogador(){
   var nova = fase==="sala"      ? "esperando"
            : fase==="encenacao" ? "encenacao"
            : fase==="votacao"   ? "votacao"
+           : fase==="mosaico"   ? "mosaico"
+           : fase==="cooperacao"? "cooperacao"
+           : fase==="mercado"   ? "mercado"
+           : fase==="deducao"   ? "deducao"
            : "resultado";
 
   if(nova==="encenacao" && STATE.tela!=="encenacao"){
@@ -1682,7 +1756,7 @@ async function guardarPista(){
       try{
         var FB=await esperarFB();
         await FB.atualizarJogador(STATE.eu.codigo, STATE.eu.id,
-          { pistas: atuais.concat([{ hora:p.hora, txt:p.txt }]) });
+          { pistas: atuais.concat([{ id:p.id||('priv-'+STATE.eu.personagem), hora:p.hora, txt:p.txt, adquirida:false }]) });
       }catch(e){ console.error("guardarPista", e); }
     }
   }
@@ -1740,17 +1814,80 @@ async function votar(paraId){
 }
 
 async function fecharVotacao(){
+  await prepararMosaico();
+}
+
+async function prepararMosaico(){
+  var FB=await esperarFB(), distribuicao=MosaicoV5.distribuirNucleos(STATE.jogadores);
+  for(var i=0;i<distribuicao.length;i++){
+    await FB.atualizarJogador(STATE.mesa.codigo,distribuicao[i].id,{nucleo:distribuicao[i].nucleo});
+    await FB.gravar(STATE.mesa.codigo,'nucleos',String(distribuicao[i].nucleo),{numero:distribuicao[i].nucleo});
+  }
+  await FB.atualizarMesa(STATE.mesa.codigo,{fase:'mosaico',mosaicoAbertoMs:Date.now()});
+}
+async function enviarMosaico(){
+  var ordem=[]; for(var i=0;i<6;i++) ordem.push((document.getElementById('mos-'+i)||{}).value||'');
+  var correta=((CASO.mosaico||{}).ordemCorreta||[]);
+  if(ordem.join('|')!==correta.join('|')){ alert('A ordem ainda não fecha. Releiam os horários e conversem no núcleo.'); return; }
+  var eu=meuJogador(), FB=await esperarFB();
+  await FB.concluirNucleo(STATE.eu.codigo,String(eu.nucleo),{numero:eu.nucleo});
+}
+async function abrirVotoCooperacao(){ var FB=await esperarFB(); await FB.atualizarMesa(STATE.mesa.codigo,{fase:'cooperacao'}); }
+async function votarCooperacao(paraId){
+  var eu=meuJogador(), alvo=STATE.jogadores.find(function(j){return j.id===paraId;});
+  if(!eu||!alvo||alvo.id===eu.id||alvo.nucleo!==eu.nucleo) return;
+  var FB=await esperarFB(); await FB.gravar(STATE.eu.codigo,'votosCooperacao',eu.id,{de:eu.id,para:alvo.id,nucleo:eu.nucleo,ms:Date.now()});
+}
+async function abrirMercado(){ var FB=await esperarFB(); await FB.atualizarMesa(STATE.mesa.codigo,{fase:'mercado',mercadoAbertoMs:Date.now()}); }
+async function criarOferta(){
+  var eu=meuJogador(), pista=minhasPistas().find(function(p){return !p.adquirida;}), faixa=document.getElementById('faixa-oferta').value;
+  if(!pista||!faixa) return;
+  var preco=(CASO.configuracao||{}).precos[faixa], id='of_'+eu.id+'_'+pista.id;
+  var FB=await esperarFB(); await FB.gravar(STATE.eu.codigo,'ofertas',id,{vendedorId:eu.id,vendedorNome:eu.nome,pistaId:pista.id,faixaPreco:faixa,preco:preco,status:'aberta',criadaMs:Date.now()});
+}
+async function comprarOferta(ofertaId){
   var FB=await esperarFB();
-  var contagem={};
-  for(var i=0;i<STATE.votos.length;i++){
-    var v=STATE.votos[i];
-    contagem[v.para]=(contagem[v.para]||0)+1;
+  try{ await FB.comprarOferta(STATE.eu.codigo,ofertaId,STATE.eu.id); }
+  catch(e){ alert((e&&e.message)||'A oferta não está mais disponível.'); }
+}
+async function abrirDeducao(){ var FB=await esperarFB(); await FB.atualizarMesa(STATE.mesa.codigo,{fase:'deducao',deducaoAbertaMs:Date.now()}); }
+async function enviarDeducao(){
+  var ids=['suspeito','motivo','acao','prova','lacuna'], dados={id:STATE.eu.id};
+  for(var i=0;i<ids.length;i++){
+    var el=document.getElementById('ded-'+ids[i]); if(!el||!el.value){alert('Preencha todos os cinco campos.');return;} dados[ids[i]]=el.value;
   }
-  for(var k=0;k<STATE.jogadores.length;k++){
-    var j=STATE.jogadores[k];
-    await FB.atualizarJogador(STATE.mesa.codigo,j.id,{votos:contagem[j.id]||0});
-  }
-  await FB.atualizarMesa(STATE.mesa.codigo,{fase:"resultado"});
+  dados.pistasUsadas=Array.from(document.querySelectorAll('input[name="pista-usada"]:checked')).map(function(x){return x.value;});
+  var FB=await esperarFB(); await FB.gravarServidor(STATE.eu.codigo,'deducoes',STATE.eu.id,dados,'submetidoEm');
+}
+async function finalizarPartida(){
+  var sol=CASO.solucao||{}, deducoes=STATE.v5.deducoes.map(function(d){
+    var campos=['motivo','acao','prova','lacuna'].reduce(function(n,k){return n+(d[k]===sol[k]?1:0);},0);
+    var submetidoMs=d.submetidoEm&&d.submetidoEm.toMillis?d.submetidoEm.toMillis():(d.submetidoMs||0);
+    return Object.assign({},d,{submetidoMs:submetidoMs,suspeitoCorreto:d.suspeito===sol.suspeito,camposCorretos:campos,usouPistaAdquirida:(d.pistasUsadas||[]).length>0});
+  });
+  var perf=MosaicoV5.dividirVoto(STATE.votos,STATE.jogadores.map(function(j){return j.id;}),5);
+  var coopInd={};
+  STATE.jogadores.forEach(function(j){coopInd[j.id]=0;});
+  var numeros=Array.from(new Set(STATE.jogadores.map(function(j){return j.nucleo;})));
+  numeros.forEach(function(n){
+    var ids=STATE.jogadores.filter(function(j){return j.nucleo===n;}).map(function(j){return j.id;});
+    var pontos;
+    if(ids.length===2) pontos=Object.fromEntries(ids.map(function(id){return [id,5];}));
+    else pontos=MosaicoV5.dividirVoto(STATE.v5.cooperacao.filter(function(v){return v.nucleo===n;}),ids,10);
+    Object.assign(coopInd,pontos);
+  });
+  function msNucleo(n){return n.concluidoEm&&n.concluidoEm.toMillis?n.concluidoEm.toMillis():(n.concluidoMs||0);}
+  var concluidos=STATE.v5.nucleos.filter(function(n){return n.concluidoEm||n.concluidoMs;}).sort(function(a,b){return msNucleo(a)-msNucleo(b);});
+  var escala=[20,16,12,8], coletivo={};
+  STATE.jogadores.forEach(function(j){var pos=concluidos.findIndex(function(n){return Number(n.id)===Number(j.nucleo);}); coletivo[j.id]=pos<0?0:(escala[pos]==null?4:escala[pos]);});
+  var negociacoes=STATE.v5.negociacoes.map(function(n){
+    var pista=Object.keys(CASO.pistas||{}).map(function(k){return CASO.pistas[k];}).find(function(p){return p.id===n.pistaId;});
+    return Object.assign({},n,{qualidade:(pista&&pista.qualidade)||'mediana'});
+  });
+  var placar=MosaicoV5.calcular({jogadores:STATE.jogadores,deducoes:deducoes,negociacoes:negociacoes,coopColetiva:coletivo,coopIndividual:coopInd,performance:perf});
+  var FB=await esperarFB();
+  for(var i=0;i<placar.length;i++) await FB.atualizarJogador(STATE.mesa.codigo,placar[i].id,{total:placar[i].total,pontuacao:placar[i].componentes,economiaDetalhe:placar[i].economia});
+  await FB.atualizarMesa(STATE.mesa.codigo,{fase:'resultado',reveladaEmMs:Date.now(),solucao:sol});
 }
 
 /* Encerra a mesa: marca ativa:false. Quem esta jogando ve o aviso e sai,
@@ -1766,6 +1903,7 @@ async function encerrarMesa(){
   }catch(e){ console.error("encerrarMesa", e); }
   if(_unsubJog) _unsubJog(); if(_unsubMesa) _unsubMesa();
   if(_unsubVotos) _unsubVotos(); if(_unsubPub) _unsubPub();
+  _unsubV5.forEach(function(f){try{f();}catch(e){}}); _unsubV5=[];
   _unsubJog=_unsubMesa=_unsubVotos=_unsubPub=null;
   STATE.mesa=null; STATE.jogadores=[]; STATE.publicas=[]; STATE.votos=[];
   STATE.qrAberto=false; STATE.doc=null; STATE.tela="inicio";
@@ -1944,7 +2082,7 @@ async function voltarParaSala(){
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
 import {
   getFirestore, doc, setDoc, getDoc, updateDoc,
-  collection, onSnapshot, serverTimestamp, getDocs
+  collection, onSnapshot, serverTimestamp, getDocs, runTransaction
 } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 import {
   getAuth, signInAnonymously, onAuthStateChanged
@@ -2057,6 +2195,48 @@ if(CONFIGURADO) window.MosaicoFB = {
     return onSnapshot(collection(db, RAIZ, codigo, "publicas"), snap => {
       const l = []; snap.forEach(d => l.push({ id:d.id, ...d.data() })); cb(l);
     }, e => { console.error("ouvirPublicas", e); cb([]); });
+  },
+  async gravar(codigo, colecao, id, dados){
+    await setDoc(doc(db, RAIZ, codigo, colecao, id), dados, {merge:true});
+  },
+  async gravarServidor(codigo, colecao, id, dados, campo){
+    await setDoc(doc(db, RAIZ, codigo, colecao, id), {...dados,[campo]:serverTimestamp()}, {merge:true});
+  },
+  ouvirColecao(codigo, nome, cb){
+    return onSnapshot(collection(db, RAIZ, codigo, nome), snap => {
+      const l=[]; snap.forEach(d=>l.push({id:d.id,...d.data()})); cb(l);
+    }, e=>{ console.error("ouvirColecao "+nome,e); cb([]); });
+  },
+  async concluirNucleo(codigo, id, dados){
+    const ref=doc(db,RAIZ,codigo,"nucleos",id);
+    await runTransaction(db,async tx=>{
+      const atual=await tx.get(ref);
+      if(atual.exists()&&(atual.data().concluidoEm||atual.data().concluidoMs)) return;
+      tx.set(ref,{...dados,concluidoEm:serverTimestamp()},{merge:true});
+    });
+  },
+  async comprarOferta(codigo, ofertaId, compradorId){
+    const ofertaRef=doc(db,RAIZ,codigo,"ofertas",ofertaId);
+    const compradorRef=doc(db,RAIZ,codigo,"jogadores",compradorId);
+    await runTransaction(db,async tx=>{
+      const ofertaSnap=await tx.get(ofertaRef);
+      if(!ofertaSnap.exists()||ofertaSnap.data().status!=="aberta") throw new Error("Oferta indisponível.");
+      const oferta=ofertaSnap.data();
+      if(oferta.vendedorId===compradorId) throw new Error("Você não pode comprar a própria pista.");
+      const vendedorRef=doc(db,RAIZ,codigo,"jogadores",oferta.vendedorId);
+      const compradorSnap=await tx.get(compradorRef), vendedorSnap=await tx.get(vendedorRef);
+      if(!compradorSnap.exists()||!vendedorSnap.exists()) throw new Error("Jogador desconectado.");
+      const comprador=compradorSnap.data(), vendedor=vendedorSnap.data();
+      if((comprador.moedas||0)<oferta.preco) throw new Error("Moedas insuficientes.");
+      const pista=(vendedor.pistas||[]).find(p=>p.id===oferta.pistaId);
+      if(!pista) throw new Error("Pista não encontrada.");
+      const jaTem=(comprador.pistas||[]).some(p=>p.id===pista.id);
+      const novas=jaTem?(comprador.pistas||[]):(comprador.pistas||[]).concat([{...pista,adquirida:true,compradaDe:oferta.vendedorId}]);
+      tx.set(compradorRef,{moedas:(comprador.moedas||0)-oferta.preco,pistas:novas},{merge:true});
+      tx.set(vendedorRef,{moedas:(vendedor.moedas||0)+oferta.preco},{merge:true});
+      tx.set(ofertaRef,{status:"comprada",compradorId,compradaMs:Date.now()},{merge:true});
+      tx.set(doc(db,RAIZ,codigo,"negociacoes",ofertaId),{...oferta,status:"comprada",compradorId,compradaMs:Date.now()});
+    });
   }
 };
 

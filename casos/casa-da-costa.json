@@ -4,6 +4,50 @@
   "id": "casa-da-costa",
   "titulo": "A Casa da Costa",
 
+  "configuracao": {
+    "versaoPontuacao": "5.0",
+    "moedasIniciais": 9,
+    "precos": { "baixo": 1, "justo": 3, "alto": 5 },
+    "limitesSegundos": { "performance": 60, "cooperacao": 60, "mercado": 480, "deducao": 300 },
+    "pesos": { "tempo": 32, "qualidade": 13, "cooperacao": 30, "economia": 20, "performance": 5 }
+  },
+
+  "solucao": {
+    "suspeito": "herdeiro",
+    "motivo": "recuperar-documento",
+    "acao": "abriu-o-cofre",
+    "prova": "marca-na-trava",
+    "lacuna": "objeto-metalico"
+  },
+
+  "deducao": {
+    "motivos": [
+      { "id": "recuperar-documento", "rotulo": "Recuperar um documento escondido" },
+      { "id": "ocultar-presenca", "rotulo": "Ocultar que esteve na casa" },
+      { "id": "forjar-invasao", "rotulo": "Forjar uma invasão" }
+    ],
+    "acoes": [
+      { "id": "abriu-o-cofre", "rotulo": "Abriu o cofre durante a oscilação" },
+      { "id": "entrou-pela-janela", "rotulo": "Entrou pela janela" },
+      { "id": "apagou-a-luz", "rotulo": "Desligou a energia da casa" }
+    ],
+    "provas": [
+      { "id": "marca-na-trava", "rotulo": "A marca recente na trava do cofre" },
+      { "id": "cortina-em-movimento", "rotulo": "A cortina em movimento" },
+      { "id": "sombra-no-corredor", "rotulo": "A sombra no corredor" }
+    ],
+    "lacunas": [
+      { "id": "objeto-metalico", "rotulo": "A origem do pequeno objeto metálico" },
+      { "id": "nevoa-na-porta", "rotulo": "A entrada da névoa" },
+      { "id": "som-no-sotao", "rotulo": "O som no sótão" }
+    ]
+  },
+
+  "mosaico": {
+    "instrucao": "Ordene os seis acontecimentos gerais do mais antigo para o mais recente.",
+    "ordemCorreta": ["pub-2103", "pub-2107", "pub-2112", "pub-2114", "pub-2117", "pub-2120"]
+  },
+
   "arte": {
     "capa": "img/capa-vertical.jpg",
     "painel": "img/fundo-painel.jpg",
@@ -90,21 +134,21 @@
   },
 
   "pistas": {
-    "investigador": { "hora": "21:29", "txt": "Um estalo seco. Depois outro. Depois silêncio. Você ouviu atrás de você." },
-    "herdeiro":     { "hora": "21:29", "txt": "Você sentiu algo ao lado. Não foi passo, não foi corpo. Foi deslocamento." },
-    "morador":      { "hora": "21:30", "txt": "Algo caiu. Pequeno, metálico, preciso. Veio do cofre." },
-    "jornalista":   { "hora": "21:30", "txt": "Algo passou perto da sua mão. Frio, rápido, intencional. Não tocou." },
-    "policial":     { "hora": "21:30", "txt": "Mesmo sem luz, uma sombra passou. Não deveria ser possível. Mas foi." },
-    "menina":       { "hora": "21:31", "txt": "Alguém respirou perto demais. Você ouviu. E não se mexeu." }
+    "investigador": { "id": "priv-investigador", "hora": "21:29", "qualidade": "mediana", "txt": "Um estalo seco. Depois outro. Depois silêncio. Você ouviu atrás de você." },
+    "herdeiro":     { "id": "priv-herdeiro", "hora": "21:29", "qualidade": "ruim", "txt": "Você sentiu algo ao lado. Não foi passo, não foi corpo. Foi deslocamento." },
+    "morador":      { "id": "priv-morador", "hora": "21:30", "qualidade": "boa", "txt": "Algo caiu. Pequeno, metálico, preciso. Veio do cofre." },
+    "jornalista":   { "id": "priv-jornalista", "hora": "21:30", "qualidade": "mediana", "txt": "Algo passou perto da sua mão. Frio, rápido, intencional. Não tocou." },
+    "policial":     { "id": "priv-policial", "hora": "21:30", "qualidade": "boa", "txt": "Mesmo sem luz, uma sombra passou. Não deveria ser possível. Mas foi." },
+    "menina":       { "id": "priv-menina", "hora": "21:31", "qualidade": "ruim", "txt": "Alguém respirou perto demais. Você ouviu. E não se mexeu." }
   },
 
   "publicas": [
-    { "hora": "21:03", "txt": "A luz da Casa da Costa oscilou pela primeira vez. Não foi queda. Foi aviso." },
-    { "hora": "21:07", "txt": "A porta da sala estava entreaberta. A cortina balançava. E a janela estava trancada." },
-    { "hora": "21:12", "txt": "O cofre estava fechado, como deveria estar. Mas a marca de dedo na trava era recente." },
-    { "hora": "21:14", "txt": "Um som veio do andar de cima. Não era passo. Não era objeto. Era algo entre os dois." },
-    { "hora": "21:17", "txt": "O corredor ficou meio escuro por um segundo. Uma sombra passou rápido demais." },
-    { "hora": "21:20", "txt": "A névoa entrou pela fresta da porta como se tivesse sido convidada." }
+    { "id": "pub-2103", "hora": "21:03", "txt": "A luz da Casa da Costa oscilou pela primeira vez. Não foi queda. Foi aviso." },
+    { "id": "pub-2107", "hora": "21:07", "txt": "A porta da sala estava entreaberta. A cortina balançava. E a janela estava trancada." },
+    { "id": "pub-2112", "hora": "21:12", "txt": "O cofre estava fechado, como deveria estar. Mas a marca de dedo na trava era recente." },
+    { "id": "pub-2114", "hora": "21:14", "txt": "Um som veio do andar de cima. Não era passo. Não era objeto. Era algo entre os dois." },
+    { "id": "pub-2117", "hora": "21:17", "txt": "O corredor ficou meio escuro por um segundo. Uma sombra passou rápido demais." },
+    { "id": "pub-2120", "hora": "21:20", "txt": "A névoa entrou pela fresta da porta como se tivesse sido convidada." }
   ],
 
   "relogio": {
@@ -113,6 +157,11 @@
     "cena": null,
     "encenacao": null,
     "votacao": "21:23",
+    "performance": "21:23",
+    "mosaico": "21:31",
+    "cooperacao": "21:34",
+    "mercado": "21:38",
+    "deducao": "21:46",
     "resultado": "21:23",
     "historia": "21:23"
   },
@@ -122,7 +171,12 @@
     "escuro": "A casa apagou",
     "cena": "A casa escolheu alguém",
     "encenacao": "A casa escolheu alguém",
-    "votacao": "A linha da verdade",
+    "votacao": "A energia da mesa",
+    "performance": "A energia da mesa",
+    "mosaico": "A verdade é um fragmento",
+    "cooperacao": "O núcleo se recorda",
+    "mercado": "Mercado Cego",
+    "deducao": "A acusação final",
     "resultado": "A linha da verdade",
     "historia": "A noite da tempestade"
   },
