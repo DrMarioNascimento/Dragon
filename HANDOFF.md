@@ -183,6 +183,15 @@ Comandos de ação devem explicitar ação e consequência. Na revelação da pi
 
 Na apresentação, o botão de conclusão usa **“Toque para concluir sua apresentação!”**. No Mosaico coletivo, a orientação temporal é **“Quanto mais rápido o seu grupo concluir, melhor será sua colocação.”**
 
+Outros textos operacionais consolidados:
+
+- **“Pular a apresentação atual”**, em vez de “Avançar se necessário”;
+- **“Voto registrado”**, em vez de “voto guardado”;
+- **“Colocar a pista à venda”**, deixando claro que “cego” se refere à importância oculta, não ao vendedor;
+- explicar a Confiabilidade em linguagem comum: ao final, o jogo compara o preço cobrado com a importância real da pista;
+- confirmar que resposta e horário de envio foram registrados;
+- avisar antes da Dedução Final que a resposta não poderá ser alterada.
+
 ### 5.3 O nome desaparece
 
 Antes da tarefa, o telão mostra o nome. Depois, mostra apenas o arquétipo. O nome não reaparece na votação nem no resultado.

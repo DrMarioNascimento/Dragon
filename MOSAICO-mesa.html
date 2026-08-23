@@ -1043,7 +1043,7 @@ function controlesMestreMovel(){
   if(fase==="sala"){
     var todos=js.length>=2&&contaProntos()===js.length;
     botoes+='<button class="btn btn-ambar" onclick="iniciarEncenacao()" '+(todos?'':'disabled')+'>Come&ccedil;ar</button>';
-  }else if(fase==="encenacao") botoes+='<button class="btn btn-ambar" onclick="pularVez()">Pular vez atual</button>';
+  }else if(fase==="encenacao") botoes+='<button class="btn btn-ambar" onclick="pularVez()">Pular a apresenta&ccedil;&atilde;o atual</button>';
   else if(fase==="votacao") botoes+='<button class="btn btn-ambar" onclick="fecharVotacao()">Formar n&uacute;cleos</button>';
   else if(fase==="mosaico") botoes+='<button class="btn btn-ambar" onclick="abrirVotoCooperacao()">Abrir voto interno</button>';
   else if(fase==="cooperacao") botoes+='<button class="btn btn-ambar" onclick="abrirMercado()">Abrir mercado</button>';
@@ -1242,7 +1242,7 @@ function telaPainel(){
                                      :'. Esperando os que faltam.'))+
          '</p>';
   } else if(fase==="encenacao"){
-    acao='<button class="btn" onclick="pularVez()">Avan&ccedil;ar se necess&aacute;rio</button>';
+    acao='<button class="btn" onclick="pularVez()">Pular a apresenta&ccedil;&atilde;o atual</button>';
   } else if(fase==="votacao"){
     acao='<div class="card"><span class="eyebrow">Vota&ccedil;&atilde;o aberta</span>'+
          '<p class="muted">'+STATE.votos.length+' de '+js.length+' j&aacute; votaram. '+
@@ -1426,7 +1426,7 @@ function telaVotacao(){
   var js=ordenados(STATE.jogadores);
   if(STATE.jaVotei){
     return '<span class="eyebrow">Vota&ccedil;&atilde;o</span>'+
-      '<h2>Seu voto est&aacute; guardado.</h2>'+
+      '<h2>Seu voto foi registrado.</h2>'+
       '<p class="lead">Seu voto &eacute; cego. O resultado detalhado n&atilde;o ser&aacute; revelado.</p>';
   }
   var ops="";
@@ -1484,7 +1484,7 @@ function telaCooperacao(){
   var eu=meuJogador();
   if(!eu) return '';
   var ja=(STATE.v5.cooperacao||[]).some(function(v){return v.de===eu.id;});
-  if(ja) return '<span class="eyebrow">Voto interno cego</span><h2>Voto guardado.</h2><p class="lead">O resultado n&atilde;o ser&aacute; revelado ao grupo.</p>';
+  if(ja) return '<span class="eyebrow">Voto interno cego</span><h2>Voto registrado.</h2><p class="lead">O resultado n&atilde;o ser&aacute; revelado ao grupo.</p>';
   var membros=STATE.jogadores.filter(function(j){return j.nucleo===eu.nucleo&&j.id!==eu.id;});
   if(membros.length===1) return '<span class="eyebrow">Coopera&ccedil;&atilde;o &middot; n&uacute;cleo de 2</span><h2>Divis&atilde;o autom&aacute;tica.</h2><p class="lead">Cada integrante recebe 5 pontos individuais; n&atilde;o h&aacute; voto.</p>';
   return '<span class="eyebrow">Coopera&ccedil;&atilde;o &middot; voto interno cego</span><h2>Quem mais colaborou com o grupo?</h2><p class="lead">Voc&ecirc; n&atilde;o pode votar em si. O resultado permanece oculto.</p><div class="pers-lista">'+membros.map(function(j){return '<button class="pers-op" onclick="votarCooperacao(\''+j.id+'\')"><span class="av">🤝</span><span class="txt"><span class="nm">'+esc(j.nome)+'</span></span></button>';}).join('')+'</div>';
@@ -1495,20 +1495,20 @@ function telaMercado(){
   var cfg=CASO.configuracao||MosaicoV5.CONFIG_PADRAO, minhas=minhasPistas();
   var propria=minhas.find(function(p){return !p.adquirida;});
   var aberta=(STATE.v5.ofertas||[]).find(function(o){return o.vendedorId===eu.id&&o.status==='aberta';});
-  var criar=propria&&!aberta?'<div class="card"><b>Oferecer sua pista</b><p class="muted">A qualidade real permanece oculta at&eacute; a conclus&atilde;o.</p><select id="faixa-oferta">'+Object.keys(cfg.precos).map(function(k){return opcao(k,k+' — '+cfg.precos[k]+' moedas');}).join('')+'</select><button class="btn btn-sm" onclick="criarOferta()">Publicar oferta cega</button></div>':'';
+  var criar=propria&&!aberta?'<div class="card"><b>Oferecer sua pista</b><p class="muted">A import&acirc;ncia real da pista permanece oculta at&eacute; a revela&ccedil;&atilde;o final do caso.</p><select id="faixa-oferta">'+Object.keys(cfg.precos).map(function(k){return opcao(k,k+' — '+cfg.precos[k]+' moedas');}).join('')+'</select><button class="btn btn-sm" onclick="criarOferta()">Colocar a pista &agrave; venda</button></div>':'';
   var ofertas=(STATE.v5.ofertas||[]).filter(function(o){return o.status==='aberta'&&o.vendedorId!==eu.id;});
   var lista=ofertas.map(function(o){return '<div class="card"><b>Pista de '+esc(o.vendedorNome)+'</b><p class="muted">Preço '+esc(o.faixaPreco)+': '+o.preco+' moedas.</p><button class="btn btn-sm btn-ambar" onclick="comprarOferta(\''+o.id+'\')" '+(eu.moedas<o.preco?'disabled':'')+'>Comprar</button></div>';}).join('')||'<p class="muted">Nenhuma oferta aberta agora.</p>';
-  return '<span class="eyebrow">Mercado Cego</span><h2>'+inteiroSeguro(eu.moedas)+' moedas</h2><p class="lead">Preço &times; qualidade ser&aacute; calibrado ex post, quando a solu&ccedil;&atilde;o revelar o valor real da pista.</p>'+criar+lista;
+  return '<span class="eyebrow">Mercado Cego</span><h2>'+inteiroSeguro(eu.moedas)+' moedas</h2><p class="lead">Ao final do caso, o jogo comparar&aacute; o pre&ccedil;o cobrado com a import&acirc;ncia real da pista.</p>'+criar+lista;
 }
 function inteiroSeguro(v){return Math.trunc(Number(v)||0);}
 
 function telaDeducao(){
   var eu=meuJogador();
-  if((STATE.v5.deducoes||[]).some(function(d){return d.id===eu.id;})) return '<span class="eyebrow">Acusa&ccedil;&atilde;o final</span><h2>Resposta registrada.</h2><p class="lead">A ordem de envio foi gravada. Aguarde a revela&ccedil;&atilde;o.</p>';
+  if((STATE.v5.deducoes||[]).some(function(d){return d.id===eu.id;})) return '<span class="eyebrow">Acusa&ccedil;&atilde;o final</span><h2>Resposta registrada.</h2><p class="lead">Sua resposta e o hor&aacute;rio de envio foram registrados. Aguarde a revela&ccedil;&atilde;o.</p>';
   function sel(id, lista, primeiro){return '<label>'+primeiro+'<select id="'+id+'"><option value="">Escolha…</option>'+lista.map(function(x){return opcao(x.id,x.rotulo||nomePers(x,eu.forma));}).join('')+'</select></label>';}
   var d=CASO.deducao||{}, adquiridas=minhasPistas().filter(function(p){return p.adquirida;});
   var checks=adquiridas.map(function(p){return '<label><input type="checkbox" name="pista-usada" value="'+esc(p.id)+'"> '+esc(p.hora+' — '+p.txt)+'</label>';}).join('')||'<p class="muted">Voc&ecirc; n&atilde;o adquiriu pistas no mercado.</p>';
-  return '<span class="eyebrow">Dedu&ccedil;&atilde;o final</span><h2>Monte sua acusa&ccedil;&atilde;o.</h2><div class="card">'+sel('ded-suspeito',CASO.elenco,'Suspeito principal')+sel('ded-motivo',d.motivos||[],'Motivo')+sel('ded-acao',d.acoes||[],'A&ccedil;&atilde;o decisiva')+sel('ded-prova',d.provas||[],'Prova-chave')+sel('ded-lacuna',d.lacunas||[],'Lacuna resolvida')+'<p><b>Pistas adquiridas usadas na dedu&ccedil;&atilde;o</b></p>'+checks+'</div><button class="btn btn-ambar" onclick="enviarDeducao()">Enviar resposta final</button>';
+  return '<span class="eyebrow">Dedu&ccedil;&atilde;o final</span><h2>Monte sua acusa&ccedil;&atilde;o.</h2><div class="card">'+sel('ded-suspeito',CASO.elenco,'Suspeito principal')+sel('ded-motivo',d.motivos||[],'Motivo')+sel('ded-acao',d.acoes||[],'A&ccedil;&atilde;o decisiva')+sel('ded-prova',d.provas||[],'Prova-chave')+sel('ded-lacuna',d.lacunas||[],'Lacuna resolvida')+'<p><b>Pistas adquiridas usadas na dedu&ccedil;&atilde;o</b></p>'+checks+'</div><p class="muted" style="text-align:center">Depois de enviar, voc&ecirc; n&atilde;o poder&aacute; alterar a resposta.</p><button class="btn btn-ambar" onclick="enviarDeducao()">Enviar resposta final</button>';
 }
 
 /* ============================================================
