@@ -1,50 +1,64 @@
-# Dragon — Laboratório Pessoal — Licença de Uso Educacional Restrito
+# Dragon — Licença Proprietária e Confidencial
 
 Copyright © 2026 Mário César Nascimento. Todos os direitos reservados.
 
-## Titularidade declarada
+## 1. Titularidade
 
-O projeto **Dragon — Laboratório Pessoal**, incluindo suas futuras atividades, jogos, casos, narrativas, códigos-fonte, elementos visuais, textos, organização didática e demais componentes originais, é apresentado como criação intelectual pessoal de **Mário César Nascimento**.
+O projeto **Dragon**, incluindo o **MOSAICO** e seus protótipos, atividades, jogos, casos, narrativas, códigos-fonte, estruturas de dados, interfaces, elementos visuais, textos, mecânicas, documentação, organização didática e demais componentes originais, é de titularidade de **Mário César Nascimento**, ressalvados eventuais componentes de terceiros, que permanecem sujeitos às respectivas licenças.
 
-A disponibilização pública deste repositório não representa cessão, transferência, renúncia ou abandono de direitos autorais ou de quaisquer outros direitos aplicáveis.
+## 2. Natureza privada do projeto
 
-## Uso permitido
+Este projeto é privado, proprietário e destinado exclusivamente ao titular e às pessoas por ele expressamente autorizadas.
 
-É permitido acessar e executar os materiais disponibilizados pelo autor para:
+O acesso ao repositório, a um arquivo, a uma demonstração ou a uma cópia de trabalho não constitui cessão, transferência, renúncia, licença implícita ou autorização de uso além do estritamente necessário à finalidade expressamente indicada pelo titular.
 
-- estudo e aprendizagem individual;
-- utilização por estudantes em atividades educacionais;
-- demonstração por docentes em aulas e atividades acadêmicas;
-- avaliação não comercial do funcionamento dos materiais.
+## 3. Permissão limitada a colaboradores autorizados
 
-Essa autorização limita-se ao uso funcional dos materiais tal como disponibilizados pelo autor. As cópias técnicas temporárias indispensáveis à visualização e à execução no navegador não constituem autorização para redistribuição.
+Pessoas autorizadas pelo titular podem acessar, executar e modificar os materiais somente:
 
-## Usos que exigem autorização prévia
+- dentro do escopo da colaboração expressamente autorizada;
+- para desenvolvimento, revisão, teste ou avaliação do próprio projeto;
+- mantendo confidenciais os arquivos, conceitos, mecânicas, narrativas e informações internas;
+- preservando todos os avisos de autoria, titularidade e restrição de uso.
 
-Sem autorização prévia, expressa e escrita do titular, não é permitido:
+A autorização é pessoal, limitada, revogável, intransferível e não sublicenciável.
 
-- copiar, baixar ou redistribuir o código-fonte e os materiais, salvo quando tecnicamente indispensável à execução autorizada;
-- modificar, adaptar, traduzir ou criar obras derivadas;
-- republicar, hospedar ou disponibilizar os materiais em outro site, plataforma, aplicativo ou repositório;
-- incorporar o código, os elementos visuais, as narrativas, os casos ou a organização didática em outros projetos;
-- remover, ocultar ou alterar avisos de autoria e créditos;
-- vender, sublicenciar, ceder ou explorar economicamente o projeto;
-- utilizar o projeto ou suas partes para fins comerciais;
-- apresentar o projeto, integral ou parcialmente, como criação de outra pessoa ou instituição.
+## 4. Usos proibidos sem autorização escrita
 
-## Autorizações adicionais
+Sem autorização prévia, expressa e escrita do titular, é proibido:
 
-Qualquer uso não previsto na seção de uso permitido depende de autorização individual do titular. Uma autorização concedida para determinada finalidade não implica autorização para outras formas de utilização.
+- copiar, baixar, extrair ou armazenar materiais além do necessário à colaboração autorizada;
+- reproduzir, modificar, adaptar, traduzir ou criar obras derivadas;
+- redistribuir, publicar, transmitir, compartilhar, hospedar ou disponibilizar o projeto ou suas partes;
+- incorporar códigos, interfaces, elementos visuais, narrativas, casos, mecânicas ou estruturas do projeto em outra obra ou produto;
+- divulgar documentação interna, capturas, vídeos, links de acesso ou informações técnicas;
+- remover, ocultar ou alterar avisos de autoria, créditos ou medidas de controle de acesso;
+- vender, sublicenciar, ceder, licenciar ou explorar economicamente o projeto;
+- usar o projeto ou suas partes para treinamento, ajuste, avaliação ou composição de conjuntos de dados destinados a sistemas de inteligência artificial;
+- realizar engenharia reversa quando não autorizada pela legislação aplicável;
+- apresentar o projeto, integral ou parcialmente, como criação de outra pessoa, grupo ou instituição.
 
-## Ausência de garantia
+## 5. Materiais de terceiros
 
-Os materiais são disponibilizados para finalidades educacionais e demonstrativas, no estado em que se encontram. O autor não oferece garantia de adequação profissional, clínica, diagnóstica ou terapêutica e não se responsabiliza por decisões tomadas exclusivamente com base nos materiais.
+Bibliotecas, fontes, imagens, sons ou outros componentes de terceiros eventualmente incorporados ao projeto continuam regidos por suas licenças e termos próprios. Esta licença não amplia nem restringe direitos pertencentes a terceiros.
 
-## Contato e identificação
+## 6. Ausência de garantia
 
-**Autor e titular declarado:** Mário César Nascimento, PhD  
-**Projeto:** Dragon — Laboratório Pessoal  
+Os materiais são fornecidos no estado em que se encontram, para desenvolvimento e avaliação. O titular não oferece garantias expressas ou implícitas de funcionamento, disponibilidade, adequação a uma finalidade específica ou ausência de erros.
+
+## 7. Encerramento da autorização
+
+Quando solicitado pelo titular ou encerrada a colaboração, a pessoa autorizada deverá cessar o uso e eliminar as cópias do projeto que estejam sob seu controle, ressalvadas obrigações legais de conservação.
+
+## 8. Autorizações adicionais
+
+Qualquer uso não expressamente autorizado neste documento depende de autorização individual, prévia e escrita do titular. Uma autorização concedida para determinada finalidade não se estende automaticamente a outros usos.
+
+## 9. Identificação
+
+**Autor e titular:** Mário César Nascimento, PhD  
+**Projeto:** Dragon  
 **País:** Brasil  
 **Ano:** 2026
 
-Todos os direitos não expressamente concedidos neste documento permanecem reservados ao titular.
+Todos os direitos não expressamente concedidos permanecem reservados ao titular.
