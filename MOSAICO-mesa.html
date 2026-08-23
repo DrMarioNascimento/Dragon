@@ -270,17 +270,26 @@
     bottom:max(16px,env(safe-area-inset-bottom));padding:12px 16px;border-radius:100px;
     border:1px solid rgba(127,212,255,.5);background:rgba(5,7,12,.82);color:var(--frio);
     font:700 clamp(11px,3vw,14px) var(--sans);letter-spacing:.16em;text-transform:uppercase}
-  body.tem-arquivo .btn-menu-mestre{right:236px}
   .btn-caso{position:fixed;z-index:45;right:14px;bottom:max(16px,env(safe-area-inset-bottom));
     padding:12px 16px;border-radius:100px;border:1px solid rgba(127,212,255,.42);
     background:rgba(5,7,12,.76);color:var(--frio);font:700 clamp(11px,3vw,14px) var(--sans);
     letter-spacing:.14em;text-transform:uppercase}
-  body.tem-arquivo .btn-caso{right:148px}
+  body.tem-arquivo .btn-caso{left:14px;right:auto}
+  body.tem-arquivo .btn-menu-mestre{right:148px}
   .caso-fundo{position:fixed;inset:0;z-index:43;background:rgba(2,5,9,.96);
     padding:max(18px,env(safe-area-inset-top)) 16px max(82px,env(safe-area-inset-bottom));overflow-y:auto}
   .caso-card{max-width:600px;margin:auto}.caso-card .publica:last-child{margin-bottom:4px}
   .tarefa-frame{width:100%;height:min(72vh,720px);border:1px solid var(--linha);border-radius:8px;
     background:#05070c;display:block;margin:14px 0}
+  body.fase-sensor #app{padding:12px 12px 84px}
+  body.fase-sensor .rodada-celular{margin-bottom:8px;padding:8px 12px}
+  body.fase-sensor .rodada-celular .rotulo{font-size:9px;margin-bottom:3px}
+  body.fase-sensor .rodada-celular .nome{font-size:clamp(19px,6vw,25px)}
+  body.fase-sensor #app>.eyebrow,body.fase-sensor #app>h2{display:none}
+  body.fase-sensor #app>.lead{font-size:clamp(16px,4.4vw,19px);line-height:1.3;margin-bottom:7px}
+  body.fase-sensor #app>.muted{display:none}
+  body.fase-sensor .tarefa-frame{height:calc(100dvh - 218px);min-height:430px;max-height:650px;margin:7px 0}
+  body.fase-sensor .btn-caso,body.fase-sensor #btn-pistas{padding:10px 13px}
   .revelacao-final{max-width:920px;margin:0 auto}.revelacao-final .card{margin-bottom:14px}
   .revelacao-chave{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:22px 0}
   .revelacao-chave .card{margin:0;border-top:2px solid rgba(232,164,76,.58)}
@@ -387,6 +396,55 @@
     grid-column:1/-1;text-align:center;padding:44px 20px;
     font-family:var(--serif);font-style:italic;color:var(--dim);
     font-size:clamp(19px,5.2vw,25px);line-height:1.5;
+  }
+
+  /* ---------- painel vivo do telão ---------- */
+  .painel-lateral,.painel-pistas{min-width:0}
+  .painel-pistas{display:flex;min-height:0;flex-direction:column}
+  .mural-feed{min-height:0;overflow:hidden;flex:1}
+  .mural-trilho{min-height:100%;display:flex;flex-direction:column;justify-content:flex-end}
+  @media(min-width:820px) and (min-aspect-ratio:1/1){
+    body.t-painel.painel-em-jogo{height:100dvh;overflow:hidden}
+    body.t-painel.painel-em-jogo #app.largo{
+      width:100%;max-width:none;height:100dvh;min-height:0;overflow:hidden;
+      padding:10px 20px 14px;display:flex;flex-direction:column
+    }
+    body.t-painel.painel-em-jogo .rodada-telao{flex:0 0 auto;margin:0 auto 7px;padding:7px 18px}
+    body.t-painel.painel-em-jogo .rodada-telao .rotulo{font-size:9px;margin-bottom:2px}
+    body.t-painel.painel-em-jogo .rodada-telao .nome{font-size:clamp(25px,2.6vw,38px)}
+    body.t-painel.painel-em-jogo .barra{flex:0 0 auto;padding-bottom:6px;margin-bottom:7px;gap:8px}
+    body.t-painel.painel-em-jogo .barra .conta{font-size:13px}
+    body.t-painel.painel-em-jogo .barra .btn{padding:8px 12px;font-size:10px}
+    body.t-painel.painel-em-jogo .painel-cols{
+      flex:1;min-height:0;grid-template-columns:minmax(220px,24vw) minmax(0,1fr);
+      gap:22px;align-items:stretch;overflow:hidden
+    }
+    body.t-painel.painel-em-jogo .painel-lateral{
+      min-height:0;overflow:hidden;display:flex;flex-direction:column
+    }
+    body.t-painel.painel-em-jogo .relogio{flex:0 0 auto;padding:0 0 7px}
+    body.t-painel.painel-em-jogo .relogio .hh{font-size:clamp(34px,4.5vw,64px)}
+    body.t-painel.painel-em-jogo .relogio .cap{font-size:9px;margin-top:3px}
+    body.t-painel.painel-em-jogo .grade{
+      grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;margin-bottom:7px;min-height:0
+    }
+    body.t-painel.painel-em-jogo .jog{padding:6px 5px}
+    body.t-painel.painel-em-jogo .jog .av{font-size:20px;margin-bottom:3px}
+    body.t-painel.painel-em-jogo .jog .nm{font-size:11px;margin-bottom:1px}
+    body.t-painel.painel-em-jogo .jog .pers{display:none}
+    body.t-painel.painel-em-jogo .jog .est{font-size:8px;margin-top:2px;letter-spacing:.08em}
+    body.t-painel.painel-em-jogo .vazio{padding:18px 8px;font-size:clamp(20px,2.6vw,34px)}
+    body.t-painel.painel-em-jogo .acao-painel{margin-top:auto;flex:0 0 auto}
+    body.t-painel.painel-em-jogo .acao-painel .card{padding:10px;margin-bottom:6px}
+    body.t-painel.painel-em-jogo .acao-painel .lead{font-size:18px;margin:2px 0 4px}
+    body.t-painel.painel-em-jogo .acao-painel .muted{font-size:11px;line-height:1.3}
+    body.t-painel.painel-em-jogo .acao-painel .btn{padding:10px 12px;margin-bottom:5px;font-size:10px}
+    body.t-painel.painel-em-jogo .painel-pistas>.eyebrow{flex:0 0 auto;margin-bottom:5px}
+    body.t-painel.painel-em-jogo .publica{padding-left:12px;margin-bottom:12px}
+    body.t-painel.painel-em-jogo .publica .ph{font-size:10px}
+    body.t-painel.painel-em-jogo .publica .pt{font-size:clamp(18px,2vw,28px);line-height:1.2;margin-top:4px}
+    body.t-painel.painel-em-jogo .publica .pq{font-size:10px;margin-top:3px}
+    body.t-painel.painel-em-jogo .publicas-vazio{font-size:clamp(18px,2vw,28px);padding:18px 0}
   }
 
   /* ---------- portao: a tela-titulo antes do video ----------
@@ -1258,6 +1316,10 @@ function render(forcar){
   var faseAgora=(STATE.doc&&STATE.doc.fase)||"sala";
   document.body.classList.toggle("fase-sala",
     STATE.tela==="painel" && faseAgora==="sala");
+  document.body.classList.toggle("fase-sensor",
+    STATE.tela==="constelacao" || STATE.tela==="inclinacao");
+  document.body.classList.toggle("painel-em-jogo",
+    STATE.tela==="painel" && faseAgora!=="sala" && faseAgora!=="resultado");
   /* Os snapshots do Firebase podem chegar várias vezes durante uma rodada.
      Recriar o iframe a cada snapshot descarrega o módulo, perde a permissão
      do sensor e devolve o jogador à introdução. Enquanto a mesma tarefa
@@ -1425,15 +1487,17 @@ function telaPainel(){
 
   var mural="";
   if(!pubs.length){
-    mural='<div class="publicas-vazio">A casa ainda n&atilde;o mostrou nada.<br>'+
-          'As linhas v&atilde;o aparecendo sozinhas.</div>';
+    mural='<div class="mural-feed"><div class="mural-trilho"><div class="publicas-vazio">A casa ainda n&atilde;o mostrou nada.<br>'+
+          'As linhas v&atilde;o aparecendo sozinhas.</div></div></div>';
   } else {
-    for(var m=pubs.length-1;m>=0;m--){
+    var itensMural="";
+    for(var m=0;m<pubs.length;m++){
       var pu=pubs[m];
-      mural+='<div class="publica"><span class="ph">'+esc(pu.hora)+'</span>'+
+      itensMural+='<div class="publica"><span class="ph">'+esc(pu.hora)+'</span>'+
              '<div class="pt">'+esc(pu.txt)+'</div>'+
              '<div class="pq">fragmento revelado</div></div>';
     }
+    mural='<div class="mural-feed"><div class="mural-trilho">'+itensMural+'</div></div>';
   }
 
   var acao="";
@@ -1480,11 +1544,10 @@ function telaPainel(){
         '<button class="btn btn-sm btn-frio" onclick="abrirQr()">C&oacute;digo &middot; QR</button>'+
       '</span>'+
     '</div>'+
-    relogio+
     '<div class="painel-cols">'+
-      '<div><span class="eyebrow">Na casa</span>'+
-        '<div class="grade">'+grade+'</div>'+acao+'</div>'+
-      '<div><span class="eyebrow">Pistas gerais</span>'+mural+'</div>'+
+      '<div class="painel-lateral">'+relogio+'<span class="eyebrow">Na casa</span>'+
+        '<div class="grade grade-painel">'+grade+'</div><div class="acao-painel">'+acao+'</div></div>'+
+      '<div class="painel-pistas"><span class="eyebrow">Pistas gerais</span>'+mural+'</div>'+
     '</div>'+
     modalQr();
 }
