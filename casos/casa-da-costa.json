@@ -1,0 +1,136 @@
+{
+  "_leia": "MOLDE DE CASO DO MOSAICO. Para criar outro caso, copie este arquivo, troque o conteúdo e abra o jogo com ?caso=nome-do-arquivo (sem .json). Marcadores {masculino|feminino} são trocados conforme a escolha do jogador na entrada.",
+
+  "id": "casa-da-costa",
+  "titulo": "A Casa da Costa",
+
+  "arte": {
+    "capa": "img/capa-vertical.jpg",
+    "painel": "img/fundo-painel.jpg",
+    "espera": "img/aguardando.jpg",
+    "video": "img/abertura.mp4"
+  },
+
+  "elenco": [
+    {
+      "id": "investigador",
+      "av": "🔦",
+      "nome": "{O Investigador|A Investigadora}",
+      "desc": "Chega primeiro. Sempre observa antes de se misturar."
+    },
+    {
+      "id": "herdeiro",
+      "av": "🔑",
+      "nome": "{O Herdeiro|A Herdeira}",
+      "desc": "Não entra: surge. A névoa abre espaço quando passa."
+    },
+    {
+      "id": "morador",
+      "av": "👟",
+      "nome": "{O Morador|A Moradora}",
+      "desc": "Passos leves, calculados. Acostumad{o|a} a não ser percebid{o|a}."
+    },
+    {
+      "id": "jornalista",
+      "av": "👜",
+      "nome": "{O Jornalista|A Jornalista}",
+      "desc": "Segura a bolsa com força. Algo lá dentro importa mais que a noite."
+    },
+    {
+      "id": "policial",
+      "av": "🪞",
+      "nome": "{O Policial|A Policial}",
+      "desc": "Tenta parecer tranquil{o|a}. Não está."
+    },
+    {
+      "id": "menina",
+      "av": "🔇",
+      "nome": "{O Menino|A Menina}",
+      "desc": "{O último|A última}. Vê tudo. Não diz nada."
+    }
+  ],
+
+  "roteiros": {
+    "investigador": {
+      "rub": "Você entra primeiro. Não por coragem — por hábito. Passa a mão pela parede do corredor, como quem testa a textura de algo vivo. A madeira responde com um estalo curto. Você para. Olha para cima.",
+      "tom": "Alto — quase um grito",
+      "fala": "“Tem alguém aí?”",
+      "pos": "A fala sai curta, automática. Ninguém responde. Ou talvez tenha respondido, e o som se perdeu na tempestade."
+    },
+    "herdeiro": {
+      "rub": "Você não entra: surge. A névoa abre espaço, como se reconhecesse você. Olha para cada canto da sala como quem procura algo que já sabe que está ali. O cofre chama sua atenção — fechado, mas com a marca de dedo fresca. Você toca a trava com o indicador.",
+      "tom": "Baixo, seco, sem hesitar",
+      "fala": "“Isso não estava assim.”",
+      "pos": "E não estava mesmo."
+    },
+    "morador": {
+      "rub": "Você chega sem fazer barulho — a porta nem parece abrir. Passos leves, calculados, de quem está acostumad{o|a} a não ser percebid{o|a}. Olha para a escada. Para o sótão. Para a janela do segundo andar.",
+      "tom": "Sem falar — só o olhar",
+      "fala": "( silêncio )",
+      "pos": "Você não diz nada. Mas encara alguma coisa acima da cabeça das outras pessoas por três segundos, como quem já viu algo que os outros não viram. Depois desvia."
+    },
+    "jornalista": {
+      "rub": "Você entra como se estivesse atrasad{o|a} — mesmo não estando. Segura a bolsa com força, como se algo lá dentro fosse mais importante do que a própria noite. Olha para o corredor. Para a cortina que balança sem vento. Para a porta entreaberta.",
+      "tom": "Incomodad{o|a} — mais do que deveria",
+      "fala": "“Quem deixou isso assim?”",
+      "pos": "Ninguém responde. E isso incomoda você ainda mais."
+    },
+    "policial": {
+      "rub": "Você entra com a postura de quem tenta parecer tranquil{o|a} — mas não está. Olha para a tempestade pela janela. Depois para os outros. Depois para a casa. E a casa olha de volta. Você passa a mão pelo cabelo, nervos{o|a}. Um reflexo metálico na janela chama sua atenção.",
+      "tom": "Nervos{o|a} — a voz falha no meio",
+      "fala": "“Vocês viram isso?”",
+      "pos": "Ninguém admite ter visto. Mas todos sentiram."
+    },
+    "menina": {
+      "rub": "Você é {o último|a última}. Entra devagar, como quem não quer interromper algo que já começou. A casa parece esperar por você. Olha para o teto. Para o sótão. Para a escada. Para o cofre. Para a porta entreaberta.",
+      "tom": "Não fale — conte até cinco",
+      "fala": "( silêncio )",
+      "pos": "Você vê tudo. E não diz nada. O silêncio {do Menino|da Menina} é mais pesado do que qualquer fala. Encare a mesa, uma pessoa de cada vez, e só então sente."
+    }
+  },
+
+  "pistas": {
+    "investigador": { "hora": "21:29", "txt": "Um estalo seco. Depois outro. Depois silêncio. Você ouviu atrás de você." },
+    "herdeiro":     { "hora": "21:29", "txt": "Você sentiu algo ao lado. Não foi passo, não foi corpo. Foi deslocamento." },
+    "morador":      { "hora": "21:30", "txt": "Algo caiu. Pequeno, metálico, preciso. Veio do cofre." },
+    "jornalista":   { "hora": "21:30", "txt": "Algo passou perto da sua mão. Frio, rápido, intencional. Não tocou." },
+    "policial":     { "hora": "21:30", "txt": "Mesmo sem luz, uma sombra passou. Não deveria ser possível. Mas foi." },
+    "menina":       { "hora": "21:31", "txt": "Alguém respirou perto demais. Você ouviu. E não se mexeu." }
+  },
+
+  "publicas": [
+    { "hora": "21:03", "txt": "A luz da Casa da Costa oscilou pela primeira vez. Não foi queda. Foi aviso." },
+    { "hora": "21:07", "txt": "A porta da sala estava entreaberta. A cortina balançava. E a janela estava trancada." },
+    { "hora": "21:12", "txt": "O cofre estava fechado, como deveria estar. Mas a marca de dedo na trava era recente." },
+    { "hora": "21:14", "txt": "Um som veio do andar de cima. Não era passo. Não era objeto. Era algo entre os dois." },
+    { "hora": "21:17", "txt": "O corredor ficou meio escuro por um segundo. Uma sombra passou rápido demais." },
+    { "hora": "21:20", "txt": "A névoa entrou pela fresta da porta como se tivesse sido convidada." }
+  ],
+
+  "relogio": {
+    "sala": "21:00",
+    "escuro": "21:00",
+    "cena": null,
+    "encenacao": null,
+    "votacao": "21:23",
+    "resultado": "21:23",
+    "historia": "21:23"
+  },
+
+  "capitulos": {
+    "sala": "A tempestade chegou antes dos convidados",
+    "escuro": "A casa apagou",
+    "cena": "A casa escolheu alguém",
+    "encenacao": "A casa escolheu alguém",
+    "votacao": "A linha da verdade",
+    "resultado": "A linha da verdade",
+    "historia": "A noite da tempestade"
+  },
+
+  "historia": [
+    "A tempestade chegou antes dos convidados.",
+    "O vento batia contra as janelas da Casa da Costa como se quisesse entrar. A madeira antiga respondia com estalos curtos, secos, quase impacientes.",
+    "A luz oscilava — não o suficiente para assustar, mas o suficiente para avisar.",
+    "A casa não estava recebendo visitas. A casa estava escolhendo testemunhas."
+  ]
+}

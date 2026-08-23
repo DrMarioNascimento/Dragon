@@ -320,6 +320,74 @@
     font-size:clamp(19px,5.2vw,25px);line-height:1.5;
   }
 
+  /* ---------- portao: a tela-titulo antes do video ----------
+     O toque aqui e o que libera o som. Navegador nenhum deixa video
+     com audio comecar sozinho — entao o primeiro toque e a chave.   */
+  #portao{
+    position:fixed;inset:0;z-index:60;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:40px 30px;
+    background:linear-gradient(180deg,rgba(5,7,12,.35) 0%,rgba(5,7,12,.72) 100%);
+    transition:opacity 1.2s ease, background 1.2s ease;
+  }
+  #portao.tocando{background:transparent;justify-content:flex-end}
+  #portao.saindo{opacity:0;pointer-events:none}
+  body.portao #app{opacity:0;pointer-events:none;transition:opacity .8s ease}
+  #portao-toque{
+    font-family:var(--serif);font-style:italic;
+    font-size:clamp(26px,6.8vw,38px);color:var(--texto);
+    text-shadow:0 2px 30px rgba(0,0,0,.95);margin-bottom:28px;
+    animation:respira 3s ease-in-out infinite;
+  }
+  #portao #btn-comecar{width:auto;min-width:14em;margin-bottom:16px}
+  /* foco visivel: na TV a pessoa navega as cegas sem isso */
+  #portao #btn-comecar:focus,#btn-pular:focus{
+    outline:none;border-color:var(--ambar);
+    box-shadow:0 0 0 3px rgba(232,164,76,.35),0 0 34px rgba(232,164,76,.3);
+  }
+  #portao-sub{
+    font-size:clamp(11px,3vw,14px);letter-spacing:.26em;text-transform:uppercase;
+    color:var(--nevoa);opacity:.65;
+    text-shadow:0 2px 20px rgba(0,0,0,.95);
+  }
+  @keyframes respira{0%,100%{opacity:.6}50%{opacity:1}}
+  #portao.tocando #portao-toque,
+  #portao.tocando #portao-sub,
+  #portao.tocando #btn-comecar{display:none}
+  #btn-pular{
+    display:none;pointer-events:auto;
+    font-family:var(--sans);font-size:clamp(11px,3vw,13px);font-weight:600;
+    letter-spacing:.22em;text-transform:uppercase;
+    padding:13px 24px;border-radius:100px;
+    border:1px solid rgba(232,164,76,.35);
+    background:rgba(5,7,12,.6);color:var(--ambar);
+    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+    margin-bottom:max(24px,env(safe-area-inset-bottom));
+  }
+  #portao.tocando #btn-pular{display:block}
+
+  /* ---------- controles de abertura, no cantinho ---------- */
+  #ctrl-abertura{
+    position:fixed;z-index:20;
+    top:max(14px,env(safe-area-inset-top));right:14px;
+    display:none;gap:8px;
+  }
+  body.t-inicio #ctrl-abertura{display:flex}
+  body.portao #ctrl-abertura{display:none}
+  #ctrl-abertura button{
+    width:46px;height:46px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:19px;line-height:1;cursor:pointer;
+    border:1px solid rgba(143,163,184,.22);
+    background:rgba(5,7,12,.55);color:var(--nevoa);
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+    transition:border-color .25s ease,background .25s ease;
+  }
+  #ctrl-abertura button:focus,#ctrl-abertura button:active{
+    outline:none;border-color:var(--ambar);background:rgba(232,164,76,.14);
+  }
+  #ctrl-abertura button.on{border-color:var(--ambar)}
+
   /* ---------- escolha da forma de tratamento ---------- */
   .formas{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:26px}
   .forma-op{
@@ -329,8 +397,8 @@
   }
   .forma-op[class*="on"]{border-color:var(--ambar);background:rgba(232,164,76,.09)}
   .forma-op b{
-    display:block;font-family:var(--serif);font-size:clamp(30px,8vw,40px);
-    line-height:1;color:var(--ambar);font-weight:400;
+    display:block;font-size:clamp(34px,9vw,46px);
+    line-height:1.1;font-weight:400;
   }
   .forma-op span{
     display:block;margin-top:8px;font-family:var(--serif);font-style:italic;
@@ -583,6 +651,19 @@
   <video id="video-abertura" muted loop playsinline preload="auto"
          poster="img/capa-vertical.jpg"></video>
 </div>
+<div id="ctrl-abertura">
+  <button id="btn-repetir" title="Repetir abertura" aria-label="Repetir abertura">&#8635;</button>
+  <button id="btn-som" title="Som" aria-label="Ligar ou desligar o som">&#128263;</button>
+</div>
+
+<div id="portao">
+  <div id="portao-toque">A casa est&aacute; esperando</div>
+  <!-- botao de verdade: TV navega por foco, div clicavel nao recebe OK -->
+  <button id="btn-comecar" class="btn btn-ambar">Come&ccedil;ar</button>
+  <div id="portao-sub">Toque na tela ou pressione OK</div>
+  <button id="btn-pular">Pular</button>
+</div>
+
 <div id="cortina"><div id="cortina-txt"></div></div>
 <div id="app"></div>
 
@@ -714,6 +795,37 @@ var HISTORIA=[
   "A luz oscilava — não o suficiente para assustar, mas o suficiente para avisar.",
   "A casa não estava recebendo visitas. A casa estava escolhendo testemunhas."
 ];
+
+/* ================= O CASO, NUM BLOCO SO =================
+   Tudo que e "historia" mora aqui. Tudo fora daqui e "jogo" e serve
+   para qualquer caso. Para criar o proximo: copie casos/casa-da-costa.json,
+   troque o conteudo, e abra o jogo com  ?caso=nome-do-arquivo
+   ======================================================== */
+var CASO={
+  id:"casa-da-costa",
+  titulo:"A Casa da Costa",
+  arte:{ capa:"img/capa-vertical.jpg", painel:"img/fundo-painel.jpg",
+         espera:"img/aguardando.jpg", video:"img/abertura.mp4" },
+  elenco:PERSONAGENS,     /* quem pode ser sorteado */
+  roteiros:ROTEIRO,       /* o que cada um faz na propria vez */
+  pistas:PISTA_PRIVADA,   /* o que cada um recebe ao encerrar */
+  publicas:PUBLICAS,      /* as linhas que sobem no telao */
+  relogio:HORA_FASE,      /* a hora exibida em cada fase */
+  capitulos:CAP_FASE,     /* o subtitulo de cada fase — sem spoiler */
+  historia:HISTORIA       /* a abertura, so no fim */
+};
+
+function aplicarCaso(c){
+  if(!c) return;
+  CASO=c;
+  PERSONAGENS   = c.elenco    || PERSONAGENS;
+  ROTEIRO       = c.roteiros  || ROTEIRO;
+  PISTA_PRIVADA = c.pistas    || PISTA_PRIVADA;
+  PUBLICAS      = c.publicas  || PUBLICAS;
+  HORA_FASE     = c.relogio   || HORA_FASE;
+  CAP_FASE      = c.capitulos || CAP_FASE;
+  HISTORIA      = c.historia  || HISTORIA;
+}
 
 /* ---------- estado ---------- */
 var STATE = {
@@ -864,14 +976,15 @@ function telaEntrar(){
     '<label for="nome">Seu nome</label>'+
     '<input id="nome" maxlength="18" autocomplete="off" placeholder="Como a mesa te chama" '+
       'onkeydown="if(event.key===\'Enter\') entrarNaMesa()">'+
-    '<label>Como a casa vai te chamar?</label>'+
+    /* sem nomear arquetipo nenhum: o personagem continua sendo surpresa */
+    '<label>Como quer que o Mosaico te chame?</label>'+
     '<div class="formas">'+
       '<button class="forma-op'+(STATE.forma==="m"?" on":"")+'" '+
-        'onclick="escolherForma(\'m\')"><b>O</b><span>Investigador<br>Herdeiro</span></button>'+
+        'onclick="escolherForma(\'m\')"><b>👨</b><span>Bem-vindo</span></button>'+
       '<button class="forma-op'+(STATE.forma==="f"?" on":"")+'" '+
-        'onclick="escolherForma(\'f\')"><b>A</b><span>Investigadora<br>Herdeira</span></button>'+
+        'onclick="escolherForma(\'f\')"><b>👩</b><span>Bem-vinda</span></button>'+
       '<button class="forma-op'+(STATE.forma==="?"?" on":"")+'" '+
-        'onclick="escolherForma(\'?\')"><b>?</b><span>Tanto<br>faz</span></button>'+
+        'onclick="escolherForma(\'?\')"><b>👥</b><span>Tanto faz</span></button>'+
     '</div>'+
     '<button class="btn btn-ambar" onclick="entrarNaMesa()">Entrar na casa</button>'+
     '<button class="btn btn-fantasma" onclick="irPara(\'inicio\')">&larr; Voltar</button>';
@@ -898,10 +1011,11 @@ function telaPainel(){
                      (fase!=="encenacao" || i<vezAtual);
       var st=atuando?"atuando":(j.status==="pronto"?"pronto":"");
       var est=atuando?"Agora":(jaRevelado?"J&aacute; passou":"Na casa");
-      /* a pessoa some e o arquetipo fica: antes de atuar o cartao traz o
-         nome de quem entrou; depois, quem ficou na mesa e o papel      */
+      /* A pessoa some de vez. Depois da primeira tarefa o cartao passa a
+         ser so o arquetipo — quem era quem vira memoria da mesa, e isso
+         e fator de confusao na deducao, nao descuido.                  */
       var titulo = jaRevelado&&p ? nomePers(p, j.forma) : j.nome;
-      var sub    = jaRevelado&&p ? j.nome : "";
+      var sub    = "";
       grade+='<div class="jog st-'+st+'">'+
         '<div class="av">'+(jaRevelado&&p?p.av:"🕯️")+'</div>'+
         '<div class="nm">'+esc(titulo)+'</div>'+
@@ -1078,8 +1192,9 @@ function telaVotacao(){
     var p=personagemPor(j.personagem);
     ops+='<button class="pers-op" onclick="votar(\''+j.id+'\')">'+
       '<span class="av">'+(p?p.av:"👤")+'</span>'+
-      '<span class="txt"><span class="nm">'+esc(j.nome)+'</span>'+
-      '<span class="desc">'+esc(nomePers(p,j.forma))+'</span></span></button>';
+      /* vota-se no papel, nao na pessoa — o nome ja nao existe mais */
+      '<span class="txt"><span class="nm">'+esc(nomePers(p,j.forma))+'</span>'+
+      '<span class="desc">'+esc(descPers(p,j.forma))+'</span></span></button>';
   }
   return '<span class="eyebrow">Vota&ccedil;&atilde;o</span>'+
     '<h2>Qual interpreta&ccedil;&atilde;o ficou na cabe&ccedil;a?</h2>'+
@@ -1096,8 +1211,8 @@ function telaResultado(){
     var j=js[i], p=personagemPor(j.personagem);
     grade+='<div class="jog'+(i===0?' st-atuando':'')+'">'+
       '<div class="av">'+(p?p.av:"👤")+'</div>'+
-      '<div class="nm">'+esc(j.nome)+'</div>'+
-      '<div class="pers">'+esc(nomePers(p,j.forma))+'</div>'+
+      '<div class="nm">'+esc(nomePers(p,j.forma))+'</div>'+
+      '<div class="pers">&nbsp;</div>'+
       '<div class="pt">'+(j.votos||0)+'</div>'+
       '<div class="est">'+((j.votos||0)===1?"voto":"votos")+'</div>'+
     '</div>';
@@ -1414,32 +1529,135 @@ async function voltarParaSala(){
 /* ============================================================
    INIT — se a URL tem ?sala=, vai direto para a tela de entrada
    ============================================================ */
-/* Video de abertura opcional: so aparece se o arquivo existir de verdade.
-   Fica mudo por politica dos navegadores — som exige um toque do usuario. */
+/* ============================================================
+   ABERTURA
+   O mesmo elemento de video serve as duas funcoes: primeiro toca
+   inteiro, com som, em tela cheia; depois vira pano de fundo mudo
+   e em loop. Assim o arquivo de 10 MB e baixado uma vez so.
+   ============================================================ */
 (function ligaVideo(){
   var v=document.getElementById("video-abertura");
-  if(!v) return;
+  var portao=document.getElementById("portao");
+  if(!v||!portao) return;
+
+  var jaViu=false;
+  try{ jaViu = sessionStorage.getItem("mosaico_abertura")==="1"; }catch(e){}
+  var entrandoNaSala=false;
+  try{ entrandoNaSala = !!new URLSearchParams(location.search).get("sala"); }catch(e){}
+
+  /* quem chega pelo QR quer entrar na mesa, nao assistir abertura */
+  if(jaViu || entrandoNaSala){ semPortao(); }
+  else { document.body.classList.add("portao"); }
+
+  function sincronizaIconeSom(){
+    var b=document.getElementById("btn-som");
+    if(!b) return;
+    b.innerHTML = v.muted ? "&#128263;" : "&#128266;";
+    b.classList.toggle("on", !v.muted);
+  }
+
+  function semPortao(){
+    document.body.classList.remove("portao");
+    portao.classList.add("saindo");
+    /* pulando a abertura, o video ja entra como fundo: mudo e em loop */
+    v.muted=true; v.loop=true;
+    sincronizaIconeSom();
+    setTimeout(function(){ portao.style.display="none"; },1300);
+  }
+
+  function viraFundo(){
+    try{ sessionStorage.setItem("mosaico_abertura","1"); }catch(e){}
+    v.muted=true; v.loop=true;
+    var t=v.play(); if(t&&t.catch) t.catch(function(){});
+    semPortao();
+  }
+
+  /* o toque libera o som: e a unica porta que o navegador aceita */
+  function abrirComSom(){
+    portao.classList.add("tocando");
+    v.muted=false; v.loop=false; v.volume=1;
+    try{ v.currentTime=0; }catch(e){}
+    var t=v.play();
+    if(t&&t.catch) t.catch(function(){ v.muted=true; v.play(); });
+    sincronizaIconeSom();
+  }
+
+  portao.addEventListener("click",function(e){
+    if(e.target.id==="btn-pular"){ viraFundo(); return; }
+    if(!portao.classList.contains("tocando")) abrirComSom();
+  });
+
+  /* Controle remoto de TV: nao ha toque. OK/Enter/Espaco fazem o mesmo,
+     e o botao recebe foco sozinho para o primeiro OK ja valer.        */
+  document.addEventListener("keydown",function(e){
+    if(portao.style.display==="none") return;
+    var k=e.key;
+    if(k==="Enter"||k===" "||k==="Spacebar"||k==="OK"||e.keyCode===13||e.keyCode===32){
+      e.preventDefault();
+      if(portao.classList.contains("tocando")) viraFundo();
+      else abrirComSom();
+    }
+  });
+  if(document.body.classList.contains("portao")){
+    setTimeout(function(){
+      var b=document.getElementById("btn-comecar");
+      if(b) try{ b.focus(); }catch(e){}
+    },400);
+  }
+
+  /* controles soltos na tela de abertura */
+  window.repetirAbertura=function(){
+    portao.style.display="";
+    portao.classList.remove("saindo");
+    portao.classList.add("tocando");
+    document.body.classList.add("portao");
+    abrirComSom();
+  };
+  window.alternarSom=function(){
+    v.muted=!v.muted;
+    if(!v.muted){ v.volume=1; var t=v.play(); if(t&&t.catch) t.catch(function(){}); }
+    sincronizaIconeSom();
+  };
+  var bR=document.getElementById("btn-repetir");
+  var bS=document.getElementById("btn-som");
+  if(bR) bR.addEventListener("click",function(){ window.repetirAbertura(); });
+  if(bS) bS.addEventListener("click",function(){ window.alternarSom(); });
+
+  v.addEventListener("ended", viraFundo);
   v.addEventListener("canplay",function(){
     v.classList.add("tocando");
     document.body.classList.add("com-video");
-    var t=v.play();
-    if(t&&t.catch) t.catch(function(){
-      v.classList.remove("tocando");
-      document.body.classList.remove("com-video");
-    });
+    if(!document.body.classList.contains("portao")){
+      var t=v.play(); if(t&&t.catch) t.catch(function(){});
+    }
   });
   v.addEventListener("error",function(){
     v.classList.remove("tocando");
     document.body.classList.remove("com-video");
+    semPortao();   /* sem video, nao existe portao */
   });
   v.src="img/abertura.mp4";
+  setTimeout(function(){ if(!v.readyState) semPortao(); },8000);
 })();
 
 (function init(){
-  try{
-    var sala=new URLSearchParams(location.search).get("sala");
-    if(sala) STATE.tela="entrar";
-  }catch(e){}
+  var q=null;
+  try{ q=new URLSearchParams(location.search); }catch(e){}
+  if(q && q.get("sala")) STATE.tela="entrar";
+
+  /* ?caso=nome carrega casos/nome.json e troca a historia inteira.
+     Sem o parametro, roda A Casa da Costa, que ja vem embutida.     */
+  var nomeCaso = q ? q.get("caso") : null;
+  if(nomeCaso && /^[a-z0-9-]{1,40}$/.test(nomeCaso)){
+    fetch("casos/"+nomeCaso+".json")
+      .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
+      .then(function(c){ aplicarCaso(c); render(); })
+      .catch(function(e){
+        console.error("caso", e);
+        avisa("Caso não encontrado — usando A Casa da Costa");
+        render();
+      });
+  }
   render();
 })();
 </script>
