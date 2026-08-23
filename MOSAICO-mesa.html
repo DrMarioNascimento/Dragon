@@ -7,6 +7,12 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#05070c">
+<!-- Instalado pela "Tela de Inicio", abre sem barra nenhuma. E o unico
+     jeito de ter tela cheia de verdade no iPhone, onde o Safari nao
+     implementa a Fullscreen API. -->
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="img/icone-192.png">
+<meta name="apple-mobile-web-app-title" content="MOSAICO">
 <title>MOSAICO — A Casa da Costa</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -234,9 +240,9 @@
   /* ---------- botoes ---------- */
   .btn{
     display:block;width:100%;margin-bottom:12px;
-    font-family:var(--sans);font-size:clamp(14px,3.7vw,17px);font-weight:600;
+    font-family:var(--sans);font-size:clamp(15px,4vw,18px);font-weight:600;
     letter-spacing:.16em;text-transform:uppercase;
-    padding:21px 24px;border-radius:3px;cursor:pointer;
+    padding:22px 24px;border-radius:3px;cursor:pointer;
     border:1px solid var(--linha);background:var(--painel);color:var(--texto);
     transition:border-color .25s ease,background .25s ease;
   }
@@ -255,9 +261,9 @@
 
   /* ---------- campos ---------- */
   label{
-    display:block;font-size:clamp(12px,3.2vw,15px);font-weight:600;
-    letter-spacing:.2em;text-transform:uppercase;color:var(--dim);
-    margin:0 0 10px;
+    display:block;font-size:clamp(14px,3.7vw,17px);font-weight:600;
+    letter-spacing:.18em;text-transform:uppercase;color:var(--nevoa);
+    opacity:.85;margin:0 0 11px;
   }
   input{
     width:100%;margin-bottom:22px;
@@ -513,23 +519,24 @@
     font-size:clamp(13px,3.5vw,16px);font-weight:600;letter-spacing:.3em;
     text-transform:uppercase;color:var(--ambar);margin-bottom:14px;
   }
+  /* a rubrica e lida em pe, de longe e na penumbra: nao pode ser miuda */
   .roteiro .rub{
     font-family:var(--serif);font-style:italic;color:var(--nevoa);
-    font-size:clamp(20px,5.4vw,26px);line-height:1.42;margin-bottom:16px;
+    font-size:clamp(23px,6.2vw,30px);line-height:1.42;margin-bottom:18px;
   }
   .roteiro .tom{
-    display:inline-block;font-size:clamp(13px,3.5vw,16px);font-weight:600;
-    letter-spacing:.2em;text-transform:uppercase;color:var(--vermelho);
+    display:inline-block;font-size:clamp(15px,4vw,18px);font-weight:600;
+    letter-spacing:.18em;text-transform:uppercase;color:var(--vermelho);
     border:1px solid rgba(224,103,79,.4);border-radius:2px;
-    padding:8px 14px;margin-bottom:18px;
+    padding:10px 16px;margin-bottom:20px;
   }
   .roteiro .fala{
     font-family:var(--serif);font-size:clamp(38px,11vw,62px);line-height:1.14;
     color:var(--texto);margin-bottom:18px;
   }
   .roteiro .pos{
-    font-family:var(--serif);font-style:italic;color:var(--nevoa);opacity:.75;
-    font-size:clamp(19px,5.1vw,24px);line-height:1.42;
+    font-family:var(--serif);font-style:italic;color:var(--nevoa);opacity:.78;
+    font-size:clamp(21px,5.6vw,27px);line-height:1.42;
   }
 
   /* ---------- modal QR ---------- */
@@ -724,6 +731,7 @@
 <div id="ctrl-abertura">
   <button id="btn-repetir" title="Repetir abertura" aria-label="Repetir abertura">&#8635;</button>
   <button id="btn-som" title="Som" aria-label="Ligar ou desligar o som">&#128263;</button>
+  <button id="btn-cheia" title="Tela cheia" aria-label="Tela cheia">&#9974;</button>
 </div>
 
 <div id="portao">
@@ -1402,6 +1410,30 @@ async function conferirSenha(){
   criarMesa();
 }
 
+/* ---------- tela cheia ----------
+   So funciona a partir de um gesto da pessoa — nenhum navegador deixa
+   entrar em tela cheia sozinho. E no iPhone o Safari nao implementa a
+   API: la o caminho e "Adicionar a Tela de Inicio", que abre sem barra
+   nenhuma por causa do manifest e das metatags.                      */
+function telaCheia(){
+  var el=document.documentElement;
+  var f=el.requestFullscreen||el.webkitRequestFullscreen||
+        el.mozRequestFullScreen||el.msRequestFullscreen;
+  if(f){ try{ f.call(el); }catch(e){} }
+  if(screen.orientation && screen.orientation.lock){
+    try{ screen.orientation.lock("portrait"); }catch(e){}
+  }
+}
+function jaEmTelaCheia(){
+  return !!(document.fullscreenElement||document.webkitFullscreenElement);
+}
+function alternarTelaCheia(){
+  if(jaEmTelaCheia()){
+    var s=document.exitFullscreen||document.webkitExitFullscreen;
+    if(s){ try{ s.call(document); }catch(e){} }
+  } else telaCheia();
+}
+
 function irPara(t){ STATE.tela=t; render(); }
 function escolher(id){ STATE.escolha=id; render(); }
 function escolherForma(f){ STATE.forma=f; render(); }
@@ -1489,6 +1521,7 @@ async function entrarNaMesa(){
   /* "tanto faz" tambem e escolha: a casa decide, como decide o resto */
   var forma = STATE.forma==="?" ? (Math.random()<0.5?"m":"f") : STATE.forma;
 
+  telaCheia();   /* quem entra pelo QR nao passa pelo portao: o gesto e aqui */
   fecharCortina("A porta abriu. A casa está decidindo quem você é.");
   var entrouEm=Date.now();
 
@@ -1793,6 +1826,7 @@ async function voltarParaSala(){
   /* o toque libera o som: e a unica porta que o navegador aceita */
   var comecouEm=0;
   function abrirComSom(){
+    telaCheia();          /* o toque do portao e o gesto que libera as duas coisas */
     portao.classList.add("tocando");
     v.muted=false; v.loop=false; v.volume=1;
     comecouEm=Date.now();
@@ -1857,6 +1891,11 @@ async function voltarParaSala(){
   var bS=document.getElementById("btn-som");
   if(bR) bR.addEventListener("click",function(){ window.repetirAbertura(); });
   if(bS) bS.addEventListener("click",function(){ window.alternarSom(); });
+  var bC=document.getElementById("btn-cheia");
+  if(bC) bC.addEventListener("click",function(){
+    alternarTelaCheia();
+    setTimeout(function(){ bC.classList.toggle("on", jaEmTelaCheia()); },300);
+  });
 
   /* cinto de seguranca: "ended" logo apos rebobinar e espurio, ignora */
   v.addEventListener("ended", function(){
