@@ -1339,15 +1339,27 @@ function emitirSomDeNivel(){
   habilitarAudioNivel();
   if(!_audioNivel||_audioNivel.state!=="running") return;
   var agora=_audioNivel.currentTime;
-  [[523.25,0],[659.25,.13]].forEach(function(nota){
-    var osc=_audioNivel.createOscillator(), ganho=_audioNivel.createGain();
-    osc.type="sine";osc.frequency.setValueAtTime(nota[0],agora+nota[1]);
-    ganho.gain.setValueAtTime(.0001,agora+nota[1]);
-    ganho.gain.exponentialRampToValueAtTime(.12,agora+nota[1]+.025);
-    ganho.gain.exponentialRampToValueAtTime(.0001,agora+nota[1]+.22);
-    osc.connect(ganho);ganho.connect(_audioNivel.destination);
-    osc.start(agora+nota[1]);osc.stop(agora+nota[1]+.24);
-  });
+
+  /* Sirene de nevoeiro: 1,2 s + 2 s de intervalo + 1,2 s = 4,4 s.
+     O fundamental cria distância; os harmônicos mantêm o som audível no celular. */
+  function chamadaDeNevoeiro(inicio){
+    [[110,.055,"sine"],[220,.036,"triangle"],[330,.014,"sine"]].forEach(function(parcial){
+      var osc=_audioNivel.createOscillator(), ganho=_audioNivel.createGain();
+      osc.type=parcial[2];
+      osc.frequency.setValueAtTime(parcial[0]*.985,inicio);
+      osc.frequency.exponentialRampToValueAtTime(parcial[0],inicio+.24);
+      osc.frequency.exponentialRampToValueAtTime(parcial[0]*.975,inicio+1.2);
+      ganho.gain.setValueAtTime(.0001,inicio);
+      ganho.gain.exponentialRampToValueAtTime(parcial[1],inicio+.16);
+      ganho.gain.setValueAtTime(parcial[1],inicio+.78);
+      ganho.gain.exponentialRampToValueAtTime(.0001,inicio+1.2);
+      osc.connect(ganho);ganho.connect(_audioNivel.destination);
+      osc.start(inicio);osc.stop(inicio+1.2);
+    });
+  }
+
+  chamadaDeNevoeiro(agora);
+  chamadaDeNevoeiro(agora+3.2);
 }
 function verificarTrocaDeNivel(fase){
   var d=dinamicaNivel(fase), atual=d&&d.id;
