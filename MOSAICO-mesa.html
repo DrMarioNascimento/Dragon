@@ -320,6 +320,23 @@
     font-size:clamp(19px,5.2vw,25px);line-height:1.5;
   }
 
+  /* ---------- escolha da forma de tratamento ---------- */
+  .formas{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:26px}
+  .forma-op{
+    border:1px solid var(--linha);border-radius:3px;background:var(--painel);
+    color:var(--texto);padding:16px 8px;cursor:pointer;text-align:center;
+    transition:border-color .25s ease,background .25s ease;
+  }
+  .forma-op[class*="on"]{border-color:var(--ambar);background:rgba(232,164,76,.09)}
+  .forma-op b{
+    display:block;font-family:var(--serif);font-size:clamp(30px,8vw,40px);
+    line-height:1;color:var(--ambar);font-weight:400;
+  }
+  .forma-op span{
+    display:block;margin-top:8px;font-family:var(--serif);font-style:italic;
+    font-size:clamp(14px,3.8vw,17px);line-height:1.3;color:var(--nevoa);
+  }
+
   /* ---------- personagens ---------- */
   .pers-lista{display:grid;gap:10px;margin-bottom:24px}
   .pers-op{
@@ -578,59 +595,78 @@
    ============================================================ */
 "use strict";
 
-/* ---------- personagens (Cap. 3 — Os Seis Convidados) ---------- */
+/* ---------- flexao de genero ----------
+   O texto guarda as duas formas: {masculino|feminino}. A escolha e do
+   jogador, feita na entrada, antes de saber qual arquetipo vai receber.
+   Jornalista e Policial nao mudam de palavra — so o artigo — por isso
+   o rotulo inteiro fica escrito, em vez de trocar sufixo por regra.   */
+function flex(txt, forma){
+  return String(txt==null?"":txt).replace(/\{([^|}]*)\|([^}]*)\}/g,
+    function(_,m,f){ return forma==="f" ? f : m; });
+}
+
+/* ---------- arquetipos (Cap. 3 — Os Seis Convidados) ---------- */
 var PERSONAGENS = [
-  { id:"jonas",   nome:"Jonas",   av:"🔦",
+  { id:"investigador", av:"🔦",
+    nome:"{O Investigador|A Investigadora}",
     desc:"Chega primeiro. Sempre observa antes de se misturar." },
-  { id:"helena",  nome:"Helena",  av:"🔑",
-    desc:"Não entra: surge. A névoa abre espaço para ela." },
-  { id:"caio",    nome:"Caio",    av:"👟",
-    desc:"Passos leves, calculados. Acostumado a não ser percebido." },
-  { id:"livia",   nome:"Lívia",   av:"👜",
-    desc:"Segura a bolsa com força. Algo dentro dela importa." },
-  { id:"marcelo", nome:"Marcelo", av:"🪞",
-    desc:"Tenta parecer tranquilo. Não está." },
-  { id:"ana",     nome:"Ana",     av:"🔇",
-    desc:"A última. Vê tudo. Não diz nada." }
+  { id:"herdeiro", av:"🔑",
+    nome:"{O Herdeiro|A Herdeira}",
+    desc:"Não entra: surge. A névoa abre espaço quando passa." },
+  { id:"morador", av:"👟",
+    nome:"{O Morador|A Moradora}",
+    desc:"Passos leves, calculados. Acostumad{o|a} a não ser percebid{o|a}." },
+  { id:"jornalista", av:"👜",
+    nome:"{O Jornalista|A Jornalista}",
+    desc:"Segura a bolsa com força. Algo lá dentro importa mais que a noite." },
+  { id:"policial", av:"🪞",
+    nome:"{O Policial|A Policial}",
+    desc:"Tenta parecer tranquil{o|a}. Não está." },
+  { id:"menina", av:"🔇",
+    nome:"{O Menino|A Menina}",
+    desc:"{O último|A última}. Vê tudo. Não diz nada." }
 ];
+
+function nomePers(p, forma){ return p ? flex(p.nome, forma) : "—"; }
+function descPers(p, forma){ return p ? flex(p.desc, forma) : ""; }
 
 /* ---------- roteiros da encenacao (Cap. 1 e 3) ---------- */
 var ROTEIRO = {
-  jonas:{
-    rub:"Você entra primeiro. Passa a mão pela parede do corredor, como quem testa a textura de algo vivo. A madeira responde com um estalo curto. Você para. Olha para cima.",
+  investigador:{
+    rub:"Você entra primeiro. Não por coragem — por hábito. Passa a mão pela parede do corredor, como quem testa a textura de algo vivo. A madeira responde com um estalo curto. Você para. Olha para cima.",
     tom:"Alto — quase um grito",
     fala:"“Tem alguém aí?”",
     pos:"A fala sai curta, automática. Ninguém responde. Ou talvez tenha respondido, e o som se perdeu na tempestade."
   },
-  helena:{
-    rub:"Você olha para cada canto da sala como quem procura algo que já sabe que está ali. O cofre chama sua atenção. Fechado — mas com a marca de dedo fresca. Você toca a trava com o indicador.",
+  herdeiro:{
+    rub:"Você não entra: surge. A névoa abre espaço, como se reconhecesse você. Olha para cada canto da sala como quem procura algo que já sabe que está ali. O cofre chama sua atenção — fechado, mas com a marca de dedo fresca. Você toca a trava com o indicador.",
     tom:"Baixo, seco, sem hesitar",
     fala:"“Isso não estava assim.”",
     pos:"E não estava mesmo."
   },
-  caio:{
-    rub:"Você entra sem fazer barulho — a porta nem parece abrir. Olha para a escada. Para o sótão. Para a janela do segundo andar. A tempestade bate forte quando você passa.",
+  morador:{
+    rub:"Você chega sem fazer barulho — a porta nem parece abrir. Passos leves, calculados, de quem está acostumad{o|a} a não ser percebid{o|a}. Olha para a escada. Para o sótão. Para a janela do segundo andar.",
     tom:"Sem falar — só o olhar",
     fala:"( silêncio )",
     pos:"Você não diz nada. Mas encara alguma coisa acima da cabeça das outras pessoas por três segundos, como quem já viu algo que os outros não viram. Depois desvia."
   },
-  livia:{
-    rub:"Você entra como se estivesse atrasada — mesmo não estando. Segura a bolsa com força. Olha para o corredor. Para a cortina que balança sem vento. Para a porta entreaberta.",
-    tom:"Incomodada — mais do que deveria",
+  jornalista:{
+    rub:"Você entra como se estivesse atrasad{o|a} — mesmo não estando. Segura a bolsa com força, como se algo lá dentro fosse mais importante do que a própria noite. Olha para o corredor. Para a cortina que balança sem vento. Para a porta entreaberta.",
+    tom:"Incomodad{o|a} — mais do que deveria",
     fala:"“Quem deixou isso assim?”",
     pos:"Ninguém responde. E isso incomoda você ainda mais."
   },
-  marcelo:{
-    rub:"Você olha para a tempestade pela janela. Depois para os outros. Depois para a casa. E a casa olha de volta. Você passa a mão pelo cabelo, nervoso. Um reflexo metálico na janela chama sua atenção.",
-    tom:"Nervoso — a voz falha no meio",
+  policial:{
+    rub:"Você entra com a postura de quem tenta parecer tranquil{o|a} — mas não está. Olha para a tempestade pela janela. Depois para os outros. Depois para a casa. E a casa olha de volta. Você passa a mão pelo cabelo, nervos{o|a}. Um reflexo metálico na janela chama sua atenção.",
+    tom:"Nervos{o|a} — a voz falha no meio",
     fala:"“Vocês viram isso?”",
     pos:"Ninguém admite ter visto. Mas todos sentiram."
   },
-  ana:{
-    rub:"Você é a última. Entra devagar, como quem não quer interromper algo que já começou. A casa parece esperar por você. Olha para o teto. Para o sótão. Para a escada. Para o cofre. Para a porta entreaberta.",
+  menina:{
+    rub:"Você é {o último|a última}. Entra devagar, como quem não quer interromper algo que já começou. A casa parece esperar por você. Olha para o teto. Para o sótão. Para a escada. Para o cofre. Para a porta entreaberta.",
     tom:"Não fale — conte até cinco",
     fala:"( silêncio )",
-    pos:"Você vê tudo. E não diz nada. O silêncio de Ana é mais pesado do que qualquer fala. Encare a mesa, uma pessoa de cada vez, e só então sente."
+    pos:"Você vê tudo. E não diz nada. O silêncio {do Menino|da Menina} é mais pesado do que qualquer fala. Encare a mesa, uma pessoa de cada vez, e só então sente."
   }
 };
 
@@ -663,12 +699,12 @@ var CAP_FASE={
 /* ---------- pista privada (Cap. 5 — A Queda de Energia) ----------
    Cada um recebe a sua no instante em que encerra a propria vez.    */
 var PISTA_PRIVADA={
-  jonas:  { hora:"21:29", txt:"Um estalo seco. Depois outro. Depois silêncio. Você ouviu atrás de você." },
-  helena: { hora:"21:29", txt:"Você sentiu algo ao lado. Não foi passo, não foi corpo. Foi deslocamento." },
-  caio:   { hora:"21:30", txt:"Algo caiu. Pequeno, metálico, preciso. Veio do cofre." },
-  livia:  { hora:"21:30", txt:"Algo passou perto da sua mão. Frio, rápido, intencional. Não tocou." },
-  marcelo:{ hora:"21:30", txt:"Mesmo sem luz, uma sombra passou. Não deveria ser possível. Mas foi." },
-  ana:    { hora:"21:31", txt:"Alguém respirou perto demais. Você ouviu. E não se mexeu." }
+  investigador:{ hora:"21:29", txt:"Um estalo seco. Depois outro. Depois silêncio. Você ouviu atrás de você." },
+  herdeiro:    { hora:"21:29", txt:"Você sentiu algo ao lado. Não foi passo, não foi corpo. Foi deslocamento." },
+  morador:     { hora:"21:30", txt:"Algo caiu. Pequeno, metálico, preciso. Veio do cofre." },
+  jornalista:  { hora:"21:30", txt:"Algo passou perto da sua mão. Frio, rápido, intencional. Não tocou." },
+  policial:    { hora:"21:30", txt:"Mesmo sem luz, uma sombra passou. Não deveria ser possível. Mas foi." },
+  menina:      { hora:"21:31", txt:"Alguém respirou perto demais. Você ouviu. E não se mexeu." }
 };
 
 /* ---------- abertura da estoria (Cap. 1) — so no fim ---------- */
@@ -692,6 +728,7 @@ var STATE = {
   senhaAberta:false,
   revelando:false,
   travaTela:false,
+  forma:null,        /* "m" | "f" | "?" — escolha do jogador na entrada */
   escolha:null,
   contando:0,
   jaVotei:false
@@ -827,6 +864,15 @@ function telaEntrar(){
     '<label for="nome">Seu nome</label>'+
     '<input id="nome" maxlength="18" autocomplete="off" placeholder="Como a mesa te chama" '+
       'onkeydown="if(event.key===\'Enter\') entrarNaMesa()">'+
+    '<label>Como a casa vai te chamar?</label>'+
+    '<div class="formas">'+
+      '<button class="forma-op'+(STATE.forma==="m"?" on":"")+'" '+
+        'onclick="escolherForma(\'m\')"><b>O</b><span>Investigador<br>Herdeiro</span></button>'+
+      '<button class="forma-op'+(STATE.forma==="f"?" on":"")+'" '+
+        'onclick="escolherForma(\'f\')"><b>A</b><span>Investigadora<br>Herdeira</span></button>'+
+      '<button class="forma-op'+(STATE.forma==="?"?" on":"")+'" '+
+        'onclick="escolherForma(\'?\')"><b>?</b><span>Tanto<br>faz</span></button>'+
+    '</div>'+
     '<button class="btn btn-ambar" onclick="entrarNaMesa()">Entrar na casa</button>'+
     '<button class="btn btn-fantasma" onclick="irPara(\'inicio\')">&larr; Voltar</button>';
 }
@@ -852,10 +898,14 @@ function telaPainel(){
                      (fase!=="encenacao" || i<vezAtual);
       var st=atuando?"atuando":(j.status==="pronto"?"pronto":"");
       var est=atuando?"Agora":(jaRevelado?"J&aacute; passou":"Na casa");
+      /* a pessoa some e o arquetipo fica: antes de atuar o cartao traz o
+         nome de quem entrou; depois, quem ficou na mesa e o papel      */
+      var titulo = jaRevelado&&p ? nomePers(p, j.forma) : j.nome;
+      var sub    = jaRevelado&&p ? j.nome : "";
       grade+='<div class="jog st-'+st+'">'+
         '<div class="av">'+(jaRevelado&&p?p.av:"🕯️")+'</div>'+
-        '<div class="nm">'+esc(j.nome)+'</div>'+
-        '<div class="pers">'+(jaRevelado&&p?esc(p.nome):"&mdash;")+'</div>'+
+        '<div class="nm">'+esc(titulo)+'</div>'+
+        '<div class="pers">'+(sub?esc(sub):"&mdash;")+'</div>'+
         '<div class="est">'+est+'</div>'+
         (fase==="resultado"?'<div class="pt">'+(j.votos||0)+'</div>':'')+
       '</div>';
@@ -982,16 +1032,17 @@ function telaEncenacao(){
   }
 
   var r=ROTEIRO[STATE.eu.personagem];
+  var fm=STATE.eu.forma;
   if(!r) return '<p class="lead">Roteiro n&atilde;o encontrado.</p>';
 
   /* sem o nome do personagem: quem esta atuando ainda nao sabe quem e */
   return '<span class="eyebrow">&Eacute; a sua vez</span>'+
     '<div class="roteiro">'+
       '<div class="quem">Fa&ccedil;a agora, em voz alta</div>'+
-      '<div class="rub">'+esc(r.rub)+'</div>'+
-      '<div class="tom">'+esc(r.tom)+'</div>'+
-      '<div class="fala">'+esc(r.fala)+'</div>'+
-      '<div class="pos">'+esc(r.pos)+'</div>'+
+      '<div class="rub">'+esc(flex(r.rub,fm))+'</div>'+
+      '<div class="tom">'+esc(flex(r.tom,fm))+'</div>'+
+      '<div class="fala">'+esc(flex(r.fala,fm))+'</div>'+
+      '<div class="pos">'+esc(flex(r.pos,fm))+'</div>'+
     '</div>'+
     '<button class="btn btn-ambar" onclick="terminei()">Terminei</button>';
 }
@@ -1003,8 +1054,8 @@ function telaRevelacao(){
   return '<span class="eyebrow">Voc&ecirc; era</span>'+
     '<div class="revelacao revela">'+
       '<div class="rv-av">'+(p?p.av:"👤")+'</div>'+
-      '<h2 class="rv-nome">'+esc(p?p.nome:"")+'</h2>'+
-      '<p class="lead rv-desc">'+esc(p?p.desc:"")+'</p>'+
+      '<h2 class="rv-nome">'+esc(nomePers(p,STATE.eu&&STATE.eu.forma))+'</h2>'+
+      '<p class="lead rv-desc">'+esc(descPers(p,STATE.eu&&STATE.eu.forma))+'</p>'+
     '</div>'+
     (pista?'<div class="pista-card">'+
       '<span class="ph">'+esc(pista.hora)+' &middot; sua pista</span>'+
@@ -1028,7 +1079,7 @@ function telaVotacao(){
     ops+='<button class="pers-op" onclick="votar(\''+j.id+'\')">'+
       '<span class="av">'+(p?p.av:"👤")+'</span>'+
       '<span class="txt"><span class="nm">'+esc(j.nome)+'</span>'+
-      '<span class="desc">como '+esc(p?p.nome:"")+'</span></span></button>';
+      '<span class="desc">'+esc(nomePers(p,j.forma))+'</span></span></button>';
   }
   return '<span class="eyebrow">Vota&ccedil;&atilde;o</span>'+
     '<h2>Qual interpreta&ccedil;&atilde;o ficou na cabe&ccedil;a?</h2>'+
@@ -1046,7 +1097,7 @@ function telaResultado(){
     grade+='<div class="jog'+(i===0?' st-atuando':'')+'">'+
       '<div class="av">'+(p?p.av:"👤")+'</div>'+
       '<div class="nm">'+esc(j.nome)+'</div>'+
-      '<div class="pers">'+esc(p?p.nome:"")+'</div>'+
+      '<div class="pers">'+esc(nomePers(p,j.forma))+'</div>'+
       '<div class="pt">'+(j.votos||0)+'</div>'+
       '<div class="est">'+((j.votos||0)===1?"voto":"votos")+'</div>'+
     '</div>';
@@ -1105,6 +1156,7 @@ async function conferirSenha(){
 
 function irPara(t){ STATE.tela=t; render(); }
 function escolher(id){ STATE.escolha=id; render(); }
+function escolherForma(f){ STATE.forma=f; render(); }
 function abrirQr(){ STATE.qrAberto=true; render(); }
 function fecharQr(){ STATE.qrAberto=false; render(); }
 
@@ -1185,6 +1237,9 @@ async function entrarNaMesa(){
   var nome=(document.getElementById("nome").value||"").trim();
   if(codigo.length!==6){ alert("O código tem 6 caracteres."); return; }
   if(!nome){ alert("Escreva seu nome."); return; }
+  if(!STATE.forma){ alert("Escolha como a casa vai te chamar."); return; }
+  /* "tanto faz" tambem e escolha: a casa decide, como decide o resto */
+  var forma = STATE.forma==="?" ? (Math.random()<0.5?"m":"f") : STATE.forma;
 
   fecharCortina("A porta abriu. A casa está decidindo quem você é.");
   var entrouEm=Date.now();
@@ -1207,11 +1262,11 @@ async function entrarNaMesa(){
       if(jaEstao[j].id!==id && jaEstao[j].personagem) ocupados.push(jaEstao[j].personagem);
     var sorteado=sortearPersonagem(ocupados);
 
-    STATE.eu={codigo:codigo,id:id,nome:nome,personagem:sorteado};
+    STATE.eu={codigo:codigo,id:id,nome:nome,personagem:sorteado,forma:forma};
     try{ sessionStorage.setItem("mosaico_eu",JSON.stringify(STATE.eu)); }catch(e){}
 
     await FB.entrarJogador(codigo,id,{
-      nome:nome, personagem:sorteado, status:"pronto",
+      nome:nome, personagem:sorteado, forma:forma, status:"pronto",
       entrouMs:Date.now(), votos:0
     });
     _unsubJog=FB.ouvirJogadores(codigo,function(l){ STATE.jogadores=l; sincronizarJogador(); });
