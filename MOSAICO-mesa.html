@@ -691,6 +691,7 @@ var STATE = {
   qrAberto:false,
   senhaAberta:false,
   revelando:false,
+  travaTela:false,
   escolha:null,
   contando:0,
   jaVotei:false
@@ -775,6 +776,7 @@ function render(){
     case "painel":      h=telaPainel(); break;
     case "esperando":   h=telaEsperando(); break;
     case "encenacao":   h=telaEncenacao(); break;
+    case "revelacao":   h=telaRevelacao(); break;
     case "votacao":     h=telaVotacao(); break;
     case "resultado":   h=telaResultado(); break;
     default:            h=telaInicio();
@@ -842,13 +844,18 @@ function telaPainel(){
   } else {
     for(var i=0;i<js.length;i++){
       var j=js[i], p=personagemPor(j.personagem);
-      var atuando=(fase==="encenacao" && i===(STATE.doc.vez||0));
+      var vezAtual=(STATE.doc&&STATE.doc.vez)||0;
+      var atuando=(fase==="encenacao" && i===vezAtual);
+      /* o personagem so aparece no telao depois que aquela pessoa ja
+         atuou — antes disso e segredo, inclusive dela mesma */
+      var jaRevelado=(fase!=="sala" && fase!=="escuro") &&
+                     (fase!=="encenacao" || i<vezAtual);
       var st=atuando?"atuando":(j.status==="pronto"?"pronto":"");
-      var est=atuando?"Interpretando":(fase==="encenacao"&&i<(STATE.doc.vez||0)?"J&aacute; interpretou":"Na sala");
+      var est=atuando?"Agora":(jaRevelado?"J&aacute; passou":"Na casa");
       grade+='<div class="jog st-'+st+'">'+
-        '<div class="av">'+(p?p.av:"👤")+'</div>'+
+        '<div class="av">'+(jaRevelado&&p?p.av:"🕯️")+'</div>'+
         '<div class="nm">'+esc(j.nome)+'</div>'+
-        '<div class="pers">'+esc(p?p.nome:"—")+'</div>'+
+        '<div class="pers">'+(jaRevelado&&p?esc(p.nome):"&mdash;")+'</div>'+
         '<div class="est">'+est+'</div>'+
         (fase==="resultado"?'<div class="pt">'+(j.votos||0)+'</div>':'')+
       '</div>';
@@ -883,13 +890,12 @@ function telaPainel(){
          ' onclick="iniciarEncenacao()">Come&ccedil;ar o jogo</button>'+
          (js.length<2?'<p class="muted">Precisa de pelo menos duas pessoas.</p>':'');
   } else if(fase==="encenacao"){
+    /* o telao diz QUEM esta na vez, mas nunca qual personagem */
     var vez=STATE.doc.vez||0;
     var atual=js[vez];
-    var pa=atual?personagemPor(atual.personagem):null;
     acao='<div class="card"><span class="eyebrow">Agora</span>'+
          '<div style="font-family:var(--serif);font-size:clamp(28px,7.6vw,40px);line-height:1.15">'+
-         (atual?esc(atual.nome)+' <span style="color:var(--nevoa)">como '+esc(pa?pa.nome:"")+'</span>':'—')+
-         '</div></div>'+
+         (atual?esc(atual.nome):"&mdash;")+'</div></div>'+
          '<button class="btn" onclick="pularVez()">Pular esta pessoa</button>';
   } else if(fase==="votacao"){
     acao='<div class="card"><span class="eyebrow">Vota&ccedil;&atilde;o aberta</span>'+
@@ -937,16 +943,18 @@ function modalQr(){
     '</div></div>';
 }
 
+/* O personagem e segredo ate a hora. Nem o proprio jogador sabe quem
+   pegou: ele recebe a rubrica e a fala, interpreta, e so depois descobre. */
 function telaEsperando(){
-  var p=personagemPor(STATE.eu&&STATE.eu.personagem);
   var js=ordenados(STATE.jogadores);
   var cls=STATE.revelando?" revela":"";
   if(STATE.revelando) setTimeout(function(){ STATE.revelando=false; },2600);
-  return '<span class="eyebrow">A casa escolheu</span>'+
+  return '<span class="eyebrow">Voc&ecirc; est&aacute; na casa</span>'+
     '<div class="revelacao'+cls+'">'+
-      '<div class="rv-av">'+(p?p.av:"👤")+'</div>'+
-      '<h2 class="rv-nome">'+esc(p?p.nome:"")+'</h2>'+
-      '<p class="lead rv-desc" style="margin-bottom:0">'+esc(p?p.desc:"")+'</p>'+
+      '<div class="rv-av">🕯️</div>'+
+      '<h2 class="rv-nome">A casa j&aacute;<br>decidiu.</h2>'+
+      '<p class="lead rv-desc" style="margin-bottom:0">Voc&ecirc; ainda n&atilde;o sabe quem &eacute; '+
+      'nesta noite. Vai descobrir na hora.</p>'+
     '</div>'+
     '<div class="card"><span class="eyebrow">Na casa agora</span>'+
       '<p class="muted" style="font-size:clamp(17px,4.6vw,21px)">'+
@@ -962,10 +970,9 @@ function telaEncenacao(){
   var souEu=atual&&STATE.eu&&atual.id===STATE.eu.id;
 
   if(!souEu){
-    var pa=atual?personagemPor(atual.personagem):null;
+    /* o nome pode aparecer — o personagem nao */
     return '<div id="escuro"><div class="pulso"></div>'+
-      '<div class="quem">'+(atual?esc(atual.nome):"—")+'<br>'+
-      '<span style="opacity:.55">como '+esc(pa?pa.nome:"")+'</span></div>'+
+      '<div class="quem">'+(atual?esc(atual.nome):"&mdash;")+'</div>'+
       '<div class="sub">Guarde o celular. Olhe para a mesa.</div></div>';
   }
 
@@ -974,19 +981,36 @@ function telaEncenacao(){
       '<div class="sub" style="margin-top:20px">Respire. &Eacute; a sua vez.</div></div>';
   }
 
-  var p=personagemPor(STATE.eu.personagem);
   var r=ROTEIRO[STATE.eu.personagem];
   if(!r) return '<p class="lead">Roteiro n&atilde;o encontrado.</p>';
 
+  /* sem o nome do personagem: quem esta atuando ainda nao sabe quem e */
   return '<span class="eyebrow">&Eacute; a sua vez</span>'+
     '<div class="roteiro">'+
-      '<div class="quem">'+esc(p?p.nome:"")+'</div>'+
+      '<div class="quem">Fa&ccedil;a agora, em voz alta</div>'+
       '<div class="rub">'+esc(r.rub)+'</div>'+
       '<div class="tom">'+esc(r.tom)+'</div>'+
       '<div class="fala">'+esc(r.fala)+'</div>'+
       '<div class="pos">'+esc(r.pos)+'</div>'+
     '</div>'+
     '<button class="btn btn-ambar" onclick="terminei()">Terminei</button>';
+}
+
+/* So aqui o jogador descobre quem era — e ja leva a pista da noite. */
+function telaRevelacao(){
+  var p=personagemPor(STATE.eu&&STATE.eu.personagem);
+  var pista=PISTA_PRIVADA[STATE.eu&&STATE.eu.personagem];
+  return '<span class="eyebrow">Voc&ecirc; era</span>'+
+    '<div class="revelacao revela">'+
+      '<div class="rv-av">'+(p?p.av:"👤")+'</div>'+
+      '<h2 class="rv-nome">'+esc(p?p.nome:"")+'</h2>'+
+      '<p class="lead rv-desc">'+esc(p?p.desc:"")+'</p>'+
+    '</div>'+
+    (pista?'<div class="pista-card">'+
+      '<span class="ph">'+esc(pista.hora)+' &middot; sua pista</span>'+
+      '<div class="pt">'+esc(pista.txt)+'</div></div>':'')+
+    '<button class="btn btn-ambar" style="margin-top:22px" '+
+      'onclick="guardarPista()">Guardar e voltar ao escuro</button>';
 }
 
 function telaVotacao(){
@@ -1238,6 +1262,7 @@ function resolverColisao(){
 function sincronizarJogador(){
   if(!STATE.eu) return;
   resolverColisao();
+  if(STATE.travaTela){ render(); return; }   /* revelacao segura a tela */
   var fase=(STATE.doc&&STATE.doc.fase)||"sala";
   var nova = fase==="sala"      ? "esperando"
            : fase==="encenacao" ? "encenacao"
@@ -1285,7 +1310,17 @@ async function avancarVez(codigo, autor){
 }
 
 async function terminei(){
+  /* trava a tela local na revelacao: o jogo avanca para os outros,
+     mas quem acabou de atuar fica vendo quem era e a propria pista */
+  STATE.travaTela=true;
+  STATE.tela="revelacao";
+  render();
   await avancarVez(STATE.eu.codigo, STATE.eu.nome);
+}
+
+function guardarPista(){
+  STATE.travaTela=false;
+  sincronizarJogador();
 }
 
 async function pularVez(){
