@@ -60,8 +60,10 @@ service cloud.firestore {
         && request.resource.data.mestreUid == request.auth.uid
         && request.resource.data.ativa == true
         && request.resource.data.fase == 'sala'
+        && (!request.resource.data.keys().hasAny(['ritmo'])
+          || request.resource.data.ritmo in ['automatico', 'conduzido'])
         && request.resource.data.keys().hasOnly([
-          'ativa', 'fase', 'vez', 'modo', 'mestreUid', 'criadaEm', 'criadaEmMs'
+          'ativa', 'fase', 'vez', 'modo', 'ritmo', 'mestreUid', 'criadaEm', 'criadaEmMs'
         ]);
       allow get: if signedIn() && (resource.data.ativa == true || master(roomId) || participant(roomId));
       allow list: if false;
