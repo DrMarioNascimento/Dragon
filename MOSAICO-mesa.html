@@ -266,11 +266,19 @@
     background:rgba(224,103,79,.06)}
   .btn-perigo:active{background:rgba(224,103,79,.16)}
   .btn:disabled{opacity:.32;cursor:default}
-  .btn-menu-mestre{position:fixed;z-index:45;right:14px;
+  .btn-menu-mestre{position:fixed;z-index:45;right:104px;
     bottom:max(16px,env(safe-area-inset-bottom));padding:12px 16px;border-radius:100px;
     border:1px solid rgba(127,212,255,.5);background:rgba(5,7,12,.82);color:var(--frio);
     font:700 clamp(11px,3vw,14px) var(--sans);letter-spacing:.16em;text-transform:uppercase}
-  body.tem-arquivo .btn-menu-mestre{right:148px}
+  body.tem-arquivo .btn-menu-mestre{right:236px}
+  .btn-caso{position:fixed;z-index:45;right:14px;bottom:max(16px,env(safe-area-inset-bottom));
+    padding:12px 16px;border-radius:100px;border:1px solid rgba(127,212,255,.42);
+    background:rgba(5,7,12,.76);color:var(--frio);font:700 clamp(11px,3vw,14px) var(--sans);
+    letter-spacing:.14em;text-transform:uppercase}
+  body.tem-arquivo .btn-caso{right:148px}
+  .caso-fundo{position:fixed;inset:0;z-index:43;background:rgba(2,5,9,.96);
+    padding:max(18px,env(safe-area-inset-top)) 16px max(82px,env(safe-area-inset-bottom));overflow-y:auto}
+  .caso-card{max-width:600px;margin:auto}.caso-card .publica:last-child{margin-bottom:4px}
   .menu-mestre-fundo{position:fixed;inset:0;z-index:43;background:rgba(2,5,9,.94);
     padding:max(18px,env(safe-area-inset-top)) 16px max(82px,env(safe-area-inset-bottom));overflow-y:auto}
   .menu-mestre-card{max-width:600px;margin:auto}
@@ -955,7 +963,8 @@ var STATE = {
   contando:0,
   jaVotei:false,
   modoMesa:"com-telao",
-  menuMestreAberto:false
+  menuMestreAberto:false,
+  casoAberto:false
 };
 var _unsubJog=null, _unsubMesa=null, _unsubVotos=null, _unsubPub=null, _unsubV5=[], _timerContagem=null;
 var _autoFasePendente=null, _autoTimer=null, _autoTimerChave="";
@@ -1045,7 +1054,7 @@ function souMestreDaMesa(){
   var codigo=(STATE.eu&&STATE.eu.codigo)||(STATE.mesa&&STATE.mesa.codigo)||"";
   try{return !!codigo&&sessionStorage.getItem("mosaico_mestre_codigo")===codigo;}catch(e){return false;}
 }
-function alternarMenuMestre(){STATE.menuMestreAberto=!STATE.menuMestreAberto;render();}
+function alternarMenuMestre(){STATE.menuMestreAberto=!STATE.menuMestreAberto;if(STATE.menuMestreAberto)STATE.casoAberto=false;render();}
 function controlesMestreMovel(){
   var fase=(STATE.doc&&STATE.doc.fase)||"sala", js=ordenados(STATE.jogadores), botoes="", autoInfo="";
   if(fase==="sala"){
@@ -1096,6 +1105,30 @@ function agendarAutomacoes(){
   _autoTimerChave=chave;
   _autoTimer=setTimeout(function(){_autoTimer=null;_autoTimerChave="";verificarAutomacoes();},Math.max(0,d.inicio+d.limite-Date.now())+100);
 }
+function alternarCaso(){STATE.casoAberto=!STATE.casoAberto;if(STATE.casoAberto)STATE.menuMestreAberto=false;render();}
+function orientacaoCaso(fase){
+  var js=ordenados(STATE.jogadores), atual=js[(STATE.doc&&STATE.doc.vez)||0];
+  if(fase==="sala") return souPronto()?"Você está pronto. Aguarde o início da partida.":"Confirme que está pronto para participar.";
+  if(fase==="encenacao") return atual&&STATE.eu&&atual.id===STATE.eu.id?"Leia sua instrução no celular, proteja a tela e faça sua apresentação.":"Proteja sua tela, observe o ambiente e escute os sons.";
+  if(fase==="votacao") return "Registre seu voto de Performance. Você não pode votar em si.";
+  if(fase==="mosaico") return "Converse com seu núcleo e reconstrua a ordem dos acontecimentos.";
+  if(fase==="cooperacao") return "Registre em segredo quem mais colaborou com o seu núcleo.";
+  if(fase==="mercado") return "Avalie as ofertas. Comprar, vender ou recusar são decisões possíveis.";
+  if(fase==="deducao") return "Complete sua acusação final. Depois de enviar, a resposta não poderá ser alterada.";
+  if(fase==="resultado") return "Confira o resultado final da investigação.";
+  return "Acompanhe as instruções desta rodada.";
+}
+function painelCasoMovel(){
+  var fase=(STATE.doc&&STATE.doc.fase)||"sala", pubs=(STATE.publicas||[]).slice().sort(function(a,b){return (a.ordem||0)-(b.ordem||0);});
+  var linhas=pubs.map(function(p){return '<div class="publica"><span class="ph">'+esc(p.hora)+'</span><div class="pt">'+esc(p.txt)+'</div></div>';}).join('')||'<p class="muted">Nenhum fragmento público foi revelado ainda.</p>';
+  var painel=STATE.casoAberto?'<div class="caso-fundo" onclick="if(event.target===this)alternarCaso()"><div class="caso-card">'+
+    '<div class="menu-mestre-topo"><div><span class="eyebrow">'+esc(CASO.titulo||"Caso")+'</span><h2>Caso</h2></div><button class="btn btn-sm" onclick="alternarCaso()">Fechar</button></div>'+
+    cabecalhoRodada(fase,"rodada-celular")+
+    '<div class="card"><span class="eyebrow">O que fazer agora</span><p class="lead" style="margin:8px 0 0">'+esc(orientacaoCaso(fase))+'</p></div>'+
+    '<div class="card"><span class="eyebrow">Linha do tempo pública</span>'+linhas+'</div>'+
+    '</div></div>':'';
+  return '<button class="btn-caso" onclick="alternarCaso()" aria-label="Abrir ou fechar o Caso">🔎 Caso</button>'+painel;
+}
 function muralColetivoMovel(){
   var fase=(STATE.doc&&STATE.doc.fase)||"sala", pubs=(STATE.publicas||[]).slice().sort(function(a,b){return (a.ordem||0)-(b.ordem||0);});
   var hora=HORA_FASE[fase]; if(hora==null) hora=pubs.length?pubs[pubs.length-1].hora:"21:00";
@@ -1142,6 +1175,7 @@ function render(){
     default:            h=telaInicio();
   }
   if(STATE.eu && modoAtual()==="sem-telao") h=cabecalhoRodada((STATE.doc&&STATE.doc.fase)||"sala","rodada-celular")+h+muralColetivoMovel();
+  if(STATE.eu) h+=painelCasoMovel();
   if(STATE.eu && souMestreDaMesa() && modoAtual()==="sem-telao") h+=controlesMestreMovel();
   app.innerHTML=h;
   agendarAutomacoes();
@@ -1462,7 +1496,7 @@ function sairDaMesa(){
   _unsubJog=_unsubMesa=_unsubVotos=_unsubPub=null;
   try{ sessionStorage.removeItem("mosaico_eu"); }catch(e){}
   try{ sessionStorage.removeItem("mosaico_mestre_codigo"); }catch(e){}
-  STATE.eu=null; STATE.mesa=null; STATE.jogadores=[]; STATE.doc=null; STATE.menuMestreAberto=false;
+  STATE.eu=null; STATE.mesa=null; STATE.jogadores=[]; STATE.doc=null; STATE.menuMestreAberto=false; STATE.casoAberto=false;
   STATE.forma=null; STATE.tela="inicio";
   render();
 }
@@ -2039,7 +2073,7 @@ async function encerrarMesa(){
   _unsubJog=_unsubMesa=_unsubVotos=_unsubPub=null;
   try{ sessionStorage.removeItem("mosaico_mestre_codigo"); }catch(e){}
   STATE.mesa=null; STATE.jogadores=[]; STATE.publicas=[]; STATE.votos=[];
-  STATE.qrAberto=false; STATE.menuMestreAberto=false; STATE.doc=null; STATE.tela="inicio";
+  STATE.qrAberto=false; STATE.menuMestreAberto=false; STATE.casoAberto=false; STATE.doc=null; STATE.tela="inicio";
   render();
 }
 

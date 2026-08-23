@@ -113,6 +113,7 @@ O código atual entrega a primeira experiência jogável:
 - flexão de gênero;
 - pista privada armazenada no Firestore;
 - acesso móvel **Arquivo**, no canto inferior direito, exibido somente após o primeiro fragmento ser guardado;
+- acesso móvel **Caso** para todos os jogadores, com rodada atual, orientação da fase e cronologia pública, sem pontuação ou informação secreta;
 - cronologia pública;
 - voto cego de Performance sem auto-voto;
 - divisão automática em núcleos de 2 ou 3 participantes;

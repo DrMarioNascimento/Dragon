@@ -34,6 +34,8 @@ Não publique links de demonstração, arquivos, capturas extensas, documentaç�
 
 Os parâmetros do caso ficam em `casos/casa-da-costa.json`. O cálculo puro e testável fica em `js/mosaico-v5.js`. Todos os pontos do jogo são inteiros.
 
+Nos celulares, **Caso** abre a rodada atual, a orientação do momento e a linha do tempo pública; **Arquivo** reúne os fragmentos privados e adquiridos. O celular do mestre acrescenta somente **Menu**.
+
 ### Modos de mesa
 
 - **Com telão:** um aparelho é dedicado ao painel coletivo, ao QR, à cronologia e aos controles do mestre. O mestre não ocupa uma vaga de jogador nesse aparelho.
