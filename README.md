@@ -34,7 +34,7 @@ Não publique links de demonstração, arquivos, capturas extensas, documentaç�
 6. dedução final com Suspeito, Motivo, Ação, Prova e Lacuna;
 7. revelação sincronizada em cinco telas — verdade, história, evidências, Confiabilidade e placar — seguida do resultado de Tempo (32%), Qualidade (13%), Cooperação (30%), Economia e Risco (20%) e Performance (5%).
 
-O placar final possui composição responsiva própria: pódio vertical no celular, pódio horizontal no telão, três caixas posicionadas sobre os degraus e classificação restante em lista.
+O placar final possui composição responsiva própria: pódio vertical no celular, pódio horizontal no telão, três caixas com nome do jogador, personagem e pontos sobre os degraus e classificação restante em lista.
 
 Os parâmetros do caso ficam em `casos/casa-da-costa.json`. O cálculo puro e testável fica em `js/mosaico-v5.js`. Todos os pontos do jogo são inteiros.
 

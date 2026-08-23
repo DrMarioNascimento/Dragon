@@ -201,7 +201,7 @@ Outros textos operacionais consolidados:
 
 ### 5.3 O nome desaparece
 
-Antes da tarefa, o telão mostra o nome. Depois, mostra apenas o arquétipo. O nome não reaparece na votação nem no resultado.
+Antes da tarefa, o telão mostra o nome. Durante o mistério e nas votações, mostra apenas o arquétipo. No placar final, quando o caso já terminou, o nome do jogador volta a aparecer junto do personagem e dos pontos.
 
 ### 5.4 Flexão por escolha do jogador
 
@@ -518,7 +518,7 @@ A entrada está limitada a doze participantes. Acima de seis, os seis arquétipo
 
 Implementada como uma revelação sincronizada em cinco etapas: **A verdade**, **Como aconteceu**, **Evidências**, **Confiabilidade** e **Placar**. O mestre avança cada etapa; todos os celulares e o telão acompanham pelo campo `revelacaoEtapa` da sala. Os votos cegos permanecem ocultos.
 
-O placar usa artes próprias: `img/resultado-mobile.jpg` no celular e `img/resultado-telao.jpg` no telão. Os três primeiros personagens aparecem em caixas sobre os respectivos degraus do pódio. Do quarto colocado em diante, a classificação fica em lista lateral no telão e abaixo da arte no celular.
+O placar usa artes próprias: `img/resultado-mobile.jpg` no celular e `img/resultado-telao.jpg` no telão. Os três primeiros jogadores aparecem em caixas com nome, personagem e pontos sobre os respectivos degraus do pódio. Do quarto colocado em diante, a classificação fica em lista lateral no telão e abaixo da arte no celular.
 
 ### 13.5 Placar consolidado
 

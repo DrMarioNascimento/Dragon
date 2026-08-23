@@ -294,12 +294,12 @@
   .podio-layout.telao{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,300px);gap:18px;align-items:start}
   .podio-layout.telao .podio-cena{aspect-ratio:1376/768;background-image:url('img/resultado-telao.jpg')}
   .podio-jogador{position:absolute;z-index:2;width:25%;padding:8px 6px;border:1px solid rgba(240,195,94,.72);border-radius:7px;background:rgba(5,7,12,.88);box-shadow:0 8px 24px rgba(0,0,0,.65);text-align:center;backdrop-filter:blur(5px)}
-  .podio-jogador .av{font-size:clamp(20px,5vw,38px);line-height:1}.podio-jogador .nm{font:600 clamp(9px,2.4vw,14px) var(--serif);line-height:1.12;margin:3px 0;color:#fff}.podio-jogador .pt{font:600 clamp(15px,4vw,25px) var(--serif);color:var(--ambar)}
+  .podio-jogador .av{font-size:clamp(20px,5vw,38px);line-height:1}.podio-jogador .jogador-nome{font:700 clamp(10px,2.7vw,16px) var(--sans);line-height:1.1;margin:3px 0;color:#fff}.podio-jogador .personagem{font:600 clamp(8px,2.1vw,12px) var(--serif);line-height:1.1;color:var(--nevoa)}.podio-jogador .pt{font:600 clamp(15px,4vw,25px) var(--serif);color:var(--ambar)}
   .podio-jogador .colocacao{font:700 clamp(9px,2.3vw,13px) var(--sans);color:var(--ambar);letter-spacing:.08em;text-transform:uppercase}
   .podio-layout.celular .pos-1{left:37.5%;top:45%}.podio-layout.celular .pos-2{left:9%;top:64%}.podio-layout.celular .pos-3{right:8%;top:68%}
   .podio-layout.telao .podio-jogador{width:19%;padding:6px 4px}.podio-layout.telao .pos-1{left:40.5%;top:50%}.podio-layout.telao .pos-2{left:16%;top:63%}.podio-layout.telao .pos-3{right:14%;top:63%}
   .classificacao-restante{border:1px solid var(--linha);border-radius:9px;background:rgba(12,18,26,.94);padding:12px}.classificacao-restante h3{font-size:17px;margin:2px 0 10px;color:var(--ambar)}
-  .classificacao-item{display:grid;grid-template-columns:30px 34px minmax(0,1fr) auto;align-items:center;gap:7px;padding:9px 2px;border-bottom:1px solid var(--linha)}.classificacao-item:last-child{border-bottom:0}.classificacao-item .ordem{color:var(--ambar);font-weight:700}.classificacao-item .avatar{font-size:22px}.classificacao-item .nome{font:600 14px var(--serif);line-height:1.1}.classificacao-item .pontos{font-weight:700;color:var(--frio);white-space:nowrap}
+  .classificacao-item{display:grid;grid-template-columns:30px 34px minmax(0,1fr) auto;align-items:center;gap:7px;padding:9px 2px;border-bottom:1px solid var(--linha)}.classificacao-item:last-child{border-bottom:0}.classificacao-item .ordem{color:var(--ambar);font-weight:700}.classificacao-item .avatar{font-size:22px}.classificacao-item .nome{font:700 13px var(--sans);line-height:1.1}.classificacao-item .papel{display:block;color:var(--dim);font:600 11px var(--serif);margin-top:2px}.classificacao-item .pontos{font-weight:700;color:var(--frio);white-space:nowrap}
   .podio-layout.celular .classificacao-restante{width:min(100%,560px);margin:14px auto 0}
   @media(max-width:760px){.podio-layout.telao{grid-template-columns:1fr}.podio-layout.telao .classificacao-restante{margin-top:0}}
   .menu-mestre-fundo{position:fixed;inset:0;z-index:43;background:rgba(2,5,9,.94);
@@ -1007,6 +1007,8 @@ var STATE = {
   revelando:false,
   travaTela:false,
   forma:null,        /* "m" | "f" | "?" — escolha do jogador na entrada */
+  codigoEntrada:"",
+  nomeEntrada:"",
   escolha:null,
   contando:0,
   jaVotei:false,
@@ -1309,6 +1311,7 @@ function telaEntrar(){
   var codigoUrl="";
   try{ codigoUrl=new URLSearchParams(location.search).get("sala")||""; }catch(e){}
   if(!codigoUrl && STATE.mesa) codigoUrl=STATE.mesa.codigo;
+  if(!STATE.codigoEntrada) STATE.codigoEntrada=codigoUrl;
   var criando=STATE.mesa&&STATE.mesa.modo==="sem-telao"&&!STATE.mesa.fb;
 
   return '<span class="eyebrow">Entrar</span><h2>Quem chega agora?</h2>'+
@@ -1316,9 +1319,9 @@ function telaEntrar(){
     'A casa escolhe por voc&ecirc; &mdash; como escolheu naquela noite.</p>'+
     '<label for="cod">C&oacute;digo da mesa</label>'+
     '<input id="cod" class="codigo" maxlength="6" autocapitalize="characters" '+
-      'autocomplete="off" value="'+esc(codigoUrl)+'" placeholder="ABC123">'+
+      'autocomplete="off" value="'+esc(STATE.codigoEntrada)+'" placeholder="ABC123" oninput="STATE.codigoEntrada=this.value.toUpperCase()">'+
     '<label for="nome">Seu nome</label>'+
-    '<input id="nome" maxlength="18" autocomplete="off" placeholder="Como a mesa te chama" '+
+    '<input id="nome" maxlength="18" autocomplete="off" value="'+esc(STATE.nomeEntrada)+'" placeholder="Como a mesa te chama" oninput="STATE.nomeEntrada=this.value" '+
       'onkeydown="if(event.key===\'Enter\') entrarNaMesa()">'+
     /* sem nomear arquetipo nenhum: o personagem continua sendo surpresa */
     '<label>Como quer que o Mosaico te chame?</label>'+
@@ -1596,7 +1599,7 @@ function sairDaMesa(){
   try{ localStorage.removeItem("mosaico_reconexao"); }catch(e){}
   try{ localStorage.removeItem("mosaico_mestre_reconexao"); }catch(e){}
   STATE.eu=null; STATE.mesa=null; STATE.jogadores=[]; STATE.doc=null; STATE.menuMestreAberto=false; STATE.casoAberto=false;
-  STATE.forma=null; STATE.tela="inicio";
+  STATE.forma=null; STATE.codigoEntrada=""; STATE.nomeEntrada=""; STATE.tela="inicio";
   render();
 }
 
@@ -1655,8 +1658,8 @@ function telaResultado(){
     return '<span class="eyebrow">Validação ex post</span><h2>Preço pedido × qualidade real.</h2><p class="lead">Pistas boas oferecidas por preço justo fortaleceram a Confiabilidade. Pistas fracas vendidas caro reduziram o resultado e, quando negativo, bloquearam a Qualidade do Gasto.</p><div class="grade">'+confiancas+'</div><p class="muted" style="text-align:center">O resultado dos votos cegos continua oculto.</p>';
   }
   var js=ordenados(STATE.jogadores).slice().sort(function(a,b){ return (b.total||0)-(a.total||0); });
-  function caixaPodio(j,pos){if(!j)return '';var p=personagemPor(j.personagem);return '<div class="podio-jogador pos-'+pos+'"><div class="colocacao">'+pos+'º lugar</div><div class="av">'+(p?p.av:"👤")+'</div><div class="nm">'+esc(nomePers(p,j.forma))+'</div><div class="pt">'+(j.total||0)+' pts</div></div>';}
-  var restantes=js.slice(3).map(function(j,i){var p=personagemPor(j.personagem);return '<div class="classificacao-item"><span class="ordem">'+(i+4)+'º</span><span class="avatar">'+(p?p.av:"👤")+'</span><span class="nome">'+esc(nomePers(p,j.forma))+'</span><span class="pontos">'+(j.total||0)+' pts</span></div>';}).join('');
+  function caixaPodio(j,pos){if(!j)return '';var p=personagemPor(j.personagem);return '<div class="podio-jogador pos-'+pos+'"><div class="colocacao">'+pos+'º lugar</div><div class="av">'+(p?p.av:"👤")+'</div><div class="jogador-nome">'+esc(j.nome)+'</div><div class="personagem">'+esc(nomePers(p,j.forma))+'</div><div class="pt">'+(j.total||0)+' pts</div></div>';}
+  var restantes=js.slice(3).map(function(j,i){var p=personagemPor(j.personagem);return '<div class="classificacao-item"><span class="ordem">'+(i+4)+'º</span><span class="avatar">'+(p?p.av:"👤")+'</span><span class="nome">'+esc(j.nome)+'<span class="papel">'+esc(nomePers(p,j.forma))+'</span></span><span class="pontos">'+(j.total||0)+' pts</span></div>';}).join('');
   var lista=restantes?'<aside class="classificacao-restante"><h3>Demais colocações</h3>'+restantes+'</aside>':'';
   var modo=STATE.tela==="painel"?'telao':'celular';
   return '<span class="eyebrow">Placar final</span><div class="podio-layout '+modo+'"><div class="podio-cena">'+caixaPodio(js[0],1)+caixaPodio(js[1],2)+caixaPodio(js[2],3)+'</div>'+lista+'</div><p class="muted" style="text-align:center;margin-top:16px">Tempo 32% &middot; Qualidade 13% &middot; Cooperação 30% &middot; Economia 20% &middot; Performance 5%</p>';
