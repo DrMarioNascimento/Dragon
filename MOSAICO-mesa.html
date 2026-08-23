@@ -150,8 +150,26 @@
     letter-spacing:.3em;text-transform:uppercase;color:var(--ambar);margin-bottom:5px}
   .rodada-telao .nome{display:block;font-family:var(--serif);font-size:clamp(28px,5vw,52px);
     line-height:1.05;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
-  .rodada-celular{margin:0 auto 20px;padding:10px 14px;width:100%}
+  .rodada-celular{margin:0 auto 8px;padding:10px 14px;width:100%}
   .rodada-celular .nome{font-size:clamp(22px,7vw,32px)}
+  .dinamica-nivel{width:min(86%,620px);margin:-2px auto 18px;padding:8px 14px 9px;text-align:center;
+    border:1px solid rgba(232,164,76,.5);border-radius:7px;
+    background:linear-gradient(135deg,rgba(67,44,17,.94),rgba(28,24,21,.94));
+    box-shadow:0 9px 24px rgba(0,0,0,.28)}
+  .dinamica-nivel .dn-titulo{display:block;color:#ffd18d;font:800 clamp(11px,2.8vw,14px) var(--sans);
+    letter-spacing:.12em;text-transform:uppercase;line-height:1.2}
+  .dinamica-nivel .dn-sub{display:block;color:#fff;font:600 clamp(13px,3.5vw,17px) var(--serif);
+    letter-spacing:.04em;line-height:1.25;margin-top:3px}
+  .dinamica-nivel.equipe{border-color:rgba(127,212,255,.58);
+    background:linear-gradient(135deg,rgba(18,67,88,.94),rgba(12,34,49,.94))}
+  .dinamica-nivel.equipe .dn-titulo{color:#bdeeff}
+  .dinamica-nivel.mercado{border-color:rgba(224,103,79,.65);
+    background:linear-gradient(135deg,rgba(91,34,27,.95),rgba(48,20,20,.95))}
+  .dinamica-nivel.mercado .dn-titulo{color:#ffb1a2}
+  .dinamica-nivel.caso{border-color:rgba(180,148,225,.62);
+    background:linear-gradient(135deg,rgba(55,39,79,.95),rgba(29,24,43,.95))}
+  .dinamica-nivel.caso .dn-titulo{color:#d9c2ff}
+  #app.largo>.dinamica-nivel{width:min(72%,680px);margin:-8px auto 12px}
   /* Telao deitado: duas colunas lado a lado. */
   @media(min-width:900px) and (min-aspect-ratio: 1/1){
     .painel-cols{grid-template-columns:1.25fr .75fr;gap:34px}
@@ -1257,9 +1275,57 @@ function nomeRodada(fase){
   };
   return nomes[fase]||"MOSAICO";
 }
-function cabecalhoRodada(fase, classe){
-  return '<div class="rodada-telao '+(classe||'')+'"><span class="rotulo">Rodada atual</span><span class="nome">'+esc(nomeRodada(fase))+'</span></div>';
+function dinamicaNivel(fase){
+  var niveis={
+    encenacao:{id:"individual",classe:"individual",titulo:"Jogador contra jogador",sub:"Cada um por si"},
+    votacao:{id:"individual",classe:"individual",titulo:"Jogador contra jogador",sub:"Cada um por si"},
+    constelacao:{id:"individual",classe:"individual",titulo:"Jogador contra jogador",sub:"Cada um por si"},
+    inclinacao:{id:"individual",classe:"individual",titulo:"Jogador contra jogador",sub:"Cada um por si"},
+    mosaico:{id:"equipe",classe:"equipe",titulo:"Jogador com jogador",sub:"Encontre seu grupo"},
+    cooperacao:{id:"equipe",classe:"equipe",titulo:"Jogador com jogador",sub:"Ajude seu grupo"},
+    mercado:{id:"mercado",classe:"mercado",titulo:"Mercado",sub:"Compre e venda pistas"},
+    deducao:{id:"caso",classe:"caso",titulo:"Jogadores contra o caso",sub:"Reconstruam a verdade"}
+  };
+  return niveis[fase]||null;
 }
+function cabecalhoRodada(fase, classe){
+  var d=dinamicaNivel(fase);
+  return '<div class="rodada-telao '+(classe||'')+'"><span class="rotulo">Rodada atual</span><span class="nome">'+esc(nomeRodada(fase))+'</span></div>'+
+    (d?'<div class="dinamica-nivel '+d.classe+'"><span class="dn-titulo">'+esc(d.titulo)+'</span><span class="dn-sub">'+esc(d.sub)+'</span></div>':'');
+}
+var _audioNivel=null, _nivelSonoroAnterior=null;
+function habilitarAudioNivel(){
+  var Ctx=window.AudioContext||window.webkitAudioContext;
+  if(!Ctx) return;
+  try{
+    if(!_audioNivel) _audioNivel=new Ctx();
+    if(_audioNivel.state==="suspended") _audioNivel.resume();
+  }catch(e){}
+}
+function emitirSomDeNivel(){
+  habilitarAudioNivel();
+  if(!_audioNivel||_audioNivel.state!=="running") return;
+  var agora=_audioNivel.currentTime;
+  [[523.25,0],[659.25,.13]].forEach(function(nota){
+    var osc=_audioNivel.createOscillator(), ganho=_audioNivel.createGain();
+    osc.type="sine";osc.frequency.setValueAtTime(nota[0],agora+nota[1]);
+    ganho.gain.setValueAtTime(.0001,agora+nota[1]);
+    ganho.gain.exponentialRampToValueAtTime(.12,agora+nota[1]+.025);
+    ganho.gain.exponentialRampToValueAtTime(.0001,agora+nota[1]+.22);
+    osc.connect(ganho);ganho.connect(_audioNivel.destination);
+    osc.start(agora+nota[1]);osc.stop(agora+nota[1]+.24);
+  });
+}
+function verificarTrocaDeNivel(fase){
+  var d=dinamicaNivel(fase), atual=d&&d.id;
+  if(!atual) return;
+  if(_nivelSonoroAnterior===null){_nivelSonoroAnterior=atual;return;}
+  if(atual!==_nivelSonoroAnterior){
+    _nivelSonoroAnterior=atual;
+    emitirSomDeNivel();
+  }
+}
+document.addEventListener("pointerdown",habilitarAudioNivel,{once:true});
 function souMestreDaMesa(){
   var codigo=(STATE.eu&&STATE.eu.codigo)||(STATE.mesa&&STATE.mesa.codigo)||"";
   try{return !!codigo&&sessionStorage.getItem("mosaico_mestre_codigo")===codigo;}catch(e){return false;}
@@ -1407,6 +1473,7 @@ function render(forcar){
   document.body.classList.toggle("modo-sem-telao", modoAtual()==="sem-telao");
   /* enquanto a sala espera, o painel continua com o video */
   var faseAgora=(STATE.doc&&STATE.doc.fase)||"sala";
+  verificarTrocaDeNivel(faseAgora);
   var encenacaoPassiva=false;
   if(STATE.eu&&STATE.tela==="encenacao"&&faseAgora==="encenacao"){
     var ordemEncenacao=ordenados(STATE.jogadores), atorEncenacao=ordemEncenacao[(STATE.doc&&STATE.doc.vez)||0];
