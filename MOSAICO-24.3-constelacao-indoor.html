@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Constelação Indoor — Protótipo Bússola + Giroscópio</title>
+<style>
+  :root{
+    --bg: #05070c;
+    --panel: #0d1420;
+    --line: #1c2836;
+    --star: #ffd98a;
+    --star-dim: #ffd98a33;
+    --cold: #2fb8ff;
+    --text: #e8eef4;
+    --text-dim: #7d8fa0;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  html,body{
+    margin:0; height:100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    overflow: hidden;
+    touch-action: none;
+  }
+  #app{
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+  }
+  header{
+    text-align:center;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  h1{
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin: 0 0 4px;
+  }
+  #status-line{
+    font-size: 13px;
+    color: var(--text-dim);
+    min-height: 18px;
+  }
+  #stage{
+    flex: 1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position: relative;
+  }
+  #sky-wrap{
+    width: min(78vw, 340px);
+    aspect-ratio: 1;
+    position: relative;
+  }
+  #sky-glow{
+    position:absolute; inset: -25%;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--star-dim), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.15s linear;
+    filter: blur(4px);
+  }
+  #sky{
+    position: relative;
+    width:100%; height:100%;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    overflow:hidden;
+  }
+  #sky svg{
+    width:100%; height:100%;
+  }
+  .star-dot{
+    fill: var(--star);
+    opacity: 0.10;
+    transition: opacity 0.15s linear, r 0.15s linear;
+  }
+  .star-line{
+    stroke: var(--star);
+    stroke-width: 1.2;
+    opacity: 0;
+    transition: opacity 0.2s linear;
+  }
+  #sky.locked .star-dot{
+    opacity: 1;
+  }
+  #sky.locked .star-line{
+    opacity: 0.85;
+  }
+  #sky.locked{
+    border-color: var(--star);
+    box-shadow: 0 0 50px 0 var(--star-dim);
+  }
+  #hold-track{
+    position: absolute;
+    bottom: -22px; left: 10%; right: 10%;
+    height: 3px;
+    background: var(--line);
+    border-radius: 2px;
+    overflow:hidden;
+  }
+  #hold-fill{
+    height:100%;
+    width:0%;
+    background: var(--star);
+    transition: width 0.05s linear;
+  }
+  footer{
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+  }
+  .row{
+    display:flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+    font-variant-numeric: tabular-nums;
+  }
+  .row b{ color: var(--text); font-weight: 600; }
+  #bar-track{
+    width:100%; height: 8px;
+    background: var(--line);
+    border-radius: 4px;
+    overflow:hidden;
+    margin-bottom: 14px;
+    margin-top: 8px;
+  }
+  #bar-fill{
+    height:100%; width:0%;
+    background: linear-gradient(90deg, var(--cold), var(--star));
+    transition: width 0.08s linear;
+  }
+  #controls{
+    display:flex;
+    gap: 10px;
+  }
+  button{
+    flex:1;
+    padding: 13px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 600;
+  }
+  button:active{ background: #16202c; }
+  #enable-btn{
+    border-color: var(--star);
+    color: var(--star);
+  }
+  #target-info{
+    font-size: 11px;
+    color: var(--text-dim);
+    text-align:center;
+    margin-top: 8px;
+    letter-spacing: 0.03em;
+  }
+  #overlay{
+    position:fixed; inset:0;
+    background: var(--bg);
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    gap: 16px;
+    padding: 32px;
+    text-align:center;
+    z-index: 10;
+  }
+  #overlay p{ color: var(--text-dim); font-size: 14px; max-width: 300px; line-height:1.5; }
+  #overlay.hidden{ display:none; }
+</style>
+</head>
+<body>
+<div id="overlay">
+  <h1 style="font-size:16px;color:var(--text)">CONSTELAÇÃO INDOOR</h1>
+  <p>Usa bússola + giroscópio do celular. Gire o corpo e incline o aparelho até "achar" a constelação escondida. Funciona melhor num celular real, fora do navegador de computador.</p>
+  <button id="enable-btn">Ativar sensores</button>
+</div>
+
+<div id="app">
+  <header>
+    <h1>Alvo Oculto</h1>
+    <div id="status-line">Aguardando sensores...</div>
+  </header>
+
+  <div id="stage">
+    <div id="sky-wrap">
+      <div id="sky-glow"></div>
+      <div id="sky">
+        <svg viewBox="0 0 100 100">
+          <g class="star-line-group">
+            <line class="star-line" x1="30" y1="70" x2="45" y2="45"/>
+            <line class="star-line" x1="45" y1="45" x2="50" y2="20"/>
+            <line class="star-line" x1="45" y1="45" x2="70" y2="50"/>
+            <line class="star-line" x1="70" y1="50" x2="78" y2="75"/>
+          </g>
+          <circle class="star-dot" cx="30" cy="70" r="2.4"/>
+          <circle class="star-dot" cx="45" cy="45" r="3.2"/>
+          <circle class="star-dot" cx="50" cy="20" r="2.2"/>
+          <circle class="star-dot" cx="70" cy="50" r="2.6"/>
+          <circle class="star-dot" cx="78" cy="75" r="2.2"/>
+        </svg>
+      </div>
+      <div id="hold-track"><div id="hold-fill"></div></div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="row"><span>Direção (bússola)</span><b id="heading-val">--°</b></div>
+    <div class="row"><span>Altura (inclinação)</span><b id="pitch-val">--°</b></div>
+    <div id="bar-track"><div id="bar-fill"></div></div>
+    <div id="controls">
+      <button id="new-target-btn">Novo alvo</button>
+      <button id="reset-btn">Reiniciar</button>
+    </div>
+    <div id="target-info">alvo: direção -- / altura --</div>
+  </footer>
+</div>
+
+<script>
+(function(){
+  const HEADING_TOLERANCE = 30;
+  const PITCH_TOLERANCE = 20;
+  const HOLD_MS = 2000;
+  const MAX_DIST = 120;
+
+  const els = {
+    overlay: document.getElementById('overlay'),
+    enableBtn: document.getElementById('enable-btn'),
+    status: document.getElementById('status-line'),
+    sky: document.getElementById('sky'),
+    glow: document.getElementById('sky-glow'),
+    headingVal: document.getElementById('heading-val'),
+    pitchVal: document.getElementById('pitch-val'),
+    barFill: document.getElementById('bar-fill'),
+    holdFill: document.getElementById('hold-fill'),
+    newTargetBtn: document.getElementById('new-target-btn'),
+    resetBtn: document.getElementById('reset-btn'),
+    targetInfo: document.getElementById('target-info'),
+  };
+
+  let target = { heading: 0, pitch: 0 };
+  let holdStart = null;
+  let locked = false;
+  let rafPending = false;
+  let latestReading = { heading: 0, pitch: 0 };
+  let usingAbsolute = false;
+
+  function randomTarget(){
+    const heading = Math.round(Math.random() * 360);
+    const pitch = Math.round(-30 + Math.random() * 90);
+    target = { heading, pitch };
+    els.targetInfo.textContent = `alvo: direção ${heading}° / altura ${pitch}°`;
+    locked = false;
+    holdStart = null;
+    els.sky.classList.remove('locked');
+  }
+
+  function angularDistance(a, b){
+    let d = Math.abs(a - b) % 360;
+    if (d > 180) d = 360 - d;
+    return d;
+  }
+
+  function computeHeading(event){
+    if (typeof event.webkitCompassHeading === 'number'){
+      usingAbsolute = true;
+      return event.webkitCompassHeading;
+    }
+    if (event.absolute === true && typeof event.alpha === 'number'){
+      usingAbsolute = true;
+      return 360 - event.alpha;
+    }
+    usingAbsolute = false;
+    return event.alpha || 0;
+  }
+
+  function handleOrientation(e){
+    if (e.beta === null && e.alpha === null) return;
+    latestReading.heading = computeHeading(e);
+    latestReading.pitch = e.beta || 0;
+    if (!rafPending){
+      rafPending = true;
+      requestAnimationFrame(updateUI);
+    }
+  }
+
+  function updateUI(){
+    rafPending = false;
+    const dHeading = angularDistance(latestReading.heading, target.heading);
+    const dPitch = angularDistance(latestReading.pitch, target.pitch);
+
+    els.headingVal.textContent = Math.round(latestReading.heading) + '°';
+    els.pitchVal.textContent = Math.round(latestReading.pitch) + '°';
+
+    const dist = Math.sqrt(dHeading*dHeading + dPitch*dPitch);
+    const closeness = Math.max(0, 1 - dist / MAX_DIST);
+    els.barFill.style.width = (closeness * 100).toFixed(0) + '%';
+    els.glow.style.opacity = (closeness * 0.9).toFixed(2);
+
+    const withinTolerance = dHeading <= HEADING_TOLERANCE && dPitch <= PITCH_TOLERANCE;
+
+    if (withinTolerance && !locked){
+      if (holdStart === null) holdStart = performance.now();
+      const elapsed = performance.now() - holdStart;
+      const holdPct = Math.min(100, (elapsed / HOLD_MS) * 100);
+      els.holdFill.style.width = holdPct + '%';
+      if (elapsed >= HOLD_MS){
+        locked = true;
+        els.sky.classList.add('locked');
+        els.status.textContent = 'Constelação revelada!';
+      } else {
+        els.status.textContent = 'Segura firme...';
+      }
+    } else if (!withinTolerance){
+      holdStart = null;
+      els.holdFill.style.width = '0%';
+      if (!locked){
+        els.status.textContent = closeness > 0.6 ? 'Quase lá' : 'Gire e incline o celular';
+      }
+    }
+  }
+
+  function enableSensor(){
+    const needsIOSPermission =
+      typeof DeviceOrientationEvent !== 'undefined' &&
+      typeof DeviceOrientationEvent.requestPermission === 'function';
+
+    if (needsIOSPermission){
+      DeviceOrientationEvent.requestPermission()
+        .then(state => {
+          if (state === 'granted'){
+            startListening();
+          } else {
+            els.status.textContent = 'Permissão negada — ative nas configurações do navegador.';
+          }
+        })
+        .catch(() => {
+          els.status.textContent = 'Erro ao pedir permissão do sensor.';
+        });
+    } else if ('DeviceOrientationEvent' in window){
+      startListening();
+    } else {
+      els.status.textContent = 'Sensor não disponível neste dispositivo/navegador.';
+    }
+  }
+
+  function startListening(){
+    window.addEventListener('deviceorientationabsolute', handleOrientation);
+    window.addEventListener('deviceorientation', handleOrientation);
+    els.overlay.classList.add('hidden');
+    randomTarget();
+  }
+
+  els.enableBtn.addEventListener('click', enableSensor);
+  els.newTargetBtn.addEventListener('click', randomTarget);
+  els.resetBtn.addEventListener('click', () => {
+    locked = false;
+    holdStart = null;
+    els.sky.classList.remove('locked');
+    els.status.textContent = 'Gire e incline o celular';
+  });
+})();
+</script>
+</body>
+</html>
