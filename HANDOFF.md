@@ -130,7 +130,10 @@ O código atual entrega a primeira experiência jogável:
 - solicitação de tela cheia quando suportada.
 - abertura em modo **Com telão** ou **Sem telão**;
 - no modo Sem telão, o criador também joga; seu celular é igual aos demais, exceto pelo botão compacto **Menu**, ao lado de **Arquivo**;
-- o Menu do mestre abre e fecha pelo mesmo botão e reúne QR/código, lista de conectados, avanço da fase, pular apresentação e encerrar sala;
+- o Menu do mestre abre e fecha pelo mesmo botão e reúne QR/código, lista de conectados, controles necessários da fase, pular apresentação e encerrar sala;
+- com o Menu fechado, nenhum indicador, painel ou controle de mestre pode permanecer visível; toda a experiência jogável deve ser idêntica à dos demais celulares;
+- formação dos núcleos ocorre automaticamente quando todos votam ou termina o prazo de Performance;
+- cálculo e publicação do placar ocorrem automaticamente quando todos enviam a Dedução Final ou termina o prazo;
 - todos recebem um mural coletivo móvel com relógio e cronologia quando não há telão;
 
 ### Máquina de fases implementada
@@ -553,10 +556,9 @@ Mesas de teste antigas no Firestore devem ser removidas periodicamente.
 1. reconexão após recarregar a página;
 2. regras seguras do Firestore e identidade própria do mestre;
 3. revelação narrativa completa do caso;
-4. aplicar automaticamente os tempos-limite configurados;
-5. ampliar o elenco para sessões acima de seis pessoas;
-6. integração opcional dos módulos sensoriais;
-7. testes de integração com o Firestore e playtest presencial.
+4. ampliar o elenco para sessões acima de seis pessoas;
+5. integração opcional dos módulos sensoriais;
+6. testes de integração com o Firestore e playtest presencial.
 
 ---
 

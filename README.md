@@ -37,7 +37,7 @@ Os parâmetros do caso ficam em `casos/casa-da-costa.json`. O cálculo puro e te
 ### Modos de mesa
 
 - **Com telão:** um aparelho é dedicado ao painel coletivo, ao QR, à cronologia e aos controles do mestre. O mestre não ocupa uma vaga de jogador nesse aparelho.
-- **Sem telão:** quem cria a sala também entra como jogador. Seu celular permanece igual ao dos demais, acrescentando apenas o botão compacto **Menu** ao lado de **Arquivo**. O Menu reúne QR/código, participantes conectados, controle da fase e encerramento da sala. Todos os celulares recebem um mural coletivo recolhível com relógio e cronologia pública.
+- **Sem telão:** quem cria a sala também entra como jogador. Seu celular permanece igual ao dos demais, acrescentando apenas o botão compacto **Menu** ao lado de **Arquivo**. O Menu reúne QR/código, participantes conectados, controles necessários da fase e encerramento da sala. Formação de núcleos e cálculo do placar são automáticos e não aparecem como comandos manuais. Todos os celulares recebem um mural coletivo recolhível com relógio e cronologia pública.
 
 O modo é escolhido ao abrir a mesa e gravado no documento da sala. Regras, caso, votos e pontuação são idênticos nos dois modos.
 

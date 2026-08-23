@@ -958,6 +958,7 @@ var STATE = {
   menuMestreAberto:false
 };
 var _unsubJog=null, _unsubMesa=null, _unsubVotos=null, _unsubPub=null, _unsubV5=[], _timerContagem=null;
+var _autoFasePendente=null, _autoTimer=null, _autoTimerChave="";
 function assinarV5(FB,codigo){
   _unsubV5.forEach(function(f){try{f();}catch(e){}}); _unsubV5=[];
   [['votosCooperacao','cooperacao'],['nucleos','nucleos'],['ofertas','ofertas'],['negociacoes','negociacoes'],['deducoes','deducoes']].forEach(function(par){
@@ -1046,26 +1047,54 @@ function souMestreDaMesa(){
 }
 function alternarMenuMestre(){STATE.menuMestreAberto=!STATE.menuMestreAberto;render();}
 function controlesMestreMovel(){
-  var fase=(STATE.doc&&STATE.doc.fase)||"sala", js=ordenados(STATE.jogadores), botoes="";
+  var fase=(STATE.doc&&STATE.doc.fase)||"sala", js=ordenados(STATE.jogadores), botoes="", autoInfo="";
   if(fase==="sala"){
     var todos=js.length>=2&&contaProntos()===js.length;
     botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();iniciarEncenacao()" '+(todos?'':'disabled')+'>Come&ccedil;ar</button>';
   }else if(fase==="encenacao") botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();pularVez()">Pular a apresenta&ccedil;&atilde;o atual</button>';
-  else if(fase==="votacao") botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();fecharVotacao()">Formar n&uacute;cleos</button>';
+  else if(fase==="votacao") autoInfo='<div class="card"><b>Forma&ccedil;&atilde;o autom&aacute;tica</b><p class="muted">'+STATE.votos.length+' de '+js.length+' votos recebidos. Os n&uacute;cleos ser&atilde;o formados automaticamente.</p></div>';
   else if(fase==="mosaico") botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();abrirVotoCooperacao()">Abrir voto interno</button>';
   else if(fase==="cooperacao") botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();abrirMercado()">Abrir mercado</button>';
   else if(fase==="mercado") botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();abrirDeducao()">Abrir dedu&ccedil;&atilde;o</button>';
-  else if(fase==="deducao") botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();finalizarPartida()" '+(STATE.v5.deducoes.length<js.length?'disabled':'')+'>Calcular placar</button>';
+  else if(fase==="deducao") autoInfo='<div class="card"><b>C&aacute;lculo autom&aacute;tico</b><p class="muted">'+STATE.v5.deducoes.length+' de '+js.length+' respostas recebidas. O placar ser&aacute; calculado automaticamente.</p></div>';
   else if(fase==="resultado") botoes+='<button class="btn btn-frio" onclick="alternarMenuMestre();voltarParaSala()">Nova rodada</button>';
   var conectados=js.map(function(j){var status=fase==="sala"?(j.pronto?'pronto':'aguardando prontid&atilde;o'):'conectado';return '<div class="conectado-item"><span>'+esc(j.nome)+'</span><span class="muted">'+status+'</span></div>';}).join('')||'<p class="muted">Nenhum participante conectado.</p>';
   var m=STATE.mesa, qr=m?'https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=8&data='+encodeURIComponent(m.link):'';
   var painel=STATE.menuMestreAberto?'<div class="menu-mestre-fundo" onclick="if(event.target===this)alternarMenuMestre()"><div class="menu-mestre-card">'+
     '<div class="menu-mestre-topo"><div><span class="eyebrow">Mestre &middot; '+esc(nomeRodada(fase))+'</span><h2>Menu</h2></div><button class="btn btn-sm" onclick="alternarMenuMestre()">Fechar</button></div>'+
     '<div class="card"><span class="eyebrow">C&oacute;digo da sala</span><div class="codigo-grande">'+esc(m&&m.codigo)+'</div><img class="menu-mestre-qr" src="'+esc(qr)+'" alt="QR da sala"><button class="btn btn-sm" style="width:100%" onclick="copiarLink()">Copiar link</button></div>'+
-    '<div class="card"><span class="eyebrow">Conectados &middot; '+js.length+'</span>'+conectados+'</div>'+
+    '<div class="card"><span class="eyebrow">Conectados &middot; '+js.length+'</span>'+conectados+'</div>'+autoInfo+
     '<div class="menu-mestre-grade">'+botoes+'<button class="btn btn-perigo" onclick="encerrarMesa()">Encerrar sala</button></div>'+
     '</div></div>':'';
   return '<button class="btn-menu-mestre" onclick="alternarMenuMestre()" aria-label="Abrir ou fechar o menu do mestre">Menu</button>'+painel;
+}
+function dadosAutomacao(){
+  var fase=(STATE.doc&&STATE.doc.fase)||"", cfg=(CASO.configuracao&&CASO.configuracao.limitesSegundos)||{};
+  if(fase==="votacao") return {fase:fase,recebidos:STATE.votos.length,total:STATE.jogadores.length,inicio:STATE.doc.votacaoAbertaMs||0,limite:(cfg.performance||60)*1000,acao:prepararMosaico};
+  if(fase==="deducao") return {fase:fase,recebidos:STATE.v5.deducoes.length,total:STATE.jogadores.length,inicio:STATE.doc.deducaoAbertaMs||0,limite:(cfg.deducao||300)*1000,acao:finalizarPartida};
+  return null;
+}
+async function verificarAutomacoes(){
+  if(!souMestreDaMesa()) return;
+  var d=dadosAutomacao(), fase=(STATE.doc&&STATE.doc.fase)||"";
+  if(_autoFasePendente&&_autoFasePendente!==fase) _autoFasePendente=null;
+  if(!d||_autoFasePendente===d.fase||!d.total) return;
+  var prazoTerminou=d.inicio&&Date.now()>=d.inicio+d.limite;
+  if(d.recebidos<d.total&&!prazoTerminou) return;
+  _autoFasePendente=d.fase;
+  try{await d.acao();}catch(e){_autoFasePendente=null;console.error("automação da fase",e);}
+}
+function agendarAutomacoes(){
+  if(!souMestreDaMesa()) return;
+  var d=dadosAutomacao();
+  if(!d){if(_autoTimer)clearTimeout(_autoTimer);_autoTimer=null;_autoTimerChave="";return;}
+  verificarAutomacoes();
+  if(!d.inicio||d.recebidos>=d.total) return;
+  var chave=d.fase+":"+d.inicio;
+  if(_autoTimerChave===chave) return;
+  if(_autoTimer)clearTimeout(_autoTimer);
+  _autoTimerChave=chave;
+  _autoTimer=setTimeout(function(){_autoTimer=null;_autoTimerChave="";verificarAutomacoes();},Math.max(0,d.inicio+d.limite-Date.now())+100);
 }
 function muralColetivoMovel(){
   var fase=(STATE.doc&&STATE.doc.fase)||"sala", pubs=(STATE.publicas||[]).slice().sort(function(a,b){return (a.ordem||0)-(b.ordem||0);});
@@ -1115,6 +1144,7 @@ function render(){
   if(STATE.eu && modoAtual()==="sem-telao") h=cabecalhoRodada((STATE.doc&&STATE.doc.fase)||"sala","rodada-celular")+h+muralColetivoMovel();
   if(STATE.eu && souMestreDaMesa() && modoAtual()==="sem-telao") h+=controlesMestreMovel();
   app.innerHTML=h;
+  agendarAutomacoes();
 }
 
 function telaInicio(){
@@ -1261,8 +1291,7 @@ function telaPainel(){
   } else if(fase==="votacao"){
     acao='<div class="card"><span class="eyebrow">Vota&ccedil;&atilde;o aberta</span>'+
          '<p class="muted">'+STATE.votos.length+' de '+js.length+' j&aacute; votaram. '+
-         'Ningu&eacute;m pode votar em si.</p></div>'+
-         '<button class="btn btn-ambar" onclick="fecharVotacao()">Fechar voto e formar n&uacute;cleos</button>';
+         'Ningu&eacute;m pode votar em si. Os n&uacute;cleos ser&atilde;o formados automaticamente.</p></div>';
   } else if(fase==="mosaico"){
     acao='<div class="card"><span class="eyebrow">Mosaico coletivo</span><p class="muted">'+STATE.v5.nucleos.filter(function(n){return n.concluidoEm||n.concluidoMs;}).length+' n&uacute;cleo(s) conclu&iacute;do(s).</p></div><button class="btn btn-ambar" onclick="abrirVotoCooperacao()">Encerrar mosaico e abrir voto interno</button>';
   } else if(fase==="cooperacao"){
@@ -1270,7 +1299,7 @@ function telaPainel(){
   } else if(fase==="mercado"){
     acao='<div class="card"><span class="eyebrow">Mercado Cego</span><p class="muted">'+STATE.v5.negociacoes.length+' compra(s) conclu&iacute;da(s).</p></div><button class="btn btn-ambar" onclick="abrirDeducao()">Fechar mercado e abrir dedu&ccedil;&atilde;o</button>';
   } else if(fase==="deducao"){
-    acao='<div class="card"><span class="eyebrow">Dedu&ccedil;&atilde;o final</span><p class="muted">'+STATE.v5.deducoes.length+' de '+js.length+' respostas enviadas.</p></div><button class="btn btn-ambar" onclick="finalizarPartida()" '+(STATE.v5.deducoes.length<js.length?'disabled':'')+'>Revelar e calcular placar</button>';
+    acao='<div class="card"><span class="eyebrow">Dedu&ccedil;&atilde;o final</span><p class="muted">'+STATE.v5.deducoes.length+' de '+js.length+' respostas enviadas. O placar ser&aacute; calculado automaticamente.</p></div>';
   } else if(fase==="resultado"){
     acao='<button class="btn btn-frio" onclick="voltarParaSala()">Voltar &agrave; sala</button>';
   }
@@ -1426,6 +1455,7 @@ function telaEncerrada(){
 }
 
 function sairDaMesa(){
+  if(_autoTimer)clearTimeout(_autoTimer);_autoTimer=null;_autoTimerChave="";_autoFasePendente=null;
   if(_unsubJog) _unsubJog(); if(_unsubMesa) _unsubMesa();
   if(_unsubVotos) _unsubVotos(); if(_unsubPub) _unsubPub();
   _unsubV5.forEach(function(f){try{f();}catch(e){}}); _unsubV5=[];
@@ -1823,7 +1853,7 @@ async function avancarVez(codigo, autor){
   var FB=await esperarFB();
   var p=PUBLICAS[vez];
   if(p) await FB.publicar(codigo, vez, { hora:p.hora, txt:p.txt, autor:autor||"—", ordem:vez });
-  if(vez+1>=js.length) await FB.atualizarMesa(codigo,{fase:"votacao"});
+  if(vez+1>=js.length) await FB.atualizarMesa(codigo,{fase:"votacao",votacaoAbertaMs:Date.now()});
   else await FB.atualizarMesa(codigo,{vez:vez+1});
 }
 
@@ -2002,6 +2032,7 @@ async function encerrarMesa(){
     var FB=await esperarFB();
     await FB.atualizarMesa(STATE.mesa.codigo,{ativa:false, encerradaEmMs:Date.now()});
   }catch(e){ console.error("encerrarMesa", e); }
+  if(_autoTimer)clearTimeout(_autoTimer);_autoTimer=null;_autoTimerChave="";_autoFasePendente=null;
   if(_unsubJog) _unsubJog(); if(_unsubMesa) _unsubMesa();
   if(_unsubVotos) _unsubVotos(); if(_unsubPub) _unsubPub();
   _unsubV5.forEach(function(f){try{f();}catch(e){}}); _unsubV5=[];
