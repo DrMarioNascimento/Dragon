@@ -312,7 +312,7 @@
     <div id="calib-txt">Desenhe um 8 no ar</div>
   </div>
   <div id="instr">A luz apagou. N&atilde;o piscou, n&atilde;o falhou &mdash; apagou. Por dois minutos, seis pessoas ficaram no escuro, e cada uma percebeu algo em uma dire&ccedil;&atilde;o diferente. Gire o corpo. Um estalo, um frio, uma sombra: cada sentido tem a sua marca.</div>
-  <button class="btn" id="btn-start">Entrar na casa</button>
+  <button class="btn" id="btn-start">Ativar movimento</button>
   <button id="alt">Sem sensor &mdash; usar o dedo</button>
 </div>
 
@@ -382,7 +382,7 @@ var GRAO=null, NUVEM=null;
 var TEM_FILTRO=(typeof ctx.filter==="string");
 var LEVE=false, fpsAcc=0, fpsN=0;
 var heading=0, pitch=0, tHeading=0, tPitch=0;
-var temSensor=false, modoDedo=false, iniciado=false;
+var temSensor=false, modoDedo=false, iniciado=false, sensorTimer=null;
 var alvos=[], achados=0, holdStart=null, holdId=-1;
 var fase="caca";
 var t0=performance.now(), ultimoAcerto=performance.now();
@@ -444,6 +444,10 @@ try{ EMBED = new URLSearchParams(location.search).get("embed")==="1"; }catch(e){
 function avisaMesa(){
   try{ parent.postMessage({mosaico:"tarefa-ok", jogo:"escuro"}, "*"); }catch(e){}
 }
+function avisaStatusSensor(status){
+  if(!EMBED) return;
+  try{ parent.postMessage({mosaico:"sensor-status", tarefa:"constelacao", status:status}, "*"); }catch(e){}
+}
 
 function sortear(){
   alvos = [];
@@ -494,7 +498,15 @@ function leHeading(e){
 function onOrient(e){
   var hd = leHeading(e);
   if(hd===null || e.beta===null || e.beta===undefined) return;
-  temSensor = true; modoDedo = false;
+  if(!temSensor){
+    temSensor=true; modoDedo=false;
+    if(sensorTimer) clearTimeout(sensorTimer);
+    sensorTimer=null;
+    var botao=document.getElementById("btn-start");
+    botao.disabled=false; botao.textContent="Ativar movimento";
+    avisaStatusSensor("ativo");
+    if(!iniciado) comeca();
+  }
   tHeading = hd;
   tPitch = Math.max(-80, Math.min(80, e.beta - 90));
 }
@@ -1306,6 +1318,7 @@ function mostraCartao(p){
 
 /* ============== INICIO ============== */
 function comeca(){
+  if(iniciado) return;
   document.getElementById("intro").classList.add("out");
   iniciado=true; sortear();
   setTimeout(function(){ document.getElementById("intro").style.display="none"; },1200);
@@ -1348,24 +1361,39 @@ function avisa(txt){
   a.textContent=txt; a.classList.add("on");
   setTimeout(function(){a.classList.remove("on");},4200);
 }
+function falhaSensor(msg){
+  if(sensorTimer) clearTimeout(sensorTimer);
+  sensorTimer=null;
+  window.removeEventListener("deviceorientationabsolute",onOrient,true);
+  window.removeEventListener("deviceorientation",onOrient,true);
+  var botao=document.getElementById("btn-start");
+  botao.disabled=false; botao.textContent="Tentar novamente";
+  avisaStatusSensor("sem-resposta");
+  avisa(msg);
+}
 function ativaSensor(){
+  var botao=document.getElementById("btn-start");
+  botao.disabled=true; botao.textContent="Aguardando movimento…";
+  temSensor=false;
+  window.removeEventListener("deviceorientationabsolute",onOrient,true);
+  window.removeEventListener("deviceorientation",onOrient,true);
   var precisa = typeof DeviceOrientationEvent!=="undefined" &&
                 typeof DeviceOrientationEvent.requestPermission==="function";
   var liga=function(){
     window.addEventListener("deviceorientationabsolute",onOrient,true);
     window.addEventListener("deviceorientation",onOrient,true);
-    comeca();
-    setTimeout(function(){
-      if(!temSensor){ modoDedo=true; avisa("Sem bússola — arraste com o dedo"); }
-    },1800);
+    if(sensorTimer) clearTimeout(sensorTimer);
+    sensorTimer=setTimeout(function(){
+      if(!temSensor) falhaSensor("Nenhum movimento foi recebido.");
+    },5000);
   };
   if(precisa){
     DeviceOrientationEvent.requestPermission().then(function(s){
       if(s==="granted") liga();
-      else { modoDedo=true; comeca(); avisa("Permissão negada — modo dedo"); }
-    }).catch(function(){ modoDedo=true; comeca(); avisa("Sensor indisponível — modo dedo"); });
+      else falhaSensor("Permissão de movimento não autorizada.");
+    }).catch(function(){ falhaSensor("Sensor de movimento indisponível."); });
   } else if("DeviceOrientationEvent" in window){ liga(); }
-  else { modoDedo=true; comeca(); avisa("Sem sensor — modo dedo"); }
+  else falhaSensor("Este aparelho não respondeu ao movimento.");
 }
 
 document.getElementById("btn-start").addEventListener("click",function(){
@@ -1373,6 +1401,11 @@ document.getElementById("btn-start").addEventListener("click",function(){
 });
 document.getElementById("alt").addEventListener("click",function(){
   telaCheia();
+  if(sensorTimer) clearTimeout(sensorTimer);
+  sensorTimer=null;
+  window.removeEventListener("deviceorientationabsolute",onOrient,true);
+  window.removeEventListener("deviceorientation",onOrient,true);
+  avisaStatusSensor("sem-resposta");
   modoDedo=true; tHeading=0; tPitch=10; comeca(); avisa("Modo dedo — arraste a tela");
 });
 document.getElementById("btn-again").addEventListener("click",function(){
