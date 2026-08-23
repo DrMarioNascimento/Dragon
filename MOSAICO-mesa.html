@@ -1135,7 +1135,7 @@ function souMestreDaMesa(){
   var codigo=(STATE.eu&&STATE.eu.codigo)||(STATE.mesa&&STATE.mesa.codigo)||"";
   try{return !!codigo&&sessionStorage.getItem("mosaico_mestre_codigo")===codigo;}catch(e){return false;}
 }
-function alternarMenuMestre(){STATE.menuMestreAberto=!STATE.menuMestreAberto;if(STATE.menuMestreAberto)STATE.casoAberto=false;render();}
+function alternarMenuMestre(){STATE.menuMestreAberto=!STATE.menuMestreAberto;if(STATE.menuMestreAberto)STATE.casoAberto=false;render(true);}
 function tarefaConcluida(t){return !!(t&&(t.status==='concluida'||t.concluidoEm));}
 function tarefasConcluidas(tipo){return (STATE.v5.tarefas||[]).filter(function(t){return t.tarefa===tipo&&tarefaConcluida(t);});}
 function tarefasSemResposta(tipo){return (STATE.v5.tarefas||[]).filter(function(t){return t.tarefa===tipo&&(t.status==='sem-resposta'||t.status==='negado'||t.status==='indisponivel');});}
@@ -1204,7 +1204,7 @@ function agendarAutomacoes(){
   _autoTimerChave=chave;
   _autoTimer=setTimeout(function(){_autoTimer=null;_autoTimerChave="";verificarAutomacoes();},Math.max(0,d.inicio+d.limite-Date.now())+100);
 }
-function alternarCaso(){STATE.casoAberto=!STATE.casoAberto;if(STATE.casoAberto)STATE.menuMestreAberto=false;render();}
+function alternarCaso(){STATE.casoAberto=!STATE.casoAberto;if(STATE.casoAberto)STATE.menuMestreAberto=false;render(true);}
 function orientacaoCaso(fase){
   var js=ordenados(STATE.jogadores), atual=js[(STATE.doc&&STATE.doc.vez)||0];
   if(fase==="sala") return souPronto()?"Você está pronto. Aguarde o início da partida.":"Confirme que está pronto para participar.";
@@ -1240,7 +1240,7 @@ function muralColetivoMovel(){
 /* ============================================================
    TELAS
    ============================================================ */
-function render(){
+function render(forcar){
   var app=document.getElementById("app");
   var esperandoPronto = STATE.tela==="esperando" && !souPronto();
   app.className = (STATE.tela==="painel") ? "largo"
@@ -1258,6 +1258,19 @@ function render(){
   var faseAgora=(STATE.doc&&STATE.doc.fase)||"sala";
   document.body.classList.toggle("fase-sala",
     STATE.tela==="painel" && faseAgora==="sala");
+  /* Os snapshots do Firebase podem chegar várias vezes durante uma rodada.
+     Recriar o iframe a cada snapshot descarrega o módulo, perde a permissão
+     do sensor e devolve o jogador à introdução. Enquanto a mesma tarefa
+     continua aberta, preservamos o iframe já iniciado. */
+  var tipoSensor=(STATE.tela==="constelacao"||STATE.tela==="inclinacao")?STATE.tela:"";
+  var frameSensor=tipoSensor&&app.querySelector('iframe.tarefa-frame[data-tarefa="'+tipoSensor+'"]');
+  var sensorConcluido=tipoSensor&&(STATE.v5.tarefas||[]).some(function(t){
+    return t.id===((STATE.eu&&STATE.eu.id)+'_'+tipoSensor)&&tarefaConcluida(t);
+  });
+  if(!forcar&&frameSensor&&!sensorConcluido){
+    agendarAutomacoes();
+    return;
+  }
   var h="";
   switch(STATE.tela){
     case "inicio":      h=telaInicio(); break;
@@ -1690,7 +1703,7 @@ function telaTarefaSensor(tipo){
   var cfg=(CASO.tarefas&&CASO.tarefas[tipo])||{};
   var concluida=(STATE.v5.tarefas||[]).some(function(t){return t.id===((STATE.eu&&STATE.eu.id)+'_'+tipo)&&tarefaConcluida(t);});
   if(concluida) return '<span class="eyebrow">'+esc(cfg.titulo||tipo)+'</span><h2>Fragmento encontrado.</h2><p class="lead">A pista foi adicionada ao seu Arquivo. Aguarde a pr&oacute;xima rodada.</p>';
-  return '<span class="eyebrow">Rodada sensorial</span><h2>'+esc(cfg.titulo||tipo)+'</h2><p class="lead">Mantenha a tela voltada para voc&ecirc; e conclua a tarefa no quadro abaixo.</p><iframe class="tarefa-frame" src="'+esc(cfg.arquivo||'')+'" allow="accelerometer; gyroscope; magnetometer" title="'+esc(cfg.titulo||tipo)+'"></iframe><p class="muted" style="text-align:center">Se o sensor n&atilde;o responder, aguarde o fim do prazo. A partida continuar&aacute; automaticamente.</p>';
+  return '<span class="eyebrow">Rodada sensorial</span><h2>'+esc(cfg.titulo||tipo)+'</h2><p class="lead">Mantenha a tela voltada para voc&ecirc; e conclua a tarefa no quadro abaixo.</p><iframe class="tarefa-frame" data-tarefa="'+esc(tipo)+'" src="'+esc(cfg.arquivo||'')+'" allow="accelerometer; gyroscope; magnetometer" title="'+esc(cfg.titulo||tipo)+'"></iframe><p class="muted" style="text-align:center">Se o sensor n&atilde;o responder, aguarde o fim do prazo. A partida continuar&aacute; automaticamente.</p>';
 }
 
 function meuJogador(){
