@@ -1108,6 +1108,7 @@
 
 <div id="abertura-participante" class="hidden" aria-hidden="true">
   <video id="video-abertura-participante" playsinline webkit-playsinline preload="auto"
+         controls controlslist="nodownload noplaybackrate"
          poster="img/capa-vertical.jpg"></video>
   <div class="abertura-participante-portao">
     <div class="abertura-participante-intro">
@@ -1940,9 +1941,12 @@ function abrirAberturaParticipante(aoConcluir){
     assistir.textContent="Assistir à abertura";
   }
   function erroAoTocar(){
-    caixa.classList.remove("tocando");
+    /* Se o Safari recusar o play programático, revela o controle nativo:
+       um segundo toque diretamente no vídeo continua sendo possível. */
+    caixa.classList.add("tocando");
+    video.controls=true;
     prontoParaTentar();
-    avisa("Não foi possível iniciar o vídeo. Toque novamente ou use Pular abertura.");
+    avisa("Toque no botão de reprodução exibido no centro do vídeo.");
   }
   function tocar(){
     /* No Safari móvel, pedir tela cheia antes de play() pode consumir o
@@ -1973,7 +1977,7 @@ function abrirAberturaParticipante(aoConcluir){
   try{vertical=window.matchMedia("(orientation: portrait)").matches;}catch(e){
     vertical=window.innerHeight>window.innerWidth;
   }
-  video.src=vertical?"img/abertura-vertical.mp4?v=2":"img/abertura.mp4";
+  video.src=vertical?"img/abertura-vertical.mp4?v=3":"img/abertura.mp4";
   video.load();
   video.onended=concluir;
   video.onerror=erroAoTocar;
