@@ -378,10 +378,50 @@
   body.resultado-podio .revelacao-final{width:100%;max-width:96vw}
   body.resultado-podio .podio-layout.telao{grid-template-columns:minmax(0,1fr) minmax(220px,280px);gap:14px;margin-top:0}
   body.resultado-podio .podio-layout.telao .podio-jogador{padding:8px 6px}
+  body.resultado-podio .podio-layout{animation:podioEntra 1.2s cubic-bezier(.16,1,.3,1) both}
+  .apuracao-wrap{width:100%;max-width:1500px;margin:0 auto}
+  .apuracao-tema{min-height:72px;display:flex;align-items:center;justify-content:center;
+    margin:0 auto 16px;padding:13px 18px;border:1px solid rgba(232,164,76,.72);border-radius:8px;
+    background:linear-gradient(135deg,rgba(97,59,17,.96),rgba(34,25,16,.97));
+    box-shadow:0 12px 36px rgba(0,0,0,.42),0 0 30px rgba(232,164,76,.13);
+    color:#ffd48f;font:800 clamp(18px,3vw,35px)/1.05 var(--serif);letter-spacing:.06em;text-align:center;text-transform:uppercase}
+  .apuracao-tabela{width:100%;border-collapse:separate;border-spacing:0 7px;table-layout:fixed}
+  .apuracao-tabela th{padding:9px 4px;color:var(--nevoa);font:800 clamp(8px,1.15vw,13px)/1.05 var(--sans);
+    letter-spacing:.04em;text-transform:uppercase;white-space:normal}
+  .apuracao-tabela th.ap-jogador{width:22%;text-align:left;padding-left:12px}.apuracao-tabela th.ap-pos{width:7%}
+  .apuracao-tabela td{height:52px;padding:7px 4px;background:rgba(10,16,24,.94);border-top:1px solid rgba(143,163,184,.18);
+    border-bottom:1px solid rgba(143,163,184,.18);text-align:center;font:700 clamp(11px,1.45vw,18px) var(--sans);font-variant-numeric:tabular-nums}
+  .apuracao-tabela td:first-child{border-left:1px solid rgba(143,163,184,.18);border-radius:7px 0 0 7px}
+  .apuracao-tabela td:last-child{border-right:1px solid rgba(143,163,184,.18);border-radius:0 7px 7px 0}
+  .apuracao-tabela .ap-nome{text-align:left;padding-left:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fff}
+  .apuracao-tabela .ap-posicao{color:var(--ambar);font-weight:900}
+  .apuracao-coluna{display:none}.apuracao-coluna.visivel{display:table-cell;animation:colunaEntra .55s cubic-bezier(.16,1,.3,1) both}
+  .apuracao-coluna.ativa{color:#ffe3a8;background:rgba(232,164,76,.13);border-color:rgba(232,164,76,.42)}
+  th.apuracao-coluna.ativa{background:rgba(232,164,76,.18);border:1px solid rgba(232,164,76,.52);border-radius:6px}
+  .apuracao-tabela tbody tr{transition:transform .78s cubic-bezier(.2,.8,.2,1)}
+  .apuracao-wrap.saindo{animation:apuracaoSai .8s ease forwards}
+  @keyframes colunaEntra{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:none}}
+  @keyframes apuracaoSai{to{opacity:0;transform:scale(.975);filter:blur(5px)}}
+  @keyframes podioEntra{from{opacity:0;transform:scale(.965);filter:blur(8px)}to{opacity:1;transform:none;filter:none}}
+  .resultado-acoes-jogador{display:grid;grid-template-columns:1fr 1fr;gap:9px;width:min(100%,560px);margin:16px auto 0}
+  .resultado-acoes-jogador .btn{margin:0;padding:13px 9px;font-size:11px}
+  .resultado-detalhe{width:min(100%,680px);margin:0 auto}.resultado-detalhe h2{text-align:center}
+  .resultado-pontos-grade{display:grid;grid-template-columns:1fr auto;gap:0;margin:18px 0;border:1px solid var(--linha);border-radius:8px;overflow:hidden}
+  .resultado-pontos-grade span,.resultado-pontos-grade b{padding:12px 14px;border-bottom:1px solid var(--linha)}
+  .resultado-pontos-grade b{text-align:right;color:var(--ambar)}
+  .resultado-pontos-grade span:nth-last-child(-n+2),.resultado-pontos-grade b:nth-last-child(-n+2){border-bottom:0}
+  .classificacao-completa{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .classificacao-completa .apuracao-tabela{min-width:350px}
   .classificacao-restante{border:1px solid var(--linha);border-radius:9px;background:rgba(12,18,26,.94);padding:12px}.classificacao-restante h3{font-size:17px;margin:2px 0 10px;color:var(--ambar)}
   .classificacao-item{display:grid;grid-template-columns:30px 34px minmax(0,1fr) auto;align-items:center;gap:7px;padding:9px 2px;border-bottom:1px solid var(--linha)}.classificacao-item:last-child{border-bottom:0}.classificacao-item .ordem{color:var(--ambar);font-weight:700}.classificacao-item .avatar{font-size:22px}.classificacao-item .nome{font:700 13px var(--sans);line-height:1.1}.classificacao-item .papel{display:block;color:var(--dim);font:600 11px var(--serif);margin-top:2px}.classificacao-item .pontos{font-weight:700;color:var(--frio);white-space:nowrap}
   .podio-layout.celular .classificacao-restante{width:min(100%,560px);margin:14px auto 0}
   @media(max-width:760px){.podio-layout.telao{grid-template-columns:1fr}.podio-layout.telao .classificacao-restante{margin-top:0}}
+  @media(max-width:560px){
+    .apuracao-tema{min-height:60px;font-size:clamp(16px,5vw,23px);margin-bottom:9px;padding:10px 8px}
+    .apuracao-tabela{border-spacing:0 5px}.apuracao-tabela th.ap-pos{width:8%}.apuracao-tabela th.ap-jogador{width:24%;padding-left:5px}
+    .apuracao-tabela th{font-size:7px;padding:7px 1px;letter-spacing:0}.apuracao-tabela td{height:43px;font-size:10px;padding:5px 1px}
+    .apuracao-tabela .ap-nome{padding-left:5px;font-size:9px}.resultado-acoes-jogador{grid-template-columns:1fr}
+  }
   .menu-mestre-fundo{position:fixed;inset:0;z-index:43;background:rgba(2,5,9,.94);
     padding:max(18px,env(safe-area-inset-top)) 16px max(82px,env(safe-area-inset-bottom));overflow-y:auto}
   .menu-mestre-card{max-width:600px;margin:auto}
@@ -1295,11 +1335,13 @@ var STATE = {
   jaVotei:false,
   modoMesa:"com-telao",
   menuMestreAberto:false,
-  casoAberto:false
+  casoAberto:false,
+  resultadoVista:"podio"
 };
 var _unsubJog=null, _unsubMesa=null, _unsubVotos=null, _unsubPub=null, _unsubV5=[], _timerContagem=null;
 var _autoFasePendente=null, _autoTimer=null, _autoTimerChave="";
 var _acaoProcessando=false, _liberandoFragmentos=false;
+var _apuracaoRAF=0, _apuracaoChave="", _apuracaoOrdemEtapa=-1;
 function assinarV5(FB,codigo){
   _unsubV5.forEach(function(f){try{f();}catch(e){}}); _unsubV5=[];
   var mestre=souMestreDaMesa();
@@ -1560,11 +1602,14 @@ function controlesMestreMovel(){
     statusOuAcao(STATE.v5.deducoes.length,js.length,"Dedu&ccedil;&atilde;o final","Calcular resultado","finalizarPartida");
   }else if(fase==="resultado"){
     var etapa=etapaRevelacao();
-    acaoNecessaria=true;
+    acaoNecessaria=etapa<4;
     if(etapa<4) botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();avancarRevelacao()">'+esc(rotuloProximaRevelacao(etapa))+'</button>';
     else {
-      autoInfo='<div class="card"><b>Revela&ccedil;&atilde;o conclu&iacute;da</b><p class="muted">O placar final est&aacute; vis&iacute;vel. Voc&ecirc; pode encerrar ou abrir uma nova sala.</p></div>';
-      botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();encerrarENovaMesa()">Abrir nova sala</button>';
+      autoInfo='<div class="card"><b>Resultado final</b><p class="muted">O p&oacute;dio permanecer&aacute; vis&iacute;vel at&eacute; voc&ecirc; encerrar a sala ou abrir uma nova.</p></div>';
+      botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();repetirApuracao()">Repetir apura&ccedil;&atilde;o</button>'+
+        '<button class="btn btn-frio" onclick="alternarMenuMestre();mostrarResultado(\'tabela\')">Ver tabela completa</button>'+
+        '<button class="btn btn-ambar" onclick="alternarMenuMestre();encerrarENovaMesa()">Abrir nova sala</button>'+
+        '<button class="btn btn-perigo" onclick="alternarMenuMestre();encerrarMesa()">Encerrar sala</button>';
     }
   }
   var conectados=js.map(function(j){var status=fase==="sala"?(j.pronto?'pronto':'aguardando prontid&atilde;o'):'conectado';return '<div class="conectado-item"><span>'+esc(j.nome)+'</span><span class="muted">'+status+'</span></div>';}).join('')||'<p class="muted">Nenhum participante conectado.</p>';
@@ -1574,7 +1619,7 @@ function controlesMestreMovel(){
   var abrirStatus=!abrirAcao&&!abrirParticipantes&&!!autoInfo;
   var secaoAcao=botoes?'<details class="sala-acordeao mestre-acao '+(acaoNecessaria?'acao-necessaria':'')+'" '+(abrirAcao?'open':'')+' ontoggle="exclusivoSala(this)"><summary>'+(acaoNecessaria?'A&ccedil;&atilde;o do mestre necess&aacute;ria':'Controles do mestre')+'</summary><div class="sala-acordeao-conteudo"><div class="menu-mestre-grade">'+botoes+'</div></div></details>':'';
   var secaoStatus=autoInfo?'<details class="sala-acordeao" '+(abrirStatus?'open':'')+' ontoggle="exclusivoSala(this)"><summary>Acompanhamento da rodada</summary><div class="sala-acordeao-conteudo">'+autoInfo+'</div></details>':'';
-  var secaoPausa='<details class="sala-acordeao controle-pausa" '+(pausada?'open':'')+' ontoggle="exclusivoSala(this)"><summary>Controle da partida</summary><div class="sala-acordeao-conteudo">'+
+  var secaoPausa=fase==="resultado"?'':'<details class="sala-acordeao controle-pausa" '+(pausada?'open':'')+' ontoggle="exclusivoSala(this)"><summary>Controle da partida</summary><div class="sala-acordeao-conteudo">'+
     (pausada?'<button class="btn btn-frio" onclick="retomarPartida()">&#9654; Retomar partida</button>':'<button class="btn btn-frio" onclick="pausarPartida()">&#10074;&#10074; Pausar partida</button>')+
     '</div></details>';
   var painel=STATE.menuMestreAberto?'<div class="menu-mestre-fundo" onclick="if(event.target===this)alternarMenuMestre()"><div class="menu-mestre-card">'+
@@ -1788,11 +1833,12 @@ function render(forcar){
     if(modoAtual()==="sem-telao") h+=muralColetivoMovel();
   }
   if(STATE.eu&&!encenacaoPassiva) h+=painelCasoMovel();
-  if(STATE.eu && souMestreDaMesa() && modoAtual()==="sem-telao") h+=controlesMestreMovel();
+  if(souMestreDaMesa()&&((STATE.eu&&modoAtual()==="sem-telao")||(STATE.tela==="painel"&&faseAgora==="resultado"&&etapaRevelacao()>=4))) h+=controlesMestreMovel();
   if(souMestreDaMesa()) h+=modalOrientacaoMestre();
   if(STATE.eu) h+=modalOrientacaoParticipante();
   h+=painelPartidaPausada();
   app.innerHTML=h;
+  iniciarApuracaoSeNecessario();
   agendarAutomacoes();
 }
 
@@ -1965,7 +2011,7 @@ function telaPainel(){
   if(fase==="resultado"){
     var etapa=etapaRevelacao(), controle=etapa<4
       ? '<div class="controle-revelacao"><button class="btn btn-ambar" onclick="avancarRevelacao()">'+esc(rotuloProximaRevelacao(etapa))+'</button></div>'
-      : '<div class="controle-revelacao"><button class="btn btn-ambar" onclick="encerrarENovaMesa()">Abrir nova sala</button><button class="btn btn-perigo" onclick="encerrarMesa()">Encerrar sala</button></div>';
+      : '';
     return cabecalhoRodada(fase)+'<div class="revelacao-final">'+telaResultado()+controle+'</div>';
   }
   var grade="";
@@ -2252,6 +2298,87 @@ function rotuloDeducao(grupo,id){
   var lista=((CASO.deducao||{})[grupo]||[]), item=lista.find(function(x){return x.id===id;});
   return item?(item.rotulo||item.nome||id):id;
 }
+var CATEGORIAS_APURACAO=[
+  {id:"performance",curto:"Encenação",titulo:"Encenação"},
+  {id:"tempo",curto:"J × J",titulo:"Jogador contra Jogador"},
+  {id:"cooperacao",curto:"J + J",titulo:"Jogador com Jogador — Fragmentos"},
+  {id:"economia",curto:"Mercado",titulo:"Mercado de pistas"},
+  {id:"qualidade",curto:"Caso",titulo:"Jogadores contra o caso"}
+];
+function pontosCategoria(j,categoria){return Math.max(0,Number(((j&&j.pontuacao)||{})[categoria.id])||0);}
+function inicioApuracao(){return Math.max(0,Number(STATE.doc&&STATE.doc.apuracaoIniciadaMs)||0);}
+function apuracaoEmCurso(){
+  return etapaRevelacao()>=4&&STATE.resultadoVista==="podio"&&inicioApuracao()>0&&Date.now()<inicioApuracao()+22000;
+}
+function somaAte(j,indice){
+  var soma=0;for(var i=0;i<=indice&&i<CATEGORIAS_APURACAO.length;i++)soma+=pontosCategoria(j,CATEGORIAS_APURACAO[i]);
+  return soma;
+}
+function ordemApuracao(indice){
+  return STATE.jogadores.slice().sort(function(a,b){return somaAte(b,indice)-somaAte(a,indice)||String(a.nome).localeCompare(String(b.nome));});
+}
+function tabelaApuracaoHtml(completa){
+  var jogadores=completa?STATE.jogadores.slice().sort(function(a,b){return (b.total||0)-(a.total||0)||String(a.nome).localeCompare(String(b.nome));}):ordemApuracao(-1);
+  var cabecas=CATEGORIAS_APURACAO.map(function(c){return '<th class="apuracao-coluna '+(completa?'visivel ':'')+'ap-cat-'+c.id+'">'+esc(c.curto)+'</th>';}).join('');
+  var linhas=jogadores.map(function(j,i){
+    var colunas=CATEGORIAS_APURACAO.map(function(c){return '<td class="apuracao-coluna '+(completa?'visivel ':'')+'ap-cat-'+c.id+'"><span data-pontos="'+c.id+'">'+(completa?pontosCategoria(j,c):0)+'</span></td>';}).join('');
+    return '<tr data-jogador="'+esc(j.id)+'"><td class="ap-posicao">'+(i+1)+'º</td><td class="ap-nome">'+esc(j.nome)+'</td>'+colunas+(completa?'<td class="ap-total">'+(j.total||0)+'</td>':'')+'</tr>';
+  }).join('');
+  return '<div class="classificacao-completa"><table class="apuracao-tabela '+(completa?'completa':'animada')+'"><thead><tr><th class="ap-pos">Pos.</th><th class="ap-jogador">Jogador</th>'+cabecas+(completa?'<th>Total</th>':'')+'</tr></thead><tbody>'+linhas+'</tbody></table></div>';
+}
+function telaApuracao(){
+  return '<div id="apuracao-placar" class="apuracao-wrap" data-inicio="'+inicioApuracao()+'"><div class="apuracao-tema">Encenação</div>'+tabelaApuracaoHtml(false)+'</div>';
+}
+function mostrarResultado(vista){
+  STATE.resultadoVista=vista||"podio";
+  if(_apuracaoRAF)cancelAnimationFrame(_apuracaoRAF);_apuracaoRAF=0;
+  render(true);
+}
+function telaMinhaPontuacao(){
+  var j=meuJogador();if(!j)return telaClassificacaoCompleta();
+  var itens=CATEGORIAS_APURACAO.map(function(c){return '<span>'+esc(c.titulo)+'</span><b>'+pontosCategoria(j,c)+' pts</b>';}).join('');
+  return '<div class="resultado-detalhe"><span class="eyebrow">Resultado individual</span><h2>Minha pontuação</h2><div class="resultado-pontos-grade">'+itens+'<span>Total final</span><b>'+(j.total||0)+' pts</b></div><button class="btn btn-ambar" onclick="mostrarResultado(\'podio\')">Voltar ao pódio</button></div>';
+}
+function telaClassificacaoCompleta(){
+  return '<div class="resultado-detalhe"><span class="eyebrow">Resultado final</span><h2>Classificação completa</h2>'+tabelaApuracaoHtml(true)+'<button class="btn btn-ambar" onclick="mostrarResultado(\'podio\')">Voltar ao pódio</button></div>';
+}
+function iniciarApuracaoSeNecessario(){
+  var raiz=document.getElementById("apuracao-placar");
+  if(!raiz){if(_apuracaoRAF)cancelAnimationFrame(_apuracaoRAF);_apuracaoRAF=0;return;}
+  var inicio=Number(raiz.getAttribute("data-inicio"))||Date.now(), corpo=raiz.querySelector("tbody"), tema=raiz.querySelector(".apuracao-tema");
+  var chave=inicio+":"+Number((STATE.doc&&STATE.doc.apuracaoRepeticao)||0);
+  if(_apuracaoChave!==chave){_apuracaoChave=chave;_apuracaoOrdemEtapa=-2;}
+  function reorganizar(indice){
+    if(indice===_apuracaoOrdemEtapa)return;
+    _apuracaoOrdemEtapa=indice;
+    var antes={};Array.from(corpo.children).forEach(function(tr){antes[tr.dataset.jogador]=tr.getBoundingClientRect().top;});
+    var ordem=ordemApuracao(indice);
+    ordem.forEach(function(j){var tr=corpo.querySelector('tr[data-jogador="'+j.id+'"]');if(tr)corpo.appendChild(tr);});
+    Array.from(corpo.children).forEach(function(tr,i){tr.querySelector(".ap-posicao").textContent=(i+1)+"º";var dy=(antes[tr.dataset.jogador]||tr.getBoundingClientRect().top)-tr.getBoundingClientRect().top;if(dy){tr.style.transition="none";tr.style.transform="translateY("+dy+"px)";requestAnimationFrame(function(){tr.style.transition="";tr.style.transform="";});}});
+  }
+  function quadro(){
+    if(!document.body.contains(raiz)){_apuracaoRAF=0;return;}
+    var decorrido=Math.max(0,Date.now()-inicio);
+    if(decorrido>=22000){_apuracaoRAF=0;STATE.resultadoVista="podio";render(true);return;}
+    var etapa=decorrido<16000?Math.min(3,Math.floor(decorrido/4000)):4;
+    var local=etapa<4?decorrido-etapa*4000:decorrido-16000;
+    var duracaoContagem=etapa<4?1400:1600, progresso=Math.max(0,Math.min(1,(local-600)/duracaoContagem));
+    tema.textContent=CATEGORIAS_APURACAO[etapa].titulo;
+    CATEGORIAS_APURACAO.forEach(function(c,i){
+      document.querySelectorAll("#apuracao-placar .ap-cat-"+c.id).forEach(function(el){el.classList.toggle("visivel",i<=etapa);el.classList.toggle("ativa",i===etapa);});
+    });
+    Array.from(corpo.children).forEach(function(tr){
+      var j=STATE.jogadores.find(function(x){return String(x.id)===String(tr.dataset.jogador);});
+      CATEGORIAS_APURACAO.forEach(function(c,i){var span=tr.querySelector('[data-pontos="'+c.id+'"]');if(span)span.textContent=i<etapa?pontosCategoria(j,c):(i===etapa?Math.round(pontosCategoria(j,c)*progresso):0);});
+    });
+    var ordemEtapa=etapa===4?3:(local>=2000?etapa:etapa-1);
+    reorganizar(ordemEtapa);
+    raiz.classList.toggle("saindo",decorrido>=21200);
+    _apuracaoRAF=requestAnimationFrame(quadro);
+  }
+  if(_apuracaoRAF)cancelAnimationFrame(_apuracaoRAF);
+  _apuracaoRAF=requestAnimationFrame(quadro);
+}
 function telaResultado(){
   var etapa=etapaRevelacao(), rev=CASO.revelacaoFinal||{}, sol=CASO.solucao||{};
   if(etapa===0){
@@ -2276,12 +2403,16 @@ function telaResultado(){
     var confiancas=ordenados(STATE.jogadores).map(function(j){var p=personagemPor(j.personagem), e=j.economiaDetalhe||{}, c=Number(e.confiabilidade)||0;return '<div class="jog"><div class="av">'+(p?p.av:"👤")+'</div><div class="nm">'+esc(nomePersFragmento(j,STATE.jogadores))+'</div><div class="confianca-valor '+(c<0?'neg':'')+'">'+(c>0?'+':'')+c+'</div><div class="est">Confiabilidade</div></div>';}).join('');
     return '<span class="eyebrow">Validação ex post</span><h2>Preço pedido × qualidade real.</h2><p class="lead">Pistas boas oferecidas por preço justo fortaleceram a Confiabilidade. Pistas fracas vendidas caro reduziram o resultado e, quando negativo, bloquearam a Qualidade do Gasto.</p><div class="grade">'+confiancas+'</div><p class="muted" style="text-align:center">O resultado dos votos cegos continua oculto.</p>';
   }
+  if(STATE.resultadoVista==="minha")return telaMinhaPontuacao();
+  if(STATE.resultadoVista==="tabela")return telaClassificacaoCompleta();
+  if(apuracaoEmCurso())return telaApuracao();
   var js=ordenados(STATE.jogadores).slice().sort(function(a,b){ return (b.total||0)-(a.total||0); });
   function caixaPodio(j,pos){if(!j)return '';var p=personagemPor(j.personagem);return '<div class="podio-jogador pos-'+pos+'"><div class="colocacao">'+pos+'º lugar</div><div class="av">'+(p?p.av:"👤")+'</div><div class="jogador-nome">'+esc(j.nome)+'</div><div class="personagem">'+esc(nomePers(p,j.forma))+'</div><div class="pt">'+(j.total||0)+' pts</div></div>';}
   var restantes=js.slice(3).map(function(j,i){var p=personagemPor(j.personagem);return '<div class="classificacao-item"><span class="ordem">'+(i+4)+'º</span><span class="avatar">'+(p?p.av:"👤")+'</span><span class="nome">'+esc(j.nome)+'<span class="papel">'+esc(nomePers(p,j.forma))+'</span></span><span class="pontos">'+(j.total||0)+' pts</span></div>';}).join('');
   var lista=restantes?'<aside class="classificacao-restante"><h3>Demais colocações</h3>'+restantes+'</aside>':'';
   var modo=STATE.tela==="painel"?'telao':'celular';
-  return '<span class="eyebrow">Placar final</span><div class="podio-layout '+modo+'"><div class="podio-cena">'+caixaPodio(js[0],1)+caixaPodio(js[1],2)+caixaPodio(js[2],3)+'</div>'+lista+'</div><p class="muted" style="text-align:center;margin-top:16px">Tempo 32% &middot; Qualidade 13% &middot; Cooperação 30% &middot; Economia 20% &middot; Performance 5%</p>';
+  var acoes=STATE.eu?'<div class="resultado-acoes-jogador"><button class="btn btn-frio" onclick="mostrarResultado(\'minha\')">Minha pontuação</button><button class="btn btn-fantasma" onclick="mostrarResultado(\'tabela\')">Classificação completa</button></div>':'';
+  return '<span class="eyebrow">Placar final</span><div class="podio-layout '+modo+'"><div class="podio-cena">'+caixaPodio(js[0],1)+caixaPodio(js[1],2)+caixaPodio(js[2],3)+'</div>'+lista+'</div>'+acoes;
 }
 
 function telaTarefaSensor(tipo){
@@ -2480,7 +2611,9 @@ function assinarSala(codigo,comoJogador){
       STATE.jogadores=l; processarAcoesMestre(); comoJogador?sincronizarJogador():render();
     });
     _unsubMesa=FB.ouvirMesa(codigo,function(d){
+      var repeticaoAntes=Number(STATE.doc&&STATE.doc.apuracaoRepeticao)||0;
       STATE.doc=d||{ativa:false,fase:"sala",vez:0};
+      if(d&&d.fase==="resultado"&&Number(d.apuracaoRepeticao||0)!==repeticaoAntes)STATE.resultadoVista="podio";
       processarAcoesMestre();
       if(comoJogador) sincronizarJogador();
       else if(!d||d.ativa===false){ limparReconexao(); STATE.tela="inicio"; STATE.mesa=null; render(); }
@@ -2951,7 +3084,19 @@ async function enviarDeducao(){
 async function avancarRevelacao(){
   if(!souMestreDaMesa()||!STATE.doc||STATE.doc.fase!=="resultado") return;
   var atual=etapaRevelacao(); if(atual>=4) return;
-  var FB=await esperarFB(); await FB.atualizarMesa(STATE.mesa.codigo,{revelacaoEtapa:atual+1});
+  var dados={revelacaoEtapa:atual+1};
+  if(atual+1===4){
+    dados.apuracaoIniciadaMs=Date.now();
+    dados.apuracaoRepeticao=Number(STATE.doc.apuracaoRepeticao||0)+1;
+    STATE.resultadoVista="podio";
+  }
+  var FB=await esperarFB(); await FB.atualizarMesa(STATE.mesa.codigo,dados);
+}
+async function repetirApuracao(){
+  if(!souMestreDaMesa()||!STATE.doc||STATE.doc.fase!=="resultado"||etapaRevelacao()<4)return;
+  STATE.resultadoVista="podio";
+  var FB=await esperarFB();
+  await FB.atualizarMesa(STATE.mesa.codigo,{apuracaoIniciadaMs:Date.now(),apuracaoRepeticao:Number(STATE.doc.apuracaoRepeticao||0)+1});
 }
 async function finalizarPartida(){
   var sol=CASO.solucao||{}, deducoes=STATE.v5.deducoes.map(function(d){
