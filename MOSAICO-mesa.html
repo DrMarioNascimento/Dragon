@@ -1425,8 +1425,13 @@ function controlesMestreMovel(){
   else if(fase==="constelacao") autoInfo='<div class="card"><b>O Mapa do Escuro</b><p class="muted">'+esc(resumoSensores('constelacao',js.length))+'. A rodada avan&ccedil;ar&aacute; automaticamente.</p></div>';
   else if(fase==="inclinacao") autoInfo='<div class="card"><b>A Janela do Norte</b><p class="muted">'+esc(resumoSensores('inclinacao',js.length))+'. A rodada avan&ccedil;ar&aacute; automaticamente.</p></div>';
   else if(fase==="mosaico"){
-    acaoNecessaria=true;
-    botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();abrirVotoCooperacao()">Abrir voto interno</button>';
+    var confirmadosFrag=fragmentosConfirmados();
+    if(!(STATE.doc&&STATE.doc.fragmentosLiberados)){
+      autoInfo='<div class="card"><b>Forma&ccedil;&atilde;o dos Fragmentos</b><p class="muted">'+confirmadosFrag+' de '+js.length+' jogadores confirmaram. A tarefa abrir&aacute; automaticamente quando todos confirmarem.</p></div>';
+    }else{
+      acaoNecessaria=true;
+      botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();abrirVotoCooperacao()">Abrir voto interno</button>';
+    }
   }else if(fase==="cooperacao"){
     acaoNecessaria=true;
     botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();abrirMercado()">Abrir Mercado de pistas</button>';
