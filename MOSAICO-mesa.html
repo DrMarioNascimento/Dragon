@@ -801,6 +801,14 @@
   .orientacao-item b{color:var(--frio);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
   .orientacao-item span{color:var(--texto);font:600 13px/1.38 var(--serif)}
   .orientacao-participante .btn{margin-bottom:0}
+  .ritmo-titulo{display:block;text-align:left;margin:18px 0 8px;color:var(--ambar)}
+  .ritmo-op{width:100%;display:grid;gap:4px;text-align:left;padding:13px 14px;margin-bottom:8px;
+    border:1px solid var(--linha);border-radius:6px;background:#080d14;color:var(--texto);cursor:pointer}
+  .ritmo-op b{font:800 12px var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--nevoa)}
+  .ritmo-op span{font:600 14px/1.35 var(--serif);color:var(--dim)}
+  .ritmo-op.on{border-color:rgba(232,164,76,.7);background:rgba(232,164,76,.09);
+    box-shadow:0 0 0 2px rgba(232,164,76,.1)}
+  .ritmo-op.on b{color:var(--ambar)}.ritmo-op.on span{color:var(--texto)}
   .codigo-grande{
     font-size:clamp(44px,13vw,68px);font-weight:600;letter-spacing:.22em;
     color:var(--ambar);margin:14px 0 6px;
@@ -1315,6 +1323,10 @@ function avisoLocal(){
 function modoAtual(){
   return (STATE.doc&&STATE.doc.modo)||(STATE.mesa&&STATE.mesa.modo)||STATE.modoMesa||"com-telao";
 }
+function ritmoAtual(){
+  return (STATE.doc&&STATE.doc.ritmo)||(STATE.mesa&&STATE.mesa.ritmo)||STATE.ritmoMesa||"automatico";
+}
+function ritmoConduzido(){return ritmoAtual()==="conduzido";}
 function nomeRodada(fase){
   var nomes={
     sala:"Preparação da mesa",
@@ -1415,31 +1427,51 @@ function exclusivoSala(el){
 }
 function controlesMestreMovel(){
   var fase=(STATE.doc&&STATE.doc.fase)||"sala", js=ordenados(STATE.jogadores), botoes="", autoInfo="";
-  var acaoNecessaria=false, todos=false;
+  var acaoNecessaria=false, todos=false, conduzido=ritmoConduzido();
+  function statusOuAcao(prontos,total,titulo,rotulo,acao){
+    if(conduzido&&total>0&&prontos>=total){
+      acaoNecessaria=true;
+      botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();'+acao+'()">'+rotulo+'</button>';
+    }else{
+      autoInfo='<div class="card"><b>'+titulo+'</b><p class="muted">'+prontos+' de '+total+' concluíram. '+
+        (conduzido?'A Sala avisará quando for hora de avançar.':'A próxima rodada abrirá automaticamente.')+'</p></div>';
+    }
+  }
   if(fase==="sala"){
     todos=js.length>=2&&contaProntos()===js.length;
     acaoNecessaria=todos;
     botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();iniciarEncenacao()" '+(todos?'':'disabled')+'>Come&ccedil;ar</button>';
-  }else if(fase==="encenacao") botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();pularVez()">Pular a apresenta&ccedil;&atilde;o atual</button>';
-  else if(fase==="votacao") autoInfo='<div class="card"><b>Avan&ccedil;o autom&aacute;tico</b><p class="muted">'+STATE.votos.length+' de '+js.length+' votos recebidos. A pr&oacute;xima rodada abrir&aacute; automaticamente.</p></div>';
-  else if(fase==="constelacao") autoInfo='<div class="card"><b>O Mapa do Escuro</b><p class="muted">'+esc(resumoSensores('constelacao',js.length))+'. A rodada avan&ccedil;ar&aacute; automaticamente.</p></div>';
-  else if(fase==="inclinacao") autoInfo='<div class="card"><b>A Janela do Norte</b><p class="muted">'+esc(resumoSensores('inclinacao',js.length))+'. A rodada avan&ccedil;ar&aacute; automaticamente.</p></div>';
-  else if(fase==="mosaico"){
+  }else if(fase==="encenacao"){
+    botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();pularVez()">Pular a apresenta&ccedil;&atilde;o atual</button>';
+  }else if(fase==="votacao"){
+    statusOuAcao(STATE.votos.length,js.length,"Vota&ccedil;&atilde;o","Abrir O Mapa do Escuro","abrirConstelacao");
+  }else if(fase==="constelacao"){
+    statusOuAcao(tarefasConcluidas('constelacao').length,js.length,"O Mapa do Escuro","Abrir A Janela do Norte","abrirInclinacao");
+  }else if(fase==="inclinacao"){
+    statusOuAcao(tarefasConcluidas('inclinacao').length,js.length,"A Janela do Norte","Formar os Fragmentos","prepararMosaico");
+  }else if(fase==="mosaico"){
     var confirmadosFrag=fragmentosConfirmados();
     if(!(STATE.doc&&STATE.doc.fragmentosLiberados)){
-      autoInfo='<div class="card"><b>Forma&ccedil;&atilde;o dos Fragmentos</b><p class="muted">'+confirmadosFrag+' de '+js.length+' jogadores confirmaram. A tarefa abrir&aacute; automaticamente quando todos confirmarem.</p></div>';
+      if(conduzido&&js.length>0&&confirmadosFrag>=js.length){
+        acaoNecessaria=true;
+        botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();liberarTarefaFragmentos()">Liberar tarefa dos Fragmentos</button>';
+      }else{
+        autoInfo='<div class="card"><b>Forma&ccedil;&atilde;o dos Fragmentos</b><p class="muted">'+confirmadosFrag+' de '+js.length+' jogadores confirmaram. '+
+          (conduzido?'A Sala avisará quando for hora de liberar.':'A tarefa abrir&aacute; automaticamente quando todos confirmarem.')+'</p></div>';
+      }
     }else{
-      acaoNecessaria=true;
-      botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();abrirVotoCooperacao()">Abrir voto interno</button>';
+      statusOuAcao(fragmentosComTarefaConcluida(),totalFragmentos(),"Mosaico coletivo","Abrir voto interno","abrirVotoCooperacao");
     }
   }else if(fase==="cooperacao"){
-    acaoNecessaria=true;
-    botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();abrirMercado()">Abrir Mercado de pistas</button>';
+    statusOuAcao(jogadoresComCooperacaoConcluida(),js.length,"Voto interno","Abrir Mercado de pistas","abrirMercado");
   }else if(fase==="mercado"){
-    acaoNecessaria=true;
-    botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();abrirDeducao()">Abrir dedu&ccedil;&atilde;o</button>';
-  }else if(fase==="deducao") autoInfo='<div class="card"><b>C&aacute;lculo autom&aacute;tico</b><p class="muted">'+STATE.v5.deducoes.length+' de '+js.length+' respostas recebidas. O placar ser&aacute; calculado automaticamente.</p></div>';
-  else if(fase==="resultado"){
+    if(conduzido){
+      acaoNecessaria=true;
+      botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();abrirDeducao()">Encerrar Mercado de pistas</button>';
+    }else autoInfo='<div class="card"><b>Mercado de pistas</b><p class="muted">A dedu&ccedil;&atilde;o abrir&aacute; automaticamente ao final do tempo do Mercado.</p></div>';
+  }else if(fase==="deducao"){
+    statusOuAcao(STATE.v5.deducoes.length,js.length,"Dedu&ccedil;&atilde;o final","Calcular resultado","finalizarPartida");
+  }else if(fase==="resultado"){
     var etapa=etapaRevelacao();
     acaoNecessaria=true;
     if(etapa<4) botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();avancarRevelacao()">'+esc(rotuloProximaRevelacao(etapa))+'</button>';
@@ -1456,7 +1488,7 @@ function controlesMestreMovel(){
   var secaoAcao=botoes?'<details class="sala-acordeao mestre-acao '+(acaoNecessaria?'acao-necessaria':'')+'" '+(abrirAcao?'open':'')+' ontoggle="exclusivoSala(this)"><summary>'+(acaoNecessaria?'A&ccedil;&atilde;o do mestre necess&aacute;ria':'Controles do mestre')+'</summary><div class="sala-acordeao-conteudo"><div class="menu-mestre-grade">'+botoes+'</div></div></details>':'';
   var secaoStatus=autoInfo?'<details class="sala-acordeao" '+(abrirStatus?'open':'')+' ontoggle="exclusivoSala(this)"><summary>Acompanhamento da rodada</summary><div class="sala-acordeao-conteudo">'+autoInfo+'</div></details>':'';
   var painel=STATE.menuMestreAberto?'<div class="menu-mestre-fundo" onclick="if(event.target===this)alternarMenuMestre()"><div class="menu-mestre-card">'+
-    '<div class="menu-mestre-topo"><div><span class="eyebrow">Mestre &middot; '+esc(nomeRodada(fase))+'</span><h2>Sala</h2></div><button class="btn btn-sm" onclick="alternarMenuMestre()">Fechar</button></div>'+
+    '<div class="menu-mestre-topo"><div><span class="eyebrow">Mestre &middot; '+esc(nomeRodada(fase))+'</span><h2>Sala</h2><p class="muted">'+(conduzido?'Ritmo conduzido pelo mestre':'Ritmo autom&aacute;tico')+'</p></div><button class="btn btn-sm" onclick="alternarMenuMestre()">Fechar</button></div>'+
     secaoAcao+
     '<details class="sala-acordeao" '+(abrirParticipantes?'open':'')+' ontoggle="exclusivoSala(this)"><summary>Participantes &middot; '+js.length+'</summary><div class="sala-acordeao-conteudo">'+conectados+'</div></details>'+
     secaoStatus+
@@ -1470,21 +1502,23 @@ function dadosAutomacao(){
   if(fase==="votacao") return {fase:fase,recebidos:STATE.votos.length,total:STATE.jogadores.length,inicio:STATE.doc.votacaoAbertaMs||0,limite:(cfg.performance||60)*1000,acao:abrirConstelacao};
   if(fase==="constelacao") return {fase:fase,recebidos:tarefasConcluidas('constelacao').length,total:STATE.jogadores.length,inicio:STATE.doc.constelacaoAbertaMs||0,limite:(cfg.constelacao||180)*1000,acao:abrirInclinacao};
   if(fase==="inclinacao") return {fase:fase,recebidos:tarefasConcluidas('inclinacao').length,total:STATE.jogadores.length,inicio:STATE.doc.inclinacaoAbertaMs||0,limite:(cfg.inclinacao||180)*1000,acao:prepararMosaico};
+  if(fase==="mercado") return {fase:fase,recebidos:0,total:1,inicio:STATE.doc.mercadoAbertoMs||0,limite:(cfg.mercado||480)*1000,acao:abrirDeducao,somentePrazo:true};
   if(fase==="deducao") return {fase:fase,recebidos:STATE.v5.deducoes.length,total:STATE.jogadores.length,inicio:STATE.doc.deducaoAbertaMs||0,limite:(cfg.deducao||300)*1000,acao:finalizarPartida};
   return null;
 }
 async function verificarAutomacoes(){
-  if(!souMestreDaMesa()) return;
+  if(!souMestreDaMesa()||ritmoConduzido()) return;
   var d=dadosAutomacao(), fase=(STATE.doc&&STATE.doc.fase)||"";
   if(_autoFasePendente&&_autoFasePendente!==fase) _autoFasePendente=null;
   if(!d||_autoFasePendente===d.fase||!d.total) return;
   var prazoTerminou=d.inicio&&Date.now()>=d.inicio+d.limite;
-  if(d.recebidos<d.total&&!prazoTerminou) return;
+  if(d.somentePrazo&&!prazoTerminou) return;
+  if(!d.somentePrazo&&d.recebidos<d.total&&!prazoTerminou) return;
   _autoFasePendente=d.fase;
   try{await d.acao();}catch(e){_autoFasePendente=null;console.error("automação da fase",e);}
 }
 async function verificarEncontroFragmentos(){
-  if(_liberandoFragmentos||!souMestreDaMesa()||!STATE.doc||STATE.doc.fase!=="mosaico"||STATE.doc.fragmentosLiberados) return;
+  if(_liberandoFragmentos||!souMestreDaMesa()||ritmoConduzido()||!STATE.doc||STATE.doc.fase!=="mosaico"||STATE.doc.fragmentosLiberados) return;
   var total=STATE.jogadores.length, prontos=fragmentosConfirmados();
   if(!total||prontos<total) return;
   _liberandoFragmentos=true;
@@ -1494,13 +1528,43 @@ async function verificarEncontroFragmentos(){
   }catch(e){console.error("liberar Fragmentos",e);}
   finally{_liberandoFragmentos=false;}
 }
+function totalFragmentos(){
+  return new Set(STATE.jogadores.map(function(j){return j.nucleo;}).filter(Boolean)).size;
+}
+function fragmentosComTarefaConcluida(){
+  return STATE.v5.nucleos.filter(function(n){return n.concluidoEm||n.concluidoMs;}).length;
+}
+function jogadoresComCooperacaoConcluida(){
+  return STATE.jogadores.filter(function(j){
+    var tamanho=STATE.jogadores.filter(function(x){return x.nucleo===j.nucleo;}).length;
+    return tamanho===2||STATE.v5.cooperacao.some(function(v){return v.de===j.id;});
+  }).length;
+}
+async function verificarEtapasColetivas(){
+  if(!souMestreDaMesa()||ritmoConduzido()||_autoFasePendente||!STATE.doc) return;
+  var fase=STATE.doc.fase, pronto=false, acao=null;
+  if(fase==="mosaico"&&STATE.doc.fragmentosLiberados){
+    pronto=totalFragmentos()>0&&fragmentosComTarefaConcluida()>=totalFragmentos();acao=abrirVotoCooperacao;
+  }else if(fase==="cooperacao"){
+    pronto=STATE.jogadores.length>0&&jogadoresComCooperacaoConcluida()>=STATE.jogadores.length;acao=abrirMercado;
+  }
+  if(!pronto||!acao) return;
+  _autoFasePendente=fase;
+  try{await acao();}catch(e){_autoFasePendente=null;console.error("automação coletiva",e);}
+}
+async function liberarTarefaFragmentos(){
+  if(!souMestreDaMesa()||!STATE.doc||STATE.doc.fase!=="mosaico") return;
+  var FB=await esperarFB();
+  await FB.atualizarMesa(STATE.mesa.codigo,{fragmentosLiberados:true,fragmentosLiberadosMs:Date.now()});
+}
 function agendarAutomacoes(){
   if(!souMestreDaMesa()) return;
   verificarEncontroFragmentos();
+  verificarEtapasColetivas();
   var d=dadosAutomacao();
   if(!d){if(_autoTimer)clearTimeout(_autoTimer);_autoTimer=null;_autoTimerChave="";return;}
   verificarAutomacoes();
-  if(!d.inicio||d.recebidos>=d.total) return;
+  if(!d.inicio||(!d.somentePrazo&&d.recebidos>=d.total)||ritmoConduzido()) return;
   var chave=d.fase+":"+d.inicio;
   if(_autoTimerChave===chave) return;
   if(_autoTimer)clearTimeout(_autoTimer);
@@ -1652,6 +1716,9 @@ function modalSenha(){
       '<button class="forma-op'+(STATE.modoMesa==="com-telao"?' on':'')+'" onclick="escolherModoMesa(\'com-telao\')"><b>📺</b><span>Com tel&atilde;o</span></button>'+
       '<button class="forma-op'+(STATE.modoMesa==="sem-telao"?' on':'')+'" onclick="escolherModoMesa(\'sem-telao\')"><b>📱</b><span>Sem tel&atilde;o</span></button>'+
       '<p class="muted" style="margin:10px 0 16px">Com tel&atilde;o: um aparelho fica no painel. Sem tel&atilde;o: quem abre tamb&eacute;m joga e controla pelo celular.</p>'+
+      '<span class="eyebrow ritmo-titulo">Como as rodadas devem avan&ccedil;ar?</span>'+
+      '<button class="ritmo-op'+((STATE.ritmoMesa||"automatico")==="automatico"?' on':'')+'" onclick="escolherRitmoMesa(\'automatico\')"><b>Automaticamente &middot; recomendado</b><span>O jogo avan&ccedil;a quando todos terminam.</span></button>'+
+      '<button class="ritmo-op'+(STATE.ritmoMesa==="conduzido"?' on':'')+'" onclick="escolherRitmoMesa(\'conduzido\')"><b>Com minha libera&ccedil;&atilde;o</b><span>A Sala avisar&aacute; quando for hora de avan&ccedil;ar.</span></button>'+
       (autenticado?'<p class="muted">Mestre reconhecido neste aparelho.</p>':'<input id="senha" class="senha" type="password" inputmode="text" '+
         'autocomplete="off" placeholder="senha" '+
         'onkeydown="if(event.key===\'Enter\') conferirSenha()">')+
@@ -2175,6 +2242,7 @@ function pedirSenha(){
 }
 function fecharSenha(){ STATE.senhaAberta=false; render(); }
 function escolherModoMesa(modo){ STATE.modoMesa=modo; render(); setTimeout(function(){var i=document.getElementById('senha');if(i)i.focus();},50); }
+function escolherRitmoMesa(ritmo){ STATE.ritmoMesa=ritmo==="conduzido"?"conduzido":"automatico"; render(); setTimeout(function(){var i=document.getElementById('senha');if(i)i.focus();},50); }
 async function conferirSenha(){
   var campo=document.getElementById("senha");
   var erro=document.getElementById("senha-erro");
@@ -2324,18 +2392,20 @@ async function criarMesa(modo){
   var anterior=""; try{anterior=localStorage.getItem("mosaico_ultimo_codigo")||"";}catch(e){}
   var codigo=gerarCodigoDiferente(anterior);
   STATE.modoMesa=modo;
-  STATE.mesa={codigo:codigo,link:linkDaSala(codigo),fb:false,modo:modo};
+  var ritmo=STATE.ritmoMesa==="conduzido"?"conduzido":"automatico";
+  STATE.ritmoMesa=ritmo;
+  STATE.mesa={codigo:codigo,link:linkDaSala(codigo),fb:false,modo:modo,ritmo:ritmo};
   try{ sessionStorage.setItem("mosaico_mestre_codigo",codigo); }catch(e){}
   STATE.orientacaoMestreAberta=true;
   _nivelSonoroAnterior=null;
   STATE.tela=modo==="sem-telao"?"entrar":"painel";
   STATE.jogadores=[];
-  STATE.doc={fase:"sala",vez:0,modo:modo};
+  STATE.doc={fase:"sala",vez:0,modo:modo,ritmo:ritmo};
   render();
   try{
     var FB=await esperarFB();
-    await FB.criarMesa(codigo,modo);
-    var mestre={codigo:codigo,modo:modo,uid:FB.uid&&FB.uid()};
+    await FB.criarMesa(codigo,modo,ritmo);
+    var mestre={codigo:codigo,modo:modo,ritmo:ritmo,uid:FB.uid&&FB.uid()};
     try{localStorage.setItem("mosaico_mestre_reconexao",JSON.stringify(mestre));localStorage.setItem("mosaico_ultimo_codigo",codigo);}catch(e){}
     STATE.mesa.fb=true;
     assinarSala(codigo,false);
@@ -3029,10 +3099,10 @@ if(CONFIGURADO) window.MosaicoFB = {
   db,
   async pronto(){ return prontoAuth; },
   uid(){ return _uid; },
-  async criarMesa(codigo, modo){
+  async criarMesa(codigo, modo, ritmo){
     await prontoAuth;
     await setDoc(doc(db, RAIZ, codigo), {
-      ativa:true, fase:"sala", vez:0, modo:modo||"com-telao",
+      ativa:true, fase:"sala", vez:0, modo:modo||"com-telao", ritmo:ritmo==="conduzido"?"conduzido":"automatico",
       mestreUid:_uid,
       criadaEm:serverTimestamp(), criadaEmMs:Date.now()
     });
