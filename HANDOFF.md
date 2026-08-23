@@ -506,12 +506,9 @@ O código da sala isoladamente não permite assumir outro jogador. Se a sala est
 
 ### 13.2 Segurança do Firestore
 
-A senha do mestre no cliente não constitui segurança. Antes de uso ampliado:
+A senha do mestre no cliente continua sendo apenas uma barreira de abertura. A segurança dos dados foi versionada em `firestore.rules`: o criador é identificado por `mestreUid`; somente ele altera a sala, as fases e o placar; jogadores escrevem apenas ações autorizadas; votos e deduções ficam legíveis somente pelo autor e pelo mestre; compras são validadas como transações completas.
 
-- versionar regras do Firestore;
-- restringir cada jogador ao próprio documento;
-- impedir que jogador altere fase, mesa ou outro jogador;
-- criar identidade segura para o painel/mestre.
+A conclusão da apresentação passou a ser uma solicitação em `acoes`: o jogador confirma no próprio celular e somente o mestre avança a fase e publica a cronologia. Consulte `FIREBASE-SECURITY.md` para implantação, matriz de testes e o limite conhecido relativo às pistas ainda presentes nos documentos públicos dos jogadores.
 
 ### 13.3 Limite de jogadores
 
@@ -556,11 +553,12 @@ Mesas de teste antigas no Firestore devem ser removidas periodicamente.
 
 ## 16. Ordem recomendada de implementação
 
-1. regras seguras do Firestore e validação da identidade do mestre no servidor;
+1. publicar e validar `firestore.rules` no projeto Firebase;
 2. revelação narrativa completa do caso;
 3. ampliar o elenco para sessões acima de seis pessoas;
 4. modo interativo alternativo para aparelhos sem sensores;
-5. testes de integração da reconexão com o Firestore e playtest presencial.
+5. proteção efetiva das pistas em backend confiável;
+6. testes de integração da reconexão com o Firestore e playtest presencial.
 
 ---
 

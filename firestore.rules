@@ -1,0 +1,211 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+    function roomPath(room) {
+      return /databases/$(database)/documents/mosaico/$(room);
+    }
+    function roomExists(room) {
+      return exists(roomPath(room));
+    }
+    function room(room) {
+      return get(roomPath(room)).data;
+    }
+    function active(roomId) {
+      return roomExists(roomId) && room(roomId).ativa == true;
+    }
+    function master(roomId) {
+      return signedIn() && roomExists(roomId) && room(roomId).mestreUid == request.auth.uid;
+    }
+    function participant(roomId) {
+      return signedIn() && exists(/databases/$(database)/documents/mosaico/$(roomId)/jogadores/$(request.auth.uid));
+    }
+    function inside(roomId) {
+      return master(roomId) || participant(roomId);
+    }
+    function ownPlayerUpdate() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+        .hasOnly(['pronto', 'personagem', 'pistas', 'atualizadoEmMs']);
+    }
+    function purchasePlayerUpdate(roomId, playerId) {
+      let marker = request.resource.data.ultimaNegociacao;
+      let negotiation = getAfter(/databases/$(database)/documents/mosaico/$(roomId)/negociacoes/$(marker)).data;
+      let buyer = negotiation.compradorId;
+      let seller = negotiation.vendedorId;
+      let price = negotiation.preco;
+      return marker is string
+        && negotiation.status == 'comprada'
+        && buyer == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['moedas', 'pistas', 'ultimaNegociacao'])
+        && request.resource.data.moedas is int
+        && request.resource.data.moedas >= 0
+        && (
+          (playerId == buyer
+            && request.resource.data.moedas == resource.data.moedas - price
+            && request.resource.data.pistas.size() >= resource.data.get('pistas', []).size()
+            && request.resource.data.pistas.size() <= resource.data.get('pistas', []).size() + 1)
+          ||
+          (playerId == seller
+            && request.resource.data.moedas == resource.data.moedas + price
+            && request.resource.data.pistas == resource.data.pistas)
+        );
+    }
+
+    match /mosaico/{roomId} {
+      allow create: if signedIn()
+        && request.resource.data.mestreUid == request.auth.uid
+        && request.resource.data.ativa == true
+        && request.resource.data.fase == 'sala'
+        && request.resource.data.keys().hasOnly([
+          'ativa', 'fase', 'vez', 'modo', 'mestreUid', 'criadaEm', 'criadaEmMs'
+        ]);
+      allow get: if signedIn() && (resource.data.ativa == true || master(roomId) || participant(roomId));
+      allow list: if false;
+      allow update: if master(roomId) && request.resource.data.mestreUid == resource.data.mestreUid;
+      allow delete: if false;
+
+      match /jogadores/{playerId} {
+        allow read: if inside(roomId);
+        allow create: if active(roomId)
+          && signedIn()
+          && playerId == request.auth.uid
+          && request.resource.data.nome is string
+          && request.resource.data.nome.size() >= 1
+          && request.resource.data.nome.size() <= 60
+          && request.resource.data.forma in ['m', 'f']
+          && request.resource.data.moedas is int
+          && request.resource.data.moedas >= 0
+          && request.resource.data.keys().hasOnly([
+            'nome', 'personagem', 'forma', 'pronto', 'entrouMs', 'votos',
+            'moedas', 'total', 'atualizadoEmMs'
+          ]);
+        allow update: if active(roomId) && (
+          master(roomId)
+          || (playerId == request.auth.uid && ownPlayerUpdate())
+          || purchasePlayerUpdate(roomId, playerId)
+        );
+        allow delete: if false;
+      }
+
+      match /votos/{voteId} {
+        allow read: if master(roomId) || voteId == request.auth.uid;
+        allow create: if active(roomId)
+          && voteId == request.auth.uid
+          && request.resource.data.de == request.auth.uid
+          && request.resource.data.para != request.auth.uid
+          && exists(/databases/$(database)/documents/mosaico/$(roomId)/jogadores/$(request.resource.data.para))
+          && request.resource.data.keys().hasOnly(['de', 'para', 'ms']);
+        allow update, delete: if false;
+      }
+
+      match /acoes/{actionId} {
+        allow read: if master(roomId) || actionId == request.auth.uid;
+        allow create: if active(roomId)
+          && actionId == request.auth.uid
+          && request.resource.data.jogadorId == request.auth.uid
+          && request.resource.data.tipo == 'concluirApresentacao'
+          && request.resource.data.vez is int
+          && request.resource.data.keys().hasOnly(['tipo', 'jogadorId', 'vez', 'criadaEm']);
+        allow update: if master(roomId)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['processada', 'processadaMs']);
+        allow delete: if false;
+      }
+
+      match /publicas/{publicId} {
+        allow read: if inside(roomId);
+        allow create, update: if master(roomId);
+        allow delete: if false;
+      }
+
+      match /tarefas/{taskId} {
+        allow read: if master(roomId) || resource.data.jogadorId == request.auth.uid;
+        allow create: if active(roomId)
+          && request.resource.data.jogadorId == request.auth.uid
+          && request.resource.data.tarefa in ['constelacao', 'inclinacao']
+          && taskId == request.auth.uid + '_' + request.resource.data.tarefa
+          && request.resource.data.keys().hasOnly(['tarefa', 'jogadorId', 'concluidoEm']);
+        allow update, delete: if false;
+      }
+
+      match /nucleos/{nucleusId} {
+        allow read: if inside(roomId);
+        allow create: if master(roomId);
+        allow update: if master(roomId) || (
+          active(roomId)
+          && participant(roomId)
+          && get(/databases/$(database)/documents/mosaico/$(roomId)/jogadores/$(request.auth.uid)).data.nucleo == resource.data.numero
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['concluidoEm', 'concluidoMs'])
+        );
+        allow delete: if false;
+      }
+
+      match /votosCooperacao/{voteId} {
+        allow read: if master(roomId) || voteId == request.auth.uid;
+        allow create: if active(roomId)
+          && voteId == request.auth.uid
+          && request.resource.data.de == request.auth.uid
+          && request.resource.data.para != request.auth.uid
+          && request.resource.data.nucleo == get(/databases/$(database)/documents/mosaico/$(roomId)/jogadores/$(request.auth.uid)).data.nucleo
+          && request.resource.data.nucleo == get(/databases/$(database)/documents/mosaico/$(roomId)/jogadores/$(request.resource.data.para)).data.nucleo
+          && request.resource.data.keys().hasOnly(['de', 'para', 'nucleo', 'ms']);
+        allow update, delete: if false;
+      }
+
+      match /ofertas/{offerId} {
+        allow read: if inside(roomId);
+        allow create: if active(roomId)
+          && request.resource.data.vendedorId == request.auth.uid
+          && request.resource.data.status == 'aberta'
+          && request.resource.data.faixaPreco in ['baixo', 'justo', 'alto']
+          && request.resource.data.preco in [1, 3, 5]
+          && request.resource.data.keys().hasOnly([
+            'vendedorId', 'vendedorNome', 'pistaId', 'faixaPreco', 'preco', 'status', 'criadaMs'
+          ]);
+        allow update: if active(roomId)
+          && resource.data.status == 'aberta'
+          && request.resource.data.status == 'comprada'
+          && request.resource.data.compradorId == request.auth.uid
+          && request.auth.uid != resource.data.vendedorId
+          && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['status', 'compradorId', 'compradaMs'])
+          && getAfter(/databases/$(database)/documents/mosaico/$(roomId)/negociacoes/$(offerId)).data.compradorId == request.auth.uid
+          && getAfter(/databases/$(database)/documents/mosaico/$(roomId)/negociacoes/$(offerId)).data.vendedorId == resource.data.vendedorId
+          && getAfter(/databases/$(database)/documents/mosaico/$(roomId)/negociacoes/$(offerId)).data.preco == resource.data.preco;
+        allow delete: if false;
+      }
+
+      match /negociacoes/{negotiationId} {
+        allow read: if inside(roomId);
+        allow create: if active(roomId)
+          && request.resource.data.status == 'comprada'
+          && request.resource.data.compradorId == request.auth.uid
+          && request.resource.data.vendedorId != request.auth.uid
+          && request.resource.data.preco is int
+          && request.resource.data.preco > 0
+          && get(/databases/$(database)/documents/mosaico/$(roomId)/ofertas/$(negotiationId)).data.vendedorId == request.resource.data.vendedorId
+          && get(/databases/$(database)/documents/mosaico/$(roomId)/ofertas/$(negotiationId)).data.preco == request.resource.data.preco;
+        allow update, delete: if false;
+      }
+
+      match /deducoes/{deductionId} {
+        allow read: if master(roomId) || deductionId == request.auth.uid;
+        allow create: if active(roomId)
+          && deductionId == request.auth.uid
+          && request.resource.data.id == request.auth.uid
+          && request.resource.data.keys().hasOnly([
+            'id', 'suspeito', 'motivo', 'acao', 'prova', 'lacuna',
+            'pistasUsadas', 'submetidoEm'
+          ]);
+        allow update, delete: if false;
+      }
+
+      match /{otherCollection}/{document=**} {
+        allow read, write: if false;
+      }
+    }
+  }
+}

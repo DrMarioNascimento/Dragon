@@ -47,7 +47,7 @@ O modo é escolhido ao abrir a mesa e gravado no documento da sala. Regras, caso
 
 Se a página for recarregada ou o navegador for reaberto, o mesmo aparelho retorna à sala ativa com o jogador, personagem e progresso preservados. Uma sala encerrada pelo mestre não pode ser recuperada; ao abrir outra, o sistema cria um novo código.
 
-Para publicar, configure o Firebase no final de `MOSAICO-mesa.html`, habilite autenticação anônima e aplique regras compatíveis com as novas coleções (`jogadores`, `votos`, `votosCooperacao`, `tarefas`, `nucleos`, `ofertas`, `negociacoes`, `deducoes` e `publicas`). Antes de uma sessão real, teste as regras no emulador do Firebase; o jogo não deve depender de regras abertas em modo de teste.
+O Firebase está configurado para autenticação anônima. As permissões versionadas ficam em `firestore.rules`, com configuração de implantação em `firebase.json` e `.firebaserc`. Consulte `FIREBASE-SECURITY.md` antes de publicar ou testar: o jogo não deve depender de regras abertas em modo de teste.
 
 ## Autoria e titularidade
 

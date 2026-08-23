@@ -963,7 +963,7 @@ var STATE = {
   doc:null,         /* documento da mesa em tempo real */
   votos:[],
   publicas:[],
-  v5:{ performance:[], cooperacao:[], nucleos:[], ofertas:[], negociacoes:[], deducoes:[], tarefas:[] },
+  v5:{ performance:[], cooperacao:[], nucleos:[], ofertas:[], negociacoes:[], deducoes:[], tarefas:[], acoes:[] },
   qrAberto:false,
   senhaAberta:false,
   revelando:false,
@@ -978,11 +978,29 @@ var STATE = {
 };
 var _unsubJog=null, _unsubMesa=null, _unsubVotos=null, _unsubPub=null, _unsubV5=[], _timerContagem=null;
 var _autoFasePendente=null, _autoTimer=null, _autoTimerChave="";
+var _acaoProcessando=false;
 function assinarV5(FB,codigo){
   _unsubV5.forEach(function(f){try{f();}catch(e){}}); _unsubV5=[];
-  [['votosCooperacao','cooperacao'],['nucleos','nucleos'],['ofertas','ofertas'],['negociacoes','negociacoes'],['deducoes','deducoes'],['tarefas','tarefas']].forEach(function(par){
+  var mestre=souMestreDaMesa();
+  [['nucleos','nucleos'],['ofertas','ofertas'],['negociacoes','negociacoes']].forEach(function(par){
     _unsubV5.push(FB.ouvirColecao(codigo,par[0],function(lista){STATE.v5[par[1]]=lista;render();}));
   });
+  if(mestre){
+    [['votosCooperacao','cooperacao'],['deducoes','deducoes'],['tarefas','tarefas'],['acoes','acoes']].forEach(function(par){
+      _unsubV5.push(FB.ouvirColecao(codigo,par[0],function(lista){STATE.v5[par[1]]=lista;if(par[1]==='acoes')processarAcoesMestre();render();}));
+    });
+  }else if(STATE.eu){
+    [['votosCooperacao',STATE.eu.id,'cooperacao'],['deducoes',STATE.eu.id,'deducoes'],['acoes',STATE.eu.id,'acoes']].forEach(function(par){
+      _unsubV5.push(FB.ouvirDocumento(codigo,par[0],par[1],function(item){STATE.v5[par[2]]=item?[item]:[];render();}));
+    });
+    var tarefasLocais={};
+    ['constelacao','inclinacao'].forEach(function(tipo){
+      _unsubV5.push(FB.ouvirDocumento(codigo,'tarefas',STATE.eu.id+'_'+tipo,function(item){
+        if(item)tarefasLocais[tipo]=item;else delete tarefasLocais[tipo];
+        STATE.v5.tarefas=Object.keys(tarefasLocais).map(function(k){return tarefasLocais[k];});render();
+      }));
+    });
+  }
 }
 
 /* ---------- utilidades ---------- */
@@ -1737,19 +1755,22 @@ function assinarSala(codigo,comoJogador){
   esperarFB().then(function(FB){
     desligarOuvintes();
     _unsubJog=FB.ouvirJogadores(codigo,function(l){
-      STATE.jogadores=l; comoJogador?sincronizarJogador():render();
+      STATE.jogadores=l; processarAcoesMestre(); comoJogador?sincronizarJogador():render();
     });
     _unsubMesa=FB.ouvirMesa(codigo,function(d){
       STATE.doc=d||{ativa:false,fase:"sala",vez:0};
+      processarAcoesMestre();
       if(comoJogador) sincronizarJogador();
       else if(!d||d.ativa===false){ limparReconexao(); STATE.tela="inicio"; STATE.mesa=null; render(); }
       else render();
     });
-    _unsubVotos=FB.ouvirVotos(codigo,function(v){
+    var receberVotos=function(v){
       STATE.votos=v;
       STATE.jaVotei=!!STATE.eu&&v.some(function(x){return x.id===STATE.eu.id||x.de===STATE.eu.id;});
       render();
-    });
+    };
+    _unsubVotos=souMestreDaMesa()?FB.ouvirVotos(codigo,receberVotos)
+      :FB.ouvirDocumento(codigo,'votos',STATE.eu&&STATE.eu.id,function(item){receberVotos(item?[item]:[]);});
     _unsubPub=FB.ouvirPublicas(codigo,function(p){STATE.publicas=p;render();});
     assinarV5(FB,codigo);
   }).catch(function(e){console.error("assinar sala",e);});
@@ -1997,13 +2018,31 @@ async function avancarVez(codigo, autor){
   else await FB.atualizarMesa(codigo,{vez:vez+1});
 }
 
+async function processarAcoesMestre(){
+  if(_acaoProcessando||!souMestreDaMesa()||!STATE.doc||STATE.doc.fase!=="encenacao") return;
+  var js=ordenados(STATE.jogadores), vez=STATE.doc.vez||0, atual=js[vez];
+  if(!atual) return;
+  var acao=(STATE.v5.acoes||[]).find(function(a){
+    return a.tipo==="concluirApresentacao"&&a.jogadorId===atual.id&&a.vez===vez&&!a.processada;
+  });
+  if(!acao) return;
+  _acaoProcessando=true;
+  try{
+    var FB=await esperarFB();
+    await avancarVez(STATE.mesa.codigo,atual.nome);
+    await FB.gravar(STATE.mesa.codigo,"acoes",acao.id,{processada:true,processadaMs:Date.now()});
+  }catch(e){console.error("processar apresentação",e);}
+  finally{_acaoProcessando=false;}
+}
+
 async function terminei(){
   /* trava a tela local na revelacao: o jogo avanca para os outros,
      mas quem acabou de atuar fica vendo quem era e a propria pista */
   STATE.travaTela=true;
   STATE.tela="revelacao";
   render();
-  await avancarVez(STATE.eu.codigo, STATE.eu.nome);
+  var FB=await esperarFB();
+  await FB.gravarServidor(STATE.eu.codigo,"acoes",STATE.eu.id,{tipo:"concluirApresentacao",jogadorId:STATE.eu.id,vez:(STATE.doc&&STATE.doc.vez)||0},"criadaEm");
 }
 
 /* ---------- pistas do jogador ----------
@@ -2517,6 +2556,10 @@ if(CONFIGURADO) window.MosaicoFB = {
       const l=[]; snap.forEach(d=>l.push({id:d.id,...d.data()})); cb(l);
     }, e=>{ console.error("ouvirColecao "+nome,e); cb([]); });
   },
+  ouvirDocumento(codigo, nome, id, cb){
+    return onSnapshot(doc(db,RAIZ,codigo,nome,id),s=>cb(s.exists()?{id:s.id,...s.data()}:null),
+      e=>{console.error("ouvirDocumento "+nome,e);cb(null);});
+  },
   async concluirNucleo(codigo, id, dados){
     const ref=doc(db,RAIZ,codigo,"nucleos",id);
     await runTransaction(db,async tx=>{
@@ -2542,8 +2585,8 @@ if(CONFIGURADO) window.MosaicoFB = {
       if(!pista) throw new Error("Pista não encontrada.");
       const jaTem=(comprador.pistas||[]).some(p=>p.id===pista.id);
       const novas=jaTem?(comprador.pistas||[]):(comprador.pistas||[]).concat([{...pista,adquirida:true,compradaDe:oferta.vendedorId}]);
-      tx.set(compradorRef,{moedas:(comprador.moedas||0)-oferta.preco,pistas:novas},{merge:true});
-      tx.set(vendedorRef,{moedas:(vendedor.moedas||0)+oferta.preco},{merge:true});
+      tx.set(compradorRef,{moedas:(comprador.moedas||0)-oferta.preco,pistas:novas,ultimaNegociacao:ofertaId},{merge:true});
+      tx.set(vendedorRef,{moedas:(vendedor.moedas||0)+oferta.preco,ultimaNegociacao:ofertaId},{merge:true});
       tx.set(ofertaRef,{status:"comprada",compradorId,compradaMs:Date.now()},{merge:true});
       tx.set(doc(db,RAIZ,codigo,"negociacoes",ofertaId),{...oferta,status:"comprada",compradorId,compradaMs:Date.now()});
     });
