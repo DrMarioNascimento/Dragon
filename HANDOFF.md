@@ -129,7 +129,8 @@ O código atual entrega a primeira experiência jogável:
 - manifesto para instalação;
 - solicitação de tela cheia quando suportada.
 - abertura em modo **Com telão** ou **Sem telão**;
-- no modo Sem telão, o criador também joga e recebe controles móveis do mestre;
+- no modo Sem telão, o criador também joga; seu celular é igual aos demais, exceto pelo botão compacto **Menu**, ao lado de **Arquivo**;
+- o Menu do mestre abre e fecha pelo mesmo botão e reúne QR/código, lista de conectados, avanço da fase, pular apresentação e encerrar sala;
 - todos recebem um mural coletivo móvel com relógio e cronologia quando não há telão;
 
 ### Máquina de fases implementada

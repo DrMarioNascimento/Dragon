@@ -266,13 +266,20 @@
     background:rgba(224,103,79,.06)}
   .btn-perigo:active{background:rgba(224,103,79,.16)}
   .btn:disabled{opacity:.32;cursor:default}
-  .mestre-movel{position:fixed;z-index:42;left:10px;right:10px;bottom:10px;
-    max-width:560px;margin:auto;border:1px solid var(--ambar);border-radius:8px;
-    background:rgba(5,7,12,.96);box-shadow:0 12px 40px #000;padding:0 14px}
-  .mestre-movel summary{cursor:pointer;padding:13px 2px;color:var(--ambar);
-    font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-size:12px}
-  .mestre-movel .acoes-mestre{padding:0 0 12px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .mestre-movel .btn{margin:0;min-height:42px;font-size:13px;padding:9px}
+  .btn-menu-mestre{position:fixed;z-index:45;right:14px;
+    bottom:max(16px,env(safe-area-inset-bottom));padding:12px 16px;border-radius:100px;
+    border:1px solid rgba(127,212,255,.5);background:rgba(5,7,12,.82);color:var(--frio);
+    font:700 clamp(11px,3vw,14px) var(--sans);letter-spacing:.16em;text-transform:uppercase}
+  body.tem-arquivo .btn-menu-mestre{right:148px}
+  .menu-mestre-fundo{position:fixed;inset:0;z-index:43;background:rgba(2,5,9,.94);
+    padding:max(18px,env(safe-area-inset-top)) 16px max(82px,env(safe-area-inset-bottom));overflow-y:auto}
+  .menu-mestre-card{max-width:600px;margin:auto}
+  .menu-mestre-topo{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+  .menu-mestre-topo h2{margin:0}.menu-mestre-topo .btn{width:auto;margin:0;padding:11px 14px}
+  .menu-mestre-grade{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .menu-mestre-grade .btn{margin:0;padding:14px 10px;font-size:12px}
+  .menu-mestre-qr{width:min(210px,58vw);display:block;margin:14px auto;border:8px solid #fff;border-radius:6px}
+  .conectado-item{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--linha)}
   body.modo-sem-telao #app{padding-bottom:92px}
   .mural-movel{margin:24px 0 80px;border:1px solid var(--linha);border-radius:6px;background:rgba(12,18,26,.92);padding:0 14px}
   .mural-movel summary{cursor:pointer;padding:14px 0;color:var(--frio);font-weight:800}
@@ -422,7 +429,6 @@
   }
   #btn-pistas:focus{outline:none;border-color:var(--ambar);
     box-shadow:0 0 0 3px rgba(232,164,76,.3)}
-  body.modo-sem-telao #btn-pistas{bottom:max(76px,calc(env(safe-area-inset-bottom) + 68px))}
   #pistas{
     position:fixed;inset:0;z-index:42;
     background:linear-gradient(170deg,#0a0f16,#05070c);
@@ -948,7 +954,8 @@ var STATE = {
   escolha:null,
   contando:0,
   jaVotei:false,
-  modoMesa:"com-telao"
+  modoMesa:"com-telao",
+  menuMestreAberto:false
 };
 var _unsubJog=null, _unsubMesa=null, _unsubVotos=null, _unsubPub=null, _unsubV5=[], _timerContagem=null;
 function assinarV5(FB,codigo){
@@ -1037,20 +1044,28 @@ function souMestreDaMesa(){
   var codigo=(STATE.eu&&STATE.eu.codigo)||(STATE.mesa&&STATE.mesa.codigo)||"";
   try{return !!codigo&&sessionStorage.getItem("mosaico_mestre_codigo")===codigo;}catch(e){return false;}
 }
+function alternarMenuMestre(){STATE.menuMestreAberto=!STATE.menuMestreAberto;render();}
 function controlesMestreMovel(){
   var fase=(STATE.doc&&STATE.doc.fase)||"sala", js=ordenados(STATE.jogadores), botoes="";
-  botoes+='<button class="btn btn-frio" onclick="abrirQr()">C&oacute;digo &middot; QR</button>';
   if(fase==="sala"){
     var todos=js.length>=2&&contaProntos()===js.length;
-    botoes+='<button class="btn btn-ambar" onclick="iniciarEncenacao()" '+(todos?'':'disabled')+'>Come&ccedil;ar</button>';
-  }else if(fase==="encenacao") botoes+='<button class="btn btn-ambar" onclick="pularVez()">Pular a apresenta&ccedil;&atilde;o atual</button>';
-  else if(fase==="votacao") botoes+='<button class="btn btn-ambar" onclick="fecharVotacao()">Formar n&uacute;cleos</button>';
-  else if(fase==="mosaico") botoes+='<button class="btn btn-ambar" onclick="abrirVotoCooperacao()">Abrir voto interno</button>';
-  else if(fase==="cooperacao") botoes+='<button class="btn btn-ambar" onclick="abrirMercado()">Abrir mercado</button>';
-  else if(fase==="mercado") botoes+='<button class="btn btn-ambar" onclick="abrirDeducao()">Abrir dedu&ccedil;&atilde;o</button>';
-  else if(fase==="deducao") botoes+='<button class="btn btn-ambar" onclick="finalizarPartida()" '+(STATE.v5.deducoes.length<js.length?'disabled':'')+'>Calcular placar</button>';
-  else if(fase==="resultado") botoes+='<button class="btn btn-frio" onclick="voltarParaSala()">Nova rodada</button>';
-  return '<details class="mestre-movel"><summary>Controles do mestre &middot; sem tel&atilde;o</summary><div class="acoes-mestre">'+botoes+'</div></details>'+modalQr();
+    botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();iniciarEncenacao()" '+(todos?'':'disabled')+'>Come&ccedil;ar</button>';
+  }else if(fase==="encenacao") botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();pularVez()">Pular a apresenta&ccedil;&atilde;o atual</button>';
+  else if(fase==="votacao") botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();fecharVotacao()">Formar n&uacute;cleos</button>';
+  else if(fase==="mosaico") botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();abrirVotoCooperacao()">Abrir voto interno</button>';
+  else if(fase==="cooperacao") botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();abrirMercado()">Abrir mercado</button>';
+  else if(fase==="mercado") botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();abrirDeducao()">Abrir dedu&ccedil;&atilde;o</button>';
+  else if(fase==="deducao") botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();finalizarPartida()" '+(STATE.v5.deducoes.length<js.length?'disabled':'')+'>Calcular placar</button>';
+  else if(fase==="resultado") botoes+='<button class="btn btn-frio" onclick="alternarMenuMestre();voltarParaSala()">Nova rodada</button>';
+  var conectados=js.map(function(j){var status=fase==="sala"?(j.pronto?'pronto':'aguardando prontid&atilde;o'):'conectado';return '<div class="conectado-item"><span>'+esc(j.nome)+'</span><span class="muted">'+status+'</span></div>';}).join('')||'<p class="muted">Nenhum participante conectado.</p>';
+  var m=STATE.mesa, qr=m?'https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=8&data='+encodeURIComponent(m.link):'';
+  var painel=STATE.menuMestreAberto?'<div class="menu-mestre-fundo" onclick="if(event.target===this)alternarMenuMestre()"><div class="menu-mestre-card">'+
+    '<div class="menu-mestre-topo"><div><span class="eyebrow">Mestre &middot; '+esc(nomeRodada(fase))+'</span><h2>Menu</h2></div><button class="btn btn-sm" onclick="alternarMenuMestre()">Fechar</button></div>'+
+    '<div class="card"><span class="eyebrow">C&oacute;digo da sala</span><div class="codigo-grande">'+esc(m&&m.codigo)+'</div><img class="menu-mestre-qr" src="'+esc(qr)+'" alt="QR da sala"><button class="btn btn-sm" style="width:100%" onclick="copiarLink()">Copiar link</button></div>'+
+    '<div class="card"><span class="eyebrow">Conectados &middot; '+js.length+'</span>'+conectados+'</div>'+
+    '<div class="menu-mestre-grade">'+botoes+'<button class="btn btn-perigo" onclick="encerrarMesa()">Encerrar sala</button></div>'+
+    '</div></div>':'';
+  return '<button class="btn-menu-mestre" onclick="alternarMenuMestre()" aria-label="Abrir ou fechar o menu do mestre">Menu</button>'+painel;
 }
 function muralColetivoMovel(){
   var fase=(STATE.doc&&STATE.doc.fase)||"sala", pubs=(STATE.publicas||[]).slice().sort(function(a,b){return (a.ordem||0)-(b.ordem||0);});
@@ -1417,7 +1432,7 @@ function sairDaMesa(){
   _unsubJog=_unsubMesa=_unsubVotos=_unsubPub=null;
   try{ sessionStorage.removeItem("mosaico_eu"); }catch(e){}
   try{ sessionStorage.removeItem("mosaico_mestre_codigo"); }catch(e){}
-  STATE.eu=null; STATE.mesa=null; STATE.jogadores=[]; STATE.doc=null;
+  STATE.eu=null; STATE.mesa=null; STATE.jogadores=[]; STATE.doc=null; STATE.menuMestreAberto=false;
   STATE.forma=null; STATE.tela="inicio";
   render();
 }
@@ -1866,6 +1881,7 @@ function desenhaPistas(){
   }
   vazio.style.display = lista.length ? "none" : "";
   btn.querySelector("b").textContent = lista.length;
+  document.body.classList.toggle("tem-arquivo",lista.length>0);
   /* o botao so existe para quem esta jogando, e nunca no telao */
   btn.classList.toggle("on", !!STATE.eu && lista.length>0 && STATE.tela!=="painel" && STATE.tela!=="inicio");
 }
@@ -1992,7 +2008,7 @@ async function encerrarMesa(){
   _unsubJog=_unsubMesa=_unsubVotos=_unsubPub=null;
   try{ sessionStorage.removeItem("mosaico_mestre_codigo"); }catch(e){}
   STATE.mesa=null; STATE.jogadores=[]; STATE.publicas=[]; STATE.votos=[];
-  STATE.qrAberto=false; STATE.doc=null; STATE.tela="inicio";
+  STATE.qrAberto=false; STATE.menuMestreAberto=false; STATE.doc=null; STATE.tela="inicio";
   render();
 }
 
