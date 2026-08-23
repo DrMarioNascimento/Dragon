@@ -128,6 +128,9 @@ O código atual entrega a primeira experiência jogável:
 - carregamento opcional de caso por `?caso=nome`;
 - manifesto para instalação;
 - solicitação de tela cheia quando suportada.
+- abertura em modo **Com telão** ou **Sem telão**;
+- no modo Sem telão, o criador também joga e recebe controles móveis do mestre;
+- todos recebem um mural coletivo móvel com relógio e cronologia quando não há telão;
 
 ### Máquina de fases implementada
 

@@ -34,6 +34,13 @@ Não publique links de demonstração, arquivos, capturas extensas, documentaç�
 
 Os parâmetros do caso ficam em `casos/casa-da-costa.json`. O cálculo puro e testável fica em `js/mosaico-v5.js`. Todos os pontos do jogo são inteiros.
 
+### Modos de mesa
+
+- **Com telão:** um aparelho é dedicado ao painel coletivo, ao QR, à cronologia e aos controles do mestre. O mestre não ocupa uma vaga de jogador nesse aparelho.
+- **Sem telão:** quem cria a sala também entra como jogador. Seu celular recebe uma gaveta reservada de controles do mestre; todos os celulares recebem um mural coletivo recolhível com relógio e cronologia pública.
+
+O modo é escolhido ao abrir a mesa e gravado no documento da sala. Regras, caso, votos e pontuação são idênticos nos dois modos.
+
 Para publicar, configure o Firebase no final de `MOSAICO-mesa.html`, habilite autenticação anônima e aplique regras compatíveis com as novas coleções (`jogadores`, `votos`, `votosCooperacao`, `nucleos`, `ofertas`, `negociacoes`, `deducoes` e `publicas`). Antes de uma sessão real, teste as regras no emulador do Firebase; o jogo não deve depender de regras abertas em modo de teste.
 
 ## Autoria e titularidade

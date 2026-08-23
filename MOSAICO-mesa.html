@@ -254,6 +254,16 @@
     background:rgba(224,103,79,.06)}
   .btn-perigo:active{background:rgba(224,103,79,.16)}
   .btn:disabled{opacity:.32;cursor:default}
+  .mestre-movel{position:fixed;z-index:42;left:10px;right:10px;bottom:10px;
+    max-width:560px;margin:auto;border:1px solid var(--ambar);border-radius:8px;
+    background:rgba(5,7,12,.96);box-shadow:0 12px 40px #000;padding:0 14px}
+  .mestre-movel summary{cursor:pointer;padding:13px 2px;color:var(--ambar);
+    font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-size:12px}
+  .mestre-movel .acoes-mestre{padding:0 0 12px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .mestre-movel .btn{margin:0;min-height:42px;font-size:13px;padding:9px}
+  body.modo-sem-telao #app{padding-bottom:92px}
+  .mural-movel{margin:24px 0 80px;border:1px solid var(--linha);border-radius:6px;background:rgba(12,18,26,.92);padding:0 14px}
+  .mural-movel summary{cursor:pointer;padding:14px 0;color:var(--frio);font-weight:800}
   .btn-sm{
     display:inline-block;width:auto;padding:12px 18px;margin:0;
     font-size:clamp(11px,3vw,13px);letter-spacing:.14em;
@@ -923,7 +933,8 @@ var STATE = {
   forma:null,        /* "m" | "f" | "?" — escolha do jogador na entrada */
   escolha:null,
   contando:0,
-  jaVotei:false
+  jaVotei:false,
+  modoMesa:"com-telao"
 };
 var _unsubJog=null, _unsubMesa=null, _unsubVotos=null, _unsubPub=null, _unsubV5=[], _timerContagem=null;
 function assinarV5(FB,codigo){
@@ -989,6 +1000,35 @@ function avisoLocal(){
   return "";
 }
 
+function modoAtual(){
+  return (STATE.doc&&STATE.doc.modo)||(STATE.mesa&&STATE.mesa.modo)||STATE.modoMesa||"com-telao";
+}
+function souMestreDaMesa(){
+  var codigo=(STATE.eu&&STATE.eu.codigo)||(STATE.mesa&&STATE.mesa.codigo)||"";
+  try{return !!codigo&&sessionStorage.getItem("mosaico_mestre_codigo")===codigo;}catch(e){return false;}
+}
+function controlesMestreMovel(){
+  var fase=(STATE.doc&&STATE.doc.fase)||"sala", js=ordenados(STATE.jogadores), botoes="";
+  botoes+='<button class="btn btn-frio" onclick="abrirQr()">C&oacute;digo &middot; QR</button>';
+  if(fase==="sala"){
+    var todos=js.length>=2&&contaProntos()===js.length;
+    botoes+='<button class="btn btn-ambar" onclick="iniciarEncenacao()" '+(todos?'':'disabled')+'>Come&ccedil;ar</button>';
+  }else if(fase==="encenacao") botoes+='<button class="btn btn-ambar" onclick="pularVez()">Pular vez atual</button>';
+  else if(fase==="votacao") botoes+='<button class="btn btn-ambar" onclick="fecharVotacao()">Formar n&uacute;cleos</button>';
+  else if(fase==="mosaico") botoes+='<button class="btn btn-ambar" onclick="abrirVotoCooperacao()">Abrir voto interno</button>';
+  else if(fase==="cooperacao") botoes+='<button class="btn btn-ambar" onclick="abrirMercado()">Abrir mercado</button>';
+  else if(fase==="mercado") botoes+='<button class="btn btn-ambar" onclick="abrirDeducao()">Abrir dedu&ccedil;&atilde;o</button>';
+  else if(fase==="deducao") botoes+='<button class="btn btn-ambar" onclick="finalizarPartida()" '+(STATE.v5.deducoes.length<js.length?'disabled':'')+'>Calcular placar</button>';
+  else if(fase==="resultado") botoes+='<button class="btn btn-frio" onclick="voltarParaSala()">Nova rodada</button>';
+  return '<details class="mestre-movel"><summary>Controles do mestre &middot; sem tel&atilde;o</summary><div class="acoes-mestre">'+botoes+'</div></details>'+modalQr();
+}
+function muralColetivoMovel(){
+  var fase=(STATE.doc&&STATE.doc.fase)||"sala", pubs=(STATE.publicas||[]).slice().sort(function(a,b){return (a.ordem||0)-(b.ordem||0);});
+  var hora=HORA_FASE[fase]; if(hora==null) hora=pubs.length?pubs[pubs.length-1].hora:"21:00";
+  var linhas=pubs.map(function(p){return '<div class="publica"><span class="ph">'+esc(p.hora)+'</span><div class="pt">'+esc(p.txt)+'</div></div>';}).join('');
+  return '<details class="mural-movel"><summary>Mural coletivo &middot; '+esc(hora)+'</summary>'+(linhas||'<p class="muted">A casa ainda n&atilde;o revelou linhas da cronologia.</p>')+'</details>';
+}
+
 /* ============================================================
    TELAS
    ============================================================ */
@@ -1005,6 +1045,7 @@ function render(){
   document.body.classList.toggle("t-painel", STATE.tela==="painel");
   document.body.classList.toggle("t-inicio", STATE.tela==="inicio");
   document.body.classList.toggle("t-entrar", STATE.tela==="entrar");
+  document.body.classList.toggle("modo-sem-telao", modoAtual()==="sem-telao");
   /* enquanto a sala espera, o painel continua com o video */
   var faseAgora=(STATE.doc&&STATE.doc.fase)||"sala";
   document.body.classList.toggle("fase-sala",
@@ -1026,6 +1067,8 @@ function render(){
     case "resultado":   h=telaResultado(); break;
     default:            h=telaInicio();
   }
+  if(STATE.eu && modoAtual()==="sem-telao") h+=muralColetivoMovel();
+  if(STATE.eu && souMestreDaMesa() && modoAtual()==="sem-telao") h+=controlesMestreMovel();
   app.innerHTML=h;
 }
 
@@ -1037,8 +1080,8 @@ function telaInicio(){
     avisoLocal()+
     '<button class="btn btn-ambar" onclick="pedirSenha()">Abrir uma mesa</button>'+
     '<button class="btn btn-frio" onclick="irPara(\'entrar\')">Entrar em uma mesa</button>'+
-    '<p class="muted" style="margin-top:24px">Abra a mesa em um aparelho s&oacute; &mdash; '+
-    'ele vira o painel. As outras pessoas entram pelo QR, sem senha.</p>'+
+    '<p class="muted" style="margin-top:24px">Escolha abrir <b>com tel&atilde;o</b> dedicado ou '+
+    '<b>sem tel&atilde;o</b>, quando quem cria tamb&eacute;m participa pelo celular.</p>'+
     modalSenha();
 }
 
@@ -1046,15 +1089,19 @@ function telaInicio(){
    QR nao precisa de senha — sao os convidados, nao o dono da mesa.     */
 function modalSenha(){
   if(!STATE.senhaAberta) return "";
+  var autenticado=jaEhMestre();
   return '<div class="modal-fundo" onclick="if(event.target===this) fecharSenha()">'+
     '<div class="modal">'+
       '<span class="eyebrow">&Aacute;rea do mestre</span>'+
-      '<h2 style="font-size:clamp(26px,7vw,34px);margin-bottom:18px">Quem abre a casa?</h2>'+
-      '<input id="senha" class="senha" type="password" inputmode="text" '+
+      '<h2 style="font-size:clamp(26px,7vw,34px);margin-bottom:18px">Como a mesa ser&aacute; usada?</h2>'+
+      '<button class="forma-op'+(STATE.modoMesa==="com-telao"?' on':'')+'" onclick="escolherModoMesa(\'com-telao\')"><b>📺</b><span>Com tel&atilde;o</span></button>'+
+      '<button class="forma-op'+(STATE.modoMesa==="sem-telao"?' on':'')+'" onclick="escolherModoMesa(\'sem-telao\')"><b>📱</b><span>Sem tel&atilde;o</span></button>'+
+      '<p class="muted" style="margin:10px 0 16px">Com tel&atilde;o: um aparelho fica no painel. Sem tel&atilde;o: quem abre tamb&eacute;m joga e controla pelo celular.</p>'+
+      (autenticado?'<p class="muted">Mestre reconhecido neste aparelho.</p>':'<input id="senha" class="senha" type="password" inputmode="text" '+
         'autocomplete="off" placeholder="senha" '+
-        'onkeydown="if(event.key===\'Enter\') conferirSenha()">'+
+        'onkeydown="if(event.key===\'Enter\') conferirSenha()">')+
       '<div id="senha-erro"></div>'+
-      '<button class="btn btn-ambar" onclick="conferirSenha()">Abrir</button>'+
+      '<button class="btn btn-ambar" onclick="'+(autenticado?'criarMesa(STATE.modoMesa)':'conferirSenha()')+'">Abrir</button>'+
       '<button class="btn btn-fantasma" onclick="fecharSenha()">Cancelar</button>'+
     '</div></div>';
 }
@@ -1062,6 +1109,8 @@ function modalSenha(){
 function telaEntrar(){
   var codigoUrl="";
   try{ codigoUrl=new URLSearchParams(location.search).get("sala")||""; }catch(e){}
+  if(!codigoUrl && STATE.mesa) codigoUrl=STATE.mesa.codigo;
+  var criando=STATE.mesa&&STATE.mesa.modo==="sem-telao"&&!STATE.mesa.fb;
 
   return '<span class="eyebrow">Entrar</span><h2>Quem chega agora?</h2>'+
     '<p class="lead">Voc&ecirc; n&atilde;o escolhe quem &eacute;. '+
@@ -1082,7 +1131,7 @@ function telaEntrar(){
       '<button class="forma-op'+(STATE.forma==="?"?" on":"")+'" '+
         'onclick="escolherForma(\'?\')"><b>👥</b><span>Tanto faz</span></button>'+
     '</div>'+
-    '<button class="btn btn-ambar" onclick="entrarNaMesa()">Entrar na casa</button>'+
+    '<button class="btn btn-ambar" onclick="entrarNaMesa()" '+(criando?'disabled':'')+'>'+(criando?'Criando a mesa…':'Entrar na casa')+'</button>'+
     '<button class="btn btn-fantasma" onclick="irPara(\'inicio\')">&larr; Voltar</button>';
 }
 
@@ -1184,6 +1233,7 @@ function telaPainel(){
 
   return '<div class="barra">'+
       '<span class="conta">'+js.length+' na mesa</span>'+
+      '<span class="selo ok">'+(modoAtual()==="sem-telao"?'Sem tel&atilde;o':'Com tel&atilde;o')+'</span>'+
       '<span class="selo '+(m.fb?"ok":"esperando")+'">'+(m.fb?"Ao vivo":"Conectando…")+'</span>'+
       '<span class="dir">'+
         '<button class="btn btn-sm btn-frio" onclick="abrirQr()">C&oacute;digo &middot; QR</button>'+
@@ -1335,7 +1385,8 @@ function sairDaMesa(){
   _unsubV5.forEach(function(f){try{f();}catch(e){}}); _unsubV5=[];
   _unsubJog=_unsubMesa=_unsubVotos=_unsubPub=null;
   try{ sessionStorage.removeItem("mosaico_eu"); }catch(e){}
-  STATE.eu=null; STATE.jogadores=[]; STATE.doc=null;
+  try{ sessionStorage.removeItem("mosaico_mestre_codigo"); }catch(e){}
+  STATE.eu=null; STATE.mesa=null; STATE.jogadores=[]; STATE.doc=null;
   STATE.forma=null; STATE.tela="inicio";
   render();
 }
@@ -1450,11 +1501,11 @@ function jaEhMestre(){
   try{ return sessionStorage.getItem("mosaico_mestre")==="1"; }catch(e){ return false; }
 }
 function pedirSenha(){
-  if(jaEhMestre()){ criarMesa(); return; }
   STATE.senhaAberta=true; render();
   setTimeout(function(){ var i=document.getElementById("senha"); if(i) i.focus(); },80);
 }
 function fecharSenha(){ STATE.senhaAberta=false; render(); }
+function escolherModoMesa(modo){ STATE.modoMesa=modo; render(); setTimeout(function(){var i=document.getElementById('senha');if(i)i.focus();},50); }
 async function conferirSenha(){
   var campo=document.getElementById("senha");
   var erro=document.getElementById("senha-erro");
@@ -1471,7 +1522,7 @@ async function conferirSenha(){
   }
   try{ sessionStorage.setItem("mosaico_mestre","1"); }catch(e){}
   STATE.senhaAberta=false;
-  criarMesa();
+  criarMesa(STATE.modoMesa);
 }
 
 /* ---------- tela cheia ----------
@@ -1524,16 +1575,19 @@ async function esperarFB(){
   return window.MosaicoFB;
 }
 
-async function criarMesa(){
+async function criarMesa(modo){
+  modo=modo==="sem-telao"?"sem-telao":"com-telao";
   var codigo=gerarCodigo();
-  STATE.mesa={codigo:codigo,link:linkDaSala(codigo),fb:false};
-  STATE.tela="painel";
+  STATE.modoMesa=modo;
+  STATE.mesa={codigo:codigo,link:linkDaSala(codigo),fb:false,modo:modo};
+  try{ sessionStorage.setItem("mosaico_mestre_codigo",codigo); }catch(e){}
+  STATE.tela=modo==="sem-telao"?"entrar":"painel";
   STATE.jogadores=[];
-  STATE.doc={fase:"sala",vez:0};
+  STATE.doc={fase:"sala",vez:0,modo:modo};
   render();
   try{
     var FB=await esperarFB();
-    await FB.criarMesa(codigo);
+    await FB.criarMesa(codigo,modo);
     STATE.mesa.fb=true;
     _unsubJog=FB.ouvirJogadores(codigo,function(l){
       STATE.jogadores=l; render();
@@ -1905,6 +1959,7 @@ async function encerrarMesa(){
   if(_unsubVotos) _unsubVotos(); if(_unsubPub) _unsubPub();
   _unsubV5.forEach(function(f){try{f();}catch(e){}}); _unsubV5=[];
   _unsubJog=_unsubMesa=_unsubVotos=_unsubPub=null;
+  try{ sessionStorage.removeItem("mosaico_mestre_codigo"); }catch(e){}
   STATE.mesa=null; STATE.jogadores=[]; STATE.publicas=[]; STATE.votos=[];
   STATE.qrAberto=false; STATE.doc=null; STATE.tela="inicio";
   render();
@@ -2139,10 +2194,10 @@ if(CONFIGURADO) window.MosaicoFB = {
   db,
   async pronto(){ return prontoAuth; },
   uid(){ return _uid; },
-  async criarMesa(codigo){
+  async criarMesa(codigo, modo){
     await prontoAuth;
     await setDoc(doc(db, RAIZ, codigo), {
-      ativa:true, fase:"sala", vez:0,
+      ativa:true, fase:"sala", vez:0, modo:modo||"com-telao",
       criadaEm:serverTimestamp(), criadaEmMs:Date.now()
     });
     return codigo;
