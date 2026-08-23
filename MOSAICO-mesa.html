@@ -289,6 +289,19 @@
   .revelacao-passos .card:before{counter-increment:passo;content:counter(passo);position:absolute;left:18px;top:18px;color:var(--ambar);font:600 24px var(--serif)}
   .confianca-valor{font:600 28px var(--serif);color:var(--frio)}.confianca-valor.neg{color:var(--vermelho)}
   .controle-revelacao{max-width:460px;margin:24px auto 0}
+  .podio-layout{margin-top:18px}.podio-cena{position:relative;overflow:hidden;border:1px solid rgba(232,164,76,.38);border-radius:10px;background:#05070c center/cover no-repeat;box-shadow:0 22px 60px rgba(0,0,0,.5)}
+  .podio-layout.celular .podio-cena{width:min(100%,560px);aspect-ratio:1143/2048;margin:auto;background-image:url('img/resultado-mobile.jpg')}
+  .podio-layout.telao{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,300px);gap:18px;align-items:start}
+  .podio-layout.telao .podio-cena{aspect-ratio:1376/768;background-image:url('img/resultado-telao.jpg')}
+  .podio-jogador{position:absolute;z-index:2;width:25%;padding:8px 6px;border:1px solid rgba(240,195,94,.72);border-radius:7px;background:rgba(5,7,12,.88);box-shadow:0 8px 24px rgba(0,0,0,.65);text-align:center;backdrop-filter:blur(5px)}
+  .podio-jogador .av{font-size:clamp(20px,5vw,38px);line-height:1}.podio-jogador .nm{font:600 clamp(9px,2.4vw,14px) var(--serif);line-height:1.12;margin:3px 0;color:#fff}.podio-jogador .pt{font:600 clamp(15px,4vw,25px) var(--serif);color:var(--ambar)}
+  .podio-jogador .colocacao{font:700 clamp(9px,2.3vw,13px) var(--sans);color:var(--ambar);letter-spacing:.08em;text-transform:uppercase}
+  .podio-layout.celular .pos-1{left:37.5%;top:45%}.podio-layout.celular .pos-2{left:9%;top:64%}.podio-layout.celular .pos-3{right:8%;top:68%}
+  .podio-layout.telao .podio-jogador{width:19%;padding:6px 4px}.podio-layout.telao .pos-1{left:40.5%;top:50%}.podio-layout.telao .pos-2{left:16%;top:63%}.podio-layout.telao .pos-3{right:14%;top:63%}
+  .classificacao-restante{border:1px solid var(--linha);border-radius:9px;background:rgba(12,18,26,.94);padding:12px}.classificacao-restante h3{font-size:17px;margin:2px 0 10px;color:var(--ambar)}
+  .classificacao-item{display:grid;grid-template-columns:30px 34px minmax(0,1fr) auto;align-items:center;gap:7px;padding:9px 2px;border-bottom:1px solid var(--linha)}.classificacao-item:last-child{border-bottom:0}.classificacao-item .ordem{color:var(--ambar);font-weight:700}.classificacao-item .avatar{font-size:22px}.classificacao-item .nome{font:600 14px var(--serif);line-height:1.1}.classificacao-item .pontos{font-weight:700;color:var(--frio);white-space:nowrap}
+  .podio-layout.celular .classificacao-restante{width:min(100%,560px);margin:14px auto 0}
+  @media(max-width:760px){.podio-layout.telao{grid-template-columns:1fr}.podio-layout.telao .classificacao-restante{margin-top:0}}
   .menu-mestre-fundo{position:fixed;inset:0;z-index:43;background:rgba(2,5,9,.94);
     padding:max(18px,env(safe-area-inset-top)) 16px max(82px,env(safe-area-inset-bottom));overflow-y:auto}
   .menu-mestre-card{max-width:600px;margin:auto}
@@ -1641,12 +1654,12 @@ function telaResultado(){
     var confiancas=ordenados(STATE.jogadores).map(function(j){var p=personagemPor(j.personagem), e=j.economiaDetalhe||{}, c=Number(e.confiabilidade)||0;return '<div class="jog"><div class="av">'+(p?p.av:"👤")+'</div><div class="nm">'+esc(nomePers(p,j.forma))+'</div><div class="confianca-valor '+(c<0?'neg':'')+'">'+(c>0?'+':'')+c+'</div><div class="est">Confiabilidade</div></div>';}).join('');
     return '<span class="eyebrow">Validação ex post</span><h2>Preço pedido × qualidade real.</h2><p class="lead">Pistas boas oferecidas por preço justo fortaleceram a Confiabilidade. Pistas fracas vendidas caro reduziram o resultado e, quando negativo, bloquearam a Qualidade do Gasto.</p><div class="grade">'+confiancas+'</div><p class="muted" style="text-align:center">O resultado dos votos cegos continua oculto.</p>';
   }
-  var js=ordenados(STATE.jogadores).slice().sort(function(a,b){ return (b.total||0)-(a.total||0); }), grade="";
-  for(var i=0;i<js.length;i++){
-    var j=js[i], p=personagemPor(j.personagem);
-    grade+='<div class="jog'+(i===0?' st-atuando':'')+'"><div class="av">'+(p?p.av:"👤")+'</div><div class="nm">'+esc(nomePers(p,j.forma))+'</div><div class="pers">'+(i===0?'1º lugar':'&nbsp;')+'</div><div class="pt">'+(j.total||0)+'</div><div class="est">pontos</div></div>';
-  }
-  return '<span class="eyebrow">Placar final</span><h2>A verdade foi reconstruída.</h2><div class="grade" style="margin-top:22px">'+grade+'</div><p class="muted" style="text-align:center">Tempo 32% &middot; Qualidade 13% &middot; Cooperação 30% &middot; Economia 20% &middot; Performance 5%</p>';
+  var js=ordenados(STATE.jogadores).slice().sort(function(a,b){ return (b.total||0)-(a.total||0); });
+  function caixaPodio(j,pos){if(!j)return '';var p=personagemPor(j.personagem);return '<div class="podio-jogador pos-'+pos+'"><div class="colocacao">'+pos+'º lugar</div><div class="av">'+(p?p.av:"👤")+'</div><div class="nm">'+esc(nomePers(p,j.forma))+'</div><div class="pt">'+(j.total||0)+' pts</div></div>';}
+  var restantes=js.slice(3).map(function(j,i){var p=personagemPor(j.personagem);return '<div class="classificacao-item"><span class="ordem">'+(i+4)+'º</span><span class="avatar">'+(p?p.av:"👤")+'</span><span class="nome">'+esc(nomePers(p,j.forma))+'</span><span class="pontos">'+(j.total||0)+' pts</span></div>';}).join('');
+  var lista=restantes?'<aside class="classificacao-restante"><h3>Demais colocações</h3>'+restantes+'</aside>':'';
+  var modo=STATE.tela==="painel"?'telao':'celular';
+  return '<span class="eyebrow">Placar final</span><div class="podio-layout '+modo+'"><div class="podio-cena">'+caixaPodio(js[0],1)+caixaPodio(js[1],2)+caixaPodio(js[2],3)+'</div>'+lista+'</div><p class="muted" style="text-align:center;margin-top:16px">Tempo 32% &middot; Qualidade 13% &middot; Cooperação 30% &middot; Economia 20% &middot; Performance 5%</p>';
 }
 
 function telaTarefaSensor(tipo){
