@@ -190,7 +190,6 @@
   <p>A janela acesa fica sempre no <b>mesmo rumo real do mundo</b>. Todos viram o corpo para o mesmo lado.</p>
   <p class="small">Gire devagar até achar o clarão na névoa. <b>Segure o rumo firme</b> e você dá um passo encosta acima. São seis até a casa.</p>
   <button class="go" id="b-start">Ativar movimento</button>
-  <button class="alt" id="b-sim">Estou no computador</button>
   <div id="round">NOITE <b id="round-code">----</b></div>
 </div>
 
@@ -1595,17 +1594,7 @@ function fechaIntro(){
 }
 
 document.getElementById("b-start").addEventListener("click",ativarSensor);
-document.getElementById("b-sim").addEventListener("click",function(){
-  if(sensorTimer) clearTimeout(sensorTimer);
-  sensorTimer=null;
-  window.removeEventListener("deviceorientationabsolute",onOrient,true);
-  window.removeEventListener("deviceorientation",onOrient,true);
-  avisaStatusSensor("sem-resposta");
-  sim=true; src="mouse/dedo"; raw.elev=2;
-  raw.bearing=view.bearing=wrap360(target.bearing+118);   /* começa de costas */
-  fechaIntro();
-  setStatus("Arraste para girar. Q/E inclinam.");
-});
+
 document.getElementById("b-beam").addEventListener("click",function(e){
   e.stopPropagation();
   if(!beamOn){ beamOn=true; }
