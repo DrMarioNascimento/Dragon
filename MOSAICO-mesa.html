@@ -681,29 +681,40 @@
     font-size:clamp(21px,5.6vw,27px);line-height:1.42;
   }
   .roteiro-blocos{display:grid;gap:12px;margin:14px 0 24px}
-  .roteiro-etapa{border:1px solid var(--linha);border-left-width:4px;border-radius:7px;
-    background:rgba(9,14,21,.94);padding:16px 17px}
+  .roteiro-etapa{border:2px solid transparent;border-radius:9px;padding:17px 18px;
+    box-shadow:0 12px 28px rgba(0,0,0,.24)}
   .roteiro-etapa .etapa-rotulo{display:block;font-size:clamp(11px,3vw,13px);font-weight:800;
-    letter-spacing:.22em;text-transform:uppercase;margin-bottom:8px}
+    letter-spacing:.22em;text-transform:uppercase;margin-bottom:9px}
   .roteiro-etapa .etapa-texto{font-family:var(--serif);font-size:clamp(21px,5.7vw,28px);
-    line-height:1.32;color:var(--texto)}
-  .roteiro-etapa.preparo{border-left-color:var(--frio)}
-  .roteiro-etapa.preparo .etapa-rotulo{color:var(--frio)}
-  .roteiro-etapa.acao{border-left-color:var(--ambar)}
-  .roteiro-etapa.acao .etapa-rotulo{color:var(--ambar)}
-  .roteiro-etapa.fala{border-left-color:var(--vermelho)}
-  .roteiro-etapa.fala .etapa-rotulo{color:var(--vermelho)}
-  .roteiro-etapa.fala .etapa-tom{font-size:clamp(12px,3.2vw,15px);font-weight:700;
-    letter-spacing:.1em;text-transform:uppercase;color:#f19a87;margin-bottom:8px}
-  .roteiro-etapa.fala .etapa-fala{font-family:var(--serif);font-size:clamp(31px,8.5vw,48px);
-    line-height:1.12;color:#fff}
+    line-height:1.34;color:#fff}
+  .roteiro-etapa.preparo{border-color:rgba(127,212,255,.82);
+    background:linear-gradient(135deg,rgba(22,76,101,.97),rgba(12,46,66,.97))}
+  .roteiro-etapa.preparo .etapa-rotulo{color:#bdeeff}
+  .roteiro-etapa.acao{border-color:rgba(232,164,76,.9);
+    background:linear-gradient(135deg,rgba(103,65,17,.97),rgba(67,40,10,.97))}
+  .roteiro-etapa.acao .etapa-rotulo{color:#ffd18d}
+  .roteiro-etapa.fala{border-color:rgba(224,103,79,.92);
+    background:linear-gradient(135deg,rgba(105,38,31,.98),rgba(67,20,20,.98))}
+  .roteiro-etapa.fala .etapa-rotulo{color:#ffb1a2}
+  .roteiro-etapa.fala .etapa-tom{font-size:clamp(12px,3.2vw,15px);font-weight:800;
+    letter-spacing:.1em;text-transform:uppercase;color:#ffd0c7;margin-bottom:10px}
+  .roteiro-etapa.fala .etapa-fala{font-family:var(--serif);font-size:clamp(25px,6.8vw,39px);
+    line-height:1.22;color:#fff}
 
   /* Na encenação, apenas o aparelho de quem atua recebe informação. */
   body.encenacao-passiva{background:#020407;overflow:hidden}
   body.encenacao-passiva #arte{background-image:url("img/capa-vertical.jpg");opacity:.78}
   body.encenacao-passiva #arte::after{background:rgba(2,4,7,.58)}
-  body.encenacao-passiva #app{max-width:none;min-height:100dvh;padding:0}
+  body.encenacao-passiva #app{max-width:none;min-height:100dvh;padding:0;display:flex;
+    align-items:center;justify-content:center}
   body.encenacao-passiva #btn-pistas{display:none!important}
+  .encenacao-aguarde{position:relative;z-index:2;padding:15px 24px;border:1px solid rgba(230,236,242,.48);
+    border-radius:100px;background:rgba(5,7,12,.72);color:#fff;text-align:center;
+    font:800 clamp(18px,5vw,27px) var(--sans);letter-spacing:.28em;text-indent:.28em;
+    text-shadow:0 2px 18px #000;box-shadow:0 12px 34px rgba(0,0,0,.45);
+    animation:aguardeRespira 2.2s ease-in-out infinite}
+  @keyframes aguardeRespira{0%,100%{opacity:.66}50%{opacity:1}}
+  @media(prefers-reduced-motion:reduce){.encenacao-aguarde{animation:none}}
 
   /* ---------- modal QR ---------- */
   .modal-fundo{
@@ -966,52 +977,52 @@ function descPers(p, forma){ return p ? flex(p.desc, forma) : ""; }
 /* ---------- roteiros da encenacao (Cap. 1 e 3) ---------- */
 var ROTEIRO = {
   investigador:{
-    resumo:"Você vai entrar primeiro, examinar a parede e reagir a um estalo.",
-    acao:"Caminhe devagar. Passe a mão pela parede do corredor. Ao perceber o estalo, pare e olhe para cima.",
-    rub:"Você entra primeiro. Não por coragem — por hábito. Passa a mão pela parede do corredor, como quem testa a textura de algo vivo. A madeira responde com um estalo curto. Você para. Olha para cima.",
-    tom:"Alto — quase um grito",
-    fala:"“Tem alguém aí?”",
-    pos:"A fala sai curta, automática. Ninguém responde. Ou talvez tenha respondido, e o som se perdeu na tempestade."
+    resumo:"Agora é a sua vez de encenar na história. Você será a primeira pessoa a entrar na casa: caminhará como se atravessasse um corredor escuro, examinará a parede e reagirá a um estalo antes de chamar quem possa estar escondido.",
+    acao:"Caminhe devagar, como se estivesse entrando por um corredor. Passe a mão pela parede. Ao perceber um estalo, pare de repente, olhe para cima e procure a origem do som.",
+    rub:"Você entra primeiro, examina a parede do corredor e reage ao som inesperado vindo da casa.",
+    tom:"Comece desconfiad{o|a}; aumente a voz até quase gritar",
+    fala:"“Tem alguém aí? Eu ouvi esse estalo — e não foi a tempestade. Se existe alguém escondido nesta casa, apareça agora! Não vou continuar andando sem saber quem está nos observando.”",
+    pos:"Depois da fala, mantenha o olhar fixo no alto por um instante, como se ainda esperasse uma resposta."
   },
   herdeiro:{
-    resumo:"Você vai observar a sala como quem procura algo conhecido e se aproximar do cofre.",
-    acao:"Entre com segurança. Examine os cantos da sala. Fixe o olhar no cofre e toque a trava com o indicador.",
-    rub:"Você não entra: surge. A névoa abre espaço, como se reconhecesse você. Olha para cada canto da sala como quem procura algo que já sabe que está ali. O cofre chama sua atenção — fechado, mas com a marca de dedo fresca. Você toca a trava com o indicador.",
-    tom:"Baixo, seco, sem hesitar",
-    fala:"“Isso não estava assim.”",
-    pos:"E não estava mesmo."
+    resumo:"Agora é a sua vez de encenar na história. Você entrará como alguém que conhece a casa muito bem, examinará a sala à procura de algo fora do lugar e se aproximará do cofre ao perceber que a trava foi mexida.",
+    acao:"Entre com segurança. Examine lentamente os cantos da sala. Ao encontrar o cofre, fixe o olhar nele, aproxime-se e toque a trava com o indicador.",
+    rub:"Você reconhece o ambiente, percebe uma alteração no cofre e tenta compreender quem esteve ali antes da chegada do grupo.",
+    tom:"Baixo e controlado no início; termine com firmeza",
+    fala:"“Isso não estava assim. Eu conheço cada marca deste cofre, e alguém tocou nesta trava recentemente. Não me digam que foi apenas curiosidade. Quem chegou antes de nós precisa explicar o que procurava aqui.”",
+    pos:"Afaste a mão do cofre devagar e observe as outras pessoas como se esperasse que alguém se denunciasse."
   },
   morador:{
-    resumo:"Você vai entrar silenciosamente e concentrar sua atenção no andar superior.",
-    acao:"Caminhe sem fazer barulho. Olhe para a escada, o sótão e a janela. Encare um ponto acima das pessoas por três segundos e depois desvie.",
-    rub:"Você chega sem fazer barulho — a porta nem parece abrir. Passos leves, calculados, de quem está acostumad{o|a} a não ser percebid{o|a}. Olha para a escada. Para o sótão. Para a janela do segundo andar.",
-    tom:"Sem falar — só o olhar",
-    fala:"( silêncio )",
-    pos:"Você não diz nada. Mas encara alguma coisa acima da cabeça das outras pessoas por três segundos, como quem já viu algo que os outros não viram. Depois desvia."
+    resumo:"Agora é a sua vez de encenar na história. Você entrará como alguém acostumado a circular pela casa sem ser percebido, observará o andar superior e avisará ao grupo que viu um movimento onde ninguém deveria estar.",
+    acao:"Caminhe com passos leves. Olhe para a escada, para o sótão e para a janela. Encare um ponto acima das outras pessoas por três segundos; então recue um passo e fale.",
+    rub:"Você conhece os ruídos da casa e percebe no andar superior algo diferente dos sons provocados pela tempestade.",
+    tom:"Baixo e urgente, como quem teme ser escutad{o|a}",
+    fala:"“Não olhem todos ao mesmo tempo. Há alguma coisa se movendo perto do sótão. Eu conheço os barulhos desta casa, e aquilo não foi madeira cedendo ao vento. Alguém está lá em cima — e acabou de perceber que nós chegamos.”",
+    pos:"Depois de falar, desvie o olhar rapidamente e mantenha o corpo voltado para a escada."
   },
   jornalista:{
-    resumo:"Você vai entrar com pressa, proteger a bolsa e examinar sinais estranhos na sala.",
-    acao:"Caminhe como se estivesse atrasad{o|a}. Segure a bolsa com força. Olhe para o corredor, a cortina e a porta entreaberta.",
-    rub:"Você entra como se estivesse atrasad{o|a} — mesmo não estando. Segura a bolsa com força, como se algo lá dentro fosse mais importante do que a própria noite. Olha para o corredor. Para a cortina que balança sem vento. Para a porta entreaberta.",
-    tom:"Incomodad{o|a} — mais do que deveria",
-    fala:"“Quem deixou isso assim?”",
-    pos:"Ninguém responde. E isso incomoda você ainda mais."
+    resumo:"Agora é a sua vez de encenar na história. Você chegará com pressa, protegerá uma bolsa que contém algo importante e investigará sinais estranhos no corredor antes de questionar o grupo.",
+    acao:"Caminhe como se estivesse atrasad{o|a}. Segure a bolsa junto ao corpo. Examine o corredor, a cortina que se move e a porta entreaberta; então aponte para a porta.",
+    rub:"Você tenta descobrir rapidamente o que aconteceu na sala enquanto protege o conteúdo da bolsa.",
+    tom:"Incomodad{o|a} e incisiv{o|a}, fazendo perguntas em sequência",
+    fala:"“Quem deixou essa porta aberta? A cortina está se movendo, mas não há vento entrando por aqui. Alguém passou por esse corredor antes de nós. Quero saber quem foi — e por que ninguém achou importante contar isso.”",
+    pos:"Aperte a bolsa contra o corpo e espere a resposta sem baixar a mão que aponta para a porta."
   },
   policial:{
-    resumo:"Você vai tentar esconder o nervosismo enquanto observa a janela, as pessoas e a casa.",
-    acao:"Caminhe com postura tensa. Olhe para a janela, para as pessoas e para a casa. Passe a mão pelo cabelo e reaja ao reflexo na janela.",
-    rub:"Você entra com a postura de quem tenta parecer tranquil{o|a} — mas não está. Olha para a tempestade pela janela. Depois para os outros. Depois para a casa. E a casa olha de volta. Você passa a mão pelo cabelo, nervos{o|a}. Um reflexo metálico na janela chama sua atenção.",
-    tom:"Nervos{o|a} — a voz falha no meio",
-    fala:"“Vocês viram isso?”",
-    pos:"Ninguém admite ter visto. Mas todos sentiram."
+    resumo:"Agora é a sua vez de encenar na história. Você tentará demonstrar controle, mas deixará o nervosismo aparecer enquanto examina a janela, as pessoas e um reflexo metálico que surge do lado de fora.",
+    acao:"Caminhe com postura tensa. Olhe para a janela, para as pessoas e novamente para a casa. Passe a mão pelo cabelo, recue ao notar um reflexo metálico e chame a atenção do grupo.",
+    rub:"Você tenta manter a autoridade, mas o reflexo na janela revela que a situação pode ser mais perigosa do que parecia.",
+    tom:"Firme no começo; deixe a voz falhar e depois recupere a autoridade",
+    fala:"“Vocês viram aquele reflexo na janela? Não, não se aproximem ainda. Parecia metal, e se alguém estiver lá fora terá visão de toda esta sala. Afastem-se do vidro e me digam agora: alguém trouxe alguma coisa que possa refletir a luz?”",
+    pos:"Abra um braço diante do grupo como se quisesse protegê-lo e continue olhando para a janela."
   },
   menina:{
-    resumo:"Você vai entrar por último, observar toda a sala e permanecer em silêncio.",
-    acao:"Entre devagar. Olhe para o teto, o sótão, a escada, o cofre e a porta. Encare cada pessoa da mesa e só então se sente.",
-    rub:"Você é {o último|a última}. Entra devagar, como quem não quer interromper algo que já começou. A casa parece esperar por você. Olha para o teto. Para o sótão. Para a escada. Para o cofre. Para a porta entreaberta.",
-    tom:"Não fale — conte até cinco",
-    fala:"( silêncio )",
-    pos:"Você vê tudo. E não diz nada. O silêncio {do Menino|da Menina} é mais pesado do que qualquer fala. Encare a mesa, uma pessoa de cada vez, e só então sente."
+    resumo:"Agora é a sua vez de encenar na história. Você entrará por último, observará cada detalhe como se percebesse algo que os adultos ignoraram e revelará que a casa parecia estar esperando especificamente por uma das pessoas presentes.",
+    acao:"Entre devagar. Olhe para o teto, o sótão, a escada, o cofre e a porta. Encare cada pessoa da mesa; escolha uma delas, dê um passo em sua direção e só então fale.",
+    rub:"Você reúne em silêncio tudo o que viu e transforma sua observação em um aviso inquietante para o grupo.",
+    tom:"Calm{o|a} e muito sério; fale devagar, sem desviar o olhar",
+    fala:"“A casa estava vazia quando chegamos, mas não parecia abandonada. As portas estavam abertas como se alguém soubesse que viríamos. E desde que entramos, os ruídos acompanham exatamente os nossos passos. Acho que esta casa não esperava por todos nós. Esperava por uma pessoa.”",
+    pos:"Continue olhando para a pessoa escolhida por dois segundos e depois sente-se lentamente."
   }
 };
 
@@ -1717,7 +1728,7 @@ function telaEncenacao(){
 
   if(!souEu){
     /* Nenhum nome, ordem ou pista visual: os demais observam a cena real. */
-    return '';
+    return '<div class="encenacao-aguarde" role="status">AGUARDE...</div>';
   }
 
   if(STATE.contando>0){
@@ -1733,7 +1744,7 @@ function telaEncenacao(){
   return '<span class="eyebrow">&Eacute; a sua vez</span>'+
     '<p class="muted" style="text-align:center">Proteja a tela. Leia os tr&ecirc;s passos antes de come&ccedil;ar.</p>'+
     '<div class="roteiro-blocos">'+
-      '<div class="roteiro-etapa preparo"><span class="etapa-rotulo">1 &middot; Prepare-se</span><div class="etapa-texto">'+esc(flex(r.resumo||r.rub,fm))+'</div></div>'+
+      '<div class="roteiro-etapa preparo"><span class="etapa-rotulo">1 &middot; Entenda a cena</span><div class="etapa-texto">'+esc(flex(r.resumo||r.rub,fm))+'</div></div>'+
       '<div class="roteiro-etapa acao"><span class="etapa-rotulo">2 &middot; Fa&ccedil;a</span><div class="etapa-texto">'+esc(flex(r.acao||r.rub,fm))+'</div></div>'+
       '<div class="roteiro-etapa fala"><span class="etapa-rotulo">3 &middot; Fale</span><div class="etapa-tom">'+esc(flex(r.tom,fm))+'</div><div class="etapa-fala">'+esc(flex(r.fala,fm))+'</div></div>'+
     '</div>'+
