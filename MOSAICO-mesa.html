@@ -330,7 +330,13 @@
     background:linear-gradient(180deg,rgba(5,7,12,.35) 0%,rgba(5,7,12,.72) 100%);
     transition:opacity 1.2s ease, background 1.2s ease;
   }
-  #portao.tocando{background:transparent;justify-content:flex-end}
+  /* durante o video o Pular vai para o canto: no centro ele cai
+     exatamente onde legenda e texto do video costumam aparecer */
+  #portao.tocando{
+    background:transparent;
+    justify-content:flex-end;align-items:flex-end;
+    padding-right:18px;
+  }
   #portao.saindo{opacity:0;pointer-events:none}
   body.portao #app{opacity:0;pointer-events:none;transition:opacity .8s ease}
   #portao-toque{
@@ -1573,12 +1579,29 @@ async function voltarParaSala(){
   }
 
   /* o toque libera o som: e a unica porta que o navegador aceita */
+  var comecouEm=0;
   function abrirComSom(){
     portao.classList.add("tocando");
     v.muted=false; v.loop=false; v.volume=1;
-    try{ v.currentTime=0; }catch(e){}
-    var t=v.play();
-    if(t&&t.catch) t.catch(function(){ v.muted=true; v.play(); });
+    comecouEm=Date.now();
+
+    function arranca(){
+      var t=v.play();
+      if(t&&t.catch) t.catch(function(){
+        v.muted=true; sincronizaIconeSom(); v.play();
+      });
+    }
+    /* Rebobinar e assincrono. Se der play antes do seek terminar, o video
+       toca no fim e dispara um "ended" na hora — que apagaria o som que a
+       pessoa acabou de liberar. Por isso espera o seeked.               */
+    if(v.currentTime>0.2){
+      var aoVoltar=function(){ v.removeEventListener("seeked",aoVoltar); arranca(); };
+      v.addEventListener("seeked",aoVoltar);
+      try{ v.currentTime=0; }
+      catch(e){ v.removeEventListener("seeked",aoVoltar); arranca(); }
+    } else {
+      arranca();
+    }
     sincronizaIconeSom();
   }
 
@@ -1623,7 +1646,11 @@ async function voltarParaSala(){
   if(bR) bR.addEventListener("click",function(){ window.repetirAbertura(); });
   if(bS) bS.addEventListener("click",function(){ window.alternarSom(); });
 
-  v.addEventListener("ended", viraFundo);
+  /* cinto de seguranca: "ended" logo apos rebobinar e espurio, ignora */
+  v.addEventListener("ended", function(){
+    if(Date.now()-comecouEm < 1200) return;
+    viraFundo();
+  });
   v.addEventListener("canplay",function(){
     v.classList.add("tocando");
     document.body.classList.add("com-video");
