@@ -1,18 +1,36 @@
 {
   "_leia": "MOLDE DE CASO DO MOSAICO. Para criar outro caso, copie este arquivo, troque o conteúdo e abra o jogo com ?caso=nome-do-arquivo (sem .json). Marcadores {masculino|feminino} são trocados conforme a escolha do jogador na entrada.",
-
   "id": "casa-da-costa",
   "titulo": "A Casa da Costa",
-
   "configuracao": {
     "versaoPontuacao": "5.0",
-    "jogadores": { "minimo": 2, "maximo": 12, "copiasPorPersonagem": 2 },
+    "jogadores": {
+      "minimo": 2,
+      "maximo": 12,
+      "copiasPorPersonagem": 2
+    },
     "moedasIniciais": 9,
-    "precos": { "baixo": 1, "justo": 3, "alto": 5 },
-    "limitesSegundos": { "performance": 60, "constelacao": 180, "inclinacao": 180, "cooperacao": 60, "mercado": 480, "deducao": 300 },
-    "pesos": { "tempo": 32, "qualidade": 13, "cooperacao": 30, "economia": 20, "performance": 5 }
+    "precos": {
+      "baixo": 1,
+      "justo": 3,
+      "alto": 5
+    },
+    "limitesSegundos": {
+      "performance": 60,
+      "constelacao": 180,
+      "inclinacao": 180,
+      "cooperacao": 60,
+      "mercado": 480,
+      "deducao": 300
+    },
+    "pesos": {
+      "tempo": 32,
+      "qualidade": 13,
+      "cooperacao": 30,
+      "economia": 20,
+      "performance": 5
+    }
   },
-
   "solucao": {
     "suspeito": "herdeiro",
     "motivo": "recuperar-documento",
@@ -20,7 +38,6 @@
     "prova": "marca-na-trava",
     "lacuna": "objeto-metalico"
   },
-
   "revelacaoFinal": {
     "titulo": "A verdade na Casa da Costa",
     "sintese": "O Herdeiro entrou na casa para recuperar um documento escondido e usou a oscilação de energia para abrir o cofre. A marca recente na trava liga sua ação ao cofre; o pequeno objeto metálico que caiu nas proximidades fecha a lacuna física do acontecimento.",
@@ -28,17 +45,31 @@
       "O Herdeiro sabia que um documento permanecia escondido no cofre da Casa da Costa. Antes da queda de energia, aproximou-se da trava e a manipulou, deixando a marca recente observada no início da noite.",
       "A porta entreaberta, a cortina em movimento e os ruídos do andar superior sugeriam uma invasão, mas a janela continuava trancada. Esses sinais desviavam a atenção sem explicar o ponto central: alguém presente na casa conhecia o cofre.",
       "Quando a luz oscilou, o Herdeiro aproveitou a confusão para abrir o cofre e recuperar o documento. Durante a ação, um pequeno componente metálico caiu perto da trava e foi deslocado depois da queda, produzindo parte dos sons e movimentos percebidos no escuro.",
-      "A constelação fixou a sequência na marca da trava. A inclinação localizou o fragmento junto ao cofre. Quando os dois sinais foram combinados às pistas privadas, o aparente conjunto de fenômenos isolados tornou-se uma única ação coerente."
+      "O Mapa do Escuro fixou a sequência na marca da trava. A Janela do Norte localizou o fragmento junto ao cofre. Quando os dois sinais foram combinados às pistas privadas, o aparente conjunto de fenômenos isolados tornou-se uma única ação coerente."
     ],
     "evidencias": [
-      { "titulo": "Marca recente na trava", "texto": "É a prova-chave: demonstra manipulação recente do cofre e conecta a ação ao ponto exato onde o documento estava escondido." },
-      { "titulo": "Pequeno objeto metálico", "texto": "Resolve a lacuna material: caiu junto ao cofre e foi deslocado depois, explicando sons e movimentos percebidos durante a escuridão." },
-      { "titulo": "Janela trancada", "texto": "Enfraquece a hipótese de entrada pela janela. A porta e a cortina criavam aparência de invasão, mas não comprovavam acesso externo." },
-      { "titulo": "Sombras e ruídos", "texto": "Eram sinais reais, porém insuficientes isoladamente. Ganham sentido apenas quando relacionados à abertura do cofre e ao fragmento deslocado." },
-      { "titulo": "Constelação e inclinação", "texto": "As rodadas sensoriais confirmam o ponto fixo da sequência e a posição física do fragmento, aproximando os indícios da conclusão." }
+      {
+        "titulo": "Marca recente na trava",
+        "texto": "É a prova-chave: demonstra manipulação recente do cofre e conecta a ação ao ponto exato onde o documento estava escondido."
+      },
+      {
+        "titulo": "Pequeno objeto metálico",
+        "texto": "Resolve a lacuna material: caiu junto ao cofre e foi deslocado depois, explicando sons e movimentos percebidos durante a escuridão."
+      },
+      {
+        "titulo": "Janela trancada",
+        "texto": "Enfraquece a hipótese de entrada pela janela. A porta e a cortina criavam aparência de invasão, mas não comprovavam acesso externo."
+      },
+      {
+        "titulo": "Sombras e ruídos",
+        "texto": "Eram sinais reais, porém insuficientes isoladamente. Ganham sentido apenas quando relacionados à abertura do cofre e ao fragmento deslocado."
+      },
+      {
+        "titulo": "Mapa do Escuro e Janela do Norte",
+        "texto": "As rodadas sensoriais confirmam o ponto fixo da sequência e a posição física do fragmento, aproximando os indícios da conclusão."
+      }
     ]
   },
-
   "deducao": {
     "motivos": [
       { "id": "recuperar-documento", "rotulo": "Recuperar um documento escondido" },
@@ -61,32 +92,28 @@
       { "id": "som-no-sotao", "rotulo": "O som no sótão" }
     ]
   },
-
   "mosaico": {
     "instrucao": "Ordene os seis acontecimentos gerais do mais antigo para o mais recente.",
     "ordemCorreta": ["pub-2103", "pub-2107", "pub-2112", "pub-2114", "pub-2117", "pub-2120"]
   },
-
   "tarefas": {
     "constelacao": {
-      "titulo": "Constelação Indoor",
-      "arquivo": "MOSAICO-24.3-constelacao-indoor.html?embed=1",
+      "titulo": "O Mapa do Escuro",
+      "arquivo": "MOSAICO-24.3-mapa-do-escuro.html?embed=1",
       "pista": { "id": "tarefa-constelacao", "hora": "21:26", "txt": "Os pontos só formam um desenho quando observados na ordem certa. A marca recente na trava do cofre é o ponto fixo da sequência." }
     },
     "inclinacao": {
-      "titulo": "Inclinação–Fragmento",
-      "arquivo": "MOSAICO-24.4-inclinacao-fragmento.html?embed=1",
+      "titulo": "A Janela do Norte",
+      "arquivo": "MOSAICO-24.4-a-janela-do-norte.html?embed=1",
       "pista": { "id": "tarefa-inclinacao", "hora": "21:28", "txt": "O pequeno objeto metálico não atravessou a sala: caiu próximo ao cofre e foi deslocado depois da queda." }
     }
   },
-
   "arte": {
     "capa": "img/capa-vertical.jpg",
     "painel": "img/fundo-painel.jpg",
     "espera": "img/aguardando.jpg",
     "video": "img/abertura.mp4"
   },
-
   "elenco": [
     {
       "id": "investigador",
@@ -125,7 +152,6 @@
       "desc": "{O último|A última}. Vê tudo. Não diz nada."
     }
   ],
-
   "roteiros": {
     "investigador": {
       "rub": "Você entra primeiro. Não por coragem — por hábito. Passa a mão pela parede do corredor, como quem testa a textura de algo vivo. A madeira responde com um estalo curto. Você para. Olha para cima.",
@@ -164,16 +190,14 @@
       "pos": "Você vê tudo. E não diz nada. O silêncio {do Menino|da Menina} é mais pesado do que qualquer fala. Encare a mesa, uma pessoa de cada vez, e só então sente."
     }
   },
-
   "pistas": {
     "investigador": { "id": "priv-investigador", "hora": "21:29", "qualidade": "mediana", "txt": "Um estalo seco. Depois outro. Depois silêncio. Você ouviu atrás de você." },
-    "herdeiro":     { "id": "priv-herdeiro", "hora": "21:29", "qualidade": "ruim", "txt": "Você sentiu algo ao lado. Não foi passo, não foi corpo. Foi deslocamento." },
-    "morador":      { "id": "priv-morador", "hora": "21:30", "qualidade": "boa", "txt": "Algo caiu. Pequeno, metálico, preciso. Veio do cofre." },
-    "jornalista":   { "id": "priv-jornalista", "hora": "21:30", "qualidade": "mediana", "txt": "Algo passou perto da sua mão. Frio, rápido, intencional. Não tocou." },
-    "policial":     { "id": "priv-policial", "hora": "21:30", "qualidade": "boa", "txt": "Mesmo sem luz, uma sombra passou. Não deveria ser possível. Mas foi." },
-    "menina":       { "id": "priv-menina", "hora": "21:31", "qualidade": "ruim", "txt": "Alguém respirou perto demais. Você ouviu. E não se mexeu." }
+    "herdeiro": { "id": "priv-herdeiro", "hora": "21:29", "qualidade": "ruim", "txt": "Você sentiu algo ao lado. Não foi passo, não foi corpo. Foi deslocamento." },
+    "morador": { "id": "priv-morador", "hora": "21:30", "qualidade": "boa", "txt": "Algo caiu. Pequeno, metálico, preciso. Veio do cofre." },
+    "jornalista": { "id": "priv-jornalista", "hora": "21:30", "qualidade": "mediana", "txt": "Algo passou perto da sua mão. Frio, rápido, intencional. Não tocou." },
+    "policial": { "id": "priv-policial", "hora": "21:30", "qualidade": "boa", "txt": "Mesmo sem luz, uma sombra passou. Não deveria ser possível. Mas foi." },
+    "menina": { "id": "priv-menina", "hora": "21:31", "qualidade": "ruim", "txt": "Alguém respirou perto demais. Você ouviu. E não se mexeu." }
   },
-
   "publicas": [
     { "id": "pub-2103", "hora": "21:03", "txt": "A luz da Casa da Costa oscilou pela primeira vez. Não foi queda. Foi aviso." },
     { "id": "pub-2107", "hora": "21:07", "txt": "A porta da sala estava entreaberta. A cortina balançava. E a janela estava trancada." },
@@ -182,7 +206,6 @@
     { "id": "pub-2117", "hora": "21:17", "txt": "O corredor ficou meio escuro por um segundo. Uma sombra passou rápido demais." },
     { "id": "pub-2120", "hora": "21:20", "txt": "A névoa entrou pela fresta da porta como se tivesse sido convidada." }
   ],
-
   "relogio": {
     "sala": "21:00",
     "escuro": "21:00",
@@ -199,7 +222,6 @@
     "resultado": "21:51",
     "historia": "21:51"
   },
-
   "capitulos": {
     "sala": "A tempestade chegou antes dos convidados",
     "escuro": "A casa apagou",
@@ -207,8 +229,8 @@
     "encenacao": "A casa escolheu alguém",
     "votacao": "A energia da mesa",
     "performance": "A energia da mesa",
-    "constelacao": "A direção escondida",
-    "inclinacao": "O fragmento encontra seu eixo",
+    "constelacao": "O Mapa do Escuro",
+    "inclinacao": "A Janela do Norte",
     "mosaico": "A verdade é um fragmento",
     "cooperacao": "O núcleo se recorda",
     "mercado": "Mercado Cego",
@@ -216,7 +238,6 @@
     "resultado": "A linha da verdade",
     "historia": "A noite da tempestade"
   },
-
   "historia": [
     "A tempestade chegou antes dos convidados.",
     "O vento batia contra as janelas da Casa da Costa como se quisesse entrar. A madeira antiga respondia com estalos curtos, secos, quase impacientes.",
