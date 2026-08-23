@@ -1159,7 +1159,10 @@ function controlesMestreMovel(){
   else if(fase==="resultado"){
     var etapa=etapaRevelacao();
     if(etapa<4) botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();avancarRevelacao()">'+esc(rotuloProximaRevelacao(etapa))+'</button>';
-    else autoInfo='<div class="card"><b>Revela&ccedil;&atilde;o conclu&iacute;da</b><p class="muted">O placar final est&aacute; vis&iacute;vel. Encerre a sala quando terminar.</p></div>';
+    else {
+      autoInfo='<div class="card"><b>Revela&ccedil;&atilde;o conclu&iacute;da</b><p class="muted">O placar final est&aacute; vis&iacute;vel. Voc&ecirc; pode encerrar ou abrir uma nova sala.</p></div>';
+      botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();encerrarENovaMesa()">Abrir nova sala</button>';
+    }
   }
   var conectados=js.map(function(j){var status=fase==="sala"?(j.pronto?'pronto':'aguardando prontid&atilde;o'):'conectado';return '<div class="conectado-item"><span>'+esc(j.nome)+'</span><span class="muted">'+status+'</span></div>';}).join('')||'<p class="muted">Nenhum participante conectado.</p>';
   var m=STATE.mesa, qr=m?'https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=8&data='+encodeURIComponent(m.link):'';
@@ -1275,7 +1278,10 @@ function render(){
     case "resultado":   h=telaResultado(); break;
     default:            h=telaInicio();
   }
-  if(STATE.eu && modoAtual()==="sem-telao") h=cabecalhoRodada((STATE.doc&&STATE.doc.fase)||"sala","rodada-celular")+h+muralColetivoMovel();
+  if(STATE.eu){
+    h=cabecalhoRodada((STATE.doc&&STATE.doc.fase)||"sala","rodada-celular")+h;
+    if(modoAtual()==="sem-telao") h+=muralColetivoMovel();
+  }
   if(STATE.eu) h+=painelCasoMovel();
   if(STATE.eu && souMestreDaMesa() && modoAtual()==="sem-telao") h+=controlesMestreMovel();
   app.innerHTML=h;
@@ -1356,7 +1362,9 @@ function telaPainel(){
   var js=ordenados(STATE.jogadores);
   var fase=(STATE.doc&&STATE.doc.fase)||"sala";
   if(fase==="resultado"){
-    var etapa=etapaRevelacao(), controle=etapa<4?'<div class="controle-revelacao"><button class="btn btn-ambar" onclick="avancarRevelacao()">'+esc(rotuloProximaRevelacao(etapa))+'</button></div>':'';
+    var etapa=etapaRevelacao(), controle=etapa<4
+      ? '<div class="controle-revelacao"><button class="btn btn-ambar" onclick="avancarRevelacao()">'+esc(rotuloProximaRevelacao(etapa))+'</button></div>'
+      : '<div class="controle-revelacao"><button class="btn btn-ambar" onclick="encerrarENovaMesa()">Abrir nova sala</button><button class="btn btn-perigo" onclick="encerrarMesa()">Encerrar sala</button></div>';
     return cabecalhoRodada(fase)+'<div class="revelacao-final">'+telaResultado()+controle+'</div>';
   }
   var grade="";
@@ -2352,6 +2360,28 @@ async function encerrarMesa(){
   render();
 }
 
+async function encerrarENovaMesa(){
+  if(!STATE.mesa) return;
+  var codigoAnterior=STATE.mesa.codigo, modo=modoAtual();
+  if(!confirm("Encerrar a mesa " + codigoAnterior + " e abrir uma nova sala?\n\n" +
+              "Todos os jogadores serão desconectados e o novo jogo usará outro código."))
+    return;
+  try{
+    var FB=await esperarFB();
+    await FB.atualizarMesa(codigoAnterior,{ativa:false, encerradaEmMs:Date.now()});
+  }catch(e){
+    console.error("encerrarENovaMesa", e);
+    avisa("Não foi possível encerrar a sala atual. Tente novamente.");
+    return;
+  }
+  if(_autoTimer)clearTimeout(_autoTimer);_autoTimer=null;_autoTimerChave="";_autoFasePendente=null;
+  desligarOuvintes(); limparReconexao();
+  STATE.eu=null; STATE.mesa=null; STATE.jogadores=[]; STATE.publicas=[]; STATE.votos=[];
+  STATE.qrAberto=false; STATE.menuMestreAberto=false; STATE.casoAberto=false; STATE.doc=null; STATE.tela="inicio";
+  render();
+  await criarMesa(modo);
+}
+
 async function voltarParaSala(){
   var FB=await esperarFB();
   await FB.atualizarMesa(STATE.mesa.codigo,{fase:"sala",vez:0});
@@ -2505,22 +2535,23 @@ async function voltarParaSala(){
   if(codigoUrl) STATE.tela="entrar";
 
   /* ?caso=nome carrega casos/nome.json e troca a historia inteira.
-     Sem o parametro, roda A Casa da Costa, que ja vem embutida.     */
-  var nomeCaso = q ? q.get("caso") : null;
-  if(nomeCaso && /^[a-z0-9-]{1,40}$/.test(nomeCaso)){
-    fetch("casos/"+nomeCaso+".json")
+     Sem o parametro, carrega explicitamente o caso canonico.       */
+  var nomeCaso = (q&&q.get("caso")) || "casa-da-costa";
+  var casoPronto=Promise.resolve();
+  if(/^[a-z0-9-]{1,40}$/.test(nomeCaso)){
+    casoPronto=fetch("casos/"+nomeCaso+".json")
       .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
       .then(function(c){ aplicarCaso(c); render(); })
       .catch(function(e){
         console.error("caso", e);
-        avisa("Caso não encontrado — usando A Casa da Costa");
+        avisa("Não foi possível carregar o caso. Verifique a conexão e tente novamente.");
         render();
       });
   }
   render();
   /* Se este aparelho já pertencia a uma sala ativa, restaura a mesma
      identidade. Um link de outra sala sempre prevalece sobre o vínculo local. */
-  tentarReconectar(codigoUrl);
+  casoPronto.then(function(){ tentarReconectar(codigoUrl); });
 })();
 </script>
 
