@@ -189,7 +189,7 @@
   <p>A tempestade não esperou ninguém. Às 21h03 a luz da casa oscilou. Não foi queda. Foi aviso.</p>
   <p>A janela acesa fica sempre no <b>mesmo rumo real do mundo</b>. Todos viram o corpo para o mesmo lado.</p>
   <p class="small">Gire devagar até achar o clarão na névoa. <b>Segure o rumo firme</b> e você dá um passo encosta acima. São seis até a casa.</p>
-  <button class="go" id="b-start">Descer do carro</button>
+  <button class="go" id="b-start">Ativar movimento</button>
   <button class="alt" id="b-sim">Estou no computador</button>
   <div id="round">NOITE <b id="round-code">----</b></div>
 </div>
@@ -247,6 +247,10 @@ var PASSO_TXT = [
 
 var EMBED=false;
 try{ EMBED = new URLSearchParams(location.search).get("embed")==="1"; }catch(e){}
+function avisaStatusSensor(status){
+  if(!EMBED) return;
+  try{ parent.postMessage({mosaico:"sensor-status", tarefa:"inclinacao", status:status}, "*"); }catch(e){}
+}
 
 /* ---------------- utilidades ---------------- */
 var PI=Math.PI, TAU=PI*2, D2R=PI/180;
@@ -323,7 +327,7 @@ var view={bearing:0, elev:0, roll:0};          /* suavizado */
 var raw={bearing:0, elev:0, roll:0};
 var src="nenhuma";                              /* fonte da orientação */
 var northOffset=0;
-var started=false, sim=false, simDrag=null;
+var started=false, sim=false, simDrag=null, sensorTimer=null;
 var locked=false, holdStart=null, revealed=0, fragIdx=0;
 var passo=0, distAlvo=CFG.PASSOS[0], distView=CFG.PASSOS[0], passoAnim=0;
 var beamOn=true, beamPulse=0, lastPulse=-9e9;
@@ -432,27 +436,51 @@ function onOrient(e){
   var v=eulerParaVista(alpha,e.beta,e.gamma);
   raw.bearing=wrap360(v.bearing+northOffset);
   raw.elev=v.elev; raw.roll=v.roll;
-  if(!started){ started=true; }
+  if(!started){
+    started=true;
+    if(sensorTimer) clearTimeout(sensorTimer);
+    sensorTimer=null;
+    var botao=document.getElementById("b-start");
+    botao.disabled=false; botao.textContent="Ativar movimento";
+    avisaStatusSensor("ativo");
+    fechaIntro();
+  }
 }
 
+function falhaSensor(msg){
+  if(sensorTimer) clearTimeout(sensorTimer);
+  sensorTimer=null;
+  window.removeEventListener("deviceorientationabsolute",onOrient,true);
+  window.removeEventListener("deviceorientation",onOrient,true);
+  src="sem sensor";
+  var botao=document.getElementById("b-start");
+  botao.disabled=false; botao.textContent="Tentar novamente";
+  avisaStatusSensor("sem-resposta");
+  setStatus(msg);
+}
 function ativarSensor(){
   var DOE=window.DeviceOrientationEvent;
+  var botao=document.getElementById("b-start");
+  botao.disabled=true; botao.textContent="Aguardando movimento…";
+  started=false; sim=false;
+  window.removeEventListener("deviceorientationabsolute",onOrient,true);
+  window.removeEventListener("deviceorientation",onOrient,true);
   function liga(){
     if("ondeviceorientationabsolute" in window)
       window.addEventListener("deviceorientationabsolute", onOrient, true);
     window.addEventListener("deviceorientation", onOrient, true);
-    fechaIntro();
-    setTimeout(function(){
-      if(!started){ src="sem sensor"; sim=true; setStatus("Sem bússola aqui — arraste com o dedo."); }
-    }, 1400);
+    if(sensorTimer) clearTimeout(sensorTimer);
+    sensorTimer=setTimeout(function(){
+      if(!started) falhaSensor("Nenhum movimento foi recebido.");
+    },5000);
   }
   if(DOE && typeof DOE.requestPermission==="function"){
     DOE.requestPermission().then(function(s){
       if(s==="granted") liga();
-      else { sim=true; fechaIntro(); setStatus("Permissão negada — arraste com o dedo."); }
-    }).catch(function(){ sim=true; fechaIntro(); });
+      else falhaSensor("Permissão de movimento não autorizada.");
+    }).catch(function(){ falhaSensor("Sensor de movimento indisponível."); });
   } else if(DOE){ liga(); }
-  else { sim=true; fechaIntro(); setStatus("Este aparelho não tem bússola."); }
+  else falhaSensor("Este aparelho não respondeu ao movimento.");
 }
 
 /* modo mouse/dedo (computador) */
@@ -1568,6 +1596,11 @@ function fechaIntro(){
 
 document.getElementById("b-start").addEventListener("click",ativarSensor);
 document.getElementById("b-sim").addEventListener("click",function(){
+  if(sensorTimer) clearTimeout(sensorTimer);
+  sensorTimer=null;
+  window.removeEventListener("deviceorientationabsolute",onOrient,true);
+  window.removeEventListener("deviceorientation",onOrient,true);
+  avisaStatusSensor("sem-resposta");
   sim=true; src="mouse/dedo"; raw.elev=2;
   raw.bearing=view.bearing=wrap360(target.bearing+118);   /* começa de costas */
   fechaIntro();
