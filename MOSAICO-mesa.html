@@ -53,7 +53,16 @@
     position:absolute;inset:0;width:100%;height:100%;
     object-fit:cover;opacity:0;transition:opacity 1.6s ease;
   }
-  body.t-inicio #video-abertura.tocando{opacity:1}
+  /* o video segura o clima ate o jogo comecar: abertura e sala.
+     Da fase seguinte em diante quem manda e o papel de parede. */
+  body.t-inicio #video-abertura.tocando,
+  body.t-painel.fase-sala #video-abertura.tocando{opacity:1}
+  body.t-painel.fase-sala #arte{background-image:none;opacity:1}
+  body.t-painel.fase-sala #arte::after{
+    background:linear-gradient(180deg,
+      rgba(5,7,12,.78) 0%, rgba(5,7,12,.40) 22%,
+      rgba(5,7,12,.30) 60%, rgba(5,7,12,.80) 100%);
+  }
 
   /* Cada arte na orientacao em que nasceu.
      Celular (tela vertical): o poster vertical, inteiro, com o nome no topo.
@@ -61,6 +70,23 @@
      Tela larga (computador / telao): o video toma a tela, proporcao bate.   */
   @media (max-aspect-ratio: 1/1){
     #video-abertura{display:none}
+  }
+
+  /* Tela larga: o video e o protagonista. O bloco de criar a mesa
+     sai do centro e vai para o canto, pequeno, para nao tapar a cena. */
+  @media (min-aspect-ratio: 1/1) and (min-width:820px){
+    #app.capa{
+      max-width:26em;margin:0 auto 0 0;
+      padding-left:4vw;padding-bottom:5vh;
+      background:linear-gradient(to top right,
+        rgba(5,7,12,.94) 0%, rgba(5,7,12,.80) 32%,
+        rgba(5,7,12,.42) 58%, transparent 82%);
+    }
+    #app.capa h1{font-size:clamp(13px,1.15vw,17px);letter-spacing:.34em;margin-bottom:12px}
+    #app.capa .lead{font-size:clamp(16px,1.35vw,21px);line-height:1.4;margin-bottom:22px}
+    #app.capa .btn{font-size:clamp(12px,.95vw,14px);padding:15px 22px;margin-bottom:9px}
+    #app.capa .muted{font-size:clamp(12px,.9vw,14px);margin-top:16px}
+    #app.capa .aviso{font-size:clamp(12px,.95vw,15px);padding:12px 14px}
   }
   /* veu leve so para dar unidade; quem garante a leitura e o
      degrade do proprio #app.capa, que fica por cima da arte */
@@ -434,6 +460,81 @@
     background:linear-gradient(180deg,rgba(5,7,12,.55) 0%,rgba(5,7,12,.92) 70%,#05070c 100%);
   }
 
+  /* ================= TELAS DO JOGADOR (celular) ================= */
+
+  /* espera: a arte manda, o botao Pronto ancora embaixo */
+  body.t-espera #arte{ background-image:url("img/aguardando.jpg"); opacity:1; }
+  body.t-espera #arte::after{
+    background:linear-gradient(180deg,
+      rgba(5,7,12,.05) 0%, rgba(5,7,12,.12) 30%, rgba(5,7,12,.30) 100%);
+  }
+  #app.espera{
+    min-height:100vh;display:flex;flex-direction:column;justify-content:flex-end;
+    padding-bottom:max(34px,env(safe-area-inset-bottom));
+    background:linear-gradient(180deg,
+      transparent 0%, rgba(5,7,12,.20) 34%, rgba(5,7,12,.80) 52%,
+      rgba(5,7,12,.95) 64%, #05070c 78%);
+  }
+  #app.espera .eyebrow{text-align:center}
+  .espera-quem{text-align:center;margin-bottom:26px}
+  .espera-quem .av{font-size:clamp(50px,15vw,74px);line-height:1;
+    filter:drop-shadow(0 0 26px rgba(232,164,76,.4))}
+  .espera-quem .nm{
+    font-family:var(--serif);font-size:clamp(34px,9.4vw,48px);margin-top:10px;
+    text-shadow:0 2px 26px rgba(0,0,0,.95);
+  }
+  .espera-quem .ds{
+    font-family:var(--serif);font-style:italic;color:var(--nevoa);
+    font-size:clamp(19px,5.1vw,24px);line-height:1.4;margin-top:8px;
+    text-shadow:0 2px 20px rgba(0,0,0,.95);
+  }
+  .contagem-prontos{
+    text-align:center;font-family:var(--serif);font-style:italic;
+    font-size:clamp(20px,5.4vw,26px);color:var(--nevoa);margin-top:18px;
+    text-shadow:0 2px 20px rgba(0,0,0,.95);
+  }
+
+  /* escuro: a tela some. Nada de nome, nada de dica. */
+  #app.escuro{
+    min-height:100vh;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;text-align:center;
+  }
+  body.t-escuro{background:#000}
+  body.t-escuro #arte{opacity:0}
+  .escuro-frase{
+    font-family:var(--serif);font-style:italic;
+    font-size:clamp(21px,5.7vw,27px);color:#2b3742;line-height:1.45;max-width:15em;
+  }
+
+  /* pista privada recebida ao encerrar a vez */
+  .pista-card{
+    border:1px solid rgba(232,164,76,.28);border-radius:3px;
+    background:linear-gradient(160deg,rgba(20,26,34,.96),rgba(10,14,20,.98));
+    padding:26px 24px;position:relative;overflow:hidden;
+    animation:rvSobe .9s cubic-bezier(.16,1,.3,1) both;
+  }
+  .pista-card::before{
+    content:"";position:absolute;left:0;top:0;bottom:0;width:2px;
+    background:linear-gradient(180deg,transparent,var(--ambar),transparent);
+  }
+  .pista-card .ph{
+    font-size:clamp(12px,3.4vw,16px);font-weight:600;letter-spacing:.2em;
+    color:var(--ambar);font-variant-numeric:tabular-nums;
+  }
+  .pista-card .pt{
+    font-family:var(--serif);font-size:clamp(27px,7.2vw,38px);line-height:1.3;
+    margin-top:14px;
+  }
+
+  /* abertura da estoria, no fim */
+  .historia p{
+    font-family:var(--serif);font-size:clamp(23px,6.2vw,31px);line-height:1.45;
+    color:var(--texto);margin-bottom:24px;
+  }
+  .historia p:last-child{
+    font-style:italic;color:var(--ambar);
+  }
+
   /* ---------- revelacao do personagem ---------- */
   .revelacao{text-align:center;margin:38px 0}
   .rv-av{font-size:clamp(64px,19vw,96px);line-height:1;
@@ -546,13 +647,37 @@ var PUBLICAS=[
   { hora:"21:17", txt:"O corredor ficou meio escuro por um segundo. Uma sombra passou rápido demais." },
   { hora:"21:20", txt:"A névoa entrou pela fresta da porta como se tivesse sido convidada." }
 ];
-var HORA_FASE={ sala:"21:00", encenacao:null, votacao:"21:23", resultado:"21:23" };
+var HORA_FASE={ sala:"21:00", escuro:"21:00", cena:null, encenacao:null,
+                votacao:"21:23", resultado:"21:23", historia:"21:23" };
+/* Nenhum destes rotulos pode entregar o que vem. A surpresa e o jogo. */
 var CAP_FASE={
   sala:"A tempestade chegou antes dos convidados",
-  encenacao:"Os seis convidados",
+  escuro:"A casa apagou",
+  cena:"A casa escolheu alguém",
+  encenacao:"A casa escolheu alguém",
   votacao:"A linha da verdade",
-  resultado:"A linha da verdade"
+  resultado:"A linha da verdade",
+  historia:"A noite da tempestade"
 };
+
+/* ---------- pista privada (Cap. 5 — A Queda de Energia) ----------
+   Cada um recebe a sua no instante em que encerra a propria vez.    */
+var PISTA_PRIVADA={
+  jonas:  { hora:"21:29", txt:"Um estalo seco. Depois outro. Depois silêncio. Você ouviu atrás de você." },
+  helena: { hora:"21:29", txt:"Você sentiu algo ao lado. Não foi passo, não foi corpo. Foi deslocamento." },
+  caio:   { hora:"21:30", txt:"Algo caiu. Pequeno, metálico, preciso. Veio do cofre." },
+  livia:  { hora:"21:30", txt:"Algo passou perto da sua mão. Frio, rápido, intencional. Não tocou." },
+  marcelo:{ hora:"21:30", txt:"Mesmo sem luz, uma sombra passou. Não deveria ser possível. Mas foi." },
+  ana:    { hora:"21:31", txt:"Alguém respirou perto demais. Você ouviu. E não se mexeu." }
+};
+
+/* ---------- abertura da estoria (Cap. 1) — so no fim ---------- */
+var HISTORIA=[
+  "A tempestade chegou antes dos convidados.",
+  "O vento batia contra as janelas da Casa da Costa como se quisesse entrar. A madeira antiga respondia com estalos curtos, secos, quase impacientes.",
+  "A luz oscilava — não o suficiente para assustar, mas o suficiente para avisar.",
+  "A casa não estava recebendo visitas. A casa estava escolhendo testemunhas."
+];
 
 /* ---------- estado ---------- */
 var STATE = {
@@ -639,6 +764,10 @@ function render(){
   document.body.classList.toggle("t-painel", STATE.tela==="painel");
   document.body.classList.toggle("t-inicio", STATE.tela==="inicio");
   document.body.classList.toggle("t-entrar", STATE.tela==="entrar");
+  /* enquanto a sala espera, o painel continua com o video */
+  var faseAgora=(STATE.doc&&STATE.doc.fase)||"sala";
+  document.body.classList.toggle("fase-sala",
+    STATE.tela==="painel" && faseAgora==="sala");
   var h="";
   switch(STATE.tela){
     case "inicio":      h=telaInicio(); break;
@@ -736,7 +865,7 @@ function telaPainel(){
   var mural="";
   if(!pubs.length){
     mural='<div class="publicas-vazio">A casa ainda n&atilde;o mostrou nada.<br>'+
-          'Cada interpreta&ccedil;&atilde;o abre uma linha aqui.</div>';
+          'As linhas v&atilde;o aparecendo sozinhas.</div>';
   } else {
     for(var m=pubs.length-1;m>=0;m--){
       var pu=pubs[m];
@@ -748,8 +877,10 @@ function telaPainel(){
 
   var acao="";
   if(fase==="sala"){
+    /* o rotulo nao pode entregar o que vem: a encenacao e uma TAREFA
+       do jogo, e a surpresa faz parte dela */
     acao='<button class="btn btn-ambar" '+(js.length<2?'disabled':'')+
-         ' onclick="iniciarEncenacao()">Come&ccedil;ar a encena&ccedil;&atilde;o</button>'+
+         ' onclick="iniciarEncenacao()">Come&ccedil;ar o jogo</button>'+
          (js.length<2?'<p class="muted">Precisa de pelo menos duas pessoas.</p>':'');
   } else if(fase==="encenacao"){
     var vez=STATE.doc.vez||0;
@@ -821,7 +952,7 @@ function telaEsperando(){
       '<p class="muted" style="font-size:clamp(17px,4.6vw,21px)">'+
       js.map(function(j){return esc(j.nome);}).join(" &middot; ")+'</p></div>'+
     '<p class="muted" style="text-align:center;margin-top:24px">'+
-      'Aguardando o painel come&ccedil;ar a encena&ccedil;&atilde;o.</p>';
+      'A casa ainda est&aacute; recebendo. Aguarde.</p>';
 }
 
 function telaEncenacao(){
@@ -847,7 +978,7 @@ function telaEncenacao(){
   var r=ROTEIRO[STATE.eu.personagem];
   if(!r) return '<p class="lead">Roteiro n&atilde;o encontrado.</p>';
 
-  return '<span class="eyebrow">Cena 1 &middot; A chegada</span>'+
+  return '<span class="eyebrow">&Eacute; a sua vez</span>'+
     '<div class="roteiro">'+
       '<div class="quem">'+esc(p?p.nome:"")+'</div>'+
       '<div class="rub">'+esc(r.rub)+'</div>'+
