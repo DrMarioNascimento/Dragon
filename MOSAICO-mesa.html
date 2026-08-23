@@ -809,6 +809,14 @@
   .ritmo-op.on{border-color:rgba(232,164,76,.7);background:rgba(232,164,76,.09);
     box-shadow:0 0 0 2px rgba(232,164,76,.1)}
   .ritmo-op.on b{color:var(--ambar)}.ritmo-op.on span{color:var(--texto)}
+  .partida-pausada{position:fixed;inset:0;z-index:42;display:flex;align-items:center;justify-content:center;
+    padding:24px;background:rgba(2,4,7,.94);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+  .partida-pausada-card{width:min(100%,480px);padding:28px 22px;text-align:center;border:1px solid rgba(127,212,255,.48);
+    border-radius:9px;background:rgba(12,18,26,.96);box-shadow:0 22px 70px rgba(0,0,0,.72)}
+  .partida-pausada-card h2{font-size:clamp(31px,9vw,48px);color:var(--frio);margin:8px 0 12px}
+  .partida-pausada-card p{font:600 clamp(19px,5vw,25px)/1.4 var(--serif);color:var(--texto)}
+  body:has(.partida-pausada) .btn-caso,body:has(.partida-pausada) #btn-pistas{display:none!important}
+  .controle-pausa .btn{margin:0}
   .codigo-grande{
     font-size:clamp(44px,13vw,68px);font-weight:600;letter-spacing:.22em;
     color:var(--ambar);margin:14px 0 6px;
@@ -1327,6 +1335,26 @@ function ritmoAtual(){
   return (STATE.doc&&STATE.doc.ritmo)||(STATE.mesa&&STATE.mesa.ritmo)||STATE.ritmoMesa||"automatico";
 }
 function ritmoConduzido(){return ritmoAtual()==="conduzido";}
+function partidaPausada(){return !!(STATE.doc&&STATE.doc.pausada);}
+async function pausarPartida(){
+  if(!souMestreDaMesa()||!STATE.doc||STATE.doc.pausada) return;
+  var FB=await esperarFB();
+  await FB.atualizarMesa(STATE.mesa.codigo,{pausada:true,pausaIniciadaMs:Date.now()});
+}
+async function retomarPartida(){
+  if(!souMestreDaMesa()||!STATE.doc||!STATE.doc.pausada) return;
+  var agora=Date.now(), inicio=Number(STATE.doc.pausaIniciadaMs)||agora, acrescimo=Math.max(0,agora-inicio);
+  var camposPorFase={
+    votacao:"votacaoAbertaMs",constelacao:"constelacaoAbertaMs",inclinacao:"inclinacaoAbertaMs",
+    mosaico:"mosaicoAbertoMs",mercado:"mercadoAbertoMs",deducao:"deducaoAbertaMs"
+  };
+  var dados={pausada:false,pausaIniciadaMs:0,ultimaPausaMs:acrescimo};
+  var campo=camposPorFase[STATE.doc.fase];
+  if(campo&&STATE.doc[campo]) dados[campo]=Number(STATE.doc[campo])+acrescimo;
+  var FB=await esperarFB();
+  STATE.menuMestreAberto=false;
+  await FB.atualizarMesa(STATE.mesa.codigo,dados);
+}
 function nomeRodada(fase){
   var nomes={
     sala:"Preparação da mesa",
@@ -1397,7 +1425,7 @@ function emitirSomDeNivel(){
 }
 function verificarTrocaDeNivel(fase){
   /* Um unico emissor evita o eco de varios celulares recebendo o snapshot em tempos diferentes. */
-  if(!souMestreDaMesa()) return;
+  if(!souMestreDaMesa()||partidaPausada()) return;
   var d=dinamicaNivel(fase), atual=d?d.id:(fase==="sala"?"sala":null);
   if(!atual) return;
   if(_nivelSonoroAnterior===null){_nivelSonoroAnterior=atual;return;}
@@ -1427,7 +1455,7 @@ function exclusivoSala(el){
 }
 function controlesMestreMovel(){
   var fase=(STATE.doc&&STATE.doc.fase)||"sala", js=ordenados(STATE.jogadores), botoes="", autoInfo="";
-  var acaoNecessaria=false, todos=false, conduzido=ritmoConduzido();
+  var acaoNecessaria=false, todos=false, conduzido=ritmoConduzido(), pausada=partidaPausada();
   function statusOuAcao(prontos,total,titulo,rotulo,acao){
     if(conduzido&&total>0&&prontos>=total){
       acaoNecessaria=true;
@@ -1437,7 +1465,9 @@ function controlesMestreMovel(){
         (conduzido?'A Sala avisará quando for hora de avançar.':'A próxima rodada abrirá automaticamente.')+'</p></div>';
     }
   }
-  if(fase==="sala"){
+  if(pausada){
+    autoInfo='<div class="card"><b>Partida pausada</b><p class="muted">As telas, tarefas e contagens de tempo estão congeladas.</p></div>';
+  }else if(fase==="sala"){
     todos=js.length>=2&&contaProntos()===js.length;
     acaoNecessaria=todos;
     botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();iniciarEncenacao()" '+(todos?'':'disabled')+'>Come&ccedil;ar</button>';
@@ -1487,11 +1517,15 @@ function controlesMestreMovel(){
   var abrirStatus=!abrirAcao&&!abrirParticipantes&&!!autoInfo;
   var secaoAcao=botoes?'<details class="sala-acordeao mestre-acao '+(acaoNecessaria?'acao-necessaria':'')+'" '+(abrirAcao?'open':'')+' ontoggle="exclusivoSala(this)"><summary>'+(acaoNecessaria?'A&ccedil;&atilde;o do mestre necess&aacute;ria':'Controles do mestre')+'</summary><div class="sala-acordeao-conteudo"><div class="menu-mestre-grade">'+botoes+'</div></div></details>':'';
   var secaoStatus=autoInfo?'<details class="sala-acordeao" '+(abrirStatus?'open':'')+' ontoggle="exclusivoSala(this)"><summary>Acompanhamento da rodada</summary><div class="sala-acordeao-conteudo">'+autoInfo+'</div></details>':'';
+  var secaoPausa='<details class="sala-acordeao controle-pausa" '+(pausada?'open':'')+' ontoggle="exclusivoSala(this)"><summary>Controle da partida</summary><div class="sala-acordeao-conteudo">'+
+    (pausada?'<button class="btn btn-frio" onclick="retomarPartida()">&#9654; Retomar partida</button>':'<button class="btn btn-frio" onclick="pausarPartida()">&#10074;&#10074; Pausar partida</button>')+
+    '</div></details>';
   var painel=STATE.menuMestreAberto?'<div class="menu-mestre-fundo" onclick="if(event.target===this)alternarMenuMestre()"><div class="menu-mestre-card">'+
     '<div class="menu-mestre-topo"><div><span class="eyebrow">Mestre &middot; '+esc(nomeRodada(fase))+'</span><h2>Sala</h2><p class="muted">'+(conduzido?'Ritmo conduzido pelo mestre':'Ritmo autom&aacute;tico')+'</p></div><button class="btn btn-sm" onclick="alternarMenuMestre()">Fechar</button></div>'+
     secaoAcao+
     '<details class="sala-acordeao" '+(abrirParticipantes?'open':'')+' ontoggle="exclusivoSala(this)"><summary>Participantes &middot; '+js.length+'</summary><div class="sala-acordeao-conteudo">'+conectados+'</div></details>'+
     secaoStatus+
+    secaoPausa+
     '<details class="sala-acordeao" ontoggle="exclusivoSala(this)"><summary>C&oacute;digo e QR da sala</summary><div class="sala-acordeao-conteudo"><div class="codigo-grande">'+esc(m&&m.codigo)+'</div><img class="menu-mestre-qr" src="'+esc(qr)+'" alt="QR da sala"><button class="btn btn-sm" style="width:100%" onclick="copiarLink()">Copiar link</button></div></details>'+
     '<details class="sala-acordeao" ontoggle="exclusivoSala(this)"><summary>Encerrar sala</summary><div class="sala-acordeao-conteudo"><button class="btn btn-perigo" onclick="encerrarMesa()">Encerrar sala</button></div></details>'+
     '</div></div>':'';
@@ -1507,7 +1541,7 @@ function dadosAutomacao(){
   return null;
 }
 async function verificarAutomacoes(){
-  if(!souMestreDaMesa()||ritmoConduzido()) return;
+  if(!souMestreDaMesa()||ritmoConduzido()||partidaPausada()) return;
   var d=dadosAutomacao(), fase=(STATE.doc&&STATE.doc.fase)||"";
   if(_autoFasePendente&&_autoFasePendente!==fase) _autoFasePendente=null;
   if(!d||_autoFasePendente===d.fase||!d.total) return;
@@ -1518,7 +1552,7 @@ async function verificarAutomacoes(){
   try{await d.acao();}catch(e){_autoFasePendente=null;console.error("automação da fase",e);}
 }
 async function verificarEncontroFragmentos(){
-  if(_liberandoFragmentos||!souMestreDaMesa()||ritmoConduzido()||!STATE.doc||STATE.doc.fase!=="mosaico"||STATE.doc.fragmentosLiberados) return;
+  if(_liberandoFragmentos||!souMestreDaMesa()||ritmoConduzido()||partidaPausada()||!STATE.doc||STATE.doc.fase!=="mosaico"||STATE.doc.fragmentosLiberados) return;
   var total=STATE.jogadores.length, prontos=fragmentosConfirmados();
   if(!total||prontos<total) return;
   _liberandoFragmentos=true;
@@ -1541,7 +1575,7 @@ function jogadoresComCooperacaoConcluida(){
   }).length;
 }
 async function verificarEtapasColetivas(){
-  if(!souMestreDaMesa()||ritmoConduzido()||_autoFasePendente||!STATE.doc) return;
+  if(!souMestreDaMesa()||ritmoConduzido()||partidaPausada()||_autoFasePendente||!STATE.doc) return;
   var fase=STATE.doc.fase, pronto=false, acao=null;
   if(fase==="mosaico"&&STATE.doc.fragmentosLiberados){
     pronto=totalFragmentos()>0&&fragmentosComTarefaConcluida()>=totalFragmentos();acao=abrirVotoCooperacao;
@@ -1559,6 +1593,10 @@ async function liberarTarefaFragmentos(){
 }
 function agendarAutomacoes(){
   if(!souMestreDaMesa()) return;
+  if(partidaPausada()){
+    if(_autoTimer)clearTimeout(_autoTimer);_autoTimer=null;_autoTimerChave="";
+    return;
+  }
   verificarEncontroFragmentos();
   verificarEtapasColetivas();
   var d=dadosAutomacao();
@@ -1604,6 +1642,13 @@ function muralColetivoMovel(){
   return '<details class="mural-movel"><summary>Mural coletivo &middot; '+esc(hora)+'</summary>'+(linhas||'<p class="muted">A casa ainda n&atilde;o revelou linhas da cronologia.</p>')+'</details>';
 }
 
+function painelPartidaPausada(){
+  if(!partidaPausada()) return "";
+  return '<div class="partida-pausada" role="status"><div class="partida-pausada-card">'+
+    '<span class="eyebrow">A casa silenciou</span><h2>PARTIDA PAUSADA</h2>'+
+    '<p>Aguarde o mestre retomar a partida.</p></div></div>';
+}
+
 /* ============================================================
    TELAS
    ============================================================ */
@@ -1623,6 +1668,10 @@ function render(forcar){
   document.body.classList.toggle("modo-sem-telao", modoAtual()==="sem-telao");
   /* enquanto a sala espera, o painel continua com o video */
   var faseAgora=(STATE.doc&&STATE.doc.fase)||"sala";
+  if(partidaPausada()){
+    if(_timerContagem)clearInterval(_timerContagem);
+    _timerContagem=null;STATE.contando=0;
+  }
   verificarTrocaDeNivel(faseAgora);
   var encenacaoPassiva=false;
   if(STATE.eu&&STATE.tela==="encenacao"&&faseAgora==="encenacao"){
@@ -1651,7 +1700,7 @@ function render(forcar){
   var sensorConcluido=tipoSensor&&(STATE.v5.tarefas||[]).some(function(t){
     return t.id===((STATE.eu&&STATE.eu.id)+'_'+tipoSensor)&&tarefaConcluida(t);
   });
-  if(!forcar&&frameSensor&&!sensorConcluido){
+  if(!forcar&&frameSensor&&!sensorConcluido&&!partidaPausada()){
     agendarAutomacoes();
     return;
   }
@@ -1683,6 +1732,7 @@ function render(forcar){
   if(STATE.eu && souMestreDaMesa() && modoAtual()==="sem-telao") h+=controlesMestreMovel();
   if(souMestreDaMesa()) h+=modalOrientacaoMestre();
   if(STATE.eu) h+=modalOrientacaoParticipante();
+  h+=painelPartidaPausada();
   app.innerHTML=h;
   agendarAutomacoes();
 }
@@ -2157,7 +2207,7 @@ function fragmentoConfirmado(){
   return !!(eu&&eu.fragmentoPronto);
 }
 async function confirmarFragmento(){
-  if(!STATE.eu||fragmentoConfirmado()) return;
+  if(!STATE.eu||partidaPausada()||fragmentoConfirmado()) return;
   var FB=await esperarFB();
   await FB.atualizarJogador(STATE.eu.codigo,STATE.eu.id,{fragmentoPronto:true,fragmentoProntoMs:Date.now()});
 }
@@ -2596,7 +2646,7 @@ async function avancarVez(codigo, autor){
 }
 
 async function processarAcoesMestre(){
-  if(_acaoProcessando||!souMestreDaMesa()||!STATE.doc||STATE.doc.fase!=="encenacao") return;
+  if(_acaoProcessando||!souMestreDaMesa()||!STATE.doc||STATE.doc.pausada||STATE.doc.fase!=="encenacao") return;
   var js=ordenados(STATE.jogadores), vez=STATE.doc.vez||0, atual=js[vez];
   if(!atual) return;
   var acao=(STATE.v5.acoes||[]).find(function(a){
@@ -2613,6 +2663,7 @@ async function processarAcoesMestre(){
 }
 
 async function terminei(){
+  if(partidaPausada()) return;
   /* trava a tela local na revelacao: o jogo avanca para os outros,
      mas quem acabou de atuar fica vendo quem era e a propria pista */
   STATE.travaTela=true;
@@ -2713,7 +2764,7 @@ async function abrirInclinacao(){
   await FB.atualizarMesa(STATE.mesa.codigo,{fase:'inclinacao',inclinacaoAbertaMs:Date.now()});
 }
 async function concluirTarefaSensor(tipo){
-  if(!STATE.eu||!STATE.doc||STATE.doc.fase!==tipo) return;
+  if(!STATE.eu||!STATE.doc||STATE.doc.pausada||STATE.doc.fase!==tipo) return;
   var id=STATE.eu.id+'_'+tipo;
   if((STATE.v5.tarefas||[]).some(function(t){return t.id===id&&tarefaConcluida(t);})) return;
   var FB=await esperarFB(), cfg=CASO.tarefas&&CASO.tarefas[tipo], pista=cfg&&cfg.pista;
