@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>MOSAICO — Janela do Farol</title>
+<style>
+  :root {
+    --bg: #05080e;
+    --wood: #5c3d28;
+    --wood-dark: #2e1c10;
+    --rain: #a8c4d8;
+    --lighthouse: #f0d48a;
+    --lighthouse-dim: #f0d48a66;
+    --cold: #ff3b3b;
+    --mid: #ffb020;
+    --hot: #2ee67a;
+    --text: #e8eef4;
+    --text-dim: #7d8fa0;
+    --clue: #d4e6f5;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    overflow: hidden;
+    touch-action: none;
+  }
+  #app {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));
+  }
+  header {
+    text-align: center;
+    padding-bottom: 8px;
+    z-index: 20;
+    position: relative;
+  }
+  h1 {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+  }
+  #status-line {
+    font-size: 14px;
+    font-weight: 500;
+    min-height: 20px;
+  }
+  #stage {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #window-wrap {
+    position: absolute;
+    width: 140vw;
+    height: 120vh;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    transition: opacity 0.6s ease;
+    pointer-events: none;
+  }
+  #window-wrap.approaching { opacity: 0.35; }
+  #window-wrap.hot { opacity: 0.75; }
+  #window-wrap.locked { opacity: 1; }
+  #window {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border: 18px solid var(--wood-dark);
+    box-shadow:
+      inset 0 0 0 6px var(--wood),
+      0 0 80px rgba(0,0,0,0.85);
+    background: #060a10;
+    overflow: hidden;
+  }
+  .mullion-v {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 14px;
+    background: linear-gradient(90deg, var(--wood-dark), var(--wood), var(--wood-dark));
+    z-index: 6;
+  }
+  .mullion-v.left { left: 33.33%; transform: translateX(-50%); }
+  .mullion-v.right { left: 66.66%; transform: translateX(-50%); }
+  .mullion-h {
+    position: absolute;
+    left: 0; right: 0;
+    height: 14px;
+    top: 52%;
+    background: linear-gradient(180deg, var(--wood-dark), var(--wood), var(--wood-dark));
+    z-index: 6;
+  }
+  .pane {
+    position: absolute;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.9s ease;
+  }
+  .pane.visible { opacity: 1; }
+  .pane-tl { top: 6%; left: 4%; width: 26%; height: 42%; }
+  .pane-tm { top: 6%; left: 37%; width: 26%; height: 42%; }
+  .pane-tr { top: 6%; left: 70%; width: 26%; height: 42%; }
+  .pane-b  { top: 58%; left: 4%; width: 92%; height: 36%; }
+  .clue-text {
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--clue);
+    text-align: center;
+    padding: 8px;
+    text-shadow: 0 0 12px rgba(180,210,240,0.55);
+  }
+  #fog {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 50% 35%, rgba(130,150,170,0.4), transparent 55%),
+      radial-gradient(ellipse at 25% 75%, rgba(90,110,130,0.3), transparent 50%),
+      linear-gradient(180deg, rgba(100,120,140,0.25), rgba(60,80,100,0.4));
+    opacity: 0.9;
+    transition: opacity 0.5s ease;
+    z-index: 3;
+  }
+  #window-wrap.hot #fog { opacity: 0.5; }
+  #window-wrap.locked #fog { opacity: 0.12; }
+  #rain {
+    position: absolute;
+    inset: 0;
+    z-index: 7;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .drop {
+    position: absolute;
+    width: 1.5px;
+    background: linear-gradient(180deg, transparent, var(--rain));
+    border-radius: 1px;
+    opacity: 0.4;
+    animation: fall linear infinite;
+  }
+  @keyframes fall {
+    0%   { transform: translateY(-20px); opacity: 0; }
+    15%  { opacity: 0.45; }
+    100% { transform: translateY(120vh); opacity: 0; }
+  }
+  #window-wrap.hot #rain { opacity: 0.55; }
+  #window-wrap.locked #rain { opacity: 0.12; }
+  #lighthouse-beam {
+    position: absolute;
+    top: -30%;
+    left: -40%;
+    width: 180%;
+    height: 160%;
+    background: linear-gradient(
+      105deg,
+      transparent 42%,
+      var(--lighthouse-dim) 49%,
+      rgba(240,212,138,0.22) 50%,
+      var(--lighthouse-dim) 51%,
+      transparent 58%
+    );
+    opacity: 0;
+    z-index: 2;
+    pointer-events: none;
+  }
+  #lighthouse-beam.flash {
+    animation: sweep 3s ease-in-out;
+  }
+  @keyframes sweep {
+    0%   { opacity: 0; transform: translateX(-50%) rotate(-10deg); }
+    25%  { opacity: 0.5; }
+    50%  { opacity: 0.65; transform: translateX(0) rotate(0deg); }
+    75%  { opacity: 0.35; }
+    100% { opacity: 0; transform: translateX(50%) rotate(10deg); }
+  }
+  #window-wrap.hot #lighthouse-beam.flash {
+    animation: sweep-hot 2.5s ease-in-out;
+  }
+  @keyframes sweep-hot {
+    0%   { opacity: 0; transform: translateX(-45%) rotate(-8deg); }
+    25%  { opacity: 0.85; }
+    50%  { opacity: 1; transform: translateX(0) rotate(0deg); }
+    75%  { opacity: 0.55; }
+    100% { opacity: 0; transform: translateX(45%) rotate(8deg); }
+  }
+  #void {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, #0a1018 0%, #03050a 70%);
+    z-index: 1;
+  }
+  #void-rain {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  #hold-track {
+    position: absolute;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    left: 18%;
+    right: 18%;
+    height: 4px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    overflow: hidden;
+    z-index: 30;
+  }
+  #hold-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--lighthouse);
+    transition: width 0.05s linear;
+  }
+  footer {
+    padding-top: 12px;
+    z-index: 20;
+    position: relative;
+  }
+  #bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+  }
+  #bar-track {
+    width: 100%;
+    height: 12px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+  #bar-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 6px;
+    background: var(--cold);
+    transition: width 0.1s linear, background-color 0.15s linear;
+  }
+  #controls {
+    display: flex;
+    gap: 8px;
+  }
+  button {
+    flex: 1;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.05);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 600;
+  }
+  button:active { background: rgba(255,255,255,0.1); }
+  #enable-btn {
+    border-color: var(--lighthouse);
+    color: var(--lighthouse);
+  }
+  #hint {
+    font-size: 11px;
+    color: var(--text-dim);
+    text-align: center;
+    margin-top: 8px;
+  }
+  #overlay {
+    position: fixed; inset: 0;
+    background: var(--bg);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 16px;
+    padding: 28px;
+    text-align: center;
+    z-index: 50;
+  }
+  #overlay p {
+    color: var(--text-dim);
+    font-size: 15px;
+    max-width: 290px;
+    line-height: 1.5;
+  }
+  #overlay.hidden { display: none; }
+</style>
+</head>
+<body>
+<div id="overlay">
+  <h1 style="font-size:15px;color:var(--text);letter-spacing:0.1em;">JANELA DO FAROL</h1>
+  <p>Gire o corpo e incline o celular.<br>A janela só aparece quando você encontra a direção certa.</p>
+  <button id="enable-btn">Começar</button>
+</div>
+
+<div id="app">
+  <header>
+    <h1>Casa da Costa</h1>
+    <div id="status-line">Gire o corpo…</div>
+  </header>
+
+  <div id="stage">
+    <div id="void"></div>
+    <div id="void-rain"></div>
+    <div id="lighthouse-beam"></div>
+
+    <div id="window-wrap">
+      <div id="window">
+        <div id="fog"></div>
+        <div id="rain"></div>
+        <div class="mullion-v left"></div>
+        <div class="mullion-v right"></div>
+        <div class="mullion-h"></div>
+
+        <div class="pane pane-tl" id="pane1">
+          <div class="clue-text">21h14<br>som no<br>sótão</div>
+        </div>
+        <div class="pane pane-tm" id="pane2">
+          <div class="clue-text">marca<br>fresca<br>no cofre</div>
+        </div>
+        <div class="pane pane-tr" id="pane3">
+          <div class="clue-text">cortina<br>sem<br>vento</div>
+        </div>
+        <div class="pane pane-b" id="pane4">
+          <div class="clue-text">A névoa entrou pela fresta.<br>Alguém já estava dentro.</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="hold-track"><div id="hold-fill"></div></div>
+  </div>
+
+  <footer>
+    <div id="bar-label"><span>Longe</span><span>Perto</span></div>
+    <div id="bar-track"><div id="bar-fill"></div></div>
+    <div id="controls">
+      <button id="new-target-btn">Novo alvo</button>
+      <button id="reset-btn">Reiniciar</button>
+    </div>
+    <div id="hint">A janela só surge na direção certa</div>
+  </footer>
+</div>
+
+<script>
+(function () {
+  const HEADING_TOL = 38;
+  const PITCH_TOL   = 22;
+  const HOLD_MS     = 1700;
+  const MAX_DIST    = 120;
+  const SMOOTH      = 0.18;
+  const PITCH_MIN = 55;
+  const PITCH_MAX = 88;
+
+  const els = {
+    overlay: document.getElementById('overlay'),
+    enableBtn: document.getElementById('enable-btn'),
+    status: document.getElementById('status-line'),
+    windowWrap: document.getElementById('window-wrap'),
+    beam: document.getElementById('lighthouse-beam'),
+    barFill: document.getElementById('bar-fill'),
+    holdFill: document.getElementById('hold-fill'),
+    rain: document.getElementById('rain'),
+    voidRain: document.getElementById('void-rain'),
+    newTargetBtn: document.getElementById('new-target-btn'),
+    resetBtn: document.getElementById('reset-btn'),
+    panes: [
+      document.getElementById('pane1'),
+      document.getElementById('pane2'),
+      document.getElementById('pane3'),
+      document.getElementById('pane4'),
+    ],
+  };
+
+  let target = { heading: 180, pitch: 72 };
+  let holdStart = null;
+  let locked = false;
+  let wasInZone = false;
+  let rafPending = false;
+  let smoothHeading = 0;
+  let smoothPitch = 70;
+  let hasReading = false;
+  let beamTimer = null;
+
+  function vibrate(pattern) {
+    try { if (navigator.vibrate) navigator.vibrate(pattern); } catch (e) {}
+  }
+
+  function createRain(container, count) {
+    container.innerHTML = '';
+    for (let i = 0; i < count; i++) {
+      const d = document.createElement('div');
+      d.className = 'drop';
+      d.style.left = Math.random() * 100 + '%';
+      d.style.height = (14 + Math.random() * 22) + 'px';
+      d.style.animationDuration = (0.8 + Math.random() * 1.1) + 's';
+      d.style.animationDelay = (Math.random() * 2.5) + 's';
+      container.appendChild(d);
+    }
+  }
+
+  function flashBeam() {
+    els.beam.classList.remove('flash');
+    void els.beam.offsetWidth;
+    els.beam.classList.add('flash');
+  }
+
+  function startBeamLoop() {
+    if (beamTimer) clearInterval(beamTimer);
+    flashBeam();
+    beamTimer = setInterval(flashBeam, 3800 + Math.random() * 2200);
+  }
+
+  function randomTarget() {
+    target.heading = Math.round(Math.random() * 360);
+    target.pitch = Math.round(PITCH_MIN + Math.random() * (PITCH_MAX - PITCH_MIN));
+    locked = false;
+    holdStart = null;
+    wasInZone = false;
+    els.windowWrap.classList.remove('approaching', 'hot', 'locked');
+    els.holdFill.style.width = '0%';
+    els.panes.forEach(p => p.classList.remove('visible'));
+    els.status.textContent = 'Gire o corpo…';
+    startBeamLoop();
+  }
+
+  function angularDistance(a, b) {
+    let d = Math.abs(a - b) % 360;
+    if (d > 180) d = 360 - d;
+    return d;
+  }
+
+  function computeHeading(e) {
+    if (typeof e.webkitCompassHeading === 'number') return e.webkitCompassHeading;
+    if (e.absolute === true && typeof e.alpha === 'number') return (360 - e.alpha) % 360;
+    return e.alpha != null ? (360 - e.alpha) % 360 : 0;
+  }
+
+  function handleOrientation(e) {
+    if (e.beta == null && e.alpha == null) return;
+    const rawH = computeHeading(e);
+    const rawP = e.beta || 70;
+
+    if (!hasReading) {
+      smoothHeading = rawH;
+      smoothPitch = rawP;
+      hasReading = true;
+    } else {
+      let dH = rawH - smoothHeading;
+      if (dH > 180) dH -= 360;
+      if (dH < -180) dH += 360;
+      smoothHeading = (smoothHeading + dH * SMOOTH + 360) % 360;
+      smoothPitch += (rawP - smoothPitch) * SMOOTH;
+    }
+
+    if (!rafPending) {
+      rafPending = true;
+      requestAnimationFrame(updateUI);
+    }
+  }
+
+  function updateUI() {
+    rafPending = false;
+    if (locked) return;
+
+    const dH = angularDistance(smoothHeading, target.heading);
+    const dP = angularDistance(smoothPitch, target.pitch);
+    const dist = Math.sqrt(dH * dH + dP * dP);
+    const closeness = Math.max(0, 1 - dist / MAX_DIST);
+
+    els.barFill.style.width = (closeness * 100).toFixed(0) + '%';
+    if (closeness < 0.35) els.barFill.style.background = 'var(--cold)';
+    else if (closeness < 0.7) els.barFill.style.background = 'var(--mid)';
+    else els.barFill.style.background = 'var(--hot)';
+
+    els.windowWrap.classList.remove('approaching', 'hot');
+    if (closeness > 0.72) {
+      els.windowWrap.classList.add('hot');
+    } else if (closeness > 0.45) {
+      els.windowWrap.classList.add('approaching');
+    }
+
+    const within = dH <= HEADING_TOL && dP <= PITCH_TOL;
+
+    if (within) {
+      if (!wasInZone) {
+        wasInZone = true;
+        vibrate(40);
+        els.status.textContent = 'A luz está na janela… segure';
+      }
+      if (holdStart === null) holdStart = performance.now();
+      const elapsed = performance.now() - holdStart;
+      els.holdFill.style.width = Math.min(100, (elapsed / HOLD_MS) * 100) + '%';
+
+      if (elapsed >= HOLD_MS) {
+        locked = true;
+        els.windowWrap.classList.add('locked');
+        els.status.textContent = 'A janela revelou os fragmentos';
+        vibrate([40, 30, 50, 30, 80]);
+        els.panes.forEach((p, i) => {
+          setTimeout(() => p.classList.add('visible'), 250 + i * 300);
+        });
+        if (beamTimer) clearInterval(beamTimer);
+        flashBeam();
+      }
+    } else {
+      if (wasInZone) {
+        wasInZone = false;
+        els.status.textContent = 'Continue procurando…';
+      }
+      holdStart = null;
+      els.holdFill.style.width = '0%';
+      if (!locked) {
+        if (closeness > 0.65) els.status.textContent = 'Algo está se formando…';
+        else if (closeness > 0.4) els.status.textContent = 'Esquentando';
+        else els.status.textContent = 'Gire o corpo…';
+      }
+    }
+  }
+
+  function enableSensor() {
+    const needsIOS =
+      typeof DeviceOrientationEvent !== 'undefined' &&
+      typeof DeviceOrientationEvent.requestPermission === 'function';
+
+    if (needsIOS) {
+      DeviceOrientationEvent.requestPermission()
+        .then(state => {
+          if (state === 'granted') startListening();
+          else els.status.textContent = 'Permissão negada';
+        })
+        .catch(() => els.status.textContent = 'Erro de permissão');
+    } else if ('DeviceOrientationEvent' in window) {
+      startListening();
+    } else {
+      els.status.textContent = 'Sensor não disponível';
+    }
+  }
+
+  function startListening() {
+    window.addEventListener('deviceorientationabsolute', handleOrientation, true);
+    window.addEventListener('deviceorientation', handleOrientation, true);
+    els.overlay.classList.add('hidden');
+    createRain(els.rain, 32);
+    createRain(els.voidRain, 22);
+    randomTarget();
+  }
+
+  els.enableBtn.addEventListener('click', enableSensor);
+  els.newTargetBtn.addEventListener('click', randomTarget);
+  els.resetBtn.addEventListener('click', () => {
+    locked = false;
+    holdStart = null;
+    wasInZone = false;
+    els.windowWrap.classList.remove('approaching', 'hot', 'locked');
+    els.holdFill.style.width = '0%';
+    els.panes.forEach(p => p.classList.remove('visible'));
+    els.status.textContent = 'Gire o corpo…';
+    startBeamLoop();
+  });
+})();
+</script>
+</body>
+</html>
