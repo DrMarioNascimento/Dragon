@@ -91,6 +91,11 @@
     border-color: var(--ember);
     box-shadow: 0 0 40px 0 var(--ember-dim);
   }
+  #ring{
+    position:absolute; inset:0;
+    border-radius: 18px;
+    pointer-events:none;
+  }
   #hold-track{
     position: absolute;
     bottom: -22px; left: 10%; right: 10%;
@@ -210,9 +215,9 @@
 
 <script>
 (function(){
-  const TOLERANCE = 15;
-  const HOLD_MS = 2000;
-  const MAX_DIST = 90;
+  const TOLERANCE = 15;       // graus — margem considerada "encaixado"
+  const HOLD_MS = 2000;       // tempo segurando dentro da tolerância pra revelar
+  const MAX_DIST = 90;        // distância angular considerada "totalmente frio"
 
   const els = {
     overlay: document.getElementById('overlay'),
@@ -235,6 +240,8 @@
   let latestReading = { beta: 0, gamma: 0 };
 
   function randomTarget(){
+    // pitch: entre -60 e 80 (evita virar totalmente de cabeça pra baixo/plano demais)
+    // roll: entre -70 e 70 (evita a tela ficar de perfil, ilegível)
     const pitch = Math.round(-60 + Math.random() * 140);
     const roll = Math.round(-70 + Math.random() * 140);
     target = { pitch, roll };
@@ -266,7 +273,7 @@
     const dRoll = angularDistance(latestReading.gamma, target.roll);
     const dist = Math.sqrt(dPitch*dPitch + dRoll*dRoll);
 
-    const closeness = Math.max(0, 1 - dist / MAX_DIST);
+    const closeness = Math.max(0, 1 - dist / MAX_DIST); // 0 frio -> 1 quente
     els.deltaVal.textContent = Math.round(dist) + '°';
     els.barFill.style.width = (closeness * 100).toFixed(0) + '%';
     els.glow.style.opacity = (closeness * 0.9).toFixed(2);
