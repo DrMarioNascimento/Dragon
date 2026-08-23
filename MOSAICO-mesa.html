@@ -3441,9 +3441,14 @@ if(CONFIGURADO) window.MosaicoFB = {
   async criarMesa(codigo, modo, ritmo){
     await prontoAuth;
     await setDoc(doc(db, RAIZ, codigo), {
-      ativa:true, fase:"sala", vez:0, modo:modo||"com-telao", ritmo:ritmo==="conduzido"?"conduzido":"automatico",
+      ativa:true, fase:"sala", vez:0, modo:modo||"com-telao",
       mestreUid:_uid,
       criadaEm:serverTimestamp(), criadaEmMs:Date.now()
+    });
+    /* Compatível também com a regra anterior, que ainda não aceitava
+       `ritmo` no CREATE. Depois de criada, somente o mestre pode atualizar. */
+    await updateDoc(doc(db, RAIZ, codigo), {
+      ritmo:ritmo==="conduzido"?"conduzido":"automatico"
     });
     return codigo;
   },
