@@ -656,6 +656,30 @@
     font-family:var(--serif);font-style:italic;color:var(--nevoa);opacity:.78;
     font-size:clamp(21px,5.6vw,27px);line-height:1.42;
   }
+  .roteiro-blocos{display:grid;gap:12px;margin:14px 0 24px}
+  .roteiro-etapa{border:1px solid var(--linha);border-left-width:4px;border-radius:7px;
+    background:rgba(9,14,21,.94);padding:16px 17px}
+  .roteiro-etapa .etapa-rotulo{display:block;font-size:clamp(11px,3vw,13px);font-weight:800;
+    letter-spacing:.22em;text-transform:uppercase;margin-bottom:8px}
+  .roteiro-etapa .etapa-texto{font-family:var(--serif);font-size:clamp(21px,5.7vw,28px);
+    line-height:1.32;color:var(--texto)}
+  .roteiro-etapa.preparo{border-left-color:var(--frio)}
+  .roteiro-etapa.preparo .etapa-rotulo{color:var(--frio)}
+  .roteiro-etapa.acao{border-left-color:var(--ambar)}
+  .roteiro-etapa.acao .etapa-rotulo{color:var(--ambar)}
+  .roteiro-etapa.fala{border-left-color:var(--vermelho)}
+  .roteiro-etapa.fala .etapa-rotulo{color:var(--vermelho)}
+  .roteiro-etapa.fala .etapa-tom{font-size:clamp(12px,3.2vw,15px);font-weight:700;
+    letter-spacing:.1em;text-transform:uppercase;color:#f19a87;margin-bottom:8px}
+  .roteiro-etapa.fala .etapa-fala{font-family:var(--serif);font-size:clamp(31px,8.5vw,48px);
+    line-height:1.12;color:#fff}
+
+  /* Na encenação, apenas o aparelho de quem atua recebe informação. */
+  body.encenacao-passiva{background:#020407;overflow:hidden}
+  body.encenacao-passiva #arte{background-image:url("img/capa-vertical.jpg");opacity:.78}
+  body.encenacao-passiva #arte::after{background:rgba(2,4,7,.58)}
+  body.encenacao-passiva #app{max-width:none;min-height:100dvh;padding:0}
+  body.encenacao-passiva #btn-pistas{display:none!important}
 
   /* ---------- modal QR ---------- */
   .modal-fundo{
@@ -918,36 +942,48 @@ function descPers(p, forma){ return p ? flex(p.desc, forma) : ""; }
 /* ---------- roteiros da encenacao (Cap. 1 e 3) ---------- */
 var ROTEIRO = {
   investigador:{
+    resumo:"Você vai entrar primeiro, examinar a parede e reagir a um estalo.",
+    acao:"Caminhe devagar. Passe a mão pela parede do corredor. Ao perceber o estalo, pare e olhe para cima.",
     rub:"Você entra primeiro. Não por coragem — por hábito. Passa a mão pela parede do corredor, como quem testa a textura de algo vivo. A madeira responde com um estalo curto. Você para. Olha para cima.",
     tom:"Alto — quase um grito",
     fala:"“Tem alguém aí?”",
     pos:"A fala sai curta, automática. Ninguém responde. Ou talvez tenha respondido, e o som se perdeu na tempestade."
   },
   herdeiro:{
+    resumo:"Você vai observar a sala como quem procura algo conhecido e se aproximar do cofre.",
+    acao:"Entre com segurança. Examine os cantos da sala. Fixe o olhar no cofre e toque a trava com o indicador.",
     rub:"Você não entra: surge. A névoa abre espaço, como se reconhecesse você. Olha para cada canto da sala como quem procura algo que já sabe que está ali. O cofre chama sua atenção — fechado, mas com a marca de dedo fresca. Você toca a trava com o indicador.",
     tom:"Baixo, seco, sem hesitar",
     fala:"“Isso não estava assim.”",
     pos:"E não estava mesmo."
   },
   morador:{
+    resumo:"Você vai entrar silenciosamente e concentrar sua atenção no andar superior.",
+    acao:"Caminhe sem fazer barulho. Olhe para a escada, o sótão e a janela. Encare um ponto acima das pessoas por três segundos e depois desvie.",
     rub:"Você chega sem fazer barulho — a porta nem parece abrir. Passos leves, calculados, de quem está acostumad{o|a} a não ser percebid{o|a}. Olha para a escada. Para o sótão. Para a janela do segundo andar.",
     tom:"Sem falar — só o olhar",
     fala:"( silêncio )",
     pos:"Você não diz nada. Mas encara alguma coisa acima da cabeça das outras pessoas por três segundos, como quem já viu algo que os outros não viram. Depois desvia."
   },
   jornalista:{
+    resumo:"Você vai entrar com pressa, proteger a bolsa e examinar sinais estranhos na sala.",
+    acao:"Caminhe como se estivesse atrasad{o|a}. Segure a bolsa com força. Olhe para o corredor, a cortina e a porta entreaberta.",
     rub:"Você entra como se estivesse atrasad{o|a} — mesmo não estando. Segura a bolsa com força, como se algo lá dentro fosse mais importante do que a própria noite. Olha para o corredor. Para a cortina que balança sem vento. Para a porta entreaberta.",
     tom:"Incomodad{o|a} — mais do que deveria",
     fala:"“Quem deixou isso assim?”",
     pos:"Ninguém responde. E isso incomoda você ainda mais."
   },
   policial:{
+    resumo:"Você vai tentar esconder o nervosismo enquanto observa a janela, as pessoas e a casa.",
+    acao:"Caminhe com postura tensa. Olhe para a janela, para as pessoas e para a casa. Passe a mão pelo cabelo e reaja ao reflexo na janela.",
     rub:"Você entra com a postura de quem tenta parecer tranquil{o|a} — mas não está. Olha para a tempestade pela janela. Depois para os outros. Depois para a casa. E a casa olha de volta. Você passa a mão pelo cabelo, nervos{o|a}. Um reflexo metálico na janela chama sua atenção.",
     tom:"Nervos{o|a} — a voz falha no meio",
     fala:"“Vocês viram isso?”",
     pos:"Ninguém admite ter visto. Mas todos sentiram."
   },
   menina:{
+    resumo:"Você vai entrar por último, observar toda a sala e permanecer em silêncio.",
+    acao:"Entre devagar. Olhe para o teto, o sótão, a escada, o cofre e a porta. Encare cada pessoa da mesa e só então se sente.",
     rub:"Você é {o último|a última}. Entra devagar, como quem não quer interromper algo que já começou. A casa parece esperar por você. Olha para o teto. Para o sótão. Para a escada. Para o cofre. Para a porta entreaberta.",
     tom:"Não fale — conte até cinco",
     fala:"( silêncio )",
@@ -1314,12 +1350,18 @@ function render(forcar){
   document.body.classList.toggle("modo-sem-telao", modoAtual()==="sem-telao");
   /* enquanto a sala espera, o painel continua com o video */
   var faseAgora=(STATE.doc&&STATE.doc.fase)||"sala";
+  var encenacaoPassiva=false;
+  if(STATE.eu&&STATE.tela==="encenacao"&&faseAgora==="encenacao"){
+    var ordemEncenacao=ordenados(STATE.jogadores), atorEncenacao=ordemEncenacao[(STATE.doc&&STATE.doc.vez)||0];
+    encenacaoPassiva=!!atorEncenacao&&atorEncenacao.id!==STATE.eu.id;
+  }
   document.body.classList.toggle("fase-sala",
     STATE.tela==="painel" && faseAgora==="sala");
   document.body.classList.toggle("fase-sensor",
     STATE.tela==="constelacao" || STATE.tela==="inclinacao");
   document.body.classList.toggle("painel-em-jogo",
     STATE.tela==="painel" && faseAgora!=="sala" && faseAgora!=="resultado");
+  document.body.classList.toggle("encenacao-passiva",encenacaoPassiva);
   /* Os snapshots do Firebase podem chegar várias vezes durante uma rodada.
      Recriar o iframe a cada snapshot descarrega o módulo, perde a permissão
      do sensor e devolve o jogador à introdução. Enquanto a mesma tarefa
@@ -1353,11 +1395,11 @@ function render(forcar){
     case "resultado":   h=telaResultado(); break;
     default:            h=telaInicio();
   }
-  if(STATE.eu){
+  if(STATE.eu&&!encenacaoPassiva){
     h=cabecalhoRodada((STATE.doc&&STATE.doc.fase)||"sala","rodada-celular")+h;
     if(modoAtual()==="sem-telao") h+=muralColetivoMovel();
   }
-  if(STATE.eu) h+=painelCasoMovel();
+  if(STATE.eu&&!encenacaoPassiva) h+=painelCasoMovel();
   if(STATE.eu && souMestreDaMesa() && modoAtual()==="sem-telao") h+=controlesMestreMovel();
   app.innerHTML=h;
   agendarAutomacoes();
@@ -1628,10 +1670,8 @@ function telaEncenacao(){
   var souEu=atual&&STATE.eu&&atual.id===STATE.eu.id;
 
   if(!souEu){
-    /* o nome pode aparecer — o personagem nao */
-    return '<div id="escuro"><div class="pulso"></div>'+
-      '<div class="quem">'+(atual?esc(atual.nome):"&mdash;")+'</div>'+
-      '<div class="sub">Mantenha o celular com voc&ecirc;, proteja sua tela e observe o ambiente.</div></div>';
+    /* Nenhum nome, ordem ou pista visual: os demais observam a cena real. */
+    return '';
   }
 
   if(STATE.contando>0){
@@ -1645,15 +1685,13 @@ function telaEncenacao(){
 
   /* sem o nome do personagem: quem esta atuando ainda nao sabe quem e */
   return '<span class="eyebrow">&Eacute; a sua vez</span>'+
-    '<p class="muted" style="text-align:center">Leia no seu celular e mantenha a tela voltada somente para voc&ecirc;.</p>'+
-    '<div class="roteiro">'+
-      '<div class="quem">Fa&ccedil;a agora, em voz alta</div>'+
-      '<div class="rub">'+esc(flex(r.rub,fm))+'</div>'+
-      '<div class="tom">'+esc(flex(r.tom,fm))+'</div>'+
-      '<div class="fala">'+esc(flex(r.fala,fm))+'</div>'+
-      '<div class="pos">'+esc(flex(r.pos,fm))+'</div>'+
+    '<p class="muted" style="text-align:center">Proteja a tela. Leia os tr&ecirc;s passos antes de come&ccedil;ar.</p>'+
+    '<div class="roteiro-blocos">'+
+      '<div class="roteiro-etapa preparo"><span class="etapa-rotulo">1 &middot; Prepare-se</span><div class="etapa-texto">'+esc(flex(r.resumo||r.rub,fm))+'</div></div>'+
+      '<div class="roteiro-etapa acao"><span class="etapa-rotulo">2 &middot; Fa&ccedil;a</span><div class="etapa-texto">'+esc(flex(r.acao||r.rub,fm))+'</div></div>'+
+      '<div class="roteiro-etapa fala"><span class="etapa-rotulo">3 &middot; Fale</span><div class="etapa-tom">'+esc(flex(r.tom,fm))+'</div><div class="etapa-fala">'+esc(flex(r.fala,fm))+'</div></div>'+
     '</div>'+
-    '<button class="btn btn-ambar" onclick="terminei()">Toque para concluir sua apresenta&ccedil;&atilde;o!</button>';
+    '<button class="btn btn-ambar" onclick="terminei()">Toque para concluir sua apresenta&ccedil;&atilde;o</button>';
 }
 
 /* So aqui o jogador descobre quem era — e ja leva a pista da noite. */
