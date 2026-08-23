@@ -406,7 +406,7 @@
   /* ---------- menu de pistas do jogador ---------- */
   #btn-pistas{
     position:fixed;z-index:22;
-    top:max(14px,env(safe-area-inset-top));left:14px;
+    right:14px;bottom:max(16px,env(safe-area-inset-bottom));
     display:none;align-items:center;gap:9px;
     padding:12px 18px;border-radius:100px;cursor:pointer;
     border:1px solid rgba(232,164,76,.32);
@@ -422,6 +422,7 @@
   }
   #btn-pistas:focus{outline:none;border-color:var(--ambar);
     box-shadow:0 0 0 3px rgba(232,164,76,.3)}
+  body.modo-sem-telao #btn-pistas{bottom:max(76px,calc(env(safe-area-inset-bottom) + 68px))}
   #pistas{
     position:fixed;inset:0;z-index:42;
     background:linear-gradient(170deg,#0a0f16,#05070c);
@@ -741,10 +742,11 @@
   <video id="video-abertura" muted loop playsinline preload="auto"
          poster="img/capa-vertical.jpg"></video>
 </div>
-<button id="btn-pistas">Pistas <b>0</b></button>
+<button id="btn-pistas" title="Abrir os fragmentos guardados" aria-label="Abrir Arquivo">🗂 Arquivo <b>0</b></button>
 
 <div id="pistas">
-  <h2>Minhas pistas</h2>
+  <h2>Arquivo</h2>
+  <p class="muted">Seus fragmentos e as pistas adquiridas durante o caso.</p>
   <div id="pistas-lista"></div>
   <div id="pistas-vazio">Voc&ecirc; ainda n&atilde;o recebeu nada.<br>A noite mal come&ccedil;ou.</div>
   <button class="btn" id="fechar-pistas" style="max-width:20em;margin:12px auto 0">Voltar</button>
@@ -1338,7 +1340,7 @@ function telaEsperando(){
     '<div class="revelacao">'+
       '<div class="pulso" style="margin:0 auto 26px"></div>'+
       '<h2 class="rv-nome">A casa vai<br>come&ccedil;ar.</h2>'+
-      '<p class="lead rv-desc" style="margin-bottom:0">Guarde o celular. '+
+      '<p class="lead rv-desc" style="margin-bottom:0">Deixe o celular sobre a mesa. '+
       'Ele acende sozinho quando for a sua vez.</p>'+
     '</div>'+
     '<div class="contagem-prontos">'+contaProntos()+' de '+js.length+' prontos</div>';
@@ -1354,7 +1356,7 @@ function telaEncenacao(){
     /* o nome pode aparecer — o personagem nao */
     return '<div id="escuro"><div class="pulso"></div>'+
       '<div class="quem">'+(atual?esc(atual.nome):"&mdash;")+'</div>'+
-      '<div class="sub">Guarde o celular. Olhe para a mesa.</div></div>';
+      '<div class="sub">Deixe o celular sobre a mesa e observe o ambiente.</div></div>';
   }
 
   if(STATE.contando>0){
@@ -1391,8 +1393,9 @@ function telaRevelacao(){
     (pista?'<div class="pista-card">'+
       '<span class="ph">'+esc(pista.hora)+' &middot; sua pista</span>'+
       '<div class="pt">'+esc(pista.txt)+'</div></div>':'')+
-    '<button class="btn btn-ambar" style="margin-top:22px" '+
-      'onclick="guardarPista()">Guardar e voltar ao escuro</button>';
+    '<p class="muted" style="text-align:center;margin:18px 0 8px">Toque para guardar a pista no Arquivo e seguir com o caso.</p>'+
+    '<button class="btn btn-ambar" style="margin-top:8px" '+
+      'onclick="guardarPista()">Guardar no Arquivo</button>';
 }
 
 function telaEncerrada(){
@@ -1863,7 +1866,7 @@ function desenhaPistas(){
   vazio.style.display = lista.length ? "none" : "";
   btn.querySelector("b").textContent = lista.length;
   /* o botao so existe para quem esta jogando, e nunca no telao */
-  btn.classList.toggle("on", !!STATE.eu && STATE.tela!=="painel" && STATE.tela!=="inicio");
+  btn.classList.toggle("on", !!STATE.eu && lista.length>0 && STATE.tela!=="painel" && STATE.tela!=="inicio");
 }
 
 document.getElementById("btn-pistas").addEventListener("click",function(){

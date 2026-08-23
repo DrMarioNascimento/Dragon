@@ -112,7 +112,7 @@ O código atual entrega a primeira experiência jogável:
 - revelação posterior;
 - flexão de gênero;
 - pista privada armazenada no Firestore;
-- menu **Minhas pistas**;
+- acesso móvel **Arquivo**, no canto inferior direito, exibido somente após o primeiro fragmento ser guardado;
 - cronologia pública;
 - voto cego de Performance sem auto-voto;
 - divisão automática em núcleos de 2 ou 3 participantes;
@@ -176,6 +176,8 @@ O topo da interface identifica sempre a rodada atual, em cor contrastante e tipo
 | `resultado` | Resultado final |
 
 No modo Sem telão, o mesmo cabeçalho aparece nos celulares.
+
+Comandos de ação devem explicitar ação e consequência. Na revelação da pista, usar **“Toque para guardar a pista no Arquivo e seguir com o caso”** e o botão **“Guardar no Arquivo”**; evitar “Guarde” isolado, que pode ser confundido visualmente com “Aguarde”.
 
 ### 5.3 O nome desaparece
 
