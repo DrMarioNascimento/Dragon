@@ -849,6 +849,12 @@ var PERSONAGENS = [
 ];
 
 function nomePers(p, forma){ return p ? flex(p.nome, forma) : "—"; }
+function nomePersFragmento(j, lista){
+  var p=personagemPor(j&&j.personagem), base=nomePers(p,j&&j.forma);
+  var iguais=ordenados(lista||STATE.jogadores).filter(function(x){return x.personagem===j.personagem;});
+  if(iguais.length<2) return base;
+  return base+' · fragmento '+(iguais.findIndex(function(x){return x.id===j.id;})+1);
+}
 function descPers(p, forma){ return p ? flex(p.desc, forma) : ""; }
 
 /* ---------- roteiros da encenacao (Cap. 1 e 3) ---------- */
@@ -957,7 +963,7 @@ var CASO={
   capitulos:CAP_FASE,     /* o subtitulo de cada fase — sem spoiler */
   historia:HISTORIA       /* a abertura, so no fim */
 };
-CASO.configuracao={limitesSegundos:{performance:60,constelacao:180,inclinacao:180,cooperacao:60,mercado:480,deducao:300}};
+CASO.configuracao={jogadores:{minimo:2,maximo:12,copiasPorPersonagem:2},limitesSegundos:{performance:60,constelacao:180,inclinacao:180,cooperacao:60,mercado:480,deducao:300}};
 CASO.tarefas={
   constelacao:{titulo:"Constelação Indoor",arquivo:"MOSAICO-24.3-constelacao-indoor.html?embed=1",pista:{id:"tarefa-constelacao",hora:"21:26",txt:"Os pontos só formam um desenho quando observados na ordem certa. A marca recente na trava do cofre é o ponto fixo da sequência."}},
   inclinacao:{titulo:"Inclinação–Fragmento",arquivo:"MOSAICO-24.4-inclinacao-fragmento.html?embed=1",pista:{id:"tarefa-inclinacao",hora:"21:28",txt:"O pequeno objeto metálico não atravessou a sala: caiu próximo ao cofre e foi deslocado depois da queda."}}
@@ -1618,7 +1624,7 @@ function telaVotacao(){
     ops+='<button class="pers-op" onclick="votar(\''+j.id+'\')">'+
       '<span class="av">'+(p?p.av:"👤")+'</span>'+
       /* vota-se no papel, nao na pessoa — o nome ja nao existe mais */
-      '<span class="txt"><span class="nm">'+esc(nomePers(p,j.forma))+'</span>'+
+      '<span class="txt"><span class="nm">'+esc(nomePersFragmento(j,js))+'</span>'+
       '<span class="desc">'+esc(descPers(p,j.forma))+'</span></span></button>';
   }
   return '<span class="eyebrow">Performance &middot; voto cego</span>'+
@@ -1654,7 +1660,7 @@ function telaResultado(){
     return '<span class="eyebrow">O papel das evidências</span><h2>Nem todo sinal tinha o mesmo peso.</h2>'+evidencias+'<h3 style="margin:26px 0 14px">Qualidade objetiva das pistas privadas</h3><div class="grade">'+qualidades+'</div>';
   }
   if(etapa===3){
-    var confiancas=ordenados(STATE.jogadores).map(function(j){var p=personagemPor(j.personagem), e=j.economiaDetalhe||{}, c=Number(e.confiabilidade)||0;return '<div class="jog"><div class="av">'+(p?p.av:"👤")+'</div><div class="nm">'+esc(nomePers(p,j.forma))+'</div><div class="confianca-valor '+(c<0?'neg':'')+'">'+(c>0?'+':'')+c+'</div><div class="est">Confiabilidade</div></div>';}).join('');
+    var confiancas=ordenados(STATE.jogadores).map(function(j){var p=personagemPor(j.personagem), e=j.economiaDetalhe||{}, c=Number(e.confiabilidade)||0;return '<div class="jog"><div class="av">'+(p?p.av:"👤")+'</div><div class="nm">'+esc(nomePersFragmento(j,STATE.jogadores))+'</div><div class="confianca-valor '+(c<0?'neg':'')+'">'+(c>0?'+':'')+c+'</div><div class="est">Confiabilidade</div></div>';}).join('');
     return '<span class="eyebrow">Validação ex post</span><h2>Preço pedido × qualidade real.</h2><p class="lead">Pistas boas oferecidas por preço justo fortaleceram a Confiabilidade. Pistas fracas vendidas caro reduziram o resultado e, quando negativo, bloquearam a Qualidade do Gasto.</p><div class="grade">'+confiancas+'</div><p class="muted" style="text-align:center">O resultado dos votos cegos continua oculto.</p>';
   }
   var js=ordenados(STATE.jogadores).slice().sort(function(a,b){ return (b.total||0)-(a.total||0); });
@@ -1917,12 +1923,13 @@ async function criarMesa(modo){
 
 /* A casa escolhe: sorteia entre os personagens ainda livres na mesa. */
 function sortearPersonagem(ocupados){
-  var livres=[];
-  for(var i=0;i<PERSONAGENS.length;i++)
-    if(ocupados.indexOf(PERSONAGENS[i].id)===-1) livres.push(PERSONAGENS[i].id);
-  /* mesa maior que o elenco: repete, mas nunca trava ninguem na porta */
-  if(!livres.length) return PERSONAGENS[(Math.random()*PERSONAGENS.length)|0].id;
-  return livres[(Math.random()*livres.length)|0];
+  var maxCopias=((((CASO||{}).configuracao||{}).jogadores||{}).copiasPorPersonagem)||2;
+  var contagem={}; PERSONAGENS.forEach(function(p){contagem[p.id]=0;});
+  (ocupados||[]).forEach(function(id){if(contagem[id]!=null)contagem[id]++;});
+  var menor=Math.min.apply(null,Object.keys(contagem).map(function(id){return contagem[id];}));
+  var candidatos=PERSONAGENS.filter(function(p){return contagem[p.id]===menor&&contagem[p.id]<maxCopias;});
+  if(!candidatos.length) return null;
+  return candidatos[(Math.random()*candidatos.length)|0].id;
 }
 
 /* A cortina desce, a casa decide por tras dela, e sobe com voce sendo alguem. */
@@ -1961,7 +1968,8 @@ async function entrarNaMesa(){
 
     /* quem ja esta na casa define o que sobrou para sortear */
     var jaEstao=await FB.listarJogadores(codigo);
-    if(jaEstao.filter(function(j){return j.id!==id;}).length>=12){
+    var maxJogadores=((CASO.configuracao&&CASO.configuracao.jogadores||{}).maximo)||12;
+    if(jaEstao.filter(function(j){return j.id!==id;}).length>=maxJogadores){
       abrirCortina(); alert("A mesa já atingiu o limite deste caso."); return;
     }
     var ocupados=[];
@@ -1999,20 +2007,23 @@ async function entrarNaMesa(){
 }
 
 /* o jogador segue a fase que o painel publicou */
-/* Duas pessoas podem ler a lista no mesmo instante e sortear o mesmo
-   personagem. Quem entrou depois cede e sorteia de novo entre os livres. */
+/* Entradas simultaneas podem escolher o mesmo papel antes do snapshot.
+   A pessoa mais recente do papel excedente migra para um dos menos usados.
+   Duplicidade equilibrada e intencional (7–12) permanece intacta. */
 function resolverColisao(){
   if(!STATE.eu) return;
-  var meu=null, conflito=false, ocupados=[];
-  for(var i=0;i<STATE.jogadores.length;i++){
-    var j=STATE.jogadores[i];
-    if(j.id===STATE.eu.id){ meu=j; continue; }
-    if(j.personagem) ocupados.push(j.personagem);
-    if(j.personagem===STATE.eu.personagem &&
-       (j.entrouMs||0) < ((meu&&meu.entrouMs)||Date.now())) conflito=true;
-  }
-  if(!conflito || !meu) return;
+  var maxCopias=((((CASO||{}).configuracao||{}).jogadores||{}).copiasPorPersonagem)||2;
+  var meu=STATE.jogadores.find(function(j){return j.id===STATE.eu.id;}), contagem={};
+  PERSONAGENS.forEach(function(p){contagem[p.id]=0;});
+  STATE.jogadores.forEach(function(j){if(contagem[j.personagem]!=null)contagem[j.personagem]++;});
+  if(!meu) return;
+  var valores=Object.keys(contagem).map(function(id){return contagem[id];}), menor=Math.min.apply(null,valores);
+  if(contagem[meu.personagem]<=menor+1&&contagem[meu.personagem]<=maxCopias) return;
+  var iguais=STATE.jogadores.filter(function(j){return j.personagem===meu.personagem;}).sort(function(a,b){return ((a.entrouMs||0)-(b.entrouMs||0))||String(a.id).localeCompare(String(b.id));});
+  if(iguais[iguais.length-1].id!==meu.id) return;
+  var ocupados=STATE.jogadores.filter(function(j){return j.id!==meu.id;}).map(function(j){return j.personagem;});
   var novo=sortearPersonagem(ocupados);
+  if(!novo) return;
   if(novo===STATE.eu.personagem) return;
   STATE.eu.personagem=novo;
   try{ sessionStorage.setItem("mosaico_eu",JSON.stringify(STATE.eu)); }catch(e){}

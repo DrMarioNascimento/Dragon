@@ -6,6 +6,7 @@
 
   "configuracao": {
     "versaoPontuacao": "5.0",
+    "jogadores": { "minimo": 2, "maximo": 12, "copiasPorPersonagem": 2 },
     "moedasIniciais": 9,
     "precos": { "baixo": 1, "justo": 3, "alto": 5 },
     "limitesSegundos": { "performance": 60, "constelacao": 180, "inclinacao": 180, "cooperacao": 60, "mercado": 480, "deducao": 300 },

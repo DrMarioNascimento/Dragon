@@ -103,7 +103,7 @@ O código atual entrega a primeira experiência jogável:
 - autenticação anônima;
 - entrada por nome;
 - escolha da forma de tratamento;
-- sorteio de um dos seis arquétipos;
+- sorteio equilibrado de um dos seis arquétipos, em até dois ciclos;
 - botão individual de prontidão;
 - controle de início pelo painel;
 - ordem determinada pela entrada;
@@ -512,7 +512,9 @@ A conclusão da apresentação passou a ser uma solicitação em `acoes`: o joga
 
 ### 13.3 Limite de jogadores
 
-A entrada está limitada a doze participantes. Acima de seis, os seis arquétipos do caso se repetem; novos arquétipos continuam recomendados antes de playtests maiores.
+A entrada admite de dois a doze participantes. Até seis, cada arquétipo aparece uma vez. Do sétimo ao décimo segundo, começa um segundo ciclo equilibrado; nenhum arquétipo recebe uma terceira cópia e, com doze pessoas, existem exatamente duas de cada.
+
+A duplicidade é uma regra narrativa: duas pessoas com o mesmo personagem representam fragmentos da mesma identidade e são igualmente vinculadas à culpa ou inocência do arquétipo. Elas não conhecem antecipadamente a duplicidade, não formam equipe e continuam pontuando individualmente. Na votação de Performance e na Confiabilidade, cópias iguais recebem os rótulos `fragmento 1` e `fragmento 2`; no placar final, os nomes reais são revelados.
 
 ### 13.4 História final
 
@@ -556,11 +558,10 @@ Mesas de teste antigas no Firestore devem ser removidas periodicamente.
 ## 16. Ordem recomendada de implementação
 
 1. publicar e validar `firestore.rules` no projeto Firebase;
-2. ampliar o elenco para sessões acima de seis pessoas;
-3. modo interativo alternativo para aparelhos sem sensores;
-4. proteção efetiva das pistas em backend confiável;
-5. testes de integração da reconexão e da revelação final com o Firestore;
-6. playtest presencial completo.
+2. modo interativo alternativo para aparelhos sem sensores;
+3. proteção efetiva das pistas em backend confiável;
+4. testes de integração da reconexão, duplicidade e revelação final com o Firestore;
+5. playtest presencial completo.
 
 ---
 

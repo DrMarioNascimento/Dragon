@@ -36,6 +36,8 @@ Não publique links de demonstração, arquivos, capturas extensas, documentaç�
 
 O placar final possui composição responsiva própria: pódio vertical no celular, pódio horizontal no telão, três caixas com nome do jogador, personagem e pontos sobre os degraus e classificação restante em lista.
 
+A Casa da Costa admite de 2 a 12 participantes. Os seis personagens são distribuídos em dois ciclos equilibrados: sem repetição até seis e com no máximo duas cópias de cada personagem até doze. Personagens repetidos funcionam como fragmentos independentes da mesma identidade narrativa.
+
 Os parâmetros do caso ficam em `casos/casa-da-costa.json`. O cálculo puro e testável fica em `js/mosaico-v5.js`. Todos os pontos do jogo são inteiros.
 
 Nos celulares, **Caso** abre a rodada atual, a orientação do momento e a linha do tempo pública; **Arquivo** reúne os fragmentos privados e adquiridos. O celular do mestre acrescenta somente **Menu**.
