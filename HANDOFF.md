@@ -61,8 +61,8 @@ O `firebaseConfig` no HTML é público por natureza. A proteção efetiva dos da
 ```
 Dragon/
 ├── MOSAICO-mesa.html
-├── MOSAICO-24.3-constelacao-indoor.html
-├── MOSAICO-24.4-inclinacao-fragmento.html
+├── MOSAICO-24.3-mapa-do-escuro.html
+├── MOSAICO-24.4-a-janela-do-norte.html
 ├── casos/
 │   └── casa-da-costa.json
 ├── js/
@@ -84,10 +84,10 @@ Dragon/
 
 | Módulo | Arquivo | Situação |
 |---|---|---|
-| Constelação Indoor | `MOSAICO-24.3-constelacao-indoor.html` | rodada sensorial integrada |
-| Inclinação-Fragmento | `MOSAICO-24.4-inclinacao-fragmento.html` | rodada sensorial integrada |
+| O Mapa do Escuro | `MOSAICO-24.3-mapa-do-escuro.html` | rodada sensorial integrada |
+| A Janela do Norte | `MOSAICO-24.4-a-janela-do-norte.html` | rodada sensorial integrada |
 
-Os dois arquivos são autocontidos e independem do próprio nome para funcionar. Versões `v2`, Mapa do Escuro, Vidro Embaçado e Janela do Farol foram removidas da árvore atual. Permanecem recuperáveis pelo histórico Git.
+Os dois arquivos são autocontidos e independem do próprio nome para funcionar. Os nomes canônicos atuais são **O Mapa do Escuro** e **A Janela do Norte**. Versões antigas (Constelação Indoor, Inclinação–Fragmento, v2, Vidro Embaçado, Janela do Farol) permanecem recuperáveis pelo histórico Git.
 
 Os módulos abrem incorporados por `?embed=1`, notificam a mesa por `postMessage`, registram a conclusão no Firestore e liberam um fragmento no Arquivo. O botão **Ativar movimento** pede a permissão dentro do gesto do jogador e a tarefa só abre após a primeira leitura válida. Se a permissão for negada, o sensor estiver indisponível ou não responder em cinco segundos, aparece **Tentar novamente**. Esses estados ficam registrados em `tarefas`; o Menu do mestre mostra quantos concluíram e quantos estão sem resposta. Cada rodada avança quando todos concluem ou após 180 segundos, portanto uma incompatibilidade não bloqueia a partida.
 
@@ -175,8 +175,8 @@ O topo da interface identifica sempre a rodada atual, em cor contrastante e tipo
 |---|---|
 | `sala` | Preparação da mesa |
 | `encenacao` e `votacao` | Apresentação |
-| `constelacao` | Constelação Indoor |
-| `inclinacao` | Inclinação–Fragmento |
+| `constelacao` | O Mapa do Escuro |
+| `inclinacao` | A Janela do Norte |
 | `mosaico` e `cooperacao` | Jogador ajuda seu grupo |
 | `mercado` | Jogador contra jogador |
 | `deducao` | Jogador contra o caso |
