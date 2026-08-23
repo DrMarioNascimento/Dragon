@@ -198,6 +198,7 @@
       <div id="sky-glow"></div>
       <div id="sky">
         <svg viewBox="0 0 100 100">
+          <!-- linhas conectando as 5 estrelas -->
           <g class="star-line-group">
             <line class="star-line" x1="30" y1="70" x2="45" y2="45"/>
             <line class="star-line" x1="45" y1="45" x2="50" y2="20"/>
@@ -229,10 +230,10 @@
 
 <script>
 (function(){
-  const HEADING_TOLERANCE = 30;
+  const HEADING_TOLERANCE = 30;  // graus — mais generosa por causa da imprecisão indoor da bússola
   const PITCH_TOLERANCE = 20;
   const HOLD_MS = 2000;
-  const MAX_DIST = 120;
+  const MAX_DIST = 120; // distância combinada considerada "totalmente frio"
 
   const els = {
     overlay: document.getElementById('overlay'),
@@ -258,7 +259,7 @@
 
   function randomTarget(){
     const heading = Math.round(Math.random() * 360);
-    const pitch = Math.round(-30 + Math.random() * 90);
+    const pitch = Math.round(-30 + Math.random() * 90); // faixa legível, evita extremos
     target = { heading, pitch };
     els.targetInfo.textContent = `alvo: direção ${heading}° / altura ${pitch}°`;
     locked = false;
@@ -273,14 +274,17 @@
   }
 
   function computeHeading(event){
+    // iOS Safari: webkitCompassHeading já é heading absoluto (0 = Norte), sentido horário
     if (typeof event.webkitCompassHeading === 'number'){
       usingAbsolute = true;
       return event.webkitCompassHeading;
     }
+    // Android/outros: alpha só é heading confiável se o evento for "absolute"
     if (event.absolute === true && typeof event.alpha === 'number'){
       usingAbsolute = true;
-      return 360 - event.alpha;
+      return 360 - event.alpha; // normaliza sentido
     }
+    // fallback: usa alpha mesmo sem garantia de referência absoluta
     usingAbsolute = false;
     return event.alpha || 0;
   }
@@ -356,6 +360,7 @@
   }
 
   function startListening(){
+    // tenta o evento absoluto primeiro (mais confiável pra heading em Android)
     window.addEventListener('deviceorientationabsolute', handleOrientation);
     window.addEventListener('deviceorientation', handleOrientation);
     els.overlay.classList.add('hidden');
