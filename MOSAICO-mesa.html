@@ -526,6 +526,43 @@
     body.t-painel.painel-em-jogo .publicas-vazio{font-size:clamp(18px,2vw,28px);padding:18px 0}
   }
 
+  /* ---------- abertura exclusiva do participante ---------- */
+  #abertura-participante{
+    position:fixed;inset:0;z-index:65;background:#020305;
+    display:flex;align-items:center;justify-content:center;overflow:hidden;
+  }
+  #abertura-participante.hidden{display:none}
+  #abertura-participante video{
+    position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+    background:#020305;
+  }
+  .abertura-participante-portao{
+    position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;text-align:center;padding:36px 24px;
+    background:linear-gradient(180deg,rgba(3,5,9,.28),rgba(3,5,9,.78));
+  }
+  .abertura-participante-portao h2{
+    font-size:clamp(31px,9vw,48px);margin:8px 0 14px;
+    text-shadow:0 3px 24px rgba(0,0,0,.95);
+  }
+  .abertura-participante-portao .lead{
+    max-width:19em;margin-bottom:25px;text-shadow:0 2px 20px #000;
+  }
+  #abertura-participante.tocando .abertura-participante-intro{display:none}
+  #btn-pular-participante{
+    display:none;position:absolute;right:16px;
+    bottom:max(22px,env(safe-area-inset-bottom));width:auto;margin:0;
+    padding:12px 18px;border-radius:100px;background:rgba(5,7,12,.68);
+    border:1px solid rgba(232,164,76,.45);color:var(--ambar);
+    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  }
+  #abertura-participante.tocando .abertura-participante-portao{
+    background:transparent;pointer-events:none;
+  }
+  #abertura-participante.tocando #btn-pular-participante{
+    display:block;pointer-events:auto;
+  }
+
   /* ---------- portao: a tela-titulo antes do video ----------
      O toque aqui e o que libera o som. Navegador nenhum deixa video
      com audio comecar sozinho — entao o primeiro toque e a chave.   */
@@ -1007,6 +1044,20 @@
   <button id="btn-comecar" class="btn btn-ambar">Come&ccedil;ar</button>
   <div id="portao-sub">Toque na tela ou pressione OK</div>
   <button id="btn-pular">Pular</button>
+</div>
+
+<div id="abertura-participante" class="hidden" aria-hidden="true">
+  <video id="video-abertura-participante" playsinline preload="metadata"
+         poster="img/capa-vertical.jpg"></video>
+  <div class="abertura-participante-portao">
+    <div class="abertura-participante-intro">
+      <span class="eyebrow">Antes de entrar</span>
+      <h2>A casa abriu para voc&ecirc;</h2>
+      <p class="lead">Ative o som e assista &agrave; abertura.</p>
+      <button id="btn-assistir-participante" class="btn btn-ambar">Assistir &agrave; abertura</button>
+    </div>
+    <button id="btn-pular-participante" class="btn">Pular abertura</button>
+  </div>
 </div>
 
 <div id="cortina"><div id="cortina-txt"></div></div>
@@ -1798,6 +1849,52 @@ function modalOrientacaoMestre(){
     '</div></div>';
 }
 
+function abrirAberturaParticipante(aoConcluir){
+  var caixa=document.getElementById("abertura-participante");
+  var video=document.getElementById("video-abertura-participante");
+  var assistir=document.getElementById("btn-assistir-participante");
+  var pular=document.getElementById("btn-pular-participante");
+  if(!caixa||!video){ if(aoConcluir)aoConcluir(); return; }
+
+  var terminou=false;
+  function concluir(){
+    if(terminou) return;
+    terminou=true;
+    video.pause();
+    video.onended=video.onerror=null;
+    caixa.classList.remove("tocando");
+    caixa.classList.add("hidden");
+    caixa.setAttribute("aria-hidden","true");
+    if(aoConcluir) aoConcluir();
+  }
+  function tocar(){
+    telaCheia();
+    caixa.classList.add("tocando");
+    video.muted=false; video.volume=1;
+    try{video.currentTime=0;}catch(e){}
+    var promessa=video.play();
+    if(promessa&&promessa.catch) promessa.catch(function(){
+      caixa.classList.remove("tocando");
+      avisa("Toque novamente para iniciar a abertura com som.");
+    });
+  }
+
+  /* A orientacao em que a abertura comecou escolhe o arquivo. Girar o
+     aparelho durante a reproducao nao reinicia nem troca o video. */
+  var vertical=false;
+  try{vertical=window.matchMedia("(orientation: portrait)").matches;}catch(e){
+    vertical=window.innerHeight>window.innerWidth;
+  }
+  video.src=vertical?"img/abertura-vertical.mp4":"img/abertura.mp4";
+  video.load();
+  video.onended=concluir;
+  video.onerror=concluir;
+  assistir.onclick=tocar;
+  pular.onclick=concluir;
+  caixa.classList.remove("tocando","hidden");
+  caixa.setAttribute("aria-hidden","false");
+}
+
 function fecharOrientacaoParticipante(){
   STATE.orientacaoParticipanteAberta=false;
   render(true);
@@ -2544,8 +2641,11 @@ async function entrarNaMesa(){
     setTimeout(function(){
       abrirCortina();
       STATE.revelando=true;   /* a animacao so comeca com a cortina subindo */
-      STATE.orientacaoParticipanteAberta=true;
       render();
+      abrirAberturaParticipante(function(){
+        STATE.orientacaoParticipanteAberta=true;
+        render();
+      });
     }, Math.max(0, 2400-jaPassou));
   }catch(e){
     console.error(e);
