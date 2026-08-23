@@ -142,7 +142,7 @@ Telas locais:
 
 `inicio`, `entrar`, `esperando`, `encenacao`, `revelacao`, `votacao`, `mosaico`, `cooperacao`, `mercado`, `deducao`, `resultado`, `encerrada`, `painel`.
 
-O resultado atual é apenas o **prêmio da mesa**. Não é o placar completo de dedução descrito nas seções seguintes.
+O resultado final utiliza o placar V5 completo descrito nas seções seguintes; o voto de Performance permanece cego e integrado ao peso de 5%.
 
 ---
 
@@ -161,6 +161,8 @@ Antes de publicar alterações de texto, conferir:
 ```bash
 grep -i "encena\|interpreta" MOSAICO-mesa.html
 ```
+
+No modo **Com telão**, durante a abertura/encenação, o painel não mostra nem destaca a pessoa da vez. Exibe apenas **“Observe o ambiente e escute os sons!”**. O celular individual é o único indicador de quem deve agir.
 
 ### 5.3 O nome desaparece
 

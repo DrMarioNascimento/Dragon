@@ -1170,6 +1170,11 @@ function telaPainel(){
       '</div>';
     }
   }
+  /* No telão, a encenação não identifica nem destaca quem está falando.
+     O celular da própria pessoa continua sendo o único indicador da vez. */
+  if(fase==="encenacao"){
+    grade='<div class="vazio" style="font-family:var(--serif);font-size:clamp(25px,4vw,42px);line-height:1.35">Observe o ambiente<br>e escute os sons!</div>';
+  }
 
   /* relogio da casa: avanca com as interpretacoes concluidas */
   var pubs=(STATE.publicas||[]).slice().sort(function(a,b){return (a.ordem||0)-(b.ordem||0);});
@@ -1187,7 +1192,7 @@ function telaPainel(){
       var pu=pubs[m];
       mural+='<div class="publica"><span class="ph">'+esc(pu.hora)+'</span>'+
              '<div class="pt">'+esc(pu.txt)+'</div>'+
-             '<div class="pq">revelado por '+esc(pu.autor||"—")+'</div></div>';
+             '<div class="pq">fragmento revelado</div></div>';
     }
   }
 
@@ -1207,13 +1212,7 @@ function telaPainel(){
                                      :'. Esperando os que faltam.'))+
          '</p>';
   } else if(fase==="encenacao"){
-    /* o telao diz QUEM esta na vez, mas nunca qual personagem */
-    var vez=STATE.doc.vez||0;
-    var atual=js[vez];
-    acao='<div class="card"><span class="eyebrow">Agora</span>'+
-         '<div style="font-family:var(--serif);font-size:clamp(28px,7.6vw,40px);line-height:1.15">'+
-         (atual?esc(atual.nome):"&mdash;")+'</div></div>'+
-         '<button class="btn" onclick="pularVez()">Pular esta pessoa</button>';
+    acao='<button class="btn" onclick="pularVez()">Avan&ccedil;ar se necess&aacute;rio</button>';
   } else if(fase==="votacao"){
     acao='<div class="card"><span class="eyebrow">Vota&ccedil;&atilde;o aberta</span>'+
          '<p class="muted">'+STATE.votos.length+' de '+js.length+' j&aacute; votaram. '+
