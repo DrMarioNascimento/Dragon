@@ -203,6 +203,10 @@
     line-height:1.28;color:#fff;margin-bottom:20px}
   .fragmento-encontro .fe-explica{color:rgba(255,255,255,.78);font-size:14px;line-height:1.5;margin-bottom:20px}
   .fragmento-encontro .btn{border-color:rgba(255,255,255,.76);background:rgba(5,7,12,.56);color:#fff}
+  .fragmento-confirmado{display:grid;gap:6px;padding:15px 14px;border:1px solid rgba(255,255,255,.65);
+    border-radius:7px;background:rgba(5,7,12,.55);color:#fff}
+  .fragmento-confirmado b{font:800 14px var(--sans);letter-spacing:.12em;color:#fff}
+  .fragmento-confirmado span{font:600 14px var(--serif);color:rgba(255,255,255,.82)}
   /* Telao deitado: duas colunas lado a lado. */
   @media(min-width:900px) and (min-aspect-ratio: 1/1){
     .painel-cols{grid-template-columns:1.25fr .75fr;gap:34px}
@@ -787,6 +791,16 @@
   .orientacao-mestre-card p{font-size:14px;line-height:1.5;margin-bottom:11px}
   .orientacao-mestre-card p:last-child{margin-bottom:0}
   .orientacao-mestre .btn{margin-bottom:0}
+  .orientacao-participante{max-width:520px;border-color:rgba(127,212,255,.58);
+    padding:24px 18px;box-shadow:0 22px 70px rgba(0,0,0,.74)}
+  .orientacao-participante h2{font-size:clamp(29px,8vw,40px);margin:7px 0 8px}
+  .orientacao-participante>.lead{font-size:clamp(18px,4.8vw,22px);margin-bottom:15px}
+  .orientacao-lista{display:grid;gap:7px;text-align:left;margin-bottom:16px}
+  .orientacao-item{display:grid;gap:3px;padding:10px 12px;border:1px solid var(--linha);
+    border-left:3px solid var(--frio);border-radius:5px;background:rgba(8,13,20,.9)}
+  .orientacao-item b{color:var(--frio);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+  .orientacao-item span{color:var(--texto);font:600 13px/1.38 var(--serif)}
+  .orientacao-participante .btn{margin-bottom:0}
   .codigo-grande{
     font-size:clamp(44px,13vw,68px);font-weight:600;letter-spacing:.22em;
     color:var(--ambar);margin:14px 0 6px;
@@ -1212,7 +1226,7 @@ var STATE = {
 };
 var _unsubJog=null, _unsubMesa=null, _unsubVotos=null, _unsubPub=null, _unsubV5=[], _timerContagem=null;
 var _autoFasePendente=null, _autoTimer=null, _autoTimerChave="";
-var _acaoProcessando=false;
+var _acaoProcessando=false, _liberandoFragmentos=false;
 function assinarV5(FB,codigo){
   _unsubV5.forEach(function(f){try{f();}catch(e){}}); _unsubV5=[];
   var mestre=souMestreDaMesa();
@@ -1305,12 +1319,12 @@ function nomeRodada(fase){
   var nomes={
     sala:"Preparação da mesa",
     encenacao:"Apresentação",
-    votacao:"Apresentação",
+    votacao:"Votação",
     constelacao:"O Mapa do Escuro",
     inclinacao:"A Janela do Norte",
     mosaico:"Jogador ajuda seu grupo",
     cooperacao:"Jogador ajuda seu grupo",
-    mercado:"Jogador contra jogador",
+    mercado:"Mercado de pistas",
     deducao:"Jogador contra o caso",
     resultado:((STATE.doc&&STATE.doc.revelacaoEtapa)||0)>=4?"Resultado final":"Revelação final"
   };
@@ -1324,7 +1338,7 @@ function dinamicaNivel(fase){
     inclinacao:{id:"individual",classe:"individual",titulo:"Jogador contra jogador",sub:"Cada um por si"},
     mosaico:{id:"equipe",classe:"equipe",titulo:"Jogador com jogador",sub:"Encontre seu grupo"},
     cooperacao:{id:"equipe",classe:"equipe",titulo:"Jogador com jogador",sub:"Ajude seu grupo"},
-    mercado:{id:"mercado",classe:"mercado",titulo:"Mercado",sub:"Compre e venda pistas"},
+    mercado:{id:"mercado",classe:"mercado",titulo:"Mercado de pistas",sub:"Compre e venda pistas"},
     deducao:{id:"caso",classe:"caso",titulo:"Jogadores contra o caso",sub:"Reconstruam a verdade"}
   };
   return niveis[fase]||null;
@@ -1415,7 +1429,7 @@ function controlesMestreMovel(){
     botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();abrirVotoCooperacao()">Abrir voto interno</button>';
   }else if(fase==="cooperacao"){
     acaoNecessaria=true;
-    botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();abrirMercado()">Abrir mercado</button>';
+    botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();abrirMercado()">Abrir Mercado de pistas</button>';
   }else if(fase==="mercado"){
     acaoNecessaria=true;
     botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();abrirDeducao()">Abrir dedu&ccedil;&atilde;o</button>';
@@ -1464,8 +1478,20 @@ async function verificarAutomacoes(){
   _autoFasePendente=d.fase;
   try{await d.acao();}catch(e){_autoFasePendente=null;console.error("automação da fase",e);}
 }
+async function verificarEncontroFragmentos(){
+  if(_liberandoFragmentos||!souMestreDaMesa()||!STATE.doc||STATE.doc.fase!=="mosaico"||STATE.doc.fragmentosLiberados) return;
+  var total=STATE.jogadores.length, prontos=fragmentosConfirmados();
+  if(!total||prontos<total) return;
+  _liberandoFragmentos=true;
+  try{
+    var FB=await esperarFB();
+    await FB.atualizarMesa(STATE.mesa.codigo,{fragmentosLiberados:true,fragmentosLiberadosMs:Date.now()});
+  }catch(e){console.error("liberar Fragmentos",e);}
+  finally{_liberandoFragmentos=false;}
+}
 function agendarAutomacoes(){
   if(!souMestreDaMesa()) return;
+  verificarEncontroFragmentos();
   var d=dadosAutomacao();
   if(!d){if(_autoTimer)clearTimeout(_autoTimer);_autoTimer=null;_autoTimerChave="";return;}
   verificarAutomacoes();
@@ -1541,7 +1567,7 @@ function render(forcar){
   document.body.classList.toggle("painel-em-jogo",
     STATE.tela==="painel" && faseAgora!=="sala" && faseAgora!=="resultado");
   document.body.classList.toggle("encenacao-passiva",encenacaoPassiva);
-  var emBuscaFragmento=STATE.tela==="mosaico"&&faseAgora==="mosaico"&&!fragmentoConfirmado();
+  var emBuscaFragmento=STATE.tela==="mosaico"&&faseAgora==="mosaico"&&!(STATE.doc&&STATE.doc.fragmentosLiberados);
   document.body.classList.toggle("busca-fragmento",emBuscaFragmento);
   for(var corFragmento=1;corFragmento<=4;corFragmento++){
     document.body.classList.toggle("fragmento-cor-"+corFragmento,
@@ -1587,6 +1613,7 @@ function render(forcar){
   if(STATE.eu&&!encenacaoPassiva) h+=painelCasoMovel();
   if(STATE.eu && souMestreDaMesa() && modoAtual()==="sem-telao") h+=controlesMestreMovel();
   if(souMestreDaMesa()) h+=modalOrientacaoMestre();
+  if(STATE.eu) h+=modalOrientacaoParticipante();
   app.innerHTML=h;
   agendarAutomacoes();
 }
@@ -1646,6 +1673,30 @@ function modalOrientacaoMestre(){
       '<p>A sirene de nevoeiro tocar&aacute; somente neste aparelho, evitando eco entre os celulares.</p>'+
     '</div>'+
     '<button class="btn btn-ambar" onclick="habilitarAudioNivel();fecharOrientacaoMestre()">Entendi &middot; ativar som</button>'+
+    '</div></div>';
+}
+
+function fecharOrientacaoParticipante(){
+  STATE.orientacaoParticipanteAberta=false;
+  render(true);
+}
+function modalOrientacaoParticipante(){
+  if(!STATE.orientacaoParticipanteAberta) return "";
+  return '<div class="modal-fundo orientacao-participante-fundo"><div class="modal orientacao-participante">'+
+    '<span class="eyebrow">Antes de come&ccedil;ar</span>'+
+    '<h2>O objetivo do jogo</h2>'+
+    '<p class="lead">Realize tarefas, conquiste pistas e reconstrua o caso final.</p>'+
+    '<div class="orientacao-lista">'+
+      '<div class="orientacao-item"><b>Caso</b><span>Consulte a rodada, as orienta&ccedil;&otilde;es e a linha do tempo p&uacute;blica.</span></div>'+
+      '<div class="orientacao-item"><b>Arquivo</b><span>Guarda suas pistas particulares. Voc&ecirc; pode consult&aacute;-las durante o jogo.</span></div>'+
+      '<div class="orientacao-item"><b>Encena&ccedil;&atilde;o</b><span>Liberte seu lado ator. Siga as a&ccedil;&otilde;es, interprete a fala e entre no clima. Seu empenho poder&aacute; render pontos de performance.</span></div>'+
+      '<div class="orientacao-item"><b>Vota&ccedil;&atilde;o</b><span>Vote de forma cega em quem mais contribuiu para o clima e a divers&atilde;o da cena.</span></div>'+
+      '<div class="orientacao-item"><b>Jogador contra jogador</b><span>Nas tarefas individuais, cada um joga por si e disputa sua coloca&ccedil;&atilde;o.</span></div>'+
+      '<div class="orientacao-item"><b>Jogador com jogador</b><span>Encontre as telas da mesma cor, forme seu Fragmento e trabalhem juntos.</span></div>'+
+      '<div class="orientacao-item"><b>Mercado de pistas</b><span>Compre e venda pistas. O pre&ccedil;o e a import&acirc;ncia real delas influenciam o resultado.</span></div>'+
+      '<div class="orientacao-item"><b>Jogadores contra o caso</b><span>Use as evid&ecirc;ncias reunidas para montar e enviar sua acusa&ccedil;&atilde;o final.</span></div>'+
+    '</div>'+
+    '<button class="btn btn-ambar" onclick="fecharOrientacaoParticipante()">Entendi &middot; entrar no jogo</button>'+
     '</div></div>';
 }
 
@@ -1777,7 +1828,7 @@ function telaPainel(){
   } else if(fase==="cooperacao"){
     acao='<div class="card"><span class="eyebrow">Voto interno cego</span><p class="muted">'+STATE.v5.cooperacao.length+' voto(s) recebidos. Os nomes e o resultado permanecem ocultos.</p></div><button class="btn btn-ambar" onclick="abrirMercado()">Encerrar voto e abrir Mercado Cego</button>';
   } else if(fase==="mercado"){
-    acao='<div class="card"><span class="eyebrow">Mercado Cego</span><p class="muted">'+STATE.v5.negociacoes.length+' compra(s) conclu&iacute;da(s).</p></div><button class="btn btn-ambar" onclick="abrirDeducao()">Fechar mercado e abrir dedu&ccedil;&atilde;o</button>';
+    acao='<div class="card"><span class="eyebrow">Mercado de pistas</span><p class="muted">'+STATE.v5.negociacoes.length+' compra(s) conclu&iacute;da(s).</p></div><button class="btn btn-ambar" onclick="abrirDeducao()">Fechar mercado e abrir dedu&ccedil;&atilde;o</button>';
   } else if(fase==="deducao"){
     acao='<div class="card"><span class="eyebrow">Dedu&ccedil;&atilde;o final</span><p class="muted">'+STATE.v5.deducoes.length+' de '+js.length+' respostas enviadas. O placar ser&aacute; calculado automaticamente.</p></div>';
   } else if(fase==="resultado"){
@@ -2026,34 +2077,35 @@ var FRAGMENTOS={
   4:{nome:"Fragmento da Noite",cor:"Roxa"}
 };
 function dadosFragmento(nucleo){return FRAGMENTOS[Number(nucleo)]||{nome:"Seu Fragmento",cor:"da mesma cor"};}
-function chaveEncontroFragmento(){
-  var eu=meuJogador(), abertura=(STATE.doc&&STATE.doc.mosaicoAbertoMs)||"";
-  return eu?"mosaico_fragmento_"+((STATE.eu&&STATE.eu.codigo)||"")+"_"+eu.id+"_"+eu.nucleo+"_"+abertura:"";
+function fragmentosConfirmados(){
+  return STATE.jogadores.filter(function(j){return !!j.fragmentoPronto;}).length;
 }
 function fragmentoConfirmado(){
-  var chave=chaveEncontroFragmento();if(!chave)return false;
-  try{return sessionStorage.getItem(chave)==="ok";}catch(e){return false;}
+  var eu=meuJogador();
+  return !!(eu&&eu.fragmentoPronto);
 }
-function confirmarFragmento(){
-  var chave=chaveEncontroFragmento();
-  try{if(chave)sessionStorage.setItem(chave,"ok");}catch(e){}
-  render(true);
+async function confirmarFragmento(){
+  if(!STATE.eu||fragmentoConfirmado()) return;
+  var FB=await esperarFB();
+  await FB.atualizarJogador(STATE.eu.codigo,STATE.eu.id,{fragmentoPronto:true,fragmentoProntoMs:Date.now()});
 }
 function telaEncontroFragmento(nucleo){
-  var f=dadosFragmento(nucleo);
+  var f=dadosFragmento(nucleo), confirmado=fragmentoConfirmado();
+  var total=STATE.jogadores.length, prontos=fragmentosConfirmados();
   return '<div class="fragmento-encontro">'+
     '<span class="fe-selo">Seu Fragmento</span>'+
     '<h2>'+esc(f.nome)+'</h2>'+
     '<span class="fe-cor">Tela '+esc(f.cor)+'</span>'+
     '<p class="fe-instrucao">Junte-se a quem tem a tela '+esc(f.cor.toLowerCase())+'.</p>'+
     '<p class="fe-explica">Levante-se, procure a sua cor e forme o grupo sem depender dos nomes das pessoas.</p>'+
-    '<button class="btn" onclick="confirmarFragmento()">Encontrei meu Fragmento</button>'+
+    (confirmado?
+      '<div class="fragmento-confirmado"><b>FRAGMENTO ENCONTRADO &#10003;</b><span>'+prontos+' de '+total+' jogadores confirmaram. Aguarde.</span></div>':
+      '<button class="btn" onclick="confirmarFragmento()">OK, ENCONTREI MEU FRAGMENTO!</button>')+
     '</div>';
 }
-
 function telaMosaico(){
   var eu=meuJogador(), nucleo=eu&&eu.nucleo, fragmento=dadosFragmento(nucleo);
-  if(!fragmentoConfirmado()) return telaEncontroFragmento(nucleo);
+  if(!(STATE.doc&&STATE.doc.fragmentosLiberados)) return telaEncontroFragmento(nucleo);
   var feito=(STATE.v5.nucleos||[]).some(function(n){return String(n.id)===String(nucleo)&&(n.concluidoEm||n.concluidoMs);});
   if(feito) return '<span class="eyebrow">'+esc(fragmento.nome)+'</span><h2>Mosaico conclu&iacute;do.</h2><p class="lead">A ordem foi registrada pelo servidor. Aguarde os demais Fragmentos.</p>';
   var opts='<option value="">Escolha…</option>'+(CASO.publicas||[]).map(function(p){return opcao(p.id,p.hora+' — '+p.txt);}).join('');
@@ -2367,6 +2419,7 @@ async function entrarNaMesa(){
     setTimeout(function(){
       abrirCortina();
       STATE.revelando=true;   /* a animacao so comeca com a cortina subindo */
+      STATE.orientacaoParticipanteAberta=true;
       render();
     }, Math.max(0, 2400-jaPassou));
   }catch(e){
@@ -2622,10 +2675,10 @@ window.addEventListener('message',function(event){
 async function prepararMosaico(){
   var FB=await esperarFB(), distribuicao=MosaicoV5.distribuirNucleos(STATE.jogadores);
   for(var i=0;i<distribuicao.length;i++){
-    await FB.atualizarJogador(STATE.mesa.codigo,distribuicao[i].id,{nucleo:distribuicao[i].nucleo});
+    await FB.atualizarJogador(STATE.mesa.codigo,distribuicao[i].id,{nucleo:distribuicao[i].nucleo,fragmentoPronto:false,fragmentoProntoMs:0});
     await FB.gravar(STATE.mesa.codigo,'nucleos',String(distribuicao[i].nucleo),{numero:distribuicao[i].nucleo});
   }
-  await FB.atualizarMesa(STATE.mesa.codigo,{fase:'mosaico',mosaicoAbertoMs:Date.now()});
+  await FB.atualizarMesa(STATE.mesa.codigo,{fase:'mosaico',mosaicoAbertoMs:Date.now(),fragmentosLiberados:false});
 }
 async function enviarMosaico(){
   var ordem=[]; for(var i=0;i<6;i++) ordem.push((document.getElementById('mos-'+i)||{}).value||'');
