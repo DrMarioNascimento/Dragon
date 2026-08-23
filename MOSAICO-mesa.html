@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#05070c">
+<title>MOSAICO — A Casa da Costa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --breu:#05070c; --painel:#0c121a; --linha:#1b2634;
+    --nevoa:#8fa3b8; --ambar:#e8a44c; --frio:#7fd4ff;
+    --texto:#e6ecf2; --dim:#6d7f90; --vermelho:#e0674f;
+    --serif:"Cormorant Garamond",Georgia,"Noto Serif","Times New Roman",serif;
+    --sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+  html,body{
+    min-height:100%;background:var(--breu);color:var(--texto);
+    font-family:var(--sans);overscroll-behavior-y:none;
+  }
+  body{
+    background:radial-gradient(ellipse 130% 70% at 50% 0%,#0b1119 0%,#05070c 60%);
+    background-attachment:fixed;
+  }
+
+  /* ---------- arte-chave ----------
+     capa-vertical.jpg  -> abertura no celular (o poster ja traz o nome)
+     fundo-painel.jpg   -> atmosfera do painel projetado (versao sem texto) */
+  #arte{
+    position:fixed;inset:0;z-index:-2;
+    background-position:center;background-size:cover;background-repeat:no-repeat;
+    opacity:0;transition:opacity 1.4s ease;
+  }
+  #arte::after{
+    content:"";position:absolute;inset:0;
+  }
+  body.t-inicio #arte{
+    background-image:url("img/capa-vertical.jpg");
+    opacity:1;
+  }
+  /* video de abertura: se img/abertura.mp4 existir, cobre o poster.
+     Se nao existir, o <video> some sozinho e o poster continua valendo. */
+  #video-abertura{
+    position:absolute;inset:0;width:100%;height:100%;
+    object-fit:cover;opacity:0;transition:opacity 1.6s ease;
+  }
+  body.t-inicio #video-abertura.tocando{opacity:1}
+
+  /* Cada arte na orientacao em que nasceu.
+     Celular (tela vertical): o poster vertical, inteiro, com o nome no topo.
+     O video e 16:9 — em 9:16 perderia ~70% da largura, entao nao entra aqui.
+     Tela larga (computador / telao): o video toma a tela, proporcao bate.   */
+  @media (max-aspect-ratio: 1/1){
+    #video-abertura{display:none}
+  }
+  body.t-inicio #arte::after{
+    background:linear-gradient(180deg,
+      rgba(5,7,12,.10) 0%, rgba(5,7,12,.16) 34%,
+      rgba(5,7,12,.80) 62%, rgba(5,7,12,.97) 82%, #05070c 100%);
+  }
+  body.t-painel #arte{
+    background-image:url("img/fundo-painel.jpg");
+    opacity:.42;
+  }
+  body.t-painel #arte::after{
+    background:radial-gradient(ellipse 120% 90% at 50% 40%,
+      rgba(5,7,12,.55) 0%, rgba(5,7,12,.86) 70%, #05070c 100%);
+  }
+
+  /* abertura: o poster manda, o texto ancora embaixo */
+  #app.capa{
+    min-height:100vh;display:flex;flex-direction:column;justify-content:flex-end;
+    padding-bottom:max(34px,env(safe-area-inset-bottom));
+  }
+  #app.capa h1{
+    font-size:clamp(15px,4vw,19px);letter-spacing:.4em;text-transform:uppercase;
+    font-family:var(--sans);font-weight:600;color:var(--ambar);
+    margin-bottom:16px;text-shadow:0 2px 20px rgba(0,0,0,.9);
+  }
+  #app.capa .lead{
+    text-shadow:0 2px 24px rgba(0,0,0,.95);margin-bottom:30px;
+  }
+  #app.capa .eyebrow{display:none}
+  #app{
+    max-width:640px;margin:0 auto;min-height:100vh;
+    padding:max(24px,env(safe-area-inset-top)) 20px max(30px,env(safe-area-inset-bottom));
+  }
+  /* o painel e projetado: precisa de largura e de leitura a distancia */
+  #app.largo{max-width:1180px;padding-left:28px;padding-right:28px}
+  .painel-cols{display:grid;grid-template-columns:1fr;gap:24px;align-items:start}
+  @media(min-width:900px){
+    .painel-cols{grid-template-columns:1.25fr .75fr;gap:34px}
+    #app.largo .grade{grid-template-columns:repeat(auto-fill,minmax(170px,1fr))}
+  }
+
+  /* ---------- relogio da casa ---------- */
+  .relogio{
+    text-align:center;padding:8px 0 26px;
+  }
+  .relogio .hh{
+    font-family:var(--serif);font-size:clamp(52px,13vw,92px);line-height:1;
+    letter-spacing:.1em;color:var(--nevoa);font-variant-numeric:tabular-nums;
+    text-shadow:0 0 44px rgba(143,163,184,.3);
+  }
+  .relogio .cap{
+    font-size:clamp(11px,3vw,14px);letter-spacing:.34em;text-transform:uppercase;
+    color:var(--dim);margin-top:10px;
+  }
+
+  /* ---------- pistas gerais (feed do painel) ---------- */
+  .publica{
+    border-left:2px solid rgba(232,164,76,.5);
+    padding:2px 0 2px 18px;margin-bottom:26px;
+    animation:surge 1.1s cubic-bezier(.16,1,.3,1);
+  }
+  @keyframes surge{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .publica .ph{
+    font-size:clamp(12px,3.2vw,15px);font-weight:600;letter-spacing:.2em;
+    color:var(--ambar);font-variant-numeric:tabular-nums;
+  }
+  .publica .pt{
+    font-family:var(--serif);font-size:clamp(23px,6vw,31px);line-height:1.32;
+    color:var(--texto);margin-top:9px;
+  }
+  .publica .pq{
+    font-family:var(--serif);font-style:italic;font-size:clamp(16px,4.2vw,19px);
+    color:var(--dim);margin-top:8px;
+  }
+  .publicas-vazio{
+    font-family:var(--serif);font-style:italic;color:var(--dim);
+    font-size:clamp(19px,5vw,24px);line-height:1.5;padding:26px 0;
+  }
+
+  /* ---------- tipografia ---------- */
+  .eyebrow{
+    display:block;font-size:clamp(11px,3vw,14px);font-weight:600;
+    letter-spacing:.32em;text-transform:uppercase;color:var(--dim);
+    margin-bottom:10px;
+  }
+  h1{
+    font-family:var(--serif);font-size:clamp(42px,12vw,68px);
+    line-height:1.03;font-weight:400;margin-bottom:8px;
+  }
+  h2{
+    font-family:var(--serif);font-size:clamp(30px,8.4vw,44px);
+    line-height:1.12;font-weight:400;margin-bottom:14px;
+  }
+  .lead{
+    font-family:var(--serif);font-size:clamp(21px,5.7vw,29px);
+    line-height:1.45;color:var(--nevoa);margin-bottom:26px;
+  }
+  .muted{color:var(--dim);font-size:clamp(14px,3.7vw,17px);line-height:1.6}
+
+  /* ---------- botoes ---------- */
+  .btn{
+    display:block;width:100%;margin-bottom:12px;
+    font-family:var(--sans);font-size:clamp(14px,3.7vw,17px);font-weight:600;
+    letter-spacing:.16em;text-transform:uppercase;
+    padding:21px 24px;border-radius:3px;cursor:pointer;
+    border:1px solid var(--linha);background:var(--painel);color:var(--texto);
+    transition:border-color .25s ease,background .25s ease;
+  }
+  .btn:active{background:#141d28}
+  .btn-ambar{border-color:rgba(232,164,76,.5);color:var(--ambar);background:rgba(232,164,76,.06)}
+  .btn-frio{border-color:rgba(127,212,255,.45);color:var(--frio);background:rgba(127,212,255,.06)}
+  .btn-fantasma{border-color:transparent;color:var(--dim);letter-spacing:.12em;padding:16px}
+  .btn:disabled{opacity:.32;cursor:default}
+  .btn-sm{
+    display:inline-block;width:auto;padding:12px 18px;margin:0;
+    font-size:clamp(11px,3vw,13px);letter-spacing:.14em;
+  }
+
+  /* ---------- campos ---------- */
+  label{
+    display:block;font-size:clamp(12px,3.2vw,15px);font-weight:600;
+    letter-spacing:.2em;text-transform:uppercase;color:var(--dim);
+    margin:0 0 10px;
+  }
+  input{
+    width:100%;margin-bottom:22px;
+    font-family:var(--sans);font-size:clamp(20px,5.4vw,26px);
+    padding:18px 16px;border-radius:3px;
+    border:1px solid var(--linha);background:#080d14;color:var(--texto);
+  }
+  input:focus{outline:none;border-color:rgba(127,212,255,.5)}
+  input.codigo{
+    font-family:var(--sans);font-size:clamp(30px,9vw,44px);font-weight:600;
+    letter-spacing:.3em;text-align:center;text-transform:uppercase;
+  }
+
+  /* ---------- cartoes ---------- */
+  .card{
+    border:1px solid var(--linha);border-radius:3px;background:var(--painel);
+    padding:20px;margin-bottom:14px;
+  }
+  .barra{
+    display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+    padding-bottom:18px;margin-bottom:22px;border-bottom:1px solid var(--linha);
+  }
+  .barra .conta{
+    font-size:clamp(15px,4vw,19px);font-weight:600;color:var(--texto);
+  }
+  .barra .dir{margin-left:auto;display:flex;gap:8px}
+
+  /* ---------- grade de jogadores ---------- */
+  .grade{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+    gap:12px;margin-bottom:24px;
+  }
+  .jog{
+    border:1px solid var(--linha);border-radius:3px;background:var(--painel);
+    padding:18px 14px;text-align:center;position:relative;overflow:hidden;
+  }
+  .jog::before{
+    content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--linha);
+  }
+  .jog.st-pronto::before{background:var(--frio)}
+  .jog.st-atuando::before{background:var(--ambar)}
+  .jog.st-atuando{border-color:rgba(232,164,76,.45)}
+  .jog .av{font-size:clamp(30px,8vw,40px);line-height:1;margin-bottom:10px}
+  .jog .nm{
+    font-size:clamp(15px,4vw,18px);font-weight:600;margin-bottom:5px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .jog .pers{
+    font-family:var(--serif);font-style:italic;
+    font-size:clamp(16px,4.3vw,20px);color:var(--nevoa);
+  }
+  .jog .est{
+    font-size:clamp(11px,2.9vw,13px);letter-spacing:.18em;text-transform:uppercase;
+    color:var(--dim);margin-top:9px;
+  }
+  .jog .pt{
+    font-size:clamp(22px,6vw,28px);font-weight:600;color:var(--ambar);margin-top:8px;
+    font-variant-numeric:tabular-nums;
+  }
+  .vazio{
+    grid-column:1/-1;text-align:center;padding:44px 20px;
+    font-family:var(--serif);font-style:italic;color:var(--dim);
+    font-size:clamp(19px,5.2vw,25px);line-height:1.5;
+  }
+
+  /* ---------- personagens ---------- */
+  .pers-lista{display:grid;gap:10px;margin-bottom:24px}
+  .pers-op{
+    display:flex;align-items:center;gap:16px;text-align:left;
+    border:1px solid var(--linha);border-radius:3px;background:var(--painel);
+    padding:16px 18px;cursor:pointer;width:100%;color:var(--texto);
+    transition:border-color .25s ease;
+  }
+  .pers-op[aria-pressed="true"]{border-color:var(--ambar);background:rgba(232,164,76,.07)}
+  .pers-op:disabled{opacity:.3;cursor:default}
+  .pers-op .av{font-size:clamp(28px,7.5vw,36px);line-height:1}
+  .pers-op .txt{flex:1}
+  .pers-op .nm{
+    font-family:var(--serif);font-size:clamp(24px,6.4vw,30px);line-height:1.15;
+  }
+  .pers-op .desc{
+    font-family:var(--serif);font-style:italic;color:var(--nevoa);
+    font-size:clamp(16px,4.3vw,20px);line-height:1.35;margin-top:3px;
+  }
+
+  /* ---------- roteiro de cinema ---------- */
+  #escuro{
+    position:fixed;inset:0;z-index:40;background:#020304;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:40px 30px;
+  }
+  #escuro .quem{
+    font-family:var(--serif);font-size:clamp(30px,8.4vw,44px);
+    color:var(--nevoa);line-height:1.25;margin-bottom:18px;
+  }
+  #escuro .sub{
+    font-size:clamp(12px,3.2vw,15px);letter-spacing:.28em;text-transform:uppercase;
+    color:#33414f;
+  }
+  .pulso{
+    width:9px;height:9px;border-radius:50%;background:var(--nevoa);
+    margin:0 auto 30px;animation:resp 3.4s ease-in-out infinite;
+  }
+  @keyframes resp{0%,100%{opacity:.12;transform:scale(1)}50%{opacity:.55;transform:scale(1.5)}}
+  #contagem{
+    font-family:var(--serif);font-size:clamp(90px,26vw,150px);
+    color:var(--ambar);line-height:1;
+  }
+  .roteiro{
+    border-left:2px solid var(--ambar);padding-left:20px;margin:0 0 30px;
+  }
+  .roteiro .quem{
+    font-size:clamp(13px,3.5vw,16px);font-weight:600;letter-spacing:.3em;
+    text-transform:uppercase;color:var(--ambar);margin-bottom:14px;
+  }
+  .roteiro .rub{
+    font-family:var(--serif);font-style:italic;color:var(--nevoa);
+    font-size:clamp(20px,5.4vw,26px);line-height:1.42;margin-bottom:16px;
+  }
+  .roteiro .tom{
+    display:inline-block;font-size:clamp(13px,3.5vw,16px);font-weight:600;
+    letter-spacing:.2em;text-transform:uppercase;color:var(--vermelho);
+    border:1px solid rgba(224,103,79,.4);border-radius:2px;
+    padding:8px 14px;margin-bottom:18px;
+  }
+  .roteiro .fala{
+    font-family:var(--serif);font-size:clamp(38px,11vw,62px);line-height:1.14;
+    color:var(--texto);margin-bottom:18px;
+  }
+  .roteiro .pos{
+    font-family:var(--serif);font-style:italic;color:var(--nevoa);opacity:.75;
+    font-size:clamp(19px,5.1vw,24px);line-height:1.42;
+  }
+
+  /* ---------- modal QR ---------- */
+  .modal-fundo{
+    position:fixed;inset:0;z-index:50;background:rgba(3,5,9,.9);
+    display:flex;align-items:center;justify-content:center;padding:24px;
+    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  }
+  .modal-fundo.hidden{display:none}
+  .modal{
+    background:var(--painel);border:1px solid var(--linha);border-radius:4px;
+    padding:28px 24px;max-width:400px;width:100%;text-align:center;
+    max-height:90vh;overflow-y:auto;overflow-x:hidden;
+  }
+  .codigo-grande{
+    font-size:clamp(44px,13vw,68px);font-weight:600;letter-spacing:.22em;
+    color:var(--ambar);margin:14px 0 6px;
+  }
+  .qr-caixa{
+    width:190px;height:190px;margin:20px auto;background:#fff;
+    border-radius:3px;padding:8px;
+  }
+  .qr-caixa img{width:100%;height:100%;object-fit:contain;display:block}
+  .link-peq{
+    font-size:clamp(12px,3.2vw,14px);color:var(--dim);
+    word-break:break-all;margin:12px 0 20px;line-height:1.5;
+  }
+  .selo{
+    display:inline-block;font-size:clamp(11px,3vw,13px);font-weight:600;
+    letter-spacing:.18em;text-transform:uppercase;
+    padding:7px 14px;border-radius:2px;margin-bottom:6px;
+  }
+  .selo.ok{color:var(--frio);border:1px solid rgba(127,212,255,.35)}
+  .selo.esperando{color:var(--dim);border:1px solid var(--linha)}
+  .aviso{
+    border:1px solid rgba(224,103,79,.4);background:rgba(224,103,79,.07);
+    border-radius:3px;padding:16px 18px;margin-bottom:20px;
+    font-size:clamp(14px,3.7vw,17px);line-height:1.55;color:#f0b0a0;
+  }
+  .aviso b{color:var(--vermelho)}
+
+  /* ---------- cortina ----------
+     O poster fecha a tela enquanto a casa sorteia. Quando abre,
+     o jogador ja e alguem. Esconde a espera e cria o momento.     */
+  #cortina{
+    position:fixed;inset:0;z-index:30;
+    background:url("img/capa-vertical.jpg") center/cover no-repeat,#05070c;
+    opacity:0;pointer-events:none;
+    transition:opacity 1.1s ease;
+    display:flex;align-items:flex-end;justify-content:center;
+    padding:0 30px max(16vh,90px);
+  }
+  #cortina.on{opacity:1;pointer-events:auto;transition:opacity .5s ease}
+  #cortina-txt{
+    font-family:var(--serif);font-style:italic;
+    font-size:clamp(23px,6.2vw,30px);line-height:1.4;
+    color:var(--nevoa);text-align:center;max-width:16em;
+    text-shadow:0 2px 26px rgba(0,0,0,.95);
+    opacity:0;
+  }
+  #cortina.on #cortina-txt{animation:cortSobe 1.1s ease .7s both}
+  @keyframes cortSobe{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+  /* a tela de digitar o codigo tambem recebe a arte, mais apagada,
+     para a chegada ser uma sequencia continua e nao tres telas soltas */
+  body.t-entrar #arte{
+    background-image:url("img/capa-vertical.jpg");
+    opacity:.30;
+  }
+  body.t-entrar #arte::after{
+    background:linear-gradient(180deg,rgba(5,7,12,.55) 0%,rgba(5,7,12,.92) 70%,#05070c 100%);
+  }
+
+  /* ---------- revelacao do personagem ---------- */
+  .revelacao{text-align:center;margin:38px 0}
+  .rv-av{font-size:clamp(64px,19vw,96px);line-height:1;
+    filter:drop-shadow(0 0 30px rgba(232,164,76,.4))}
+  .rv-nome{margin-top:18px}
+  .revelacao.revela .rv-av{animation:rvSurge 1.2s cubic-bezier(.16,1,.3,1) both}
+  .revelacao.revela .rv-nome{animation:rvSobe .9s cubic-bezier(.16,1,.3,1) .5s both}
+  .revelacao.revela .rv-desc{animation:rvSobe .9s cubic-bezier(.16,1,.3,1) .9s both}
+  @keyframes rvSurge{
+    from{opacity:0;transform:scale(.55);filter:blur(14px)}
+    to{opacity:1;transform:scale(1);filter:blur(0)}
+  }
+  @keyframes rvSobe{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+
+  /* ---------- porta do mestre ---------- */
+  #senha-erro{
+    color:var(--vermelho);font-size:clamp(14px,3.7vw,17px);
+    min-height:24px;margin-bottom:14px;
+  }
+  .modal input.senha{
+    text-align:center;letter-spacing:.18em;margin-bottom:16px;
+  }
+</style>
+</head>
+<body>
+<div id="arte">
+  <!-- Coloque o video em img/abertura.mp4 e ele assume a abertura sozinho.
+       Sem o arquivo, nada quebra: fica o poster capa-vertical.jpg. -->
+  <video id="video-abertura" muted loop playsinline preload="auto"
+         poster="img/capa-vertical.jpg"></video>
+</div>
+<div id="cortina"><div id="cortina-txt"></div></div>
+<div id="app"></div>
+
+<script>
+/* ============================================================
+   MOSAICO — mesa, painel e encenacao
+   Convencoes herdadas do Learning-lab (Laboratorio do Pesquisador):
+   codigo de 6 caracteres sem 0/O/1/I, link ?sala=, QR via qrserver,
+   Firestore publicado em window.MosaicoFB por um script type=module.
+   ============================================================ */
+"use strict";
+
+/* ---------- personagens (Cap. 3 — Os Seis Convidados) ---------- */
+var PERSONAGENS = [
+  { id:"jonas",   nome:"Jonas",   av:"🔦",
+    desc:"Chega primeiro. Sempre observa antes de se misturar." },
+  { id:"helena",  nome:"Helena",  av:"🔑",
+    desc:"Não entra: surge. A névoa abre espaço para ela." },
+  { id:"caio",    nome:"Caio",    av:"👟",
+    desc:"Passos leves, calculados. Acostumado a não ser percebido." },
+  { id:"livia",   nome:"Lívia",   av:"👜",
+    desc:"Segura a bolsa com força. Algo dentro dela importa." },
+  { id:"marcelo", nome:"Marcelo", av:"🪞",
+    desc:"Tenta parecer tranquilo. Não está." },
+  { id:"ana",     nome:"Ana",     av:"🔇",
+    desc:"A última. Vê tudo. Não diz nada." }
+];
+
+/* ---------- roteiros da encenacao (Cap. 1 e 3) ---------- */
+var ROTEIRO = {
+  jonas:{
+    rub:"Você entra primeiro. Passa a mão pela parede do corredor, como quem testa a textura de algo vivo. A madeira responde com um estalo curto. Você para. Olha para cima.",
+    tom:"Alto — quase um grito",
+    fala:"“Tem alguém aí?”",
+    pos:"A fala sai curta, automática. Ninguém responde. Ou talvez tenha respondido, e o som se perdeu na tempestade."
+  },
+  helena:{
+    rub:"Você olha para cada canto da sala como quem procura algo que já sabe que está ali. O cofre chama sua atenção. Fechado — mas com a marca de dedo fresca. Você toca a trava com o indicador.",
+    tom:"Baixo, seco, sem hesitar",
+    fala:"“Isso não estava assim.”",
+    pos:"E não estava mesmo."
+  },
+  caio:{
+    rub:"Você entra sem fazer barulho — a porta nem parece abrir. Olha para a escada. Para o sótão. Para a janela do segundo andar. A tempestade bate forte quando você passa.",
+    tom:"Sem falar — só o olhar",
+    fala:"( silêncio )",
+    pos:"Você não diz nada. Mas encara alguma coisa acima da cabeça das outras pessoas por três segundos, como quem já viu algo que os outros não viram. Depois desvia."
+  },
+  livia:{
+    rub:"Você entra como se estivesse atrasada — mesmo não estando. Segura a bolsa com força. Olha para o corredor. Para a cortina que balança sem vento. Para a porta entreaberta.",
+    tom:"Incomodada — mais do que deveria",
+    fala:"“Quem deixou isso assim?”",
+    pos:"Ninguém responde. E isso incomoda você ainda mais."
+  },
+  marcelo:{
+    rub:"Você olha para a tempestade pela janela. Depois para os outros. Depois para a casa. E a casa olha de volta. Você passa a mão pelo cabelo, nervoso. Um reflexo metálico na janela chama sua atenção.",
+    tom:"Nervoso — a voz falha no meio",
+    fala:"“Vocês viram isso?”",
+    pos:"Ninguém admite ter visto. Mas todos sentiram."
+  },
+  ana:{
+    rub:"Você é a última. Entra devagar, como quem não quer interromper algo que já começou. A casa parece esperar por você. Olha para o teto. Para o sótão. Para a escada. Para o cofre. Para a porta entreaberta.",
+    tom:"Não fale — conte até cinco",
+    fala:"( silêncio )",
+    pos:"Você vê tudo. E não diz nada. O silêncio de Ana é mais pesado do que qualquer fala. Encare a mesa, uma pessoa de cada vez, e só então sente."
+  }
+};
+
+/* ---------- pistas gerais (Cap. 2 — A Linha da Verdade) ----------
+   Cada interpretacao concluida publica UMA linha no painel, na ordem
+   em que as pessoas atuam. A historia se monta na parede enquanto a
+   mesa encena — e a Fase 0 do manual ("A Historia que Pula") deixa de
+   ser texto lido sozinho e vira registro coletivo.                  */
+var PUBLICAS=[
+  { hora:"21:03", txt:"A luz da Casa da Costa oscilou pela primeira vez. Não foi queda. Foi aviso." },
+  { hora:"21:07", txt:"A porta da sala estava entreaberta. A cortina balançava. E a janela estava trancada." },
+  { hora:"21:12", txt:"O cofre estava fechado, como deveria estar. Mas a marca de dedo na trava era recente." },
+  { hora:"21:14", txt:"Um som veio do andar de cima. Não era passo. Não era objeto. Era algo entre os dois." },
+  { hora:"21:17", txt:"O corredor ficou meio escuro por um segundo. Uma sombra passou rápido demais." },
+  { hora:"21:20", txt:"A névoa entrou pela fresta da porta como se tivesse sido convidada." }
+];
+var HORA_FASE={ sala:"21:00", encenacao:null, votacao:"21:23", resultado:"21:23" };
+var CAP_FASE={
+  sala:"A tempestade chegou antes dos convidados",
+  encenacao:"Os seis convidados",
+  votacao:"A linha da verdade",
+  resultado:"A linha da verdade"
+};
+
+/* ---------- estado ---------- */
+var STATE = {
+  tela:"inicio",
+  mesa:null,        /* painel: {codigo, link, fb} */
+  jogadores:[],
+  eu:null,          /* jogador: {codigo, id, nome, personagem} */
+  doc:null,         /* documento da mesa em tempo real */
+  votos:[],
+  publicas:[],
+  qrAberto:false,
+  senhaAberta:false,
+  revelando:false,
+  escolha:null,
+  contando:0,
+  jaVotei:false
+};
+var _unsubJog=null, _unsubMesa=null, _unsubVotos=null, _unsubPub=null, _timerContagem=null;
+
+/* ---------- utilidades ---------- */
+function esc(s){
+  return String(s==null?"":s)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
+function gerarCodigo(){
+  var chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789", c="";
+  for(var i=0;i<6;i++) c+=chars[Math.floor(Math.random()*chars.length)];
+  return c;
+}
+function linkDaSala(codigo){
+  var u=new URL(window.location.href);
+  u.searchParams.set("sala",codigo);
+  u.hash="";
+  return u.toString();
+}
+function novoId(){
+  return "j_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,7);
+}
+function personagemPor(id){
+  for(var i=0;i<PERSONAGENS.length;i++) if(PERSONAGENS[i].id===id) return PERSONAGENS[i];
+  return null;
+}
+function ordenados(lista){
+  return (lista||[]).slice().sort(function(a,b){
+    return (a.entrouMs||0)-(b.entrouMs||0);
+  });
+}
+
+/* Herdado do Learning-lab: em file:// o QR aponta para um endereco que
+   nenhum outro aparelho alcanca. E a causa mais comum de "QR nao funciona". */
+function avisoLocal(){
+  var loc=window.location||{}, p=loc.protocol||"", h=loc.hostname||"";
+  if(p!=="http:" && p!=="https:"){
+    return '<div class="aviso"><b>Esta p&aacute;gina est&aacute; aberta como arquivo local.</b> '+
+           'O QR e o link apontam para um endere&ccedil;o que s&oacute; existe neste aparelho. '+
+           'Publique no GitHub Pages antes de usar com a mesa.</div>';
+  }
+  /* localhost tambem quebra o QR: no celular, "localhost" e o PROPRIO celular.
+     Este era o caso mais comum de "le o QR e nao entra".                      */
+  if(h==="localhost" || h==="127.0.0.1" || h==="[::1]"){
+    return '<div class="aviso"><b>O endere&ccedil;o &eacute; localhost.</b> '+
+           'Ao ler o QR, o celular tenta abrir <i>o pr&oacute;prio celular</i> &mdash; '+
+           'e n&atilde;o acha nada. Publique no GitHub Pages para a mesa funcionar.</div>';
+  }
+  /* IP de rede local funciona entre aparelhos no mesmo Wi-Fi, mas nao fora dele
+     e o Firebase exige o dominio autorizado. */
+  if(/^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(h)){
+    return '<div class="aviso"><b>Endere&ccedil;o de rede local.</b> '+
+           'S&oacute; funciona para quem estiver no mesmo Wi-Fi, e o Firebase pode recusar '+
+           'o login por dom&iacute;nio n&atilde;o autorizado.</div>';
+  }
+  return "";
+}
+
+/* ============================================================
+   TELAS
+   ============================================================ */
+function render(){
+  var app=document.getElementById("app");
+  app.className = (STATE.tela==="painel") ? "largo"
+                : (STATE.tela==="inicio") ? "capa" : "";
+  /* toggle em vez de sobrescrever: com-video precisa sobreviver ao render */
+  document.body.classList.toggle("t-painel", STATE.tela==="painel");
+  document.body.classList.toggle("t-inicio", STATE.tela==="inicio");
+  document.body.classList.toggle("t-entrar", STATE.tela==="entrar");
+  var h="";
+  switch(STATE.tela){
+    case "inicio":      h=telaInicio(); break;
+    case "entrar":      h=telaEntrar(); break;
+    case "painel":      h=telaPainel(); break;
+    case "esperando":   h=telaEsperando(); break;
+    case "encenacao":   h=telaEncenacao(); break;
+    case "votacao":     h=telaVotacao(); break;
+    case "resultado":   h=telaResultado(); break;
+    default:            h=telaInicio();
+  }
+  app.innerHTML=h;
+}
+
+function telaInicio(){
+  /* o poster ja escreve MOSAICO; aqui entra so o caso e a promessa */
+  return '<h1>A Casa da Costa</h1>'+
+    '<p class="lead">Voc&ecirc; possui uma parte da verdade. Para enxergar o todo, '+
+    'precisar&aacute; das outras pessoas &mdash; mas elas tamb&eacute;m querem vencer.</p>'+
+    avisoLocal()+
+    '<button class="btn btn-ambar" onclick="pedirSenha()">Abrir uma mesa</button>'+
+    '<button class="btn btn-frio" onclick="irPara(\'entrar\')">Entrar em uma mesa</button>'+
+    '<p class="muted" style="margin-top:24px">Abra a mesa em um aparelho s&oacute; &mdash; '+
+    'ele vira o painel. As outras pessoas entram pelo QR, sem senha.</p>'+
+    modalSenha();
+}
+
+/* Porta do mestre: protege apenas a ABERTURA da mesa. Quem entra pelo
+   QR nao precisa de senha — sao os convidados, nao o dono da mesa.     */
+function modalSenha(){
+  if(!STATE.senhaAberta) return "";
+  return '<div class="modal-fundo" onclick="if(event.target===this) fecharSenha()">'+
+    '<div class="modal">'+
+      '<span class="eyebrow">&Aacute;rea do mestre</span>'+
+      '<h2 style="font-size:clamp(26px,7vw,34px);margin-bottom:18px">Quem abre a casa?</h2>'+
+      '<input id="senha" class="senha" type="password" inputmode="text" '+
+        'autocomplete="off" placeholder="senha" '+
+        'onkeydown="if(event.key===\'Enter\') conferirSenha()">'+
+      '<div id="senha-erro"></div>'+
+      '<button class="btn btn-ambar" onclick="conferirSenha()">Abrir</button>'+
+      '<button class="btn btn-fantasma" onclick="fecharSenha()">Cancelar</button>'+
+    '</div></div>';
+}
+
+function telaEntrar(){
+  var codigoUrl="";
+  try{ codigoUrl=new URLSearchParams(location.search).get("sala")||""; }catch(e){}
+
+  return '<span class="eyebrow">Entrar</span><h2>Quem chega agora?</h2>'+
+    '<p class="lead">Voc&ecirc; n&atilde;o escolhe quem &eacute;. '+
+    'A casa escolhe por voc&ecirc; &mdash; como escolheu naquela noite.</p>'+
+    '<label for="cod">C&oacute;digo da mesa</label>'+
+    '<input id="cod" class="codigo" maxlength="6" autocapitalize="characters" '+
+      'autocomplete="off" value="'+esc(codigoUrl)+'" placeholder="ABC123">'+
+    '<label for="nome">Seu nome</label>'+
+    '<input id="nome" maxlength="18" autocomplete="off" placeholder="Como a mesa te chama" '+
+      'onkeydown="if(event.key===\'Enter\') entrarNaMesa()">'+
+    '<button class="btn btn-ambar" onclick="entrarNaMesa()">Entrar na casa</button>'+
+    '<button class="btn btn-fantasma" onclick="irPara(\'inicio\')">&larr; Voltar</button>';
+}
+
+function telaPainel(){
+  var m=STATE.mesa;
+  if(!m) return telaInicio();
+  var js=ordenados(STATE.jogadores);
+  var fase=(STATE.doc&&STATE.doc.fase)||"sala";
+  var grade="";
+
+  if(!js.length){
+    grade='<div class="vazio">Ningu&eacute;m chegou ainda.<br>'+
+          'Os cart&otilde;es aparecem quando algu&eacute;m entra pelo QR.</div>';
+  } else {
+    for(var i=0;i<js.length;i++){
+      var j=js[i], p=personagemPor(j.personagem);
+      var atuando=(fase==="encenacao" && i===(STATE.doc.vez||0));
+      var st=atuando?"atuando":(j.status==="pronto"?"pronto":"");
+      var est=atuando?"Interpretando":(fase==="encenacao"&&i<(STATE.doc.vez||0)?"J&aacute; interpretou":"Na sala");
+      grade+='<div class="jog st-'+st+'">'+
+        '<div class="av">'+(p?p.av:"👤")+'</div>'+
+        '<div class="nm">'+esc(j.nome)+'</div>'+
+        '<div class="pers">'+esc(p?p.nome:"—")+'</div>'+
+        '<div class="est">'+est+'</div>'+
+        (fase==="resultado"?'<div class="pt">'+(j.votos||0)+'</div>':'')+
+      '</div>';
+    }
+  }
+
+  /* relogio da casa: avanca com as interpretacoes concluidas */
+  var pubs=(STATE.publicas||[]).slice().sort(function(a,b){return (a.ordem||0)-(b.ordem||0);});
+  var hora=HORA_FASE[fase];
+  if(hora===null) hora = pubs.length ? pubs[pubs.length-1].hora : "21:00";
+  var relogio='<div class="relogio"><div class="hh">'+esc(hora)+'</div>'+
+              '<div class="cap">'+CAP_FASE[fase]+'</div></div>';
+
+  var mural="";
+  if(!pubs.length){
+    mural='<div class="publicas-vazio">A casa ainda n&atilde;o mostrou nada.<br>'+
+          'Cada interpreta&ccedil;&atilde;o abre uma linha aqui.</div>';
+  } else {
+    for(var m=pubs.length-1;m>=0;m--){
+      var pu=pubs[m];
+      mural+='<div class="publica"><span class="ph">'+esc(pu.hora)+'</span>'+
+             '<div class="pt">'+esc(pu.txt)+'</div>'+
+             '<div class="pq">revelado por '+esc(pu.autor||"—")+'</div></div>';
+    }
+  }
+
+  var acao="";
+  if(fase==="sala"){
+    acao='<button class="btn btn-ambar" '+(js.length<2?'disabled':'')+
+         ' onclick="iniciarEncenacao()">Come&ccedil;ar a encena&ccedil;&atilde;o</button>'+
+         (js.length<2?'<p class="muted">Precisa de pelo menos duas pessoas.</p>':'');
+  } else if(fase==="encenacao"){
+    var vez=STATE.doc.vez||0;
+    var atual=js[vez];
+    var pa=atual?personagemPor(atual.personagem):null;
+    acao='<div class="card"><span class="eyebrow">Agora</span>'+
+         '<div style="font-family:var(--serif);font-size:clamp(28px,7.6vw,40px);line-height:1.15">'+
+         (atual?esc(atual.nome)+' <span style="color:var(--nevoa)">como '+esc(pa?pa.nome:"")+'</span>':'—')+
+         '</div></div>'+
+         '<button class="btn" onclick="pularVez()">Pular esta pessoa</button>';
+  } else if(fase==="votacao"){
+    acao='<div class="card"><span class="eyebrow">Vota&ccedil;&atilde;o aberta</span>'+
+         '<p class="muted">'+STATE.votos.length+' de '+js.length+' j&aacute; votaram. '+
+         'Ningu&eacute;m pode votar em si.</p></div>'+
+         '<button class="btn btn-ambar" onclick="fecharVotacao()">Fechar e mostrar o placar</button>';
+  } else if(fase==="resultado"){
+    acao='<button class="btn btn-frio" onclick="voltarParaSala()">Voltar &agrave; sala</button>';
+  }
+
+  return '<div class="barra">'+
+      '<span class="conta">'+js.length+' na mesa</span>'+
+      '<span class="selo '+(m.fb?"ok":"esperando")+'">'+(m.fb?"Ao vivo":"Conectando…")+'</span>'+
+      '<span class="dir">'+
+        '<button class="btn btn-sm btn-frio" onclick="abrirQr()">C&oacute;digo &middot; QR</button>'+
+      '</span>'+
+    '</div>'+
+    relogio+
+    '<div class="painel-cols">'+
+      '<div><span class="eyebrow">Na casa</span>'+
+        '<div class="grade">'+grade+'</div>'+acao+'</div>'+
+      '<div><span class="eyebrow">Pistas gerais</span>'+mural+'</div>'+
+    '</div>'+
+    modalQr();
+}
+
+function modalQr(){
+  var m=STATE.mesa;
+  if(!m) return "";
+  var qr="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=8&data="+
+         encodeURIComponent(m.link);
+  return '<div class="modal-fundo'+(STATE.qrAberto?"":" hidden")+'" '+
+    'onclick="if(event.target===this) fecharQr()"><div class="modal">'+
+    '<span class="eyebrow">C&oacute;digo da mesa</span>'+
+    '<div class="codigo-grande">'+esc(m.codigo)+'</div>'+
+    '<span class="selo '+(m.fb?"ok":"esperando")+'">'+(m.fb?"Firestore · ao vivo":"Conectando…")+'</span>'+
+    avisoLocal()+
+    '<div class="qr-caixa"><img src="'+esc(qr)+'" alt="QR '+esc(m.codigo)+'" '+
+      'onerror="this.parentNode.innerHTML=\'<div style=&quot;color:#333;font-size:13px;padding:60px 10px&quot;>QR indispon&iacute;vel &mdash; use o c&oacute;digo</div>\'"></div>'+
+    '<p class="muted">Apontar a c&acirc;mera ou digitar o c&oacute;digo.</p>'+
+    '<div class="link-peq">'+esc(m.link)+'</div>'+
+    '<button class="btn btn-sm" style="width:100%;margin-bottom:10px" '+
+      'onclick="copiarLink()">Copiar link</button>'+
+    '<button class="btn btn-fantasma" onclick="fecharQr()">Fechar</button>'+
+    '</div></div>';
+}
+
+function telaEsperando(){
+  var p=personagemPor(STATE.eu&&STATE.eu.personagem);
+  var js=ordenados(STATE.jogadores);
+  var cls=STATE.revelando?" revela":"";
+  if(STATE.revelando) setTimeout(function(){ STATE.revelando=false; },2600);
+  return '<span class="eyebrow">A casa escolheu</span>'+
+    '<div class="revelacao'+cls+'">'+
+      '<div class="rv-av">'+(p?p.av:"👤")+'</div>'+
+      '<h2 class="rv-nome">'+esc(p?p.nome:"")+'</h2>'+
+      '<p class="lead rv-desc" style="margin-bottom:0">'+esc(p?p.desc:"")+'</p>'+
+    '</div>'+
+    '<div class="card"><span class="eyebrow">Na casa agora</span>'+
+      '<p class="muted" style="font-size:clamp(17px,4.6vw,21px)">'+
+      js.map(function(j){return esc(j.nome);}).join(" &middot; ")+'</p></div>'+
+    '<p class="muted" style="text-align:center;margin-top:24px">'+
+      'Aguardando o painel come&ccedil;ar a encena&ccedil;&atilde;o.</p>';
+}
+
+function telaEncenacao(){
+  var js=ordenados(STATE.jogadores);
+  var vez=(STATE.doc&&STATE.doc.vez)||0;
+  var atual=js[vez];
+  var souEu=atual&&STATE.eu&&atual.id===STATE.eu.id;
+
+  if(!souEu){
+    var pa=atual?personagemPor(atual.personagem):null;
+    return '<div id="escuro"><div class="pulso"></div>'+
+      '<div class="quem">'+(atual?esc(atual.nome):"—")+'<br>'+
+      '<span style="opacity:.55">como '+esc(pa?pa.nome:"")+'</span></div>'+
+      '<div class="sub">Guarde o celular. Olhe para a mesa.</div></div>';
+  }
+
+  if(STATE.contando>0){
+    return '<div id="escuro"><div id="contagem">'+STATE.contando+'</div>'+
+      '<div class="sub" style="margin-top:20px">Respire. &Eacute; a sua vez.</div></div>';
+  }
+
+  var p=personagemPor(STATE.eu.personagem);
+  var r=ROTEIRO[STATE.eu.personagem];
+  if(!r) return '<p class="lead">Roteiro n&atilde;o encontrado.</p>';
+
+  return '<span class="eyebrow">Cena 1 &middot; A chegada</span>'+
+    '<div class="roteiro">'+
+      '<div class="quem">'+esc(p?p.nome:"")+'</div>'+
+      '<div class="rub">'+esc(r.rub)+'</div>'+
+      '<div class="tom">'+esc(r.tom)+'</div>'+
+      '<div class="fala">'+esc(r.fala)+'</div>'+
+      '<div class="pos">'+esc(r.pos)+'</div>'+
+    '</div>'+
+    '<button class="btn btn-ambar" onclick="terminei()">Terminei</button>';
+}
+
+function telaVotacao(){
+  var js=ordenados(STATE.jogadores);
+  if(STATE.jaVotei){
+    return '<span class="eyebrow">Vota&ccedil;&atilde;o</span>'+
+      '<h2>Seu voto est&aacute; guardado.</h2>'+
+      '<p class="lead">'+STATE.votos.length+' de '+js.length+' j&aacute; votaram.</p>';
+  }
+  var ops="";
+  for(var i=0;i<js.length;i++){
+    var j=js[i];
+    if(STATE.eu&&j.id===STATE.eu.id) continue;   /* ninguem vota em si */
+    var p=personagemPor(j.personagem);
+    ops+='<button class="pers-op" onclick="votar(\''+j.id+'\')">'+
+      '<span class="av">'+(p?p.av:"👤")+'</span>'+
+      '<span class="txt"><span class="nm">'+esc(j.nome)+'</span>'+
+      '<span class="desc">como '+esc(p?p.nome:"")+'</span></span></button>';
+  }
+  return '<span class="eyebrow">Vota&ccedil;&atilde;o</span>'+
+    '<h2>Qual interpreta&ccedil;&atilde;o ficou na cabe&ccedil;a?</h2>'+
+    '<p class="lead">Um voto s&oacute;. Voc&ecirc; n&atilde;o aparece na lista.</p>'+
+    '<div class="pers-lista">'+ops+'</div>';
+}
+
+function telaResultado(){
+  var js=ordenados(STATE.jogadores).slice().sort(function(a,b){
+    return (b.votos||0)-(a.votos||0);
+  });
+  var grade="";
+  for(var i=0;i<js.length;i++){
+    var j=js[i], p=personagemPor(j.personagem);
+    grade+='<div class="jog'+(i===0?' st-atuando':'')+'">'+
+      '<div class="av">'+(p?p.av:"👤")+'</div>'+
+      '<div class="nm">'+esc(j.nome)+'</div>'+
+      '<div class="pers">'+esc(p?p.nome:"")+'</div>'+
+      '<div class="pt">'+(j.votos||0)+'</div>'+
+      '<div class="est">'+((j.votos||0)===1?"voto":"votos")+'</div>'+
+    '</div>';
+  }
+  return '<span class="eyebrow">Cena 1 &middot; Encerrada</span>'+
+    '<h2>A mesa escolheu.</h2>'+
+    '<div class="grade" style="margin-top:22px">'+grade+'</div>'+
+    '<p class="muted" style="text-align:center">Estes pontos formam o pr&ecirc;mio da mesa, '+
+    'separado do placar de dedu&ccedil;&atilde;o.</p>';
+}
+
+/* ============================================================
+   ACOES
+   ============================================================ */
+/* ---------- porta do mestre ----------
+   AVISO HONESTO: qualquer senha guardada numa pagina web e verificavel
+   por quem abrir o codigo-fonte. Isto serve para impedir que alguem
+   abra mesas por engano ou por curiosidade — nao e seguranca de fato.
+   O que protege os DADOS sao as Regras do Firestore.                   */
+var SENHA_HASH="2ff22e27b070d318da49f2ba1062cfef81e85e7cb826a5e761cbdb5f07c62472";
+
+async function sha256hex(txt){
+  var buf=new TextEncoder().encode(txt);
+  var h=await crypto.subtle.digest("SHA-256",buf);
+  return Array.prototype.map.call(new Uint8Array(h),function(b){
+    return b.toString(16).padStart(2,"0");
+  }).join("");
+}
+function jaEhMestre(){
+  try{ return sessionStorage.getItem("mosaico_mestre")==="1"; }catch(e){ return false; }
+}
+function pedirSenha(){
+  if(jaEhMestre()){ criarMesa(); return; }
+  STATE.senhaAberta=true; render();
+  setTimeout(function(){ var i=document.getElementById("senha"); if(i) i.focus(); },80);
+}
+function fecharSenha(){ STATE.senhaAberta=false; render(); }
+async function conferirSenha(){
+  var campo=document.getElementById("senha");
+  var erro=document.getElementById("senha-erro");
+  if(!campo) return;
+  var txt=(campo.value||"").trim();
+  if(!txt){ erro.textContent="Escreva a senha."; return; }
+  var ok=false;
+  try{ ok = (await sha256hex(txt))===SENHA_HASH; }
+  catch(e){ erro.textContent="Este navegador não permite conferir a senha."; return; }
+  if(!ok){
+    erro.textContent="Senha incorreta.";
+    campo.value=""; campo.focus();
+    return;
+  }
+  try{ sessionStorage.setItem("mosaico_mestre","1"); }catch(e){}
+  STATE.senhaAberta=false;
+  criarMesa();
+}
+
+function irPara(t){ STATE.tela=t; render(); }
+function escolher(id){ STATE.escolha=id; render(); }
+function abrirQr(){ STATE.qrAberto=true; render(); }
+function fecharQr(){ STATE.qrAberto=false; render(); }
+
+function copiarLink(){
+  if(!STATE.mesa) return;
+  try{ navigator.clipboard.writeText(STATE.mesa.link); }catch(e){}
+}
+
+async function esperarFB(){
+  if(!window.MosaicoFB && !window.MOSAICO_SEM_CONFIG){
+    await new Promise(function(r){
+      window.addEventListener("mosaicofb-ready",r,{once:true});
+    });
+  }
+  if(!window.MosaicoFB){
+    throw new Error(
+      "O Firebase deste jogo ainda não foi configurado.\n\n"+
+      "Abra o final do arquivo MOSAICO-mesa.html e cole a config do "+
+      "projeto do Mosaico no bloco firebaseConfig.");
+  }
+  return window.MosaicoFB;
+}
+
+async function criarMesa(){
+  var codigo=gerarCodigo();
+  STATE.mesa={codigo:codigo,link:linkDaSala(codigo),fb:false};
+  STATE.tela="painel";
+  STATE.jogadores=[];
+  STATE.doc={fase:"sala",vez:0};
+  render();
+  try{
+    var FB=await esperarFB();
+    await FB.criarMesa(codigo);
+    STATE.mesa.fb=true;
+    _unsubJog=FB.ouvirJogadores(codigo,function(l){
+      STATE.jogadores=l; render();
+    });
+    _unsubMesa=FB.ouvirMesa(codigo,function(d){
+      STATE.doc=d||{fase:"sala",vez:0}; render();
+    });
+    _unsubVotos=FB.ouvirVotos(codigo,function(v){
+      STATE.votos=v; render();
+    });
+    _unsubPub=FB.ouvirPublicas(codigo,function(p){
+      STATE.publicas=p; render();
+    });
+    render();
+  }catch(e){
+    console.error(e);
+    alert("Não foi possível criar a mesa no Firestore.\n\n"+
+          ((e&&(e.message||e.code))||e)+
+          "\n\nConfira: Firestore criado? Regras em modo teste?");
+  }
+}
+
+/* A casa escolhe: sorteia entre os personagens ainda livres na mesa. */
+function sortearPersonagem(ocupados){
+  var livres=[];
+  for(var i=0;i<PERSONAGENS.length;i++)
+    if(ocupados.indexOf(PERSONAGENS[i].id)===-1) livres.push(PERSONAGENS[i].id);
+  /* mesa maior que o elenco: repete, mas nunca trava ninguem na porta */
+  if(!livres.length) return PERSONAGENS[(Math.random()*PERSONAGENS.length)|0].id;
+  return livres[(Math.random()*livres.length)|0];
+}
+
+/* A cortina desce, a casa decide por tras dela, e sobe com voce sendo alguem. */
+function fecharCortina(txt){
+  var c=document.getElementById("cortina");
+  document.getElementById("cortina-txt").textContent=txt||"";
+  c.classList.add("on");
+}
+function abrirCortina(){
+  document.getElementById("cortina").classList.remove("on");
+}
+
+async function entrarNaMesa(){
+  var codigo=(document.getElementById("cod").value||"").trim().toUpperCase();
+  var nome=(document.getElementById("nome").value||"").trim();
+  if(codigo.length!==6){ alert("O código tem 6 caracteres."); return; }
+  if(!nome){ alert("Escreva seu nome."); return; }
+
+  fecharCortina("A porta abriu. A casa está decidindo quem você é.");
+  var entrouEm=Date.now();
+
+  var id=novoId();
+  try{
+    var F0=await esperarFB();
+    if(F0.uid && F0.uid()) id=F0.uid();   /* uid anonimo: permite regra por dono */
+  }catch(e){ abrirCortina(); alert(e.message||e); return; }
+
+  try{
+    var FB=await esperarFB();
+    var existe=await FB.mesaAtiva(codigo);
+    if(!existe){ abrirCortina(); alert("Mesa não encontrada ou encerrada."); return; }
+
+    /* quem ja esta na casa define o que sobrou para sortear */
+    var jaEstao=await FB.listarJogadores(codigo);
+    var ocupados=[];
+    for(var j=0;j<jaEstao.length;j++)
+      if(jaEstao[j].id!==id && jaEstao[j].personagem) ocupados.push(jaEstao[j].personagem);
+    var sorteado=sortearPersonagem(ocupados);
+
+    STATE.eu={codigo:codigo,id:id,nome:nome,personagem:sorteado};
+    try{ sessionStorage.setItem("mosaico_eu",JSON.stringify(STATE.eu)); }catch(e){}
+
+    await FB.entrarJogador(codigo,id,{
+      nome:nome, personagem:sorteado, status:"pronto",
+      entrouMs:Date.now(), votos:0
+    });
+    _unsubJog=FB.ouvirJogadores(codigo,function(l){ STATE.jogadores=l; sincronizarJogador(); });
+    _unsubMesa=FB.ouvirMesa(codigo,function(d){ STATE.doc=d||{fase:"sala",vez:0}; sincronizarJogador(); });
+    _unsubVotos=FB.ouvirVotos(codigo,function(v){ STATE.votos=v; });
+    _unsubPub=FB.ouvirPublicas(codigo,function(p){ STATE.publicas=p; });
+    STATE.tela="esperando";
+    render();
+
+    /* a cortina fica no minimo 2,4s mesmo que a rede responda na hora:
+       se ela piscar, nao e um momento, e um engasgo */
+    var jaPassou=Date.now()-entrouEm;
+    setTimeout(function(){
+      abrirCortina();
+      STATE.revelando=true;   /* a animacao so comeca com a cortina subindo */
+      render();
+    }, Math.max(0, 2400-jaPassou));
+  }catch(e){
+    console.error(e);
+    abrirCortina();
+    alert("Não foi possível entrar.\n\n"+((e&&(e.message||e.code))||e));
+  }
+}
+
+/* o jogador segue a fase que o painel publicou */
+/* Duas pessoas podem ler a lista no mesmo instante e sortear o mesmo
+   personagem. Quem entrou depois cede e sorteia de novo entre os livres. */
+function resolverColisao(){
+  if(!STATE.eu) return;
+  var meu=null, conflito=false, ocupados=[];
+  for(var i=0;i<STATE.jogadores.length;i++){
+    var j=STATE.jogadores[i];
+    if(j.id===STATE.eu.id){ meu=j; continue; }
+    if(j.personagem) ocupados.push(j.personagem);
+    if(j.personagem===STATE.eu.personagem &&
+       (j.entrouMs||0) < ((meu&&meu.entrouMs)||Date.now())) conflito=true;
+  }
+  if(!conflito || !meu) return;
+  var novo=sortearPersonagem(ocupados);
+  if(novo===STATE.eu.personagem) return;
+  STATE.eu.personagem=novo;
+  try{ sessionStorage.setItem("mosaico_eu",JSON.stringify(STATE.eu)); }catch(e){}
+  esperarFB().then(function(FB){
+    FB.atualizarJogador(STATE.eu.codigo,STATE.eu.id,{personagem:novo});
+  }).catch(function(){});
+}
+
+function sincronizarJogador(){
+  if(!STATE.eu) return;
+  resolverColisao();
+  var fase=(STATE.doc&&STATE.doc.fase)||"sala";
+  var nova = fase==="sala"      ? "esperando"
+           : fase==="encenacao" ? "encenacao"
+           : fase==="votacao"   ? "votacao"
+           : "resultado";
+
+  if(nova==="encenacao" && STATE.tela!=="encenacao"){
+    var js=ordenados(STATE.jogadores);
+    var atual=js[(STATE.doc.vez||0)];
+    if(atual&&atual.id===STATE.eu.id) iniciarContagem();
+  }
+  if(nova==="encenacao" && STATE.tela==="encenacao"){
+    var js2=ordenados(STATE.jogadores);
+    var at2=js2[(STATE.doc.vez||0)];
+    if(at2&&at2.id===STATE.eu.id&&STATE.contando===0&&!_timerContagem) iniciarContagem();
+  }
+  STATE.tela=nova;
+  render();
+}
+
+function iniciarContagem(){
+  STATE.contando=3;
+  clearInterval(_timerContagem);
+  _timerContagem=setInterval(function(){
+    STATE.contando--;
+    if(STATE.contando<=0){ clearInterval(_timerContagem); _timerContagem=null; }
+    render();
+  },1000);
+}
+
+async function iniciarEncenacao(){
+  var FB=await esperarFB();
+  await FB.atualizarMesa(STATE.mesa.codigo,{fase:"encenacao",vez:0});
+}
+
+/* Ao concluir a vez, a casa mostra mais uma linha no painel. */
+async function avancarVez(codigo, autor){
+  var js=ordenados(STATE.jogadores);
+  var vez=(STATE.doc&&STATE.doc.vez)||0;
+  var FB=await esperarFB();
+  var p=PUBLICAS[vez];
+  if(p) await FB.publicar(codigo, vez, { hora:p.hora, txt:p.txt, autor:autor||"—", ordem:vez });
+  if(vez+1>=js.length) await FB.atualizarMesa(codigo,{fase:"votacao"});
+  else await FB.atualizarMesa(codigo,{vez:vez+1});
+}
+
+async function terminei(){
+  await avancarVez(STATE.eu.codigo, STATE.eu.nome);
+}
+
+async function pularVez(){
+  var js=ordenados(STATE.jogadores);
+  var vez=(STATE.doc&&STATE.doc.vez)||0;
+  var atual=js[vez];
+  await avancarVez(STATE.mesa.codigo, atual?atual.nome:"—");
+}
+
+async function votar(paraId){
+  if(!STATE.eu||paraId===STATE.eu.id) return;
+  STATE.jaVotei=true; render();
+  var FB=await esperarFB();
+  await FB.votar(STATE.eu.codigo,STATE.eu.id,paraId);
+}
+
+async function fecharVotacao(){
+  var FB=await esperarFB();
+  var contagem={};
+  for(var i=0;i<STATE.votos.length;i++){
+    var v=STATE.votos[i];
+    contagem[v.para]=(contagem[v.para]||0)+1;
+  }
+  for(var k=0;k<STATE.jogadores.length;k++){
+    var j=STATE.jogadores[k];
+    await FB.atualizarJogador(STATE.mesa.codigo,j.id,{votos:contagem[j.id]||0});
+  }
+  await FB.atualizarMesa(STATE.mesa.codigo,{fase:"resultado"});
+}
+
+async function voltarParaSala(){
+  var FB=await esperarFB();
+  await FB.atualizarMesa(STATE.mesa.codigo,{fase:"sala",vez:0});
+}
+
+/* ============================================================
+   INIT — se a URL tem ?sala=, vai direto para a tela de entrada
+   ============================================================ */
+/* Video de abertura opcional: so aparece se o arquivo existir de verdade.
+   Fica mudo por politica dos navegadores — som exige um toque do usuario. */
+(function ligaVideo(){
+  var v=document.getElementById("video-abertura");
+  if(!v) return;
+  v.addEventListener("canplay",function(){
+    v.classList.add("tocando");
+    document.body.classList.add("com-video");
+    var t=v.play();
+    if(t&&t.catch) t.catch(function(){
+      v.classList.remove("tocando");
+      document.body.classList.remove("com-video");
+    });
+  });
+  v.addEventListener("error",function(){
+    v.classList.remove("tocando");
+    document.body.classList.remove("com-video");
+  });
+  v.src="img/abertura.mp4";
+})();
+
+(function init(){
+  try{
+    var sala=new URLSearchParams(location.search).get("sala");
+    if(sala) STATE.tela="entrar";
+  }catch(e){}
+  render();
+})();
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+import {
+  getFirestore, doc, setDoc, getDoc, updateDoc,
+  collection, onSnapshot, serverTimestamp, getDocs
+} from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+import {
+  getAuth, signInAnonymously, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+
+/* ══════════════════════════════════════════════════════════════════
+   CONFIGURACAO DO FIREBASE — PROJETO PROPRIO DO MOSAICO
+
+   Este jogo NAO deve compartilhar projeto com o Laboratorio do
+   Pesquisador. Cole aqui a config do projeto novo:
+
+   console.firebase.google.com  ->  seu projeto do Mosaico
+   ->  engrenagem  ->  Configuracoes do projeto
+   ->  Seus apps  ->  app da Web  ->  Configuracao do SDK
+
+   Estas chaves sao PUBLICAS por natureza (vao no cliente, qualquer
+   pessoa ve o codigo-fonte). Quem protege os dados sao as Regras do
+   Firestore, nao a chave. As regras necessarias estao no README.
+   ══════════════════════════════════════════════════════════════════ */
+const firebaseConfig = {
+  apiKey:            "AIzaSyDwshZbqaMOKxdRuyLtdpbijPRdrjVOcxE",
+  authDomain:        "mosaico-game.firebaseapp.com",
+  projectId:         "mosaico-game",
+  storageBucket:     "mosaico-game.firebasestorage.app",
+  messagingSenderId: "436141261767",
+  appId:             "1:436141261767:web:6a83555a2f7c4ed4550fe2"
+};
+
+const CONFIGURADO = firebaseConfig.apiKey !== "COLE_AQUI";
+const RAIZ = "mosaico";
+
+if(!CONFIGURADO){
+  window.MOSAICO_SEM_CONFIG = true;
+  window.dispatchEvent(new Event("mosaicofb-ready"));
+  console.warn("MOSAICO: firebaseConfig não preenchido — modo offline.");
+}
+
+const app  = CONFIGURADO ? initializeApp(firebaseConfig) : null;
+const db   = CONFIGURADO ? getFirestore(app) : null;
+const auth = CONFIGURADO ? getAuth(app) : null;
+
+/* login anonimo: ninguem cria conta, mas as Regras podem exigir
+   request.auth != null em vez de deixar a colecao aberta ao mundo */
+let _uid = null;
+const prontoAuth = CONFIGURADO ? new Promise(res => {
+  onAuthStateChanged(auth, u => { if(u){ _uid = u.uid; res(u.uid); } });
+  signInAnonymously(auth).catch(e => {
+    console.error("Login anônimo falhou — ative Authentication > Anônimo", e);
+    res(null);
+  });
+}) : Promise.resolve(null);
+
+if(CONFIGURADO) window.MosaicoFB = {
+  db,
+  async pronto(){ return prontoAuth; },
+  uid(){ return _uid; },
+  async criarMesa(codigo){
+    await prontoAuth;
+    await setDoc(doc(db, RAIZ, codigo), {
+      ativa:true, fase:"sala", vez:0,
+      criadaEm:serverTimestamp(), criadaEmMs:Date.now()
+    });
+    return codigo;
+  },
+  async mesaAtiva(codigo){
+    await prontoAuth;
+    const s = await getDoc(doc(db, RAIZ, codigo));
+    return s.exists() && s.data().ativa === true;
+  },
+  async atualizarMesa(codigo, dados){
+    await updateDoc(doc(db, RAIZ, codigo), dados);
+  },
+  ouvirMesa(codigo, cb){
+    return onSnapshot(doc(db, RAIZ, codigo),
+      s => cb(s.exists() ? s.data() : null),
+      e => { console.error("ouvirMesa", e); });
+  },
+  async entrarJogador(codigo, id, dados){
+    await setDoc(doc(db, RAIZ, codigo, "jogadores", id),
+                 { ...dados, atualizadoEmMs: Date.now() }, { merge:true });
+  },
+  async atualizarJogador(codigo, id, dados){
+    await setDoc(doc(db, RAIZ, codigo, "jogadores", id),
+                 { ...dados, atualizadoEmMs: Date.now() }, { merge:true });
+  },
+  ouvirJogadores(codigo, cb){
+    return onSnapshot(collection(db, RAIZ, codigo, "jogadores"), snap => {
+      const l = []; snap.forEach(d => l.push({ id:d.id, ...d.data() })); cb(l);
+    }, e => { console.error("ouvirJogadores", e); cb([]); });
+  },
+  async listarJogadores(codigo){
+    await prontoAuth;
+    const snap = await getDocs(collection(db, RAIZ, codigo, "jogadores"));
+    const l = []; snap.forEach(d => l.push({ id:d.id, ...d.data() }));
+    return l;
+  },
+  async votar(codigo, deId, paraId){
+    await setDoc(doc(db, RAIZ, codigo, "votos", deId),
+                 { de:deId, para:paraId, ms:Date.now() });
+  },
+  ouvirVotos(codigo, cb){
+    return onSnapshot(collection(db, RAIZ, codigo, "votos"), snap => {
+      const l = []; snap.forEach(d => l.push({ id:d.id, ...d.data() })); cb(l);
+    }, e => { console.error("ouvirVotos", e); cb([]); });
+  },
+  async publicar(codigo, ordem, dados){
+    await setDoc(doc(db, RAIZ, codigo, "publicas", String(ordem)), dados);
+  },
+  ouvirPublicas(codigo, cb){
+    return onSnapshot(collection(db, RAIZ, codigo, "publicas"), snap => {
+      const l = []; snap.forEach(d => l.push({ id:d.id, ...d.data() })); cb(l);
+    }, e => { console.error("ouvirPublicas", e); cb([]); });
+  }
+};
+
+window.dispatchEvent(new Event("mosaicofb-ready"));
+console.log("MosaicoFB ready");
+</script>
+</body>
+</html>
