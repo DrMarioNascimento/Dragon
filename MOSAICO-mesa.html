@@ -244,6 +244,9 @@
   .btn-ambar{border-color:rgba(232,164,76,.5);color:var(--ambar);background:rgba(232,164,76,.06)}
   .btn-frio{border-color:rgba(127,212,255,.45);color:var(--frio);background:rgba(127,212,255,.06)}
   .btn-fantasma{border-color:transparent;color:var(--dim);letter-spacing:.12em;padding:16px}
+  .btn-perigo{border-color:rgba(224,103,79,.45);color:var(--vermelho);
+    background:rgba(224,103,79,.06)}
+  .btn-perigo:active{background:rgba(224,103,79,.16)}
   .btn:disabled{opacity:.32;cursor:default}
   .btn-sm{
     display:inline-block;width:auto;padding:12px 18px;margin:0;
@@ -998,6 +1001,7 @@ function render(){
     case "esperando":   h=telaEsperando(); break;
     case "encenacao":   h=telaEncenacao(); break;
     case "revelacao":   h=telaRevelacao(); break;
+    case "encerrada":   h=telaEncerrada(); break;
     case "votacao":     h=telaVotacao(); break;
     case "resultado":   h=telaResultado(); break;
     default:            h=telaInicio();
@@ -1184,6 +1188,10 @@ function modalQr(){
     '<button class="btn btn-sm" style="width:100%;margin-bottom:10px" '+
       'onclick="copiarLink()">Copiar link</button>'+
     '<button class="btn btn-fantasma" onclick="fecharQr()">Fechar</button>'+
+    '<div style="height:1px;background:var(--linha);margin:18px 0 14px"></div>'+
+    '<button class="btn btn-perigo" onclick="encerrarMesa()">Encerrar mesa</button>'+
+    '<p class="muted" style="font-size:clamp(12px,3.2vw,14px);margin-top:6px">'+
+      'Derruba todos os jogadores. N&atilde;o d&aacute; para desfazer.</p>'+
     '</div></div>';
 }
 
@@ -1280,6 +1288,27 @@ function telaRevelacao(){
       '<div class="pt">'+esc(pista.txt)+'</div></div>':'')+
     '<button class="btn btn-ambar" style="margin-top:22px" '+
       'onclick="guardarPista()">Guardar e voltar ao escuro</button>';
+}
+
+function telaEncerrada(){
+  return '<span class="eyebrow">Fim da noite</span>'+
+    '<div class="revelacao">'+
+      '<div class="rv-av">🕯️</div>'+
+      '<h2 class="rv-nome">A casa<br>fechou.</h2>'+
+      '<p class="lead rv-desc" style="margin-bottom:0">A mesa foi encerrada. '+
+      'Suas pistas continuam guardadas.</p>'+
+    '</div>'+
+    '<button class="btn btn-frio" onclick="sairDaMesa()">Voltar ao in&iacute;cio</button>';
+}
+
+function sairDaMesa(){
+  if(_unsubJog) _unsubJog(); if(_unsubMesa) _unsubMesa();
+  if(_unsubVotos) _unsubVotos(); if(_unsubPub) _unsubPub();
+  _unsubJog=_unsubMesa=_unsubVotos=_unsubPub=null;
+  try{ sessionStorage.removeItem("mosaico_eu"); }catch(e){}
+  STATE.eu=null; STATE.jogadores=[]; STATE.doc=null;
+  STATE.forma=null; STATE.tela="inicio";
+  render();
 }
 
 function telaVotacao(){
@@ -1536,6 +1565,13 @@ function resolverColisao(){
 
 function sincronizarJogador(){
   if(!STATE.eu) return;
+  /* a mesa foi encerrada no painel: ninguem fica preso em tela morta */
+  if(STATE.doc && STATE.doc.ativa===false){
+    STATE.travaTela=false;
+    STATE.tela="encerrada";
+    render();
+    return;
+  }
   resolverColisao();
   if(STATE.travaTela){ render(); return; }   /* revelacao segura a tela */
   var fase=(STATE.doc&&STATE.doc.fase)||"sala";
@@ -1682,6 +1718,25 @@ async function fecharVotacao(){
     await FB.atualizarJogador(STATE.mesa.codigo,j.id,{votos:contagem[j.id]||0});
   }
   await FB.atualizarMesa(STATE.mesa.codigo,{fase:"resultado"});
+}
+
+/* Encerra a mesa: marca ativa:false. Quem esta jogando ve o aviso e sai,
+   e ninguem mais consegue entrar com aquele codigo.                    */
+async function encerrarMesa(){
+  if(!STATE.mesa) return;
+  if(!confirm("Encerrar a mesa " + STATE.mesa.codigo + "?\n\n" +
+              "Todos os jogadores serão desconectados. Não dá para desfazer."))
+    return;
+  try{
+    var FB=await esperarFB();
+    await FB.atualizarMesa(STATE.mesa.codigo,{ativa:false, encerradaEmMs:Date.now()});
+  }catch(e){ console.error("encerrarMesa", e); }
+  if(_unsubJog) _unsubJog(); if(_unsubMesa) _unsubMesa();
+  if(_unsubVotos) _unsubVotos(); if(_unsubPub) _unsubPub();
+  _unsubJog=_unsubMesa=_unsubVotos=_unsubPub=null;
+  STATE.mesa=null; STATE.jogadores=[]; STATE.publicas=[]; STATE.votos=[];
+  STATE.qrAberto=false; STATE.doc=null; STATE.tela="inicio";
+  render();
 }
 
 async function voltarParaSala(){
