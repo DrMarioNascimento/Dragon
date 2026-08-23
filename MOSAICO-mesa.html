@@ -996,6 +996,11 @@ function gerarCodigo(){
   for(var i=0;i<6;i++) c+=chars[Math.floor(Math.random()*chars.length)];
   return c;
 }
+function gerarCodigoDiferente(anterior){
+  var codigo=gerarCodigo();
+  while(codigo===anterior) codigo=gerarCodigo();
+  return codigo;
+}
 function linkDaSala(codigo){
   var u=new URL(window.location.href);
   u.searchParams.set("sala",codigo);
@@ -1178,6 +1183,7 @@ function render(){
   var h="";
   switch(STATE.tela){
     case "inicio":      h=telaInicio(); break;
+    case "reconectando":h=telaReconectando(); break;
     case "entrar":      h=telaEntrar(); break;
     case "painel":      h=telaPainel(); break;
     case "esperando":   h=telaEsperando(); break;
@@ -1199,6 +1205,10 @@ function render(){
   if(STATE.eu && souMestreDaMesa() && modoAtual()==="sem-telao") h+=controlesMestreMovel();
   app.innerHTML=h;
   agendarAutomacoes();
+}
+
+function telaReconectando(){
+  return '<span class="eyebrow">Sala em andamento</span><h2>Reconectando à sala…</h2><p class="lead">Recuperando seu personagem, suas pistas e a rodada atual.</p>';
 }
 
 function telaInicio(){
@@ -1519,6 +1529,8 @@ function sairDaMesa(){
   _unsubJog=_unsubMesa=_unsubVotos=_unsubPub=null;
   try{ sessionStorage.removeItem("mosaico_eu"); }catch(e){}
   try{ sessionStorage.removeItem("mosaico_mestre_codigo"); }catch(e){}
+  try{ localStorage.removeItem("mosaico_reconexao"); }catch(e){}
+  try{ localStorage.removeItem("mosaico_mestre_reconexao"); }catch(e){}
   STATE.eu=null; STATE.mesa=null; STATE.jogadores=[]; STATE.doc=null; STATE.menuMestreAberto=false; STATE.casoAberto=false;
   STATE.forma=null; STATE.tela="inicio";
   render();
@@ -1715,9 +1727,82 @@ async function esperarFB(){
   return window.MosaicoFB;
 }
 
+function desligarOuvintes(){
+  if(_unsubJog) _unsubJog(); if(_unsubMesa) _unsubMesa();
+  if(_unsubVotos) _unsubVotos(); if(_unsubPub) _unsubPub();
+  _unsubV5.forEach(function(f){try{f();}catch(e){}}); _unsubV5=[];
+  _unsubJog=_unsubMesa=_unsubVotos=_unsubPub=null;
+}
+function assinarSala(codigo,comoJogador){
+  esperarFB().then(function(FB){
+    desligarOuvintes();
+    _unsubJog=FB.ouvirJogadores(codigo,function(l){
+      STATE.jogadores=l; comoJogador?sincronizarJogador():render();
+    });
+    _unsubMesa=FB.ouvirMesa(codigo,function(d){
+      STATE.doc=d||{ativa:false,fase:"sala",vez:0};
+      if(comoJogador) sincronizarJogador();
+      else if(!d||d.ativa===false){ limparReconexao(); STATE.tela="inicio"; STATE.mesa=null; render(); }
+      else render();
+    });
+    _unsubVotos=FB.ouvirVotos(codigo,function(v){
+      STATE.votos=v;
+      STATE.jaVotei=!!STATE.eu&&v.some(function(x){return x.id===STATE.eu.id||x.de===STATE.eu.id;});
+      render();
+    });
+    _unsubPub=FB.ouvirPublicas(codigo,function(p){STATE.publicas=p;render();});
+    assinarV5(FB,codigo);
+  }).catch(function(e){console.error("assinar sala",e);});
+}
+function limparReconexao(){
+  try{sessionStorage.removeItem("mosaico_eu");}catch(e){}
+  try{sessionStorage.removeItem("mosaico_mestre_codigo");}catch(e){}
+  try{localStorage.removeItem("mosaico_reconexao");}catch(e){}
+  try{localStorage.removeItem("mosaico_mestre_reconexao");}catch(e){}
+}
+function lerLocal(chave){
+  try{return JSON.parse(localStorage.getItem(chave)||"null");}catch(e){return null;}
+}
+async function tentarReconectar(codigoUrl){
+  var jogador=lerLocal("mosaico_reconexao");
+  var mestre=lerLocal("mosaico_mestre_reconexao");
+  var alvo=(jogador&&jogador.codigo)||(mestre&&mestre.codigo)||"";
+  if(!alvo || (codigoUrl&&codigoUrl!==alvo)) return false;
+  STATE.tela="reconectando"; render();
+  try{
+    var FB=await esperarFB(), uid=FB.uid&&FB.uid();
+    var mesa=await FB.obterMesa(alvo);
+    if(!mesa||mesa.ativa!==true){limparReconexao();STATE.tela=codigoUrl?"entrar":"inicio";render();return false;}
+
+    if(jogador&&jogador.codigo===alvo&&jogador.id===uid){
+      var salvo=await FB.obterJogador(alvo,jogador.id);
+      if(salvo){
+        STATE.eu={codigo:alvo,id:jogador.id,nome:salvo.nome,personagem:salvo.personagem,forma:salvo.forma};
+        STATE.mesa={codigo:alvo,link:linkDaSala(alvo),fb:true,modo:mesa.modo||"com-telao"};
+        STATE.modoMesa=mesa.modo||"com-telao"; STATE.doc=mesa;
+        try{sessionStorage.setItem("mosaico_eu",JSON.stringify(STATE.eu));}catch(e){}
+        if(mestre&&mestre.codigo===alvo&&mestre.uid===uid&&mesa.mestreUid===uid){
+          try{sessionStorage.setItem("mosaico_mestre_codigo",alvo);}catch(e){}
+        }
+        assinarSala(alvo,true); sincronizarJogador(); return true;
+      }
+    }
+    if(mestre&&mestre.codigo===alvo&&mestre.uid===uid&&mesa.mestreUid===uid){
+      STATE.mesa={codigo:alvo,link:linkDaSala(alvo),fb:true,modo:mesa.modo||"com-telao"};
+      STATE.modoMesa=mesa.modo||"com-telao"; STATE.doc=mesa; STATE.tela="painel";
+      try{sessionStorage.setItem("mosaico_mestre_codigo",alvo);}catch(e){}
+      assinarSala(alvo,false); render(); return true;
+    }
+    limparReconexao(); STATE.tela=codigoUrl?"entrar":"inicio"; render(); return false;
+  }catch(e){
+    console.error("reconexão",e); STATE.tela=codigoUrl?"entrar":"inicio"; render(); return false;
+  }
+}
+
 async function criarMesa(modo){
   modo=modo==="sem-telao"?"sem-telao":"com-telao";
-  var codigo=gerarCodigo();
+  var anterior=""; try{anterior=localStorage.getItem("mosaico_ultimo_codigo")||"";}catch(e){}
+  var codigo=gerarCodigoDiferente(anterior);
   STATE.modoMesa=modo;
   STATE.mesa={codigo:codigo,link:linkDaSala(codigo),fb:false,modo:modo};
   try{ sessionStorage.setItem("mosaico_mestre_codigo",codigo); }catch(e){}
@@ -1728,20 +1813,10 @@ async function criarMesa(modo){
   try{
     var FB=await esperarFB();
     await FB.criarMesa(codigo,modo);
+    var mestre={codigo:codigo,modo:modo,uid:FB.uid&&FB.uid()};
+    try{localStorage.setItem("mosaico_mestre_reconexao",JSON.stringify(mestre));localStorage.setItem("mosaico_ultimo_codigo",codigo);}catch(e){}
     STATE.mesa.fb=true;
-    _unsubJog=FB.ouvirJogadores(codigo,function(l){
-      STATE.jogadores=l; render();
-    });
-    _unsubMesa=FB.ouvirMesa(codigo,function(d){
-      STATE.doc=d||{fase:"sala",vez:0}; render();
-    });
-    _unsubVotos=FB.ouvirVotos(codigo,function(v){
-      STATE.votos=v; render();
-    });
-    _unsubPub=FB.ouvirPublicas(codigo,function(p){
-      STATE.publicas=p; render();
-    });
-    assinarV5(FB,codigo);
+    assinarSala(codigo,false);
     render();
   }catch(e){
     console.error(e);
@@ -1807,6 +1882,7 @@ async function entrarNaMesa(){
 
     STATE.eu={codigo:codigo,id:id,nome:nome,personagem:sorteado,forma:forma};
     try{ sessionStorage.setItem("mosaico_eu",JSON.stringify(STATE.eu)); }catch(e){}
+    try{ localStorage.setItem("mosaico_reconexao",JSON.stringify(STATE.eu)); }catch(e){}
 
     await FB.entrarJogador(codigo,id,{
       nome:nome, personagem:sorteado, forma:forma,
@@ -1814,11 +1890,7 @@ async function entrarNaMesa(){
       entrouMs:Date.now(), votos:0,
       moedas:((CASO.configuracao||{}).moedasIniciais||9), total:0
     });
-    _unsubJog=FB.ouvirJogadores(codigo,function(l){ STATE.jogadores=l; sincronizarJogador(); });
-    _unsubMesa=FB.ouvirMesa(codigo,function(d){ STATE.doc=d||{fase:"sala",vez:0}; sincronizarJogador(); });
-    _unsubVotos=FB.ouvirVotos(codigo,function(v){ STATE.votos=v; });
-    _unsubPub=FB.ouvirPublicas(codigo,function(p){ STATE.publicas=p; });
-    assinarV5(FB,codigo);
+    assinarSala(codigo,true);
     STATE.tela="esperando";
     render();
 
@@ -1855,6 +1927,7 @@ function resolverColisao(){
   if(novo===STATE.eu.personagem) return;
   STATE.eu.personagem=novo;
   try{ sessionStorage.setItem("mosaico_eu",JSON.stringify(STATE.eu)); }catch(e){}
+  try{ localStorage.setItem("mosaico_reconexao",JSON.stringify(STATE.eu)); }catch(e){}
   esperarFB().then(function(FB){
     FB.atualizarJogador(STATE.eu.codigo,STATE.eu.id,{personagem:novo});
   }).catch(function(){});
@@ -1864,6 +1937,7 @@ function sincronizarJogador(){
   if(!STATE.eu) return;
   /* a mesa foi encerrada no painel: ninguem fica preso em tela morta */
   if(STATE.doc && STATE.doc.ativa===false){
+    limparReconexao();
     STATE.travaTela=false;
     STATE.tela="encerrada";
     render();
@@ -2125,12 +2199,8 @@ async function encerrarMesa(){
     await FB.atualizarMesa(STATE.mesa.codigo,{ativa:false, encerradaEmMs:Date.now()});
   }catch(e){ console.error("encerrarMesa", e); }
   if(_autoTimer)clearTimeout(_autoTimer);_autoTimer=null;_autoTimerChave="";_autoFasePendente=null;
-  if(_unsubJog) _unsubJog(); if(_unsubMesa) _unsubMesa();
-  if(_unsubVotos) _unsubVotos(); if(_unsubPub) _unsubPub();
-  _unsubV5.forEach(function(f){try{f();}catch(e){}}); _unsubV5=[];
-  _unsubJog=_unsubMesa=_unsubVotos=_unsubPub=null;
-  try{ sessionStorage.removeItem("mosaico_mestre_codigo"); }catch(e){}
-  STATE.mesa=null; STATE.jogadores=[]; STATE.publicas=[]; STATE.votos=[];
+  desligarOuvintes(); limparReconexao();
+  STATE.eu=null; STATE.mesa=null; STATE.jogadores=[]; STATE.publicas=[]; STATE.votos=[];
   STATE.qrAberto=false; STATE.menuMestreAberto=false; STATE.casoAberto=false; STATE.doc=null; STATE.tela="inicio";
   render();
 }
@@ -2284,7 +2354,8 @@ async function voltarParaSala(){
 (function init(){
   var q=null;
   try{ q=new URLSearchParams(location.search); }catch(e){}
-  if(q && q.get("sala")) STATE.tela="entrar";
+  var codigoUrl=q&&q.get("sala")?(q.get("sala")||"").toUpperCase():"";
+  if(codigoUrl) STATE.tela="entrar";
 
   /* ?caso=nome carrega casos/nome.json e troca a historia inteira.
      Sem o parametro, roda A Casa da Costa, que ja vem embutida.     */
@@ -2300,6 +2371,9 @@ async function voltarParaSala(){
       });
   }
   render();
+  /* Se este aparelho já pertencia a uma sala ativa, restaura a mesma
+     identidade. Um link de outra sala sempre prevalece sobre o vínculo local. */
+  tentarReconectar(codigoUrl);
 })();
 </script>
 
@@ -2368,6 +2442,7 @@ if(CONFIGURADO) window.MosaicoFB = {
     await prontoAuth;
     await setDoc(doc(db, RAIZ, codigo), {
       ativa:true, fase:"sala", vez:0, modo:modo||"com-telao",
+      mestreUid:_uid,
       criadaEm:serverTimestamp(), criadaEmMs:Date.now()
     });
     return codigo;
@@ -2376,6 +2451,16 @@ if(CONFIGURADO) window.MosaicoFB = {
     await prontoAuth;
     const s = await getDoc(doc(db, RAIZ, codigo));
     return s.exists() && s.data().ativa === true;
+  },
+  async obterMesa(codigo){
+    await prontoAuth;
+    const s=await getDoc(doc(db,RAIZ,codigo));
+    return s.exists()?s.data():null;
+  },
+  async obterJogador(codigo,id){
+    await prontoAuth;
+    const s=await getDoc(doc(db,RAIZ,codigo,"jogadores",id));
+    return s.exists()?{id:s.id,...s.data()}:null;
   },
   async atualizarMesa(codigo, dados){
     await updateDoc(doc(db, RAIZ, codigo), dados);

@@ -500,9 +500,9 @@ O escore Z é análise estatística e pode utilizar casas decimais. Ele não int
 
 ### 13.1 Reconexão
 
-O código grava `mosaico_eu` no `sessionStorage`, mas não restaura o jogador nem reativa os ouvintes depois de recarregar a página.
+Implementada. O aparelho preserva localmente a identidade vinculada ao UID anônimo do Firebase. Ao recarregar ou reabrir o navegador, consulta a sala e o documento do jogador, restaura personagem, pistas, moedas, núcleo, fase e ouvintes. O aparelho mestre também recupera o painel ou o Menu conforme o modo da sala.
 
-É o maior risco para playtest presencial.
+O código da sala isoladamente não permite assumir outro jogador. Se a sala estiver inativa, o vínculo é apagado e a reconexão é recusada. Depois de encerrar uma sala, uma nova abertura sempre gera outro código.
 
 ### 13.2 Segurança do Firestore
 
@@ -556,12 +556,11 @@ Mesas de teste antigas no Firestore devem ser removidas periodicamente.
 
 ## 16. Ordem recomendada de implementação
 
-1. reconexão após recarregar a página;
-2. regras seguras do Firestore e identidade própria do mestre;
-3. revelação narrativa completa do caso;
-4. ampliar o elenco para sessões acima de seis pessoas;
-5. modo interativo alternativo para aparelhos sem sensores;
-6. testes de integração com o Firestore e playtest presencial.
+1. regras seguras do Firestore e validação da identidade do mestre no servidor;
+2. revelação narrativa completa do caso;
+3. ampliar o elenco para sessões acima de seis pessoas;
+4. modo interativo alternativo para aparelhos sem sensores;
+5. testes de integração da reconexão com o Firestore e playtest presencial.
 
 ---
 
