@@ -38,6 +38,8 @@ O placar final possui composição responsiva própria: pódio vertical no celul
 
 A Casa da Costa admite de 2 a 12 participantes. Os seis personagens são distribuídos em dois ciclos equilibrados: sem repetição até seis e com no máximo duas cópias de cada personagem até doze. Personagens repetidos funcionam como fragmentos independentes da mesma identidade narrativa.
 
+Nas rodadas sensoriais, o jogador toca em **Ativar movimento**. A tarefa só começa depois da primeira leitura real do aparelho. Se a permissão for negada ou não houver resposta em cinco segundos, o celular oferece **Tentar novamente**; o Menu do mestre mostra conclusões e aparelhos sem resposta. O prazo da rodada continua garantindo o avanço automático.
+
 Os parâmetros do caso ficam em `casos/casa-da-costa.json`. O cálculo puro e testável fica em `js/mosaico-v5.js`. Todos os pontos do jogo são inteiros.
 
 Nos celulares, **Caso** abre a rodada atual, a orientação do momento e a linha do tempo pública; **Arquivo** reúne os fragmentos privados e adquiridos. O celular do mestre acrescenta somente **Menu**.

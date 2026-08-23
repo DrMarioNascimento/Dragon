@@ -179,8 +179,8 @@
 <body>
 <div id="overlay">
   <h1 style="font-size:16px;color:var(--text)">FRAGMENTO GUIADO</h1>
-  <p>Este protótipo usa o giroscópio do celular. Segure o aparelho e toque em "Ativar sensor" para começar. Funciona melhor num iPhone/Android real, não no computador.</p>
-  <button id="enable-btn">Ativar sensor</button>
+  <p id="sensor-help">Toque para permitir o movimento do aparelho e iniciar.</p>
+  <button id="enable-btn">Ativar movimento</button>
 </div>
 
 <div id="app">
@@ -239,6 +239,8 @@
   let locked = false;
   let rafPending = false;
   let latestReading = { beta: 0, gamma: 0 };
+  let sensorReceived = false;
+  let sensorTimer = null;
   const embedded = new URLSearchParams(location.search).get('embed') === '1';
   if (embedded) document.body.classList.add('embed');
 
@@ -246,6 +248,22 @@
     if (window.parent !== window){
       window.parent.postMessage({ mosaico:'tarefa-concluida', tarefa:'inclinacao' }, location.origin);
     }
+  }
+
+  function notifyStatus(status){
+    if (window.parent !== window){
+      window.parent.postMessage({ mosaico:'sensor-status', tarefa:'inclinacao', status }, location.origin);
+    }
+  }
+
+  function sensorFailure(message, status){
+    clearTimeout(sensorTimer);
+    document.getElementById('sensor-help').textContent = message;
+    els.enableBtn.textContent = 'Tentar novamente';
+    els.enableBtn.disabled = false;
+    els.overlay.classList.remove('hidden');
+    els.status.textContent = message;
+    notifyStatus(status);
   }
 
   function randomTarget(){
@@ -268,6 +286,14 @@
 
   function handleOrientation(e){
     if (e.beta === null || e.gamma === null) return;
+    if (!sensorReceived){
+      sensorReceived = true;
+      clearTimeout(sensorTimer);
+      els.overlay.classList.add('hidden');
+      els.enableBtn.disabled = false;
+      randomTarget();
+      notifyStatus('ativo');
+    }
     latestReading.beta = e.beta;
     latestReading.gamma = e.gamma;
     if (!rafPending){
@@ -319,23 +345,30 @@
           if (state === 'granted'){
             startListening();
           } else {
-            els.status.textContent = 'Permissão negada — ative nas configurações do navegador.';
+            sensorFailure('O movimento não foi permitido. Autorize no navegador e tente novamente.', 'negado');
           }
         })
         .catch(() => {
-          els.status.textContent = 'Erro ao pedir permissão do sensor.';
+          sensorFailure('Não foi possível pedir a permissão. Tente novamente.', 'negado');
         });
     } else if ('DeviceOrientationEvent' in window){
       startListening();
     } else {
-      els.status.textContent = 'Sensor não disponível neste dispositivo/navegador.';
+      sensorFailure('O movimento não está disponível neste navegador.', 'indisponivel');
     }
   }
 
   function startListening(){
+    clearTimeout(sensorTimer);
+    sensorReceived = false;
+    els.enableBtn.disabled = true;
+    document.getElementById('sensor-help').textContent = 'Aguardando resposta do aparelho…';
+    els.status.textContent = 'Aguardando movimento…';
+    window.removeEventListener('deviceorientation', handleOrientation);
     window.addEventListener('deviceorientation', handleOrientation);
-    els.overlay.classList.add('hidden');
-    randomTarget();
+    sensorTimer = setTimeout(() => {
+      if (!sensorReceived) sensorFailure('O aparelho não respondeu. Movimente-o e tente novamente.', 'sem-resposta');
+    }, 5000);
   }
 
   els.enableBtn.addEventListener('click', enableSensor);

@@ -1136,6 +1136,13 @@ function souMestreDaMesa(){
   try{return !!codigo&&sessionStorage.getItem("mosaico_mestre_codigo")===codigo;}catch(e){return false;}
 }
 function alternarMenuMestre(){STATE.menuMestreAberto=!STATE.menuMestreAberto;if(STATE.menuMestreAberto)STATE.casoAberto=false;render();}
+function tarefaConcluida(t){return !!(t&&(t.status==='concluida'||t.concluidoEm));}
+function tarefasConcluidas(tipo){return (STATE.v5.tarefas||[]).filter(function(t){return t.tarefa===tipo&&tarefaConcluida(t);});}
+function tarefasSemResposta(tipo){return (STATE.v5.tarefas||[]).filter(function(t){return t.tarefa===tipo&&(t.status==='sem-resposta'||t.status==='negado'||t.status==='indisponivel');});}
+function resumoSensores(tipo,total){
+  var concluidas=tarefasConcluidas(tipo).length, semResposta=tarefasSemResposta(tipo).length;
+  return concluidas+' de '+total+' conclusões'+(semResposta?' · '+semResposta+' sem resposta':'');
+}
 function controlesMestreMovel(){
   var fase=(STATE.doc&&STATE.doc.fase)||"sala", js=ordenados(STATE.jogadores), botoes="", autoInfo="";
   if(fase==="sala"){
@@ -1143,8 +1150,8 @@ function controlesMestreMovel(){
     botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();iniciarEncenacao()" '+(todos?'':'disabled')+'>Come&ccedil;ar</button>';
   }else if(fase==="encenacao") botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();pularVez()">Pular a apresenta&ccedil;&atilde;o atual</button>';
   else if(fase==="votacao") autoInfo='<div class="card"><b>Avan&ccedil;o autom&aacute;tico</b><p class="muted">'+STATE.votos.length+' de '+js.length+' votos recebidos. A pr&oacute;xima rodada abrir&aacute; automaticamente.</p></div>';
-  else if(fase==="constelacao") autoInfo='<div class="card"><b>Constela&ccedil;&atilde;o Indoor</b><p class="muted">'+STATE.v5.tarefas.filter(function(t){return t.tarefa==='constelacao';}).length+' de '+js.length+' conclus&otilde;es. A rodada avan&ccedil;ar&aacute; automaticamente.</p></div>';
-  else if(fase==="inclinacao") autoInfo='<div class="card"><b>Inclina&ccedil;&atilde;o–Fragmento</b><p class="muted">'+STATE.v5.tarefas.filter(function(t){return t.tarefa==='inclinacao';}).length+' de '+js.length+' conclus&otilde;es. A rodada avan&ccedil;ar&aacute; automaticamente.</p></div>';
+  else if(fase==="constelacao") autoInfo='<div class="card"><b>Constela&ccedil;&atilde;o Indoor</b><p class="muted">'+esc(resumoSensores('constelacao',js.length))+'. A rodada avan&ccedil;ar&aacute; automaticamente.</p></div>';
+  else if(fase==="inclinacao") autoInfo='<div class="card"><b>Inclina&ccedil;&atilde;o–Fragmento</b><p class="muted">'+esc(resumoSensores('inclinacao',js.length))+'. A rodada avan&ccedil;ar&aacute; automaticamente.</p></div>';
   else if(fase==="mosaico") botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();abrirVotoCooperacao()">Abrir voto interno</button>';
   else if(fase==="cooperacao") botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();abrirMercado()">Abrir mercado</button>';
   else if(fase==="mercado") botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();abrirDeducao()">Abrir dedu&ccedil;&atilde;o</button>';
@@ -1167,8 +1174,8 @@ function controlesMestreMovel(){
 function dadosAutomacao(){
   var fase=(STATE.doc&&STATE.doc.fase)||"", cfg=(CASO.configuracao&&CASO.configuracao.limitesSegundos)||{};
   if(fase==="votacao") return {fase:fase,recebidos:STATE.votos.length,total:STATE.jogadores.length,inicio:STATE.doc.votacaoAbertaMs||0,limite:(cfg.performance||60)*1000,acao:abrirConstelacao};
-  if(fase==="constelacao") return {fase:fase,recebidos:STATE.v5.tarefas.filter(function(t){return t.tarefa==='constelacao';}).length,total:STATE.jogadores.length,inicio:STATE.doc.constelacaoAbertaMs||0,limite:(cfg.constelacao||180)*1000,acao:abrirInclinacao};
-  if(fase==="inclinacao") return {fase:fase,recebidos:STATE.v5.tarefas.filter(function(t){return t.tarefa==='inclinacao';}).length,total:STATE.jogadores.length,inicio:STATE.doc.inclinacaoAbertaMs||0,limite:(cfg.inclinacao||180)*1000,acao:prepararMosaico};
+  if(fase==="constelacao") return {fase:fase,recebidos:tarefasConcluidas('constelacao').length,total:STATE.jogadores.length,inicio:STATE.doc.constelacaoAbertaMs||0,limite:(cfg.constelacao||180)*1000,acao:abrirInclinacao};
+  if(fase==="inclinacao") return {fase:fase,recebidos:tarefasConcluidas('inclinacao').length,total:STATE.jogadores.length,inicio:STATE.doc.inclinacaoAbertaMs||0,limite:(cfg.inclinacao||180)*1000,acao:prepararMosaico};
   if(fase==="deducao") return {fase:fase,recebidos:STATE.v5.deducoes.length,total:STATE.jogadores.length,inicio:STATE.doc.deducaoAbertaMs||0,limite:(cfg.deducao||300)*1000,acao:finalizarPartida};
   return null;
 }
@@ -1430,8 +1437,8 @@ function telaPainel(){
          '<p class="muted">'+STATE.votos.length+' de '+js.length+' j&aacute; votaram. '+
          'Ningu&eacute;m pode votar em si. A pr&oacute;xima rodada abrir&aacute; automaticamente.</p></div>';
   } else if(fase==="constelacao"||fase==="inclinacao"){
-    var tipoTarefa=fase, feitos=STATE.v5.tarefas.filter(function(t){return t.tarefa===tipoTarefa;}).length;
-    acao='<div class="card"><span class="eyebrow">Rodada sensorial</span><p class="lead">'+esc(nomeRodada(fase))+'</p><p class="muted">'+feitos+' de '+js.length+' jogadores conclu&iacute;ram. O avan&ccedil;o ser&aacute; autom&aacute;tico.</p></div>';
+    var tipoTarefa=fase;
+    acao='<div class="card"><span class="eyebrow">Rodada sensorial</span><p class="lead">'+esc(nomeRodada(fase))+'</p><p class="muted">'+esc(resumoSensores(tipoTarefa,js.length))+'. O avan&ccedil;o ser&aacute; autom&aacute;tico.</p></div>';
   } else if(fase==="mosaico"){
     acao='<div class="card"><span class="eyebrow">Mosaico coletivo</span><p class="muted">'+STATE.v5.nucleos.filter(function(n){return n.concluidoEm||n.concluidoMs;}).length+' n&uacute;cleo(s) conclu&iacute;do(s).</p></div><button class="btn btn-ambar" onclick="abrirVotoCooperacao()">Encerrar mosaico e abrir voto interno</button>';
   } else if(fase==="cooperacao"){
@@ -1673,7 +1680,7 @@ function telaResultado(){
 
 function telaTarefaSensor(tipo){
   var cfg=(CASO.tarefas&&CASO.tarefas[tipo])||{};
-  var concluida=(STATE.v5.tarefas||[]).some(function(t){return t.id===((STATE.eu&&STATE.eu.id)+'_'+tipo);});
+  var concluida=(STATE.v5.tarefas||[]).some(function(t){return t.id===((STATE.eu&&STATE.eu.id)+'_'+tipo)&&tarefaConcluida(t);});
   if(concluida) return '<span class="eyebrow">'+esc(cfg.titulo||tipo)+'</span><h2>Fragmento encontrado.</h2><p class="lead">A pista foi adicionada ao seu Arquivo. Aguarde a pr&oacute;xima rodada.</p>';
   return '<span class="eyebrow">Rodada sensorial</span><h2>'+esc(cfg.titulo||tipo)+'</h2><p class="lead">Mantenha a tela voltada para voc&ecirc; e conclua a tarefa no quadro abaixo.</p><iframe class="tarefa-frame" src="'+esc(cfg.arquivo||'')+'" allow="accelerometer; gyroscope; magnetometer" title="'+esc(cfg.titulo||tipo)+'"></iframe><p class="muted" style="text-align:center">Se o sensor n&atilde;o responder, aguarde o fim do prazo. A partida continuar&aacute; automaticamente.</p>';
 }
@@ -2217,7 +2224,7 @@ async function abrirInclinacao(){
 async function concluirTarefaSensor(tipo){
   if(!STATE.eu||!STATE.doc||STATE.doc.fase!==tipo) return;
   var id=STATE.eu.id+'_'+tipo;
-  if((STATE.v5.tarefas||[]).some(function(t){return t.id===id;})) return;
+  if((STATE.v5.tarefas||[]).some(function(t){return t.id===id&&tarefaConcluida(t);})) return;
   var FB=await esperarFB(), cfg=CASO.tarefas&&CASO.tarefas[tipo], pista=cfg&&cfg.pista;
   if(pista){
     var atuais=minhasPistas(), repetida=atuais.some(function(p){return p.id===pista.id;});
@@ -2225,11 +2232,21 @@ async function concluirTarefaSensor(tipo){
   }
   /* O registro que pode disparar o avanço vem por último: assim o
      fragmento já está no Arquivo quando a rodada termina. */
-  await FB.gravarServidor(STATE.eu.codigo,'tarefas',id,{tarefa:tipo,jogadorId:STATE.eu.id},'concluidoEm');
+  await FB.gravarServidor(STATE.eu.codigo,'tarefas',id,{tarefa:tipo,jogadorId:STATE.eu.id,status:'concluida',statusEmMs:Date.now()},'concluidoEm');
+}
+async function registrarStatusSensor(tipo,status){
+  if(!STATE.eu||!STATE.doc||STATE.doc.fase!==tipo) return;
+  if(['ativo','sem-resposta','negado','indisponivel'].indexOf(status)<0) return;
+  var id=STATE.eu.id+'_'+tipo, existente=(STATE.v5.tarefas||[]).find(function(t){return t.id===id;});
+  if(tarefaConcluida(existente)) return;
+  var FB=await esperarFB();
+  await FB.gravar(STATE.eu.codigo,'tarefas',id,{tarefa:tipo,jogadorId:STATE.eu.id,status:status,statusEmMs:Date.now()});
 }
 window.addEventListener('message',function(event){
-  if(event.origin!==location.origin||!event.data||event.data.mosaico!=='tarefa-concluida') return;
-  if(event.data.tarefa==='constelacao'||event.data.tarefa==='inclinacao') concluirTarefaSensor(event.data.tarefa).catch(function(e){console.error('concluir tarefa',e);});
+  if(event.origin!==location.origin||!event.data) return;
+  if(event.data.tarefa!=='constelacao'&&event.data.tarefa!=='inclinacao') return;
+  if(event.data.mosaico==='tarefa-concluida') concluirTarefaSensor(event.data.tarefa).catch(function(e){console.error('concluir tarefa',e);});
+  else if(event.data.mosaico==='sensor-status') registrarStatusSensor(event.data.tarefa,event.data.status).catch(function(e){console.error('status do sensor',e);});
 });
 
 async function prepararMosaico(){

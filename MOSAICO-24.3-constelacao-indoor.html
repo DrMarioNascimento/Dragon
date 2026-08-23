@@ -184,8 +184,8 @@
 <body>
 <div id="overlay">
   <h1 style="font-size:16px;color:var(--text)">CONSTELAÇÃO INDOOR</h1>
-  <p>Usa bússola + giroscópio do celular. Gire o corpo e incline o aparelho até "achar" a constelação escondida. Funciona melhor num celular real, fora do navegador de computador.</p>
-  <button id="enable-btn">Ativar sensores</button>
+  <p id="sensor-help">Toque para permitir o movimento do aparelho e iniciar.</p>
+  <button id="enable-btn">Ativar movimento</button>
 </div>
 
 <div id="app">
@@ -257,6 +257,8 @@
   let rafPending = false;
   let latestReading = { heading: 0, pitch: 0 };
   let usingAbsolute = false;
+  let sensorReceived = false;
+  let sensorTimer = null;
   const embedded = new URLSearchParams(location.search).get('embed') === '1';
   if (embedded) document.body.classList.add('embed');
 
@@ -264,6 +266,22 @@
     if (window.parent !== window){
       window.parent.postMessage({ mosaico:'tarefa-concluida', tarefa:'constelacao' }, location.origin);
     }
+  }
+
+  function notifyStatus(status){
+    if (window.parent !== window){
+      window.parent.postMessage({ mosaico:'sensor-status', tarefa:'constelacao', status }, location.origin);
+    }
+  }
+
+  function sensorFailure(message, status){
+    clearTimeout(sensorTimer);
+    document.getElementById('sensor-help').textContent = message;
+    els.enableBtn.textContent = 'Tentar novamente';
+    els.enableBtn.disabled = false;
+    els.overlay.classList.remove('hidden');
+    els.status.textContent = message;
+    notifyStatus(status);
   }
 
   function randomTarget(){
@@ -299,7 +317,16 @@
   }
 
   function handleOrientation(e){
-    if (e.beta === null && e.alpha === null) return;
+    const hasHeading = typeof e.webkitCompassHeading === 'number' || typeof e.alpha === 'number';
+    if (typeof e.beta !== 'number' || !hasHeading) return;
+    if (!sensorReceived){
+      sensorReceived = true;
+      clearTimeout(sensorTimer);
+      els.overlay.classList.add('hidden');
+      els.enableBtn.disabled = false;
+      randomTarget();
+      notifyStatus('ativo');
+    }
     latestReading.heading = computeHeading(e);
     latestReading.pitch = e.beta || 0;
     if (!rafPending){
@@ -356,25 +383,32 @@
           if (state === 'granted'){
             startListening();
           } else {
-            els.status.textContent = 'Permissão negada — ative nas configurações do navegador.';
+            sensorFailure('O movimento não foi permitido. Autorize no navegador e tente novamente.', 'negado');
           }
         })
         .catch(() => {
-          els.status.textContent = 'Erro ao pedir permissão do sensor.';
+          sensorFailure('Não foi possível pedir a permissão. Tente novamente.', 'negado');
         });
     } else if ('DeviceOrientationEvent' in window){
       startListening();
     } else {
-      els.status.textContent = 'Sensor não disponível neste dispositivo/navegador.';
+      sensorFailure('O movimento não está disponível neste navegador.', 'indisponivel');
     }
   }
 
   function startListening(){
-    // tenta o evento absoluto primeiro (mais confiável pra heading em Android)
+    clearTimeout(sensorTimer);
+    sensorReceived = false;
+    els.enableBtn.disabled = true;
+    document.getElementById('sensor-help').textContent = 'Aguardando resposta do aparelho…';
+    els.status.textContent = 'Aguardando movimento…';
+    window.removeEventListener('deviceorientationabsolute', handleOrientation);
+    window.removeEventListener('deviceorientation', handleOrientation);
     window.addEventListener('deviceorientationabsolute', handleOrientation);
     window.addEventListener('deviceorientation', handleOrientation);
-    els.overlay.classList.add('hidden');
-    randomTarget();
+    sensorTimer = setTimeout(() => {
+      if (!sensorReceived) sensorFailure('O aparelho não respondeu. Movimente-o e tente novamente.', 'sem-resposta');
+    }, 5000);
   }
 
   els.enableBtn.addEventListener('click', enableSensor);

@@ -89,7 +89,7 @@ Dragon/
 
 Os dois arquivos são autocontidos e independem do próprio nome para funcionar. Versões `v2`, Mapa do Escuro, Vidro Embaçado e Janela do Farol foram removidas da árvore atual. Permanecem recuperáveis pelo histórico Git.
 
-Os módulos abrem incorporados por `?embed=1`, notificam a mesa por `postMessage`, registram a conclusão no Firestore e liberam um fragmento no Arquivo. Cada rodada avança quando todos concluem ou após 180 segundos. Se o sensor não responder, o prazo impede que a partida fique bloqueada; um modo alternativo interativo sem sensor ainda pode ser acrescentado futuramente.
+Os módulos abrem incorporados por `?embed=1`, notificam a mesa por `postMessage`, registram a conclusão no Firestore e liberam um fragmento no Arquivo. O botão **Ativar movimento** pede a permissão dentro do gesto do jogador e a tarefa só abre após a primeira leitura válida. Se a permissão for negada, o sensor estiver indisponível ou não responder em cinco segundos, aparece **Tentar novamente**. Esses estados ficam registrados em `tarefas`; o Menu do mestre mostra quantos concluíram e quantos estão sem resposta. Cada rodada avança quando todos concluem ou após 180 segundos, portanto uma incompatibilidade não bloqueia a partida.
 
 ---
 
@@ -558,7 +558,7 @@ Mesas de teste antigas no Firestore devem ser removidas periodicamente.
 ## 16. Ordem recomendada de implementação
 
 1. publicar e validar `firestore.rules` no projeto Firebase;
-2. modo interativo alternativo para aparelhos sem sensores;
+2. teste físico da ativação e da nova tentativa em iOS Safari e Android Chrome;
 3. proteção efetiva das pistas em backend confiável;
 4. testes de integração da reconexão, duplicidade e revelação final com o Firestore;
 5. playtest presencial completo.
