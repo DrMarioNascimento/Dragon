@@ -266,16 +266,26 @@
     background:rgba(224,103,79,.06)}
   .btn-perigo:active{background:rgba(224,103,79,.16)}
   .btn:disabled{opacity:.32;cursor:default}
-  .btn-menu-mestre{position:fixed;z-index:45;right:104px;
+  .btn-menu-mestre{position:fixed;z-index:45;left:50%;right:auto;transform:translateX(-50%);
     bottom:max(16px,env(safe-area-inset-bottom));padding:12px 16px;border-radius:100px;
     border:1px solid rgba(127,212,255,.5);background:rgba(5,7,12,.82);color:var(--frio);
     font:700 clamp(11px,3vw,14px) var(--sans);letter-spacing:.16em;text-transform:uppercase}
+  .btn-menu-mestre.acao-necessaria{
+    border-color:var(--vermelho);color:#ff9b8b;
+    animation:alertaMestre 1.05s ease-in-out infinite;
+  }
+  @keyframes alertaMestre{
+    0%,100%{box-shadow:0 0 0 0 rgba(224,103,79,.25),0 0 0 rgba(224,103,79,0)}
+    50%{box-shadow:0 0 0 5px rgba(224,103,79,.18),0 0 24px rgba(224,103,79,.8)}
+  }
   .btn-caso{position:fixed;z-index:45;right:14px;bottom:max(16px,env(safe-area-inset-bottom));
     padding:12px 16px;border-radius:100px;border:1px solid rgba(127,212,255,.42);
     background:rgba(5,7,12,.76);color:var(--frio);font:700 clamp(11px,3vw,14px) var(--sans);
     letter-spacing:.14em;text-transform:uppercase}
   body.tem-arquivo .btn-caso{left:14px;right:auto}
-  body.tem-arquivo .btn-menu-mestre{right:148px}
+  @media(prefers-reduced-motion:reduce){
+    .btn-menu-mestre.acao-necessaria,.sala-acordeao.acao-necessaria{animation:none}
+  }
   .caso-fundo{position:fixed;inset:0;z-index:43;background:rgba(2,5,9,.96);
     padding:max(18px,env(safe-area-inset-top)) 16px max(82px,env(safe-area-inset-bottom));overflow-y:auto}
   .caso-card{max-width:600px;margin:auto}.caso-card .publica:last-child{margin-bottom:4px}
@@ -319,6 +329,20 @@
   .menu-mestre-grade{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .menu-mestre-grade .btn{margin:0;padding:14px 10px;font-size:12px}
   .menu-mestre-qr{width:min(210px,58vw);display:block;margin:14px auto;border:8px solid #fff;border-radius:6px}
+  .sala-acordeao{border:1px solid var(--linha);border-radius:6px;background:rgba(12,18,26,.94);margin-bottom:10px;overflow:hidden}
+  .sala-acordeao summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;
+    min-height:52px;padding:14px 16px;color:var(--nevoa);font:700 12px var(--sans);letter-spacing:.12em;text-transform:uppercase}
+  .sala-acordeao summary::-webkit-details-marker{display:none}
+  .sala-acordeao summary:after{content:"+";flex:0 0 auto;color:var(--frio);font-size:20px;line-height:1}
+  .sala-acordeao[open] summary:after{content:"−"}
+  .sala-acordeao[open] summary{color:var(--frio);border-bottom:1px solid var(--linha)}
+  .sala-acordeao-conteudo{padding:16px}
+  .sala-acordeao-conteudo>.card:last-child{margin-bottom:0}
+  .sala-acordeao.acao-necessaria{border-color:var(--vermelho);animation:alertaMestre 1.05s ease-in-out infinite}
+  .sala-acordeao.acao-necessaria summary{color:#ff9b8b;background:rgba(224,103,79,.08)}
+  .sala-acordeao.acao-necessaria[open]{animation:none;box-shadow:0 0 0 2px rgba(224,103,79,.16),0 0 20px rgba(224,103,79,.18)}
+  .sala-acordeao .menu-mestre-grade{grid-template-columns:1fr}
+  .sala-acordeao .menu-mestre-grade .btn{font-size:13px}
   .conectado-item{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--linha)}
   body.modo-sem-telao #app{padding-bottom:92px}
   .mural-movel{margin:24px 0 80px;border:1px solid var(--linha);border-radius:6px;background:rgba(12,18,26,.92);padding:0 14px}
@@ -1237,21 +1261,36 @@ function resumoSensores(tipo,total){
   var concluidas=tarefasConcluidas(tipo).length, semResposta=tarefasSemResposta(tipo).length;
   return concluidas+' de '+total+' conclusões'+(semResposta?' · '+semResposta+' sem resposta':'');
 }
+function exclusivoSala(el){
+  if(!el.open) return;
+  document.querySelectorAll(".sala-acordeao[open]").forEach(function(outro){
+    if(outro!==el) outro.removeAttribute("open");
+  });
+}
 function controlesMestreMovel(){
   var fase=(STATE.doc&&STATE.doc.fase)||"sala", js=ordenados(STATE.jogadores), botoes="", autoInfo="";
+  var acaoNecessaria=false, todos=false;
   if(fase==="sala"){
-    var todos=js.length>=2&&contaProntos()===js.length;
+    todos=js.length>=2&&contaProntos()===js.length;
+    acaoNecessaria=todos;
     botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();iniciarEncenacao()" '+(todos?'':'disabled')+'>Come&ccedil;ar</button>';
   }else if(fase==="encenacao") botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();pularVez()">Pular a apresenta&ccedil;&atilde;o atual</button>';
   else if(fase==="votacao") autoInfo='<div class="card"><b>Avan&ccedil;o autom&aacute;tico</b><p class="muted">'+STATE.votos.length+' de '+js.length+' votos recebidos. A pr&oacute;xima rodada abrir&aacute; automaticamente.</p></div>';
   else if(fase==="constelacao") autoInfo='<div class="card"><b>O Mapa do Escuro</b><p class="muted">'+esc(resumoSensores('constelacao',js.length))+'. A rodada avan&ccedil;ar&aacute; automaticamente.</p></div>';
   else if(fase==="inclinacao") autoInfo='<div class="card"><b>A Janela do Norte</b><p class="muted">'+esc(resumoSensores('inclinacao',js.length))+'. A rodada avan&ccedil;ar&aacute; automaticamente.</p></div>';
-  else if(fase==="mosaico") botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();abrirVotoCooperacao()">Abrir voto interno</button>';
-  else if(fase==="cooperacao") botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();abrirMercado()">Abrir mercado</button>';
-  else if(fase==="mercado") botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();abrirDeducao()">Abrir dedu&ccedil;&atilde;o</button>';
-  else if(fase==="deducao") autoInfo='<div class="card"><b>C&aacute;lculo autom&aacute;tico</b><p class="muted">'+STATE.v5.deducoes.length+' de '+js.length+' respostas recebidas. O placar ser&aacute; calculado automaticamente.</p></div>';
+  else if(fase==="mosaico"){
+    acaoNecessaria=true;
+    botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();abrirVotoCooperacao()">Abrir voto interno</button>';
+  }else if(fase==="cooperacao"){
+    acaoNecessaria=true;
+    botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();abrirMercado()">Abrir mercado</button>';
+  }else if(fase==="mercado"){
+    acaoNecessaria=true;
+    botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();abrirDeducao()">Abrir dedu&ccedil;&atilde;o</button>';
+  }else if(fase==="deducao") autoInfo='<div class="card"><b>C&aacute;lculo autom&aacute;tico</b><p class="muted">'+STATE.v5.deducoes.length+' de '+js.length+' respostas recebidas. O placar ser&aacute; calculado automaticamente.</p></div>';
   else if(fase==="resultado"){
     var etapa=etapaRevelacao();
+    acaoNecessaria=true;
     if(etapa<4) botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();avancarRevelacao()">'+esc(rotuloProximaRevelacao(etapa))+'</button>';
     else {
       autoInfo='<div class="card"><b>Revela&ccedil;&atilde;o conclu&iacute;da</b><p class="muted">O placar final est&aacute; vis&iacute;vel. Voc&ecirc; pode encerrar ou abrir uma nova sala.</p></div>';
@@ -1260,13 +1299,20 @@ function controlesMestreMovel(){
   }
   var conectados=js.map(function(j){var status=fase==="sala"?(j.pronto?'pronto':'aguardando prontid&atilde;o'):'conectado';return '<div class="conectado-item"><span>'+esc(j.nome)+'</span><span class="muted">'+status+'</span></div>';}).join('')||'<p class="muted">Nenhum participante conectado.</p>';
   var m=STATE.mesa, qr=m?'https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=8&data='+encodeURIComponent(m.link):'';
+  var abrirAcao=acaoNecessaria||(fase!=="sala"&&!!botoes);
+  var abrirParticipantes=!abrirAcao&&fase==="sala";
+  var abrirStatus=!abrirAcao&&!abrirParticipantes&&!!autoInfo;
+  var secaoAcao=botoes?'<details class="sala-acordeao mestre-acao '+(acaoNecessaria?'acao-necessaria':'')+'" '+(abrirAcao?'open':'')+' ontoggle="exclusivoSala(this)"><summary>'+(acaoNecessaria?'A&ccedil;&atilde;o do mestre necess&aacute;ria':'Controles do mestre')+'</summary><div class="sala-acordeao-conteudo"><div class="menu-mestre-grade">'+botoes+'</div></div></details>':'';
+  var secaoStatus=autoInfo?'<details class="sala-acordeao" '+(abrirStatus?'open':'')+' ontoggle="exclusivoSala(this)"><summary>Acompanhamento da rodada</summary><div class="sala-acordeao-conteudo">'+autoInfo+'</div></details>':'';
   var painel=STATE.menuMestreAberto?'<div class="menu-mestre-fundo" onclick="if(event.target===this)alternarMenuMestre()"><div class="menu-mestre-card">'+
-    '<div class="menu-mestre-topo"><div><span class="eyebrow">Mestre &middot; '+esc(nomeRodada(fase))+'</span><h2>Menu</h2></div><button class="btn btn-sm" onclick="alternarMenuMestre()">Fechar</button></div>'+
-    '<div class="card"><span class="eyebrow">C&oacute;digo da sala</span><div class="codigo-grande">'+esc(m&&m.codigo)+'</div><img class="menu-mestre-qr" src="'+esc(qr)+'" alt="QR da sala"><button class="btn btn-sm" style="width:100%" onclick="copiarLink()">Copiar link</button></div>'+
-    '<div class="card"><span class="eyebrow">Conectados &middot; '+js.length+'</span>'+conectados+'</div>'+autoInfo+
-    '<div class="menu-mestre-grade">'+botoes+'<button class="btn btn-perigo" onclick="encerrarMesa()">Encerrar sala</button></div>'+
+    '<div class="menu-mestre-topo"><div><span class="eyebrow">Mestre &middot; '+esc(nomeRodada(fase))+'</span><h2>Sala</h2></div><button class="btn btn-sm" onclick="alternarMenuMestre()">Fechar</button></div>'+
+    secaoAcao+
+    '<details class="sala-acordeao" '+(abrirParticipantes?'open':'')+' ontoggle="exclusivoSala(this)"><summary>Participantes &middot; '+js.length+'</summary><div class="sala-acordeao-conteudo">'+conectados+'</div></details>'+
+    secaoStatus+
+    '<details class="sala-acordeao" ontoggle="exclusivoSala(this)"><summary>C&oacute;digo e QR da sala</summary><div class="sala-acordeao-conteudo"><div class="codigo-grande">'+esc(m&&m.codigo)+'</div><img class="menu-mestre-qr" src="'+esc(qr)+'" alt="QR da sala"><button class="btn btn-sm" style="width:100%" onclick="copiarLink()">Copiar link</button></div></details>'+
+    '<details class="sala-acordeao" ontoggle="exclusivoSala(this)"><summary>Encerrar sala</summary><div class="sala-acordeao-conteudo"><button class="btn btn-perigo" onclick="encerrarMesa()">Encerrar sala</button></div></details>'+
     '</div></div>':'';
-  return '<button class="btn-menu-mestre" onclick="alternarMenuMestre()" aria-label="Abrir ou fechar o menu do mestre">Menu</button>'+painel;
+  return '<button class="btn-menu-mestre '+(acaoNecessaria?'acao-necessaria':'')+'" onclick="alternarMenuMestre()" aria-label="Abrir ou fechar a Sala do mestre">Sala</button>'+painel;
 }
 function dadosAutomacao(){
   var fase=(STATE.doc&&STATE.doc.fase)||"", cfg=(CASO.configuracao&&CASO.configuracao.limitesSegundos)||{};
