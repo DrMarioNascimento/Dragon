@@ -779,6 +779,14 @@
     padding:28px 24px;max-width:400px;width:100%;text-align:center;
     max-height:90vh;overflow-y:auto;overflow-x:hidden;
   }
+  .orientacao-mestre{max-width:460px;border-color:rgba(232,164,76,.62);
+    box-shadow:0 22px 70px rgba(0,0,0,.72),0 0 30px rgba(232,164,76,.12)}
+  .orientacao-mestre h2{font-size:clamp(29px,8vw,40px);margin:7px 0 13px}
+  .orientacao-mestre>.lead{font-size:clamp(18px,4.8vw,22px);margin-bottom:16px}
+  .orientacao-mestre-card{text-align:left;padding:17px 18px;border-left:3px solid var(--ambar)}
+  .orientacao-mestre-card p{font-size:14px;line-height:1.5;margin-bottom:11px}
+  .orientacao-mestre-card p:last-child{margin-bottom:0}
+  .orientacao-mestre .btn{margin-bottom:0}
   .codigo-grande{
     font-size:clamp(44px,13vw,68px);font-weight:600;letter-spacing:.22em;
     color:var(--ambar);margin:14px 0 6px;
@@ -1362,7 +1370,9 @@ function emitirSomDeNivel(){
   chamadaDeNevoeiro(agora+3.2);
 }
 function verificarTrocaDeNivel(fase){
-  var d=dinamicaNivel(fase), atual=d&&d.id;
+  /* Um unico emissor evita o eco de varios celulares recebendo o snapshot em tempos diferentes. */
+  if(!souMestreDaMesa()) return;
+  var d=dinamicaNivel(fase), atual=d?d.id:(fase==="sala"?"sala":null);
   if(!atual) return;
   if(_nivelSonoroAnterior===null){_nivelSonoroAnterior=atual;return;}
   if(atual!==_nivelSonoroAnterior){
@@ -1576,6 +1586,7 @@ function render(forcar){
   }
   if(STATE.eu&&!encenacaoPassiva) h+=painelCasoMovel();
   if(STATE.eu && souMestreDaMesa() && modoAtual()==="sem-telao") h+=controlesMestreMovel();
+  if(souMestreDaMesa()) h+=modalOrientacaoMestre();
   app.innerHTML=h;
   agendarAutomacoes();
 }
@@ -1615,6 +1626,26 @@ function modalSenha(){
       '<div id="senha-erro"></div>'+
       '<button class="btn btn-ambar" onclick="'+(autenticado?'criarMesa(STATE.modoMesa)':'conferirSenha()')+'">Abrir</button>'+
       '<button class="btn btn-fantasma" onclick="fecharSenha()">Cancelar</button>'+
+    '</div></div>';
+}
+
+function fecharOrientacaoMestre(){
+  STATE.orientacaoMestreAberta=false;
+  render(true);
+}
+function modalOrientacaoMestre(){
+  if(!STATE.orientacaoMestreAberta) return "";
+  return '<div class="modal-fundo orientacao-mestre-fundo"><div class="modal orientacao-mestre">'+
+    '<span class="eyebrow">&Aacute;rea do mestre</span>'+
+    '<h2>Voc&ecirc; &eacute; o mestre da sala</h2>'+
+    '<p class="lead">Ative o som do celular e fique atento ao bot&atilde;o <b>Sala</b>.</p>'+
+    '<div class="card orientacao-mestre-card">'+
+      '<p><b>Durante a partida, voc&ecirc; continuar&aacute; jogando normalmente.</b></p>'+
+      '<p>O bot&atilde;o <b>Sala</b> mostrar&aacute; comandos exclusivos do mestre, como iniciar, avan&ccedil;ar, pular uma etapa ou liberar uma atividade.</p>'+
+      '<p>Quando uma interven&ccedil;&atilde;o for necess&aacute;ria, o bot&atilde;o piscar&aacute; em vermelho.</p>'+
+      '<p>A sirene de nevoeiro tocar&aacute; somente neste aparelho, evitando eco entre os celulares.</p>'+
+    '</div>'+
+    '<button class="btn btn-ambar" onclick="habilitarAudioNivel();fecharOrientacaoMestre()">Entendi &middot; ativar som</button>'+
     '</div></div>';
 }
 
@@ -2238,6 +2269,8 @@ async function criarMesa(modo){
   STATE.modoMesa=modo;
   STATE.mesa={codigo:codigo,link:linkDaSala(codigo),fb:false,modo:modo};
   try{ sessionStorage.setItem("mosaico_mestre_codigo",codigo); }catch(e){}
+  STATE.orientacaoMestreAberta=true;
+  _nivelSonoroAnterior=null;
   STATE.tela=modo==="sem-telao"?"entrar":"painel";
   STATE.jogadores=[];
   STATE.doc={fase:"sala",vez:0,modo:modo};
