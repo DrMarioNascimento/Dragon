@@ -170,6 +170,39 @@
     background:linear-gradient(135deg,rgba(55,39,79,.95),rgba(29,24,43,.95))}
   .dinamica-nivel.caso .dn-titulo{color:#d9c2ff}
   #app.largo>.dinamica-nivel{width:min(72%,680px);margin:-8px auto 12px}
+
+  /* Encontro presencial dos Fragmentos: a mesma arte recebe uma cor por grupo. */
+  body.busca-fragmento{min-height:100dvh;overflow:hidden}
+  body.busca-fragmento #arte{opacity:1;background-position:center;background-size:cover;background-repeat:no-repeat}
+  body.busca-fragmento.fragmento-cor-1 #arte{
+    background-image:linear-gradient(rgba(151,24,31,.72),rgba(74,8,14,.82)),url("img/capa-vertical.jpg");
+    background-blend-mode:color,multiply}
+  body.busca-fragmento.fragmento-cor-2 #arte{
+    background-image:linear-gradient(rgba(17,83,161,.72),rgba(5,29,78,.84)),url("img/capa-vertical.jpg");
+    background-blend-mode:color,multiply}
+  body.busca-fragmento.fragmento-cor-3 #arte{
+    background-image:linear-gradient(rgba(194,128,10,.68),rgba(83,49,2,.84)),url("img/capa-vertical.jpg");
+    background-blend-mode:color,multiply}
+  body.busca-fragmento.fragmento-cor-4 #arte{
+    background-image:linear-gradient(rgba(112,42,157,.72),rgba(44,12,70,.84)),url("img/capa-vertical.jpg");
+    background-blend-mode:color,multiply}
+  body.busca-fragmento #arte::after{background:linear-gradient(180deg,rgba(5,7,12,.12),rgba(5,7,12,.4))}
+  body.busca-fragmento #app{max-width:none;min-height:100dvh;padding:24px 20px 104px;
+    display:flex;align-items:center;justify-content:center}
+  .fragmento-encontro{position:relative;z-index:2;width:min(100%,500px);text-align:center;
+    border:2px solid rgba(255,255,255,.74);border-radius:12px;padding:24px 20px;
+    background:rgba(5,7,12,.68);box-shadow:0 22px 58px rgba(0,0,0,.56);
+    backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+  .fragmento-encontro .fe-selo{display:block;color:rgba(255,255,255,.82);font:800 12px var(--sans);
+    letter-spacing:.28em;text-transform:uppercase;margin-bottom:10px}
+  .fragmento-encontro h2{font-family:var(--serif);font-size:clamp(35px,10vw,54px);line-height:1;
+    color:#fff;margin:0 0 22px;text-shadow:0 2px 20px rgba(0,0,0,.75)}
+  .fragmento-encontro .fe-cor{display:block;margin:0 auto 9px;color:#fff;font:900 clamp(20px,6vw,30px) var(--sans);
+    letter-spacing:.16em;text-transform:uppercase}
+  .fragmento-encontro .fe-instrucao{font-family:var(--serif);font-size:clamp(23px,6.2vw,31px);
+    line-height:1.28;color:#fff;margin-bottom:20px}
+  .fragmento-encontro .fe-explica{color:rgba(255,255,255,.78);font-size:14px;line-height:1.5;margin-bottom:20px}
+  .fragmento-encontro .btn{border-color:rgba(255,255,255,.76);background:rgba(5,7,12,.56);color:#fff}
   /* Telao deitado: duas colunas lado a lado. */
   @media(min-width:900px) and (min-aspect-ratio: 1/1){
     .painel-cols{grid-template-columns:1.25fr .75fr;gap:34px}
@@ -1429,8 +1462,8 @@ function orientacaoCaso(fase){
   if(fase==="votacao") return "Registre seu voto de Performance. Você não pode votar em si.";
   if(fase==="constelacao") return "Ative o movimento e conclua O Mapa do Escuro.";
   if(fase==="inclinacao") return "Ative o movimento e conclua A Janela do Norte.";
-  if(fase==="mosaico") return "Converse com seu núcleo e reconstrua a ordem dos acontecimentos.";
-  if(fase==="cooperacao") return "Registre em segredo quem mais colaborou com o seu núcleo.";
+  if(fase==="mosaico") return "Encontre as telas da mesma cor e reconstrua os acontecimentos com seu Fragmento.";
+  if(fase==="cooperacao") return "Registre em segredo quem mais colaborou com o seu Fragmento.";
   if(fase==="mercado") return "Avalie as ofertas. Comprar, vender ou recusar são decisões possíveis.";
   if(fase==="deducao") return "Complete sua acusação final. Depois de enviar, a resposta não poderá ser alterada.";
   if(fase==="resultado") return etapaRevelacao()<4?"Acompanhe a reconstrução final do caso.":"Confira o placar final da investigação.";
@@ -1486,6 +1519,12 @@ function render(forcar){
   document.body.classList.toggle("painel-em-jogo",
     STATE.tela==="painel" && faseAgora!=="sala" && faseAgora!=="resultado");
   document.body.classList.toggle("encenacao-passiva",encenacaoPassiva);
+  var emBuscaFragmento=STATE.tela==="mosaico"&&faseAgora==="mosaico"&&!fragmentoConfirmado();
+  document.body.classList.toggle("busca-fragmento",emBuscaFragmento);
+  for(var corFragmento=1;corFragmento<=4;corFragmento++){
+    document.body.classList.toggle("fragmento-cor-"+corFragmento,
+      emBuscaFragmento&&meuJogador()&&Number(meuJogador().nucleo)===corFragmento);
+  }
   /* Os snapshots do Firebase podem chegar várias vezes durante uma rodada.
      Recriar o iframe a cada snapshot descarrega o módulo, perde a permissão
      do sensor e devolve o jogador à introdução. Enquanto a mesma tarefa
@@ -1691,7 +1730,7 @@ function telaPainel(){
     var tipoTarefa=fase;
     acao='<div class="card"><span class="eyebrow">Rodada sensorial</span><p class="lead">'+esc(nomeRodada(fase))+'</p><p class="muted">'+esc(resumoSensores(tipoTarefa,js.length))+'. O avan&ccedil;o ser&aacute; autom&aacute;tico.</p></div>';
   } else if(fase==="mosaico"){
-    acao='<div class="card"><span class="eyebrow">Mosaico coletivo</span><p class="muted">'+STATE.v5.nucleos.filter(function(n){return n.concluidoEm||n.concluidoMs;}).length+' n&uacute;cleo(s) conclu&iacute;do(s).</p></div><button class="btn btn-ambar" onclick="abrirVotoCooperacao()">Encerrar mosaico e abrir voto interno</button>';
+    acao='<div class="card"><span class="eyebrow">Mosaico coletivo</span><p class="muted">'+STATE.v5.nucleos.filter(function(n){return n.concluidoEm||n.concluidoMs;}).length+' Fragmento(s) conclu&iacute;do(s).</p></div><button class="btn btn-ambar" onclick="abrirVotoCooperacao()">Encerrar mosaico e abrir voto interno</button>';
   } else if(fase==="cooperacao"){
     acao='<div class="card"><span class="eyebrow">Voto interno cego</span><p class="muted">'+STATE.v5.cooperacao.length+' voto(s) recebidos. Os nomes e o resultado permanecem ocultos.</p></div><button class="btn btn-ambar" onclick="abrirMercado()">Encerrar voto e abrir Mercado Cego</button>';
   } else if(fase==="mercado"){
@@ -1937,13 +1976,46 @@ function meuJogador(){
 }
 function opcao(valor, rotulo){ return '<option value="'+esc(valor)+'">'+esc(rotulo)+'</option>'; }
 
+var FRAGMENTOS={
+  1:{nome:"Fragmento da Névoa",cor:"Vermelha"},
+  2:{nome:"Fragmento da Tempestade",cor:"Azul"},
+  3:{nome:"Fragmento do Farol",cor:"Dourada"},
+  4:{nome:"Fragmento da Noite",cor:"Roxa"}
+};
+function dadosFragmento(nucleo){return FRAGMENTOS[Number(nucleo)]||{nome:"Seu Fragmento",cor:"da mesma cor"};}
+function chaveEncontroFragmento(){
+  var eu=meuJogador(), abertura=(STATE.doc&&STATE.doc.mosaicoAbertoMs)||"";
+  return eu?"mosaico_fragmento_"+((STATE.eu&&STATE.eu.codigo)||"")+"_"+eu.id+"_"+eu.nucleo+"_"+abertura:"";
+}
+function fragmentoConfirmado(){
+  var chave=chaveEncontroFragmento();if(!chave)return false;
+  try{return sessionStorage.getItem(chave)==="ok";}catch(e){return false;}
+}
+function confirmarFragmento(){
+  var chave=chaveEncontroFragmento();
+  try{if(chave)sessionStorage.setItem(chave,"ok");}catch(e){}
+  render(true);
+}
+function telaEncontroFragmento(nucleo){
+  var f=dadosFragmento(nucleo);
+  return '<div class="fragmento-encontro">'+
+    '<span class="fe-selo">Seu Fragmento</span>'+
+    '<h2>'+esc(f.nome)+'</h2>'+
+    '<span class="fe-cor">Tela '+esc(f.cor)+'</span>'+
+    '<p class="fe-instrucao">Junte-se a quem tem a tela '+esc(f.cor.toLowerCase())+'.</p>'+
+    '<p class="fe-explica">Levante-se, procure a sua cor e forme o grupo sem depender dos nomes das pessoas.</p>'+
+    '<button class="btn" onclick="confirmarFragmento()">Encontrei meu Fragmento</button>'+
+    '</div>';
+}
+
 function telaMosaico(){
-  var eu=meuJogador(), nucleo=eu&&eu.nucleo;
+  var eu=meuJogador(), nucleo=eu&&eu.nucleo, fragmento=dadosFragmento(nucleo);
+  if(!fragmentoConfirmado()) return telaEncontroFragmento(nucleo);
   var feito=(STATE.v5.nucleos||[]).some(function(n){return String(n.id)===String(nucleo)&&(n.concluidoEm||n.concluidoMs);});
-  if(feito) return '<span class="eyebrow">N&uacute;cleo '+esc(nucleo)+'</span><h2>Mosaico conclu&iacute;do.</h2><p class="lead">A ordem foi registrada pelo servidor. Aguarde os demais n&uacute;cleos.</p>';
+  if(feito) return '<span class="eyebrow">'+esc(fragmento.nome)+'</span><h2>Mosaico conclu&iacute;do.</h2><p class="lead">A ordem foi registrada pelo servidor. Aguarde os demais Fragmentos.</p>';
   var opts='<option value="">Escolha…</option>'+(CASO.publicas||[]).map(function(p){return opcao(p.id,p.hora+' — '+p.txt);}).join('');
   var campos=''; for(var i=0;i<6;i++) campos+='<label>'+(i+1)+'&ordm;<select id="mos-'+i+'">'+opts+'</select></label>';
-  return '<span class="eyebrow">Mosaico coletivo &middot; N&uacute;cleo '+esc(nucleo)+'</span><h2>Reconstruam a linha do tempo.</h2><p class="lead">Quanto mais r&aacute;pido o seu grupo concluir, melhor ser&aacute; sua coloca&ccedil;&atilde;o.</p><div class="card">'+campos+'</div><button class="btn btn-ambar" onclick="enviarMosaico()">Enviar ordem do n&uacute;cleo</button>';
+  return '<span class="eyebrow">Mosaico coletivo &middot; '+esc(fragmento.nome)+'</span><h2>Reconstruam a linha do tempo.</h2><p class="lead">Quanto mais r&aacute;pido o seu Fragmento concluir, melhor ser&aacute; sua coloca&ccedil;&atilde;o.</p><div class="card">'+campos+'</div><button class="btn btn-ambar" onclick="enviarMosaico()">Enviar ordem do Fragmento</button>';
 }
 
 function telaCooperacao(){
@@ -1952,7 +2024,7 @@ function telaCooperacao(){
   var ja=(STATE.v5.cooperacao||[]).some(function(v){return v.de===eu.id;});
   if(ja) return '<span class="eyebrow">Voto interno cego</span><h2>Voto registrado.</h2><p class="lead">O resultado n&atilde;o ser&aacute; revelado ao grupo.</p>';
   var membros=STATE.jogadores.filter(function(j){return j.nucleo===eu.nucleo&&j.id!==eu.id;});
-  if(membros.length===1) return '<span class="eyebrow">Coopera&ccedil;&atilde;o &middot; n&uacute;cleo de 2</span><h2>Divis&atilde;o autom&aacute;tica.</h2><p class="lead">Cada integrante recebe 5 pontos individuais; n&atilde;o h&aacute; voto.</p>';
+  if(membros.length===1) return '<span class="eyebrow">Coopera&ccedil;&atilde;o &middot; Fragmento de 2</span><h2>Divis&atilde;o autom&aacute;tica.</h2><p class="lead">Cada integrante recebe 5 pontos individuais; n&atilde;o h&aacute; voto.</p>';
   return '<span class="eyebrow">Coopera&ccedil;&atilde;o &middot; voto interno cego</span><h2>Quem mais colaborou com o grupo?</h2><p class="lead">Voc&ecirc; n&atilde;o pode votar em si. O resultado permanece oculto.</p><div class="pers-lista">'+membros.map(function(j){return '<button class="pers-op" onclick="votarCooperacao(\''+j.id+'\')"><span class="av">🤝</span><span class="txt"><span class="nm">'+esc(j.nome)+'</span></span></button>';}).join('')+'</div>';
 }
 
@@ -2513,7 +2585,7 @@ async function prepararMosaico(){
 async function enviarMosaico(){
   var ordem=[]; for(var i=0;i<6;i++) ordem.push((document.getElementById('mos-'+i)||{}).value||'');
   var correta=((CASO.mosaico||{}).ordemCorreta||[]);
-  if(ordem.join('|')!==correta.join('|')){ alert('A ordem ainda não fecha. Releiam os horários e conversem no núcleo.'); return; }
+  if(ordem.join('|')!==correta.join('|')){ alert('A ordem ainda não fecha. Releiam os horários e conversem no Fragmento.'); return; }
   var eu=meuJogador(), FB=await esperarFB();
   await FB.concluirNucleo(STATE.eu.codigo,String(eu.nucleo),{numero:eu.nucleo});
 }
