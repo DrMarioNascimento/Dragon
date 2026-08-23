@@ -372,6 +372,12 @@
   .podio-jogador .colocacao{font:700 clamp(9px,2.3vw,13px) var(--sans);color:var(--ambar);letter-spacing:.08em;text-transform:uppercase}
   .podio-layout.celular .pos-1{left:37.5%;top:45%}.podio-layout.celular .pos-2{left:9%;top:64%}.podio-layout.celular .pos-3{right:8%;top:68%}
   .podio-layout.telao .podio-jogador{width:19%;padding:6px 4px}.podio-layout.telao .pos-1{left:40.5%;top:50%}.podio-layout.telao .pos-2{left:16%;top:63%}.podio-layout.telao .pos-3{right:14%;top:63%}
+  body.resultado-podio #app.largo{width:100%;max-width:none;padding:10px 2vw 16px}
+  body.resultado-podio #app.largo>.rodada-telao,
+  body.resultado-podio .revelacao-final>.eyebrow{display:none}
+  body.resultado-podio .revelacao-final{width:100%;max-width:96vw}
+  body.resultado-podio .podio-layout.telao{grid-template-columns:minmax(0,1fr) minmax(220px,280px);gap:14px;margin-top:0}
+  body.resultado-podio .podio-layout.telao .podio-jogador{padding:8px 6px}
   .classificacao-restante{border:1px solid var(--linha);border-radius:9px;background:rgba(12,18,26,.94);padding:12px}.classificacao-restante h3{font-size:17px;margin:2px 0 10px;color:var(--ambar)}
   .classificacao-item{display:grid;grid-template-columns:30px 34px minmax(0,1fr) auto;align-items:center;gap:7px;padding:9px 2px;border-bottom:1px solid var(--linha)}.classificacao-item:last-child{border-bottom:0}.classificacao-item .ordem{color:var(--ambar);font-weight:700}.classificacao-item .avatar{font-size:22px}.classificacao-item .nome{font:700 13px var(--sans);line-height:1.1}.classificacao-item .papel{display:block;color:var(--dim);font:600 11px var(--serif);margin-top:2px}.classificacao-item .pontos{font-weight:700;color:var(--frio);white-space:nowrap}
   .podio-layout.celular .classificacao-restante{width:min(100%,560px);margin:14px auto 0}
@@ -1735,6 +1741,8 @@ function render(forcar){
     STATE.tela==="constelacao" || STATE.tela==="inclinacao");
   document.body.classList.toggle("painel-em-jogo",
     STATE.tela==="painel" && faseAgora!=="sala" && faseAgora!=="resultado");
+  document.body.classList.toggle("resultado-podio",
+    STATE.tela==="painel" && faseAgora==="resultado" && etapaRevelacao()>=4);
   document.body.classList.toggle("encenacao-passiva",encenacaoPassiva);
   var emBuscaFragmento=STATE.tela==="mosaico"&&faseAgora==="mosaico"&&!(STATE.doc&&STATE.doc.fragmentosLiberados);
   document.body.classList.toggle("busca-fragmento",emBuscaFragmento);
