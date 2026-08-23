@@ -470,6 +470,20 @@
     font-family:var(--sans);font-size:clamp(30px,9vw,44px);font-weight:600;
     letter-spacing:.3em;text-align:center;text-transform:uppercase;
   }
+  /* Decisões importantes precisam de uma área confortável para o dedo. */
+  .selecao-toque{
+    width:100%;min-height:60px;margin:9px 0 25px;padding:13px 48px 13px 15px;
+    border:2px solid rgba(127,212,255,.34);border-radius:7px;
+    background:#080d14;color:var(--texto);font:600 clamp(17px,4.8vw,21px)/1.25 var(--sans);
+  }
+  .selecao-toque:focus{outline:3px solid rgba(127,212,255,.16);border-color:var(--frio)}
+  .selecao-toque option{font-size:18px;background:#080d14;color:var(--texto)}
+  .ordem-mosaico label{margin-bottom:19px}
+  .ordem-mosaico label:last-child{margin-bottom:0}
+  .ordem-mosaico .selecao-toque{margin-top:12px;margin-bottom:0}
+  .deducao-card{padding:20px 18px 8px}
+  .deducao-card label{margin-bottom:22px}
+  .deducao-card label:last-of-type{margin-bottom:10px}
 
   /* ---------- cartoes ---------- */
   .card{
@@ -2487,8 +2501,8 @@ function telaMosaico(){
   var feito=(STATE.v5.nucleos||[]).some(function(n){return String(n.id)===String(nucleo)&&(n.concluidoEm||n.concluidoMs);});
   if(feito) return '<span class="eyebrow">'+esc(fragmento.nome)+'</span><h2>Mosaico conclu&iacute;do.</h2><p class="lead">A ordem foi registrada pelo servidor. Aguarde os demais Fragmentos.</p>';
   var opts='<option value="">Escolha…</option>'+(CASO.publicas||[]).map(function(p){return opcao(p.id,p.hora+' — '+p.txt);}).join('');
-  var campos=''; for(var i=0;i<6;i++) campos+='<label>'+(i+1)+'&ordm;<select id="mos-'+i+'">'+opts+'</select></label>';
-  return '<span class="eyebrow">Mosaico coletivo &middot; '+esc(fragmento.nome)+'</span><h2>Reconstruam a linha do tempo.</h2><p class="lead">Quanto mais r&aacute;pido o seu Fragmento concluir, melhor ser&aacute; sua coloca&ccedil;&atilde;o.</p><div class="card">'+campos+'</div><button class="btn btn-ambar" onclick="enviarMosaico()">Enviar ordem do Fragmento</button>';
+  var campos=''; for(var i=0;i<6;i++) campos+='<label>'+(i+1)+'&ordm;<select class="selecao-toque" id="mos-'+i+'">'+opts+'</select></label>';
+  return '<span class="eyebrow">Mosaico coletivo &middot; '+esc(fragmento.nome)+'</span><h2>Reconstruam a linha do tempo.</h2><p class="lead">Quanto mais r&aacute;pido o seu Fragmento concluir, melhor ser&aacute; sua coloca&ccedil;&atilde;o.</p><div class="card ordem-mosaico">'+campos+'</div><button class="btn btn-ambar" onclick="enviarMosaico()">Enviar ordem do Fragmento</button>';
 }
 
 function telaCooperacao(){
@@ -2516,10 +2530,11 @@ function inteiroSeguro(v){return Math.trunc(Number(v)||0);}
 function telaDeducao(){
   var eu=meuJogador();
   if((STATE.v5.deducoes||[]).some(function(d){return d.id===eu.id;})) return '<span class="eyebrow">Acusa&ccedil;&atilde;o final</span><h2>Resposta registrada.</h2><p class="lead">Sua resposta e o hor&aacute;rio de envio foram registrados. Aguarde a revela&ccedil;&atilde;o.</p>';
-  function sel(id, lista, primeiro){return '<label>'+primeiro+'<select id="'+id+'"><option value="">Escolha…</option>'+lista.map(function(x){return opcao(x.id,x.rotulo||nomePers(x,eu.forma));}).join('')+'</select></label>';}
+  function sel(id, lista, primeiro){return '<label>'+primeiro+'<select class="selecao-toque" id="'+id+'"><option value="">Toque para escolher…</option>'+lista.map(function(x){return opcao(x.id,x.rotulo||nomePers(x,eu.forma));}).join('')+'</select></label>';}
   var d=CASO.deducao||{}, adquiridas=minhasPistas().filter(function(p){return p.adquirida;});
+  var suspeitos=(d.suspeitos&&d.suspeitos.length)?d.suspeitos:CASO.elenco;
   var checks=adquiridas.map(function(p){return '<label><input type="checkbox" name="pista-usada" value="'+esc(p.id)+'"> '+esc(p.hora+' — '+p.txt)+'</label>';}).join('')||'<p class="muted">Voc&ecirc; n&atilde;o adquiriu pistas no mercado.</p>';
-  return '<span class="eyebrow">Dedu&ccedil;&atilde;o final</span><h2>Monte sua acusa&ccedil;&atilde;o.</h2><div class="card">'+sel('ded-suspeito',CASO.elenco,'Suspeito principal')+sel('ded-motivo',d.motivos||[],'Motivo')+sel('ded-acao',d.acoes||[],'A&ccedil;&atilde;o decisiva')+sel('ded-prova',d.provas||[],'Prova-chave')+sel('ded-lacuna',d.lacunas||[],'Lacuna resolvida')+'<p><b>Pistas adquiridas usadas na dedu&ccedil;&atilde;o</b></p>'+checks+'</div><p class="muted" style="text-align:center">Depois de enviar, voc&ecirc; n&atilde;o poder&aacute; alterar a resposta.</p><button class="btn btn-ambar" onclick="enviarDeducao()">Enviar resposta final</button>';
+  return '<span class="eyebrow">Dedu&ccedil;&atilde;o final</span><h2>Monte sua acusa&ccedil;&atilde;o.</h2><div class="card deducao-card">'+sel('ded-suspeito',suspeitos,'Suspeito principal')+sel('ded-motivo',d.motivos||[],'Motivo')+sel('ded-acao',d.acoes||[],'A&ccedil;&atilde;o decisiva')+sel('ded-prova',d.provas||[],'Prova-chave')+sel('ded-lacuna',d.lacunas||[],'Lacuna resolvida')+'<p><b>Pistas adquiridas usadas na dedu&ccedil;&atilde;o</b></p>'+checks+'</div><p class="muted" style="text-align:center">Depois de enviar, voc&ecirc; n&atilde;o poder&aacute; alterar a resposta.</p><button class="btn btn-ambar" onclick="enviarDeducao()">Enviar resposta final</button>';
 }
 
 /* ============================================================
