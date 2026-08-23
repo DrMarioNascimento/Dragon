@@ -173,6 +173,7 @@
   }
   #overlay p{ color: var(--text-dim); font-size: 14px; max-width: 280px; line-height:1.5; }
   #overlay.hidden{ display:none; }
+  body.embed #controls,body.embed #target-info{display:none}
 </style>
 </head>
 <body>
@@ -238,6 +239,14 @@
   let locked = false;
   let rafPending = false;
   let latestReading = { beta: 0, gamma: 0 };
+  const embedded = new URLSearchParams(location.search).get('embed') === '1';
+  if (embedded) document.body.classList.add('embed');
+
+  function notifyComplete(){
+    if (window.parent !== window){
+      window.parent.postMessage({ mosaico:'tarefa-concluida', tarefa:'inclinacao' }, location.origin);
+    }
+  }
 
   function randomTarget(){
     // pitch: entre -60 e 80 (evita virar totalmente de cabeça pra baixo/plano demais)
@@ -289,6 +298,7 @@
         locked = true;
         els.fragment.classList.add('locked');
         els.status.textContent = 'Fragmento revelado!';
+        notifyComplete();
       } else {
         els.status.textContent = 'Segura firme...';
       }

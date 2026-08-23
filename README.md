@@ -27,10 +27,12 @@ Não publique links de demonstração, arquivos, capturas extensas, documentaç�
 `MOSAICO-mesa.html` implementa a pontuação V5 em fases sucessivas:
 
 1. História que Pula e voto cego de Performance;
-2. Mosaico coletivo por núcleos e voto interno cego;
-3. Mercado Cego com moedas, preços configuráveis e registro das compras;
-4. dedução final com Suspeito, Motivo, Ação, Prova e Lacuna;
-5. revelação e placar de Tempo (32%), Qualidade (13%), Cooperação (30%), Economia e Risco (20%) e Performance (5%).
+2. rodada sensorial **Constelação Indoor**;
+3. rodada sensorial **Inclinação–Fragmento**;
+4. Mosaico coletivo por núcleos e voto interno cego;
+5. Mercado Cego com moedas, preços configuráveis e registro das compras;
+6. dedução final com Suspeito, Motivo, Ação, Prova e Lacuna;
+7. revelação e placar de Tempo (32%), Qualidade (13%), Cooperação (30%), Economia e Risco (20%) e Performance (5%).
 
 Os parâmetros do caso ficam em `casos/casa-da-costa.json`. O cálculo puro e testável fica em `js/mosaico-v5.js`. Todos os pontos do jogo são inteiros.
 
@@ -43,7 +45,7 @@ Nos celulares, **Caso** abre a rodada atual, a orientação do momento e a linha
 
 O modo é escolhido ao abrir a mesa e gravado no documento da sala. Regras, caso, votos e pontuação são idênticos nos dois modos.
 
-Para publicar, configure o Firebase no final de `MOSAICO-mesa.html`, habilite autenticação anônima e aplique regras compatíveis com as novas coleções (`jogadores`, `votos`, `votosCooperacao`, `nucleos`, `ofertas`, `negociacoes`, `deducoes` e `publicas`). Antes de uma sessão real, teste as regras no emulador do Firebase; o jogo não deve depender de regras abertas em modo de teste.
+Para publicar, configure o Firebase no final de `MOSAICO-mesa.html`, habilite autenticação anônima e aplique regras compatíveis com as novas coleções (`jogadores`, `votos`, `votosCooperacao`, `tarefas`, `nucleos`, `ofertas`, `negociacoes`, `deducoes` e `publicas`). Antes de uma sessão real, teste as regras no emulador do Firebase; o jogo não deve depender de regras abertas em modo de teste.
 
 ## Autoria e titularidade
 

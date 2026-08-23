@@ -84,12 +84,12 @@ Dragon/
 
 | Módulo | Arquivo | Situação |
 |---|---|---|
-| Constelação Indoor | `MOSAICO-24.3-constelacao-indoor.html` | protótipo funcional opcional |
-| Inclinação-Fragmento | `MOSAICO-24.4-inclinacao-fragmento.html` | protótipo funcional opcional |
+| Constelação Indoor | `MOSAICO-24.3-constelacao-indoor.html` | rodada sensorial integrada |
+| Inclinação-Fragmento | `MOSAICO-24.4-inclinacao-fragmento.html` | rodada sensorial integrada |
 
 Os dois arquivos são autocontidos e independem do próprio nome para funcionar. Versões `v2`, Mapa do Escuro, Vidro Embaçado e Janela do Farol foram removidas da árvore atual. Permanecem recuperáveis pelo histórico Git.
 
-Os módulos ainda não possuem integração `?embed=1`/`postMessage` com a mesa. A integração futura deverá definir fase, destinatários, pista liberada, tempo máximo e alternativa para aparelhos sem sensores.
+Os módulos abrem incorporados por `?embed=1`, notificam a mesa por `postMessage`, registram a conclusão no Firestore e liberam um fragmento no Arquivo. Cada rodada avança quando todos concluem ou após 180 segundos. Se o sensor não responder, o prazo impede que a partida fique bloqueada; um modo alternativo interativo sem sensor ainda pode ser acrescentado futuramente.
 
 ---
 
@@ -141,11 +141,11 @@ O código atual entrega a primeira experiência jogável:
 
 No Firestore:
 
-`sala` → `encenacao` → `votacao` → `mosaico` → `cooperacao` → `mercado` → `deducao` → `resultado`
+`sala` → `encenacao` → `votacao` → `constelacao` → `inclinacao` → `mosaico` → `cooperacao` → `mercado` → `deducao` → `resultado`
 
 Telas locais:
 
-`inicio`, `entrar`, `esperando`, `encenacao`, `revelacao`, `votacao`, `mosaico`, `cooperacao`, `mercado`, `deducao`, `resultado`, `encerrada`, `painel`.
+`inicio`, `entrar`, `esperando`, `encenacao`, `revelacao`, `votacao`, `constelacao`, `inclinacao`, `mosaico`, `cooperacao`, `mercado`, `deducao`, `resultado`, `encerrada`, `painel`.
 
 O resultado final utiliza o placar V5 completo descrito nas seções seguintes; o voto de Performance permanece cego e integrado ao peso de 5%.
 
@@ -175,6 +175,8 @@ O topo da interface identifica sempre a rodada atual, em cor contrastante e tipo
 |---|---|
 | `sala` | Preparação da mesa |
 | `encenacao` e `votacao` | Apresentação |
+| `constelacao` | Constelação Indoor |
+| `inclinacao` | Inclinação–Fragmento |
 | `mosaico` e `cooperacao` | Jogador ajuda seu grupo |
 | `mercado` | Jogador contra jogador |
 | `deducao` | Jogador contra o caso |
@@ -558,7 +560,7 @@ Mesas de teste antigas no Firestore devem ser removidas periodicamente.
 2. regras seguras do Firestore e identidade própria do mestre;
 3. revelação narrativa completa do caso;
 4. ampliar o elenco para sessões acima de seis pessoas;
-5. integração opcional dos módulos sensoriais;
+5. modo interativo alternativo para aparelhos sem sensores;
 6. testes de integração com o Firestore e playtest presencial.
 
 ---

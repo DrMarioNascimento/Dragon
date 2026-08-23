@@ -8,7 +8,7 @@
     "versaoPontuacao": "5.0",
     "moedasIniciais": 9,
     "precos": { "baixo": 1, "justo": 3, "alto": 5 },
-    "limitesSegundos": { "performance": 60, "cooperacao": 60, "mercado": 480, "deducao": 300 },
+    "limitesSegundos": { "performance": 60, "constelacao": 180, "inclinacao": 180, "cooperacao": 60, "mercado": 480, "deducao": 300 },
     "pesos": { "tempo": 32, "qualidade": 13, "cooperacao": 30, "economia": 20, "performance": 5 }
   },
 
@@ -46,6 +46,19 @@
   "mosaico": {
     "instrucao": "Ordene os seis acontecimentos gerais do mais antigo para o mais recente.",
     "ordemCorreta": ["pub-2103", "pub-2107", "pub-2112", "pub-2114", "pub-2117", "pub-2120"]
+  },
+
+  "tarefas": {
+    "constelacao": {
+      "titulo": "Constelação Indoor",
+      "arquivo": "MOSAICO-24.3-constelacao-indoor.html?embed=1",
+      "pista": { "id": "tarefa-constelacao", "hora": "21:26", "txt": "Os pontos só formam um desenho quando observados na ordem certa. A marca recente na trava do cofre é o ponto fixo da sequência." }
+    },
+    "inclinacao": {
+      "titulo": "Inclinação–Fragmento",
+      "arquivo": "MOSAICO-24.4-inclinacao-fragmento.html?embed=1",
+      "pista": { "id": "tarefa-inclinacao", "hora": "21:28", "txt": "O pequeno objeto metálico não atravessou a sala: caiu próximo ao cofre e foi deslocado depois da queda." }
+    }
   },
 
   "arte": {
@@ -158,6 +171,8 @@
     "encenacao": null,
     "votacao": "21:23",
     "performance": "21:23",
+    "constelacao": "21:26",
+    "inclinacao": "21:28",
     "mosaico": "21:31",
     "cooperacao": "21:34",
     "mercado": "21:38",
@@ -173,6 +188,8 @@
     "encenacao": "A casa escolheu alguém",
     "votacao": "A energia da mesa",
     "performance": "A energia da mesa",
+    "constelacao": "A direção escondida",
+    "inclinacao": "O fragmento encontra seu eixo",
     "mosaico": "A verdade é um fragmento",
     "cooperacao": "O núcleo se recorda",
     "mercado": "Mercado Cego",

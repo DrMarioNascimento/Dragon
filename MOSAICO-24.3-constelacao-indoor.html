@@ -178,6 +178,7 @@
   }
   #overlay p{ color: var(--text-dim); font-size: 14px; max-width: 300px; line-height:1.5; }
   #overlay.hidden{ display:none; }
+  body.embed #controls,body.embed #target-info{display:none}
 </style>
 </head>
 <body>
@@ -256,6 +257,14 @@
   let rafPending = false;
   let latestReading = { heading: 0, pitch: 0 };
   let usingAbsolute = false;
+  const embedded = new URLSearchParams(location.search).get('embed') === '1';
+  if (embedded) document.body.classList.add('embed');
+
+  function notifyComplete(){
+    if (window.parent !== window){
+      window.parent.postMessage({ mosaico:'tarefa-concluida', tarefa:'constelacao' }, location.origin);
+    }
+  }
 
   function randomTarget(){
     const heading = Math.round(Math.random() * 360);
@@ -323,6 +332,7 @@
         locked = true;
         els.sky.classList.add('locked');
         els.status.textContent = 'Constelação revelada!';
+        notifyComplete();
       } else {
         els.status.textContent = 'Segura firme...';
       }

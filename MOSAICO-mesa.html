@@ -279,6 +279,8 @@
   .caso-fundo{position:fixed;inset:0;z-index:43;background:rgba(2,5,9,.96);
     padding:max(18px,env(safe-area-inset-top)) 16px max(82px,env(safe-area-inset-bottom));overflow-y:auto}
   .caso-card{max-width:600px;margin:auto}.caso-card .publica:last-child{margin-bottom:4px}
+  .tarefa-frame{width:100%;height:min(72vh,720px);border:1px solid var(--linha);border-radius:8px;
+    background:#05070c;display:block;margin:14px 0}
   .menu-mestre-fundo{position:fixed;inset:0;z-index:43;background:rgba(2,5,9,.94);
     padding:max(18px,env(safe-area-inset-top)) 16px max(82px,env(safe-area-inset-bottom));overflow-y:auto}
   .menu-mestre-card{max-width:600px;margin:auto}
@@ -882,7 +884,8 @@ var PUBLICAS=[
   { hora:"21:20", txt:"A névoa entrou pela fresta da porta como se tivesse sido convidada." }
 ];
 var HORA_FASE={ sala:"21:00", escuro:"21:00", cena:null, encenacao:null,
-                votacao:"21:23", resultado:"21:23", historia:"21:23" };
+                votacao:"21:23", constelacao:"21:26", inclinacao:"21:28",
+                resultado:"21:23", historia:"21:23" };
 /* Nenhum destes rotulos pode entregar o que vem. A surpresa e o jogo. */
 var CAP_FASE={
   sala:"A tempestade chegou antes dos convidados",
@@ -890,6 +893,8 @@ var CAP_FASE={
   cena:"A casa escolheu alguém",
   encenacao:"A casa escolheu alguém",
   votacao:"A linha da verdade",
+  constelacao:"A direção escondida",
+  inclinacao:"O fragmento encontra seu eixo",
   resultado:"A linha da verdade",
   historia:"A noite da tempestade"
 };
@@ -931,6 +936,11 @@ var CASO={
   capitulos:CAP_FASE,     /* o subtitulo de cada fase — sem spoiler */
   historia:HISTORIA       /* a abertura, so no fim */
 };
+CASO.configuracao={limitesSegundos:{performance:60,constelacao:180,inclinacao:180,cooperacao:60,mercado:480,deducao:300}};
+CASO.tarefas={
+  constelacao:{titulo:"Constelação Indoor",arquivo:"MOSAICO-24.3-constelacao-indoor.html?embed=1",pista:{id:"tarefa-constelacao",hora:"21:26",txt:"Os pontos só formam um desenho quando observados na ordem certa. A marca recente na trava do cofre é o ponto fixo da sequência."}},
+  inclinacao:{titulo:"Inclinação–Fragmento",arquivo:"MOSAICO-24.4-inclinacao-fragmento.html?embed=1",pista:{id:"tarefa-inclinacao",hora:"21:28",txt:"O pequeno objeto metálico não atravessou a sala: caiu próximo ao cofre e foi deslocado depois da queda."}}
+};
 
 function aplicarCaso(c){
   if(!c) return;
@@ -953,7 +963,7 @@ var STATE = {
   doc:null,         /* documento da mesa em tempo real */
   votos:[],
   publicas:[],
-  v5:{ performance:[], cooperacao:[], nucleos:[], ofertas:[], negociacoes:[], deducoes:[] },
+  v5:{ performance:[], cooperacao:[], nucleos:[], ofertas:[], negociacoes:[], deducoes:[], tarefas:[] },
   qrAberto:false,
   senhaAberta:false,
   revelando:false,
@@ -970,7 +980,7 @@ var _unsubJog=null, _unsubMesa=null, _unsubVotos=null, _unsubPub=null, _unsubV5=
 var _autoFasePendente=null, _autoTimer=null, _autoTimerChave="";
 function assinarV5(FB,codigo){
   _unsubV5.forEach(function(f){try{f();}catch(e){}}); _unsubV5=[];
-  [['votosCooperacao','cooperacao'],['nucleos','nucleos'],['ofertas','ofertas'],['negociacoes','negociacoes'],['deducoes','deducoes']].forEach(function(par){
+  [['votosCooperacao','cooperacao'],['nucleos','nucleos'],['ofertas','ofertas'],['negociacoes','negociacoes'],['deducoes','deducoes'],['tarefas','tarefas']].forEach(function(par){
     _unsubV5.push(FB.ouvirColecao(codigo,par[0],function(lista){STATE.v5[par[1]]=lista;render();}));
   });
 }
@@ -1039,6 +1049,8 @@ function nomeRodada(fase){
     sala:"Preparação da mesa",
     encenacao:"Apresentação",
     votacao:"Apresentação",
+    constelacao:"Constelação Indoor",
+    inclinacao:"Inclinação–Fragmento",
     mosaico:"Jogador ajuda seu grupo",
     cooperacao:"Jogador ajuda seu grupo",
     mercado:"Jogador contra jogador",
@@ -1061,7 +1073,9 @@ function controlesMestreMovel(){
     var todos=js.length>=2&&contaProntos()===js.length;
     botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();iniciarEncenacao()" '+(todos?'':'disabled')+'>Come&ccedil;ar</button>';
   }else if(fase==="encenacao") botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();pularVez()">Pular a apresenta&ccedil;&atilde;o atual</button>';
-  else if(fase==="votacao") autoInfo='<div class="card"><b>Forma&ccedil;&atilde;o autom&aacute;tica</b><p class="muted">'+STATE.votos.length+' de '+js.length+' votos recebidos. Os n&uacute;cleos ser&atilde;o formados automaticamente.</p></div>';
+  else if(fase==="votacao") autoInfo='<div class="card"><b>Avan&ccedil;o autom&aacute;tico</b><p class="muted">'+STATE.votos.length+' de '+js.length+' votos recebidos. A pr&oacute;xima rodada abrir&aacute; automaticamente.</p></div>';
+  else if(fase==="constelacao") autoInfo='<div class="card"><b>Constela&ccedil;&atilde;o Indoor</b><p class="muted">'+STATE.v5.tarefas.filter(function(t){return t.tarefa==='constelacao';}).length+' de '+js.length+' conclus&otilde;es. A rodada avan&ccedil;ar&aacute; automaticamente.</p></div>';
+  else if(fase==="inclinacao") autoInfo='<div class="card"><b>Inclina&ccedil;&atilde;o–Fragmento</b><p class="muted">'+STATE.v5.tarefas.filter(function(t){return t.tarefa==='inclinacao';}).length+' de '+js.length+' conclus&otilde;es. A rodada avan&ccedil;ar&aacute; automaticamente.</p></div>';
   else if(fase==="mosaico") botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();abrirVotoCooperacao()">Abrir voto interno</button>';
   else if(fase==="cooperacao") botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();abrirMercado()">Abrir mercado</button>';
   else if(fase==="mercado") botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();abrirDeducao()">Abrir dedu&ccedil;&atilde;o</button>';
@@ -1079,7 +1093,9 @@ function controlesMestreMovel(){
 }
 function dadosAutomacao(){
   var fase=(STATE.doc&&STATE.doc.fase)||"", cfg=(CASO.configuracao&&CASO.configuracao.limitesSegundos)||{};
-  if(fase==="votacao") return {fase:fase,recebidos:STATE.votos.length,total:STATE.jogadores.length,inicio:STATE.doc.votacaoAbertaMs||0,limite:(cfg.performance||60)*1000,acao:prepararMosaico};
+  if(fase==="votacao") return {fase:fase,recebidos:STATE.votos.length,total:STATE.jogadores.length,inicio:STATE.doc.votacaoAbertaMs||0,limite:(cfg.performance||60)*1000,acao:abrirConstelacao};
+  if(fase==="constelacao") return {fase:fase,recebidos:STATE.v5.tarefas.filter(function(t){return t.tarefa==='constelacao';}).length,total:STATE.jogadores.length,inicio:STATE.doc.constelacaoAbertaMs||0,limite:(cfg.constelacao||180)*1000,acao:abrirInclinacao};
+  if(fase==="inclinacao") return {fase:fase,recebidos:STATE.v5.tarefas.filter(function(t){return t.tarefa==='inclinacao';}).length,total:STATE.jogadores.length,inicio:STATE.doc.inclinacaoAbertaMs||0,limite:(cfg.inclinacao||180)*1000,acao:prepararMosaico};
   if(fase==="deducao") return {fase:fase,recebidos:STATE.v5.deducoes.length,total:STATE.jogadores.length,inicio:STATE.doc.deducaoAbertaMs||0,limite:(cfg.deducao||300)*1000,acao:finalizarPartida};
   return null;
 }
@@ -1111,6 +1127,8 @@ function orientacaoCaso(fase){
   if(fase==="sala") return souPronto()?"Você está pronto. Aguarde o início da partida.":"Confirme que está pronto para participar.";
   if(fase==="encenacao") return atual&&STATE.eu&&atual.id===STATE.eu.id?"Leia sua instrução no celular, proteja a tela e faça sua apresentação.":"Proteja sua tela, observe o ambiente e escute os sons.";
   if(fase==="votacao") return "Registre seu voto de Performance. Você não pode votar em si.";
+  if(fase==="constelacao") return "Ative os sensores e encontre a constelação escondida.";
+  if(fase==="inclinacao") return "Ative o sensor e alinhe o fragmento ao eixo indicado.";
   if(fase==="mosaico") return "Converse com seu núcleo e reconstrua a ordem dos acontecimentos.";
   if(fase==="cooperacao") return "Registre em segredo quem mais colaborou com o seu núcleo.";
   if(fase==="mercado") return "Avalie as ofertas. Comprar, vender ou recusar são decisões possíveis.";
@@ -1167,6 +1185,8 @@ function render(){
     case "revelacao":   h=telaRevelacao(); break;
     case "encerrada":   h=telaEncerrada(); break;
     case "votacao":     h=telaVotacao(); break;
+    case "constelacao": h=telaTarefaSensor("constelacao"); break;
+    case "inclinacao":  h=telaTarefaSensor("inclinacao"); break;
     case "mosaico":     h=telaMosaico(); break;
     case "cooperacao":  h=telaCooperacao(); break;
     case "mercado":     h=telaMercado(); break;
@@ -1325,7 +1345,10 @@ function telaPainel(){
   } else if(fase==="votacao"){
     acao='<div class="card"><span class="eyebrow">Vota&ccedil;&atilde;o aberta</span>'+
          '<p class="muted">'+STATE.votos.length+' de '+js.length+' j&aacute; votaram. '+
-         'Ningu&eacute;m pode votar em si. Os n&uacute;cleos ser&atilde;o formados automaticamente.</p></div>';
+         'Ningu&eacute;m pode votar em si. A pr&oacute;xima rodada abrir&aacute; automaticamente.</p></div>';
+  } else if(fase==="constelacao"||fase==="inclinacao"){
+    var tipoTarefa=fase, feitos=STATE.v5.tarefas.filter(function(t){return t.tarefa===tipoTarefa;}).length;
+    acao='<div class="card"><span class="eyebrow">Rodada sensorial</span><p class="lead">'+esc(nomeRodada(fase))+'</p><p class="muted">'+feitos+' de '+js.length+' jogadores conclu&iacute;ram. O avan&ccedil;o ser&aacute; autom&aacute;tico.</p></div>';
   } else if(fase==="mosaico"){
     acao='<div class="card"><span class="eyebrow">Mosaico coletivo</span><p class="muted">'+STATE.v5.nucleos.filter(function(n){return n.concluidoEm||n.concluidoMs;}).length+' n&uacute;cleo(s) conclu&iacute;do(s).</p></div><button class="btn btn-ambar" onclick="abrirVotoCooperacao()">Encerrar mosaico e abrir voto interno</button>';
   } else if(fase==="cooperacao"){
@@ -1542,6 +1565,13 @@ function telaResultado(){
     '<h2>A verdade foi reconstru&iacute;da.</h2>'+
     '<div class="grade" style="margin-top:22px">'+grade+'</div>'+
     '<p class="muted" style="text-align:center">Tempo 32% &middot; Qualidade 13% &middot; Coopera&ccedil;&atilde;o 30% &middot; Economia 20% &middot; Performance 5%</p>';
+}
+
+function telaTarefaSensor(tipo){
+  var cfg=(CASO.tarefas&&CASO.tarefas[tipo])||{};
+  var concluida=(STATE.v5.tarefas||[]).some(function(t){return t.id===((STATE.eu&&STATE.eu.id)+'_'+tipo);});
+  if(concluida) return '<span class="eyebrow">'+esc(cfg.titulo||tipo)+'</span><h2>Fragmento encontrado.</h2><p class="lead">A pista foi adicionada ao seu Arquivo. Aguarde a pr&oacute;xima rodada.</p>';
+  return '<span class="eyebrow">Rodada sensorial</span><h2>'+esc(cfg.titulo||tipo)+'</h2><p class="lead">Mantenha a tela voltada para voc&ecirc; e conclua a tarefa no quadro abaixo.</p><iframe class="tarefa-frame" src="'+esc(cfg.arquivo||'')+'" allow="accelerometer; gyroscope; magnetometer" title="'+esc(cfg.titulo||tipo)+'"></iframe><p class="muted" style="text-align:center">Se o sensor n&atilde;o responder, aguarde o fim do prazo. A partida continuar&aacute; automaticamente.</p>';
 }
 
 function meuJogador(){
@@ -1845,6 +1875,8 @@ function sincronizarJogador(){
   var nova = fase==="sala"      ? "esperando"
            : fase==="encenacao" ? "encenacao"
            : fase==="votacao"   ? "votacao"
+           : fase==="constelacao"? "constelacao"
+           : fase==="inclinacao" ? "inclinacao"
            : fase==="mosaico"   ? "mosaico"
            : fase==="cooperacao"? "cooperacao"
            : fase==="mercado"   ? "mercado"
@@ -1979,8 +2011,34 @@ async function votar(paraId){
 }
 
 async function fecharVotacao(){
-  await prepararMosaico();
+  await abrirConstelacao();
 }
+
+async function abrirConstelacao(){
+  var FB=await esperarFB();
+  await FB.atualizarMesa(STATE.mesa.codigo,{fase:'constelacao',constelacaoAbertaMs:Date.now()});
+}
+async function abrirInclinacao(){
+  var FB=await esperarFB();
+  await FB.atualizarMesa(STATE.mesa.codigo,{fase:'inclinacao',inclinacaoAbertaMs:Date.now()});
+}
+async function concluirTarefaSensor(tipo){
+  if(!STATE.eu||!STATE.doc||STATE.doc.fase!==tipo) return;
+  var id=STATE.eu.id+'_'+tipo;
+  if((STATE.v5.tarefas||[]).some(function(t){return t.id===id;})) return;
+  var FB=await esperarFB(), cfg=CASO.tarefas&&CASO.tarefas[tipo], pista=cfg&&cfg.pista;
+  if(pista){
+    var atuais=minhasPistas(), repetida=atuais.some(function(p){return p.id===pista.id;});
+    if(!repetida) await FB.atualizarJogador(STATE.eu.codigo,STATE.eu.id,{pistas:atuais.concat([{id:pista.id,hora:pista.hora,txt:pista.txt,adquirida:false,origem:'tarefa'}])});
+  }
+  /* O registro que pode disparar o avanço vem por último: assim o
+     fragmento já está no Arquivo quando a rodada termina. */
+  await FB.gravarServidor(STATE.eu.codigo,'tarefas',id,{tarefa:tipo,jogadorId:STATE.eu.id},'concluidoEm');
+}
+window.addEventListener('message',function(event){
+  if(event.origin!==location.origin||!event.data||event.data.mosaico!=='tarefa-concluida') return;
+  if(event.data.tarefa==='constelacao'||event.data.tarefa==='inclinacao') concluirTarefaSensor(event.data.tarefa).catch(function(e){console.error('concluir tarefa',e);});
+});
 
 async function prepararMosaico(){
   var FB=await esperarFB(), distribuicao=MosaicoV5.distribuirNucleos(STATE.jogadores);
