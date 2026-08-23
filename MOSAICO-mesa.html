@@ -21,19 +21,22 @@
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
   html,body{
-    min-height:100%;background:var(--breu);color:var(--texto);
+    min-height:100%;color:var(--texto);
     font-family:var(--sans);overscroll-behavior-y:none;
   }
-  body{
-    background:radial-gradient(ellipse 130% 70% at 50% 0%,#0b1119 0%,#05070c 60%);
-    background-attachment:fixed;
+  /* O fundo mora no html. Se o body tambem pintasse, ele cobriria o
+     #arte (que fica em camada de fundo) e a arte nunca apareceria. */
+  html{
+    background:radial-gradient(ellipse 130% 70% at 50% 0%,#0b1119 0%,#05070c 60%) fixed,
+               var(--breu);
   }
+  body{background:transparent}
 
   /* ---------- arte-chave ----------
      capa-vertical.jpg  -> abertura no celular (o poster ja traz o nome)
      fundo-painel.jpg   -> atmosfera do painel projetado (versao sem texto) */
   #arte{
-    position:fixed;inset:0;z-index:-2;
+    position:fixed;inset:0;z-index:0;
     background-position:center;background-size:cover;background-repeat:no-repeat;
     opacity:0;transition:opacity 1.4s ease;
   }
@@ -59,24 +62,36 @@
   @media (max-aspect-ratio: 1/1){
     #video-abertura{display:none}
   }
+  /* veu leve so para dar unidade; quem garante a leitura e o
+     degrade do proprio #app.capa, que fica por cima da arte */
   body.t-inicio #arte::after{
     background:linear-gradient(180deg,
-      rgba(5,7,12,.10) 0%, rgba(5,7,12,.16) 34%,
-      rgba(5,7,12,.80) 62%, rgba(5,7,12,.97) 82%, #05070c 100%);
+      rgba(5,7,12,.04) 0%, rgba(5,7,12,.10) 40%, rgba(5,7,12,.22) 100%);
   }
   body.t-painel #arte{
     background-image:url("img/fundo-painel.jpg");
-    opacity:.42;
+    opacity:.92;
   }
+  /* escurece so onde ha leitura: faixa do relogio em cima, rodape embaixo.
+     O meio fica limpo para a casa e o penhasco aparecerem. */
   body.t-painel #arte::after{
-    background:radial-gradient(ellipse 120% 90% at 50% 40%,
-      rgba(5,7,12,.55) 0%, rgba(5,7,12,.86) 70%, #05070c 100%);
+    background:linear-gradient(180deg,
+      rgba(5,7,12,.86) 0%,
+      rgba(5,7,12,.62) 16%,
+      rgba(5,7,12,.34) 42%,
+      rgba(5,7,12,.50) 72%,
+      rgba(5,7,12,.88) 100%);
   }
 
   /* abertura: o poster manda, o texto ancora embaixo */
   #app.capa{
     min-height:100vh;display:flex;flex-direction:column;justify-content:flex-end;
     padding-bottom:max(34px,env(safe-area-inset-bottom));
+    /* a mancha de leitura: o topo fica limpo para o nome e a tempestade,
+       e a base fica solida o bastante para o texto nao brigar com o raio */
+    background:linear-gradient(180deg,
+      transparent 0%, rgba(5,7,12,.18) 20%, rgba(5,7,12,.72) 36%,
+      rgba(5,7,12,.93) 50%, #05070c 66%);
   }
   #app.capa h1{
     font-size:clamp(15px,4vw,19px);letter-spacing:.4em;text-transform:uppercase;
@@ -88,15 +103,39 @@
   }
   #app.capa .eyebrow{display:none}
   #app{
+    position:relative;z-index:1;
     max-width:640px;margin:0 auto;min-height:100vh;
     padding:max(24px,env(safe-area-inset-top)) 20px max(30px,env(safe-area-inset-bottom));
   }
   /* o painel e projetado: precisa de largura e de leitura a distancia */
   #app.largo{max-width:1180px;padding-left:28px;padding-right:28px}
   .painel-cols{display:grid;grid-template-columns:1fr;gap:24px;align-items:start}
-  @media(min-width:900px){
+  /* Telao deitado: duas colunas lado a lado. */
+  @media(min-width:900px) and (min-aspect-ratio: 1/1){
     .painel-cols{grid-template-columns:1.25fr .75fr;gap:34px}
     #app.largo .grade{grid-template-columns:repeat(auto-fill,minmax(170px,1fr))}
+  }
+  /* Telao em pe: uma coluna so, e tudo cresce — quem le esta longe. */
+  @media(min-width:820px) and (max-aspect-ratio: 1/1){
+    #app.largo{max-width:100%;padding-left:5vw;padding-right:5vw;
+               display:flex;flex-direction:column}
+    /* espalha o conteudo pela altura em vez de amontoar no topo */
+    .painel-cols{grid-template-columns:1fr;gap:5vh;flex:1;align-content:space-between}
+    #app.largo .grade{grid-template-columns:repeat(auto-fit,minmax(15vw,1fr));gap:1.6vw}
+    #app.largo .relogio .hh{font-size:11vw}
+    #app.largo .relogio .cap{font-size:1.7vw;letter-spacing:.3em}
+    #app.largo .eyebrow{font-size:1.7vw}
+    #app.largo .jog .av{font-size:5vw}
+    #app.largo .jog .nm{font-size:2.2vw}
+    #app.largo .jog .pers{font-size:2.4vw}
+    #app.largo .jog .est{font-size:1.3vw}
+    #app.largo .publica .ph{font-size:1.7vw}
+    #app.largo .publica .pt{font-size:3.4vw;line-height:1.3}
+    #app.largo .publica .pq{font-size:1.9vw}
+    #app.largo .publicas-vazio,#app.largo .vazio{font-size:2.6vw}
+    #app.largo .barra .conta{font-size:2vw}
+    #app.largo .btn{font-size:1.8vw;padding:2.4vh 3vw}
+    #app.largo .muted{font-size:1.8vw}
   }
 
   /* ---------- relogio da casa ---------- */
@@ -111,6 +150,15 @@
   .relogio .cap{
     font-size:clamp(11px,3vw,14px);letter-spacing:.34em;text-transform:uppercase;
     color:var(--dim);margin-top:10px;
+  }
+
+  /* com a arte visivel, o texto do painel precisa se descolar dela */
+  body.t-painel .relogio .hh, body.t-painel .relogio .cap,
+  body.t-painel .eyebrow, body.t-painel .vazio,
+  body.t-painel .publicas-vazio, body.t-painel .publica .pt,
+  body.t-painel .publica .ph, body.t-painel .publica .pq,
+  body.t-painel .barra .conta, body.t-painel .muted{
+    text-shadow:0 2px 16px rgba(5,7,12,.95), 0 0 44px rgba(5,7,12,.8);
   }
 
   /* ---------- pistas gerais (feed do painel) ---------- */
