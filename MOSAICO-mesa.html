@@ -2777,7 +2777,7 @@ async function concluirTarefaSensor(tipo){
   await FB.gravarServidor(STATE.eu.codigo,'tarefas',id,{tarefa:tipo,jogadorId:STATE.eu.id,status:'concluida',statusEmMs:Date.now()},'concluidoEm');
 }
 async function registrarStatusSensor(tipo,status){
-  if(!STATE.eu||!STATE.doc||STATE.doc.fase!==tipo) return;
+  if(!STATE.eu||!STATE.doc||STATE.doc.pausada||STATE.doc.fase!==tipo) return;
   if(['ativo','sem-resposta','negado','indisponivel'].indexOf(status)<0) return;
   var id=STATE.eu.id+'_'+tipo, existente=(STATE.v5.tarefas||[]).find(function(t){return t.id===id;});
   if(tarefaConcluida(existente)) return;
