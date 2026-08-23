@@ -1977,7 +1977,7 @@ function abrirAberturaParticipante(aoConcluir){
   try{vertical=window.matchMedia("(orientation: portrait)").matches;}catch(e){
     vertical=window.innerHeight>window.innerWidth;
   }
-  video.src=vertical?"img/abertura-vertical.mp4?v=3":"img/abertura.mp4";
+  video.src=vertical?"img/abertura-vertical.mp4?v=4":"img/abertura.mp4";
   video.load();
   video.onended=concluir;
   video.onerror=erroAoTocar;
