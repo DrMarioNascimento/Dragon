@@ -1115,7 +1115,7 @@
       <span class="eyebrow">Antes de entrar</span>
       <h2>A casa abriu para voc&ecirc;</h2>
       <p class="lead">Ative o som e assista &agrave; abertura.</p>
-      <button id="btn-assistir-participante" class="btn btn-ambar">Assistir &agrave; abertura</button>
+      <button id="btn-assistir-participante" class="btn btn-ambar" disabled>Carregando v&iacute;deo&hellip;</button>
     </div>
     <button id="btn-pular-participante" class="btn">Pular abertura</button>
   </div>
@@ -1925,11 +1925,12 @@ function abrirAberturaParticipante(aoConcluir){
   var pular=document.getElementById("btn-pular-participante");
   if(!caixa||!video){ if(aoConcluir)aoConcluir(); return; }
 
-  var terminou=false;
+  var terminou=false, urlTemporaria="";
   function concluir(){
     if(terminou) return;
     terminou=true;
     video.pause();
+    if(urlTemporaria){try{URL.revokeObjectURL(urlTemporaria);}catch(e){} urlTemporaria="";}
     video.onended=video.onerror=null;
     caixa.classList.remove("tocando");
     caixa.classList.add("hidden");
@@ -1977,14 +1978,37 @@ function abrirAberturaParticipante(aoConcluir){
   try{vertical=window.matchMedia("(orientation: portrait)").matches;}catch(e){
     vertical=window.innerHeight>window.innerWidth;
   }
-  video.src=vertical?"img/abertura-vertical.mp4?v=4":"img/abertura.mp4";
-  video.load();
   video.onended=concluir;
-  video.onerror=erroAoTocar;
   assistir.onclick=tocar;
   pular.onclick=concluir;
+  assistir.disabled=true;
+  assistir.textContent="Carregando vídeo…";
   caixa.classList.remove("tocando","hidden");
   caixa.setAttribute("aria-hidden","false");
+
+  var arquivo=vertical?"img/abertura-vertical.mp4?v=5":"img/abertura.mp4";
+  function carregarDireto(){
+    video.onerror=erroAoTocar;
+    video.src=arquivo;
+    video.load();
+    prontoParaTentar();
+  }
+  if(vertical&&window.fetch&&window.URL&&URL.createObjectURL){
+    /* No iPhone, baixar o MP4 curto por inteiro antes do toque evita
+       falhas de streaming/range do Safari. O play continua no gesto. */
+    fetch(arquivo,{cache:"no-store"})
+      .then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return r.blob();})
+      .then(function(blob){
+        if(terminou)return;
+        if(!blob||blob.size<100000)throw new Error("Vídeo incompleto");
+        urlTemporaria=URL.createObjectURL(blob);
+        video.onerror=erroAoTocar;
+        video.src=urlTemporaria;
+        video.load();
+        prontoParaTentar();
+      })
+      .catch(function(){if(!terminou)carregarDireto();});
+  }else carregarDireto();
 }
 
 function fecharOrientacaoParticipante(){
