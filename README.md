@@ -65,7 +65,9 @@ Durante a Encenação, somente o participante ativo recebe as instruções. Os d
 - **Faça:** apresenta as ações físicas;
 - **Fale:** fornece texto suficiente para uma pequena atuação, sem substituir a cena por silêncio.
 
-Na formação dos grupos, nomes não são necessários. Cada participante recebe um **Fragmento da Névoa, Tempestade, Farol ou Noite** e procura pessoas com a mesma cor de tela. O botão **OK, ENCONTREI MEU FRAGMENTO!** alimenta o contador; no ritmo automático, a tarefa abre quando todos confirmam.
+Na formação dos grupos, nomes não são necessários. Cada participante recebe um **Fragmento da Névoa, Tempestade, Farol ou Noite** e procura pessoas com a mesma cor de tela. O cronômetro dourado começa junto da formação; o botão **OK, ENCONTREI MEU FRAGMENTO!** é liberado após cinco segundos e alimenta o contador. No ritmo automático, a reconstrução abre quando todos confirmam.
+
+Cada Fragmento recebe as seis peças da cronologia distribuídas entre os Arquivos de seus integrantes e, por sorteio, um **Portador**. Ninguém recebe sozinho o conjunto. Os demais integrantes veem horários e dicas, consultam os próprios Arquivos e conversam presencialmente; somente o Portador recebe a peça dourada pulsante, seleciona as pistas e envia a resposta coletiva. Durante essa fase, Caso e Mural não repetem a cronologia. Pistas já utilizadas desaparecem das escolhas vazias. Ao revisar uma associação, todas reaparecem com o horário ocupado e podem ser trocadas entre si. O rascunho é sincronizado no Firestore e sobrevive à reconexão.
 
 ## Pontuação V5 — máximo de 100
 
