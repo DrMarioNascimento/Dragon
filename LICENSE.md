@@ -1,64 +1,122 @@
-# Dragon — Licença Proprietária — Todos os Direitos Reservados
+# MOSAICO / Dragon — Licença Proprietária — Todos os Direitos Reservados
 
-Copyright © 2026 Mário César Nascimento. Todos os direitos reservados.
+Copyright © 2026 Mário César Nascimento e Osana Melo Nascimento. Todos os direitos reservados.
 
-## 1. Titularidade
+## 1. Obra protegida
 
-O projeto **Dragon**, incluindo o **MOSAICO** e seus protótipos, atividades, jogos, casos, narrativas, códigos-fonte, estruturas de dados, interfaces, elementos visuais, textos, mecânicas, documentação, organização didática e demais componentes originais, é de titularidade de **Mário César Nascimento**, ressalvados eventuais componentes de terceiros, que permanecem sujeitos às respectivas licenças.
+Esta licença abrange o projeto **MOSAICO — A Verdade é um Fragmento**, seu repositório de desenvolvimento **Dragon** e todos os seus componentes originais, incluindo, sem limitação:
 
-## 2. Natureza proprietária e visibilidade pública
+- código-fonte, scripts, estruturas de dados e regras de segurança;
+- conceitos, mecânicas, sistemas de pontuação e organização das rodadas;
+- casos, soluções, personagens, pistas, falas, roteiros e textos narrativos;
+- interfaces, fluxos, layouts, identidade visual e experiência audiovisual;
+- imagens, vídeos, sons, animações, ícones e demais recursos gráficos;
+- documentos técnicos, simulações, tabelas, análises, registros de playtest e arquivos de continuidade;
+- versões implementadas, experimentais, adaptadas, em construção, históricas ou não publicadas.
 
-Este projeto é proprietário. O repositório pode ser disponibilizado publicamente para consulta, demonstração ou transparência de desenvolvimento, sem que essa visibilidade transforme a obra em software livre ou conceda licença de uso.
+Componentes de terceiros permanecem sujeitos às respectivas licenças e aos direitos de seus próprios titulares.
 
-O acesso ao repositório, a um arquivo, a uma demonstração ou a uma cópia de trabalho não constitui cessão, transferência, renúncia, licença implícita ou autorização de uso além do estritamente necessário à finalidade expressamente indicada pelo titular.
+## 2. Titularidade e autoria
 
-## 3. Permissão limitada a colaboradores autorizados
+O MOSAICO é uma criação autoral de **Mário César Nascimento e Osana Melo Nascimento**. A manutenção técnica e a publicação pelo perfil `DrMarioNascimento` não alteram a autoria nem transferem direitos a terceiros.
 
-Pessoas autorizadas pelo titular podem acessar, executar e modificar os materiais somente:
+Nenhuma contribuição, teste, comentário, acesso ou colaboração presume coautoria, participação patrimonial ou cessão de direitos, salvo instrumento escrito firmado pelos titulares.
 
-- dentro do escopo da colaboração expressamente autorizada;
-- para desenvolvimento, revisão, teste ou avaliação do próprio projeto;
-- mantendo confidenciais os arquivos, conceitos, mecânicas, narrativas e informações internas;
-- preservando todos os avisos de autoria, titularidade e restrição de uso.
+## 3. Repositório público não significa licença aberta
 
-A autorização é pessoal, limitada, revogável, intransferível e não sublicenciável.
+O repositório pode permanecer publicamente visível para viabilizar demonstração, GitHub Pages, auditoria autorizada e transparência do desenvolvimento. Essa visibilidade:
 
-## 4. Usos proibidos sem autorização escrita
+- não transforma a obra em software livre ou de código aberto;
+- não concede licença implícita de cópia, adaptação, distribuição ou exploração;
+- não representa cessão, transferência, renúncia ou abandono de direitos;
+- não autoriza a extração de casos, soluções, mídias, documentação ou conjuntos de dados.
 
-Sem autorização prévia, expressa e escrita do titular, é proibido:
+Todos os direitos não concedidos expressamente nesta licença permanecem reservados.
 
-- copiar, baixar, extrair ou armazenar materiais além do necessário à colaboração autorizada;
-- reproduzir, modificar, adaptar, traduzir ou criar obras derivadas;
-- redistribuir, publicar, transmitir, compartilhar, hospedar ou disponibilizar o projeto ou suas partes;
-- incorporar códigos, interfaces, elementos visuais, narrativas, casos, mecânicas ou estruturas do projeto em outra obra ou produto;
-- divulgar documentação interna, capturas, vídeos, links de acesso ou informações técnicas;
-- remover, ocultar ou alterar avisos de autoria, créditos ou medidas de controle de acesso;
-- vender, sublicenciar, ceder, licenciar ou explorar economicamente o projeto;
-- usar o projeto ou suas partes para treinamento, ajuste, avaliação ou composição de conjuntos de dados destinados a sistemas de inteligência artificial;
-- realizar engenharia reversa quando não autorizada pela legislação aplicável;
-- apresentar o projeto, integral ou parcialmente, como criação de outra pessoa, grupo ou instituição.
+## 4. Permissão para jogar e avaliar
 
-## 5. Materiais de terceiros
+É concedida ao público uma autorização limitada, pessoal, revogável, intransferível e não exclusiva para:
 
-Bibliotecas, fontes, imagens, sons ou outros componentes de terceiros eventualmente incorporados ao projeto continuam regidos por suas licenças e termos próprios. Esta licença não amplia nem restringe direitos pertencentes a terceiros.
+- acessar a implantação oficial mantida pelos titulares;
+- participar de partidas sem cobrança organizada por eles ou por pessoa expressamente autorizada;
+- visualizar a interface e fornecer comentários privados sobre funcionamento e experiência.
 
-## 6. Ausência de garantia
+Essa permissão não inclui copiar o repositório, publicar o caso ou a solução, remover avisos de autoria, capturar ou redistribuir conteúdo substancial, hospedar uma cópia, promover sessão pública ou comercial, nem utilizar os materiais em disciplina, pesquisa, evento, produto ou serviço sem autorização escrita.
 
-Os materiais são fornecidos no estado em que se encontram, para desenvolvimento e avaliação. O titular não oferece garantias expressas ou implícitas de funcionamento, disponibilidade, adequação a uma finalidade específica ou ausência de erros.
+## 5. Colaboradores e testadores autorizados
 
-## 7. Encerramento da autorização
+Pessoas autorizadas pelos titulares podem acessar, executar e modificar os materiais somente:
 
-Quando solicitado pelo titular ou encerrada a colaboração, a pessoa autorizada deverá cessar o uso e eliminar as cópias do projeto que estejam sob seu controle, ressalvadas obrigações legais de conservação.
+- dentro do escopo e do prazo da colaboração expressamente definidos;
+- para desenvolvimento, revisão, teste ou avaliação do próprio MOSAICO;
+- preservando avisos de autoria, histórico técnico e decisões ainda em construção;
+- mantendo confidenciais casos, soluções, arquivos internos e informações não destinadas ao público;
+- evitando apagar ideias, análises ou versões sem consolidação expressa dos titulares.
 
-## 8. Autorizações adicionais
+A autorização é pessoal, limitada, revogável, intransferível e não sublicenciável. O acesso técnico a uma cópia não amplia o escopo autorizado.
 
-Qualquer uso não expressamente autorizado neste documento depende de autorização individual, prévia e escrita do titular. Uma autorização concedida para determinada finalidade não se estende automaticamente a outros usos.
+## 6. Usos proibidos sem autorização prévia e escrita
 
-## 9. Identificação
+É proibido, integral ou parcialmente:
 
-**Autor e titular:** Mário César Nascimento, PhD  
-**Projeto:** Dragon  
-**País:** Brasil  
+- copiar, clonar, baixar em massa, extrair ou armazenar os materiais para finalidade não autorizada;
+- reproduzir, modificar, adaptar, traduzir, portar ou criar obras derivadas;
+- redistribuir, publicar, transmitir, espelhar, compartilhar, hospedar ou disponibilizar arquivos ou links internos;
+- incorporar código, interfaces, identidade visual, narrativas, casos, pistas, mecânicas, tabelas ou documentação em outra obra;
+- revelar soluções, pistas privadas ou conteúdo suficiente para prejudicar a experiência do jogo;
+- vender, alugar, sublicenciar, ceder, licenciar, monetizar ou explorar economicamente o projeto;
+- organizar demonstração pública, atividade didática, pesquisa, evento ou coleta de dados com o projeto sem autorização;
+- remover, ocultar ou alterar créditos, avisos de direitos ou medidas de controle de acesso;
+- apresentar o projeto ou suas ideias como criação de outra pessoa, grupo ou instituição;
+- realizar engenharia reversa fora das hipóteses obrigatoriamente permitidas pela legislação aplicável;
+- usar os materiais para treinamento, ajuste, teste, avaliação, indexação semântica ou composição de conjuntos de dados destinados a sistemas de inteligência artificial, inclusive modelos generativos.
+
+## 7. Casos, sigilo e experiência dos jogadores
+
+Os casos, soluções, cronologias, personagens, falas e pistas são obras narrativas protegidas. A possibilidade técnica de inspecionar arquivos entregues ao navegador não constitui autorização para acessar, divulgar ou explorar antecipadamente essas informações.
+
+Participantes e testadores devem evitar condutas que prejudiquem a experiência de outras pessoas, inclusive publicar spoilers, respostas finais, arquivos privados ou instruções de contorno das regras do jogo.
+
+## 8. Marcas, nomes e créditos
+
+Esta licença não concede direito de utilizar os nomes **MOSAICO**, **A Verdade é um Fragmento**, **Dragon**, os nomes dos autores, logotipos, identidade visual ou créditos para indicar patrocínio, parceria, aprovação ou origem de outro produto.
+
+Os avisos de autoria devem ser preservados em qualquer uso excepcionalmente autorizado.
+
+## 9. Materiais de terceiros
+
+Bibliotecas, fontes, serviços, imagens, sons ou outros componentes de terceiros permanecem regidos por suas próprias licenças e termos. Esta licença não concede direitos pertencentes a terceiros nem modifica obrigações impostas por eles.
+
+## 10. Ausência de garantia
+
+O projeto está em desenvolvimento e é fornecido no estado em que se encontra. Não há garantia expressa ou implícita de disponibilidade, funcionamento contínuo, compatibilidade com todos os aparelhos, adequação a finalidade específica, segurança absoluta, ausência de erros ou preservação de dados de partidas.
+
+O uso autorizado ocorre por conta e risco do participante ou colaborador, observadas as normas legais que não possam ser afastadas.
+
+## 11. Suspensão e encerramento da autorização
+
+O descumprimento desta licença encerra automaticamente qualquer autorização concedida. Os titulares também podem suspender uma autorização revogável ou uma implantação experimental.
+
+Quando solicitado ou encerrada a colaboração, a pessoa autorizada deverá cessar o uso e eliminar as cópias sob seu controle, ressalvadas obrigações legais de conservação.
+
+## 12. Autorizações adicionais
+
+Qualquer uso não expressamente permitido depende de autorização individual, prévia e escrita dos titulares. Uma autorização concedida para determinada finalidade, versão, grupo ou período não se estende automaticamente a outros usos.
+
+## 13. Legislação aplicável
+
+Esta licença deve ser interpretada segundo a legislação da República Federativa do Brasil, especialmente as normas aplicáveis a direitos autorais, software, propriedade intelectual, proteção de dados e concorrência desleal.
+
+## 14. Identificação
+
+**Projeto:** MOSAICO — A Verdade é um Fragmento
+
+**Repositório de desenvolvimento:** Dragon
+
+**Autores e titulares:** Mário César Nascimento e Osana Melo Nascimento
+
+**País:** Brasil
+
 **Ano:** 2026
 
-Todos os direitos não expressamente concedidos permanecem reservados ao titular.
+Todos os direitos não expressamente concedidos permanecem reservados aos titulares.
