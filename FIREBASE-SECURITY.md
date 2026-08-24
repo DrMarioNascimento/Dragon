@@ -6,6 +6,7 @@ O arquivo `firestore.rules` é a fonte versionada das permissões do projeto `mo
 
 - toda operação exige autenticação;
 - somente o UID que criou a sala pode alterar fases, encerrá-la e publicar o placar;
+- somente o Portador sorteado de cada Fragmento pode gravar o rascunho coletivo e concluir seu Mosaico;
 - cada participante cria apenas o documento correspondente ao próprio UID;
 - uma pessoa autenticada com o código de uma sala ativa pode consultar a lista de jogadores necessária à entrada;
 - alterações ordinárias ficam limitadas a prontidão, personagem e Arquivo do próprio jogador;
@@ -37,6 +38,10 @@ Antes de uma sessão presencial, execute o jogo contra o emulador configurado em
 | compra sem saldo ou fora da transação | nega |
 | compra válida | aceita comprador, vendedor, oferta e negociação juntos |
 | participante lê voto ou dedução de outro | nega |
+| integrante comum altera o rascunho do Fragmento | nega |
+| Portador altera o rascunho do próprio Fragmento | aceita |
+| integrante comum tenta concluir o Mosaico | nega |
+| Portador envia a ordem correta e conclui o Mosaico | aceita |
 | retorno a uma sala encerrada | nega |
 
 ## Limite conhecido
