@@ -160,7 +160,11 @@ service cloud.firestore {
           active(roomId)
           && participant(roomId)
           && get(/databases/$(database)/documents/mosaico/$(roomId)/jogadores/$(request.auth.uid)).data.nucleo == resource.data.numero
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['concluidoEm', 'concluidoMs'])
+          && resource.data.portadorId == request.auth.uid
+          && request.resource.data.portadorId == resource.data.portadorId
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'rascunho', 'rascunhoMs', 'concluidoEm', 'concluidoMs'
+          ])
         );
         allow delete: if false;
       }
