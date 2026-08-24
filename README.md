@@ -8,7 +8,11 @@ O **MOSAICO** transforma um caso em informações fragmentadas entre os particip
 
 **Caso implementado:** *A Casa da Costa*
 
-**Participantes:** 2 a 12
+**Participantes:** 1 a 12 (1 participante funciona como modo integral de teste)
+
+- **1 participante:** Mestre e jogador/testador na mesma experiência; todas as telas ficam acessíveis e as votações impossíveis são ignoradas.
+- **2–3 participantes:** um Fragmento único; todos são Portadores e editam o mesmo rascunho sincronizado, sem voto interno.
+- **4–12 participantes:** múltiplos Fragmentos de 2 ou 3 pessoas, com um Portador sorteado por Fragmento.
 
 **Situação:** protótipo jogável em construção e playtest
 
@@ -68,6 +72,8 @@ Durante a Encenação, somente o participante ativo recebe as instruções. Os d
 Na formação dos grupos, nomes não são necessários. Cada participante recebe um **Fragmento da Névoa, Tempestade, Farol ou Noite** e procura pessoas com a mesma cor de tela. O cronômetro dourado começa junto da formação; o botão **OK, ENCONTREI MEU FRAGMENTO!** é liberado após cinco segundos e alimenta o contador. No ritmo automático, a reconstrução abre quando todos confirmam.
 
 Cada Fragmento recebe as seis peças da cronologia distribuídas entre os Arquivos de seus integrantes e, por sorteio, um **Portador**. Ninguém recebe sozinho o conjunto. Os demais integrantes veem horários e dicas, consultam os próprios Arquivos e conversam presencialmente; somente o Portador recebe a peça dourada pulsante, seleciona as pistas e envia a resposta coletiva. Durante essa fase, Caso e Mural não repetem a cronologia. Pistas já utilizadas desaparecem das escolhas vazias. Ao revisar uma associação, todas reaparecem com o horário ocupado e podem ser trocadas entre si. O rascunho é sincronizado no Firestore e sobrevive à reconexão.
+
+Em mesas de 1 a 3 participantes existe um único Fragmento e todos atuam como Portadores. Não há procura por cores nem voto interno. A tarefa continua valendo pontos por acerto e tempo absoluto: 20 pontos até 1min30s, 18 até 2min30s, 16 até 3min30s, 12 até 5min e 8 depois disso.
 
 ## Pontuação V5 — máximo de 100
 

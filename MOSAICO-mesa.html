@@ -1216,7 +1216,7 @@
 <div id="cortina"><div id="cortina-txt"></div></div>
 <div id="app"></div>
 
-<script src="js/mosaico-v5.js"></script>
+<script src="js/mosaico-v5.js?v=solo-portadores-20260824"></script>
 <script>
 /* ============================================================
    MOSAICO — mesa, painel e encenacao
@@ -1238,22 +1238,22 @@ function flex(txt, forma){
 
 /* ---------- arquetipos (Cap. 3 — Os Seis Convidados) ---------- */
 var PERSONAGENS = [
-  { id:"investigador", av:"🔦",
+  { id:"investigador", av:"🔎",
     nome:"{O Investigador|A Investigadora}",
     desc:"Chega primeiro. Sempre observa antes de se misturar." },
-  { id:"herdeiro", av:"🔑",
+  { id:"herdeiro", av:"💵",
     nome:"{O Herdeiro|A Herdeira}",
     desc:"Não entra: surge. A névoa abre espaço quando passa." },
-  { id:"morador", av:"👟",
+  { id:"morador", av:"🏠",
     nome:"{O Morador|A Moradora}",
     desc:"Passos leves, calculados. Acostumad{o|a} a não ser percebid{o|a}." },
-  { id:"jornalista", av:"👜",
+  { id:"jornalista", av:"🎤",
     nome:"{O Jornalista|A Jornalista}",
     desc:"Segura a bolsa com força. Algo lá dentro importa mais que a noite." },
-  { id:"policial", av:"🪞",
+  { id:"policial", av:"🚓",
     nome:"{O Policial|A Policial}",
     desc:"Tenta parecer tranquil{o|a}. Não está." },
-  { id:"menina", av:"🔇",
+  { id:"menina", av:"🧸",
     nome:"{O Menino|A Menina}",
     desc:"{O último|A última}. Vê tudo. Não diz nada." }
 ];
@@ -1385,7 +1385,7 @@ var CASO={
   capitulos:CAP_FASE,     /* o subtitulo de cada fase — sem spoiler */
   historia:HISTORIA       /* a abertura, so no fim */
 };
-CASO.configuracao={jogadores:{minimo:2,maximo:12,copiasPorPersonagem:2},limitesSegundos:{performance:60,constelacao:180,inclinacao:180,cooperacao:60,mercado:480,deducao:300}};
+CASO.configuracao={jogadores:{minimo:1,maximo:12,copiasPorPersonagem:2},limitesSegundos:{performance:60,constelacao:180,inclinacao:180,cooperacao:60,mercado:480,deducao:300}};
 CASO.tarefas={
   constelacao:{titulo:"O Vidro Embaçado",arquivo:"MOSAICO-24.5-vidro-embacado.html?embed=1",pista:{id:"tarefa-constelacao",hora:"21:26",txt:"A água abriu uma trilha no vidro embaçado. Por trás dele, a marca recente na trava do cofre permaneceu como ponto fixo da sequência."}},
   inclinacao:{titulo:"A Janela do Norte",arquivo:"MOSAICO-24.5-a-janela-do-norte.html?embed=1",pista:{id:"tarefa-inclinacao",hora:"21:28",txt:"O pequeno objeto metálico não atravessou a sala: caiu próximo ao cofre e foi deslocado depois da queda."}}
@@ -1424,6 +1424,12 @@ function aplicarCaso(c){
    externo não puder ser baixado. Deve permanecer idêntica ao conteúdo de
    casos/casa-da-costa.json; a auditoria de publicação compara os dois. */
 var CASO_FALLBACK_COMPLETO={"_leia":"MOLDE DE CASO DO MOSAICO. Para criar outro caso, copie este arquivo, troque o conteúdo e abra o jogo com ?caso=nome-do-arquivo (sem .json). Marcadores {masculino|feminino} são trocados conforme a escolha do jogador na entrada.","id":"casa-da-costa","titulo":"A Casa da Costa","configuracao":{"versaoPontuacao":"5.0","jogadores":{"minimo":2,"maximo":12,"copiasPorPersonagem":2},"moedasIniciais":9,"precos":{"baixo":1,"justo":3,"alto":5},"limitesSegundos":{"performance":60,"constelacao":180,"inclinacao":180,"cooperacao":60,"mercado":480,"deducao":300},"pesos":{"tempo":32,"qualidade":13,"cooperacao":30,"economia":20,"performance":5}},"solucao":{"suspeito":"herdeiro","motivo":"recuperar-documento","acao":"abriu-o-cofre","prova":"marca-na-trava","lacuna":"objeto-metalico"},"revelacaoFinal":{"titulo":"A verdade na Casa da Costa","sintese":"O Herdeiro entrou na casa para recuperar um documento escondido e usou a oscilação de energia para abrir o cofre. A marca recente na trava liga sua ação ao cofre; o pequeno objeto metálico que caiu nas proximidades fecha a lacuna física do acontecimento.","historia":["O Herdeiro sabia que um documento permanecia escondido no cofre da Casa da Costa. Antes da queda de energia, aproximou-se da trava e a manipulou, deixando a marca recente observada no início da noite.","A porta entreaberta, a cortina em movimento e os ruídos do andar superior sugeriam uma invasão, mas a janela continuava trancada. Esses sinais desviavam a atenção sem explicar o ponto central: alguém presente na casa conhecia o cofre.","Quando a luz oscilou, o Herdeiro aproveitou a confusão para abrir o cofre e recuperar o documento. Durante a ação, um pequeno componente metálico caiu perto da trava e foi deslocado depois da queda, produzindo parte dos sons e movimentos percebidos no escuro.","O Vidro Embaçado revelou a sequência oculta e fixou a marca da trava. A Janela do Norte localizou o fragmento junto ao cofre. Quando os dois sinais foram combinados às pistas privadas, o aparente conjunto de fenômenos isolados tornou-se uma única ação coerente."],"evidencias":[{"titulo":"Marca recente na trava","texto":"É a prova-chave: demonstra manipulação recente do cofre e conecta a ação ao ponto exato onde o documento estava escondido."},{"titulo":"Pequeno objeto metálico","texto":"Resolve a lacuna material: caiu junto ao cofre e foi deslocado depois, explicando sons e movimentos percebidos durante a escuridão."},{"titulo":"Janela trancada","texto":"Enfraquece a hipótese de entrada pela janela. A porta e a cortina criavam aparência de invasão, mas não comprovavam acesso externo."},{"titulo":"Sombras e ruídos","texto":"Eram sinais reais, porém insuficientes isoladamente. Ganham sentido apenas quando relacionados à abertura do cofre e ao fragmento deslocado."},{"titulo":"Vidro Embaçado e Janela do Norte","texto":"As rodadas sensoriais confirmam o ponto fixo da sequência e a posição física do fragmento, aproximando os indícios da conclusão."}]},"deducao":{"suspeitos":[{"id":"investigador","rotulo":"O Investigador"},{"id":"herdeiro","rotulo":"O Herdeiro"},{"id":"morador","rotulo":"O Morador"},{"id":"jornalista","rotulo":"O Jornalista"},{"id":"policial","rotulo":"O Policial"},{"id":"menina","rotulo":"A Menina"},{"id":"zelador","rotulo":"O antigo zelador da casa"},{"id":"faroleira","rotulo":"A responsável pelo farol"}],"motivos":[{"id":"recuperar-documento","rotulo":"Recuperar um documento escondido"},{"id":"ocultar-presenca","rotulo":"Ocultar que esteve na casa"},{"id":"forjar-invasao","rotulo":"Forjar uma invasão"},{"id":"proteger-segredo-familia","rotulo":"Proteger um segredo antigo da família"},{"id":"roubar-joias","rotulo":"Roubar as joias guardadas na casa"},{"id":"vingar-divida","rotulo":"Vingar uma dívida ligada à propriedade"}],"acoes":[{"id":"abriu-o-cofre","rotulo":"Abriu o cofre durante a oscilação"},{"id":"entrou-pela-janela","rotulo":"Entrou pela janela"},{"id":"apagou-a-luz","rotulo":"Desligou a energia da casa"},{"id":"moveu-a-cortina","rotulo":"Moveu a cortina para simular uma entrada"},{"id":"escondeu-no-sotao","rotulo":"Escondeu o objeto no sótão"},{"id":"trocou-documento","rotulo":"Trocou o documento por uma cópia"}],"provas":[{"id":"marca-na-trava","rotulo":"A marca recente na trava do cofre"},{"id":"cortina-em-movimento","rotulo":"A cortina em movimento"},{"id":"sombra-no-corredor","rotulo":"A sombra no corredor"},{"id":"janela-trancada","rotulo":"A janela que permanecia trancada"},{"id":"porta-entreaberta","rotulo":"A porta encontrada entreaberta"},{"id":"pegadas-na-nevoa","rotulo":"As pegadas vistas perto do farol"}],"lacunas":[{"id":"objeto-metalico","rotulo":"A origem do pequeno objeto metálico"},{"id":"nevoa-na-porta","rotulo":"A entrada da névoa"},{"id":"som-no-sotao","rotulo":"O som no sótão"},{"id":"luz-oscilando","rotulo":"A causa da oscilação das luzes"},{"id":"cortina-sem-vento","rotulo":"O movimento da cortina sem vento"},{"id":"respiracao-proxima","rotulo":"A respiração ouvida muito perto"}]},"mosaico":{"instrucao":"Ordene os seis acontecimentos gerais do mais antigo para o mais recente.","ordemCorreta":["pub-2103","pub-2107","pub-2112","pub-2114","pub-2117","pub-2120"],"dicas":{"pub-2103":"A casa apresentou seu primeiro aviso.","pub-2107":"Uma contradição apareceu entre abertura e bloqueio.","pub-2112":"Um vestígio recente contrariava a aparência de normalidade.","pub-2114":"Algo foi percebido, mas não pôde ser identificado.","pub-2117":"A percepção visual foi interrompida por um instante.","pub-2120":"O ambiente externo atravessou uma barreira da casa."},"rotulos":{"pub-2103":"Oscilação da luz","pub-2107":"Porta, cortina e janela","pub-2112":"Marca recente no cofre","pub-2114":"Som no andar superior","pub-2117":"Sombra no corredor","pub-2120":"Entrada da névoa"}},"tarefas":{"constelacao":{"titulo":"O Vidro Embaçado","arquivo":"MOSAICO-24.5-vidro-embacado.html?embed=1","pista":{"id":"tarefa-constelacao","hora":"21:26","txt":"A água abriu uma trilha no vidro embaçado. Por trás dele, a marca recente na trava do cofre permaneceu como ponto fixo da sequência."}},"inclinacao":{"titulo":"A Janela do Norte","arquivo":"MOSAICO-24.5-a-janela-do-norte.html?embed=1","pista":{"id":"tarefa-inclinacao","hora":"21:28","txt":"O pequeno objeto metálico não atravessou a sala: caiu próximo ao cofre e foi deslocado depois da queda."}}},"arte":{"capa":"img/capa-vertical.jpg","painel":"img/fundo-painel.jpg","espera":"img/aguardando.jpg","video":"img/abertura.mp4"},"elenco":[{"id":"investigador","av":"🔦","nome":"{O Investigador|A Investigadora}","desc":"Chega primeiro. Sempre observa antes de se misturar."},{"id":"herdeiro","av":"🔑","nome":"{O Herdeiro|A Herdeira}","desc":"Não entra: surge. A névoa abre espaço quando passa."},{"id":"morador","av":"👟","nome":"{O Morador|A Moradora}","desc":"Passos leves, calculados. Acostumad{o|a} a não ser percebid{o|a}."},{"id":"jornalista","av":"👜","nome":"{O Jornalista|A Jornalista}","desc":"Segura a bolsa com força. Algo lá dentro importa mais que a noite."},{"id":"policial","av":"🪞","nome":"{O Policial|A Policial}","desc":"Tenta parecer tranquil{o|a}. Não está."},{"id":"menina","av":"🔇","nome":"{O Menino|A Menina}","desc":"{O último|A última}. Vê tudo. Não diz nada."}],"roteiros":{"investigador":{"resumo":"Entre devagar, passe a mão pela parede e caminhe pelo corredor. Ao ouvir um estalo, pare imediatamente, olhe para cima e procure quem pode estar escondido.","acao":"Dê alguns passos lentos, mantendo uma das mãos encostada na parede. Interrompa o movimento de repente, levante o rosto e examine o alto da sala. Recue meio passo e chame a presença que você acredita ter ouvido.","rub":"Você entra primeiro, examina a parede do corredor e reage ao som inesperado vindo da casa.","tom":"Comece desconfiad{o|a}; aumente a voz até quase gritar","fala":"“Tem alguém aí? Eu ouvi esse estalo, e não foi a tempestade. Há passos ou alguma coisa se movendo acima de nós. Se existe alguém escondido nesta casa, apareça agora! Eu não vou continuar por este corredor sem saber quem está nos observando.”","pos":"Depois da fala, mantenha o olhar fixo no alto por um instante, como se ainda esperasse uma resposta."},"herdeiro":{"resumo":"Entre de repente. Olhe para os dois lados da sala procurando algo, reconheça o cofre e vá diretamente até ele. Observe a trava e toque nela com o indicador.","acao":"Surja com segurança, como se já conhecesse o caminho. Examine rapidamente os cantos, interrompa a busca quando avistar o cofre e aproxime-se sem hesitar. Incline o corpo, analise a marca na trava e toque exatamente naquele ponto.","rub":"Você conhece a sala, encontra o cofre e percebe que alguém mexeu na trava antes da chegada do grupo.","tom":"Baixo e controlado no início; termine olhando para o grupo com firmeza","fala":"“Isso não estava assim. Eu conheço cada risco desta trava e esta marca é recente. Alguém chegou antes de nós, tocou neste cofre e procurou alguma coisa aqui dentro. Não tentem dizer que foi curiosidade. Quem conhece esta casa sabe exatamente o que este cofre guarda.”","pos":"Afaste a mão devagar e observe as outras pessoas como se esperasse que alguém se denunciasse."},"morador":{"resumo":"Entre sem fazer barulho. Olhe para a escada, para o sótão e para a janela do andar superior. Perceba um movimento acima do grupo, recue e avise as outras pessoas.","acao":"Caminhe com passos curtos e leves. Examine três pontos diferentes da sala e, de repente, fixe o olhar acima da cabeça dos demais. Permaneça imóvel por três segundos, recue um passo e fale sem tirar os olhos daquele lugar.","rub":"Você conhece os ruídos da casa e percebe no andar superior algo diferente dos sons da tempestade.","tom":"Baixo e urgente, como quem teme ser escutad{o|a}","fala":"“Não olhem todos ao mesmo tempo. Há alguma coisa se movendo perto do sótão. Eu conheço os estalos desta casa, e aquele som não veio da madeira nem do vento. Alguém está lá em cima, tentando acompanhar os nossos passos. E agora essa pessoa já sabe que nós a percebemos.”","pos":"Mantenha o corpo voltado para a escada e acompanhe com os olhos um movimento imaginário no andar superior."},"jornalista":{"resumo":"Entre com pressa protegendo sua bolsa. Examine o corredor, a cortina e a porta entreaberta. Aponte para a porta e questione quem esteve ali antes.","acao":"Caminhe rapidamente e mantenha a bolsa apertada contra o corpo. Pare diante da cortina, acompanhe seu movimento com os olhos e depois vire-se para a porta. Aponte para ela, percorra o grupo com o olhar e comece a fazer perguntas.","rub":"Você investiga sinais estranhos na sala enquanto protege algo importante dentro da bolsa.","tom":"Incomodad{o|a} e incisiv{o|a}; faça as perguntas em sequência","fala":"“Quem deixou essa porta aberta? A cortina está se movendo, mas a janela continua fechada e não há vento aqui dentro. Alguém atravessou este corredor antes de nós. Quero saber quem foi, o que procurava e por que ninguém achou importante avisar que esta sala já havia sido mexida.”","pos":"Continue apontando para a porta e aperte a bolsa contra o corpo enquanto espera uma resposta."},"policial":{"resumo":"Entre tentando manter a autoridade. Observe a janela e as pessoas, passe a mão pelo cabelo e perceba um reflexo metálico. Recue e afaste o grupo do vidro.","acao":"Caminhe com postura firme, mas deixe o nervosismo aparecer no olhar. Examine a janela, encare duas pessoas e volte a olhar para fora. Passe a mão pelo cabelo, recue ao notar o reflexo e abra um braço diante do grupo como proteção.","rub":"Você tenta controlar a situação, mas um reflexo na janela indica que alguém pode estar observando a sala.","tom":"Firme no começo; deixe a voz falhar e depois recupere a autoridade","fala":"“Vocês viram aquele reflexo na janela? Não se aproximem! Parecia metal, e quem estiver lá fora consegue enxergar toda esta sala. Afastem-se do vidro e pensem antes de responder: alguém trouxe alguma coisa capaz de refletir a luz, ou existe outra pessoa nos observando desde a tempestade?”","pos":"Permaneça entre o grupo e a janela, sem baixar o braço, e continue procurando o reflexo."},"menina":{"resumo":"Entre por último e observe o teto, o sótão, a escada, o cofre e a porta. Encare cada pessoa, escolha uma delas e se aproxime antes de revelar o que percebeu.","acao":"Entre devagar e examine cada ponto da sala como se juntasse partes de uma descoberta. Passe o olhar por todas as pessoas, escolha uma delas e dê um passo em sua direção. Espere dois segundos e fale olhando diretamente para ela.","rub":"Você percebe que os sinais da casa acompanham o grupo e conclui que ela esperava especificamente por uma das pessoas presentes.","tom":"Calm{o|a}, muito séri{o|a} e inquietante; fale devagar","fala":"“A casa estava vazia quando chegamos, mas não parecia abandonada. As portas estavam abertas como se alguém soubesse que nós viríamos. Desde que entramos, os ruídos acompanham exatamente os nossos passos, um por um. Esta casa não estava esperando por todos nós. Estava esperando por uma única pessoa.”","pos":"Continue olhando para a pessoa escolhida por dois segundos e depois se afaste lentamente."}},"pistas":{"investigador":{"id":"priv-investigador","hora":"21:29","qualidade":"mediana","txt":"Um estalo seco. Depois outro. Depois silêncio. Você ouviu atrás de você."},"herdeiro":{"id":"priv-herdeiro","hora":"21:29","qualidade":"ruim","txt":"Você sentiu algo ao lado. Não foi passo, não foi corpo. Foi deslocamento."},"morador":{"id":"priv-morador","hora":"21:30","qualidade":"boa","txt":"Algo caiu. Pequeno, metálico, preciso. Veio do cofre."},"jornalista":{"id":"priv-jornalista","hora":"21:30","qualidade":"mediana","txt":"Algo passou perto da sua mão. Frio, rápido, intencional. Não tocou."},"policial":{"id":"priv-policial","hora":"21:30","qualidade":"boa","txt":"Mesmo sem luz, uma sombra passou. Não deveria ser possível. Mas foi."},"menina":{"id":"priv-menina","hora":"21:31","qualidade":"ruim","txt":"Alguém respirou perto demais. Você ouviu. E não se mexeu."}},"publicas":[{"id":"pub-2103","hora":"21:03","txt":"A luz da Casa da Costa oscilou pela primeira vez. Não foi queda. Foi aviso."},{"id":"pub-2107","hora":"21:07","txt":"A porta da sala estava entreaberta. A cortina balançava. E a janela estava trancada."},{"id":"pub-2112","hora":"21:12","txt":"O cofre estava fechado, como deveria estar. Mas a marca de dedo na trava era recente."},{"id":"pub-2114","hora":"21:14","txt":"Um som veio do andar de cima. Não era passo. Não era objeto. Era algo entre os dois."},{"id":"pub-2117","hora":"21:17","txt":"O corredor ficou meio escuro por um segundo. Uma sombra passou rápido demais."},{"id":"pub-2120","hora":"21:20","txt":"A névoa entrou pela fresta da porta como se tivesse sido convidada."}],"relogio":{"sala":"21:00","escuro":"21:00","cena":null,"encenacao":null,"votacao":"21:23","performance":"21:23","constelacao":"21:26","inclinacao":"21:28","mosaico":"21:31","cooperacao":"21:34","mercado":"21:38","deducao":"21:46","resultado":"21:51","historia":"21:51"},"capitulos":{"sala":"A tempestade chegou antes dos convidados","escuro":"A casa apagou","cena":"A casa escolheu alguém","encenacao":"A casa escolheu alguém","votacao":"A energia da mesa","performance":"A energia da mesa","constelacao":"O Vidro Embaçado","inclinacao":"A Janela do Norte","mosaico":"A verdade é um fragmento","cooperacao":"O núcleo se recorda","mercado":"Mercado Cego","deducao":"A acusação final","resultado":"A linha da verdade","historia":"A noite da tempestade"},"historia":["A tempestade chegou antes dos convidados.","O vento batia contra as janelas da Casa da Costa como se quisesse entrar. A madeira antiga respondia com estalos curtos, secos, quase impacientes.","A luz oscilava — não o suficiente para assustar, mas o suficiente para avisar.","A casa não estava recebendo visitas. A casa estava escolhendo testemunhas."]};
+/* Alinha também o caso incorporado, usado quando o JSON externo não carregar. */
+CASO_FALLBACK_COMPLETO.configuracao.jogadores.minimo=1;
+(function(){
+  var icones={investigador:"🔎",herdeiro:"💵",morador:"🏠",jornalista:"🎤",policial:"🚓",menina:"🧸"};
+  CASO_FALLBACK_COMPLETO.elenco.forEach(function(p){if(icones[p.id])p.av=icones[p.id];});
+})();
 aplicarCaso(CASO_FALLBACK_COMPLETO);
 
 /* ---------- estado ---------- */
@@ -1681,7 +1687,7 @@ function controlesMestreMovel(){
   if(pausada){
     autoInfo='<div class="card"><b>Partida pausada</b><p class="muted">As telas, tarefas e contagens de tempo estão congeladas.</p></div>';
   }else if(fase==="sala"){
-    todos=js.length>=2&&contaProntos()===js.length;
+    todos=js.length>=1&&contaProntos()===js.length;
     acaoNecessaria=todos;
     botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();iniciarEncenacao()" '+(todos?'':'disabled')+'>Come&ccedil;ar</button>';
   }else if(fase==="encenacao"){
@@ -1703,7 +1709,9 @@ function controlesMestreMovel(){
           (conduzido?'A Sala avisará quando for hora de liberar.':'A tarefa abrir&aacute; automaticamente quando todos confirmarem.')+'</p></div>';
       }
     }else{
-      statusOuAcao(fragmentosComTarefaConcluida(),totalFragmentos(),"Mosaico coletivo","Abrir voto interno","abrirVotoCooperacao");
+      statusOuAcao(fragmentosComTarefaConcluida(),totalFragmentos(),"Mosaico coletivo",
+        js.length<=3?"Abrir Mercado de pistas":"Abrir voto interno",
+        js.length<=3?"abrirMercado":"abrirVotoCooperacao");
     }
   }else if(fase==="cooperacao"){
     statusOuAcao(jogadoresComCooperacaoConcluida(),js.length,"Voto interno","Abrir Mercado de pistas","abrirMercado");
@@ -1794,7 +1802,8 @@ async function verificarEtapasColetivas(){
   if(!souMestreDaMesa()||ritmoConduzido()||partidaPausada()||_autoFasePendente||!STATE.doc) return;
   var fase=STATE.doc.fase, pronto=false, acao=null;
   if(fase==="mosaico"&&STATE.doc.fragmentosLiberados){
-    pronto=totalFragmentos()>0&&fragmentosComTarefaConcluida()>=totalFragmentos();acao=abrirVotoCooperacao;
+    pronto=totalFragmentos()>0&&fragmentosComTarefaConcluida()>=totalFragmentos();
+    acao=STATE.jogadores.length<=3?abrirMercado:abrirVotoCooperacao;
   }else if(fase==="cooperacao"){
     pronto=STATE.jogadores.length>0&&jogadoresComCooperacaoConcluida()>=STATE.jogadores.length;acao=abrirMercado;
   }
@@ -2263,11 +2272,11 @@ function telaPainel(){
        so acontece quando ele libera — assim da para esperar atrasados.
        O rotulo nao entrega o que vem; a tarefa e surpresa.             */
     var prontos=contaProntos();
-    var todosProntos = js.length>=2 && prontos===js.length;
+    var todosProntos = js.length>=1 && prontos===js.length;
     acao='<button class="btn btn-ambar" '+(todosProntos?'':'disabled')+
          ' onclick="iniciarEncenacao()">Come&ccedil;ar o jogo</button>'+
          '<p class="muted" style="text-align:center">'+
-         (js.length<2 ? 'Precisa de pelo menos duas pessoas.'
+         (js.length<1 ? 'Aguardando participante.'
                       : prontos+' de '+js.length+' prontos'+
                         (todosProntos?' &mdash; pode come&ccedil;ar quando quiser.'
                                      :'. Esperando os que faltam.'))+
@@ -2641,9 +2650,12 @@ function documentoMeuFragmento(){
   var eu=meuJogador(); if(!eu)return null;
   return (STATE.v5.nucleos||[]).find(function(n){return String(n.id)===String(eu.nucleo);})||null;
 }
+function fragmentoCompartilhado(){
+  return STATE.jogadores.length>=1&&STATE.jogadores.length<=3;
+}
 function souPortadorFragmento(){
   var eu=meuJogador(), n=documentoMeuFragmento();
-  return !!(eu&&n&&n.portadorId===eu.id);
+  return !!(eu&&n&&(n.portadorId===eu.id||n.portadoresCompartilhados===true));
 }
 function formatarCronometroFragmento(ms){
   var total=Math.max(0,Math.floor((Number(ms)||0)/1000));
@@ -2700,6 +2712,7 @@ function iconePortador(){
 }
 function tituloPortador(){
   var eu=meuJogador();
+  if(fragmentoCompartilhado())return 'Todos s&atilde;o Portadores do Fragmento';
   return eu&&eu.forma==='f'?'Voc&ecirc; &eacute; a Portadora do Fragmento':eu&&eu.forma==='?'?'Voc&ecirc; controla o Fragmento':'Voc&ecirc; &eacute; o Portador do Fragmento';
 }
 function abrirEscolhaMosaico(indice){STATE.mosaicoEscolha=Number(indice);render(true);}
@@ -3150,7 +3163,10 @@ async function avancarVez(codigo, autor){
   var FB=await esperarFB();
   var p=PUBLICAS[vez];
   if(p) await FB.publicar(codigo, vez, { hora:p.hora, txt:p.txt, autor:autor||"—", ordem:vez });
-  if(vez+1>=js.length) await FB.atualizarMesa(codigo,{fase:"votacao",votacaoAbertaMs:Date.now()});
+  if(vez+1>=js.length){
+    if(js.length===1)await FB.atualizarMesa(codigo,{fase:"constelacao",constelacaoAbertaMs:Date.now()});
+    else await FB.atualizarMesa(codigo,{fase:"votacao",votacaoAbertaMs:Date.now()});
+  }
   else await FB.atualizarMesa(codigo,{vez:vez+1});
 }
 
@@ -3309,6 +3325,7 @@ window.addEventListener('message',function(event){
 
 async function prepararMosaico(){
   var FB=await esperarFB(), distribuicao=MosaicoV5.distribuirNucleos(STATE.jogadores);
+  var compartilhado=STATE.jogadores.length<=3;
   for(var i=0;i<distribuicao.length;i++){
     await FB.atualizarJogador(STATE.mesa.codigo,distribuicao[i].id,{nucleo:distribuicao[i].nucleo,fragmentoPronto:false,fragmentoProntoMs:0});
   }
@@ -3316,7 +3333,10 @@ async function prepararMosaico(){
   for(var n=0;n<numeros.length;n++){
     var membros=distribuicao.filter(function(d){return d.nucleo===numeros[n];});
     var sorteado=membros[Math.floor(Math.random()*membros.length)];
-    await FB.gravar(STATE.mesa.codigo,'nucleos',String(numeros[n]),{numero:numeros[n],portadorId:sorteado.id,rascunho:{},rascunhoMs:0});
+    await FB.gravar(STATE.mesa.codigo,'nucleos',String(numeros[n]),{
+      numero:numeros[n],portadorId:sorteado.id,portadoresCompartilhados:compartilhado,
+      rascunho:{},rascunhoMs:0
+    });
     /* Cada Fragmento recebe as seis peças da cronologia, distribuídas entre
        os Arquivos de seus integrantes. Ninguém enxerga sozinho o conjunto. */
     for(var m=0;m<membros.length;m++){
@@ -3328,7 +3348,10 @@ async function prepararMosaico(){
       await FB.atualizarJogador(STATE.mesa.codigo,membros[m].id,{pistas:preservadas.concat(pecas)});
     }
   }
-  await FB.atualizarMesa(STATE.mesa.codigo,{fase:'mosaico',mosaicoAbertoMs:Date.now(),fragmentosLiberados:false});
+  await FB.atualizarMesa(STATE.mesa.codigo,{
+    fase:'mosaico',mosaicoAbertoMs:Date.now(),fragmentosLiberados:compartilhado,
+    fragmentosLiberadosMs:compartilhado?Date.now():0
+  });
 }
 async function selecionarPistaMosaico(pistaId){
   if(!souPortadorFragmento()||STATE.mosaicoEscolha==null)return;
@@ -3412,14 +3435,22 @@ async function finalizarPartida(){
   numeros.forEach(function(n){
     var ids=STATE.jogadores.filter(function(j){return j.nucleo===n;}).map(function(j){return j.id;});
     var pontos;
-    if(ids.length===2) pontos=Object.fromEntries(ids.map(function(id){return [id,5];}));
+    if(STATE.jogadores.length<=3)pontos=Object.fromEntries(ids.map(function(id){return [id,0];}));
+    else if(ids.length===2) pontos=Object.fromEntries(ids.map(function(id){return [id,5];}));
     else pontos=MosaicoV5.dividirVoto(STATE.v5.cooperacao.filter(function(v){return v.nucleo===n;}),ids,10);
     Object.assign(coopInd,pontos);
   });
   function msNucleo(n){return n.concluidoEm&&n.concluidoEm.toMillis?n.concluidoEm.toMillis():(n.concluidoMs||0);}
   var concluidos=STATE.v5.nucleos.filter(function(n){return n.concluidoEm||n.concluidoMs;}).sort(function(a,b){return msNucleo(a)-msNucleo(b);});
   var escala=[20,16,12,8], coletivo={};
-  STATE.jogadores.forEach(function(j){var pos=concluidos.findIndex(function(n){return Number(n.id)===Number(j.nucleo);}); coletivo[j.id]=pos<0?0:(escala[pos]==null?4:escala[pos]);});
+  if(STATE.jogadores.length<=3){
+    var inicioMosaico=Number(STATE.doc&&STATE.doc.mosaicoAbertoMs)||0;
+    var duracaoMosaico=concluidos.length&&inicioMosaico?Math.max(0,msNucleo(concluidos[0])-inicioMosaico):Infinity;
+    var pontosAbsolutos=duracaoMosaico<=90000?20:duracaoMosaico<=150000?18:duracaoMosaico<=210000?16:duracaoMosaico<=300000?12:duracaoMosaico<Infinity?8:0;
+    STATE.jogadores.forEach(function(j){coletivo[j.id]=pontosAbsolutos;});
+  }else{
+    STATE.jogadores.forEach(function(j){var pos=concluidos.findIndex(function(n){return Number(n.id)===Number(j.nucleo);}); coletivo[j.id]=pos<0?0:(escala[pos]==null?4:escala[pos]);});
+  }
   var negociacoes=STATE.v5.negociacoes.map(function(n){
     var pista=Object.keys(CASO.pistas||{}).map(function(k){return CASO.pistas[k];}).find(function(p){return p.id===n.pistaId;});
     return Object.assign({},n,{qualidade:(pista&&pista.qualidade)||'mediana'});
@@ -3627,7 +3658,7 @@ async function voltarParaSala(){
   var nomeCaso = (q&&q.get("caso")) || "casa-da-costa";
   var casoPronto=Promise.resolve();
   if(/^[a-z0-9-]{1,40}$/.test(nomeCaso)){
-    casoPronto=fetch("casos/"+nomeCaso+".json?v=fragmentos-20260824")
+    casoPronto=fetch("casos/"+nomeCaso+".json?v=solo-portadores-20260824")
       .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
       .then(function(c){ aplicarCaso(c); render(); })
       .catch(function(e){

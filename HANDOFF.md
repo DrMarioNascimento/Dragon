@@ -116,7 +116,9 @@ O código atual entrega a primeira experiência jogável:
 - acesso móvel **Caso** para todos os jogadores, com rodada atual, orientação da fase e cronologia pública, sem pontuação ou informação secreta;
 - cronologia pública;
 - voto cego de Performance sem auto-voto;
-- divisão automática em núcleos de 2 ou 3 participantes;
+- modo integral de teste com 1 participante, que acumula os papéis de mestre e jogador;
+- Fragmento único e Portador compartilhado entre todos nas mesas de 2 ou 3 participantes;
+- divisão automática em Fragmentos de 2 ou 3 participantes a partir de 4 jogadores;
 - encontro presencial por cor, com confirmação bloqueada nos primeiros cinco segundos;
 - cronômetro coletivo dourado com pulso vermelho, iniciado na formação dos Fragmentos;
 - sorteio e persistência de um Portador por Fragmento;
@@ -526,7 +528,7 @@ A conclusão da apresentação passou a ser uma solicitação em `acoes`: o joga
 
 ### 13.3 Limite de jogadores
 
-A entrada admite de dois a doze participantes. Até seis, cada arquétipo aparece uma vez. Do sétimo ao décimo segundo, começa um segundo ciclo equilibrado; nenhum arquétipo recebe uma terceira cópia e, com doze pessoas, existem exatamente duas de cada.
+A entrada admite de um a doze participantes. Uma pessoa utiliza o modo integral de teste e permanece simultaneamente como mestre e jogador. Até seis, cada arquétipo aparece uma vez. Do sétimo ao décimo segundo, começa um segundo ciclo equilibrado; nenhum arquétipo recebe uma terceira cópia e, com doze pessoas, existem exatamente duas de cada.
 
 A duplicidade é uma regra narrativa: duas pessoas com o mesmo personagem representam fragmentos da mesma identidade e são igualmente vinculadas à culpa ou inocência do arquétipo. Elas não conhecem antecipadamente a duplicidade, não formam equipe e continuam pontuando individualmente. Na votação de Performance e na Confiabilidade, cópias iguais recebem os rótulos `fragmento 1` e `fragmento 2`; no placar final, os nomes reais são revelados.
 

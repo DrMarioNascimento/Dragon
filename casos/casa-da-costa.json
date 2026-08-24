@@ -5,7 +5,7 @@
   "configuracao": {
     "versaoPontuacao": "5.0",
     "jogadores": {
-      "minimo": 2,
+      "minimo": 1,
       "maximo": 12,
       "copiasPorPersonagem": 2
     },
@@ -155,37 +155,37 @@
   "elenco": [
     {
       "id": "investigador",
-      "av": "🔦",
+      "av": "🔎",
       "nome": "{O Investigador|A Investigadora}",
       "desc": "Chega primeiro. Sempre observa antes de se misturar."
     },
     {
       "id": "herdeiro",
-      "av": "🔑",
+      "av": "💵",
       "nome": "{O Herdeiro|A Herdeira}",
       "desc": "Não entra: surge. A névoa abre espaço quando passa."
     },
     {
       "id": "morador",
-      "av": "👟",
+      "av": "🏠",
       "nome": "{O Morador|A Moradora}",
       "desc": "Passos leves, calculados. Acostumad{o|a} a não ser percebid{o|a}."
     },
     {
       "id": "jornalista",
-      "av": "👜",
+      "av": "🎤",
       "nome": "{O Jornalista|A Jornalista}",
       "desc": "Segura a bolsa com força. Algo lá dentro importa mais que a noite."
     },
     {
       "id": "policial",
-      "av": "🪞",
+      "av": "🚓",
       "nome": "{O Policial|A Policial}",
       "desc": "Tenta parecer tranquil{o|a}. Não está."
     },
     {
       "id": "menina",
-      "av": "🔇",
+      "av": "🧸",
       "nome": "{O Menino|A Menina}",
       "desc": "{O último|A última}. Vê tudo. Não diz nada."
     }

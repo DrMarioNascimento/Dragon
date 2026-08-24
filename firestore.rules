@@ -160,8 +160,11 @@ service cloud.firestore {
           active(roomId)
           && participant(roomId)
           && get(/databases/$(database)/documents/mosaico/$(roomId)/jogadores/$(request.auth.uid)).data.nucleo == resource.data.numero
-          && resource.data.portadorId == request.auth.uid
+          && (resource.data.portadorId == request.auth.uid
+            || resource.data.get('portadoresCompartilhados', false) == true)
           && request.resource.data.portadorId == resource.data.portadorId
+          && request.resource.data.get('portadoresCompartilhados', false)
+            == resource.data.get('portadoresCompartilhados', false)
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
             'rascunho', 'rascunhoMs', 'concluidoEm', 'concluidoMs'
           ])

@@ -13,7 +13,7 @@
 
   V5.tamanhosNucleos = function (quantidade) {
     const mapa = {
-      2: [2], 3: [3], 4: [2, 2], 5: [3, 2], 6: [3, 3],
+      1: [1], 2: [2], 3: [3], 4: [2, 2], 5: [3, 2], 6: [3, 3],
       7: [3, 2, 2], 8: [3, 3, 2], 9: [3, 3, 3],
       10: [3, 3, 2, 2], 11: [3, 3, 3, 2], 12: [3, 3, 3, 3]
     };
@@ -23,7 +23,7 @@
   V5.distribuirNucleos = function (jogadores) {
     const ordenados = jogadores.slice().sort((a, b) => (a.entrouMs || 0) - (b.entrouMs || 0));
     const tamanhos = V5.tamanhosNucleos(ordenados.length);
-    if (!tamanhos.length) throw new Error("A versão atual admite de 2 a 12 jogadores.");
+    if (!tamanhos.length) throw new Error("A versão atual admite de 1 a 12 jogadores.");
     const saida = [];
     let cursor = 0;
     tamanhos.forEach((tam, indice) => {
