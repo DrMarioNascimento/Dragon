@@ -172,7 +172,7 @@
   #app.largo>.dinamica-nivel{width:min(72%,680px);margin:-8px auto 12px}
 
   /* Encontro presencial dos Fragmentos: a mesma arte recebe uma cor por grupo. */
-  body.busca-fragmento{min-height:100dvh;overflow:hidden}
+  body.busca-fragmento{min-height:100dvh;overflow-x:hidden;overflow-y:auto}
   body.busca-fragmento #arte{opacity:1;background-position:center;background-size:cover;background-repeat:no-repeat}
   body.busca-fragmento.fragmento-cor-1 #arte{
     background-image:linear-gradient(rgba(151,24,31,.72),rgba(74,8,14,.82)),url("img/capa-vertical.jpg");
@@ -187,8 +187,10 @@
     background-image:linear-gradient(rgba(112,42,157,.72),rgba(44,12,70,.84)),url("img/capa-vertical.jpg");
     background-blend-mode:color,multiply}
   body.busca-fragmento #arte::after{background:linear-gradient(180deg,rgba(5,7,12,.12),rgba(5,7,12,.4))}
-  body.busca-fragmento #app{max-width:none;min-height:100dvh;padding:24px 20px 104px;
-    display:flex;align-items:center;justify-content:center}
+  body.busca-fragmento #app{max-width:560px;min-height:100dvh;padding:24px 20px 104px;
+    display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
+  body.busca-fragmento .rodada-celular{flex:0 0 auto;width:100%;max-width:500px;margin:0 auto 9px}
+  body.busca-fragmento .dinamica-nivel{flex:0 0 auto;width:100%;max-width:460px;margin:0 auto 14px}
   .fragmento-encontro{position:relative;z-index:2;width:min(100%,500px);text-align:center;
     border:2px solid rgba(255,255,255,.74);border-radius:12px;padding:24px 20px;
     background:rgba(5,7,12,.68);box-shadow:0 22px 58px rgba(0,0,0,.56);
