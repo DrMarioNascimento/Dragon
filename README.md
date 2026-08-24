@@ -1,68 +1,114 @@
-# Dragon — Laboratório Pessoal
+# MOSAICO — A Verdade é um Fragmento
 
-> **Repositório público para consulta. Obra autoral proprietária de Mário César Nascimento, PhD. Todos os direitos reservados.**
+> Jogo híbrido de dedução distribuída para smartphones, com telão opcional. Projeto autoral proprietário em desenvolvimento.
 
-O **Dragon** é um laboratório pessoal de criação e desenvolvimento de experiências interativas, jogos, casos, narrativas e materiais educacionais autorais.
+O **MOSAICO** transforma um caso em informações fragmentadas entre os participantes. Ninguém recebe sozinho todos os fatos, a cronologia e a relevância das evidências. Os jogadores precisam encenar, competir, cooperar, negociar pistas e construir uma acusação final — enquanto cada desempenho também produz uma classificação individual.
 
-## Projeto em desenvolvimento
+**Jogar:** [drmarionascimento.github.io/Dragon/MOSAICO-mesa.html](https://drmarionascimento.github.io/Dragon/MOSAICO-mesa.html)
 
-O repositório reúne atualmente protótipos e componentes do **MOSAICO**, incluindo:
+**Caso implementado:** *A Casa da Costa*
 
-- mesa e interface principal do jogo;
-- casos e fragmentos narrativos;
-- experimentos de ambientação e interação;
-- recursos visuais e arquivos de apoio;
-- documentação técnica e registros de continuidade do desenvolvimento.
+**Participantes:** 2 a 12
 
-Os arquivos representam etapas de trabalho em evolução e podem conter versões experimentais, intermediárias ou ainda não consolidadas.
+**Situação:** protótipo jogável em construção e playtest
 
-## Acesso e licença
+## Autoria
 
-O repositório é público, mas visibilidade não equivale a licença aberta. O acesso ao código e aos materiais não concede autorização de uso, reprodução, adaptação, redistribuição, publicação ou exploração.
+**Concepção e autoria do projeto:** Mário César Nascimento e Osana Melo Nascimento
 
-Não publique links de demonstração, arquivos, capturas extensas, documentação interna ou qualquer parte do projeto sem autorização prévia e escrita do titular.
+**Desenvolvimento e perfil responsável:** [DrMarioNascimento](https://github.com/DrMarioNascimento)
 
-## Fluxo consolidado do jogo
+## Experiência atual
 
-`MOSAICO-mesa.html` implementa a pontuação V5 em fases sucessivas:
+O jogo funciona diretamente no navegador, sem instalação obrigatória, em dois modos:
 
-1. História que Pula e voto cego de Performance;
-2. rodada sensorial **O Vidro Embaçado**;
-3. rodada sensorial **A Janela do Norte**;
-4. Mosaico coletivo por núcleos e voto interno cego;
-5. Mercado Cego com moedas, preços configuráveis e registro das compras;
-6. dedução final com Suspeito, Motivo, Ação, Prova e Lacuna;
-7. revelação sincronizada em cinco telas — verdade, história, evidências, Confiabilidade e placar — seguida do resultado de Tempo (32%), Qualidade (13%), Cooperação (30%), Economia e Risco (20%) e Performance (5%).
+- **Com telão:** o painel coletivo apresenta código, QR, cronologia, revelação, apuração e pódio.
+- **Sem telão:** o criador também joga pelo celular e recebe os controles exclusivos de mestre no botão **Sala**.
 
-O placar final possui composição responsiva própria: pódio vertical no celular, pódio horizontal no telão, três caixas com nome do jogador, personagem e pontos sobre os degraus e classificação restante em lista.
+Ao entrar pelo celular, o participante pode assistir à abertura vertical ou pulá-la. A abertura horizontal permanece destinada ao telão. O som de mudança de nível é emitido somente no aparelho do mestre para evitar eco entre vários celulares.
 
-A Casa da Costa admite de 2 a 12 participantes. Os seis personagens são distribuídos em dois ciclos equilibrados: sem repetição até seis e com no máximo duas cópias de cada personagem até doze. Personagens repetidos funcionam como fragmentos independentes da mesma identidade narrativa.
+### Barra móvel
 
-Nas rodadas sensoriais, o jogador toca em **Ativar movimento**. A tarefa só começa depois da primeira leitura real do aparelho. Se a permissão for negada ou não houver resposta em cinco segundos, o celular oferece **Tentar novamente**; o Menu do mestre mostra conclusões e aparelhos sem resposta. O prazo da rodada continua garantindo o avanço automático.
+A navegação inferior utiliza **Caso | Sala | Arquivo**:
 
-Os parâmetros do caso ficam em `casos/casa-da-costa.json`. O cálculo puro e testável fica em `js/mosaico-v5.js`. Todos os pontos do jogo são inteiros.
+- **Caso:** rodada atual, orientação do momento e cronologia pública;
+- **Sala:** comandos exclusivos do mestre; para os demais jogadores, acesso às informações comuns da sala;
+- **Arquivo:** pistas privadas e adquiridas.
 
-Nos celulares, **Caso** abre a rodada atual, a orientação do momento e a linha do tempo pública; **Arquivo** reúne os fragmentos privados e adquiridos. O celular do mestre acrescenta somente **Menu**.
+O menu **Sala** do mestre é organizado em acordeões. A ação necessária recebe destaque vermelho; QR e participantes permanecem recolhidos quando não são necessários. A lista de participantes fica ao final do menu.
 
-### Modos de mesa
+### Ritmo da partida
 
-- **Com telão:** um aparelho é dedicado ao painel coletivo, ao QR, à cronologia e aos controles do mestre. O mestre não ocupa uma vaga de jogador nesse aparelho.
-- **Sem telão:** quem cria a sala também entra como jogador. Seu celular permanece igual ao dos demais, acrescentando apenas o botão compacto **Menu** ao lado de **Arquivo**. O Menu reúne QR/código, participantes conectados, controles necessários da fase e encerramento da sala. Formação de núcleos e cálculo do placar são automáticos e não aparecem como comandos manuais. Todos os celulares recebem um mural coletivo recolhível com relógio e cronologia pública.
+Na criação da sala, o mestre escolhe:
 
-O modo é escolhido ao abrir a mesa e gravado no documento da sala. Regras, caso, votos e pontuação são idênticos nos dois modos.
+- **Automaticamente — recomendado:** o jogo avança quando todos terminam;
+- **Com minha liberação:** a Sala avisa quando é hora de avançar.
 
-Se a página for recarregada ou o navegador for reaberto, o mesmo aparelho retorna à sala ativa com o jogador, personagem e progresso preservados. Uma sala encerrada pelo mestre não pode ser recuperada; ao abrir outra, o sistema cria um novo código.
+Nos dois ritmos, o mesmo controle alterna entre **Pausar partida** e **Retomar partida**. Assim, o mestre pode intervir mesmo depois de escolher avanço automático.
 
-O Firebase está configurado para autenticação anônima. As permissões versionadas ficam em `firestore.rules`, com configuração de implantação em `firebase.json` e `.firebaserc`. Consulte `FIREBASE-SECURITY.md` antes de publicar ou testar: o jogo não deve depender de regras abertas em modo de teste.
+## Fluxo consolidado
 
-## Autoria e titularidade
+1. criação da Sala, orientação e abertura audiovisual;
+2. apresentação/Encenação individual — **Entenda a cena, Faça e Fale**;
+3. **Jogador contra Jogador** e voto cego;
+4. tarefa sensorial **O Vidro Embaçado**;
+5. tarefa sensorial **A Janela do Norte**;
+6. encontro dos **Fragmentos** pela cor da tela e confirmação individual;
+7. **Jogador com Jogador** — reconstrução coletiva e voto interno;
+8. **Mercado de pistas** — compra e venda de informações;
+9. **Jogadores contra o caso** — acusação final;
+10. revelação, apuração progressiva e pódio.
 
-**Autor e titular:** Mário César Nascimento, PhD  
-**Perfil responsável:** [DrMarioNascimento](https://github.com/DrMarioNascimento)
+Durante a Encenação, somente o participante ativo recebe as instruções. Os demais veem o fundo do jogo e **AGUARDE...**, sem nomear quem está atuando. Os três cartões possuem funções distintas:
 
-## Licença
+- **Entenda a cena:** explica diretamente o que acontecerá;
+- **Faça:** apresenta as ações físicas;
+- **Fale:** fornece texto suficiente para uma pequena atuação, sem substituir a cena por silêncio.
 
-O conteúdo está sujeito à [Licença Proprietária — Todos os Direitos Reservados](LICENSE.md). Nenhum uso é autorizado além daquele expressamente concedido por escrito pelo titular.
+Na formação dos grupos, nomes não são necessários. Cada participante recebe um **Fragmento da Névoa, Tempestade, Farol ou Noite** e procura pessoas com a mesma cor de tela. O botão **OK, ENCONTREI MEU FRAGMENTO!** alimenta o contador; no ritmo automático, a tarefa abre quando todos confirmam.
+
+## Pontuação V5 — máximo de 100
+
+| Componente exibido | Componente técnico | Máximo |
+|---|---|---:|
+| Encenação | Performance | 5 |
+| J × J | Tempo de resolução | 32 |
+| J + J | Cooperação | 30 |
+| Mercado | Economia e risco | 20 |
+| Caso | Qualidade da resolução | 13 |
+
+Todos os pontos do jogo são inteiros. Empates de envio dentro de três segundos são tratados pelo motor. O escore Z é utilizado apenas em simulações e análise de dispersão; ele não integra o placar nem altera a classificação.
+
+Na apuração, as colunas surgem progressivamente e permanecem visíveis. A classificação é reordenada a cada componente. Quando entram os pontos do **Caso**, a animação segue diretamente para o pódio, sem exibir uma coluna separada de soma.
+
+## Arquitetura
+
+| Arquivo | Responsabilidade |
+|---|---|
+| `MOSAICO-mesa.html` | interface, fluxo, estados e integração Firebase |
+| `casos/casa-da-costa.json` | fonte canônica do caso piloto |
+| `js/mosaico-v5.js` | cálculo puro e testável da pontuação |
+| `MOSAICO-24.5-vidro-embacado.html` | primeira rodada sensorial |
+| `MOSAICO-24.5-a-janela-do-norte.html` | segunda rodada sensorial |
+| `firestore.rules` | autorização por Sala, mestre e participante |
+| `FIREBASE-SECURITY.md` | implantação e verificação de segurança |
+| `HANDOFF.md` | continuidade técnica e decisões consolidadas |
+
+O projeto utiliza HTML, CSS e JavaScript estáticos, Firebase Authentication anônimo e Firestore. A proteção dos dados depende da implantação das regras versionadas em `firestore.rules`; o jogo não deve operar com regras abertas em modo de teste.
+
+## Estado do desenvolvimento
+
+O repositório contém uma experiência jogável, mas a proposta continua em construção. Decisões antigas, hipóteses de design, testes de equilíbrio de Nash e simulações permanecem como memória técnica quando não tiverem sido formalmente substituídos. A regra documental é:
+
+> **Tudo se adapta, nada se perde.**
+
+Antes de alterar regras, narrativa ou pontuação, consulte `HANDOFF.md` e o histórico Git. Testes físicos com diferentes aparelhos continuam necessários para validar sensores, áudio, ritmo da Sala, mercado, reconexão e resultado final.
+
+## Licença e uso
+
+Este é um repositório público para consulta e funcionamento do GitHub Pages, mas **não é um projeto de código aberto**. A visibilidade dos arquivos não concede autorização para copiar, adaptar, redistribuir, republicar, comercializar, treinar sistemas de inteligência artificial ou criar obra derivada.
+
+É permitido participar normalmente de partidas pelo endereço oficial e avaliar o projeto nos limites descritos na [Licença Proprietária](LICENSE.md). Qualquer uso adicional depende de autorização prévia e escrita dos titulares.
 
 ---
 
