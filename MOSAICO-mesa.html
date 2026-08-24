@@ -3393,7 +3393,7 @@ async function voltarParaSala(){
   var nomeCaso = (q&&q.get("caso")) || "casa-da-costa";
   var casoPronto=Promise.resolve();
   if(/^[a-z0-9-]{1,40}$/.test(nomeCaso)){
-    casoPronto=fetch("casos/"+nomeCaso+".json")
+    casoPronto=fetch("casos/"+nomeCaso+".json?v=8f3311b6")
       .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
       .then(function(c){ aplicarCaso(c); render(); })
       .catch(function(e){
