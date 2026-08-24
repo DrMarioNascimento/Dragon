@@ -116,7 +116,23 @@
   },
   "mosaico": {
     "instrucao": "Ordene os seis acontecimentos gerais do mais antigo para o mais recente.",
-    "ordemCorreta": ["pub-2103", "pub-2107", "pub-2112", "pub-2114", "pub-2117", "pub-2120"]
+    "ordemCorreta": ["pub-2103", "pub-2107", "pub-2112", "pub-2114", "pub-2117", "pub-2120"],
+    "dicas": {
+      "pub-2103": "A casa apresentou seu primeiro aviso.",
+      "pub-2107": "Uma contradição apareceu entre abertura e bloqueio.",
+      "pub-2112": "Um vestígio recente contrariava a aparência de normalidade.",
+      "pub-2114": "Algo foi percebido, mas não pôde ser identificado.",
+      "pub-2117": "A percepção visual foi interrompida por um instante.",
+      "pub-2120": "O ambiente externo atravessou uma barreira da casa."
+    },
+    "rotulos": {
+      "pub-2103": "Oscilação da luz",
+      "pub-2107": "Porta, cortina e janela",
+      "pub-2112": "Marca recente no cofre",
+      "pub-2114": "Som no andar superior",
+      "pub-2117": "Sombra no corredor",
+      "pub-2120": "Entrada da névoa"
+    }
   },
   "tarefas": {
     "constelacao": {
