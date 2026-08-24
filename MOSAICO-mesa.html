@@ -444,7 +444,11 @@
   .sala-acordeao.acao-necessaria[open]{animation:none;box-shadow:0 0 0 2px rgba(224,103,79,.16),0 0 20px rgba(224,103,79,.18)}
   .sala-acordeao .menu-mestre-grade{grid-template-columns:1fr}
   .sala-acordeao .menu-mestre-grade .btn{font-size:13px}
-  .conectado-item{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--linha)}
+  .conectados-grade{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .conectado-item{min-width:0;padding:10px;border:1px solid var(--linha);border-radius:6px;background:rgba(5,8,13,.58)}
+  .conectado-item>span:first-child{display:block;overflow-wrap:anywhere;font-weight:700;line-height:1.18}
+  .conectado-item .muted{display:block;margin-top:5px;font-size:10px;line-height:1.2}
+  @media(max-width:340px){.conectados-grade{grid-template-columns:1fr}}
   body.modo-sem-telao #app{padding-bottom:92px}
   .mural-movel{margin:24px 0 80px;border:1px solid var(--linha);border-radius:6px;background:rgba(12,18,26,.92);padding:0 14px}
   .mural-movel summary{cursor:pointer;padding:14px 0;color:var(--frio);font-weight:800}
@@ -1627,11 +1631,11 @@ function controlesMestreMovel(){
         '<button class="btn btn-perigo" onclick="alternarMenuMestre();encerrarMesa()">Encerrar sala</button>';
     }
   }
-  var conectados=js.map(function(j){var status=fase==="sala"?(j.pronto?'pronto':'aguardando prontid&atilde;o'):'conectado';return '<div class="conectado-item"><span>'+esc(j.nome)+'</span><span class="muted">'+status+'</span></div>';}).join('')||'<p class="muted">Nenhum participante conectado.</p>';
+  var conectados=js.length?'<div class="conectados-grade">'+js.map(function(j){var status=fase==="sala"?(j.pronto?'pronto':'aguardando prontid&atilde;o'):'conectado';return '<div class="conectado-item"><span>'+esc(j.nome)+'</span><span class="muted">'+status+'</span></div>';}).join('')+'</div>':'<p class="muted">Nenhum participante conectado.</p>';
   var m=STATE.mesa, qr=m?'https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=8&data='+encodeURIComponent(m.link):'';
   var abrirAcao=acaoNecessaria||(fase!=="sala"&&!!botoes);
-  var abrirParticipantes=!abrirAcao&&fase==="sala";
-  var abrirStatus=!abrirAcao&&!abrirParticipantes&&!!autoInfo;
+  var abrirParticipantes=false;
+  var abrirStatus=!abrirAcao&&!!autoInfo;
   var secaoAcao=botoes?'<details class="sala-acordeao mestre-acao '+(acaoNecessaria?'acao-necessaria':'')+'" '+(abrirAcao?'open':'')+' ontoggle="exclusivoSala(this)"><summary>'+(acaoNecessaria?'A&ccedil;&atilde;o do mestre necess&aacute;ria':'Controles do mestre')+'</summary><div class="sala-acordeao-conteudo"><div class="menu-mestre-grade">'+botoes+'</div></div></details>':'';
   var secaoStatus=autoInfo?'<details class="sala-acordeao" '+(abrirStatus?'open':'')+' ontoggle="exclusivoSala(this)"><summary>Acompanhamento da rodada</summary><div class="sala-acordeao-conteudo">'+autoInfo+'</div></details>':'';
   var secaoPausa=fase==="resultado"?'':'<details class="sala-acordeao controle-pausa" '+(pausada?'open':'')+' ontoggle="exclusivoSala(this)"><summary>Controle da partida</summary><div class="sala-acordeao-conteudo">'+
@@ -1640,11 +1644,11 @@ function controlesMestreMovel(){
   var painel=STATE.menuMestreAberto?'<div class="menu-mestre-fundo" onclick="if(event.target===this)alternarMenuMestre()"><div class="menu-mestre-card">'+
     '<div class="menu-mestre-topo"><div><span class="eyebrow">Mestre &middot; '+esc(nomeRodada(fase))+'</span><h2>Sala</h2><p class="muted">'+(conduzido?'Ritmo conduzido pelo mestre':'Ritmo autom&aacute;tico')+'</p></div><button class="btn btn-sm" onclick="alternarMenuMestre()">Fechar</button></div>'+
     secaoAcao+
-    '<details class="sala-acordeao" '+(abrirParticipantes?'open':'')+' ontoggle="exclusivoSala(this)"><summary>Participantes &middot; '+js.length+'</summary><div class="sala-acordeao-conteudo">'+conectados+'</div></details>'+
     secaoStatus+
     secaoPausa+
     '<details class="sala-acordeao" ontoggle="exclusivoSala(this)"><summary>C&oacute;digo e QR da sala</summary><div class="sala-acordeao-conteudo"><div class="codigo-grande">'+esc(m&&m.codigo)+'</div><img class="menu-mestre-qr" src="'+esc(qr)+'" alt="QR da sala"><button class="btn btn-sm" style="width:100%" onclick="copiarLink()">Copiar link</button></div></details>'+
     '<details class="sala-acordeao" ontoggle="exclusivoSala(this)"><summary>Encerrar sala</summary><div class="sala-acordeao-conteudo"><button class="btn btn-perigo" onclick="encerrarMesa()">Encerrar sala</button></div></details>'+
+    '<details class="sala-acordeao" '+(abrirParticipantes?'open':'')+' ontoggle="exclusivoSala(this)"><summary>Participantes &middot; '+js.length+'</summary><div class="sala-acordeao-conteudo">'+conectados+'</div></details>'+
     '</div></div>':'';
   return '<button class="btn-menu-mestre '+(acaoNecessaria?'acao-necessaria':'')+'" onclick="alternarMenuMestre()" aria-label="Abrir ou fechar a Sala do mestre">Sala</button>'+painel;
 }
