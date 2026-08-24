@@ -1319,8 +1319,8 @@ var CASO={
 };
 CASO.configuracao={jogadores:{minimo:2,maximo:12,copiasPorPersonagem:2},limitesSegundos:{performance:60,constelacao:180,inclinacao:180,cooperacao:60,mercado:480,deducao:300}};
 CASO.tarefas={
-  constelacao:{titulo:"O Mapa do Escuro",arquivo:"MOSAICO-24.3-mapa-do-escuro.html?embed=1",pista:{id:"tarefa-constelacao",hora:"21:26",txt:"Os pontos só formam um desenho quando observados na ordem certa. A marca recente na trava do cofre é o ponto fixo da sequência."}},
-  inclinacao:{titulo:"A Janela do Norte",arquivo:"MOSAICO-24.4-a-janela-do-norte.html?embed=1",pista:{id:"tarefa-inclinacao",hora:"21:28",txt:"O pequeno objeto metálico não atravessou a sala: caiu próximo ao cofre e foi deslocado depois da queda."}}
+  constelacao:{titulo:"O Vidro Embaçado",arquivo:"MOSAICO-24.5-vidro-embacado.html?embed=1",pista:{id:"tarefa-constelacao",hora:"21:26",txt:"A água abriu uma trilha no vidro embaçado. Por trás dele, a marca recente na trava do cofre permaneceu como ponto fixo da sequência."}},
+  inclinacao:{titulo:"A Janela do Norte",arquivo:"MOSAICO-24.5-a-janela-do-norte.html?embed=1",pista:{id:"tarefa-inclinacao",hora:"21:28",txt:"O pequeno objeto metálico não atravessou a sala: caiu próximo ao cofre e foi deslocado depois da queda."}}
 };
 CASO.revelacaoFinal={
   titulo:"A verdade na Casa da Costa",
@@ -1329,14 +1329,14 @@ CASO.revelacaoFinal={
     "O Herdeiro sabia que um documento permanecia escondido no cofre da Casa da Costa. Antes da queda de energia, aproximou-se da trava e a manipulou, deixando a marca recente observada no início da noite.",
     "A porta entreaberta, a cortina em movimento e os ruídos do andar superior sugeriam uma invasão, mas a janela continuava trancada. Esses sinais desviavam a atenção sem explicar o ponto central: alguém presente na casa conhecia o cofre.",
     "Quando a luz oscilou, o Herdeiro aproveitou a confusão para abrir o cofre e recuperar o documento. Durante a ação, um pequeno componente metálico caiu perto da trava e foi deslocado depois da queda, produzindo parte dos sons e movimentos percebidos no escuro.",
-    "O Mapa do Escuro fixou a sequência na marca da trava. A Janela do Norte localizou o fragmento junto ao cofre. Quando os dois sinais foram combinados às pistas privadas, o aparente conjunto de fenômenos isolados tornou-se uma única ação coerente."
+    "O Vidro Embaçado revelou a sequência oculta e fixou a marca da trava. A Janela do Norte localizou o fragmento junto ao cofre. Quando os dois sinais foram combinados às pistas privadas, o aparente conjunto de fenômenos isolados tornou-se uma única ação coerente."
   ],
   evidencias:[
     {titulo:"Marca recente na trava",texto:"É a prova-chave: demonstra manipulação recente do cofre e conecta a ação ao ponto exato onde o documento estava escondido."},
     {titulo:"Pequeno objeto metálico",texto:"Resolve a lacuna material: caiu junto ao cofre e foi deslocado depois, explicando sons e movimentos percebidos durante a escuridão."},
     {titulo:"Janela trancada",texto:"Enfraquece a hipótese de entrada pela janela. A porta e a cortina criavam aparência de invasão, mas não comprovavam acesso externo."},
     {titulo:"Sombras e ruídos",texto:"Eram sinais reais, porém insuficientes isoladamente. Ganham sentido apenas quando relacionados à abertura do cofre e ao fragmento deslocado."},
-    {titulo:"Mapa do Escuro e Janela do Norte",texto:"As rodadas sensoriais confirmam o ponto fixo da sequência e a posição física do fragmento, aproximando os indícios da conclusão."}
+    {titulo:"Vidro Embaçado e Janela do Norte",texto:"As rodadas sensoriais confirmam o ponto fixo da sequência e a posição física do fragmento, aproximando os indícios da conclusão."}
   ]
 };
 
@@ -1498,7 +1498,7 @@ function nomeRodada(fase){
     sala:"Preparação da mesa",
     encenacao:"Apresentação",
     votacao:"Votação",
-    constelacao:"O Mapa do Escuro",
+    constelacao:"O Vidro Embaçado",
     inclinacao:"A Janela do Norte",
     mosaico:"Jogador ajuda seu grupo",
     cooperacao:"Jogador ajuda seu grupo",
@@ -1612,9 +1612,9 @@ function controlesMestreMovel(){
   }else if(fase==="encenacao"){
     botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();pularVez()">Pular a apresenta&ccedil;&atilde;o atual</button>';
   }else if(fase==="votacao"){
-    statusOuAcao(STATE.votos.length,js.length,"Vota&ccedil;&atilde;o","Abrir O Mapa do Escuro","abrirConstelacao");
+    statusOuAcao(STATE.votos.length,js.length,"Vota&ccedil;&atilde;o","Abrir O Vidro Emba&ccedil;ado","abrirConstelacao");
   }else if(fase==="constelacao"){
-    statusOuAcao(tarefasConcluidas('constelacao').length,js.length,"O Mapa do Escuro","Abrir A Janela do Norte","abrirInclinacao");
+    statusOuAcao(tarefasConcluidas('constelacao').length,js.length,"O Vidro Emba&ccedil;ado","Abrir A Janela do Norte","abrirInclinacao");
   }else if(fase==="inclinacao"){
     statusOuAcao(tarefasConcluidas('inclinacao').length,js.length,"A Janela do Norte","Formar os Fragmentos","prepararMosaico");
   }else if(fase==="mosaico"){
@@ -1756,7 +1756,7 @@ function orientacaoCaso(fase){
   if(fase==="sala") return souPronto()?"Você está pronto. Aguarde o início da partida.":"Confirme que está pronto para participar.";
   if(fase==="encenacao") return atual&&STATE.eu&&atual.id===STATE.eu.id?"Leia sua instrução no celular, proteja a tela e faça sua apresentação.":"Proteja sua tela, observe o ambiente e escute os sons.";
   if(fase==="votacao") return "Registre seu voto de Performance. Você não pode votar em si.";
-  if(fase==="constelacao") return "Ative o movimento e conclua O Mapa do Escuro.";
+  if(fase==="constelacao") return "Ative o movimento e conclua O Vidro Embaçado.";
   if(fase==="inclinacao") return "Ative o movimento e conclua A Janela do Norte.";
   if(fase==="mosaico") return "Encontre as telas da mesma cor e reconstrua os acontecimentos com seu Fragmento.";
   if(fase==="cooperacao") return "Registre em segredo quem mais colaborou com o seu Fragmento.";
@@ -3137,7 +3137,7 @@ window.addEventListener('message',function(event){
   /* Compatibilidade com os módulos canônicos, que usam nomes narrativos
      próprios sem expor os identificadores internos das fases da mesa. */
   if(event.data.mosaico==='tarefa-ok'){
-    if(event.data.jogo==='escuro') tipo='constelacao';
+    if(event.data.jogo==='vidro') tipo='constelacao';
     else if(event.data.jogo==='janela') tipo='inclinacao';
   }
   if(tipo!=='constelacao'&&tipo!=='inclinacao') return;

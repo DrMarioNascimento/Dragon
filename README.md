@@ -27,7 +27,7 @@ Não publique links de demonstração, arquivos, capturas extensas, documentaç�
 `MOSAICO-mesa.html` implementa a pontuação V5 em fases sucessivas:
 
 1. História que Pula e voto cego de Performance;
-2. rodada sensorial **O Mapa do Escuro**;
+2. rodada sensorial **O Vidro Embaçado**;
 3. rodada sensorial **A Janela do Norte**;
 4. Mosaico coletivo por núcleos e voto interno cego;
 5. Mercado Cego com moedas, preços configuráveis e registro das compras;

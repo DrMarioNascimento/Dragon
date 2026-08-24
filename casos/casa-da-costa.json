@@ -45,7 +45,7 @@
       "O Herdeiro sabia que um documento permanecia escondido no cofre da Casa da Costa. Antes da queda de energia, aproximou-se da trava e a manipulou, deixando a marca recente observada no início da noite.",
       "A porta entreaberta, a cortina em movimento e os ruídos do andar superior sugeriam uma invasão, mas a janela continuava trancada. Esses sinais desviavam a atenção sem explicar o ponto central: alguém presente na casa conhecia o cofre.",
       "Quando a luz oscilou, o Herdeiro aproveitou a confusão para abrir o cofre e recuperar o documento. Durante a ação, um pequeno componente metálico caiu perto da trava e foi deslocado depois da queda, produzindo parte dos sons e movimentos percebidos no escuro.",
-      "O Mapa do Escuro fixou a sequência na marca da trava. A Janela do Norte localizou o fragmento junto ao cofre. Quando os dois sinais foram combinados às pistas privadas, o aparente conjunto de fenômenos isolados tornou-se uma única ação coerente."
+      "O Vidro Embaçado revelou a sequência oculta e fixou a marca da trava. A Janela do Norte localizou o fragmento junto ao cofre. Quando os dois sinais foram combinados às pistas privadas, o aparente conjunto de fenômenos isolados tornou-se uma única ação coerente."
     ],
     "evidencias": [
       {
@@ -65,7 +65,7 @@
         "texto": "Eram sinais reais, porém insuficientes isoladamente. Ganham sentido apenas quando relacionados à abertura do cofre e ao fragmento deslocado."
       },
       {
-        "titulo": "Mapa do Escuro e Janela do Norte",
+        "titulo": "Vidro Embaçado e Janela do Norte",
         "texto": "As rodadas sensoriais confirmam o ponto fixo da sequência e a posição física do fragmento, aproximando os indícios da conclusão."
       }
     ]
@@ -120,13 +120,13 @@
   },
   "tarefas": {
     "constelacao": {
-      "titulo": "O Mapa do Escuro",
-      "arquivo": "MOSAICO-24.3-mapa-do-escuro.html?embed=1",
-      "pista": { "id": "tarefa-constelacao", "hora": "21:26", "txt": "Os pontos só formam um desenho quando observados na ordem certa. A marca recente na trava do cofre é o ponto fixo da sequência." }
+      "titulo": "O Vidro Embaçado",
+      "arquivo": "MOSAICO-24.5-vidro-embacado.html?embed=1",
+      "pista": { "id": "tarefa-constelacao", "hora": "21:26", "txt": "A água abriu uma trilha no vidro embaçado. Por trás dele, a marca recente na trava do cofre permaneceu como ponto fixo da sequência." }
     },
     "inclinacao": {
       "titulo": "A Janela do Norte",
-      "arquivo": "MOSAICO-24.4-a-janela-do-norte.html?embed=1",
+      "arquivo": "MOSAICO-24.5-a-janela-do-norte.html?embed=1",
       "pista": { "id": "tarefa-inclinacao", "hora": "21:28", "txt": "O pequeno objeto metálico não atravessou a sala: caiu próximo ao cofre e foi deslocado depois da queda." }
     }
   },
@@ -263,7 +263,7 @@
     "encenacao": "A casa escolheu alguém",
     "votacao": "A energia da mesa",
     "performance": "A energia da mesa",
-    "constelacao": "O Mapa do Escuro",
+    "constelacao": "O Vidro Embaçado",
     "inclinacao": "A Janela do Norte",
     "mosaico": "A verdade é um fragmento",
     "cooperacao": "O núcleo se recorda",
