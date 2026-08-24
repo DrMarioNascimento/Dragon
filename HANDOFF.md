@@ -117,6 +117,12 @@ O código atual entrega a primeira experiência jogável:
 - cronologia pública;
 - voto cego de Performance sem auto-voto;
 - divisão automática em núcleos de 2 ou 3 participantes;
+- encontro presencial por cor, com confirmação bloqueada nos primeiros cinco segundos;
+- cronômetro coletivo dourado com pulso vermelho, iniciado na formação dos Fragmentos;
+- sorteio e persistência de um Portador por Fragmento;
+- tela de horários e dicas para os integrantes, sem acesso às respostas selecionadas;
+- tela compacta do Portador com peça dourada, seis associações e envio exclusivo;
+- rascunho coletivo sincronizado, retirada das pistas já usadas e troca entre horários durante a revisão;
 - Mosaico Coletivo com colocação registrada pelo servidor;
 - voto interno cego, restrito ao núcleo e sem auto-voto;
 - Mercado Cego com 9 moedas iniciais e preços configuráveis de 1/3/5;
@@ -130,10 +136,10 @@ O código atual entrega a primeira experiência jogável:
 - manifesto para instalação;
 - solicitação de tela cheia quando suportada.
 - abertura em modo **Com telão** ou **Sem telão**;
-- no modo Sem telão, o criador também joga; seu celular é igual aos demais, exceto pelo botão compacto **Menu**, ao lado de **Arquivo**;
-- o Menu do mestre abre e fecha pelo mesmo botão e reúne QR/código, lista de conectados, controles necessários da fase, pular apresentação e encerrar sala;
-- com o Menu fechado, nenhum indicador, painel ou controle de mestre pode permanecer visível; toda a experiência jogável deve ser idêntica à dos demais celulares;
-- formação dos núcleos ocorre automaticamente quando todos votam ou termina o prazo de Performance;
+- no modo Sem telão, o criador também joga; seu celular é igual aos demais, exceto pelos comandos exclusivos dentro de **Sala**;
+- a Sala do mestre abre e fecha pelo mesmo botão e reúne QR/código, lista de conectados, controles necessários da fase, pular apresentação e encerrar sala;
+- com a Sala fechada, nenhum indicador, painel ou controle de mestre pode permanecer visível; toda a experiência jogável deve ser idêntica à dos demais celulares;
+- a formação dos Fragmentos começa depois das duas rodadas sensoriais e utiliza a distribuição automática em grupos de duas ou três pessoas;
 - cálculo e publicação do placar ocorrem automaticamente quando todos enviam a Dedução Final ou termina o prazo;
 - todos recebem um mural coletivo móvel com relógio e cronologia quando não há telão;
 
@@ -399,7 +405,7 @@ Performance reconhece envolvimento social; não é avaliação técnica de atua�
 
 ---
 
-## 10. Formação dos núcleos
+## 10. Formação e tarefa dos Fragmentos
 
 | Jogadores | Distribuição |
 |---:|---|
@@ -412,6 +418,14 @@ Performance reconhece envolvimento social; não é avaliação técnica de atua�
 | 12 | 3–3–3–3 |
 
 A primeira implementação é planejada para seis jogadores, com expansão até doze. A antiga simulação com quinze participantes não representa configuração atualmente suportada.
+
+Ao entrar na fase, cada grupo recebe nome e cor. O cronômetro começa imediatamente; o botão de confirmação surge depois de cinco segundos. Quando todos confirmam, a reconstrução abre automaticamente ou aguarda a liberação do mestre, conforme o ritmo escolhido para a Sala.
+
+As seis peças da cronologia são distribuídas entre os Arquivos dos integrantes de cada Fragmento: três para cada pessoa em grupos de duas e duas para cada pessoa em grupos de três. Ninguém recebe sozinho o conjunto. Durante a fase, Caso e Mural ocultam a cronologia pública para não oferecer uma solução paralela completa.
+
+Um integrante é sorteado como **Portador do Fragmento**. Nos demais celulares aparecem somente os seis horários e dicas interpretativas; as respostas selecionadas não são exibidas. Todos continuam podendo consultar o Arquivo. No celular do Portador aparecem seis horários e botões de seleção, sem repetir as dicas. A janela de escolha usa cartões de texto completo. Pistas utilizadas desaparecem das escolhas vazias; ao revisar um horário preenchido, todas reaparecem identificadas e uma opção ocupada pode ser trocada automaticamente com outra.
+
+O documento `nucleos/{numero}` persiste `portadorId`, `rascunho` e `rascunhoMs`. As regras permitem que somente esse UID altere o rascunho e conclua o Mosaico. O tempo coletivo continua sendo registrado no servidor no primeiro envio correto.
 
 ---
 
