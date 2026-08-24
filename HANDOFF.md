@@ -508,7 +508,7 @@ O código da sala isoladamente não permite assumir outro jogador. Se a sala est
 
 A senha do mestre no cliente continua sendo apenas uma barreira de abertura. A segurança dos dados foi versionada em `firestore.rules`: o criador é identificado por `mestreUid`; somente ele altera a sala, as fases e o placar; jogadores escrevem apenas ações autorizadas; votos e deduções ficam legíveis somente pelo autor e pelo mestre; compras são validadas como transações completas.
 
-A conclusão da apresentação passou a ser uma solicitação em `acoes`: o jogador confirma no próprio celular e somente o mestre avança a fase e publica a cronologia. Consulte `FIREBASE-SECURITY.md` para implantação, matriz de testes e o limite conhecido relativo às pistas ainda presentes nos documentos públicos dos jogadores.
+A conclusão da apresentação passou a ser uma solicitação em `acoes`: o jogador confirma no próprio celular e somente o mestre avança a fase e publica a cronologia. A atualização do próprio jogador também autoriza os campos `fragmentoPronto` e `fragmentoProntoMs`, necessários ao botão **OK, ENCONTREI MEU FRAGMENTO!**. Consulte `FIREBASE-SECURITY.md` para implantação, matriz de testes e o limite conhecido relativo às pistas ainda presentes nos documentos públicos dos jogadores.
 
 ### 13.3 Limite de jogadores
 
@@ -528,7 +528,19 @@ Tempo, Qualidade, Cooperação, Economia, Performance, Dedução Final, mercado,
 
 ### 13.6 Parâmetros de playtest
 
-O caso define valores iniciais configuráveis: 9 moedas, preços baixo/justo/alto de 1/3/5, limites de 60/60/480/300 segundos e qualidade objetiva das pistas. Os valores são parâmetros de playtest, não constantes irreversíveis do motor.
+O caso define valores iniciais configuráveis: 9 moedas; preços baixo/justo/alto de 1/3/5; limites de 60 segundos para Performance, 180 segundos para cada rodada sensorial, 60 segundos para Cooperação, 480 segundos para o Mercado e 300 segundos para a Dedução; e qualidade objetiva das pistas. Os valores são parâmetros de playtest, não constantes irreversíveis do motor.
+
+### 13.7 Consolidação visual e audiovisual
+
+A navegação móvel usa uma barra inferior fixa **Caso | Sala | Arquivo**. A Sala do mestre é central, funciona em acordeões exclusivos e deixa a lista de participantes por último, em duas colunas quando houver largura suficiente. Ações necessárias recebem alerta vermelho sem substituir a cor funcional do botão.
+
+A encenação apresenta somente ao ator os três blocos coloridos **Entenda a cena**, **Faça** e **Fale**; os demais aparelhos exibem o papel de parede escuro e **AGUARDE...**, sem revelar quem está atuando. Ao trocar de rodada, a rolagem volta ao início.
+
+A abertura possui vídeo horizontal H.264/AAC de 1280 × 720 para telão e vídeo vertical H.264/AAC de 1080 × 1920 para participantes em modo retrato. O vídeo móvel exige o toque em **Assistir à abertura**, com **Pular** disponível, porque navegadores móveis bloqueiam reprodução automática com som.
+
+O resultado final abre uma tabela progressiva com **Encenação**, **J × J**, **J + J**, **Mercado** e **Caso**. As colunas permanecem visíveis, a classificação muda após cada etapa e o pódio substitui a tabela ao final. O Caso entra por último sem exibir uma coluna separada de soma durante a animação.
+
+Os módulos sensoriais canônicos são `MOSAICO-24.5-vidro-embacado.html` e `MOSAICO-24.5-a-janela-do-norte.html`. Ambos comunicam conclusão e estado do sensor à mesa, oferecem interação por toque quando o sensor falha e preservam os identificadores internos `constelacao` e `inclinacao` para compatibilidade com Firestore e salas anteriores.
 
 ---
 
@@ -581,7 +593,7 @@ Mesas de teste antigas no Firestore devem ser removidas periodicamente.
 
 Em caso de conflito:
 
-1. decisões consolidadas no Documento Consolidado V5;
+1. decisões consolidadas no Documento Técnico MOSAICO atualizado;
 2. este HANDOFF;
 3. arquivo de caso canônico;
 4. comportamento implementado no código;

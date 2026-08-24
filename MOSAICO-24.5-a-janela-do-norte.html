@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>A Casa da Costa — A Noite da Tempestade</title>
+<title>A Janela do Norte — MOSAICO</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@400;500;600;700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;0,7..72,600;1,7..72,400;1,7..72,500&display=swap" rel="stylesheet">
@@ -347,6 +347,12 @@ var PASSO_TXT = [
 
 var EMBED=false;
 try{ EMBED = new URLSearchParams(location.search).get("embed")==="1"; }catch(e){}
+var statusSensorEnviado="";
+function avisaStatusSensor(status){
+  if(!EMBED||statusSensorEnviado===status) return;
+  statusSensorEnviado=status;
+  try{ parent.postMessage({mosaico:"sensor-status",tarefa:"inclinacao",status:status},location.origin); }catch(e){}
+}
 
 /* ---------------- utilidades ---------------- */
 var PI=Math.PI, TAU=PI*2, D2R=PI/180;
@@ -594,7 +600,7 @@ function onOrient(e){
   var v=eulerParaVista(alpha,e.beta,e.gamma);
   raw.bearing=wrap360(v.bearing+northOffset);
   raw.elev=v.elev; raw.roll=v.roll;
-  if(!started){ started=true; }
+  if(!started){ started=true; avisaStatusSensor("ativo"); }
 }
 
 function ativarSensor(){
@@ -605,16 +611,16 @@ function ativarSensor(){
     window.addEventListener("deviceorientation", onOrient, true);
     fechaIntro();
     setTimeout(function(){
-      if(!started){ src="sem sensor"; sim=true; setStatus("Sem bússola aqui — arraste com o dedo."); }
+      if(!started){ src="sem sensor"; sim=true; avisaStatusSensor("sem-resposta"); setStatus("Sem bússola aqui — arraste com o dedo."); }
     }, 1400);
   }
   if(DOE && typeof DOE.requestPermission==="function"){
     DOE.requestPermission().then(function(s){
       if(s==="granted") liga();
-      else { sim=true; fechaIntro(); setStatus("Permissão negada — arraste com o dedo."); }
-    }).catch(function(){ sim=true; fechaIntro(); });
+      else { sim=true; avisaStatusSensor("negado"); fechaIntro(); setStatus("Permissão negada — arraste com o dedo."); }
+    }).catch(function(){ sim=true; avisaStatusSensor("indisponivel"); fechaIntro(); });
   } else if(DOE){ liga(); }
-  else { sim=true; fechaIntro(); setStatus("Este aparelho não tem bússola."); }
+  else { sim=true; avisaStatusSensor("indisponivel"); fechaIntro(); setStatus("Este aparelho não tem bússola."); }
 }
 
 /* modo mouse/dedo (computador) */
@@ -1764,7 +1770,7 @@ function revela(){
       "no segundo andar, a seis passos encosta acima. Todos os convidados a viram do mesmo lado do mundo.";
     document.getElementById("card").classList.add("on");
   },1900);   /* deixa ver a silhueta aparecer antes de cobrir a cena */
-  if(EMBED){ try{ parent.postMessage({mosaico:"tarefa-ok", jogo:"janela"},"*"); }catch(e){} }
+  if(EMBED){ try{ parent.postMessage({mosaico:"tarefa-ok", jogo:"janela"},location.origin); }catch(e){} }
 }
 
 /* ==========================================================================

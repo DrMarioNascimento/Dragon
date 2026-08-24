@@ -28,7 +28,10 @@ service cloud.firestore {
     }
     function ownPlayerUpdate() {
       return request.resource.data.diff(resource.data).affectedKeys()
-        .hasOnly(['pronto', 'personagem', 'pistas', 'atualizadoEmMs']);
+        .hasOnly([
+          'pronto', 'personagem', 'pistas', 'fragmentoPronto',
+          'fragmentoProntoMs', 'atualizadoEmMs'
+        ]);
     }
     function purchasePlayerUpdate(roomId, playerId) {
       let marker = request.resource.data.ultimaNegociacao;

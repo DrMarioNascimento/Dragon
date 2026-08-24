@@ -403,8 +403,14 @@ var FRAGMENTOS = [
    hospeda em vez de seguir sozinho para a proxima rodada.          */
 var EMBED=false;
 try{ EMBED = new URLSearchParams(location.search).get("embed")==="1"; }catch(e){}
+var statusSensorEnviado="";
+function avisaStatusSensor(status){
+  if(!EMBED||statusSensorEnviado===status) return;
+  statusSensorEnviado=status;
+  try{ parent.postMessage({mosaico:"sensor-status",tarefa:"constelacao",status:status},location.origin); }catch(e){}
+}
 function avisaMesa(){
-  try{ parent.postMessage({mosaico:"tarefa-ok", jogo:"vidro"}, "*"); }catch(e){}
+  try{ parent.postMessage({mosaico:"tarefa-ok", jogo:"vidro"}, location.origin); }catch(e){}
 }
 
 /* ================= ESTADO ================= */
@@ -532,6 +538,7 @@ function pintaTexto(f){
 /* ================= SENSOR ================= */
 function onOrient(e){
   if(e.beta===null||e.beta===undefined||e.gamma===null||e.gamma===undefined) return;
+  if(!temSensor) avisaStatusSensor("ativo");
   temSensor=true; modoDedo=false;
   tBeta=e.beta; tGamma=e.gamma;
 }
@@ -983,16 +990,16 @@ function ativaSensor(){
     window.addEventListener("deviceorientation",onOrient,true);
     comeca();
     setTimeout(function(){
-      if(!temSensor){ modoDedo=true; avisa("Sem giroscópio — arraste com o dedo"); }
+      if(!temSensor){ modoDedo=true; avisaStatusSensor("sem-resposta"); avisa("Sem giroscópio — arraste com o dedo"); }
     },1800);
   };
   if(precisa){
     DeviceOrientationEvent.requestPermission().then(function(s){
       if(s==="granted") liga();
-      else { modoDedo=true; comeca(); avisa("Permissão negada — modo dedo"); }
-    }).catch(function(){ modoDedo=true; comeca(); avisa("Sensor indisponível — modo dedo"); });
+      else { modoDedo=true; avisaStatusSensor("negado"); comeca(); avisa("Permissão negada — modo dedo"); }
+    }).catch(function(){ modoDedo=true; avisaStatusSensor("indisponivel"); comeca(); avisa("Sensor indisponível — modo dedo"); });
   } else if("DeviceOrientationEvent" in window){ liga(); }
-  else { modoDedo=true; comeca(); avisa("Sem sensor — modo dedo"); }
+  else { modoDedo=true; avisaStatusSensor("indisponivel"); comeca(); avisa("Sem sensor — modo dedo"); }
 }
 
 document.getElementById("btn-start").addEventListener("click",function(){
