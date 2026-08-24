@@ -176,40 +176,52 @@
   ],
   "roteiros": {
     "investigador": {
-      "rub": "Você entra primeiro. Não por coragem — por hábito. Passa a mão pela parede do corredor, como quem testa a textura de algo vivo. A madeira responde com um estalo curto. Você para. Olha para cima.",
-      "tom": "Alto — quase um grito",
-      "fala": "“Tem alguém aí?”",
-      "pos": "A fala sai curta, automática. Ninguém responde. Ou talvez tenha respondido, e o som se perdeu na tempestade."
+      "resumo": "Entre devagar, passe a mão pela parede e caminhe pelo corredor. Ao ouvir um estalo, pare imediatamente, olhe para cima e procure quem pode estar escondido.",
+      "acao": "Dê alguns passos lentos, mantendo uma das mãos encostada na parede. Interrompa o movimento de repente, levante o rosto e examine o alto da sala. Recue meio passo e chame a presença que você acredita ter ouvido.",
+      "rub": "Você entra primeiro, examina a parede do corredor e reage ao som inesperado vindo da casa.",
+      "tom": "Comece desconfiad{o|a}; aumente a voz até quase gritar",
+      "fala": "“Tem alguém aí? Eu ouvi esse estalo, e não foi a tempestade. Há passos ou alguma coisa se movendo acima de nós. Se existe alguém escondido nesta casa, apareça agora! Eu não vou continuar por este corredor sem saber quem está nos observando.”",
+      "pos": "Depois da fala, mantenha o olhar fixo no alto por um instante, como se ainda esperasse uma resposta."
     },
     "herdeiro": {
-      "rub": "Você não entra: surge. A névoa abre espaço, como se reconhecesse você. Olha para cada canto da sala como quem procura algo que já sabe que está ali. O cofre chama sua atenção — fechado, mas com a marca de dedo fresca. Você toca a trava com o indicador.",
-      "tom": "Baixo, seco, sem hesitar",
-      "fala": "“Isso não estava assim.”",
-      "pos": "E não estava mesmo."
+      "resumo": "Entre de repente. Olhe para os dois lados da sala procurando algo, reconheça o cofre e vá diretamente até ele. Observe a trava e toque nela com o indicador.",
+      "acao": "Surja com segurança, como se já conhecesse o caminho. Examine rapidamente os cantos, interrompa a busca quando avistar o cofre e aproxime-se sem hesitar. Incline o corpo, analise a marca na trava e toque exatamente naquele ponto.",
+      "rub": "Você conhece a sala, encontra o cofre e percebe que alguém mexeu na trava antes da chegada do grupo.",
+      "tom": "Baixo e controlado no início; termine olhando para o grupo com firmeza",
+      "fala": "“Isso não estava assim. Eu conheço cada risco desta trava e esta marca é recente. Alguém chegou antes de nós, tocou neste cofre e procurou alguma coisa aqui dentro. Não tentem dizer que foi curiosidade. Quem conhece esta casa sabe exatamente o que este cofre guarda.”",
+      "pos": "Afaste a mão devagar e observe as outras pessoas como se esperasse que alguém se denunciasse."
     },
     "morador": {
-      "rub": "Você chega sem fazer barulho — a porta nem parece abrir. Passos leves, calculados, de quem está acostumad{o|a} a não ser percebid{o|a}. Olha para a escada. Para o sótão. Para a janela do segundo andar.",
-      "tom": "Sem falar — só o olhar",
-      "fala": "( silêncio )",
-      "pos": "Você não diz nada. Mas encara alguma coisa acima da cabeça das outras pessoas por três segundos, como quem já viu algo que os outros não viram. Depois desvia."
+      "resumo": "Entre sem fazer barulho. Olhe para a escada, para o sótão e para a janela do andar superior. Perceba um movimento acima do grupo, recue e avise as outras pessoas.",
+      "acao": "Caminhe com passos curtos e leves. Examine três pontos diferentes da sala e, de repente, fixe o olhar acima da cabeça dos demais. Permaneça imóvel por três segundos, recue um passo e fale sem tirar os olhos daquele lugar.",
+      "rub": "Você conhece os ruídos da casa e percebe no andar superior algo diferente dos sons da tempestade.",
+      "tom": "Baixo e urgente, como quem teme ser escutad{o|a}",
+      "fala": "“Não olhem todos ao mesmo tempo. Há alguma coisa se movendo perto do sótão. Eu conheço os estalos desta casa, e aquele som não veio da madeira nem do vento. Alguém está lá em cima, tentando acompanhar os nossos passos. E agora essa pessoa já sabe que nós a percebemos.”",
+      "pos": "Mantenha o corpo voltado para a escada e acompanhe com os olhos um movimento imaginário no andar superior."
     },
     "jornalista": {
-      "rub": "Você entra como se estivesse atrasad{o|a} — mesmo não estando. Segura a bolsa com força, como se algo lá dentro fosse mais importante do que a própria noite. Olha para o corredor. Para a cortina que balança sem vento. Para a porta entreaberta.",
-      "tom": "Incomodad{o|a} — mais do que deveria",
-      "fala": "“Quem deixou isso assim?”",
-      "pos": "Ninguém responde. E isso incomoda você ainda mais."
+      "resumo": "Entre com pressa protegendo sua bolsa. Examine o corredor, a cortina e a porta entreaberta. Aponte para a porta e questione quem esteve ali antes.",
+      "acao": "Caminhe rapidamente e mantenha a bolsa apertada contra o corpo. Pare diante da cortina, acompanhe seu movimento com os olhos e depois vire-se para a porta. Aponte para ela, percorra o grupo com o olhar e comece a fazer perguntas.",
+      "rub": "Você investiga sinais estranhos na sala enquanto protege algo importante dentro da bolsa.",
+      "tom": "Incomodad{o|a} e incisiv{o|a}; faça as perguntas em sequência",
+      "fala": "“Quem deixou essa porta aberta? A cortina está se movendo, mas a janela continua fechada e não há vento aqui dentro. Alguém atravessou este corredor antes de nós. Quero saber quem foi, o que procurava e por que ninguém achou importante avisar que esta sala já havia sido mexida.”",
+      "pos": "Continue apontando para a porta e aperte a bolsa contra o corpo enquanto espera uma resposta."
     },
     "policial": {
-      "rub": "Você entra com a postura de quem tenta parecer tranquil{o|a} — mas não está. Olha para a tempestade pela janela. Depois para os outros. Depois para a casa. E a casa olha de volta. Você passa a mão pelo cabelo, nervos{o|a}. Um reflexo metálico na janela chama sua atenção.",
-      "tom": "Nervos{o|a} — a voz falha no meio",
-      "fala": "“Vocês viram isso?”",
-      "pos": "Ninguém admite ter visto. Mas todos sentiram."
+      "resumo": "Entre tentando manter a autoridade. Observe a janela e as pessoas, passe a mão pelo cabelo e perceba um reflexo metálico. Recue e afaste o grupo do vidro.",
+      "acao": "Caminhe com postura firme, mas deixe o nervosismo aparecer no olhar. Examine a janela, encare duas pessoas e volte a olhar para fora. Passe a mão pelo cabelo, recue ao notar o reflexo e abra um braço diante do grupo como proteção.",
+      "rub": "Você tenta controlar a situação, mas um reflexo na janela indica que alguém pode estar observando a sala.",
+      "tom": "Firme no começo; deixe a voz falhar e depois recupere a autoridade",
+      "fala": "“Vocês viram aquele reflexo na janela? Não se aproximem! Parecia metal, e quem estiver lá fora consegue enxergar toda esta sala. Afastem-se do vidro e pensem antes de responder: alguém trouxe alguma coisa capaz de refletir a luz, ou existe outra pessoa nos observando desde a tempestade?”",
+      "pos": "Permaneça entre o grupo e a janela, sem baixar o braço, e continue procurando o reflexo."
     },
     "menina": {
-      "rub": "Você é {o último|a última}. Entra devagar, como quem não quer interromper algo que já começou. A casa parece esperar por você. Olha para o teto. Para o sótão. Para a escada. Para o cofre. Para a porta entreaberta.",
-      "tom": "Não fale — conte até cinco",
-      "fala": "( silêncio )",
-      "pos": "Você vê tudo. E não diz nada. O silêncio {do Menino|da Menina} é mais pesado do que qualquer fala. Encare a mesa, uma pessoa de cada vez, e só então sente."
+      "resumo": "Entre por último e observe o teto, o sótão, a escada, o cofre e a porta. Encare cada pessoa, escolha uma delas e se aproxime antes de revelar o que percebeu.",
+      "acao": "Entre devagar e examine cada ponto da sala como se juntasse partes de uma descoberta. Passe o olhar por todas as pessoas, escolha uma delas e dê um passo em sua direção. Espere dois segundos e fale olhando diretamente para ela.",
+      "rub": "Você percebe que os sinais da casa acompanham o grupo e conclui que ela esperava especificamente por uma das pessoas presentes.",
+      "tom": "Calm{o|a}, muito séri{o|a} e inquietante; fale devagar",
+      "fala": "“A casa estava vazia quando chegamos, mas não parecia abandonada. As portas estavam abertas como se alguém soubesse que nós viríamos. Desde que entramos, os ruídos acompanham exatamente os nossos passos, um por um. Esta casa não estava esperando por todos nós. Estava esperando por uma única pessoa.”",
+      "pos": "Continue olhando para a pessoa escolhida por dois segundos e depois se afaste lentamente."
     }
   },
   "pistas": {
