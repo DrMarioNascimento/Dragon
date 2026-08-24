@@ -452,8 +452,10 @@
   .conectado-item .muted{display:block;margin-top:5px;font-size:10px;line-height:1.2}
   @media(max-width:340px){.conectados-grade{grid-template-columns:1fr}}
   body.modo-sem-telao #app{padding-bottom:92px}
-  .mural-movel{margin:24px 0 80px;border:1px solid var(--linha);border-radius:6px;background:rgba(12,18,26,.92);padding:0 14px}
-  .mural-movel summary{cursor:pointer;padding:14px 0;color:var(--frio);font-weight:800}
+  .mural-movel{margin:18px 0 78px;border:1px solid var(--linha);border-radius:6px;background:rgba(12,18,26,.92);padding:0 12px}
+  .mural-movel summary{cursor:pointer;padding:11px 0;color:var(--frio);font-size:13px;font-weight:800;line-height:1.25}
+  .mural-movel[open]{padding-bottom:10px}
+  .mural-movel .publica{margin-bottom:12px;padding-left:10px}
   .btn-sm{
     display:inline-block;width:auto;padding:12px 18px;margin:0;
     font-size:clamp(11px,3vw,13px);letter-spacing:.14em;
@@ -772,7 +774,7 @@
   /* ---------- personagens ---------- */
   .pers-lista{display:grid;gap:10px;margin-bottom:24px}
   .pers-op{
-    display:flex;align-items:center;gap:16px;text-align:left;
+    display:flex;align-items:flex-start;gap:16px;text-align:left;
     border:1px solid var(--linha);border-radius:3px;background:var(--painel);
     padding:16px 18px;cursor:pointer;width:100%;color:var(--texto);
     transition:border-color .25s ease;
@@ -780,14 +782,28 @@
   .pers-op[aria-pressed="true"]{border-color:var(--ambar);background:rgba(232,164,76,.07)}
   .pers-op:disabled{opacity:.3;cursor:default}
   .pers-op .av{font-size:clamp(28px,7.5vw,36px);line-height:1}
-  .pers-op .txt{flex:1}
+  .pers-op .txt{display:block;flex:1;min-width:0}
   .pers-op .nm{
-    font-family:var(--serif);font-size:clamp(24px,6.4vw,30px);line-height:1.15;
+    display:block;font-family:var(--serif);font-size:clamp(24px,6.4vw,30px);line-height:1.15;
   }
   .pers-op .desc{
-    font-family:var(--serif);font-style:italic;color:var(--nevoa);
+    display:block;font-family:var(--serif);font-style:italic;color:var(--nevoa);
     font-size:clamp(16px,4.3vw,20px);line-height:1.35;margin-top:3px;
   }
+
+  /* Barra inferior única: Caso | Sala | Arquivo. */
+  .barra-jogo{position:fixed;z-index:45;left:12px;right:12px;
+    bottom:max(12px,env(safe-area-inset-bottom));display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;align-items:stretch;
+    pointer-events:none}
+  .barra-jogo .btn-caso,.barra-jogo .btn-menu-mestre,.barra-jogo #btn-pistas{
+    position:static;left:auto;right:auto;bottom:auto;transform:none;width:100%;min-width:0;
+    min-height:48px;margin:0;padding:10px 5px;display:none;align-items:center;justify-content:center;
+    font-size:clamp(9px,2.8vw,12px);letter-spacing:.09em;white-space:nowrap;pointer-events:auto}
+  .barra-jogo .btn-caso{grid-column:1;display:flex}
+  .barra-jogo .btn-menu-mestre{grid-column:2;display:flex}
+  .barra-jogo #btn-pistas{grid-column:3}
+  .barra-jogo #btn-pistas.on{display:flex}
 
   /* ---------- roteiro de cinema ---------- */
   #escuro{
@@ -1088,7 +1104,9 @@
   <video id="video-abertura" muted loop playsinline preload="auto"
          poster="img/capa-vertical.jpg"></video>
 </div>
-<button id="btn-pistas" title="Abrir os fragmentos guardados" aria-label="Abrir Arquivo">🗂 Arquivo <b>0</b></button>
+<nav id="barra-jogo" class="barra-jogo" aria-label="Navega&ccedil;&atilde;o da partida">
+  <button id="btn-pistas" title="Abrir os fragmentos guardados" aria-label="Abrir Arquivo">🗂 Arquivo <b>0</b></button>
+</nav>
 
 <div id="pistas">
   <h2>Arquivo</h2>
@@ -1775,8 +1793,22 @@ function painelPartidaPausada(){
 /* ============================================================
    TELAS
    ============================================================ */
+var _faseRolagem=null;
+function limparBarraInferior(){
+  var barra=document.getElementById("barra-jogo");
+  if(!barra)return;
+  barra.querySelectorAll(".btn-caso,.btn-menu-mestre").forEach(function(el){el.remove();});
+}
+function organizarBarraInferior(){
+  var barra=document.getElementById("barra-jogo"), app=document.getElementById("app");
+  if(!barra||!app)return;
+  var caso=app.querySelector(".btn-caso"), sala=app.querySelector(".btn-menu-mestre");
+  if(caso)barra.appendChild(caso);
+  if(sala)barra.appendChild(sala);
+}
 function render(forcar){
   var app=document.getElementById("app");
+  limparBarraInferior();
   var esperandoPronto = STATE.tela==="esperando" && !souPronto();
   app.className = (STATE.tela==="painel") ? "largo"
                 : (STATE.tela==="inicio") ? "capa"
@@ -1791,6 +1823,8 @@ function render(forcar){
   document.body.classList.toggle("modo-sem-telao", modoAtual()==="sem-telao");
   /* enquanto a sala espera, o painel continua com o video */
   var faseAgora=(STATE.doc&&STATE.doc.fase)||"sala";
+  var faseMudou=!!STATE.eu&&_faseRolagem!==faseAgora;
+  if(STATE.eu)_faseRolagem=faseAgora;
   if(partidaPausada()){
     if(_timerContagem)clearInterval(_timerContagem);
     _timerContagem=null;STATE.contando=0;
@@ -1826,6 +1860,7 @@ function render(forcar){
     return t.id===((STATE.eu&&STATE.eu.id)+'_'+tipoSensor)&&tarefaConcluida(t);
   });
   if(!forcar&&frameSensor&&!sensorConcluido&&!partidaPausada()){
+    if(faseMudou)requestAnimationFrame(function(){window.scrollTo(0,0);});
     agendarAutomacoes();
     return;
   }
@@ -1859,6 +1894,8 @@ function render(forcar){
   if(STATE.eu) h+=modalOrientacaoParticipante();
   h+=painelPartidaPausada();
   app.innerHTML=h;
+  organizarBarraInferior();
+  if(faseMudou)requestAnimationFrame(function(){window.scrollTo(0,0);});
   iniciarApuracaoSeNecessario();
   agendarAutomacoes();
 }
