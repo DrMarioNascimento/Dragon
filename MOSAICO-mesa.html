@@ -1680,7 +1680,7 @@ function habilitarAudioNivel(){
     prepararVozesNivel();
   }catch(e){}
 }
-function tocarVozDeNivel(chave,atraso){
+function tocarVozDeNivel(chave,atraso,aoTerminar){
   if(!souMestreDaMesa()||partidaPausada())return;
   habilitarAudioNivel();
   if(!_audioNivel||_audioNivel.state!=="running")return;
@@ -1689,6 +1689,9 @@ function tocarVozDeNivel(chave,atraso){
     var fonte=_audioNivel.createBufferSource(), ganho=_audioNivel.createGain();
     fonte.buffer=buffer;ganho.gain.value=.92;
     fonte.connect(ganho);ganho.connect(_audioNivel.destination);
+    if(typeof aoTerminar==="function"){
+      fonte.onended=function(){aoTerminar();};
+    }
     fonte.start(_audioNivel.currentTime+Math.max(0,Number(atraso)||0));
   });
 }
@@ -2703,7 +2706,12 @@ function iniciarApuracaoSeNecessario(){
     if(decorrido>=22000){
       _apuracaoRAF=0;STATE.resultadoVista="podio";
       var chavePodio=inicio+":"+Number((STATE.doc&&STATE.doc.apuracaoRepeticao)||0);
-      if(souMestreDaMesa()&&_podioAudioChave!==chavePodio){_podioAudioChave=chavePodio;tocarVozDeNivel("podio",.35);}
+      if(souMestreDaMesa()&&_podioAudioChave!==chavePodio){
+        _podioAudioChave=chavePodio;
+        tocarVozDeNivel("podio",.35,function(){
+          tocarVozDeNivel("encerramento",0);
+        });
+      }
       render(true);return;
     }
     var etapa=decorrido<16000?Math.min(3,Math.floor(decorrido/4000)):4;
@@ -3668,7 +3676,7 @@ async function finalizarPartida(){
   var FB=await esperarFB();
   for(var i=0;i<placar.length;i++) await FB.atualizarJogador(STATE.mesa.codigo,placar[i].id,{total:placar[i].total,pontuacao:placar[i].componentes,economiaDetalhe:placar[i].economia});
   var agora=Date.now();
-  await FB.atualizarMesa(STATE.mesa.codigo,{fase:'resultado',revelacaoEtapa:0,reveladaEmMs:agora,solucao:sol,encerramentoIniciadoMs:agora,encerramentoConcluido:false,encerramentoConcluidoMs:0});
+  await FB.atualizarMesa(STATE.mesa.codigo,{fase:'resultado',revelacaoEtapa:0,reveladaEmMs:agora,solucao:sol,encerramentoIniciadoMs:0,encerramentoConcluido:true,encerramentoConcluidoMs:0});
 }
 
 /* Encerra a mesa: marca ativa:false. Quem esta jogando ve o aviso e sai,
