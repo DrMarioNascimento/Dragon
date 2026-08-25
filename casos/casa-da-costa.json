@@ -116,7 +116,6 @@
   },
   "mosaico": {
     "instrucao": "Ordene os seis acontecimentos gerais do mais antigo para o mais recente.",
-    "penalidadeErro": 2,
     "ordemCorreta": ["pub-2103", "pub-2107", "pub-2112", "pub-2114", "pub-2117", "pub-2120"],
     "dicas": {
       "pub-2103": "A casa apresentou seu primeiro aviso.",
