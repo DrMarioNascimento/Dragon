@@ -363,11 +363,13 @@
   <p class="oito-p">Tem muita névoa e chuva, você precisa ir em direção a casa para achar as pistas. São seis estágios, e a névoa só abre no fim.</p>
   <p class="oito-p">Você vai usar o seu celular para te guiar até lá. A bússola precisa estar ativa: <b>desenhe um 8 no ar à sua frente com o celular</b>.</p>
   <div id="oito-trilho"><div id="oito-barra"></div></div>
-  <button id="oito-vai" class="go" disabled>Esperando calibração da bússola</button>
+  <div id="oito-botoes" class="on">
+    <button id="oito-vai" class="go" disabled>A bússola ainda está tonta</button>
+  </div>
 </div>
 
 <div id="card"><div id="card-in">
-  <div id="c-meta"><span>Fragmento</span><span id="c-hora">21:07</span></div>
+  <div id="c-meta"><span id="c-tipo">Registro anterior da noite</span><span id="c-hora">21:07</span></div>
   <div id="c-txt"></div>
   <div id="c-dir"></div>
   <div id="c-tempo"></div>
@@ -805,16 +807,31 @@ function buildWorld(seedStr){
 
   /* olhos-de-gato dos dois lados do caminho que sobe a encosta.
      Guardados em metros — a perspectiva é calculada a cada quadro. */
+  /* Eram 22, um a cada 2,6 m — virava pista de pouso. Doze, mais
+     espacados, cobrem a mesma subida sem entregar o caminho de graca. */
   var marcas=[], curva=(rnd()-0.5)*0.9;
-  for(i=0;i<22;i++){
-    var lado=(i%2)?1:-1, m=2+i*2.6;
+  for(i=0;i<12;i++){
+    var lado=(i%2)?1:-1, m=2+i*4.8;
     marcas.push({ z:m, lat:lado*(2.6+rnd()*0.5)+curva*m*0.12 });
   }
-  /* as outras janelas acesas da casa (lat/altura em metros) */
+  /* As outras janelas acesas da casa. lat e altura em METROS acima da
+     linha do olho; l e alt sao as meias-medidas do vao; a e quanta luz
+     sai. A fileira do meio esta em h:3.20 de proposito — e a mesma altura
+     de CFG.JAN_H, a janela acesa. E o que poe a janela num ANDAR.
+     A da janela alvo nao entra aqui: ela e desenhada a parte, com quarto,
+     cortina e silhueta.                                                */
   var janelas=[
-    {lat:-4.6,h:1.1,a:0.30}, {lat:-2.4,h:1.1,a:0.16},
-    {lat: 3.9,h:1.2,a:0.26}, {lat:-4.4,h:3.3,a:0.20},
-    {lat: 4.3,h:3.2,a:0.13}, {lat:-1.9,h:6.4,a:0.10}
+    /* terreo, em pedra — o alpendre cobre o lado direito */
+    {lat:-5.3,h:-0.15,a:0.34,l:0.62,alt:0.62},
+    {lat:-2.8,h:-0.15,a:0.11,l:0.62,alt:0.62},
+    /* segundo andar — a fileira da janela acesa */
+    {lat:-5.1,h: 3.20,a:0.24,l:0.58,alt:0.86},
+    {lat:-2.6,h: 3.20,a:0.12,l:0.58,alt:0.86},
+    {lat: 3.3,h: 3.20,a:0.21,l:0.58,alt:0.86},
+    {lat: 5.7,h: 3.20,a:0.09,l:0.58,alt:0.86},
+    /* o sotao, sob o beiral — de onde veio o estalo */
+    {lat:-1.7,h: 7.25,a:0.12,l:0.46,alt:0.54},
+    {lat: 2.4,h: 7.25,a:0.07,l:0.46,alt:0.54}
   ];
 
   world={blocos:blocos, marcas:marcas, pinheiros:pinheiros, janelas:janelas};
@@ -1407,62 +1424,181 @@ function janela(tempo, clareza, prox){
   var quente=lerp(0.30,1,L);
   var hy=sy(0);
 
-  /* ---------- a Casa da Costa ---------- */
+  /* ---------- a Casa da Costa ----------
+     A referencia e a arte de abertura do MOSAICO: casarao de costa com o
+     TERREO EM PEDRA e o andar de cima em ENXAIMEL, o segundo AVANCANDO um
+     palmo sobre o primeiro. E o ressalto — e a sombra que ele joga na
+     pedra — que faz o olho contar dois andares num relance. Faixa pintada
+     nao faz isso; degrau faz.
+     Tudo daqui para baixo e METRO acima da linha do olho, projetado pela
+     distancia: e o que faz a casa crescer junto com a janela enquanto
+     voce sobe a encosta. As cotas da fachada:
+       -1,20 o pe, que o nevoeiro come      -0,15 janelas do terreo
+        0,30 verga da porta                  0,75 telhado do alpendre
+        1,02 a 1,28  O RESSALTO
+        3,20 a fileira do segundo andar — CFG.JAN_H, a janela acesa
+        5,90 a 6,10  cornija                 6,60 as aguas-furtadas do sotao
+        9,00 beiral — CFG.CASA_H            15,20 cumeeira
+     Nada aqui toca CFG: a mira, a tolerancia e as seis etapas continuam
+     exatamente as mesmas. Isto e so o que se ve.                        */
+  var mY=function(h){ return sy(Math.atan2(h,g.d)/D2R); };
+  var mX=function(lat){ return cx+Math.atan2(lat,g.d)/D2R*PPD; };
+  var mW=function(m){ return Math.atan2(m,g.d)/D2R*PPD; };   /* metro em px */
   var pty=sy(g.parTop), pby=hy+D2*0.45;
-  var cume=sy(Math.atan2(CFG.CASA_H+3.6,g.d)/D2R);
+  var P=g.parHW, Pt=mW(CFG.CASA_L-0.45);       /* Pt: o terreo, mais estreito */
+  var yChao=Math.min(mY(-1.20),pby);           /* nunca desenhar abaixo da nevoa */
   if(CAN_FILTER) sc.filter="none";
-  var fgw=sc.createLinearGradient(0,pty,0,pby);
-  fgw.addColorStop(0,"#0b131f");
-  fgw.addColorStop(0.30,"#080e18");
-  fgw.addColorStop(0.68,"#060a12");
-  fgw.addColorStop(1,"rgba(10,16,24,0)");    /* o pé da casa some no nevoeiro */
-  sc.fillStyle=fgw;
-  sc.fillRect(cx-g.parHW,pty,g.parHW*2,pby-pty);
 
-  /* telhado principal de duas águas + empena da frente, alpendre e chaminés:
-     o recorte da Casa da Costa contra o céu */
-  var P=g.parHW, esc=(pty-cume);
-  sc.fillStyle="#060810";
-  sc.beginPath();                                  /* água principal */
-  sc.moveTo(cx-P*1.14,pty+1); sc.lineTo(cx-P*0.15,cume);
-  sc.lineTo(cx+P*1.14,pty+1); sc.closePath(); sc.fill();
-  sc.beginPath();                                  /* empena da frente */
-  sc.moveTo(cx-P*0.98,pty+1);
-  sc.lineTo(cx-P*0.42,cume-esc*0.30);
-  sc.lineTo(cx+P*0.14,pty+1);
-  sc.closePath(); sc.fill();
-  sc.beginPath();                                  /* empena lateral menor */
-  sc.moveTo(cx+P*0.34,pty+1);
-  sc.lineTo(cx+P*0.71,cume+esc*0.22);
-  sc.lineTo(cx+P*1.08,pty+1);
-  sc.closePath(); sc.fill();
-  /* alpendre: telhadinho baixo apoiado em pilares, rente ao chão */
-  var alpY=sy(Math.atan2(2.5,g.d)/D2R), alpB=sy(Math.atan2(0.1,g.d)/D2R);
-  sc.fillRect(cx-P*0.10,alpY,P*1.05,Math.max(2,(alpB-alpY)*0.13));
-  for(var pl=0;pl<4;pl++)
-    sc.fillRect(cx-P*0.07+pl*P*0.32,alpY,Math.max(1.4,P*0.035),alpB-alpY);
-  /* chaminés */
-  var chL=P*0.075;
-  [[-0.62,0.95],[0.44,0.72]].forEach(function(c){
-    var chX=cx+P*c[0], chH=esc*c[1];
-    sc.fillRect(chX-chL,lerp(pty,cume,0.45)-chH*0.55,chL*2,Math.abs(chH)*0.9+Math.abs(esc)*0.5);
-  });
-  /* fio de luz do céu nas cumeeiras molhadas */
+  /* ---- andar de cima: reboco entre os barrotes ---- */
+  var yRess=mY(1.28);
+  var fgw=sc.createLinearGradient(0,pty,0,yRess);
+  fgw.addColorStop(0,"#0d1521");
+  fgw.addColorStop(0.34,"#0a111c");
+  fgw.addColorStop(1,"#080d16");
+  sc.fillStyle=fgw;
+  sc.fillRect(cx-P,pty,P*2,yRess-pty);
+
+  /* ---- terreo: pedra bruta, mais escura e um palmo mais estreita ---- */
+  var yTerr=mY(1.02);
+  var tgw=sc.createLinearGradient(0,yTerr,0,pby);
+  tgw.addColorStop(0,"#070c14");
+  tgw.addColorStop(0.55,"#05090f");
+  tgw.addColorStop(1,"rgba(8,13,20,0)");     /* o pe da casa some no nevoeiro */
+  sc.fillStyle=tgw;
+  sc.fillRect(cx-Pt,yTerr,Pt*2,pby-yTerr);
+  /* fiadas de pedra: so um sussurro, senao vira parede de tijolinho */
+  sc.fillStyle="rgba(104,132,164,"+(0.030+0.030*L)+")";
+  for(var fi=1;fi<=4;fi++){
+    var yf=mY(1.02-fi*0.58);
+    if(yf<pby) sc.fillRect(cx-Pt,yf,Pt*2,Math.max(1,mW(0.05)));
+  }
+
+  /* ---- O RESSALTO ---- */
+  var yR0=mY(1.28), yR1=mY(1.02), hR=Math.max(1.6,yR1-yR0);
+  var rg0=sc.createLinearGradient(0,yR0,0,yR1);
+  rg0.addColorStop(0,"rgba(128,158,192,"+(0.11+0.10*L)+")");   /* aresta molhada */
+  rg0.addColorStop(0.40,"rgba(44,58,76,"+(0.20+0.10*L)+")");
+  rg0.addColorStop(1,"rgba(2,4,8,"+(0.44+0.16*L)+")");
+  sc.fillStyle=rg0;
+  sc.fillRect(cx-P,yR0,P*2,hR);
+  /* a sombra que o avanco joga na pedra — e ela que da o degrau */
+  var rs=sc.createLinearGradient(0,yR1,0,yR1+hR*2.2);
+  rs.addColorStop(0,"rgba(0,0,0,"+(0.40+0.14*L)+")");
+  rs.addColorStop(1,"rgba(0,0,0,0)");
+  sc.fillStyle=rs;
+  sc.fillRect(cx-Pt,yR1,Pt*2,hR*2.2);
+  /* maos-francesas sob o avanco */
+  sc.fillStyle="rgba(0,0,0,"+(0.50+0.20*L)+")";
+  for(var mf=-3;mf<=3;mf++)
+    sc.fillRect(mX(mf*2.2)-Math.max(1,mW(0.09)),yR1,Math.max(2,mW(0.18)),hR*1.1);
+
+  /* ---- enxaimel: os barrotes do andar de cima ---- */
+  var eTop=mY(5.90), eBot=yR0, eEsp=Math.max(1.2,mW(0.16));
+  sc.fillStyle="rgba(0,0,0,"+(0.34+0.20*L)+")";
+  for(var bx=-6.6;bx<=6.61;bx+=1.65){
+    if(Math.abs(bx)<1.9) continue;            /* o vao da janela acesa */
+    sc.fillRect(mX(bx)-eEsp/2,eTop,eEsp,eBot-eTop);
+  }
+  sc.fillRect(cx-P,eTop,P*2,eEsp);            /* frechal de cima */
+  /* duas escoras em diagonal, para nao virar um gradeado */
+  sc.strokeStyle="rgba(0,0,0,"+(0.30+0.18*L)+")";
+  sc.lineWidth=eEsp;
+  sc.beginPath();
+  sc.moveTo(mX(-6.6),eBot); sc.lineTo(mX(-4.95),eTop);
+  sc.moveTo(mX( 6.6),eBot); sc.lineTo(mX( 4.95),eTop);
+  sc.stroke();
+
+  /* ---- cornija sob o sotao: separa o segundo andar do desvao ---- */
+  var yC0=mY(6.10), yC1=mY(5.90), hC=Math.max(1.2,yC1-yC0);
+  sc.fillStyle="rgba(112,140,172,"+(0.07+0.07*L)+")";
+  sc.fillRect(cx-P,yC0,P*2,hC);
+  sc.fillStyle="rgba(0,0,0,"+(0.30+0.12*L)+")";
+  sc.fillRect(cx-P,yC1,P*2,hC*1.3);
+
+  /* ---- cunhais: as quinas dao espessura a caixa ---- */
+  var cun=Math.max(1.5,mW(0.5));
+  var cq1=sc.createLinearGradient(cx-P,0,cx-P+cun,0);
+  cq1.addColorStop(0,"rgba(110,138,170,"+(0.09+0.07*L)+")");
+  cq1.addColorStop(1,"rgba(0,0,0,0)");
+  sc.fillStyle=cq1; sc.fillRect(cx-P,pty,cun,yRess-pty);
+  var cq2=sc.createLinearGradient(cx+P,0,cx+P-cun,0);
+  cq2.addColorStop(0,"rgba(0,0,0,"+(0.32+0.12*L)+")");
+  cq2.addColorStop(1,"rgba(0,0,0,0)");
+  sc.fillStyle=cq2; sc.fillRect(cx+P-cun,pty,cun,yRess-pty);
+
+  /* ---- chamines ANTES das aguas: o telhado cobre o pe delas ---- */
+  var CHAMINES=[[-5.4,14.6],[2.9,13.8]];
+  sc.fillStyle="#04060e";
+  for(var ch=0;ch<CHAMINES.length;ch++){
+    var chx=mX(CHAMINES[ch][0]), chw=mW(0.62), chT=mY(CHAMINES[ch][1]);
+    sc.fillRect(chx-chw,chT,chw*2,pty-chT);
+  }
+
+  /* ---- as aguas: empenas ingremes, como na arte de abertura ---- */
+  function agua(l1,l2,lp,hp){
+    sc.beginPath();
+    sc.moveTo(mX(l1),pty+1); sc.lineTo(mX(lp),mY(hp)); sc.lineTo(mX(l2),pty+1);
+    sc.closePath(); sc.fill();
+  }
+  sc.fillStyle="#050710";
+  /* Ingremes de proposito. Com 3,6 m de altura o telhado dava 23 graus e
+     a casa ficava uma caixa de sapato; a arte de abertura tem quase 50.  */
+  agua(-8.5, 8.5,-1.10,15.2);        /* agua principal */
+  agua(-7.6,-0.2,-3.90,16.4);        /* a empena grande da frente */
+  agua( 2.3, 7.1, 4.70,14.2);        /* a empena menor, a direita */
+  agua( 0.3, 2.2, 1.25,11.9);        /* agua-furtada pequena */
+
+  /* capelos das chamines, por cima do telhado */
+  for(var ch2=0;ch2<CHAMINES.length;ch2++){
+    var cxh=mX(CHAMINES[ch2][0]), cwh=mW(0.62), cth=mY(CHAMINES[ch2][1]);
+    sc.fillStyle="rgba(112,140,172,"+(0.07+0.06*L)+")";
+    sc.fillRect(cxh-cwh*1.20,cth,cwh*2.40,Math.max(1.2,mW(0.20)));
+  }
+
+  /* fio de luz do ceu nas cumeeiras molhadas */
   sc.strokeStyle="rgba(126,158,194,"+(0.10+0.08*L)+")";
   sc.lineWidth=1.1;
   sc.beginPath();
-  sc.moveTo(cx-P*1.14,pty+1); sc.lineTo(cx-P*0.15,cume); sc.lineTo(cx+P*1.14,pty+1);
-  sc.moveTo(cx-P*0.98,pty+1); sc.lineTo(cx-P*0.42,cume-esc*0.30);
-  sc.lineTo(cx+P*0.14,pty+1);
+  sc.moveTo(mX(-8.5),pty+1); sc.lineTo(mX(-1.10),mY(15.2)); sc.lineTo(mX(8.5),pty+1);
+  sc.moveTo(mX(-7.6),pty+1); sc.lineTo(mX(-3.90),mY(16.4)); sc.lineTo(mX(-0.2),pty+1);
+  sc.moveTo(mX( 2.3),pty+1); sc.lineTo(mX( 4.70),mY(14.2)); sc.lineTo(mX( 7.1),pty+1);
   sc.stroke();
 
-  /* as outras janelas da casa: acesas, fracas, sem cortina se mexendo */
+  /* ---- alpendre e a PORTA ENTREABERTA ----
+     As 21:07 a porta estava entreaberta: ela e pista, nao enfeite. Fica
+     a direita, sob o alpendre, como na arte de abertura.               */
+  var alY=mY(0.75), alE=mX(1.1), alD=mX(6.9);
+  sc.fillStyle="#04060e";
+  sc.fillRect(alE,alY,alD-alE,Math.max(2,mW(0.26)));
+  sc.fillStyle="rgba(112,140,172,"+(0.06+0.05*L)+")";
+  sc.fillRect(alE,alY,alD-alE,Math.max(1,mW(0.06)));
+  sc.fillStyle="#04060e";
+  for(var pl=0;pl<4;pl++)
+    sc.fillRect(mX(1.5+pl*1.6)-Math.max(1,mW(0.11)),alY,Math.max(2,mW(0.22)),yChao-alY);
+  var poE=mX(2.4), poD=mX(3.7), poT=mY(0.30);
+  sc.fillStyle="rgba(3,5,9,"+(0.80+0.15*L)+")";
+  sc.fillRect(poE,poT,poD-poE,yChao-poT);
+  var fr=Math.max(1.8,(poD-poE)*0.14);
+  sc.globalCompositeOperation="lighter";
+  var frg=sc.createLinearGradient(poD-fr,0,poD+fr*4,0);
+  frg.addColorStop(0,"rgba(255,188,114,"+(0.40*L)+")");
+  frg.addColorStop(1,"rgba(255,150,70,0)");
+  sc.fillStyle=frg;
+  sc.fillRect(poD-fr,poT,fr*5,yChao-poT);
+  sc.globalCompositeOperation="source-over";
+  sc.fillStyle="rgba(255,200,132,"+(0.34+0.34*L)+")";   /* o fio da fresta */
+  sc.fillRect(poD-fr,poT,Math.max(1.2,fr*0.45),yChao-poT);
+  sc.fillStyle="rgba(112,140,172,"+(0.07+0.06*L)+")";   /* verga */
+  sc.fillRect(poE-fr,poT-Math.max(1.2,mW(0.14)),poD-poE+fr*2,Math.max(1.2,mW(0.14)));
+
+  /* as outras janelas da casa: acesas, fracas, sem cortina se mexendo.
+     Sao as DUAS FILEIRAS que poem a janela acesa num andar. Sozinha, ela
+     nao estava em andar nenhum — era uma luz numa parede.               */
   for(var w=0;w<world.janelas.length;w++){
     var jw=world.janelas[w];
-    var jx=cx+Math.atan2(jw.lat,g.d)/D2R*PPD;
-    var jy=sy(Math.atan2(jw.h,g.d)/D2R);
-    var jhw=Math.atan2(0.42,g.d)/D2R*PPD, jhh=jhw*1.45;
-    /* o brilho entra na COR do vidro, não na transparência — senão vira
+    var jx=mX(jw.lat), jy=mY(jw.h);
+    var jhw=mW(jw.l||0.58), jhh=mW(jw.alt||0.86);
+    /* o brilho entra na COR do vidro, nao na transparencia — senao vira
        um papel bege colado na parede */
     var lum=clamp(jw.a*(0.45+0.55*L)*2.7,0,1);
     if(lum>0.05){
@@ -1475,11 +1611,20 @@ function janela(tempo, clareza, prox){
                         Math.round(lerp(19,186,lum))+","+
                         Math.round(lerp(29,116,lum))+")";
     sc.fillRect(jx-jhw,jy-jhh,jhw*2,jhh*2);
-    sc.fillStyle="rgba(8,6,4,"+(0.55+0.35*L)+")";       /* caixilho */
-    sc.fillRect(jx-0.6,jy-jhh,1.2,jhh*2);
-    sc.fillRect(jx-jhw,jy-0.6,jhw*2,1.2);
+    /* caixilho quadriculado, 2 x 3 vidracas, como na arte */
+    sc.fillStyle="rgba(8,6,4,"+(0.55+0.35*L)+")";
+    var vw=Math.max(0.9,jhw*0.06);
+    sc.fillRect(jx-vw/2,jy-jhh,vw,jhh*2);
+    for(var mh=1;mh<=2;mh++)
+      sc.fillRect(jx-jhw,jy-jhh+jhh*2*mh/3-vw/2,jhw*2,vw);
     sc.strokeStyle="rgba(6,5,4,"+(0.6+0.3*L)+")"; sc.lineWidth=1.4;
     sc.strokeRect(jx-jhw,jy-jhh,jhw*2,jhh*2);
+    /* peitoril de pedra */
+    var pei=Math.max(1.2,mW(0.09));
+    sc.fillStyle="rgba(112,140,172,"+(0.08+0.07*L)+")";
+    sc.fillRect(jx-jhw*1.2,jy+jhh,jhw*2.4,pei);
+    sc.fillStyle="rgba(0,0,0,"+(0.30+0.12*L)+")";
+    sc.fillRect(jx-jhw*1.2,jy+jhh+pei,jhw*2.4,pei*1.5);
   }
   sc.save();
   sc.beginPath(); sc.rect(cx-g.parHW,pty,g.parHW*2,pby-pty); sc.clip();
@@ -2122,11 +2267,16 @@ function revela(){
       document.getElementById("c-hora").textContent="";
       document.getElementById("c-txt").textContent="O resultado foi enviado.";
       document.getElementById("c-dir").textContent="Aguarde a classificação.";
-      document.querySelector("#c-meta span").textContent="Fragmento localizado";
+      document.getElementById("c-tipo").textContent="Fragmento localizado";
     } else {
+      /* CRONOLOGIA: a tarefa integrada acontece as 21:26. O que a janela
+         devolve aqui e registro de um momento ANTERIOR da noite (21:03 a
+         21:23), nunca o relogio corrente da rodada.                   */
+      document.getElementById("c-tipo").textContent="Registro anterior da noite";
       document.getElementById("c-hora").textContent=f.hora;
       document.getElementById("c-txt").textContent=f.txt;
       document.getElementById("c-dir").textContent=
+        "A janela preservou registros de momentos anteriores da noite. "+
         "A janela estava a "+cardinal(target.bearing)+" — "+
         String(target.bearing).replace(".",",")+"°, "+
         "no segundo andar, a seis passos encosta acima. Todos os convidados a viram do mesmo lado do mundo.";
@@ -2144,6 +2294,9 @@ function revela(){
 var mAberto=false, jogando=false;
 function fechaIntro(){
   document.getElementById("intro").classList.add("gone");
+  /* a saida pelo dialogo "Sem sensor" nao passa pelo botao do oito, e sem
+     isto a tela do oito ficaria por cima do jogo.                       */
+  document.getElementById("oito").classList.remove("on");
   jogando=true;
   tInicio=performance.now();          /* daqui conta a carência de 90 s */
   /* a tarefa so vira jogavel aqui: intro fechada, permissao resolvida,
@@ -2159,20 +2312,91 @@ function fechaIntro(){
    vê orientações variadas. O app não consegue disparar isso — só pode pedir
    o gesto e esperar. Ataca os 5 a 15° de bússola torta, sem coordenar
    ninguém com ninguém.                                                    */
+var oitoGen=0;
 function oitoNoAr(depois){
-  var el=document.getElementById("oito");
+  var gen=++oitoGen;                 /* RETENTAR pode reabrir a tela: o laco
+                                        velho tem de morrer, senao dois ticks
+                                        disputam a mesma barra.            */
+  var el=document.getElementById("oito"),
+      barra=document.getElementById("oito-barra"),
+      bt=document.getElementById("oito-vai");
   el.classList.add("on");
-  var t0o=performance.now(), fim=3000;
+  bt.disabled=true;
+  bt.textContent="A bússola ainda está tonta";
+  bt.onclick=function(){ el.classList.remove("on"); depois(); };
+
+  /* Nao existe API para perguntar ao sistema se o magnetometro ja calibrou
+     — no Android nao existe nada, e no iOS so ha webkitCompassAccuracy. O
+     unico jeito honesto que vale nas duas plataformas e medir o GESTO. Um
+     oito de verdade deixa tres marcas que estar parado nao deixa:
+       AMPLITUDE  quanto o pulso abriu em cada eixo (o MENOR dos tres manda:
+                  girar o corpo abre a guinada e nao abre os outros dois)
+       ATITUDES   por quantas orientacoes distintas o aparelho passou
+       VOLTAS     quantas vezes a guinada inverteu de sentido — e isto que
+                  separa o oito de um arco unico
+     Medido: oito rapido abre em ~4 s, oito curto e lento em ~8 s. Parado na
+     mao para em 4%, andando devagar em 13%, so girando o corpo em 36%.
+     Nao ha limiar de "percurso somado": o proprio ruido do sensor, uns 2
+     graus, enche esse contador com o telefone imovel em cima da mesa — a
+     barra marcaria metade sem ninguem fazer nada.                        */
+  var META_GUINADA=40, META_ELEV=20, META_ROLL=45,   /* amplitude, em graus */
+      META_ATITUDES=14,                  /* celulas distintas de 18 graus   */
+      META_VOLTAS=4;                     /* inversoes de sentido na guinada */
+
+  var visto={}, atitudes=0, voltas=0;
+  var ant=null, sentido=0, acum=0, gira=0, primeiro=true;
+  var mnG=0,mxG=0,mnE=0,mxE=0,mnR=0,mxR=0;
+  var t0o=performance.now(), pMax=0;
+
+  function amostra(){
+    var b=raw.bearing, ee=raw.elev, rr=raw.roll;
+    if(ant){
+      var db=wrap180(b-ant.b);
+      /* 45 graus num quadro so e troca de referencial do sensor, nao braco */
+      if(Math.abs(db)<45) gira+=db;
+      acum+=db;
+      if(Math.abs(acum)>12){        /* zona morta: tremer nao vira volta */
+        var s=acum>0?1:-1;
+        if(sentido!==0 && s!==sentido) voltas++;
+        sentido=s; acum=0;
+      }
+    }
+    ant={b:b,e:ee,r:rr};
+    if(primeiro){ mnE=mxE=ee; mnR=mxR=rr; primeiro=false; }
+    if(gira<mnG)mnG=gira; if(gira>mxG)mxG=gira;
+    if(ee<mnE)mnE=ee;     if(ee>mxE)mxE=ee;
+    if(rr<mnR)mnR=rr;     if(rr>mxR)mxR=rr;
+    var cel=Math.round(gira/18)+"|"+Math.round(ee/18)+"|"+Math.round(rr/18);
+    if(!visto[cel]){ visto[cel]=1; atitudes++; }
+  }
+
   (function tick(){
-    var p=Math.min(1,(performance.now()-t0o)/fim);
-    document.getElementById("oito-barra").style.width=(p*100)+"%";
-    var _m=document.getElementById("oito-txt"); if(_m && src==="bússola instável") _m.textContent=
-      "a bússola ainda está tonta — continue o oito";
-    if(p<1) requestAnimationFrame(tick);
-    else { el.classList.remove("on"); depois(); }
+    if(gen!==oitoGen) return;
+    if(started) amostra();
+    /* Anistia: passados 20 s as metas afrouxam ate 45% ao longo de 15 s. No
+       campo, no escuro, em grupo, ninguem pode ficar preso num portao. Mas
+       parado continua parado: com as metas frouxas o telefone imovel chega
+       a 10%. Isto nunca vira o cronometro de 3 s que era antes.          */
+    var seg=(performance.now()-t0o)/1000;
+    var af=1-0.55*clamp((seg-20)/15,0,1);
+    var amp=Math.min((mxG-mnG)/(META_GUINADA*af),
+                     (mxE-mnE)/(META_ELEV*af),
+                     (mxR-mnR)/(META_ROLL*af));
+    var p=0.40*clamp(amp,0,1)
+         +0.35*Math.min(1,atitudes/(META_ATITUDES*af))
+         +0.25*Math.min(1,voltas  /(META_VOLTAS  *af));
+    if(p>pMax) pMax=p;                 /* a barra nunca anda para tras */
+    barra.style.width=(pMax*100)+"%";
+    if(pMax>=0.999){
+      barra.style.width="100%";
+      bt.disabled=false;
+      bt.textContent="Subir a encosta";
+      try{ navigator.vibrate && navigator.vibrate([12,50,22]); }catch(err){}
+      return;                          /* daqui em diante quem manda e o dedo */
+    }
+    requestAnimationFrame(tick);
   })();
 }
-
 document.getElementById("b-start").addEventListener("click",function(){
   /* a permissão do iOS precisa sair de DENTRO do gesto, então pede primeiro
      e só depois roda os três segundos do oito. */

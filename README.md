@@ -100,9 +100,9 @@ Na apuração, as colunas surgem progressivamente e permanecem visíveis. A clas
 | `MOSAICO-mesa.html` | interface, fluxo, estados e integração Firebase |
 | `casos/casa-da-costa.json` | fonte canônica do caso piloto |
 | `js/mosaico-v5.js` | cálculo puro e testável da pontuação |
-| `MOSAICO-25.1-a-janela-do-norte.html` | primeira rodada sensorial |
-| `MOSAICO-24.5-vidro-embacado.html` | tarefa interna alternada |
-| `MOSAICO-25.0-a-sala-as-escuras.html` | tarefa interna alternada |
+| `MOSAICO-26-a-janela-do-norte.html` | primeira rodada sensorial |
+| `MOSAICO-26-vidro-embacado.html` | tarefa interna alternada |
+| `MOSAICO-26-a-sala-as-escuras.html` | tarefa interna alternada |
 | `firestore.rules` | autorização por Sala, mestre e participante |
 | `FIREBASE-SECURITY.md` | implantação e verificação de segurança |
 | `HANDOFF.md` | continuidade técnica e decisões consolidadas |

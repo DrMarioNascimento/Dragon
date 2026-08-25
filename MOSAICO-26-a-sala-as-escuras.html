@@ -245,6 +245,10 @@
   body.embed #nome-jogo,
   body.embed #sub,
   body.embed #local{display:none}
+  /* CRONOLOGIA: dentro da Mesa o horario historico do objeto nao aparece,
+     nem a nota que explica que os horarios sao anteriores.            */
+  body.embed #k-hora,
+  body.embed #hist-nota{display:none}
   body.embed #intro{justify-content:center;justify-content:safe center}
 
   /* ---------------- falha de sensor ---------------- */
@@ -327,6 +331,7 @@
   <p>A luz oscilou às 21h03 e depois a sala mergulhou no escuro. Você entrou pela porta entreaberta. A sala inteira cabe numa lanterna fraca.</p>
   <p>A cada vez, uma <b>frase</b> aparece no alto. Ela não diz onde está — diz <b>o que é</b>. Decifre e procure.</p>
   <p class="small"><b>Ache os oito antes dos outros. Não conte o que descobriu.</b> O farol da costa passa a cada nove segundos e mostra a sala inteira por um instante — use a passagem dele.</p>
+  <p class="small" id="hist-nota">Os objetos preservam registros de momentos anteriores da noite.</p>
   <button class="go" id="b-entrar">Entrar na sala</button>
   <button class="alt" id="b-sim">Estou no computador</button>
   <div id="rodada">RODADA <b id="cod-rodada">----</b></div>
@@ -1721,7 +1726,10 @@ function acha(o){
   holdAcc=0; aproxima=1;
   pintaMarcas(); pintaEnigma(true);
   try{ navigator.vibrate && navigator.vibrate([14,60,26]); }catch(e){}
-  document.getElementById("k-tipo").textContent=o.tipo;
+  /* CRONOLOGIA: a tarefa integrada acontece as 21:28. As horas dos objetos
+     (21:05 a 21:23) sao registros anteriores da noite. Dentro da Mesa elas
+     nao aparecem e o rotulo vira "Vestigio localizado".                */
+  document.getElementById("k-tipo").textContent=EMBED?"Vestígio localizado":o.tipo;
   document.getElementById("k-hora").textContent=o.hora;
   document.getElementById("k-nome").textContent=o.nome;
   document.getElementById("k-txt").textContent=o.txt;

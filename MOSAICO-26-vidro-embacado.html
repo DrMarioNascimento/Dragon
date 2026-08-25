@@ -127,6 +127,11 @@
     letter-spacing:.22em;text-transform:uppercase;color:var(--t-max);
     text-align:center;margin:8px 0 26px;
   }
+  #pistas-nota{
+    font-family:var(--serif);font-size:clamp(15px,3.6vw,17px);line-height:1.45;
+    font-weight:600;color:var(--t-max);text-align:center;
+    max-width:34em;margin:0 auto 18px;
+  }
   #pistas-lista{max-width:34em;margin:0 auto}
   .pista{
     border-left:2px solid rgba(127,212,255,.6);
@@ -352,6 +357,10 @@
   body.embed #nome-jogo,
   body.embed #sub,
   body.embed #local{display:none}
+  /* CRONOLOGIA: o caderno de pistas e o botao dele nao existem dentro da
+     Mesa - a lista mostra horarios de registros sorteados.            */
+  body.embed #btn-pistas,
+  body.embed #pistas{display:none}
   body.embed #intro{justify-content:center;justify-content:safe center}
 
   /* ---------------- falha de sensor ---------------- */
@@ -399,6 +408,7 @@
 
 <div id="pistas">
   <h2>Minhas pistas</h2>
+  <p id="pistas-nota">O vidro revelou um registro de um momento anterior da noite.</p>
   <div id="pistas-lista"></div>
   <div id="pistas-vazio">O vidro ainda est&aacute; fechado.<br>Nada foi lido.</div>
   <button id="fechar-pistas">Voltar &agrave; janela</button>
@@ -407,7 +417,7 @@
 <div id="aviso"></div>
 
 <div id="cartao"><div id="cartao-inner">
-  <div id="c-meta"><span id="c-tipo">Fragmento</span><span id="c-hora"></span></div>
+  <div id="c-meta"><span id="c-tipo">Registro anterior da noite</span><span id="c-hora"></span></div>
   <div id="c-txt"></div>
   <div id="c-tempo"></div>
   <button id="fechar-cartao">Fechar pista</button>
@@ -1139,13 +1149,19 @@ function revela(){
   /* para aqui, no instante do acerto — nao quando a pessoa fecha o cartao */
   var tMs=enviarConclusao();
   if(navigator.vibrate) navigator.vibrate([12,50,22]);
-  marcas(); guardaPista(atual);
+  /* Dentro da Mesa o caderno de pistas nao existe: quem entrega a pista
+     oficial e o MOSAICO, depois da classificacao. Guardar aqui exporia
+     um registro sorteado dentro do iframe.                            */
+  marcas(); if(!EMBED) guardaPista(atual);
   if(EMBED){
     document.getElementById("c-tipo").textContent="Fragmento localizado";
     document.getElementById("c-hora").textContent="";
     document.getElementById("c-txt").textContent=
       "O resultado foi enviado.\nAguarde a classificação.";
   } else {
+    /* CRONOLOGIA: a tarefa integrada acontece as 21:28. Os registros do
+       vidro (21:03 a 21:20) sao de momentos ANTERIORES da noite.      */
+    document.getElementById("c-tipo").textContent="Registro anterior da noite";
     document.getElementById("c-hora").textContent=atual.hora;
     document.getElementById("c-txt").textContent=atual.txt;
   }

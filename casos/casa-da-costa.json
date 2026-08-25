@@ -137,17 +137,17 @@
   "tarefas": {
     "constelacao": {
       "titulo": "O Vidro Embaçado",
-      "arquivo": "MOSAICO-24.5-vidro-embacado.html?embed=1",
+      "arquivo": "MOSAICO-26-vidro-embacado.html?embed=1",
       "pista": { "id": "tarefa-interior", "hora": "21:28", "txt": "A água abriu uma trilha no vidro embaçado. Por trás dele, a marca recente na trava do cofre permaneceu como ponto fixo da sequência." }
     },
     "inclinacao": {
       "titulo": "A Janela do Norte",
-      "arquivo": "MOSAICO-25.1-a-janela-do-norte.html?embed=1",
+      "arquivo": "MOSAICO-26-a-janela-do-norte.html?embed=1",
       "pista": { "id": "tarefa-inclinacao", "hora": "21:26", "txt": "O pequeno objeto metálico não atravessou a sala: caiu próximo ao cofre e foi deslocado depois da queda." }
     },
     "salaEscura": {
       "titulo": "A Sala às Escuras",
-      "arquivo": "MOSAICO-25.0-a-sala-as-escuras.html?embed=1",
+      "arquivo": "MOSAICO-26-a-sala-as-escuras.html?embed=1",
       "pista": { "id": "tarefa-interior", "hora": "21:28", "txt": "No escuro, a busca convergiu para o cofre. A marca recente na trava permaneceu como ponto fixo da sequência." }
     }
   },
@@ -246,12 +246,12 @@
     }
   },
   "pistas": {
-    "investigador": { "id": "priv-investigador", "hora": "21:29", "qualidade": "mediana", "txt": "Um estalo seco. Depois outro. Depois silêncio. Você ouviu atrás de você." },
-    "herdeiro": { "id": "priv-herdeiro", "hora": "21:29", "qualidade": "ruim", "txt": "Você sentiu algo ao lado. Não foi passo, não foi corpo. Foi deslocamento." },
-    "morador": { "id": "priv-morador", "hora": "21:30", "qualidade": "boa", "txt": "Algo caiu. Pequeno, metálico, preciso. Veio do cofre." },
-    "jornalista": { "id": "priv-jornalista", "hora": "21:30", "qualidade": "mediana", "txt": "Algo passou perto da sua mão. Frio, rápido, intencional. Não tocou." },
-    "policial": { "id": "priv-policial", "hora": "21:30", "qualidade": "boa", "txt": "Mesmo sem luz, uma sombra passou. Não deveria ser possível. Mas foi." },
-    "menina": { "id": "priv-menina", "hora": "21:31", "qualidade": "ruim", "txt": "Alguém respirou perto demais. Você ouviu. E não se mexeu." }
+    "investigador": { "id": "priv-investigador", "hora": "21:04", "qualidade": "mediana", "txt": "Um estalo seco. Depois outro. Depois silêncio. Você ouviu atrás de você." },
+    "herdeiro": { "id": "priv-herdeiro", "hora": "21:08", "qualidade": "ruim", "txt": "Você sentiu algo ao lado. Não foi passo, não foi corpo. Foi deslocamento." },
+    "morador": { "id": "priv-morador", "hora": "21:13", "qualidade": "boa", "txt": "Algo caiu. Pequeno, metálico, preciso. Veio do cofre." },
+    "jornalista": { "id": "priv-jornalista", "hora": "21:15", "qualidade": "mediana", "txt": "Algo passou perto da sua mão. Frio, rápido, intencional. Não tocou." },
+    "policial": { "id": "priv-policial", "hora": "21:18", "qualidade": "boa", "txt": "Mesmo sem luz, uma sombra passou. Não deveria ser possível. Mas foi." },
+    "menina": { "id": "priv-menina", "hora": "21:21", "qualidade": "ruim", "txt": "Alguém respirou perto demais. Você ouviu. E não se mexeu." }
   },
   "publicas": [
     { "id": "pub-2103", "hora": "21:03", "txt": "A luz da Casa da Costa oscilou pela primeira vez. Não foi queda. Foi aviso." },

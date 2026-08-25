@@ -61,9 +61,9 @@ O `firebaseConfig` no HTML é público por natureza. A proteção efetiva dos da
 ```
 Dragon/
 ├── MOSAICO-mesa.html
-├── MOSAICO-24.5-vidro-embacado.html
-├── MOSAICO-25.0-a-sala-as-escuras.html
-├── MOSAICO-25.1-a-janela-do-norte.html
+├── MOSAICO-26-vidro-embacado.html
+├── MOSAICO-26-a-sala-as-escuras.html
+├── MOSAICO-26-a-janela-do-norte.html
 ├── casos/
 │   └── casa-da-costa.json
 ├── js/
@@ -85,9 +85,9 @@ Dragon/
 
 | Módulo | Arquivo | Situação |
 |---|---|---|
-| A Janela do Norte | `MOSAICO-25.1-a-janela-do-norte.html` | primeira rodada sensorial, integrada e recalibrada |
-| O Vidro Embaçado | `MOSAICO-24.5-vidro-embacado.html` | tarefa interna alternada |
-| A Sala às Escuras | `MOSAICO-25.0-a-sala-as-escuras.html` | tarefa interna alternada |
+| A Janela do Norte | `MOSAICO-26-a-janela-do-norte.html` | primeira rodada sensorial, integrada e recalibrada |
+| O Vidro Embaçado | `MOSAICO-26-vidro-embacado.html` | tarefa interna alternada |
+| A Sala às Escuras | `MOSAICO-26-a-sala-as-escuras.html` | tarefa interna alternada |
 
 Os três arquivos são autocontidos. A Janela abre primeiro; a Mesa alterna Vidro e Sala entre partidas. As versões substituídas permanecem recuperáveis pelo histórico Git.
 
@@ -568,7 +568,7 @@ A abertura possui vídeo horizontal H.264/AAC de 1280 × 720 para telão e víde
 
 O resultado final abre uma tabela progressiva com **Encenação**, **J × J**, **J + J**, **Mercado** e **Caso**. As colunas permanecem visíveis, a classificação muda após cada etapa e o pódio substitui a tabela ao final. O Caso entra por último sem exibir uma coluna separada de soma durante a animação.
 
-Os módulos sensoriais canônicos são `MOSAICO-25.1-a-janela-do-norte.html`, `MOSAICO-24.5-vidro-embacado.html` e `MOSAICO-25.0-a-sala-as-escuras.html`. Cada execução recebe semente e `runId`; ao concluir, o módulo devolve somente `tarefa-ok`, `runId` e `tempoMs`. A Mesa valida a origem e a execução, grava o tempo no Firestore e mantém pontos, pistas e avanço fora dos módulos isolados.
+Os módulos sensoriais canônicos são `MOSAICO-26-a-janela-do-norte.html`, `MOSAICO-26-vidro-embacado.html` e `MOSAICO-26-a-sala-as-escuras.html`. Cada execução recebe semente e `runId`; ao concluir, o módulo devolve somente `tarefa-ok`, `runId` e `tempoMs`. A Mesa valida a origem e a execução, grava o tempo no Firestore e mantém pontos, pistas e avanço fora dos módulos isolados.
 
 ---
 
