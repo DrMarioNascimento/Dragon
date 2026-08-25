@@ -1833,6 +1833,7 @@ var _audioNivel=null, _nivelSonoroAnterior=null, _vozesNivel={}, _podioAudioChav
 var _encerramentoAudioChave="", _fonteEncerramento=null, _timerEncerramento=null;
 var DURACAO_ENCERRAMENTO_MS=124030;
 var ARQUIVOS_VOZ_NIVEL={
+  abertura:"audio/abertura.mp3",
   encenacao:"audio/fase-encenacao.mp3",
   votacao:"audio/fase-votacao-encenacao.mp3",
   inclinacao:"audio/fase-janela-do-norte.mp3",
@@ -1842,7 +1843,12 @@ var ARQUIVOS_VOZ_NIVEL={
   mercado:"audio/fase-mercado-de-pistas.mp3",
   deducao:"audio/fase-acusacao-final.mp3",
   encerramento:"audio/encerramento.mp3",
-  podio:"audio/podio-resultado-final.mp3"
+  podio:"audio/podio-resultado-final.mp3",
+  /* Fundo, nao narracao: entram por baixo da voz, com ganho baixo.
+     tempestadeCosteira e um laco continuo; tempestadeRajada e um golpe
+     unico, para nao deixar o fundo virar um zumbido parado.          */
+  tempestadeCosteira:"audio/tempestade-costeira-loop.mp3",
+  tempestadeRajada:"audio/tempestade-rajada.mp3"
 };
 function carregarVozNivel(chave){
   if(!_audioNivel||!ARQUIVOS_VOZ_NIVEL[chave])return Promise.resolve(null);
@@ -1882,10 +1888,129 @@ function tocarVozDeNivel(chave,atraso,aoTerminar){
     fonte.start(_audioNivel.currentTime+Math.max(0,Number(atraso)||0));
   });
 }
+/* ── FUNDO DE TEMPESTADE ─────────────────────────────────────────────
+   A voz da fase continua sendo o que precisa ser entendido: o mar entra
+   por baixo dela, com ganho baixo e com entrada e saida em rampa. Corte
+   seco em som de ambiente nao soa como fim, soa como arquivo quebrado.
+   A rajada e um golpe unico, para o fundo nao virar um zumbido parado.
+   Um laco de cada vez — comecar outro interrompe o anterior.         */
+var _fundoTempestade=null;
+function pararTempestade(suave){
+  if(!_fundoTempestade)return;
+  var f=_fundoTempestade;_fundoTempestade=null;
+  try{
+    if(suave&&_audioNivel&&_audioNivel.state==="running"){
+      var t=_audioNivel.currentTime;
+      f.ganho.gain.cancelScheduledValues(t);
+      f.ganho.gain.setValueAtTime(f.ganho.gain.value,t);
+      f.ganho.gain.linearRampToValueAtTime(0,t+1.6);
+      f.fonte.stop(t+1.7);
+    } else f.fonte.stop();
+  }catch(e){}
+}
+function tocarTempestade(atraso,duracao,volume){
+  if(!_audioNivel||_audioNivel.state!=="running")return;
+  var alvo=Math.max(.04,Number(volume)||.2);
+  var espera=Math.max(0,Number(atraso)||0);
+  var dur=Math.max(6,Number(duracao)||30);
+  carregarVozNivel("tempestadeCosteira").then(function(buffer){
+    if(!buffer||!_audioNivel||_audioNivel.state!=="running")return;
+    pararTempestade(false);
+    var inicio=_audioNivel.currentTime+espera;
+    var fonte=_audioNivel.createBufferSource(), ganho=_audioNivel.createGain();
+    fonte.buffer=buffer;fonte.loop=true;
+    ganho.gain.setValueAtTime(0,inicio);
+    ganho.gain.linearRampToValueAtTime(alvo,inicio+2.2);
+    ganho.gain.setValueAtTime(alvo,inicio+dur-2.4);
+    ganho.gain.linearRampToValueAtTime(0,inicio+dur);
+    fonte.connect(ganho);ganho.connect(_audioNivel.destination);
+    fonte.start(inicio);fonte.stop(inicio+dur+.1);
+    _fundoTempestade={fonte:fonte,ganho:ganho};
+    fonte.onended=function(){if(_fundoTempestade&&_fundoTempestade.fonte===fonte)_fundoTempestade=null;};
+  });
+}
+function tocarRajada(atraso,volume){
+  if(!_audioNivel||_audioNivel.state!=="running")return;
+  carregarVozNivel("tempestadeRajada").then(function(buffer){
+    if(!buffer||!_audioNivel||_audioNivel.state!=="running")return;
+    var fonte=_audioNivel.createBufferSource(), ganho=_audioNivel.createGain();
+    fonte.buffer=buffer;ganho.gain.value=Math.max(.04,Number(volume)||.26);
+    fonte.connect(ganho);ganho.connect(_audioNivel.destination);
+    fonte.start(_audioNivel.currentTime+Math.max(0,Number(atraso)||0));
+  });
+}
+/* O fundo so entra se a voz existir: precisa da duracao dela para saber
+   quando sair, e tempestade sem narracao nao anuncia rodada nenhuma. */
+function acompanharComTempestade(chave,atraso){
+  carregarVozNivel(chave).then(function(buffer){
+    if(!buffer)return;
+    var espera=Math.max(0,(Number(atraso)||0)-1.2);
+    tocarTempestade(espera,buffer.duration+5.4,.18);
+    tocarRajada(espera+1.5,.24);
+  });
+}
+/* As tres rodadas sensoriais acontecem com a casa em silencio e o celular
+   colado no corpo. Sao as que ganham com o mar por baixo da voz.     */
+var FASES_COM_TEMPESTADE={inclinacao:1,vidro:1,salaEscura:1};
+
 function vozDaFase(fase){
   if(fase==="constelacao")return tarefaInteriorAtual()==="sala-escura"?"salaEscura":"vidro";
   if(fase==="cooperacao"||fase==="resultado"||fase==="sala")return "";
   return ARQUIVOS_VOZ_NIVEL[fase]?fase:"";
+}
+/* ── ABERTURA NARRADA ────────────────────────────────────────────────
+   Toca ANTES da encenacao. O mestre aperta "Comecar", a mesa entra num
+   compasso de espera e a encenacao so abre quando a voz termina. Os
+   celulares ficam no mesmo AGUARDE... que ja mostram a quem nao esta
+   atuando: a abertura e para ser ouvida, nao lida.
+   O relogio e o do encerramento: aberturaIniciadaMs mora no documento da
+   Sala, entao um mestre que recarregue a pagina no meio retoma o audio no
+   ponto em que ele estava, em vez de comecar tudo de novo.
+   Se o audio nao carregar — arquivo fora do ar, aparelho sem permissao de
+   som — concluirAbertura() e chamado assim mesmo. Clima nao pode ser o
+   que trava uma mesa com doze pessoas em pe esperando.               */
+var _aberturaAudioChave="", _fonteAbertura=null, _timerAbertura=null;
+function aberturaPendente(){
+  return !!(STATE.doc&&STATE.doc.fase==="sala"&&STATE.doc.aberturaIniciadaMs&&!STATE.doc.aberturaConcluida);
+}
+function pararAudioAbertura(){
+  if(_timerAbertura)clearTimeout(_timerAbertura);_timerAbertura=null;
+  if(_fonteAbertura){try{_fonteAbertura.stop();}catch(e){}_fonteAbertura=null;}
+  pararTempestade(true);
+}
+async function concluirAbertura(){
+  if(!souMestreDaMesa()||!aberturaPendente())return;
+  pararAudioAbertura();
+  var FB=await esperarFB();
+  await FB.atualizarMesa(STATE.mesa.codigo,
+    {fase:"encenacao",vez:0,aberturaConcluida:true,aberturaConcluidaMs:Date.now()});
+}
+function encerrarAberturaPorFalha(){
+  concluirAbertura().catch(function(e){console.error("abertura",e);});
+}
+function sincronizarAudioAbertura(){
+  if(!souMestreDaMesa()||!aberturaPendente()||partidaPausada())return;
+  var inicio=Number(STATE.doc.aberturaIniciadaMs)||Date.now();
+  var chave=(STATE.mesa&&STATE.mesa.codigo||"")+":"+inicio;
+  if(_aberturaAudioChave===chave)return;
+  pararAudioAbertura();_aberturaAudioChave=chave;
+  habilitarAudioNivel();
+  var decorridoS=Math.max(0,Date.now()-inicio)/1000;
+  carregarVozNivel("abertura").then(function(buffer){
+    if(!aberturaPendente())return;
+    if(!buffer||!_audioNivel||_audioNivel.state!=="running"){encerrarAberturaPorFalha();return;}
+    var restanteS=buffer.duration-decorridoS;
+    if(restanteS<=.3){encerrarAberturaPorFalha();return;}
+    var fonte=_audioNivel.createBufferSource(), ganho=_audioNivel.createGain();
+    fonte.buffer=buffer;ganho.gain.value=.92;
+    fonte.connect(ganho);ganho.connect(_audioNivel.destination);
+    _fonteAbertura=fonte;
+    fonte.start(_audioNivel.currentTime,Math.max(0,decorridoS));
+    /* o mar abre junto com a voz e sobrevive a ela por tres segundos */
+    tocarTempestade(0,restanteS+3.2,.2);
+    tocarRajada(2.4,.24);
+    _timerAbertura=setTimeout(encerrarAberturaPorFalha,restanteS*1000+250);
+  });
 }
 function encerramentoPendente(){
   return !!(STATE.doc&&STATE.doc.fase==="resultado"&&STATE.doc.encerramentoIniciadoMs&&!STATE.doc.encerramentoConcluido);
@@ -1956,6 +2081,7 @@ function verificarTrocaDeNivel(fase){
     _nivelSonoroAnterior=atual;
     emitirSomDeNivel();
     if(voz)tocarVozDeNivel(voz,4.85);
+    if(voz&&FASES_COM_TEMPESTADE[voz])acompanharComTempestade(voz,4.85);
   }
 }
 document.addEventListener("pointerdown",habilitarAudioNivel,{once:true});
@@ -2002,9 +2128,16 @@ function controlesMestreMovel(){
   if(pausada){
     autoInfo='<div class="card"><b>Partida pausada</b><p class="muted">As telas, tarefas e contagens de tempo estão congeladas.</p></div>';
   }else if(fase==="sala"){
-    todos=js.length>=1&&contaProntos()===js.length;
-    acaoNecessaria=todos;
-    botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();iniciarEncenacao()" '+(todos?'':'disabled')+'>Come&ccedil;ar</button>';
+    if(aberturaPendente()){
+      /* A abertura corre sozinha. O botao existe para a noite em que a
+         casa precisa comecar antes de a voz acabar.                  */
+      autoInfo='<div class="card"><b>Abertura</b><p class="muted">A casa est&aacute; falando. A encena&ccedil;&atilde;o abre quando a narra&ccedil;&atilde;o terminar.</p></div>';
+      botoes+='<button class="btn btn-sm" onclick="alternarMenuMestre();concluirAbertura()">Pular a abertura</button>';
+    }else{
+      todos=js.length>=1&&contaProntos()===js.length;
+      acaoNecessaria=todos;
+      botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();iniciarEncenacao()" '+(todos?'':'disabled')+'>Come&ccedil;ar</button>';
+    }
   }else if(fase==="encenacao"){
     botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();pularVez()">Pular a apresenta&ccedil;&atilde;o atual</button>';
   }else if(fase==="votacao"){
@@ -2264,7 +2397,9 @@ function render(forcar){
   verificarTrocaDeNivel(faseAgora);
   if(encerramentoPendente())sincronizarAudioEncerramento();
   else if(_fonteEncerramento||_timerEncerramento)pararAudioEncerramento();
-  var encenacaoPassiva=false;
+  if(aberturaPendente())sincronizarAudioAbertura();
+  else if(_fonteAbertura||_timerAbertura)pararAudioAbertura();
+  var encenacaoPassiva=STATE.tela==="abertura";
   if(STATE.eu&&STATE.tela==="encenacao"&&faseAgora==="encenacao"){
     var ordemEncenacao=ordenados(STATE.jogadores), atorEncenacao=ordemEncenacao[(STATE.doc&&STATE.doc.vez)||0];
     encenacaoPassiva=!!atorEncenacao&&atorEncenacao.id!==STATE.eu.id;
@@ -2311,6 +2446,7 @@ function render(forcar){
     case "entrar":      h=telaEntrar(); break;
     case "painel":      h=telaPainel(); break;
     case "esperando":   h=telaEsperando(); break;
+    case "abertura":    h=telaAbertura(); break;
     case "encenacao":   h=telaEncenacao(); break;
     case "revelacao":   h=telaRevelacao(); break;
     case "encerrada":   h=telaEncerrada(); break;
@@ -2738,6 +2874,12 @@ function telaEsperando(){
       'Ele mostrar&aacute; as instru&ccedil;&otilde;es quando chegar a sua vez.</p>'+
     '</div>'+
     '<div class="contagem-prontos">'+contaProntos()+' de '+js.length+' prontos</div>';
+}
+
+/* Mesmo AGUARDE... que os celulares mostram a quem nao esta atuando na
+   encenacao: enquanto a casa fala, ninguem le nada na tela.          */
+function telaAbertura(){
+  return '<div class="encenacao-aguarde" role="status">AGUARDE...</div>';
 }
 
 function telaEncenacao(){
@@ -3565,7 +3707,7 @@ function sincronizarJogador(){
   resolverColisao();
   if(STATE.travaTela){ render(); return; }   /* revelacao segura a tela */
   var fase=(STATE.doc&&STATE.doc.fase)||"sala";
-  var nova = fase==="sala"      ? "esperando"
+  var nova = fase==="sala"      ? (aberturaPendente()?"abertura":"esperando")
            : fase==="encenacao" ? "encenacao"
            : fase==="votacao"   ? "votacao"
            : fase==="constelacao"? "constelacao"
@@ -3600,9 +3742,11 @@ function iniciarContagem(){
   },1000);
 }
 
+/* Nao entra direto na encenacao: acende o compasso da abertura narrada e
+   deixa concluirAbertura() virar a fase quando a voz terminar.       */
 async function iniciarEncenacao(){
   var FB=await esperarFB();
-  await FB.atualizarMesa(STATE.mesa.codigo,{fase:"encenacao",vez:0});
+  await FB.atualizarMesa(STATE.mesa.codigo,{aberturaIniciadaMs:Date.now(),aberturaConcluida:false});
 }
 
 /* Ao concluir a vez, a casa mostra mais uma linha no painel. */

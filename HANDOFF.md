@@ -596,6 +596,21 @@ A abertura possui vídeo horizontal H.264/AAC de 1280 × 720 para telão e víde
 
 As grandes fases possuem anúncios narrados em `audio/`: Encenação, Votação, Janela do Norte, Vidro Embaçado, Sala às Escuras, Mosaico Coletivo, Mercado, Acusação Final e Pódio. Eles foram normalizados para volume uniforme. Somente o mestre/telão reproduz: a sirene de nevoeiro toca por 4,4 segundos e a voz entra em seguida. Vidro e Sala são escolhidos conforme a tarefa interna da partida; a transição interna de Mosaico para Cooperação não repete o anúncio. O pódio toca uma única vez por execução da apuração.
 
+#### Abertura narrada e fundo de tempestade
+
+`audio/abertura.mp3` toca **antes** da encenação, não durante. O mestre aperta **Começar** e a mesa entra num compasso próprio: `aberturaIniciadaMs` é gravado no documento da Sala, a fase continua `sala`, e os celulares mostram o mesmo `AGUARDE...` que já veem quando não estão atuando na encenação — a abertura é para ser ouvida, não lida. Quando a voz termina, `concluirAbertura()` grava `fase:"encenacao"` e a rodada abre. O mestre tem **Pular a abertura** no menu da Sala.
+
+Duas diferenças em relação ao encerramento, que usa o mesmo desenho:
+
+- a duração **não** é uma constante. `DURACAO_ENCERRAMENTO_MS` existe porque aquela faixa foi medida; aqui o valor sai de `buffer.duration` depois de decodificar. Trocar `audio/abertura.mp3` por uma gravação maior ou menor não exige tocar em nenhum número;
+- se o áudio não carregar — arquivo fora do ar, contexto de som suspenso, aparelho sem permissão —, `concluirAbertura()` é chamado assim mesmo. A abertura é ganho de clima e não pode ser o que trava uma mesa com doze pessoas em pé.
+
+O mestre que recarregar a página no meio retoma a faixa no ponto em que ela estava, porque o instante de início mora no Firestore e não na aba.
+
+`audio/tempestade-costeira-loop.mp3` e `audio/tempestade-rajada.mp3` são **fundo, não narração**: entram com ganho entre 0,18 e 0,20 contra os 0,92 da voz, com rampa de entrada e de saída — corte seco em som de ambiente não soa como fim, soa como arquivo quebrado. O laço acompanha a abertura e as três rodadas sensoriais (Janela do Norte, Vidro Embaçado, Sala às Escuras), começando 1,2 s antes da voz e sobrevivendo a ela por cerca de 5 s; a rajada é um golpe único, para o fundo não virar zumbido parado. `acompanharComTempestade()` só começa se a voz existir, porque precisa da duração dela para saber quando sair. Há um laço por vez: começar outro interrompe o anterior.
+
+Como todo o resto do som, isto só toca no aparelho do mestre.
+
 O arquivo estéreo `audio/encerramento.mp3` (aproximadamente 124 segundos) é a faixa final consolidada. Ao terminar as acusações, a tela mostra **A CASA ESTÁ OUVINDO...** e essa faixa toca antes de qualquer solução aparecer. O mestre pode usar **Pular narração**. Ao concluir ou pular, a revelação por etapas é liberada; somente depois vem a apuração e a voz do pódio.
 
 O resultado final abre uma tabela progressiva com **Encenação**, **J × J**, **J + J**, **Mercado** e **Caso**. As colunas permanecem visíveis, a classificação muda após cada etapa e o pódio substitui a tabela ao final. O Caso entra por último sem exibir uma coluna separada de soma durante a animação.
