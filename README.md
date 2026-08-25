@@ -73,7 +73,11 @@ Na formação dos grupos, nomes não são necessários. Cada participante recebe
 
 Cada Fragmento recebe as seis peças da cronologia distribuídas entre os Arquivos de seus integrantes e, por sorteio, um **Portador**. Ninguém recebe sozinho o conjunto. Os demais integrantes veem horários e dicas, consultam os próprios Arquivos e conversam presencialmente; somente o Portador recebe a peça dourada pulsante, seleciona as pistas e envia a resposta coletiva. Durante essa fase, Caso e Mural não repetem a cronologia. Pistas já utilizadas desaparecem das escolhas vazias. Ao revisar uma associação, todas reaparecem com o horário ocupado e podem ser trocadas entre si. O rascunho é sincronizado no Firestore e sobrevive à reconexão.
 
-Em mesas de 1 a 3 participantes existe um único Fragmento e todos atuam como Portadores. Não há procura por cores nem voto interno. A tarefa continua valendo pontos por acerto e tempo absoluto: 20 pontos até 1min30s, 18 até 2min30s, 16 até 3min30s, 12 até 5min e 8 depois disso.
+Em mesas de 1 a 3 participantes existe um único Fragmento e todos atuam como Portadores. Não há procura por cores nem voto interno. A tarefa continua valendo pontos por tempo absoluto: 20 pontos até 1min30s, 18 até 2min30s, 16 até 3min30s, 12 até 5min e 8 depois disso. Cada envio incorreto desconta 2 pontos da faixa alcançada, até o mínimo de zero; o grupo pode reorganizar as pistas e tentar novamente enquanto o cronômetro continua correndo.
+
+Em mesas de 4 a 12 participantes, a colocação do Fragmento fornece a base coletiva de 20, 16, 12, 8 ou 4 pontos. A mesma penalidade de 2 pontos por envio incorreto é aplicada antes de somar a parcela individual de Cooperação. O máximo geral permanece em 100 pontos.
+
+Todas as telas móveis obedecem a uma reserva inferior única, calculada com a área segura do aparelho. Conteúdo, botões de envio e comandos de retorno rolam até uma posição visível acima da barra fixa **Caso | Sala | Arquivo**; modais que ficam acima da barra possuem rolagem interna limitada à altura dinâmica da tela.
 
 ## Pontuação V5 — máximo de 100
 
