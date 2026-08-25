@@ -29,7 +29,7 @@ O jogo funciona diretamente no navegador, sem instalação obrigatória, em dois
 - **Com telão:** o painel coletivo apresenta código, QR, cronologia, revelação, apuração e pódio.
 - **Sem telão:** o criador também joga pelo celular e recebe os controles exclusivos de mestre no botão **Sala**.
 
-Ao entrar pelo celular, o participante pode assistir à abertura vertical ou pulá-la. A abertura horizontal permanece destinada ao telão. A sirene de mudança de fase e os anúncios narrados são emitidos somente no aparelho do mestre para evitar eco entre vários celulares. Os nove arquivos canônicos ficam em `audio/`; o anúncio correspondente começa depois da sirene e o pódio recebe uma chamada própria ao final da apuração.
+Ao entrar pelo celular, o participante pode assistir à abertura vertical ou pulá-la. A abertura horizontal permanece destinada ao telão. A sirene de mudança de fase e os anúncios narrados são emitidos somente no aparelho do mestre para evitar eco entre vários celulares. Os arquivos canônicos ficam em `audio/`; o anúncio correspondente começa depois da sirene e o pódio recebe uma chamada própria ao final da apuração. `audio/encerramento.mp3` toca depois das acusações e antes da revelação, com **Pular narração** disponível ao mestre.
 
 ### Barra móvel
 

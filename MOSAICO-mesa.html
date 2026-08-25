@@ -1643,6 +1643,8 @@ function cabecalhoRodada(fase, classe){
     (d?'<div class="dinamica-nivel '+d.classe+'"><span class="dn-titulo">'+esc(d.titulo)+'</span><span class="dn-sub">'+esc(d.sub)+'</span></div>':'');
 }
 var _audioNivel=null, _nivelSonoroAnterior=null, _vozesNivel={}, _podioAudioChave="";
+var _encerramentoAudioChave="", _fonteEncerramento=null, _timerEncerramento=null;
+var DURACAO_ENCERRAMENTO_MS=124030;
 var ARQUIVOS_VOZ_NIVEL={
   encenacao:"audio/fase-encenacao.mp3",
   votacao:"audio/fase-votacao-encenacao.mp3",
@@ -1652,6 +1654,7 @@ var ARQUIVOS_VOZ_NIVEL={
   mosaico:"audio/fase-mosaico-coletivo.mp3",
   mercado:"audio/fase-mercado-de-pistas.mp3",
   deducao:"audio/fase-acusacao-final.mp3",
+  encerramento:"audio/encerramento.mp3",
   podio:"audio/podio-resultado-final.mp3"
 };
 function carregarVozNivel(chave){
@@ -1694,6 +1697,38 @@ function vozDaFase(fase){
   if(fase==="cooperacao"||fase==="resultado"||fase==="sala")return "";
   return ARQUIVOS_VOZ_NIVEL[fase]?fase:"";
 }
+function encerramentoPendente(){
+  return !!(STATE.doc&&STATE.doc.fase==="resultado"&&STATE.doc.encerramentoIniciadoMs&&!STATE.doc.encerramentoConcluido);
+}
+function pararAudioEncerramento(){
+  if(_timerEncerramento)clearTimeout(_timerEncerramento);_timerEncerramento=null;
+  if(_fonteEncerramento){try{_fonteEncerramento.stop();}catch(e){}_fonteEncerramento=null;}
+}
+async function concluirEncerramento(){
+  if(!souMestreDaMesa()||!encerramentoPendente())return;
+  pararAudioEncerramento();
+  var FB=await esperarFB();
+  await FB.atualizarMesa(STATE.mesa.codigo,{encerramentoConcluido:true,encerramentoConcluidoMs:Date.now()});
+}
+function sincronizarAudioEncerramento(){
+  if(!souMestreDaMesa()||!encerramentoPendente())return;
+  var inicio=Number(STATE.doc.encerramentoIniciadoMs)||Date.now();
+  var chave=(STATE.mesa&&STATE.mesa.codigo||"")+":"+inicio;
+  if(_encerramentoAudioChave===chave)return;
+  pararAudioEncerramento();_encerramentoAudioChave=chave;
+  var decorrido=Math.max(0,Date.now()-inicio), restante=Math.max(0,DURACAO_ENCERRAMENTO_MS-decorrido);
+  if(!restante){concluirEncerramento();return;}
+  habilitarAudioNivel();
+  carregarVozNivel("encerramento").then(function(buffer){
+    if(!buffer||!encerramentoPendente()||!_audioNivel||_audioNivel.state!=="running")return;
+    var fonte=_audioNivel.createBufferSource(), ganho=_audioNivel.createGain();
+    fonte.buffer=buffer;ganho.gain.value=.92;fonte.connect(ganho);ganho.connect(_audioNivel.destination);
+    _fonteEncerramento=fonte;
+    var deslocamento=Math.min(buffer.duration-.05,decorrido/1000);
+    fonte.start(_audioNivel.currentTime,Math.max(0,deslocamento));
+  });
+  _timerEncerramento=setTimeout(function(){concluirEncerramento().catch(function(e){console.error("encerramento",e);});},restante+150);
+}
 function emitirSomDeNivel(){
   habilitarAudioNivel();
   if(!_audioNivel||_audioNivel.state!=="running") return;
@@ -1723,6 +1758,7 @@ function emitirSomDeNivel(){
 function verificarTrocaDeNivel(fase){
   /* Um unico emissor evita o eco de varios celulares recebendo o snapshot em tempos diferentes. */
   if(!souMestreDaMesa()||partidaPausada()) return;
+  if(fase==="resultado"){_nivelSonoroAnterior="resultado";return;}
   var voz=vozDaFase(fase), atual=fase==="cooperacao"?"mosaico":(fase==="constelacao"?(fase+":"+voz):fase);
   if(!atual) return;
   if(_nivelSonoroAnterior===null){_nivelSonoroAnterior=atual;return;}
@@ -1813,8 +1849,11 @@ function controlesMestreMovel(){
     statusOuAcao(STATE.v5.deducoes.length,js.length,"Dedu&ccedil;&atilde;o final","Calcular resultado","finalizarPartida");
   }else if(fase==="resultado"){
     var etapa=etapaRevelacao();
-    acaoNecessaria=etapa<4;
-    if(etapa<4) botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();avancarRevelacao()">'+esc(rotuloProximaRevelacao(etapa))+'</button>';
+    acaoNecessaria=encerramentoPendente()||etapa<4;
+    if(encerramentoPendente()){
+      autoInfo='<div class="card"><b>A casa está ouvindo...</b><p class="muted">O encerramento narrado antecede a revelação. Ele continua automaticamente.</p></div>';
+      botoes+='<button class="btn btn-frio" onclick="alternarMenuMestre();concluirEncerramento()">Pular narração</button>';
+    }else if(etapa<4) botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();avancarRevelacao()">'+esc(rotuloProximaRevelacao(etapa))+'</button>';
     else {
       autoInfo='<div class="card"><b>Resultado final</b><p class="muted">O p&oacute;dio permanecer&aacute; vis&iacute;vel at&eacute; voc&ecirc; encerrar a sala ou abrir uma nova.</p></div>';
       botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();repetirApuracao()">Repetir apura&ccedil;&atilde;o</button>'+
@@ -2015,6 +2054,8 @@ function render(forcar){
     _timerContagem=null;STATE.contando=0;
   }
   verificarTrocaDeNivel(faseAgora);
+  if(encerramentoPendente())sincronizarAudioEncerramento();
+  else if(_fonteEncerramento||_timerEncerramento)pararAudioEncerramento();
   var encenacaoPassiva=false;
   if(STATE.eu&&STATE.tela==="encenacao"&&faseAgora==="encenacao"){
     var ordemEncenacao=ordenados(STATE.jogadores), atorEncenacao=ordemEncenacao[(STATE.doc&&STATE.doc.vez)||0];
@@ -2306,7 +2347,9 @@ function telaPainel(){
   var js=ordenados(STATE.jogadores);
   var fase=(STATE.doc&&STATE.doc.fase)||"sala";
   if(fase==="resultado"){
-    var etapa=etapaRevelacao(), controle=etapa<4
+    var etapa=etapaRevelacao(), controle=encerramentoPendente()
+      ? (souMestreDaMesa()?'<div class="controle-revelacao"><button class="btn btn-frio" onclick="concluirEncerramento()">Pular narração</button></div>':'')
+      : etapa<4
       ? '<div class="controle-revelacao"><button class="btn btn-ambar" onclick="avancarRevelacao()">'+esc(rotuloProximaRevelacao(etapa))+'</button></div>'
       : '';
     return cabecalhoRodada(fase)+'<div class="revelacao-final">'+telaResultado()+controle+'</div>';
@@ -2684,6 +2727,9 @@ function iniciarApuracaoSeNecessario(){
 }
 function telaResultado(){
   var etapa=etapaRevelacao(), rev=CASO.revelacaoFinal||{}, sol=CASO.solucao||{};
+  if(encerramentoPendente()){
+    return '<span class="eyebrow">Encerramento da noite</span><h2>A CASA ESTÁ OUVINDO...</h2><p class="lead">As acusações foram registradas. Escute a história antes de a verdade ser revelada.</p><div class="card" style="text-align:center"><span class="cronometro-dourado">A revelação começará ao final da narração.</span></div>';
+  }
   if(etapa===0){
     var suspeito=personagemPor(sol.suspeito);
     return '<span class="eyebrow">A verdade</span><h2>'+esc(rev.titulo||"A verdade foi reconstruída")+'</h2><p class="lead">'+esc(rev.sintese||"")+'</p><div class="revelacao-chave">'+
@@ -3621,7 +3667,8 @@ async function finalizarPartida(){
   var placar=MosaicoV5.calcular({jogadores:STATE.jogadores,deducoes:deducoes,negociacoes:negociacoes,coopColetiva:coletivo,coopIndividual:coopInd,performance:perf});
   var FB=await esperarFB();
   for(var i=0;i<placar.length;i++) await FB.atualizarJogador(STATE.mesa.codigo,placar[i].id,{total:placar[i].total,pontuacao:placar[i].componentes,economiaDetalhe:placar[i].economia});
-  await FB.atualizarMesa(STATE.mesa.codigo,{fase:'resultado',revelacaoEtapa:0,reveladaEmMs:Date.now(),solucao:sol});
+  var agora=Date.now();
+  await FB.atualizarMesa(STATE.mesa.codigo,{fase:'resultado',revelacaoEtapa:0,reveladaEmMs:agora,solucao:sol,encerramentoIniciadoMs:agora,encerramentoConcluido:false,encerramentoConcluidoMs:0});
 }
 
 /* Encerra a mesa: marca ativa:false. Quem esta jogando ve o aviso e sai,

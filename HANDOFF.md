@@ -568,6 +568,8 @@ A abertura possui vídeo horizontal H.264/AAC de 1280 × 720 para telão e víde
 
 As grandes fases possuem anúncios narrados em `audio/`: Encenação, Votação, Janela do Norte, Vidro Embaçado, Sala às Escuras, Mosaico Coletivo, Mercado, Acusação Final e Pódio. Eles foram normalizados para volume uniforme. Somente o mestre/telão reproduz: a sirene de nevoeiro toca por 4,4 segundos e a voz entra em seguida. Vidro e Sala são escolhidos conforme a tarefa interna da partida; a transição interna de Mosaico para Cooperação não repete o anúncio. O pódio toca uma única vez por execução da apuração.
 
+O arquivo estéreo `audio/encerramento.mp3` (aproximadamente 124 segundos) é a faixa final consolidada. Ao terminar as acusações, a tela mostra **A CASA ESTÁ OUVINDO...** e essa faixa toca antes de qualquer solução aparecer. O mestre pode usar **Pular narração**. Ao concluir ou pular, a revelação por etapas é liberada; somente depois vem a apuração e a voz do pódio.
+
 O resultado final abre uma tabela progressiva com **Encenação**, **J × J**, **J + J**, **Mercado** e **Caso**. As colunas permanecem visíveis, a classificação muda após cada etapa e o pódio substitui a tabela ao final. O Caso entra por último sem exibir uma coluna separada de soma durante a animação.
 
 Os módulos sensoriais canônicos são `MOSAICO-26-a-janela-do-norte.html`, `MOSAICO-26-vidro-embacado.html` e `MOSAICO-26-a-sala-as-escuras.html`. Cada execução recebe semente e `runId`; ao concluir, o módulo devolve somente `tarefa-ok`, `runId` e `tempoMs`. A Mesa valida a origem e a execução, grava o tempo no Firestore e mantém pontos, pistas e avanço fora dos módulos isolados.
