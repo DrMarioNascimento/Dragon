@@ -297,10 +297,12 @@ Os núcleos são classificados pela ordem de conclusão correta da carta do Mosa
 | 5º ou mais | 4 |
 | não concluiu | 0 |
 
+Cada envio incorreto desconta **2 pontos** dessa pontuação-base, até o mínimo de zero. O erro é persistido no rascunho sincronizado do Fragmento, o cronômetro continua correndo e uma nova tentativa permanece disponível.
+
 Regras:
 
 - todos partem da mesma referência temporal;
-- montagem incorreta não encerra o cronômetro;
+- montagem incorreta não encerra o cronômetro, registra a tentativa e desconta 2 pontos;
 - não há faixa artificial de empate;
 - o acerto posterior do suspeito não altera Cooperação;
 - o componente fecha após o Mosaico.
@@ -427,7 +429,11 @@ As seis peças da cronologia são distribuídas entre os Arquivos dos integrante
 
 Um integrante é sorteado como **Portador do Fragmento**. Nos demais celulares aparecem somente os seis horários e dicas interpretativas; as respostas selecionadas não são exibidas. Todos continuam podendo consultar o Arquivo. No celular do Portador aparecem seis horários e botões de seleção, sem repetir as dicas. A janela de escolha usa cartões de texto completo. Pistas utilizadas desaparecem das escolhas vazias; ao revisar um horário preenchido, todas reaparecem identificadas e uma opção ocupada pode ser trocada automaticamente com outra.
 
-O documento `nucleos/{numero}` persiste `portadorId`, `rascunho` e `rascunhoMs`. As regras permitem que somente esse UID altere o rascunho e conclua o Mosaico. O tempo coletivo continua sendo registrado no servidor no primeiro envio correto.
+O documento `nucleos/{numero}` persiste `portadorId`, `rascunho` e `rascunhoMs`. O mapa `rascunho` também conserva `_erros` e `_ultimaTentativaMs`, atualizados por transação para evitar perda em envios simultâneos. As regras permitem que somente o Portador — ou os Portadores compartilhados nas mesas de até três pessoas — altere o rascunho e conclua o Mosaico. O tempo coletivo continua sendo registrado no servidor no primeiro envio correto.
+
+### Invariante de segurança visual móvel
+
+A barra inferior **Caso | Sala | Arquivo** possui uma reserva única baseada em `env(safe-area-inset-bottom)`. Nenhuma tela jogável pode substituir essa reserva por um valor menor. Caso, Arquivo, Sala, tarefas sensoriais, formação/reconstrução dos Fragmentos, espera e resultados devem permitir que o último controle rolável termine completamente acima da barra. Modais com camada superior usam `100dvh`, área segura e rolagem interna; não dependem de `100vh` nem deixam botões fora da área tocável.
 
 ---
 
