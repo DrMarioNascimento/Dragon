@@ -536,7 +536,15 @@ O código da sala isoladamente não permite assumir outro jogador. Se a sala est
 
 A senha do mestre no cliente continua sendo apenas uma barreira de abertura. A segurança dos dados foi versionada em `firestore.rules`: o criador é identificado por `mestreUid`; somente ele altera a sala, as fases e o placar; jogadores escrevem apenas ações autorizadas; votos e deduções ficam legíveis somente pelo autor e pelo mestre; compras são validadas como transações completas.
 
-A conclusão da apresentação passou a ser uma solicitação em `acoes`: o jogador confirma no próprio celular e somente o mestre avança a fase e publica a cronologia. A atualização do próprio jogador também autoriza os campos `fragmentoPronto` e `fragmentoProntoMs`, necessários ao botão **OK, ENCONTREI MEU FRAGMENTO!**. Consulte `FIREBASE-SECURITY.md` para implantação, matriz de testes e o limite conhecido relativo às pistas ainda presentes nos documentos públicos dos jogadores.
+A conclusão da apresentação passou a ser uma solicitação em `acoes`: o jogador confirma no próprio celular e somente o mestre avança a fase e publica a cronologia. A atualização do próprio jogador também autoriza os campos `fragmentoPronto` e `fragmentoProntoMs`, necessários ao botão **OK, ENCONTREI MEU FRAGMENTO!**. Consulte `FIREBASE-SECURITY.md` para implantação, matriz de testes e os limites conhecidos.
+
+Três decisões de integridade foram consolidadas depois da auditoria de 25 de agosto de 2026:
+
+- **a contagem de acertos do Fragmento é refeita na apuração.** O `_acertos` gravado pelo Portador continua servindo à tela dele, mas `acertosMosaico()` recalcula contra `CASO.mosaico.ordemCorreta`. O número que distribui a base coletiva de 20/16/12/8/4 não é mais escrito por quem ganha pontos com ele;
+- **o Arquivo cresce por `arrayUnion`, nunca por reescrita do array inteiro.** Antes, conclusão de tarefa e "Adicionar ao Arquivo" podiam se cruzar e uma apagava a outra, com a pista sumindo sem erro visível. A pista privada passou a ser registrada já na entrada da revelação, não só no clique do botão;
+- **só o carimbo do servidor conta como hora de entrega do Mosaico.** O campo `concluidoMs` nunca era gravado e devolvia zero, que ordenava como o Fragmento mais rápido de todos; ele saiu do código e das regras.
+
+O login anônimo passou a ser **preguiçoso**: dispara no primeiro gesto real, não no carregamento da página. Por isso todo método de `window.MosaicoFB` começa por `await autenticar()`, e os ouvintes — que devolvem a função de cancelamento na hora — passam pelo envelope `ouvinteAdiado`. Quem mexer no módulo precisa manter essa disciplina, ou a chamada falha por falta de sessão.
 
 ### 13.3 Limite de jogadores
 
@@ -601,11 +609,24 @@ Mesas de teste antigas no Firestore devem ser removidas periodicamente.
 
 ## 16. Ordem recomendada de implementação
 
-1. publicar e validar `firestore.rules` no projeto Firebase;
-2. teste físico da ativação e da repetição após falha do sensor em iOS Safari e Android Chrome;
-3. proteção efetiva das pistas em backend confiável;
-4. testes de integração da reconexão, duplicidade e revelação final com o Firestore;
-5. playtest presencial completo.
+1. publicar e validar `firestore.rules` no projeto Firebase — **as regras mudaram**, e o jogo publicado depende delas;
+2. ativar o **App Check** (reCAPTCHA v3): é o que falta para conter criação de sala em volume, agora que o login anônimo só ocorre no primeiro gesto;
+3. teste físico da ativação e da repetição após falha do sensor em iOS Safari e Android Chrome;
+4. extrair `js/tarefa-sensor.js` comum aos três módulos sensoriais — **antes** dos testes físicos, porque hoje cada correção de sensor precisa ser aplicada três vezes;
+5. proteção efetiva das pistas em backend confiável (leitura e escrita);
+6. testes de integração da reconexão, duplicidade e revelação final com o Firestore;
+7. medir a carga de vídeo da abertura num playtest em 4G real antes de tratá-la como resolvida;
+8. playtest presencial completo.
+
+### Verificação automática
+
+O que antes era conferido à mão agora roda:
+
+```bash
+npm install && npm run test:tudo
+```
+
+`tests/mosaico-v5.test.mjs` cobre o motor de pontuação; `tests/caso-sincronizado.test.mjs` garante que `casos/casa-da-costa.json` e o `CASO_FALLBACK_COMPLETO` embutido não divirjam; `tests/regras.test.mjs` executa a matriz do `FIREBASE-SECURITY.md` contra o emulador.
 
 ---
 

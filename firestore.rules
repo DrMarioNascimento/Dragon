@@ -26,12 +26,28 @@ service cloud.firestore {
     function inside(roomId) {
       return master(roomId) || participant(roomId);
     }
+    /* O cliente PRECISA poder acrescentar pista ao proprio Arquivo: e assim
+       que a pista privada do personagem e a pista de cada tarefa sensorial
+       chegam. O que esta regra faz e encarecer o abuso, nao elimina-lo:
+       o Arquivo cresce no maximo uma pista por escrita e a mesma escrita
+       nao pode encostar nas moedas. Quem insistir ainda consegue repetir a
+       operacao vezes seguidas — a eliminacao real exige que a concessao de
+       pista saia do jogador (mestre ou Cloud Functions), conforme o
+       HANDOFF secao 16.3.                                               */
     function ownPlayerUpdate() {
-      return request.resource.data.diff(resource.data).affectedKeys()
-        .hasOnly([
+      let changed = request.resource.data.diff(resource.data).affectedKeys();
+      return changed.hasOnly([
           'pronto', 'personagem', 'pistas', 'fragmentoPronto',
           'fragmentoProntoMs', 'atualizadoEmMs'
-        ]);
+        ])
+        && (
+          !changed.hasAny(['pistas'])
+          || (
+            request.resource.data.get('pistas', []).size()
+              <= resource.data.get('pistas', []).size() + 1
+            && request.resource.data.get('moedas', 0) == resource.data.get('moedas', 0)
+          )
+        );
     }
     function purchasePlayerUpdate(roomId, playerId) {
       let marker = request.resource.data.ultimaNegociacao;
@@ -174,7 +190,7 @@ service cloud.firestore {
           && request.resource.data.get('portadoresCompartilhados', false)
             == resource.data.get('portadoresCompartilhados', false)
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-            'rascunho', 'rascunhoMs', 'concluidoEm', 'concluidoMs'
+            'rascunho', 'rascunhoMs', 'concluidoEm'
           ])
         );
         allow delete: if false;

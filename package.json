@@ -1,0 +1,17 @@
+{
+  "name": "mosaico",
+  "version": "5.0.0",
+  "private": true,
+  "description": "MOSAICO — A Verdade é um Fragmento. Verificação automática do motor de pontuação, das regras do Firestore e da sincronia do caso canônico.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/mosaico-v5.test.mjs tests/caso-sincronizado.test.mjs",
+    "test:regras": "firebase emulators:exec --only firestore \"node --test tests/regras.test.mjs\"",
+    "test:tudo": "npm test && npm run test:regras"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^4.0.1",
+    "firebase": "^12.17.1",
+    "firebase-tools": "^13.29.1"
+  }
+}

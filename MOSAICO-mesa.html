@@ -1921,7 +1921,7 @@ function totalFragmentos(){
   return new Set(STATE.jogadores.map(function(j){return j.nucleo;}).filter(Boolean)).size;
 }
 function fragmentosComTarefaConcluida(){
-  return STATE.v5.nucleos.filter(function(n){return n.concluidoEm||n.concluidoMs;}).length;
+  return STATE.v5.nucleos.filter(function(n){return n.concluidoEm;}).length;
 }
 function jogadoresComCooperacaoConcluida(){
   return STATE.jogadores.filter(function(j){
@@ -2441,7 +2441,7 @@ function telaPainel(){
     var tipoTarefa=fase;
     acao='<div class="card"><span class="eyebrow">Rodada sensorial</span><p class="lead">'+esc(nomeRodada(fase))+'</p><p class="muted">'+esc(resumoSensores(tipoTarefa,js.length))+'. O avan&ccedil;o ser&aacute; autom&aacute;tico.</p></div>';
   } else if(fase==="mosaico"){
-    acao='<div class="card"><span class="eyebrow">Mosaico coletivo</span><p class="muted">'+STATE.v5.nucleos.filter(function(n){return n.concluidoEm||n.concluidoMs;}).length+' Fragmento(s) conclu&iacute;do(s).</p></div><button class="btn btn-ambar" onclick="abrirVotoCooperacao()">Encerrar mosaico e abrir voto interno</button>';
+    acao='<div class="card"><span class="eyebrow">Mosaico coletivo</span><p class="muted">'+STATE.v5.nucleos.filter(function(n){return n.concluidoEm;}).length+' Fragmento(s) conclu&iacute;do(s).</p></div><button class="btn btn-ambar" onclick="abrirVotoCooperacao()">Encerrar mosaico e abrir voto interno</button>';
   } else if(fase==="cooperacao"){
     acao='<div class="card"><span class="eyebrow">Voto interno cego</span><p class="muted">'+STATE.v5.cooperacao.length+' voto(s) recebidos. Os nomes e o resultado permanecem ocultos.</p></div><button class="btn btn-ambar" onclick="abrirMercado()">Encerrar voto e abrir Mercado Cego</button>';
   } else if(fase==="mercado"){
@@ -2852,7 +2852,7 @@ function formatarCronometroFragmento(ms){
 function instanteMs(v){return v&&v.toMillis?v.toMillis():(Number(v)||0);}
 function tempoFragmentoMs(){
   var inicio=Number(STATE.doc&&STATE.doc.mosaicoAbertoMs)||Date.now(), n=documentoMeuFragmento();
-  var fim=n&&instanteMs(n.concluidoEm||n.concluidoMs);
+  var fim=n&&instanteMs(n.concluidoEm);
   var agora=STATE.doc&&STATE.doc.pausada?(Number(STATE.doc.pausaIniciadaMs)||Date.now()):Date.now();
   return Math.max(0,(fim||agora)-inicio);
 }
@@ -2897,8 +2897,16 @@ function rotuloPistaMosaico(p){
 function chavesRespostaMosaico(rascunho){
   return Object.keys(rascunho||{}).filter(function(k){return /^\d+$/.test(k);});
 }
+/* O _acertos gravado pelo Portador continua servindo a tela dele, mas a
+   apuracao nao pode confiar num numero escrito por quem ganha pontos com
+   ele. Aqui a contagem e refeita contra a ordem canonica do caso, que o
+   mestre ja tem em memoria.                                            */
 function acertosMosaico(nucleo){
-  return Math.max(0,Math.min(dicasMosaico().length,Math.trunc(Number(nucleo&&nucleo.rascunho&&nucleo.rascunho._acertos)||0)));
+  var rascunho=(nucleo&&nucleo.rascunho)||{};
+  var correta=(CASO.mosaico&&CASO.mosaico.ordemCorreta)||[];
+  var total=0;
+  for(var i=0;i<correta.length;i++) if(rascunho[String(i)]===correta[i]) total++;
+  return total;
 }
 function iconePortador(){
   return '<svg class="peca-portador" viewBox="-4 -4 72 72" role="img" aria-label="Pe&ccedil;a dourada do Portador"><defs><linearGradient id="ouroPeca" x1=".15" y1=".1" x2=".85" y2=".9"><stop offset="0" stop-color="#fffbe0"/><stop offset=".32" stop-color="#ffe889"/><stop offset=".68" stop-color="#f7c94a"/><stop offset="1" stop-color="#8a5410"/></linearGradient></defs><path fill="url(#ouroPeca)" stroke="#fff2a8" stroke-width="2" d="M8 8h17c-1-7 4-11 9-11s10 4 9 11h13v17c7-1 11 4 11 9s-4 10-11 9v13H41c1 7-4 11-9 11s-10-4-9-11H8V41c-7 1-11-4-11-9s4-10 11-9V8z"/></svg>';
@@ -2930,7 +2938,7 @@ function modalEscolhaMosaico(rascunho){
 function telaMosaico(){
   var eu=meuJogador(), nucleo=eu&&eu.nucleo, fragmento=dadosFragmento(nucleo);
   if(!(STATE.doc&&STATE.doc.fragmentosLiberados)) return telaEncontroFragmento(nucleo);
-  var n=documentoMeuFragmento(), feito=n&&(n.concluidoEm||n.concluidoMs);
+  var n=documentoMeuFragmento(), feito=n&&(n.concluidoEm);
   if(feito){
     var mensagem=STATE.jogadores.length<=3
       ?(ritmoConduzido()?'A resposta final foi registrada. Aguarde o mestre liberar a pr&oacute;xima fase.':'A resposta final foi registrada. Abrindo a pr&oacute;xima fase&hellip;')
@@ -2967,7 +2975,9 @@ function telaMercado(){
       '<button class="btn btn-ambar" onclick="abrirDeducao()">Continuar para a acusa&ccedil;&atilde;o final</button>';
   }
   var cfg=CASO.configuracao||MosaicoV5.CONFIG_PADRAO, minhas=minhasPistas();
-  var propria=minhas.find(function(p){return !p.adquirida;});
+  /* A pista oferecida e a PRIVADA do personagem, nunca a de tarefa. Antes
+     isso dependia da ordem do array; agora e explicito. */
+  var propria=minhas.find(function(p){return !p.adquirida && p.origem!=='tarefa';});
   var aberta=(STATE.v5.ofertas||[]).find(function(o){return o.vendedorId===eu.id&&o.status==='aberta';});
   var criar=propria&&!aberta?'<div class="card"><b>Oferecer sua pista</b><p class="muted">A import&acirc;ncia real da pista permanece oculta at&eacute; a revela&ccedil;&atilde;o final do caso.</p><select id="faixa-oferta">'+Object.keys(cfg.precos).map(function(k){return opcao(k,k+' — '+cfg.precos[k]+' moedas');}).join('')+'</select><button class="btn btn-sm" onclick="criarOferta()">Colocar a pista &agrave; venda</button></div>':'';
   var ofertas=(STATE.v5.ofertas||[]).filter(function(o){return o.status==='aberta'&&o.vendedorId!==eu.id;});
@@ -3400,6 +3410,9 @@ async function terminei(){
   STATE.travaTela=true;
   STATE.tela="revelacao";
   render();
+  /* A pista privada entra no Arquivo aqui, e nao so no clique do botao:
+     ninguem deve ficar sem ela por ter recarregado a tela. */
+  registrarPistaPrivada();
   var FB=await esperarFB();
   await FB.gravarServidor(STATE.eu.codigo,"acoes",STATE.eu.id,{tipo:"concluirApresentacao",jogadorId:STATE.eu.id,vez:(STATE.doc&&STATE.doc.vez)||0},"criadaEm");
 }
@@ -3415,19 +3428,27 @@ function minhasPistas(){
   return [];
 }
 
-async function guardarPista(){
+/* A gravacao da pista privada foi separada do destravamento da tela.
+
+   O botao "Adicionar ao Arquivo" e um clique manual depois da atuacao:
+   quem recarregasse a pagina, saisse da tela ou tivesse a fase avancada
+   pelo mestre ficava SEM a pista privada — e, no Mercado, acabava
+   oferecendo uma pista de tarefa no lugar dela. Agora terminei() ja
+   registra a pista ao entrar na revelacao, e o botao e so confirmacao. */
+async function registrarPistaPrivada(){
   var p = PISTA_PRIVADA[STATE.eu && STATE.eu.personagem];
-  if(p){
-    var atuais = minhasPistas();
-    var repetida = atuais.some(function(x){ return x.hora===p.hora && x.txt===p.txt; });
-    if(!repetida){
-      try{
-        var FB=await esperarFB();
-        await FB.atualizarJogador(STATE.eu.codigo, STATE.eu.id,
-          { pistas: atuais.concat([{ id:p.id||('priv-'+STATE.eu.personagem), hora:p.hora, txt:p.txt, adquirida:false }]) });
-      }catch(e){ console.error("guardarPista", e); }
-    }
-  }
+  if(!p || !STATE.eu) return;
+  var repetida = minhasPistas().some(function(x){ return x.hora===p.hora && x.txt===p.txt; });
+  if(repetida) return;
+  try{
+    var FB=await esperarFB();
+    await FB.acrescentarPista(STATE.eu.codigo, STATE.eu.id,
+      { id:p.id||('priv-'+STATE.eu.personagem), hora:p.hora, txt:p.txt, adquirida:false });
+  }catch(e){ console.error("registrarPistaPrivada", e); }
+}
+
+async function guardarPista(){
+  await registrarPistaPrivada();
   STATE.travaTela=false;
   sincronizarJogador();
 }
@@ -3511,8 +3532,9 @@ async function concluirTarefaSensor(tipo,tempoMs,runId){
   if((STATE.v5.tarefas||[]).some(function(t){return t.id===id&&tarefaConcluida(t);})) return;
   var FB=await esperarFB(), cfg=configTarefaSensor(tipo), pista=cfg&&cfg.pista;
   if(pista){
-    var atuais=minhasPistas(), repetida=atuais.some(function(p){return p.id===pista.id;});
-    if(!repetida) await FB.atualizarJogador(STATE.eu.codigo,STATE.eu.id,{pistas:atuais.concat([{id:pista.id,hora:pista.hora,txt:pista.txt,adquirida:false,origem:'tarefa'}])});
+    var repetida=minhasPistas().some(function(p){return p.id===pista.id;});
+    if(!repetida) await FB.acrescentarPista(STATE.eu.codigo,STATE.eu.id,
+      {id:pista.id,hora:pista.hora,txt:pista.txt,adquirida:false,origem:'tarefa'});
   }
   /* O registro que pode disparar o avanço vem por último: assim o
      fragmento já está no Arquivo quando a rodada termina. */
@@ -3654,8 +3676,16 @@ async function finalizarPartida(){
     else pontos=MosaicoV5.dividirVoto(STATE.v5.cooperacao.filter(function(v){return v.nucleo===n;}),ids,10);
     Object.assign(coopInd,pontos);
   });
-  function msNucleo(n){return n.concluidoEm&&n.concluidoEm.toMillis?n.concluidoEm.toMillis():(n.concluidoMs||0);}
-  var concluidos=STATE.v5.nucleos.filter(function(n){return n.concluidoEm||n.concluidoMs;}).sort(function(a,b){
+  /* Só o carimbo do servidor vale como hora de entrega. O antigo recurso a
+     concluidoMs nunca era gravado por concluirNucleo, entao devolvia zero —
+     e zero ordenava como o Fragmento MAIS RAPIDO de todos. Enquanto o
+     serverTimestamp nao confirma, o Fragmento simplesmente ainda nao
+     entregou; Infinity garante que ele nunca vença o desempate.        */
+  function msNucleo(n){
+    var t=n&&n.concluidoEm;
+    return t&&t.toMillis?t.toMillis():Infinity;
+  }
+  var concluidos=STATE.v5.nucleos.filter(function(n){return n.concluidoEm&&n.concluidoEm.toMillis;}).sort(function(a,b){
     return acertosMosaico(b)-acertosMosaico(a)||msNucleo(a)-msNucleo(b);
   });
   var escala=[20,16,12,8], coletivo={};
@@ -3678,7 +3708,7 @@ async function finalizarPartida(){
   });
   var placar=MosaicoV5.calcular({jogadores:STATE.jogadores,deducoes:deducoes,negociacoes:negociacoes,coopColetiva:coletivo,coopIndividual:coopInd,performance:perf});
   var FB=await esperarFB();
-  for(var i=0;i<placar.length;i++) await FB.atualizarJogador(STATE.mesa.codigo,placar[i].id,{total:placar[i].total,pontuacao:placar[i].componentes,economiaDetalhe:placar[i].economia});
+  await FB.gravarPlacar(STATE.mesa.codigo,placar);
   var agora=Date.now();
   await FB.atualizarMesa(STATE.mesa.codigo,{fase:'resultado',revelacaoEtapa:0,reveladaEmMs:agora,solucao:sol,encerramentoIniciadoMs:0,encerramentoConcluido:true,encerramentoConcluidoMs:0});
 }
@@ -3900,7 +3930,8 @@ async function voltarParaSala(){
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
 import {
   getFirestore, doc, setDoc, getDoc, updateDoc,
-  collection, onSnapshot, serverTimestamp, getDocs, runTransaction
+  collection, onSnapshot, serverTimestamp, getDocs, runTransaction,
+  arrayUnion, writeBatch
 } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 import {
   getAuth, signInAnonymously, onAuthStateChanged
@@ -3943,22 +3974,44 @@ const db   = CONFIGURADO ? getFirestore(app) : null;
 const auth = CONFIGURADO ? getAuth(app) : null;
 
 /* login anonimo: ninguem cria conta, mas as Regras podem exigir
-   request.auth != null em vez de deixar a colecao aberta ao mundo */
+   request.auth != null em vez de deixar a colecao aberta ao mundo.
+
+   O login e PREGUICOSO de proposito. Quando ele acontecia no carregamento
+   da pagina, toda visita criava uma conta anonima permanente no projeto —
+   inclusive de quem so abriu o link por curiosidade. Agora ele so dispara
+   no primeiro gesto real (criar mesa, entrar, ouvir uma sala), e por isso
+   TODO metodo de MosaicoFB precisa comecar por `await autenticar()`.    */
 let _uid = null;
-const prontoAuth = CONFIGURADO ? new Promise(res => {
-  onAuthStateChanged(auth, u => { if(u){ _uid = u.uid; res(u.uid); } });
-  signInAnonymously(auth).catch(e => {
-    console.error("Login anônimo falhou — ative Authentication > Anônimo", e);
-    res(null);
+let _prontoAuth = null;
+function autenticar(){
+  if(_prontoAuth) return _prontoAuth;
+  if(!CONFIGURADO) return (_prontoAuth = Promise.resolve(null));
+  _prontoAuth = new Promise(res => {
+    onAuthStateChanged(auth, u => { if(u){ _uid = u.uid; res(u.uid); } });
+    signInAnonymously(auth).catch(e => {
+      console.error("Login anônimo falhou — ative Authentication > Anônimo", e);
+      res(null);
+    });
   });
-}) : Promise.resolve(null);
+  return _prontoAuth;
+}
+
+/* Os ouvintes devolvem a funcao de cancelamento na hora, entao nao podem
+   esperar o login com await. Este envelope mantem exatamente o mesmo
+   contrato de fora: assina assim que a autenticacao termina e, se alguem
+   cancelar antes disso, nunca chega a assinar.                          */
+function ouvinteAdiado(iniciar){
+  let cancelar=null, cancelado=false;
+  autenticar().then(() => { if(!cancelado) cancelar=iniciar(); });
+  return () => { cancelado=true; if(cancelar){ cancelar(); cancelar=null; } };
+}
 
 if(CONFIGURADO) window.MosaicoFB = {
   db,
-  async pronto(){ return prontoAuth; },
+  async pronto(){ return autenticar(); },
   uid(){ return _uid; },
   async criarMesa(codigo, modo, ritmo){
-    await prontoAuth;
+    await autenticar();
     await setDoc(doc(db, RAIZ, codigo), {
       ativa:true, fase:"sala", vez:0, modo:modo||"com-telao",
       mestreUid:_uid,
@@ -3972,88 +4025,125 @@ if(CONFIGURADO) window.MosaicoFB = {
     return codigo;
   },
   async mesaAtiva(codigo){
-    await prontoAuth;
+    await autenticar();
     const s = await getDoc(doc(db, RAIZ, codigo));
     return s.exists() && s.data().ativa === true;
   },
   async obterMesa(codigo){
-    await prontoAuth;
+    await autenticar();
     const s=await getDoc(doc(db,RAIZ,codigo));
     return s.exists()?s.data():null;
   },
   async obterJogador(codigo,id){
-    await prontoAuth;
+    await autenticar();
     const s=await getDoc(doc(db,RAIZ,codigo,"jogadores",id));
     return s.exists()?{id:s.id,...s.data()}:null;
   },
   async atualizarMesa(codigo, dados){
+    await autenticar();
     await updateDoc(doc(db, RAIZ, codigo), dados);
   },
   ouvirMesa(codigo, cb){
-    return onSnapshot(doc(db, RAIZ, codigo),
+    return ouvinteAdiado(() => onSnapshot(doc(db, RAIZ, codigo),
       s => cb(s.exists() ? s.data() : null),
-      e => { console.error("ouvirMesa", e); });
+      e => { console.error("ouvirMesa", e); }));
   },
   async entrarJogador(codigo, id, dados){
+    await autenticar();
     await setDoc(doc(db, RAIZ, codigo, "jogadores", id),
                  { ...dados, atualizadoEmMs: Date.now() }, { merge:true });
   },
   async atualizarJogador(codigo, id, dados){
+    await autenticar();
     await setDoc(doc(db, RAIZ, codigo, "jogadores", id),
                  { ...dados, atualizadoEmMs: Date.now() }, { merge:true });
   },
+  /* Acrescenta UMA pista sem reescrever o Arquivo inteiro.
+
+     Antes, quem ganhava uma pista lia o proprio array, concatenava e
+     regravava tudo. Se duas gravacoes se cruzassem — conclusao de tarefa
+     e "Adicionar ao Arquivo", ou um snapshot atrasado depois de uma
+     reconexao — a ultima apagava a outra e a pista sumia sem erro. Num
+     jogo de deducao, perder uma pista e perder a rodada.
+
+     ATENCAO: arrayUnion compara por igualdade profunda, campo a campo e
+     na mesma ordem. Se alguem reordenar o literal em guardarPista ou em
+     concluirTarefaSensor, a mesma pista passa a entrar duas vezes.     */
+  async acrescentarPista(codigo, id, pista){
+    await autenticar();
+    await updateDoc(doc(db, RAIZ, codigo, "jogadores", id),
+                    { pistas: arrayUnion(pista), atualizadoEmMs: Date.now() });
+  },
+  /* O placar inteiro numa transacao de escrita so: ou a mesa toda recebe
+     os pontos, ou ninguem recebe. Antes eram N idas ao servidor em
+     sequencia, e uma queda no meio deixava metade da mesa pontuada.    */
+  async gravarPlacar(codigo, linhas){
+    await autenticar();
+    const lote = writeBatch(db);
+    linhas.forEach(l => lote.set(doc(db, RAIZ, codigo, "jogadores", l.id), {
+      total: l.total, pontuacao: l.componentes, economiaDetalhe: l.economia,
+      atualizadoEmMs: Date.now()
+    }, { merge:true }));
+    await lote.commit();
+  },
   ouvirJogadores(codigo, cb){
-    return onSnapshot(collection(db, RAIZ, codigo, "jogadores"), snap => {
+    return ouvinteAdiado(() => onSnapshot(collection(db, RAIZ, codigo, "jogadores"), snap => {
       const l = []; snap.forEach(d => l.push({ id:d.id, ...d.data() })); cb(l);
-    }, e => { console.error("ouvirJogadores", e); cb([]); });
+    }, e => { console.error("ouvirJogadores", e); cb([]); }));
   },
   async listarJogadores(codigo){
-    await prontoAuth;
+    await autenticar();
     const snap = await getDocs(collection(db, RAIZ, codigo, "jogadores"));
     const l = []; snap.forEach(d => l.push({ id:d.id, ...d.data() }));
     return l;
   },
   async votar(codigo, deId, paraId){
+    await autenticar();
     await setDoc(doc(db, RAIZ, codigo, "votos", deId),
                  { de:deId, para:paraId, ms:Date.now() });
   },
   ouvirVotos(codigo, cb){
-    return onSnapshot(collection(db, RAIZ, codigo, "votos"), snap => {
+    return ouvinteAdiado(() => onSnapshot(collection(db, RAIZ, codigo, "votos"), snap => {
       const l = []; snap.forEach(d => l.push({ id:d.id, ...d.data() })); cb(l);
-    }, e => { console.error("ouvirVotos", e); cb([]); });
+    }, e => { console.error("ouvirVotos", e); cb([]); }));
   },
   async publicar(codigo, ordem, dados){
+    await autenticar();
     await setDoc(doc(db, RAIZ, codigo, "publicas", String(ordem)), dados);
   },
   ouvirPublicas(codigo, cb){
-    return onSnapshot(collection(db, RAIZ, codigo, "publicas"), snap => {
+    return ouvinteAdiado(() => onSnapshot(collection(db, RAIZ, codigo, "publicas"), snap => {
       const l = []; snap.forEach(d => l.push({ id:d.id, ...d.data() })); cb(l);
-    }, e => { console.error("ouvirPublicas", e); cb([]); });
+    }, e => { console.error("ouvirPublicas", e); cb([]); }));
   },
   async gravar(codigo, colecao, id, dados){
+    await autenticar();
     await setDoc(doc(db, RAIZ, codigo, colecao, id), dados, {merge:true});
   },
   async gravarServidor(codigo, colecao, id, dados, campo){
+    await autenticar();
     await setDoc(doc(db, RAIZ, codigo, colecao, id), {...dados,[campo]:serverTimestamp()}, {merge:true});
   },
   ouvirColecao(codigo, nome, cb){
-    return onSnapshot(collection(db, RAIZ, codigo, nome), snap => {
+    return ouvinteAdiado(() => onSnapshot(collection(db, RAIZ, codigo, nome), snap => {
       const l=[]; snap.forEach(d=>l.push({id:d.id,...d.data()})); cb(l);
-    }, e=>{ console.error("ouvirColecao "+nome,e); cb([]); });
+    }, e=>{ console.error("ouvirColecao "+nome,e); cb([]); }));
   },
   ouvirDocumento(codigo, nome, id, cb){
-    return onSnapshot(doc(db,RAIZ,codigo,nome,id),s=>cb(s.exists()?{id:s.id,...s.data()}:null),
-      e=>{console.error("ouvirDocumento "+nome,e);cb(null);});
+    return ouvinteAdiado(() => onSnapshot(doc(db,RAIZ,codigo,nome,id),s=>cb(s.exists()?{id:s.id,...s.data()}:null),
+      e=>{console.error("ouvirDocumento "+nome,e);cb(null);}));
   },
   async concluirNucleo(codigo, id, dados){
+    await autenticar();
     const ref=doc(db,RAIZ,codigo,"nucleos",id);
     await runTransaction(db,async tx=>{
       const atual=await tx.get(ref);
-      if(atual.exists()&&(atual.data().concluidoEm||atual.data().concluidoMs)) return;
+      if(atual.exists()&&(atual.data().concluidoEm)) return;
       tx.set(ref,{...dados,concluidoEm:serverTimestamp()},{merge:true});
     });
   },
   async comprarOferta(codigo, ofertaId, compradorId){
+    await autenticar();
     const ofertaRef=doc(db,RAIZ,codigo,"ofertas",ofertaId);
     const compradorRef=doc(db,RAIZ,codigo,"jogadores",compradorId);
     await runTransaction(db,async tx=>{
