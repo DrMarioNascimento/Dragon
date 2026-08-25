@@ -137,7 +137,7 @@
   #app{
     position:relative;z-index:1;
     max-width:640px;margin:0 auto;min-height:100vh;
-    padding:max(24px,env(safe-area-inset-top)) 20px max(30px,env(safe-area-inset-bottom));
+    padding:max(24px,env(safe-area-inset-top)) 20px max(104px,calc(82px + env(safe-area-inset-bottom)));
   }
   /* o painel e projetado: precisa de largura e de leitura a distancia */
   #app.largo{max-width:1180px;padding-left:28px;padding-right:28px}
@@ -407,9 +407,13 @@
   @media(prefers-reduced-motion:reduce){
     .btn-menu-mestre.acao-necessaria,.sala-acordeao.acao-necessaria{animation:none}
   }
-  .caso-fundo{position:fixed;inset:0;z-index:43;background:rgba(2,5,9,.96);
-    padding:max(18px,env(safe-area-inset-top)) 16px max(82px,env(safe-area-inset-bottom));overflow-y:auto}
+  .caso-fundo{position:fixed;inset:0;z-index:43;background:rgba(2,5,9,.985);
+    padding:max(18px,env(safe-area-inset-top)) 16px max(104px,calc(82px + env(safe-area-inset-bottom)));
+    overflow-y:auto;-webkit-overflow-scrolling:touch}
   .caso-card{max-width:600px;margin:auto}.caso-card .publica:last-child{margin-bottom:4px}
+  .caso-card>.rodada-celular{margin:10px 0 12px}
+  .caso-card>.card{background:#0b121b;border-color:#253447}
+  .caso-card .muted{color:#aab8c7}
   .tarefa-frame{width:100%;height:min(72vh,720px);border:1px solid var(--linha);border-radius:8px;
     background:#05070c;display:block;margin:14px 0}
   body.fase-sensor #app{padding:12px 12px 84px}
@@ -769,7 +773,7 @@
   #pistas{
     position:fixed;inset:0;z-index:42;
     background:linear-gradient(170deg,#0a0f16,#05070c);
-    padding:max(26px,env(safe-area-inset-top)) 22px max(26px,env(safe-area-inset-bottom));
+    padding:max(22px,env(safe-area-inset-top)) 20px max(104px,calc(82px + env(safe-area-inset-bottom)));
     overflow-y:auto;-webkit-overflow-scrolling:touch;
     opacity:0;pointer-events:none;transition:opacity .45s ease;
   }
@@ -777,20 +781,20 @@
   #pistas h2{
     font-family:var(--sans);font-size:clamp(12px,3.2vw,15px);font-weight:600;
     letter-spacing:.34em;text-transform:uppercase;color:var(--dim);
-    text-align:center;margin:10px 0 32px;
+    text-align:center;margin:8px 0 10px;
   }
   .pista-item{
     border-left:2px solid rgba(232,164,76,.45);
-    padding:2px 0 2px 18px;margin-bottom:32px;
+    padding:2px 0 2px 15px;margin-bottom:22px;
   }
   .pista-item .ph{
-    display:block;font-size:clamp(25px,7vw,34px);font-weight:800;letter-spacing:.12em;
+    display:block;font-size:clamp(25px,6.8vw,30px);font-weight:800;letter-spacing:.12em;
     color:#f7c94a;font-variant-numeric:tabular-nums;
     text-shadow:0 0 16px rgba(247,201,74,.42);
   }
   .pista-item .pt{
-    font-family:var(--serif);font-size:clamp(25px,6.8vw,36px);line-height:1.3;
-    color:var(--texto);margin-top:12px;
+    font-family:var(--serif);font-size:clamp(20px,5.5vw,25px);line-height:1.32;
+    color:var(--texto);margin-top:7px;
   }
   #pistas-vazio{
     font-family:var(--serif);font-style:italic;color:var(--dim);
@@ -858,17 +862,23 @@
 
   /* Barra inferior única: Caso | Sala | Arquivo. */
   .barra-jogo{position:fixed;z-index:45;left:12px;right:12px;
-    bottom:max(12px,env(safe-area-inset-bottom));display:grid;
-    grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;align-items:stretch;
-    pointer-events:none}
+    bottom:max(8px,env(safe-area-inset-bottom));display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;align-items:stretch;
+    padding:6px;border:1px solid rgba(127,212,255,.18);border-radius:18px;
+    background:rgba(3,6,11,.94);box-shadow:0 10px 34px rgba(0,0,0,.5);
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);pointer-events:none}
   .barra-jogo .btn-caso,.barra-jogo .btn-menu-mestre,.barra-jogo #btn-pistas{
     position:static;left:auto;right:auto;bottom:auto;transform:none;width:100%;min-width:0;
-    min-height:48px;margin:0;padding:10px 5px;display:none;align-items:center;justify-content:center;
-    font-size:clamp(9px,2.8vw,12px);letter-spacing:.09em;white-space:nowrap;pointer-events:auto}
+    min-height:52px;margin:0;padding:9px 3px;display:none;align-items:center;justify-content:center;
+    border-radius:12px;background:transparent;box-shadow:none;
+    font-size:clamp(9px,2.65vw,12px);letter-spacing:.07em;white-space:nowrap;pointer-events:auto}
   .barra-jogo .btn-caso{grid-column:1;display:flex}
   .barra-jogo .btn-menu-mestre{grid-column:2;display:flex}
   .barra-jogo #btn-pistas{grid-column:3}
   .barra-jogo #btn-pistas.on{display:flex}
+  .barra-jogo button.ativo{background:rgba(127,212,255,.1);border-color:rgba(127,212,255,.8);
+    color:#bdeeff;box-shadow:inset 0 0 18px rgba(127,212,255,.08)}
+  .barra-jogo #btn-pistas.ativo{background:rgba(232,164,76,.1);border-color:rgba(232,164,76,.72);color:#ffd18d}
 
   /* ---------- roteiro de cinema ---------- */
   #escuro{
@@ -1181,7 +1191,6 @@
   <p class="muted">Seus fragmentos e as pistas adquiridas durante o caso.</p>
   <div id="pistas-lista"></div>
   <div id="pistas-vazio">Voc&ecirc; ainda n&atilde;o recebeu nada.<br>A noite mal come&ccedil;ou.</div>
-  <button class="btn" id="fechar-pistas" style="max-width:20em;margin:12px auto 0">Voltar</button>
 </div>
 
 <div id="ctrl-abertura">
@@ -1658,7 +1667,11 @@ function souMestreDaMesa(){
   var codigo=(STATE.eu&&STATE.eu.codigo)||(STATE.mesa&&STATE.mesa.codigo)||"";
   try{return !!codigo&&sessionStorage.getItem("mosaico_mestre_codigo")===codigo;}catch(e){return false;}
 }
-function alternarMenuMestre(){STATE.menuMestreAberto=!STATE.menuMestreAberto;if(STATE.menuMestreAberto)STATE.casoAberto=false;render(true);}
+function alternarMenuMestre(){
+  document.getElementById("pistas").classList.remove("on");
+  document.getElementById("btn-pistas").classList.remove("ativo");
+  STATE.menuMestreAberto=!STATE.menuMestreAberto;if(STATE.menuMestreAberto)STATE.casoAberto=false;render(true);
+}
 function tarefaConcluida(t){return !!(t&&(t.status==='concluida'||t.concluidoEm));}
 function tarefasConcluidas(tipo){return (STATE.v5.tarefas||[]).filter(function(t){return t.tarefa===tipo&&tarefaConcluida(t);});}
 function tarefasSemResposta(tipo){return (STATE.v5.tarefas||[]).filter(function(t){return t.tarefa===tipo&&(t.status==='sem-resposta'||t.status==='negado'||t.status==='indisponivel');});}
@@ -1753,7 +1766,7 @@ function controlesMestreMovel(){
     '<details class="sala-acordeao" ontoggle="exclusivoSala(this)"><summary>Encerrar sala</summary><div class="sala-acordeao-conteudo"><button class="btn btn-perigo" onclick="encerrarMesa()">Encerrar sala</button></div></details>'+
     '<details class="sala-acordeao" '+(abrirParticipantes?'open':'')+' ontoggle="exclusivoSala(this)"><summary>Participantes &middot; '+js.length+'</summary><div class="sala-acordeao-conteudo">'+conectados+'</div></details>'+
     '</div></div>':'';
-  return '<button class="btn-menu-mestre '+(acaoNecessaria?'acao-necessaria':'')+'" onclick="alternarMenuMestre()" aria-label="Abrir ou fechar a Sala do mestre">Sala</button>'+painel;
+  return '<button class="btn-menu-mestre '+(acaoNecessaria?'acao-necessaria ':'')+(STATE.menuMestreAberto?'ativo':'')+'" onclick="alternarMenuMestre()" aria-label="Abrir ou fechar a Sala do mestre">Sala</button>'+painel;
 }
 function dadosAutomacao(){
   var fase=(STATE.doc&&STATE.doc.fase)||"", cfg=(CASO.configuracao&&CASO.configuracao.limitesSegundos)||{};
@@ -1834,7 +1847,11 @@ function agendarAutomacoes(){
   _autoTimerChave=chave;
   _autoTimer=setTimeout(function(){_autoTimer=null;_autoTimerChave="";verificarAutomacoes();},Math.max(0,d.inicio+d.limite-Date.now())+100);
 }
-function alternarCaso(){STATE.casoAberto=!STATE.casoAberto;if(STATE.casoAberto)STATE.menuMestreAberto=false;render(true);}
+function alternarCaso(){
+  document.getElementById("pistas").classList.remove("on");
+  document.getElementById("btn-pistas").classList.remove("ativo");
+  STATE.casoAberto=!STATE.casoAberto;if(STATE.casoAberto)STATE.menuMestreAberto=false;render(true);
+}
 function orientacaoCaso(fase){
   var js=ordenados(STATE.jogadores), atual=js[(STATE.doc&&STATE.doc.vez)||0];
   if(fase==="sala") return souPronto()?"Você está pronto. Aguarde o início da partida.":"Confirme que está pronto para participar.";
@@ -1842,7 +1859,12 @@ function orientacaoCaso(fase){
   if(fase==="votacao") return "Registre seu voto de Performance. Você não pode votar em si.";
   if(fase==="constelacao") return "Ative o movimento e conclua O Vidro Embaçado.";
   if(fase==="inclinacao") return "Ative o movimento e conclua A Janela do Norte.";
-  if(fase==="mosaico") return "Encontre as telas da mesma cor e reconstrua os acontecimentos com seu Fragmento.";
+  if(fase==="mosaico"){
+    var n=STATE.jogadores.length;
+    if(n===1) return "Você é o Portador do Fragmento. Consulte o Arquivo e organize os acontecimentos na ordem correta.";
+    if(n<=3) return "Todos fazem parte do mesmo Fragmento. Organizem juntos os acontecimentos; qualquer integrante pode selecionar e enviar.";
+    return "Encontre as telas da mesma cor e junte-se ao seu Fragmento para reconstruir os acontecimentos.";
+  }
   if(fase==="cooperacao") return "Registre em segredo quem mais colaborou com o seu Fragmento.";
   if(fase==="mercado") return "Avalie as ofertas. Comprar, vender ou recusar são decisões possíveis.";
   if(fase==="deducao") return "Complete sua acusação final. Depois de enviar, a resposta não poderá ser alterada.";
@@ -1860,7 +1882,7 @@ function painelCasoMovel(){
     '<div class="card"><span class="eyebrow">O que fazer agora</span><p class="lead" style="margin:8px 0 0">'+esc(orientacaoCaso(fase))+'</p></div>'+
     '<div class="card"><span class="eyebrow">'+(emFragmentos?'Cronologia distribu&iacute;da':'Linha do tempo p&uacute;blica')+'</span>'+linhas+'</div>'+
     '</div></div>':'';
-  return '<button class="btn-caso" onclick="alternarCaso()" aria-label="Abrir ou fechar o Caso">🔎 Caso</button>'+painel;
+  return '<button class="btn-caso '+(STATE.casoAberto?'ativo':'')+'" onclick="alternarCaso()" aria-label="Abrir ou fechar o Caso">🔎 Caso</button>'+painel;
 }
 function muralColetivoMovel(){
   var fase=(STATE.doc&&STATE.doc.fase)||"sala", pubs=(STATE.publicas||[]).slice().sort(function(a,b){return (a.ordem||0)-(b.ordem||0);});
@@ -3249,11 +3271,18 @@ function desenhaPistas(){
 }
 
 document.getElementById("btn-pistas").addEventListener("click",function(){
+  var painel=document.getElementById("pistas"), estavaAberto=painel.classList.contains("on");
+  if(estavaAberto){painel.classList.remove("on");this.classList.remove("ativo");return;}
   desenhaPistas();
-  document.getElementById("pistas").classList.add("on");
+  STATE.casoAberto=false;STATE.menuMestreAberto=false;
+  painel.classList.add("on");
+  this.classList.add("ativo");
+  render(true);
 });
-document.getElementById("fechar-pistas").addEventListener("click",function(){
+document.getElementById("pistas").addEventListener("click",function(event){
+  if(event.target!==this)return;
   document.getElementById("pistas").classList.remove("on");
+  document.getElementById("btn-pistas").classList.remove("ativo");
 });
 
 async function marcarPronto(){
