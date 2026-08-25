@@ -702,3 +702,18 @@ O motor V5 implementa as regras consolidadas de pontuação. As limitações res
 ---
 
 **Prof. Mário César Nascimento, PhD ©**
+
+### Auditoria de sobreposição — 25 de agosto
+
+Uma passagem medindo, não lendo: cada tela renderizada de verdade num navegador com viewport de celular, com o documento da Sala forjado, e três detectores validados contra defeitos injetados antes de valerem como prova (transbordo horizontal, controle debaixo da barra fixa, controle fora da tela).
+
+Cobertura: 16 estados de tela × 1, 6 e 12 jogadores × 320×568, 375×667, 414×896, 768×1024 e 667×375 (paisagem), sempre como mestre em modo sem telão — a configuração com os três botões na barra. Mais as três camadas sobrepostas (Caso, Sala com todos os acordeões abertos, Arquivo) roladas até o fim, e os três módulos sensoriais isolados.
+
+Dois defeitos reais saíram daí:
+
+- **Caso e Sala sumiam durante as rodadas sensoriais.** `limparBarraInferior()` rodava na primeira linha de `render()`, mas o caminho que preserva o iframe da tarefa retorna antes de `organizarBarraInferior()` e sem reconstruir o `#app`. Cada snapshot do Firebase durante A Janela do Norte, O Vidro Embaçado ou A Sala às Escuras apagava os dois botões e nada os devolvia — medido: barra de 3 botões para 1 no primeiro snapshot. O mestre perdia a pausa e os controles justamente na rodada em que o celular está sendo sacudido. A limpeza passou para imediatamente antes de `app.innerHTML=h`, que é o único ponto que de fato reconstrói o `#app`.
+- **Barra acesa e vazia na capa.** Sem nenhum botão visível, a `.barra-jogo` ainda desenhava 13px de moldura, fundo e sombra atravessados no rodapé. Agora `medirBarraInferior()` marca `.vazia` quando não há botão visível, o CSS a esconde, e a reserva do `#app` cai junto.
+
+Falsos positivos que valem registro, para a próxima auditoria não os perseguir de novo: `.jog .nm` corta por `text-overflow:ellipsis` de propósito; `.podio-cena` recorta a cena por desenho; o `#cartao` das tarefas mora fora da tela em `translateY(130%)` enquanto está escondido; e o `#intro` de A Sala às Escuras passa da dobra em 320×568 mas **rola** — `justify-content:safe center` com `overflow-y:auto` faz exatamente o que promete.
+
+**O que esta auditoria não cobre e nenhum teste cobre:** ela roda num navegador de mesa emulando tamanhos. Não substitui aparelho real, e nada disso está no CI — as invariantes de layout (reserva de rodapé, barra em uma linha, botão alcançável) continuam sem rede de proteção automática. Um teste de layout de verdade exigiria navegador sem cabeça no CI.

@@ -889,6 +889,7 @@
   .barra-jogo .btn-menu-mestre{grid-column:2;grid-row:1;display:flex}
   .barra-jogo #btn-pistas{grid-column:3;grid-row:1}
   .barra-jogo #btn-pistas.on{display:flex}
+  .barra-jogo.vazia{display:none}
   .barra-jogo button.ativo{background:rgba(127,212,255,.1);border-color:rgba(127,212,255,.8);
     color:#bdeeff;box-shadow:inset 0 0 18px rgba(127,212,255,.08)}
   .barra-jogo #btn-pistas.ativo{background:rgba(232,164,76,.1);border-color:rgba(232,164,76,.72);color:#ffd18d}
@@ -2364,8 +2365,19 @@ function organizarBarraInferior(){
 function medirBarraInferior(){
   var barra=document.getElementById("barra-jogo");
   if(!barra)return;
-  var alt=barra.getBoundingClientRect().height;
   var raiz=document.documentElement;
+  /* Sem nenhum botao visivel a barra ainda aparecia: 13px de moldura,
+     fundo e sombra atravessados no rodape da capa, uma faixa acesa sem
+     nada dentro. Escondida, ela tambem deixa de cobrar reserva do #app. */
+  var visiveis=[].filter.call(barra.querySelectorAll("button"),function(b){
+    return getComputedStyle(b).display!=="none";
+  }).length;
+  barra.classList.toggle("vazia",!visiveis);
+  if(!visiveis){
+    raiz.style.setProperty("--barra-reserva","max(18px,env(safe-area-inset-bottom))");
+    return;
+  }
+  var alt=barra.getBoundingClientRect().height;
   if(!alt){ raiz.style.removeProperty("--barra-reserva"); return; }
   raiz.style.setProperty("--barra-reserva",
     "calc("+Math.ceil(alt)+"px + max(8px,env(safe-area-inset-bottom)) + 18px)");
@@ -2374,7 +2386,6 @@ addEventListener("resize",medirBarraInferior);
 addEventListener("orientationchange",medirBarraInferior);
 function render(forcar){
   var app=document.getElementById("app");
-  limparBarraInferior();
   var esperandoPronto = STATE.tela==="esperando" && !souPronto();
   app.className = (STATE.tela==="painel") ? "largo"
                 : (STATE.tela==="inicio") ? "capa"
@@ -2470,6 +2481,13 @@ function render(forcar){
   if(souMestreDaMesa()) h+=modalOrientacaoMestre();
   if(STATE.eu) h+=modalOrientacaoParticipante();
   h+=painelPartidaPausada();
+  /* Limpar a barra so aqui, e nao no inicio de render(): o caminho que
+     preserva o iframe da tarefa sensorial retorna antes deste ponto sem
+     reconstruir o #app. Limpando la em cima, cada snapshot do Firebase
+     durante uma rodada sensorial apagava o Caso e a Sala da barra e nada
+     os devolvia — o mestre perdia a pausa e os controles justamente na
+     rodada em que o celular esta sendo sacudido.                     */
+  limparBarraInferior();
   app.innerHTML=h;
   if(tipoSensor&&!sensorConcluido)sincronizarControleTarefa(app.querySelector('iframe.tarefa-frame[data-tarefa="'+tipoSensor+'"]'),tipoSensor);
   organizarBarraInferior();

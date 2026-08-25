@@ -5,7 +5,7 @@
   "description": "MOSAICO — A Verdade é um Fragmento. Verificação automática do motor de pontuação, das regras do Firestore e da sincronia do caso canônico.",
   "type": "module",
   "scripts": {
-    "test": "node --test tests/mosaico-v5.test.mjs tests/caso-sincronizado.test.mjs tests/qr.test.mjs",
+    "test": "node --test tests/mosaico-v5.test.mjs tests/caso-sincronizado.test.mjs tests/qr.test.mjs tests/carimbo-cache.test.mjs",
     "test:regras": "firebase emulators:exec --only firestore \"node --test tests/regras.test.mjs\"",
     "test:tudo": "npm test && npm run test:regras"
   },
