@@ -65,7 +65,7 @@ Nos dois ritmos, o mesmo controle alterna entre **Pausar partida** e **Retomar p
 5. tarefa interna alternada entre partidas: **O Vidro Embaçado** ou **A Sala às Escuras**;
 6. encontro dos **Fragmentos** pela cor da tela e confirmação individual;
 7. **Jogador com Jogador** — reconstrução coletiva e voto interno;
-8. **Mercado de pistas** — compra e venda de informações;
+8. **Mercado de pistas** — compra e venda de informações, com 2 minutos e cronômetro regressivo na tela de quem joga (no ritmo conduzido, quem encerra é o mestre);
 9. **Jogadores contra o caso** — acusação final;
 10. revelação, apuração progressiva e pódio.
 
