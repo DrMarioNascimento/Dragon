@@ -2691,7 +2691,13 @@ function iniciarApuracaoSeNecessario(){
   if(!raiz){if(_apuracaoRAF)cancelAnimationFrame(_apuracaoRAF);_apuracaoRAF=0;return;}
   var inicio=Number(raiz.getAttribute("data-inicio"))||Date.now(), corpo=raiz.querySelector("tbody"), tema=raiz.querySelector(".apuracao-tema");
   var chave=inicio+":"+Number((STATE.doc&&STATE.doc.apuracaoRepeticao)||0);
-  if(_apuracaoChave!==chave){_apuracaoChave=chave;_apuracaoOrdemEtapa=-2;}
+  if(_apuracaoChave!==chave){
+    _apuracaoChave=chave;_apuracaoOrdemEtapa=-2;
+    if(souMestreDaMesa()&&_podioAudioChave!==chave){
+      _podioAudioChave=chave;
+      tocarVozDeNivel("podio",.35);
+    }
+  }
   function reorganizar(indice){
     if(indice===_apuracaoOrdemEtapa)return;
     _apuracaoOrdemEtapa=indice;
@@ -2705,12 +2711,10 @@ function iniciarApuracaoSeNecessario(){
     var decorrido=Math.max(0,Date.now()-inicio);
     if(decorrido>=22000){
       _apuracaoRAF=0;STATE.resultadoVista="podio";
-      var chavePodio=inicio+":"+Number((STATE.doc&&STATE.doc.apuracaoRepeticao)||0);
-      if(souMestreDaMesa()&&_podioAudioChave!==chavePodio){
-        _podioAudioChave=chavePodio;
-        tocarVozDeNivel("podio",.35,function(){
-          tocarVozDeNivel("encerramento",0);
-        });
+      var chaveEncerramento=inicio+":"+Number((STATE.doc&&STATE.doc.apuracaoRepeticao)||0);
+      if(souMestreDaMesa()&&_encerramentoAudioChave!==chaveEncerramento){
+        _encerramentoAudioChave=chaveEncerramento;
+        tocarVozDeNivel("encerramento",0);
       }
       render(true);return;
     }
