@@ -551,10 +551,20 @@ O código do **App Check** está escrito e inerte em `MOSAICO-mesa.html`: basta 
 ### Decisões desta passagem que mudam hábitos
 
 - **Diálogos.** `alert()` e `confirm()` saíram. No lugar existem `avisa(texto)` e `await confirmar(texto, {aceitar, recusar, perigo})`, que vivem fora de `#app`, prendem o foco e respeitam Escape. `avisa` era chamado em três lugares e **nunca havia sido definido** — cada chamada era um `ReferenceError`, inclusive a do erro de carregamento do caso.
-- **Carimbo de cache.** Um lugar só: o `?v=` da tag de `js/mosaico-v5.js`, relido em `window.MOSAICO_VERSAO`. O caso, o vídeo e os módulos usam esse valor.
+- **Carimbo de cache.** São **cinco** tags com `?v=` escrito à mão: `js/mosaico-v5.js` e `js/qr.js` na mesa, e `js/tarefa-sensor.js` em cada um dos três módulos sensoriais. Cada módulo é um documento próprio e não enxerga a mesa, por isso não há como reduzir a um só. Dentro da mesa, o caso e o vídeo releem `window.MOSAICO_VERSAO`, que sai da tag do `mosaico-v5.js` — esses dois, sim, acompanham sozinhos.
 - **QR.** Gerado por `js/qr.js`, no aparelho. `api.qrserver.com` era a única dependência de terceiros no caminho de entrada da mesa.
 - **Tarefas sensoriais.** O protocolo com a Mesa e a permissão de movimento moram em `js/tarefa-sensor.js`. Correção de sensor agora se aplica **uma vez**, não três. O cronômetro, a pausa e o aborto continuam em cada tarefa, porque cada uma os entrelaça com o próprio laço de desenho.
 - **`tempoMs` das tarefas.** Continua sendo conferido, mas não é mais gravado: era auto-reportado pelo aparelho de quem joga e nada no placar o consumia. Se um dia entrar na pontuação, terá de vir de `serverTimestamp()` nas duas pontas.
+
+### Toque e leitura no aparelho — passagem de 25 de agosto
+
+Três achados de um teste em aparelho real, Android e iPhone.
+
+- **Barra inferior em duas linhas.** `#btn-pistas` já está no HTML; `organizarBarraInferior()` acrescenta o Caso e a Sala depois, por `appendChild`. Com `grid-column` fixo e sem `grid-row`, a colocação automática do grid não volta atrás: o Arquivo ficava sozinho na primeira linha e os outros dois caíam para uma segunda. As três regras ganharam `grid-row:1`. Medido: a barra passou de 124 px para 65 px de altura.
+- **Botão inalcançável embaixo do texto.** Era consequência do item acima, não um problema separado. A reserva de rodapé do `#app` era o número fixo `--barra-reserva` (116 px) e a barra em duas linhas ocupava 124 px mais o afastamento da borda — o último botão da tela ficava **debaixo** da barra, visível e sem área de toque. Agora `medirBarraInferior()` escreve `--barra-reserva` a partir da barra medida, e refaz a conta em `resize` e `orientationchange`. Reserva errada deixou de ser possível por construção.
+- **Zoom de pinça.** `user-scalable=no` saiu de `a-sala-as-escuras` e `vidro-embacado`, e o `touch-action:none` dos três módulos virou `touch-action:pinch-zoom` (os filhos roláveis, `pan-y pinch-zoom`): a pinça passa, o arrasto continua preso, que é o que as tarefas de sensor precisam. Na mesa, `TELA_CHEIA_AUTOMATICA` entrou como `false` — em tela cheia o Chrome do Android suspende a pinça, e entre esconder a barra do navegador e deixar a pessoa enxergar, vale enxergar. O botão de tela cheia continua na abertura; a trava de retrato vai junto com ele, porque no Android ela só funciona em tela cheia.
+
+Nada disso pôde ser exercitado em aparelho no ambiente de manutenção: a barra foi medida num navegador de mesa com viewport de celular, e o resto é leitura de código. **É a primeira coisa a conferir no próximo teste físico.**
 
 ### 13.3 Limite de jogadores
 

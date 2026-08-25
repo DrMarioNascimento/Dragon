@@ -879,9 +879,14 @@
     border-radius:12px;background:transparent;box-shadow:none;
     font-size:clamp(9px,2.65vw,12px);letter-spacing:.07em;white-space:nowrap;
     overflow:hidden;text-overflow:ellipsis;pointer-events:auto}
-  .barra-jogo .btn-caso{grid-column:1;display:flex}
-  .barra-jogo .btn-menu-mestre{grid-column:2;display:flex}
-  .barra-jogo #btn-pistas{grid-column:3}
+  /* grid-row:1 nas tres: o #btn-pistas ja esta no HTML e o Caso e a Sala
+     entram depois, por appendChild. Sem a linha fixa, a colocacao
+     automatica nao volta para tras — o Arquivo ficava sozinho numa
+     primeira linha e os outros dois caiam para uma segunda, alta demais
+     para caber na reserva de rodape do #app. */
+  .barra-jogo .btn-caso{grid-column:1;grid-row:1;display:flex}
+  .barra-jogo .btn-menu-mestre{grid-column:2;grid-row:1;display:flex}
+  .barra-jogo #btn-pistas{grid-column:3;grid-row:1}
   .barra-jogo #btn-pistas.on{display:flex}
   .barra-jogo button.ativo{background:rgba(127,212,255,.1);border-color:rgba(127,212,255,.8);
     color:#bdeeff;box-shadow:inset 0 0 18px rgba(127,212,255,.08)}
@@ -1263,10 +1268,14 @@
 <div id="cortina"><div id="cortina-txt"></div></div>
 <div id="app"></div>
 
-<!-- CARIMBO DE CACHE — um lugar so.
+<!-- CARIMBO DE CACHE
      Ao publicar uma mudanca que precise furar o cache dos aparelhos, troque
-     a data no ?v= da linha abaixo. O caso e o video releem esse mesmo valor
-     de window.MOSAICO_VERSAO, entao nao ha um segundo lugar para esquecer. -->
+     a data no ?v= das CINCO tags que carregam modulos:
+       aqui:  js/mosaico-v5.js  e  js/qr.js
+       nos tres modulos sensoriais:  js/tarefa-sensor.js
+     Sao cinco porque cada modulo sensorial e um documento proprio e nao
+     enxerga esta pagina. Dentro desta, o caso e o video releem o mesmo
+     valor de window.MOSAICO_VERSAO, que sai da tag do mosaico-v5.js. -->
 <script src="js/mosaico-v5.js?v=20260825-integridade"></script>
 <script src="js/qr.js?v=20260825-integridade"></script>
 <script>
@@ -2210,7 +2219,25 @@ function organizarBarraInferior(){
   var caso=app.querySelector(".btn-caso"), sala=app.querySelector(".btn-menu-mestre");
   if(caso)barra.appendChild(caso);
   if(sala)barra.appendChild(sala);
+  medirBarraInferior();
 }
+/* A reserva de rodape do #app era um numero escrito a mao. Quando a barra
+   ficava mais alta que ele — outra linha de botoes, fonte maior do sistema,
+   zoom do aparelho — o ultimo botao da tela terminava DEBAIXO da barra, sem
+   area de toque: aparecia, mas nao dava para clicar. Agora o valor sai da
+   barra medida, entao a reserva acompanha o que a barra realmente ocupa.
+   Sem barra visivel, a propriedade some e vale o padrao do CSS.        */
+function medirBarraInferior(){
+  var barra=document.getElementById("barra-jogo");
+  if(!barra)return;
+  var alt=barra.getBoundingClientRect().height;
+  var raiz=document.documentElement;
+  if(!alt){ raiz.style.removeProperty("--barra-reserva"); return; }
+  raiz.style.setProperty("--barra-reserva",
+    "calc("+Math.ceil(alt)+"px + max(8px,env(safe-area-inset-bottom)) + 18px)");
+}
+addEventListener("resize",medirBarraInferior);
+addEventListener("orientationchange",medirBarraInferior);
 function render(forcar){
   var app=document.getElementById("app");
   limparBarraInferior();
@@ -3226,6 +3253,16 @@ async function conferirSenha(){
    entrar em tela cheia sozinho. E no iPhone o Safari nao implementa a
    API: la o caminho e "Adicionar a Tela de Inicio", que abre sem barra
    nenhuma por causa do manifest e das metatags.                      */
+/* TELA CHEIA AUTOMATICA — DESLIGADA de proposito.
+   Em tela cheia o Chrome do Android suspende o zoom de pinca, e a pinca e
+   o unico recurso de quem precisa aumentar o texto ou alcancar um botao
+   perto da borda. Entre esconder a barra do navegador e deixar a pessoa
+   enxergar, vale enxergar. O botao de tela cheia continua na abertura,
+   para quem quiser — e a trava de retrato vem junto com ele, porque no
+   Android ela so funciona em tela cheia.
+   Trocar para true devolve o comportamento antigo, e leva o zoom junto. */
+var TELA_CHEIA_AUTOMATICA = false;
+
 function telaCheia(){
   var el=document.documentElement;
   var f=el.requestFullscreen||el.webkitRequestFullscreen||
@@ -3429,7 +3466,7 @@ async function entrarNaMesa(){
   /* "tanto faz" tambem e escolha: a casa decide, como decide o resto */
   var forma = STATE.forma==="?" ? (Math.random()<0.5?"m":"f") : STATE.forma;
 
-  telaCheia();   /* quem entra pelo QR nao passa pelo portao: o gesto e aqui */
+  if(TELA_CHEIA_AUTOMATICA) telaCheia();   /* quem entra pelo QR nao passa pelo portao: o gesto e aqui */
   fecharCortina("A porta abriu. A casa está decidindo quem você é.");
   var entrouEm=Date.now();
 
@@ -4013,7 +4050,7 @@ async function voltarParaSala(){
   /* o toque libera o som: e a unica porta que o navegador aceita */
   var comecouEm=0;
   function abrirComSom(){
-    telaCheia();          /* o toque do portao e o gesto que libera as duas coisas */
+    if(TELA_CHEIA_AUTOMATICA) telaCheia();  /* o toque do portao seria o gesto */
     portao.classList.add("tocando");
     v.muted=false; v.loop=false; v.volume=1;
     comecouEm=Date.now();
