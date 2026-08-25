@@ -584,7 +584,7 @@ Tempo, Qualidade, Cooperação, Economia, Performance, Dedução Final, mercado,
 
 ### 13.6 Parâmetros de playtest
 
-O caso define valores iniciais configuráveis: 9 moedas; preços baixo/justo/alto de 1/3/5; limites de 60 segundos para Performance, 180 segundos para cada rodada sensorial, 60 segundos para Cooperação, 480 segundos para o Mercado e 300 segundos para a Dedução; e qualidade objetiva das pistas. Os valores são parâmetros de playtest, não constantes irreversíveis do motor.
+O caso define valores iniciais configuráveis: 9 moedas; preços baixo/justo/alto de 1/3/5; limites de 60 segundos para Performance, 180 segundos para cada rodada sensorial, 60 segundos para Cooperação, 120 segundos para o Mercado e 300 segundos para a Dedução; e qualidade objetiva das pistas. Os valores são parâmetros de playtest, não constantes irreversíveis do motor.
 
 ### 13.7 Consolidação visual e audiovisual
 
@@ -595,6 +595,16 @@ A encenação apresenta somente ao ator os três blocos coloridos **Entenda a ce
 A abertura possui vídeo horizontal H.264/AAC de 1280 × 720 para telão e vídeo vertical H.264/AAC de 1080 × 1920 para participantes em modo retrato. O vídeo móvel exige o toque em **Assistir à abertura**, com **Pular** disponível, porque navegadores móveis bloqueiam reprodução automática com som.
 
 As grandes fases possuem anúncios narrados em `audio/`: Encenação, Votação, Janela do Norte, Vidro Embaçado, Sala às Escuras, Mosaico Coletivo, Mercado, Acusação Final e Pódio. Eles foram normalizados para volume uniforme. Somente o mestre/telão reproduz: a sirene de nevoeiro toca por 4,4 segundos e a voz entra em seguida. Vidro e Sala são escolhidos conforme a tarefa interna da partida; a transição interna de Mosaico para Cooperação não repete o anúncio. O pódio toca uma única vez por execução da apuração.
+
+#### Mercado: 2 minutos e cronômetro à vista
+
+O Mercado é a única fase que não termina por conclusão — não há nada para "todos terminarem". No ritmo automático ele acaba por prazo; no conduzido, espera o botão do mestre.
+
+O prazo caiu de **480 para 120 segundos**. Os 480 vinham do relógio da ficção (Mercado 21:38, Acusação 21:46), mas esse relógio é um rótulo fixo no telão, não um contador. Na prática a fase permite pouca coisa: uma oferta aberta por pessoa, 9 moedas contra preços de 1/3/5, o que limita a duas ou três compras. O que sobrava era espera. **120 segundos é valor de playtest**, escolhido para errar por pouco tempo em vez de por muito; a medida real está no jogo — comparar o último `compradaMs` das ofertas com o `mercadoAbertoMs` da mesa diz quanto tempo o mercado de fato usou.
+
+Trocar o valor exige as **duas** cópias: `casos/casa-da-costa.json` e o `CASO_FALLBACK_COMPLETO` embutido em `MOSAICO-mesa.html`. É exatamente o que `tests/caso-sincronizado.test.mjs` confere — esquecer uma quebra o CI.
+
+O cronômetro regressivo usa a mesma classe `.fragmento-cronometro` das tarefas com tempo: quem joga já leu aquele número âmbar como "tempo", e trocar a forma para dizer a mesma coisa só custaria aprendizado. A conta é a mesma que a automação usa para virar a fase, então a tela não pode discordar do que vai acontecer; a pausa congela os dois, porque `retomarPartida()` empurra `mercadoAbertoMs` para a frente pelo tempo parado. **Só aparece no ritmo automático** — no conduzido, um relógio que chega a 00:00 sem nada acontecer mentiria para a mesa inteira.
 
 #### Abertura narrada e fundo de tempestade
 
