@@ -503,7 +503,9 @@
   .menu-mestre-topo h2{margin:0}.menu-mestre-topo .btn{width:auto;margin:0;padding:11px 14px}
   .menu-mestre-grade{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .menu-mestre-grade .btn{margin:0;padding:14px 10px;font-size:12px}
-  .menu-mestre-qr{width:min(210px,58vw);display:block;margin:14px auto;border:8px solid #fff;border-radius:6px}
+  .menu-mestre-qr{width:min(210px,58vw);display:block;margin:14px auto;border:8px solid #fff;
+    border-radius:6px;background:#fff;line-height:0}
+  .menu-mestre-qr svg{width:100%;height:auto;display:block}
   .sala-acordeao{border:1px solid var(--linha);border-radius:6px;background:rgba(12,18,26,.94);margin-bottom:10px;overflow:hidden}
   .sala-acordeao summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;
     min-height:52px;padding:14px 16px;color:var(--nevoa);font:700 12px var(--sans);letter-spacing:.12em;text-transform:uppercase}
@@ -1026,7 +1028,8 @@
     width:190px;height:190px;margin:20px auto;background:#fff;
     border-radius:3px;padding:8px;
   }
-  .qr-caixa img{width:100%;height:100%;object-fit:contain;display:block}
+  .qr-caixa svg{width:100%;height:100%;display:block}
+  .qr-falhou{color:#333;font-size:13px;padding:60px 10px;text-align:center}
   .link-peq{
     font-size:clamp(12px,3.2vw,14px);color:var(--dim);
     word-break:break-all;margin:12px 0 20px;line-height:1.5;
@@ -1044,6 +1047,34 @@
     font-size:clamp(14px,3.7vw,17px);line-height:1.55;color:#f0b0a0;
   }
   .aviso b{color:var(--vermelho)}
+
+  /* ---------- dialogos da casa ----------
+     Substituem alert() e confirm(). Os nativos bloqueiam a thread, e num
+     PWA em tela cheia no iPhone aparecem com o nome do dominio no topo —
+     a unica superficie do jogo que quebrava a atmosfera. Vivem fora de
+     #app porque render() reescreve #app inteiro a cada snapshot.      */
+  .dialogo-fundo{
+    position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;
+    background:rgba(2,5,9,.9);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
+    padding:max(20px,env(safe-area-inset-top)) 18px var(--barra-reserva);
+    overflow-y:auto;animation:dialogo-entra .18s ease-out}
+  @keyframes dialogo-entra{from{opacity:0}to{opacity:1}}
+  .dialogo-card{
+    width:100%;max-width:440px;margin:auto;background:var(--painel);
+    border:1px solid var(--linha);border-left:3px solid var(--ambar);
+    border-radius:4px;padding:24px 24px 20px;
+    box-shadow:0 24px 60px -30px rgba(0,0,0,.95);
+    max-height:calc(100dvh - var(--barra-reserva) - 40px);
+    display:flex;flex-direction:column;gap:18px}
+  .dialogo-card.perigo{border-left-color:var(--vermelho)}
+  .dialogo-texto{
+    font-size:clamp(15px,4vw,17px);line-height:1.6;color:var(--texto);
+    overflow-y:auto;white-space:pre-line;margin:0}
+  .dialogo-botoes{display:flex;gap:10px;flex-wrap:wrap}
+  .dialogo-botoes .btn{flex:1 1 130px;margin:0}
+  @media (prefers-reduced-motion: reduce){
+    .dialogo-fundo{animation:none}
+  }
 
   /* ---------- cortina ----------
      O poster fecha a tela enquanto a casa sorteia. Quando abre,
@@ -1232,12 +1263,60 @@
 <div id="cortina"><div id="cortina-txt"></div></div>
 <div id="app"></div>
 
-<script src="js/mosaico-v5.js?v=solo-portadores-20260824"></script>
+<!-- CARIMBO DE CACHE — um lugar so.
+     Ao publicar uma mudanca que precise furar o cache dos aparelhos, troque
+     a data no ?v= da linha abaixo. O caso e o video releem esse mesmo valor
+     de window.MOSAICO_VERSAO, entao nao ha um segundo lugar para esquecer. -->
+<script src="js/mosaico-v5.js?v=20260825-integridade"></script>
+<script src="js/qr.js?v=20260825-integridade"></script>
+<script>
+window.MOSAICO_VERSAO=(function(){
+  var s=document.querySelector('script[src*="mosaico-v5.js"]');
+  var m=s&&/[?&]v=([^&"]+)/.exec(s.getAttribute("src")||"");
+  return m?m[1]:"dev";
+})();
+
+/* ── SERVICE WORKER — escrito, DESLIGADO por padrão ──────────────────
+   sw.js guarda vídeo, áudio e imagens entre partidas. Sem ele, cada
+   participante rebaixa 13,6 MB de abertura toda vez, e uma mesa de doze
+   puxa ~165 MB antes da primeira cena. Ele também é o que faz o Chrome no
+   Android oferecer a instalação.
+
+   Está desligado porque NÃO FOI POSSÍVEL EXERCITÁ-LO: o navegador usado na
+   auditoria bloqueia registro de Service Worker, e um erro no handler de
+   fetch derruba TODOS os pedidos de quem já o tiver instalado — num jogo
+   presencial isso encerra a noite, e desinstalar à distância não é opção.
+
+   Para ligar, depois de testar em http(s) real num celular:
+     1. troque para true;
+     2. abra o jogo, confirme em DevTools > Application > Service Workers
+        que ele ativou e que a mídia aparece no cache "mosaico-midia-…";
+     3. corte a rede e confirme que o jogo ainda abre;
+     4. publique uma mudança no HTML e confirme que ela chega na hora —
+        código é rede-primeiro, e isso é o que não pode falhar.
+
+   Com false, qualquer Service Worker já instalado é REMOVIDO. É essa a
+   válvula: voltar a false e publicar desfaz a instalação nos aparelhos. */
+var ATIVAR_SERVICE_WORKER = false;
+
+if("serviceWorker" in navigator && location.protocol.indexOf("http")===0){
+  window.addEventListener("load",function(){
+    if(ATIVAR_SERVICE_WORKER){
+      navigator.serviceWorker.register("sw.js?v="+window.MOSAICO_VERSAO)
+        .catch(function(e){ console.warn("Service Worker não registrou — o jogo segue normalmente.", e); });
+    }else{
+      navigator.serviceWorker.getRegistrations().then(function(regs){
+        regs.forEach(function(r){ r.unregister(); });
+      }).catch(function(){});
+    }
+  });
+}
+</script>
 <script>
 /* ============================================================
    MOSAICO — mesa, painel e encenacao
    Convencoes herdadas do Learning-lab (Laboratorio do Pesquisador):
-   codigo de 6 caracteres sem 0/O/1/I, link ?sala=, QR via qrserver,
+   codigo de 6 caracteres sem 0/O/1/I, link ?sala=, QR gerado localmente,
    Firestore publicado em window.MosaicoFB por um script type=module.
    ============================================================ */
 "use strict";
@@ -1512,6 +1591,105 @@ function assinarV5(FB,codigo){
         STATE.v5.tarefas=Object.keys(tarefasLocais).map(function(k){return tarefasLocais[k];});render();
       }));
     });
+  }
+}
+
+/* ---------- dialogos da casa ----------
+   `avisa` era chamado em tres lugares e nunca existiu: cada chamada era um
+   ReferenceError, inclusive a do erro de carregamento do caso, que por isso
+   nunca chegava a avisar ninguem.
+
+   Aqui ele passa a existir, junto de `confirmar`, e os dois substituem
+   alert() e confirm(). Vivem fora de #app porque render() reescreve #app a
+   cada snapshot do Firestore, e prendem o foco enquanto estao abertos —
+   sem isso, o leitor de tela continua lendo a pagina atras do dialogo. */
+var _dialogoAberto=null;
+
+function fecharDialogo(resposta){
+  if(!_dialogoAberto) return;
+  var d=_dialogoAberto; _dialogoAberto=null;
+  document.removeEventListener("keydown",d.tecla,true);
+  if(d.raiz.parentNode) d.raiz.parentNode.removeChild(d.raiz);
+  try{ if(d.focoAnterior && d.focoAnterior.focus) d.focoAnterior.focus(); }catch(e){}
+  d.resolver(resposta);
+}
+
+function abrirDialogo(texto, opcoes){
+  opcoes=opcoes||{};
+  /* Um dialogo por vez: o anterior se resolve como recusa, nunca como
+     confirmacao acidental de algo que a pessoa nao chegou a ler. */
+  if(_dialogoAberto) fecharDialogo(false);
+
+  var raiz=document.createElement("div");
+  raiz.className="dialogo-fundo";
+  raiz.setAttribute("role","dialog");
+  raiz.setAttribute("aria-modal","true");
+  raiz.setAttribute("aria-label",opcoes.rotulo||"Aviso da casa");
+
+  var botoes=opcoes.pergunta
+    ? '<button class="btn btn-fantasma" data-resposta="nao">'+esc(opcoes.recusar||"Voltar")+'</button>'+
+      '<button class="btn '+(opcoes.perigo?"btn-perigo":"btn-ambar")+'" data-resposta="sim">'+esc(opcoes.aceitar||"Confirmar")+'</button>'
+    : '<button class="btn btn-ambar" data-resposta="sim">'+esc(opcoes.aceitar||"Entendi")+'</button>';
+
+  raiz.innerHTML='<div class="dialogo-card'+(opcoes.perigo?" perigo":"")+'">'+
+    '<p class="dialogo-texto">'+esc(texto)+'</p>'+
+    '<div class="dialogo-botoes">'+botoes+'</div></div>';
+
+  raiz.addEventListener("click",function(ev){
+    var b=ev.target.closest&&ev.target.closest("[data-resposta]");
+    if(b) fecharDialogo(b.dataset.resposta==="sim");
+    else if(ev.target===raiz && opcoes.pergunta) fecharDialogo(false);
+  });
+
+  var resolver;
+  var promessa=new Promise(function(res){ resolver=res; });
+
+  function tecla(ev){
+    if(ev.key==="Escape"){ ev.preventDefault(); fecharDialogo(false); return; }
+    if(ev.key!=="Tab") return;
+    /* Armadilha de foco: sem isto o Tab sai do dialogo e passeia pela
+       tela de tras, que continua no DOM. */
+    var focaveis=raiz.querySelectorAll("button");
+    if(!focaveis.length) return;
+    var primeiro=focaveis[0], ultimo=focaveis[focaveis.length-1];
+    if(ev.shiftKey && document.activeElement===primeiro){ ev.preventDefault(); ultimo.focus(); }
+    else if(!ev.shiftKey && document.activeElement===ultimo){ ev.preventDefault(); primeiro.focus(); }
+  }
+
+  _dialogoAberto={raiz:raiz,resolver:resolver,tecla:tecla,focoAnterior:document.activeElement};
+  document.body.appendChild(raiz);
+  document.addEventListener("keydown",tecla,true);
+
+  var inicial=raiz.querySelector('[data-resposta="'+(opcoes.pergunta?"nao":"sim")+'"]');
+  if(inicial) setTimeout(function(){ try{ inicial.focus(); }catch(e){} },30);
+
+  return promessa;
+}
+
+/* Aviso simples. Não bloqueia: quem chama segue em frente. */
+function avisa(texto, opcoes){
+  return abrirDialogo(texto, opcoes||{});
+}
+
+/* Pergunta de sim ou não. Devolve Promise<boolean>, então quem chama
+   precisa de `await` — todos os antigos confirm() já eram async. */
+function confirmar(texto, opcoes){
+  return abrirDialogo(texto, Object.assign({pergunta:true}, opcoes||{}));
+}
+
+/* ---------- QR da sala ----------
+   Gerado aqui dentro, em SVG. Antes vinha de api.qrserver.com: servico de
+   terceiros, sem SLA, no caminho pelo qual as pessoas entram na mesa — e o
+   link da sala saia do dominio a cada geracao. Se por algum motivo a
+   geracao falhar, o codigo de 6 caracteres continua na tela logo acima, e
+   e por ele que da para entrar. */
+function qrSvg(link, rotulo){
+  try{
+    return MosaicoQR.svg(link, { nivel:"M", margem:2, rotulo:rotulo||"QR da sala",
+                                 fundo:"#ffffff", tinta:"#05070c" });
+  }catch(e){
+    console.error("qrSvg", e);
+    return '<div class="qr-falhou">QR indispon&iacute;vel &mdash; use o c&oacute;digo</div>';
   }
 }
 
@@ -1866,7 +2044,7 @@ function controlesMestreMovel(){
     }
   }
   var conectados=js.length?'<div class="conectados-grade">'+js.map(function(j){var status=fase==="sala"?(j.pronto?'pronto':'aguardando prontid&atilde;o'):'conectado';return '<div class="conectado-item"><span>'+esc(j.nome)+'</span><span class="muted">'+status+'</span></div>';}).join('')+'</div>':'<p class="muted">Nenhum participante conectado.</p>';
-  var m=STATE.mesa, qr=m?'https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=8&data='+encodeURIComponent(m.link):'';
+  var m=STATE.mesa, qr=m?qrSvg(m.link,"QR da sala"):"";
   var abrirAcao=acaoNecessaria||(fase!=="sala"&&!!botoes);
   var abrirParticipantes=false;
   var abrirStatus=!abrirAcao&&!!autoInfo;
@@ -1880,7 +2058,7 @@ function controlesMestreMovel(){
     secaoAcao+
     secaoStatus+
     secaoPausa+
-    '<details class="sala-acordeao" ontoggle="exclusivoSala(this)"><summary>C&oacute;digo e QR da sala</summary><div class="sala-acordeao-conteudo"><div class="codigo-grande">'+esc(m&&m.codigo)+'</div><img class="menu-mestre-qr" src="'+esc(qr)+'" alt="QR da sala"><button class="btn btn-sm" style="width:100%" onclick="copiarLink()">Copiar link</button></div></details>'+
+    '<details class="sala-acordeao" ontoggle="exclusivoSala(this)"><summary>C&oacute;digo e QR da sala</summary><div class="sala-acordeao-conteudo"><div class="codigo-grande">'+esc(m&&m.codigo)+'</div><div class="menu-mestre-qr">'+qr+'</div><button class="btn btn-sm" style="width:100%" onclick="copiarLink()">Copiar link</button></div></details>'+
     '<details class="sala-acordeao" ontoggle="exclusivoSala(this)"><summary>Encerrar sala</summary><div class="sala-acordeao-conteudo"><button class="btn btn-perigo" onclick="encerrarMesa()">Encerrar sala</button></div></details>'+
     '<details class="sala-acordeao" '+(abrirParticipantes?'open':'')+' ontoggle="exclusivoSala(this)"><summary>Participantes &middot; '+js.length+'</summary><div class="sala-acordeao-conteudo">'+conectados+'</div></details>'+
     '</div></div>':'';
@@ -1921,7 +2099,7 @@ function totalFragmentos(){
   return new Set(STATE.jogadores.map(function(j){return j.nucleo;}).filter(Boolean)).size;
 }
 function fragmentosComTarefaConcluida(){
-  return STATE.v5.nucleos.filter(function(n){return n.concluidoEm||n.concluidoMs;}).length;
+  return STATE.v5.nucleos.filter(function(n){return n.concluidoEm;}).length;
 }
 function jogadoresComCooperacaoConcluida(){
   return STATE.jogadores.filter(function(j){
@@ -2265,7 +2443,7 @@ function abrirAberturaParticipante(aoConcluir){
   caixa.classList.remove("tocando","hidden");
   caixa.setAttribute("aria-hidden","false");
 
-  var arquivo=vertical?"img/abertura-vertical.mp4?v=7":"img/abertura.mp4";
+  var arquivo=(vertical?"img/abertura-vertical.mp4":"img/abertura.mp4")+"?v="+window.MOSAICO_VERSAO;
   function carregarDireto(){
     video.onerror=erroAoTocar;
     video.src=arquivo;
@@ -2441,7 +2619,7 @@ function telaPainel(){
     var tipoTarefa=fase;
     acao='<div class="card"><span class="eyebrow">Rodada sensorial</span><p class="lead">'+esc(nomeRodada(fase))+'</p><p class="muted">'+esc(resumoSensores(tipoTarefa,js.length))+'. O avan&ccedil;o ser&aacute; autom&aacute;tico.</p></div>';
   } else if(fase==="mosaico"){
-    acao='<div class="card"><span class="eyebrow">Mosaico coletivo</span><p class="muted">'+STATE.v5.nucleos.filter(function(n){return n.concluidoEm||n.concluidoMs;}).length+' Fragmento(s) conclu&iacute;do(s).</p></div><button class="btn btn-ambar" onclick="abrirVotoCooperacao()">Encerrar mosaico e abrir voto interno</button>';
+    acao='<div class="card"><span class="eyebrow">Mosaico coletivo</span><p class="muted">'+STATE.v5.nucleos.filter(function(n){return n.concluidoEm;}).length+' Fragmento(s) conclu&iacute;do(s).</p></div><button class="btn btn-ambar" onclick="abrirVotoCooperacao()">Encerrar mosaico e abrir voto interno</button>';
   } else if(fase==="cooperacao"){
     acao='<div class="card"><span class="eyebrow">Voto interno cego</span><p class="muted">'+STATE.v5.cooperacao.length+' voto(s) recebidos. Os nomes e o resultado permanecem ocultos.</p></div><button class="btn btn-ambar" onclick="abrirMercado()">Encerrar voto e abrir Mercado Cego</button>';
   } else if(fase==="mercado"){
@@ -2471,16 +2649,14 @@ function telaPainel(){
 function modalQr(){
   var m=STATE.mesa;
   if(!m) return "";
-  var qr="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=8&data="+
-         encodeURIComponent(m.link);
+  var qr=qrSvg(m.link,"QR da mesa "+m.codigo);
   return '<div class="modal-fundo'+(STATE.qrAberto?"":" hidden")+'" '+
     'onclick="if(event.target===this) fecharQr()"><div class="modal">'+
     '<span class="eyebrow">C&oacute;digo da mesa</span>'+
     '<div class="codigo-grande">'+esc(m.codigo)+'</div>'+
     '<span class="selo '+(m.fb?"ok":"esperando")+'">'+(m.fb?"Firestore · ao vivo":"Conectando…")+'</span>'+
     avisoLocal()+
-    '<div class="qr-caixa"><img src="'+esc(qr)+'" alt="QR '+esc(m.codigo)+'" '+
-      'onerror="this.parentNode.innerHTML=\'<div style=&quot;color:#333;font-size:13px;padding:60px 10px&quot;>QR indispon&iacute;vel &mdash; use o c&oacute;digo</div>\'"></div>'+
+    '<div class="qr-caixa">'+qr+'</div>'+
     '<p class="muted">Apontar a c&acirc;mera ou digitar o c&oacute;digo.</p>'+
     '<div class="link-peq">'+esc(m.link)+'</div>'+
     '<button class="btn btn-sm" style="width:100%;margin-bottom:10px" '+
@@ -2794,7 +2970,10 @@ function sincronizarControleTarefa(frame,tipo){
   var ex=execucaoTarefaSensor(tipo), acao=partidaPausada()?"pausar":"retomar";
   if(frame.dataset.controle===acao) return;
   frame.dataset.controle=acao;
-  try{frame.contentWindow.postMessage({mosaico:"controle-tarefa",runId:ex.runId,acao:acao},location.origin);}catch(e){}
+  /* Se isto falhar em silencio, o mestre pausa a partida e a tarefa segue
+     rodando no aparelho do jogador — sem sinal nenhum de que se perderam. */
+  try{frame.contentWindow.postMessage({mosaico:"controle-tarefa",runId:ex.runId,acao:acao},location.origin);}
+  catch(e){console.error("controle da tarefa não chegou ao quadro ("+acao+")",e);}
 }
 function telaTarefaSensor(tipo){
   var cfg=configTarefaSensor(tipo);
@@ -2852,7 +3031,7 @@ function formatarCronometroFragmento(ms){
 function instanteMs(v){return v&&v.toMillis?v.toMillis():(Number(v)||0);}
 function tempoFragmentoMs(){
   var inicio=Number(STATE.doc&&STATE.doc.mosaicoAbertoMs)||Date.now(), n=documentoMeuFragmento();
-  var fim=n&&instanteMs(n.concluidoEm||n.concluidoMs);
+  var fim=n&&instanteMs(n.concluidoEm);
   var agora=STATE.doc&&STATE.doc.pausada?(Number(STATE.doc.pausaIniciadaMs)||Date.now()):Date.now();
   return Math.max(0,(fim||agora)-inicio);
 }
@@ -2897,8 +3076,16 @@ function rotuloPistaMosaico(p){
 function chavesRespostaMosaico(rascunho){
   return Object.keys(rascunho||{}).filter(function(k){return /^\d+$/.test(k);});
 }
+/* O _acertos gravado pelo Portador continua servindo a tela dele, mas a
+   apuracao nao pode confiar num numero escrito por quem ganha pontos com
+   ele. Aqui a contagem e refeita contra a ordem canonica do caso, que o
+   mestre ja tem em memoria.                                            */
 function acertosMosaico(nucleo){
-  return Math.max(0,Math.min(dicasMosaico().length,Math.trunc(Number(nucleo&&nucleo.rascunho&&nucleo.rascunho._acertos)||0)));
+  var rascunho=(nucleo&&nucleo.rascunho)||{};
+  var correta=(CASO.mosaico&&CASO.mosaico.ordemCorreta)||[];
+  var total=0;
+  for(var i=0;i<correta.length;i++) if(rascunho[String(i)]===correta[i]) total++;
+  return total;
 }
 function iconePortador(){
   return '<svg class="peca-portador" viewBox="-4 -4 72 72" role="img" aria-label="Pe&ccedil;a dourada do Portador"><defs><linearGradient id="ouroPeca" x1=".15" y1=".1" x2=".85" y2=".9"><stop offset="0" stop-color="#fffbe0"/><stop offset=".32" stop-color="#ffe889"/><stop offset=".68" stop-color="#f7c94a"/><stop offset="1" stop-color="#8a5410"/></linearGradient></defs><path fill="url(#ouroPeca)" stroke="#fff2a8" stroke-width="2" d="M8 8h17c-1-7 4-11 9-11s10 4 9 11h13v17c7-1 11 4 11 9s-4 10-11 9v13H41c1 7-4 11-9 11s-10-4-9-11H8V41c-7 1-11-4-11-9s4-10 11-9V8z"/></svg>';
@@ -2930,7 +3117,7 @@ function modalEscolhaMosaico(rascunho){
 function telaMosaico(){
   var eu=meuJogador(), nucleo=eu&&eu.nucleo, fragmento=dadosFragmento(nucleo);
   if(!(STATE.doc&&STATE.doc.fragmentosLiberados)) return telaEncontroFragmento(nucleo);
-  var n=documentoMeuFragmento(), feito=n&&(n.concluidoEm||n.concluidoMs);
+  var n=documentoMeuFragmento(), feito=n&&(n.concluidoEm);
   if(feito){
     var mensagem=STATE.jogadores.length<=3
       ?(ritmoConduzido()?'A resposta final foi registrada. Aguarde o mestre liberar a pr&oacute;xima fase.':'A resposta final foi registrada. Abrindo a pr&oacute;xima fase&hellip;')
@@ -2967,7 +3154,9 @@ function telaMercado(){
       '<button class="btn btn-ambar" onclick="abrirDeducao()">Continuar para a acusa&ccedil;&atilde;o final</button>';
   }
   var cfg=CASO.configuracao||MosaicoV5.CONFIG_PADRAO, minhas=minhasPistas();
-  var propria=minhas.find(function(p){return !p.adquirida;});
+  /* A pista oferecida e a PRIVADA do personagem, nunca a de tarefa. Antes
+     isso dependia da ordem do array; agora e explicito. */
+  var propria=minhas.find(function(p){return !p.adquirida && p.origem!=='tarefa';});
   var aberta=(STATE.v5.ofertas||[]).find(function(o){return o.vendedorId===eu.id&&o.status==='aberta';});
   var criar=propria&&!aberta?'<div class="card"><b>Oferecer sua pista</b><p class="muted">A import&acirc;ncia real da pista permanece oculta at&eacute; a revela&ccedil;&atilde;o final do caso.</p><select id="faixa-oferta">'+Object.keys(cfg.precos).map(function(k){return opcao(k,k+' — '+cfg.precos[k]+' moedas');}).join('')+'</select><button class="btn btn-sm" onclick="criarOferta()">Colocar a pista &agrave; venda</button></div>':'';
   var ofertas=(STATE.v5.ofertas||[]).filter(function(o){return o.status==='aberta'&&o.vendedorId!==eu.id;});
@@ -3041,9 +3230,13 @@ function telaCheia(){
   var el=document.documentElement;
   var f=el.requestFullscreen||el.webkitRequestFullscreen||
         el.mozRequestFullScreen||el.msRequestFullscreen;
-  if(f){ try{ f.call(el); }catch(e){} }
+  /* Os dois devolvem Promise: o try/catch sozinho nao pega a rejeicao, e
+     ela vira "Uncaught (in promise)" em todo aparelho que nao implementa
+     a trava de orientacao. Nenhum dos dois e essencial ao jogo.       */
+  if(f){ try{ var pf=f.call(el); if(pf&&pf.catch)pf.catch(function(){}); }catch(e){} }
   if(screen.orientation && screen.orientation.lock){
-    try{ screen.orientation.lock("portrait"); }catch(e){}
+    try{ var po=screen.orientation.lock("portrait"); if(po&&po.catch)po.catch(function(){}); }
+    catch(e){}
   }
 }
 function jaEmTelaCheia(){
@@ -3062,9 +3255,22 @@ function escolherForma(f){ STATE.forma=f; render(); }
 function abrirQr(){ STATE.qrAberto=true; render(); }
 function fecharQr(){ STATE.qrAberto=false; render(); }
 
+/* writeText devolve Promise: o try/catch sozinho nao pega a recusa, e o
+   botao ficava dizendo "Copiar link" sem copiar nada e sem avisar. Safari
+   e Firefox negam a area de transferencia em varios contextos, entao o
+   caminho de falha precisa levar a algum lugar — aqui, ao proprio link. */
 function copiarLink(){
   if(!STATE.mesa) return;
-  try{ navigator.clipboard.writeText(STATE.mesa.link); }catch(e){}
+  var link=STATE.mesa.link;
+  function falhou(){
+    avisa("Não consegui copiar automaticamente. O link da sala é:\n\n"+link,
+          {aceitar:"Fechar"});
+  }
+  try{
+    var p=navigator.clipboard && navigator.clipboard.writeText(link);
+    if(p && p.then) p.then(function(){ avisa("Link copiado.",{aceitar:"Fechar"}); }, falhou);
+    else falhou();
+  }catch(e){ falhou(); }
 }
 
 async function esperarFB(){
@@ -3187,7 +3393,7 @@ async function criarMesa(modo){
     render();
   }catch(e){
     console.error(e);
-    alert("Não foi possível criar a mesa no Firestore.\n\n"+
+    avisa("Não foi possível criar a mesa no Firestore.\n\n"+
           ((e&&(e.message||e.code))||e)+
           "\n\nConfira: Firestore criado? Regras em modo teste?");
   }
@@ -3217,9 +3423,9 @@ function abrirCortina(){
 async function entrarNaMesa(){
   var codigo=(document.getElementById("cod").value||"").trim().toUpperCase();
   var nome=(document.getElementById("nome").value||"").trim();
-  if(codigo.length!==6){ alert("O código tem 6 caracteres."); return; }
-  if(!nome){ alert("Escreva seu nome."); return; }
-  if(!STATE.forma){ alert("Escolha como a casa vai te chamar."); return; }
+  if(codigo.length!==6){ avisa("O código tem 6 caracteres."); return; }
+  if(!nome){ avisa("Escreva seu nome."); return; }
+  if(!STATE.forma){ avisa("Escolha como a casa vai te chamar."); return; }
   /* "tanto faz" tambem e escolha: a casa decide, como decide o resto */
   var forma = STATE.forma==="?" ? (Math.random()<0.5?"m":"f") : STATE.forma;
 
@@ -3231,18 +3437,18 @@ async function entrarNaMesa(){
   try{
     var F0=await esperarFB();
     if(F0.uid && F0.uid()) id=F0.uid();   /* uid anonimo: permite regra por dono */
-  }catch(e){ abrirCortina(); alert(e.message||e); return; }
+  }catch(e){ abrirCortina(); avisa(e.message||e); return; }
 
   try{
     var FB=await esperarFB();
     var existe=await FB.mesaAtiva(codigo);
-    if(!existe){ abrirCortina(); alert("Mesa não encontrada ou encerrada."); return; }
+    if(!existe){ abrirCortina(); avisa("Mesa não encontrada ou encerrada."); return; }
 
     /* quem ja esta na casa define o que sobrou para sortear */
     var jaEstao=await FB.listarJogadores(codigo);
     var maxJogadores=((CASO.configuracao&&CASO.configuracao.jogadores||{}).maximo)||12;
     if(jaEstao.filter(function(j){return j.id!==id;}).length>=maxJogadores){
-      abrirCortina(); alert("A mesa já atingiu o limite deste caso."); return;
+      abrirCortina(); avisa("A mesa já atingiu o limite deste caso."); return;
     }
     var ocupados=[];
     for(var j=0;j<jaEstao.length;j++)
@@ -3278,7 +3484,7 @@ async function entrarNaMesa(){
   }catch(e){
     console.error(e);
     abrirCortina();
-    alert("Não foi possível entrar.\n\n"+((e&&(e.message||e.code))||e));
+    avisa("Não foi possível entrar.\n\n"+((e&&(e.message||e.code))||e));
   }
 }
 
@@ -3400,6 +3606,9 @@ async function terminei(){
   STATE.travaTela=true;
   STATE.tela="revelacao";
   render();
+  /* A pista privada entra no Arquivo aqui, e nao so no clique do botao:
+     ninguem deve ficar sem ela por ter recarregado a tela. */
+  registrarPistaPrivada();
   var FB=await esperarFB();
   await FB.gravarServidor(STATE.eu.codigo,"acoes",STATE.eu.id,{tipo:"concluirApresentacao",jogadorId:STATE.eu.id,vez:(STATE.doc&&STATE.doc.vez)||0},"criadaEm");
 }
@@ -3415,19 +3624,27 @@ function minhasPistas(){
   return [];
 }
 
-async function guardarPista(){
+/* A gravacao da pista privada foi separada do destravamento da tela.
+
+   O botao "Adicionar ao Arquivo" e um clique manual depois da atuacao:
+   quem recarregasse a pagina, saisse da tela ou tivesse a fase avancada
+   pelo mestre ficava SEM a pista privada — e, no Mercado, acabava
+   oferecendo uma pista de tarefa no lugar dela. Agora terminei() ja
+   registra a pista ao entrar na revelacao, e o botao e so confirmacao. */
+async function registrarPistaPrivada(){
   var p = PISTA_PRIVADA[STATE.eu && STATE.eu.personagem];
-  if(p){
-    var atuais = minhasPistas();
-    var repetida = atuais.some(function(x){ return x.hora===p.hora && x.txt===p.txt; });
-    if(!repetida){
-      try{
-        var FB=await esperarFB();
-        await FB.atualizarJogador(STATE.eu.codigo, STATE.eu.id,
-          { pistas: atuais.concat([{ id:p.id||('priv-'+STATE.eu.personagem), hora:p.hora, txt:p.txt, adquirida:false }]) });
-      }catch(e){ console.error("guardarPista", e); }
-    }
-  }
+  if(!p || !STATE.eu) return;
+  var repetida = minhasPistas().some(function(x){ return x.hora===p.hora && x.txt===p.txt; });
+  if(repetida) return;
+  try{
+    var FB=await esperarFB();
+    await FB.acrescentarPista(STATE.eu.codigo, STATE.eu.id,
+      { id:p.id||('priv-'+STATE.eu.personagem), hora:p.hora, txt:p.txt, adquirida:false });
+  }catch(e){ console.error("registrarPistaPrivada", e); }
+}
+
+async function guardarPista(){
+  await registrarPistaPrivada();
   STATE.travaTela=false;
   sincronizarJogador();
 }
@@ -3501,22 +3718,29 @@ async function abrirInclinacao(){
   var FB=await esperarFB();
   await FB.atualizarMesa(STATE.mesa.codigo,{fase:'inclinacao',inclinacaoAbertaMs:Date.now()});
 }
+/* O modulo sensorial ainda envia tempoMs, e a Mesa continua conferindo que
+   ele e plausivel — mas o valor NAO e mais gravado. Ele era auto-reportado
+   pelo aparelho de quem joga e nada no placar o consumia: um numero
+   validado, guardado e inutil e uma armadilha para quem vier depois e
+   assumir que da para confiar nele. Se algum dia o tempo das tarefas
+   entrar na pontuacao, ele tera de vir de serverTimestamp nas duas pontas,
+   na abertura e na conclusao.                                          */
 async function concluirTarefaSensor(tipo,tempoMs,runId){
   if(!STATE.eu||!STATE.doc||STATE.doc.pausada||STATE.doc.fase!==tipo) return;
   var esperado=execucaoTarefaSensor(tipo).runId;
   tempoMs=Number(tempoMs);
   if(String(runId||"")!==esperado||!Number.isFinite(tempoMs)||tempoMs<=0||tempoMs>3600000) return;
-  tempoMs=Math.round(tempoMs);
   var id=STATE.eu.id+'_'+tipo;
   if((STATE.v5.tarefas||[]).some(function(t){return t.id===id&&tarefaConcluida(t);})) return;
   var FB=await esperarFB(), cfg=configTarefaSensor(tipo), pista=cfg&&cfg.pista;
   if(pista){
-    var atuais=minhasPistas(), repetida=atuais.some(function(p){return p.id===pista.id;});
-    if(!repetida) await FB.atualizarJogador(STATE.eu.codigo,STATE.eu.id,{pistas:atuais.concat([{id:pista.id,hora:pista.hora,txt:pista.txt,adquirida:false,origem:'tarefa'}])});
+    var repetida=minhasPistas().some(function(p){return p.id===pista.id;});
+    if(!repetida) await FB.acrescentarPista(STATE.eu.codigo,STATE.eu.id,
+      {id:pista.id,hora:pista.hora,txt:pista.txt,adquirida:false,origem:'tarefa'});
   }
   /* O registro que pode disparar o avanço vem por último: assim o
      fragmento já está no Arquivo quando a rodada termina. */
-  await FB.gravarServidor(STATE.eu.codigo,'tarefas',id,{tarefa:tipo,jogadorId:STATE.eu.id,runId:esperado,tempoMs:tempoMs},'concluidoEm');
+  await FB.gravarServidor(STATE.eu.codigo,"tarefas",id,{tarefa:tipo,jogadorId:STATE.eu.id,runId:esperado},"concluidoEm");
 }
 window.addEventListener('message',function(event){
   if(event.origin!==location.origin||!event.data) return;
@@ -3565,7 +3789,8 @@ async function selecionarPistaMosaico(pistaId){
   if(pistaId===atual){fecharEscolhaMosaico();return;}
   if(outro!=null){
     var dicas=dicasMosaico();
-    if(!confirm('Esta pista já está em '+dicas[Number(outro)].hora+'. Trocar as respostas entre os dois horários?'))return;
+    if(!await confirmar("Esta pista já está em "+dicas[Number(outro)].hora+". Trocar as respostas entre os dois horários?",
+      {aceitar:"Trocar",recusar:"Manter"}))return;
     if(atual)rascunho[outro]=atual;else delete rascunho[outro];
   }
   rascunho[indice]=pistaId;
@@ -3577,9 +3802,10 @@ async function enviarMosaico(){
   if(!souPortadorFragmento())return;
   var n=documentoMeuFragmento(), rascunho=(n&&n.rascunho)||{}, dicas=dicasMosaico(), ordem=[];
   for(var i=0;i<dicas.length;i++)ordem.push(rascunho[String(i)]||'');
-  if(ordem.some(function(id){return !id;})){alert('Preencha os seis horários antes de enviar.');return;}
+  if(ordem.some(function(id){return !id;})){avisa('Preencha os seis horários antes de enviar.');return;}
   var correta=((CASO.mosaico||{}).ordemCorreta||[]);
-  if(!confirm('Enviar esta ordem como resposta final do Fragmento?\n\nDepois do envio, ela não poderá ser alterada.'))return;
+  if(!await confirmar('Enviar esta ordem como resposta final do Fragmento?\n\nDepois do envio, ela não poderá ser alterada.',
+      {aceitar:'Enviar',recusar:'Revisar',perigo:true}))return;
   var acertos=ordem.reduce(function(total,id,indice){return total+(id===correta[indice]?1:0);},0);
   var eu=meuJogador(), FB=await esperarFB();
   var rascunhoFinal=Object.assign({},rascunho,{_acertos:acertos,_totalItens:correta.length,_enviadoMs:Date.now()});
@@ -3608,13 +3834,13 @@ async function criarOferta(){
 async function comprarOferta(ofertaId){
   var FB=await esperarFB();
   try{ await FB.comprarOferta(STATE.eu.codigo,ofertaId,STATE.eu.id); }
-  catch(e){ alert((e&&e.message)||'A oferta não está mais disponível.'); }
+  catch(e){ avisa((e&&e.message)||'A oferta não está mais disponível.'); }
 }
 async function abrirDeducao(){ var FB=await esperarFB(); await FB.atualizarMesa(STATE.mesa.codigo,{fase:'deducao',deducaoAbertaMs:Date.now()}); }
 async function enviarDeducao(){
   var ids=['suspeito','motivo','acao','prova','lacuna'], dados={id:STATE.eu.id};
   for(var i=0;i<ids.length;i++){
-    var el=document.getElementById('ded-'+ids[i]); if(!el||!el.value){alert('Preencha todos os cinco campos.');return;} dados[ids[i]]=el.value;
+    var el=document.getElementById('ded-'+ids[i]); if(!el||!el.value){avisa('Preencha todos os cinco campos.');return;} dados[ids[i]]=el.value;
   }
   dados.pistasUsadas=Array.from(document.querySelectorAll('input[name="pista-usada"]:checked')).map(function(x){return x.value;});
   var FB=await esperarFB(); await FB.gravarServidor(STATE.eu.codigo,'deducoes',STATE.eu.id,dados,'submetidoEm');
@@ -3654,8 +3880,16 @@ async function finalizarPartida(){
     else pontos=MosaicoV5.dividirVoto(STATE.v5.cooperacao.filter(function(v){return v.nucleo===n;}),ids,10);
     Object.assign(coopInd,pontos);
   });
-  function msNucleo(n){return n.concluidoEm&&n.concluidoEm.toMillis?n.concluidoEm.toMillis():(n.concluidoMs||0);}
-  var concluidos=STATE.v5.nucleos.filter(function(n){return n.concluidoEm||n.concluidoMs;}).sort(function(a,b){
+  /* Só o carimbo do servidor vale como hora de entrega. O antigo recurso a
+     concluidoMs nunca era gravado por concluirNucleo, entao devolvia zero —
+     e zero ordenava como o Fragmento MAIS RAPIDO de todos. Enquanto o
+     serverTimestamp nao confirma, o Fragmento simplesmente ainda nao
+     entregou; Infinity garante que ele nunca vença o desempate.        */
+  function msNucleo(n){
+    var t=n&&n.concluidoEm;
+    return t&&t.toMillis?t.toMillis():Infinity;
+  }
+  var concluidos=STATE.v5.nucleos.filter(function(n){return n.concluidoEm&&n.concluidoEm.toMillis;}).sort(function(a,b){
     return acertosMosaico(b)-acertosMosaico(a)||msNucleo(a)-msNucleo(b);
   });
   var escala=[20,16,12,8], coletivo={};
@@ -3678,7 +3912,7 @@ async function finalizarPartida(){
   });
   var placar=MosaicoV5.calcular({jogadores:STATE.jogadores,deducoes:deducoes,negociacoes:negociacoes,coopColetiva:coletivo,coopIndividual:coopInd,performance:perf});
   var FB=await esperarFB();
-  for(var i=0;i<placar.length;i++) await FB.atualizarJogador(STATE.mesa.codigo,placar[i].id,{total:placar[i].total,pontuacao:placar[i].componentes,economiaDetalhe:placar[i].economia});
+  await FB.gravarPlacar(STATE.mesa.codigo,placar);
   var agora=Date.now();
   await FB.atualizarMesa(STATE.mesa.codigo,{fase:'resultado',revelacaoEtapa:0,reveladaEmMs:agora,solucao:sol,encerramentoIniciadoMs:0,encerramentoConcluido:true,encerramentoConcluidoMs:0});
 }
@@ -3687,8 +3921,9 @@ async function finalizarPartida(){
    e ninguem mais consegue entrar com aquele codigo.                    */
 async function encerrarMesa(){
   if(!STATE.mesa) return;
-  if(!confirm("Encerrar a mesa " + STATE.mesa.codigo + "?\n\n" +
-              "Todos os jogadores serão desconectados. Não dá para desfazer."))
+  if(!await confirmar("Encerrar a mesa " + STATE.mesa.codigo + "?\n\n" +
+        "Todos os jogadores serão desconectados. Não dá para desfazer.",
+        {aceitar:"Encerrar",recusar:"Voltar",perigo:true}))
     return;
   try{
     var FB=await esperarFB();
@@ -3704,8 +3939,9 @@ async function encerrarMesa(){
 async function encerrarENovaMesa(){
   if(!STATE.mesa) return;
   var codigoAnterior=STATE.mesa.codigo, modo=modoAtual();
-  if(!confirm("Encerrar a mesa " + codigoAnterior + " e abrir uma nova sala?\n\n" +
-              "Todos os jogadores serão desconectados e o novo jogo usará outro código."))
+  if(!await confirmar("Encerrar a mesa " + codigoAnterior + " e abrir uma nova sala?\n\n" +
+        "Todos os jogadores serão desconectados e o novo jogo usará outro código.",
+        {aceitar:"Abrir nova sala",recusar:"Voltar",perigo:true}))
     return;
   try{
     var FB=await esperarFB();
@@ -3880,7 +4116,7 @@ async function voltarParaSala(){
   var nomeCaso = (q&&q.get("caso")) || "casa-da-costa";
   var casoPronto=Promise.resolve();
   if(/^[a-z0-9-]{1,40}$/.test(nomeCaso)){
-    casoPronto=fetch("casos/"+nomeCaso+".json?v=solo-portadores-20260824")
+    casoPronto=fetch("casos/"+nomeCaso+".json?v="+window.MOSAICO_VERSAO)
       .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
       .then(function(c){ aplicarCaso(c); render(); })
       .catch(function(e){
@@ -3900,11 +4136,15 @@ async function voltarParaSala(){
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
 import {
   getFirestore, doc, setDoc, getDoc, updateDoc,
-  collection, onSnapshot, serverTimestamp, getDocs, runTransaction
+  collection, onSnapshot, serverTimestamp, getDocs, runTransaction,
+  arrayUnion, writeBatch
 } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 import {
   getAuth, signInAnonymously, onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+import {
+  initializeAppCheck, ReCaptchaV3Provider
+} from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app-check.js";
 
 /* ══════════════════════════════════════════════════════════════════
    CONFIGURACAO DO FIREBASE — PROJETO PROPRIO DO MOSAICO
@@ -3939,26 +4179,85 @@ if(!CONFIGURADO){
 }
 
 const app  = CONFIGURADO ? initializeApp(firebaseConfig) : null;
+
+/* ══════════════════════════════════════════════════════════════════
+   APP CHECK — o que impede abrir salas em massa
+
+   As Regras dizem QUEM pode escrever. Elas nao dizem de ONDE veio a
+   chamada: qualquer pessoa autenticada anonimamente pode criar salas
+   num laco, e a senha do mestre e barreira de tela, nao de servidor.
+   O App Check resolve isso atestando que a chamada veio deste site.
+
+   Para ligar, em tres passos:
+
+     1. console.firebase.google.com -> projeto mosaico-game
+        -> Compilacao -> App Check -> registre o app da Web
+        -> provedor reCAPTCHA v3  -> copie a CHAVE DO SITE;
+     2. cole a chave em CHAVE_APPCHECK, abaixo;
+     3. no mesmo painel, marque Cloud Firestore como "Aplicado".
+
+   Enquanto a chave nao for colada, o bloco abaixo nao faz nada e o jogo
+   continua funcionando exatamente como antes — nao ha meia ativacao.
+   ══════════════════════════════════════════════════════════════════ */
+const CHAVE_APPCHECK = "";
+
+if(CONFIGURADO && CHAVE_APPCHECK){
+  try{
+    initializeAppCheck(app, {
+      provider: new ReCaptchaV3Provider(CHAVE_APPCHECK),
+      isTokenAutoRefreshEnabled: true
+    });
+  }catch(e){
+    /* Chave errada ou dominio nao autorizado derrubariam a mesa inteira.
+       Melhor seguir sem atestacao e deixar o motivo no console. */
+    console.error("App Check não iniciou — o jogo segue sem atestação.", e);
+  }
+} else if(CONFIGURADO){
+  console.warn("MOSAICO: App Check desligado. Veja CHAVE_APPCHECK em MOSAICO-mesa.html.");
+}
+
 const db   = CONFIGURADO ? getFirestore(app) : null;
 const auth = CONFIGURADO ? getAuth(app) : null;
 
 /* login anonimo: ninguem cria conta, mas as Regras podem exigir
-   request.auth != null em vez de deixar a colecao aberta ao mundo */
+   request.auth != null em vez de deixar a colecao aberta ao mundo.
+
+   O login e PREGUICOSO de proposito. Quando ele acontecia no carregamento
+   da pagina, toda visita criava uma conta anonima permanente no projeto —
+   inclusive de quem so abriu o link por curiosidade. Agora ele so dispara
+   no primeiro gesto real (criar mesa, entrar, ouvir uma sala), e por isso
+   TODO metodo de MosaicoFB precisa comecar por `await autenticar()`.    */
 let _uid = null;
-const prontoAuth = CONFIGURADO ? new Promise(res => {
-  onAuthStateChanged(auth, u => { if(u){ _uid = u.uid; res(u.uid); } });
-  signInAnonymously(auth).catch(e => {
-    console.error("Login anônimo falhou — ative Authentication > Anônimo", e);
-    res(null);
+let _prontoAuth = null;
+function autenticar(){
+  if(_prontoAuth) return _prontoAuth;
+  if(!CONFIGURADO) return (_prontoAuth = Promise.resolve(null));
+  _prontoAuth = new Promise(res => {
+    onAuthStateChanged(auth, u => { if(u){ _uid = u.uid; res(u.uid); } });
+    signInAnonymously(auth).catch(e => {
+      console.error("Login anônimo falhou — ative Authentication > Anônimo", e);
+      res(null);
+    });
   });
-}) : Promise.resolve(null);
+  return _prontoAuth;
+}
+
+/* Os ouvintes devolvem a funcao de cancelamento na hora, entao nao podem
+   esperar o login com await. Este envelope mantem exatamente o mesmo
+   contrato de fora: assina assim que a autenticacao termina e, se alguem
+   cancelar antes disso, nunca chega a assinar.                          */
+function ouvinteAdiado(iniciar){
+  let cancelar=null, cancelado=false;
+  autenticar().then(() => { if(!cancelado) cancelar=iniciar(); });
+  return () => { cancelado=true; if(cancelar){ cancelar(); cancelar=null; } };
+}
 
 if(CONFIGURADO) window.MosaicoFB = {
   db,
-  async pronto(){ return prontoAuth; },
+  async pronto(){ return autenticar(); },
   uid(){ return _uid; },
   async criarMesa(codigo, modo, ritmo){
-    await prontoAuth;
+    await autenticar();
     await setDoc(doc(db, RAIZ, codigo), {
       ativa:true, fase:"sala", vez:0, modo:modo||"com-telao",
       mestreUid:_uid,
@@ -3972,88 +4271,125 @@ if(CONFIGURADO) window.MosaicoFB = {
     return codigo;
   },
   async mesaAtiva(codigo){
-    await prontoAuth;
+    await autenticar();
     const s = await getDoc(doc(db, RAIZ, codigo));
     return s.exists() && s.data().ativa === true;
   },
   async obterMesa(codigo){
-    await prontoAuth;
+    await autenticar();
     const s=await getDoc(doc(db,RAIZ,codigo));
     return s.exists()?s.data():null;
   },
   async obterJogador(codigo,id){
-    await prontoAuth;
+    await autenticar();
     const s=await getDoc(doc(db,RAIZ,codigo,"jogadores",id));
     return s.exists()?{id:s.id,...s.data()}:null;
   },
   async atualizarMesa(codigo, dados){
+    await autenticar();
     await updateDoc(doc(db, RAIZ, codigo), dados);
   },
   ouvirMesa(codigo, cb){
-    return onSnapshot(doc(db, RAIZ, codigo),
+    return ouvinteAdiado(() => onSnapshot(doc(db, RAIZ, codigo),
       s => cb(s.exists() ? s.data() : null),
-      e => { console.error("ouvirMesa", e); });
+      e => { console.error("ouvirMesa", e); }));
   },
   async entrarJogador(codigo, id, dados){
+    await autenticar();
     await setDoc(doc(db, RAIZ, codigo, "jogadores", id),
                  { ...dados, atualizadoEmMs: Date.now() }, { merge:true });
   },
   async atualizarJogador(codigo, id, dados){
+    await autenticar();
     await setDoc(doc(db, RAIZ, codigo, "jogadores", id),
                  { ...dados, atualizadoEmMs: Date.now() }, { merge:true });
   },
+  /* Acrescenta UMA pista sem reescrever o Arquivo inteiro.
+
+     Antes, quem ganhava uma pista lia o proprio array, concatenava e
+     regravava tudo. Se duas gravacoes se cruzassem — conclusao de tarefa
+     e "Adicionar ao Arquivo", ou um snapshot atrasado depois de uma
+     reconexao — a ultima apagava a outra e a pista sumia sem erro. Num
+     jogo de deducao, perder uma pista e perder a rodada.
+
+     ATENCAO: arrayUnion compara por igualdade profunda, campo a campo e
+     na mesma ordem. Se alguem reordenar o literal em guardarPista ou em
+     concluirTarefaSensor, a mesma pista passa a entrar duas vezes.     */
+  async acrescentarPista(codigo, id, pista){
+    await autenticar();
+    await updateDoc(doc(db, RAIZ, codigo, "jogadores", id),
+                    { pistas: arrayUnion(pista), atualizadoEmMs: Date.now() });
+  },
+  /* O placar inteiro numa transacao de escrita so: ou a mesa toda recebe
+     os pontos, ou ninguem recebe. Antes eram N idas ao servidor em
+     sequencia, e uma queda no meio deixava metade da mesa pontuada.    */
+  async gravarPlacar(codigo, linhas){
+    await autenticar();
+    const lote = writeBatch(db);
+    linhas.forEach(l => lote.set(doc(db, RAIZ, codigo, "jogadores", l.id), {
+      total: l.total, pontuacao: l.componentes, economiaDetalhe: l.economia,
+      atualizadoEmMs: Date.now()
+    }, { merge:true }));
+    await lote.commit();
+  },
   ouvirJogadores(codigo, cb){
-    return onSnapshot(collection(db, RAIZ, codigo, "jogadores"), snap => {
+    return ouvinteAdiado(() => onSnapshot(collection(db, RAIZ, codigo, "jogadores"), snap => {
       const l = []; snap.forEach(d => l.push({ id:d.id, ...d.data() })); cb(l);
-    }, e => { console.error("ouvirJogadores", e); cb([]); });
+    }, e => { console.error("ouvirJogadores", e); cb([]); }));
   },
   async listarJogadores(codigo){
-    await prontoAuth;
+    await autenticar();
     const snap = await getDocs(collection(db, RAIZ, codigo, "jogadores"));
     const l = []; snap.forEach(d => l.push({ id:d.id, ...d.data() }));
     return l;
   },
   async votar(codigo, deId, paraId){
+    await autenticar();
     await setDoc(doc(db, RAIZ, codigo, "votos", deId),
                  { de:deId, para:paraId, ms:Date.now() });
   },
   ouvirVotos(codigo, cb){
-    return onSnapshot(collection(db, RAIZ, codigo, "votos"), snap => {
+    return ouvinteAdiado(() => onSnapshot(collection(db, RAIZ, codigo, "votos"), snap => {
       const l = []; snap.forEach(d => l.push({ id:d.id, ...d.data() })); cb(l);
-    }, e => { console.error("ouvirVotos", e); cb([]); });
+    }, e => { console.error("ouvirVotos", e); cb([]); }));
   },
   async publicar(codigo, ordem, dados){
+    await autenticar();
     await setDoc(doc(db, RAIZ, codigo, "publicas", String(ordem)), dados);
   },
   ouvirPublicas(codigo, cb){
-    return onSnapshot(collection(db, RAIZ, codigo, "publicas"), snap => {
+    return ouvinteAdiado(() => onSnapshot(collection(db, RAIZ, codigo, "publicas"), snap => {
       const l = []; snap.forEach(d => l.push({ id:d.id, ...d.data() })); cb(l);
-    }, e => { console.error("ouvirPublicas", e); cb([]); });
+    }, e => { console.error("ouvirPublicas", e); cb([]); }));
   },
   async gravar(codigo, colecao, id, dados){
+    await autenticar();
     await setDoc(doc(db, RAIZ, codigo, colecao, id), dados, {merge:true});
   },
   async gravarServidor(codigo, colecao, id, dados, campo){
+    await autenticar();
     await setDoc(doc(db, RAIZ, codigo, colecao, id), {...dados,[campo]:serverTimestamp()}, {merge:true});
   },
   ouvirColecao(codigo, nome, cb){
-    return onSnapshot(collection(db, RAIZ, codigo, nome), snap => {
+    return ouvinteAdiado(() => onSnapshot(collection(db, RAIZ, codigo, nome), snap => {
       const l=[]; snap.forEach(d=>l.push({id:d.id,...d.data()})); cb(l);
-    }, e=>{ console.error("ouvirColecao "+nome,e); cb([]); });
+    }, e=>{ console.error("ouvirColecao "+nome,e); cb([]); }));
   },
   ouvirDocumento(codigo, nome, id, cb){
-    return onSnapshot(doc(db,RAIZ,codigo,nome,id),s=>cb(s.exists()?{id:s.id,...s.data()}:null),
-      e=>{console.error("ouvirDocumento "+nome,e);cb(null);});
+    return ouvinteAdiado(() => onSnapshot(doc(db,RAIZ,codigo,nome,id),s=>cb(s.exists()?{id:s.id,...s.data()}:null),
+      e=>{console.error("ouvirDocumento "+nome,e);cb(null);}));
   },
   async concluirNucleo(codigo, id, dados){
+    await autenticar();
     const ref=doc(db,RAIZ,codigo,"nucleos",id);
     await runTransaction(db,async tx=>{
       const atual=await tx.get(ref);
-      if(atual.exists()&&(atual.data().concluidoEm||atual.data().concluidoMs)) return;
+      if(atual.exists()&&(atual.data().concluidoEm)) return;
       tx.set(ref,{...dados,concluidoEm:serverTimestamp()},{merge:true});
     });
   },
   async comprarOferta(codigo, ofertaId, compradorId){
+    await autenticar();
     const ofertaRef=doc(db,RAIZ,codigo,"ofertas",ofertaId);
     const compradorRef=doc(db,RAIZ,codigo,"jogadores",compradorId);
     await runTransaction(db,async tx=>{

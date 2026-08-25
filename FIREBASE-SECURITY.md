@@ -11,6 +11,8 @@ O arquivo `firestore.rules` é a fonte versionada das permissões do projeto `mo
 - cada participante cria apenas o documento correspondente ao próprio UID;
 - uma pessoa autenticada com o código de uma sala ativa pode consultar a lista de jogadores necessária à entrada;
 - alterações ordinárias ficam limitadas a prontidão, personagem e Arquivo do próprio jogador;
+- o Arquivo cresce no máximo uma pista por escrita, e a mesma escrita não pode encostar nas moedas;
+- o campo `concluidoMs` do Fragmento não é mais aceito: só o carimbo do servidor conta como hora de entrega;
 - compras validam, na mesma transação, oferta, comprador, vendedor, preço e variação das moedas;
 - votos de Performance e Cooperação são únicos, sem voto em si e legíveis apenas pelo autor e pelo mestre;
 - tarefas sensoriais e Dedução Final são únicas por jogador;
@@ -26,7 +28,13 @@ Com a Firebase CLI autenticada por uma conta autorizada no projeto:
 firebase deploy --only firestore:rules --project mosaico-game
 ```
 
-Antes de uma sessão presencial, execute o jogo contra o emulador configurado em `firebase.json` e confirme a matriz abaixo.
+A matriz abaixo deixou de ser conferida à mão. Ela está escrita em `tests/regras.test.mjs` e roda contra o emulador configurado em `firebase.json`:
+
+```bash
+npm run test:regras
+```
+
+Antes de uma sessão presencial, execute também o jogo contra o emulador e confirme o comportamento em tela.
 
 | Teste | Resultado esperado |
 |---|---|
@@ -46,7 +54,17 @@ Antes de uma sessão presencial, execute o jogo contra o emulador configurado em
 | integrante do Fragmento compartilhado (1–3) altera o rascunho | aceita |
 | participante de outro Fragmento tenta alterar o rascunho | nega |
 | retorno a uma sala encerrada | nega |
+| jogador acrescenta uma pista ao próprio Arquivo | aceita |
+| jogador acrescenta duas pistas na mesma escrita | nega |
+| jogador acrescenta pista e altera moedas juntos | nega |
+| qualquer pessoa grava `concluidoMs` no Fragmento | nega |
 
-## Limite conhecido
+## Limites conhecidos
 
-Os documentos públicos de jogadores ainda contêm o Arquivo de pistas porque o Mercado Cego atual transfere pistas por uma transação executada no cliente. A interface não revela esses campos, mas um participante tecnicamente experiente pode inspecioná-los nas ferramentas do navegador. A ocultação criptograficamente efetiva das pistas exige separar dados privados e processar compras em ambiente confiável, como Cloud Functions. Isso pertence ao item específico de proteção dos segredos do caso.
+**Leitura das pistas.** Os documentos públicos de jogadores ainda contêm o Arquivo de pistas porque o Mercado Cego atual transfere pistas por uma transação executada no cliente. A interface não revela esses campos, mas um participante tecnicamente experiente pode inspecioná-los nas ferramentas do navegador. A ocultação criptograficamente efetiva das pistas exige separar dados privados e processar compras em ambiente confiável, como Cloud Functions. Isso pertence ao item específico de proteção dos segredos do caso.
+
+**Escrita das pistas.** O cliente precisa acrescentar pistas ao próprio Arquivo: é assim que a pista privada do personagem e a pista de cada tarefa sensorial chegam. A regra atual encarece o abuso — uma pista por escrita, sem tocar nas moedas — mas não o elimina: quem insistir repete a operação. Isso não fere apenas o sigilo; fere a Economia e Risco, porque moedas guardadas viram pontos e a compra deixa de ser necessária. A eliminação real exige que a concessão de pista saia do jogador, seja pelo mestre (que já processa a coleção `acoes`), seja por Cloud Functions.
+
+**Segredos do caso no cliente.** `CASO.solucao` e a revelação completa chegam ao navegador de todos no carregamento. Para produto ou competição, o caso precisará ser servido em partes, no momento correto.
+
+**Apuração no aparelho do mestre.** O placar é calculado num único cliente. Se ele cair no encerramento, não há quem calcule, e o `mestreUid` é imutável por regra. É risco operacional de sessão presencial, não falha de autorização.

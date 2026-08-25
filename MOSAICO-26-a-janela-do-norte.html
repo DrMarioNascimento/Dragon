@@ -395,6 +395,8 @@
   <button id="falha-toque" aria-label="Continuar usando o toque na tela">Continuar tocando na tela</button>
 </div>
 
+<!-- Protocolo com a Mesa e ativacao de sensor: um so arquivo para as tres tarefas. -->
+<script src="js/tarefa-sensor.js?v=20260825-integridade"></script>
 <script>
 (function(){
 "use strict";
@@ -498,20 +500,13 @@ var inicioTarefa=null, fimTarefa=null, conclusaoEnviada=false, ultimoStatus=null
    ABORTADO encerra a execução sem que nenhum tempo seja enviado. */
 var PAUSADO=false, ABORTADO=false, pausadoEm=null, descontoMs=0;
 
-/* postMessage exige a origem do PAI. Servidos por http(s), pai e filho
-   compartilham origem e location.origin serve. Aberto por file:// (que é
-   como testamos), location.origin vira a string "null" e o postMessage
-   lança — ali não existe fronteira de segurança, então só nesse caso cai
-   para "*". Em produção nunca usa "*".                                  */
-function alvoMsg(){
-  var o=location.origin;
-  return (o && o!=="null") ? o : "*";
-}
-function envia(dados){
-  if(!EMBED) return;
-  if(RUN_ID) dados.runId=RUN_ID;
-  try{ window.parent.postMessage(dados, alvoMsg()); }catch(e){}
-}
+/* O dialogo com a Mesa mora em js/tarefa-sensor.js: origem, runId e a
+   validacao das mensagens sao iguais nas tres tarefas, e uma correcao ali
+   passa a valer para todas. Aqui ficam so os atalhos locais.          */
+function ctxMesa(){ return { embed:EMBED, runId:RUN_ID }; }
+function alvoMsg(){ return TarefaSensor.alvoMsg(); }
+function envia(dados){ TarefaSensor.enviar(dados, ctxMesa()); }
+
 /* A Mesa não recebe mais estado de sensor: a única entrega é o tempo. Isto
    virou registro interno — os pontos de chamada continuam existindo, e se um
    dia a Mesa precisar saber que alguém empacou na permissão, basta voltar a
@@ -536,15 +531,7 @@ function concluirCronometroOficial(){
   var pendente=(pausadoEm!==null)?(fimTarefa-pausadoEm):0;
   return Math.max(0, Math.round(fimTarefa-inicioTarefa-descontoMs-pendente));
 }
-function formatarTempo(ms){
-  var totalCent=Math.floor(ms/10);
-  var cent=totalCent%100;
-  var totalSeg=Math.floor(totalCent/100);
-  var seg=totalSeg%60;
-  var min=Math.floor(totalSeg/60);
-  return String(min).padStart(2,"0")+":"+String(seg).padStart(2,"0")+","+
-         String(cent).padStart(2,"0");
-}
+function formatarTempo(ms){ return TarefaSensor.formatarTempo(ms); }
 var tempoFinalMs=null;
 /* A trava só fecha DEPOIS de haver um tempo válido. Travar antes deixaria a
    tarefa impossível de concluir se isto fosse chamado antes do cronômetro
@@ -603,18 +590,7 @@ function aplicaAbortar(){
 /* Sem esta checagem, qualquer aba ou script conseguiria mandar um "abortar"
    para dentro do iframe. Origem e remetente são conferidos antes da ação,
    e runId diferente do da execução corrente é simplesmente ignorado.    */
-window.addEventListener("message", function(ev){
-  if(!EMBED) return;
-  if(ev.source!==window.parent) return;
-  var alvo=alvoMsg();
-  if(alvo!=="*" && ev.origin!==alvo) return;
-  var d=ev.data;
-  if(!d || d.mosaico!=="controle-tarefa") return;
-  if(String(d.runId==null?"":d.runId)!==String(RUN_ID)) return;
-  if(d.acao==="pausar")       aplicaPausa();
-  else if(d.acao==="retomar") aplicaRetomada();
-  else if(d.acao==="abortar") aplicaAbortar();
-});
+TarefaSensor.ouvirMesa({ pausar:aplicaPausa, retomar:aplicaRetomada, abortar:aplicaAbortar }, ctxMesa());
 /* Congelar o laço para o desenho; barrar os eventos para a interação. Só
    o laço não basta: arrasto e botões mexem no estado fora dele.        */
 if(EMBED){
@@ -925,24 +901,29 @@ function onOrient(e){
   if(!started){ started=true; }
 }
 
+/* A permissão de movimento do iOS e os dois eventos do Android moram em
+   js/tarefa-sensor.js. O que é próprio desta tarefa fica aqui: a bússola
+   precisa do norte verdadeiro, e a espera é maior que a das outras porque
+   os 3 s do oito não podem contar como sensor mudo. */
 function ativarSensor(pronto){
-  var DOE=window.DeviceOrientationEvent;
-  function liga(){
-    if("ondeviceorientationabsolute" in window)
-      window.addEventListener("deviceorientationabsolute", onOrient, true);
-    window.addEventListener("deviceorientation", onOrient, true);
-    pronto();
-    setTimeout(function(){
-      if(!started){ src="sem sensor"; enviarStatus("sem-resposta","sensor"); mostraFalha("A bússola deste aparelho não respondeu."); }
-    }, 4600);   /* depois dos 3 s do oito, senão acusa falso */
-  }
-  if(DOE && typeof DOE.requestPermission==="function"){
-    DOE.requestPermission().then(function(s){
-      if(s==="granted") liga();
-      else { enviarStatus("negado","sensor"); mostraFalha("A permissão de movimento foi negada. Sem ela o aparelho não sabe para onde você está virado."); }
-    }).catch(function(){ enviarStatus("negado","sensor"); mostraFalha("Não foi possível pedir a permissão de movimento."); });
-  } else if(DOE){ liga(); }
-  else { enviarStatus("indisponivel","toque"); mostraFalha("Este aparelho não tem bússola."); }
+  TarefaSensor.ativarOrientacao({
+    aoOrientar: onOrient,
+    aoLigar: pronto,
+    esperaMs: 4600,
+    respondeu: function(){ return started; },
+    aoNaoResponder: function(){
+      src="sem sensor"; enviarStatus("sem-resposta","sensor");
+      mostraFalha("A bússola deste aparelho não respondeu.");
+    },
+    aoNegar: function(){
+      enviarStatus("negado","sensor");
+      mostraFalha("A permissão de movimento foi negada. Sem ela o aparelho não sabe para onde você está virado.");
+    },
+    aoIndisponivel: function(){
+      enviarStatus("indisponivel","toque");
+      mostraFalha("Este aparelho não tem bússola.");
+    }
+  });
 }
 
 /* modo mouse/dedo (computador) */

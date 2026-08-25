@@ -1,3 +1,9 @@
+| `firestore.rules` | autorização por Sala, mestre e participante |
+| `sw.js` | cache de mídia entre partidas — escrito e desligado, ver o topo do arquivo |
+| `tests/` | motor, QR, sincronia do caso e matriz de segurança |
+| `js/mosaico-v5.js` | cálculo puro e testável da pontuação |
+| `js/qr.js` | geração local do QR da sala, sem serviço externo |
+| `js/tarefa-sensor.js` | protocolo com a Mesa e ativação de sensor, comuns às três tarefas |
 # MOSAICO — A Verdade é um Fragmento
 
 > Jogo híbrido de dedução distribuída para smartphones, com telão opcional. Projeto autoral proprietário em desenvolvimento.
@@ -100,12 +106,26 @@ Na apuração, as colunas surgem progressivamente e permanecem visíveis. A clas
 | `MOSAICO-mesa.html` | interface, fluxo, estados e integração Firebase |
 | `casos/casa-da-costa.json` | fonte canônica do caso piloto |
 | `js/mosaico-v5.js` | cálculo puro e testável da pontuação |
+| `js/qr.js` | geração local do QR da sala, sem serviço externo |
+| `js/tarefa-sensor.js` | protocolo com a Mesa e ativação de sensor, comuns às três tarefas |
 | `MOSAICO-26-a-janela-do-norte.html` | primeira rodada sensorial |
 | `MOSAICO-26-vidro-embacado.html` | tarefa interna alternada |
 | `MOSAICO-26-a-sala-as-escuras.html` | tarefa interna alternada |
 | `firestore.rules` | autorização por Sala, mestre e participante |
+| `sw.js` | cache de mídia entre partidas — escrito e **desligado**, ver o topo do arquivo |
+| `tests/` | motor, QR, sincronia do caso e matriz de segurança |
 | `FIREBASE-SECURITY.md` | implantação e verificação de segurança |
 | `HANDOFF.md` | continuidade técnica e decisões consolidadas |
+
+O jogo não depende de nenhum serviço de terceiros em tempo de execução além do próprio Firebase e do Google Fonts. O QR passou a ser gerado no aparelho.
+
+### Verificação
+
+```bash
+npm install && npm run test:tudo
+```
+
+O motor de pontuação, o codificador de QR e a sincronia entre `casos/casa-da-costa.json` e a cópia embutida no HTML rodam sem emulador. A matriz de segurança do `FIREBASE-SECURITY.md` roda contra o emulador do Firestore.
 
 O projeto utiliza HTML, CSS e JavaScript estáticos, Firebase Authentication anônimo e Firestore. A proteção dos dados depende da implantação das regras versionadas em `firestore.rules`; o jogo não deve operar com regras abertas em modo de teste.
 

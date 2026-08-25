@@ -26,12 +26,28 @@ service cloud.firestore {
     function inside(roomId) {
       return master(roomId) || participant(roomId);
     }
+    /* O cliente PRECISA poder acrescentar pista ao proprio Arquivo: e assim
+       que a pista privada do personagem e a pista de cada tarefa sensorial
+       chegam. O que esta regra faz e encarecer o abuso, nao elimina-lo:
+       o Arquivo cresce no maximo uma pista por escrita e a mesma escrita
+       nao pode encostar nas moedas. Quem insistir ainda consegue repetir a
+       operacao vezes seguidas — a eliminacao real exige que a concessao de
+       pista saia do jogador (mestre ou Cloud Functions), conforme o
+       HANDOFF secao 16.3.                                               */
     function ownPlayerUpdate() {
-      return request.resource.data.diff(resource.data).affectedKeys()
-        .hasOnly([
+      let changed = request.resource.data.diff(resource.data).affectedKeys();
+      return changed.hasOnly([
           'pronto', 'personagem', 'pistas', 'fragmentoPronto',
           'fragmentoProntoMs', 'atualizadoEmMs'
-        ]);
+        ])
+        && (
+          !changed.hasAny(['pistas'])
+          || (
+            request.resource.data.get('pistas', []).size()
+              <= resource.data.get('pistas', []).size() + 1
+            && request.resource.data.get('moedas', 0) == resource.data.get('moedas', 0)
+          )
+        );
     }
     function purchasePlayerUpdate(roomId, playerId) {
       let marker = request.resource.data.ultimaNegociacao;
@@ -132,17 +148,17 @@ service cloud.firestore {
         allow read: if master(roomId)
           || taskId == request.auth.uid + '_constelacao'
           || taskId == request.auth.uid + '_inclinacao';
+        /* `tempoMs` saiu: era auto-reportado pelo aparelho de quem joga e
+           nada no placar o consumia. Um numero validado e nunca usado
+           convida o proximo leitor a confiar nele. */
         allow create: if active(roomId)
           && request.resource.data.jogadorId == request.auth.uid
           && request.resource.data.tarefa in ['constelacao', 'inclinacao']
           && request.resource.data.runId is string
           && request.resource.data.runId.size() > 0
-          && request.resource.data.tempoMs is int
-          && request.resource.data.tempoMs > 0
-          && request.resource.data.tempoMs <= 3600000
           && taskId == request.auth.uid + '_' + request.resource.data.tarefa
           && request.resource.data.keys().hasOnly([
-            'tarefa', 'jogadorId', 'runId', 'tempoMs', 'concluidoEm'
+            'tarefa', 'jogadorId', 'runId', 'concluidoEm'
           ]);
         allow update: if active(roomId)
           && resource.data.jogadorId == request.auth.uid
@@ -151,12 +167,9 @@ service cloud.firestore {
           && request.resource.data.tarefa == resource.data.tarefa
           && request.resource.data.runId is string
           && request.resource.data.runId.size() > 0
-          && request.resource.data.tempoMs is int
-          && request.resource.data.tempoMs > 0
-          && request.resource.data.tempoMs <= 3600000
           && taskId == request.auth.uid + '_' + request.resource.data.tarefa
           && request.resource.data.keys().hasOnly([
-            'tarefa', 'jogadorId', 'runId', 'tempoMs', 'concluidoEm'
+            'tarefa', 'jogadorId', 'runId', 'concluidoEm'
           ]);
         allow delete: if false;
       }
@@ -174,7 +187,7 @@ service cloud.firestore {
           && request.resource.data.get('portadoresCompartilhados', false)
             == resource.data.get('portadoresCompartilhados', false)
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-            'rascunho', 'rascunhoMs', 'concluidoEm', 'concluidoMs'
+            'rascunho', 'rascunhoMs', 'concluidoEm'
           ])
         );
         allow delete: if false;
