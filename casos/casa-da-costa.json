@@ -138,12 +138,17 @@
     "constelacao": {
       "titulo": "O Vidro Embaçado",
       "arquivo": "MOSAICO-24.5-vidro-embacado.html?embed=1",
-      "pista": { "id": "tarefa-constelacao", "hora": "21:26", "txt": "A água abriu uma trilha no vidro embaçado. Por trás dele, a marca recente na trava do cofre permaneceu como ponto fixo da sequência." }
+      "pista": { "id": "tarefa-interior", "hora": "21:28", "txt": "A água abriu uma trilha no vidro embaçado. Por trás dele, a marca recente na trava do cofre permaneceu como ponto fixo da sequência." }
     },
     "inclinacao": {
       "titulo": "A Janela do Norte",
-      "arquivo": "MOSAICO-24.5-a-janela-do-norte.html?embed=1",
-      "pista": { "id": "tarefa-inclinacao", "hora": "21:28", "txt": "O pequeno objeto metálico não atravessou a sala: caiu próximo ao cofre e foi deslocado depois da queda." }
+      "arquivo": "MOSAICO-25.1-a-janela-do-norte.html?embed=1",
+      "pista": { "id": "tarefa-inclinacao", "hora": "21:26", "txt": "O pequeno objeto metálico não atravessou a sala: caiu próximo ao cofre e foi deslocado depois da queda." }
+    },
+    "salaEscura": {
+      "titulo": "A Sala às Escuras",
+      "arquivo": "MOSAICO-25.0-a-sala-as-escuras.html?embed=1",
+      "pista": { "id": "tarefa-interior", "hora": "21:28", "txt": "No escuro, a busca convergiu para o cofre. A marca recente na trava permaneceu como ponto fixo da sequência." }
     }
   },
   "arte": {
@@ -263,8 +268,8 @@
     "encenacao": null,
     "votacao": "21:23",
     "performance": "21:23",
-    "constelacao": "21:26",
-    "inclinacao": "21:28",
+    "constelacao": "21:28",
+    "inclinacao": "21:26",
     "mosaico": "21:31",
     "cooperacao": "21:34",
     "mercado": "21:38",

@@ -62,7 +62,8 @@ O `firebaseConfig` no HTML é público por natureza. A proteção efetiva dos da
 Dragon/
 ├── MOSAICO-mesa.html
 ├── MOSAICO-24.5-vidro-embacado.html
-├── MOSAICO-24.5-a-janela-do-norte.html
+├── MOSAICO-25.0-a-sala-as-escuras.html
+├── MOSAICO-25.1-a-janela-do-norte.html
 ├── casos/
 │   └── casa-da-costa.json
 ├── js/
@@ -84,12 +85,13 @@ Dragon/
 
 | Módulo | Arquivo | Situação |
 |---|---|---|
-| O Vidro Embaçado | `MOSAICO-24.5-vidro-embacado.html` | rodada sensorial integrada e recalibrada |
-| A Janela do Norte | `MOSAICO-24.5-a-janela-do-norte.html` | rodada sensorial integrada e recalibrada |
+| A Janela do Norte | `MOSAICO-25.1-a-janela-do-norte.html` | primeira rodada sensorial, integrada e recalibrada |
+| O Vidro Embaçado | `MOSAICO-24.5-vidro-embacado.html` | tarefa interna alternada |
+| A Sala às Escuras | `MOSAICO-25.0-a-sala-as-escuras.html` | tarefa interna alternada |
 
-Os dois arquivos são autocontidos e independem do próprio nome para funcionar. Os nomes canônicos atuais são **O Vidro Embaçado** e **A Janela do Norte**. As versões substituídas permanecem recuperáveis pelo histórico Git.
+Os três arquivos são autocontidos. A Janela abre primeiro; a Mesa alterna Vidro e Sala entre partidas. As versões substituídas permanecem recuperáveis pelo histórico Git.
 
-Os módulos abrem incorporados por `?embed=1`, notificam a mesa por `postMessage`, registram a conclusão no Firestore e liberam um fragmento no Arquivo. O botão **Ativar movimento** pede a permissão dentro do gesto do jogador e a tarefa só abre após a primeira leitura válida. Se a permissão for negada, o sensor estiver indisponível ou não responder em cinco segundos, aparece **Tentar novamente**. Esses estados ficam registrados em `tarefas`; o Menu do mestre mostra quantos concluíram e quantos estão sem resposta. Cada rodada avança quando todos concluem ou após 180 segundos, portanto uma incompatibilidade não bloqueia a partida.
+Os módulos abrem incorporados por `?embed=1`, recebem semente e identificador da execução e notificam a Mesa por `postMessage`. O botão **Ativar movimento** pede a permissão dentro do gesto do jogador e a tarefa só abre após a primeira leitura válida. Se a permissão for negada, o sensor estiver indisponível ou não responder em cinco segundos, aparece **Tentar novamente**. A única entrega aceita pela Mesa é um tempo válido associado ao `runId`; cada rodada avança quando todos concluem ou após 180 segundos.
 
 ---
 
@@ -566,7 +568,7 @@ A abertura possui vídeo horizontal H.264/AAC de 1280 × 720 para telão e víde
 
 O resultado final abre uma tabela progressiva com **Encenação**, **J × J**, **J + J**, **Mercado** e **Caso**. As colunas permanecem visíveis, a classificação muda após cada etapa e o pódio substitui a tabela ao final. O Caso entra por último sem exibir uma coluna separada de soma durante a animação.
 
-Os módulos sensoriais canônicos são `MOSAICO-24.5-vidro-embacado.html` e `MOSAICO-24.5-a-janela-do-norte.html`. Ambos comunicam conclusão e estado do sensor à mesa, oferecem interação por toque quando o sensor falha e preservam os identificadores internos `constelacao` e `inclinacao` para compatibilidade com Firestore e salas anteriores.
+Os módulos sensoriais canônicos são `MOSAICO-25.1-a-janela-do-norte.html`, `MOSAICO-24.5-vidro-embacado.html` e `MOSAICO-25.0-a-sala-as-escuras.html`. Cada execução recebe semente e `runId`; ao concluir, o módulo devolve somente `tarefa-ok`, `runId` e `tempoMs`. A Mesa valida a origem e a execução, grava o tempo no Firestore e mantém pontos, pistas e avanço fora dos módulos isolados.
 
 ---
 

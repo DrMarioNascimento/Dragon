@@ -135,20 +135,28 @@ service cloud.firestore {
         allow create: if active(roomId)
           && request.resource.data.jogadorId == request.auth.uid
           && request.resource.data.tarefa in ['constelacao', 'inclinacao']
-          && request.resource.data.status in ['ativo', 'sem-resposta', 'negado', 'indisponivel', 'concluida']
+          && request.resource.data.runId is string
+          && request.resource.data.runId.size() > 0
+          && request.resource.data.tempoMs is int
+          && request.resource.data.tempoMs > 0
+          && request.resource.data.tempoMs <= 3600000
           && taskId == request.auth.uid + '_' + request.resource.data.tarefa
           && request.resource.data.keys().hasOnly([
-            'tarefa', 'jogadorId', 'status', 'statusEmMs', 'concluidoEm'
+            'tarefa', 'jogadorId', 'runId', 'tempoMs', 'concluidoEm'
           ]);
         allow update: if active(roomId)
           && resource.data.jogadorId == request.auth.uid
-          && resource.data.status != 'concluida'
+          && !resource.data.keys().hasAny(['concluidoEm'])
           && request.resource.data.jogadorId == request.auth.uid
           && request.resource.data.tarefa == resource.data.tarefa
-          && request.resource.data.status in ['ativo', 'sem-resposta', 'negado', 'indisponivel', 'concluida']
+          && request.resource.data.runId is string
+          && request.resource.data.runId.size() > 0
+          && request.resource.data.tempoMs is int
+          && request.resource.data.tempoMs > 0
+          && request.resource.data.tempoMs <= 3600000
           && taskId == request.auth.uid + '_' + request.resource.data.tarefa
           && request.resource.data.keys().hasOnly([
-            'tarefa', 'jogadorId', 'status', 'statusEmMs', 'concluidoEm'
+            'tarefa', 'jogadorId', 'runId', 'tempoMs', 'concluidoEm'
           ]);
         allow delete: if false;
       }
