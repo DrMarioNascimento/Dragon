@@ -225,7 +225,7 @@
     font:700 13px/1.35 var(--sans);letter-spacing:.05em}
 
   /* Reconstrução coletiva: duas telas, leitura do grupo e controle do Portador. */
-  body.mosaico-reconstrucao #app{padding-bottom:94px}
+  body.mosaico-reconstrucao #app{padding-bottom:max(110px,calc(88px + env(safe-area-inset-bottom)))}
   body.mosaico-reconstrucao .rodada-celular{margin-bottom:5px;padding:7px 11px}
   body.mosaico-reconstrucao .rodada-celular .rotulo{display:none}
   body.mosaico-reconstrucao .rodada-celular .nome{font-size:clamp(20px,6vw,28px)}
@@ -416,7 +416,7 @@
   .caso-card .muted{color:#aab8c7}
   .tarefa-frame{width:100%;height:min(72vh,720px);border:1px solid var(--linha);border-radius:8px;
     background:#05070c;display:block;margin:14px 0}
-  body.fase-sensor #app{padding:12px 12px 84px}
+  body.fase-sensor #app{padding:12px 12px max(110px,calc(88px + env(safe-area-inset-bottom)))}
   body.fase-sensor .rodada-celular{margin-bottom:8px;padding:8px 12px}
   body.fase-sensor .rodada-celular .rotulo{font-size:9px;margin-bottom:3px}
   body.fase-sensor .rodada-celular .nome{font-size:clamp(19px,6vw,25px)}
@@ -492,8 +492,9 @@
     .apuracao-tabela th{font-size:7px;padding:7px 1px;letter-spacing:0}.apuracao-tabela td{height:43px;font-size:10px;padding:5px 1px}
     .apuracao-tabela .ap-nome{padding-left:5px;font-size:9px}.resultado-acoes-jogador{grid-template-columns:1fr}
   }
-  .menu-mestre-fundo{position:fixed;inset:0;z-index:43;background:rgba(2,5,9,.94);
-    padding:max(18px,env(safe-area-inset-top)) 16px max(82px,env(safe-area-inset-bottom));overflow-y:auto}
+  .menu-mestre-fundo{position:fixed;inset:0;z-index:43;background:rgba(2,5,9,.985);
+    padding:max(18px,env(safe-area-inset-top)) 16px max(110px,calc(88px + env(safe-area-inset-bottom)));
+    overflow-y:auto;-webkit-overflow-scrolling:touch}
   .menu-mestre-card{max-width:600px;margin:auto}
   .menu-mestre-topo{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
   .menu-mestre-topo h2{margin:0}.menu-mestre-topo .btn{width:auto;margin:0;padding:11px 14px}
@@ -519,7 +520,7 @@
   .conectado-item>span:first-child{display:block;overflow-wrap:anywhere;font-weight:700;line-height:1.18}
   .conectado-item .muted{display:block;margin-top:5px;font-size:10px;line-height:1.2}
   @media(max-width:340px){.conectados-grade{grid-template-columns:1fr}}
-  body.modo-sem-telao #app{padding-bottom:92px}
+  body.modo-sem-telao #app{padding-bottom:max(110px,calc(88px + env(safe-area-inset-bottom)))}
   .mural-movel{margin:18px 0 78px;border:1px solid var(--linha);border-radius:6px;background:rgba(12,18,26,.92);padding:0 12px}
   .mural-movel summary{cursor:pointer;padding:11px 0;color:var(--frio);font-size:13px;font-weight:800;line-height:1.25}
   .mural-movel[open]{padding-bottom:10px}
@@ -1665,7 +1666,15 @@ function verificarTrocaDeNivel(fase){
 document.addEventListener("pointerdown",habilitarAudioNivel,{once:true});
 function souMestreDaMesa(){
   var codigo=(STATE.eu&&STATE.eu.codigo)||(STATE.mesa&&STATE.mesa.codigo)||"";
-  try{return !!codigo&&sessionStorage.getItem("mosaico_mestre_codigo")===codigo;}catch(e){return false;}
+  var pelaSessao=false;
+  try{pelaSessao=!!codigo&&sessionStorage.getItem("mosaico_mestre_codigo")===codigo;}catch(e){}
+  if(pelaSessao)return true;
+  /* A aba pode perder o sessionStorage ao ser reaberta no iPhone. O documento
+     da Sala continua sendo a fonte de verdade sobre quem a criou. */
+  try{
+    var uid=window.MosaicoFB&&window.MosaicoFB.uid&&window.MosaicoFB.uid();
+    return !!(codigo&&uid&&STATE.doc&&STATE.doc.mestreUid===uid);
+  }catch(e){return false;}
 }
 function alternarMenuMestre(){
   document.getElementById("pistas").classList.remove("on");
@@ -2760,7 +2769,12 @@ function telaMosaico(){
   var eu=meuJogador(), nucleo=eu&&eu.nucleo, fragmento=dadosFragmento(nucleo);
   if(!(STATE.doc&&STATE.doc.fragmentosLiberados)) return telaEncontroFragmento(nucleo);
   var n=documentoMeuFragmento(), feito=n&&(n.concluidoEm||n.concluidoMs);
-  if(feito) return '<div class="mosaico-tarefa"><div class="mosaico-tarefa-topo"><span class="fragmento-nome">'+esc(fragmento.nome)+'</span>'+cronometroFragmentoHTML()+'</div><div class="fragmento-confirmado"><b>MOSAICO CONCLU&Iacute;DO &#10003;</b><span>A ordem foi registrada pelo servidor. Aguarde os demais Fragmentos.</span></div></div>';
+  if(feito){
+    var mensagem=STATE.jogadores.length<=3
+      ?(ritmoConduzido()?'A ordem foi registrada. Aguarde o mestre liberar a pr&oacute;xima fase.':'A ordem foi registrada. Abrindo a pr&oacute;xima fase&hellip;')
+      :'A ordem foi registrada pelo servidor. Aguarde os demais Fragmentos.';
+    return '<div class="mosaico-tarefa"><div class="mosaico-tarefa-topo"><span class="fragmento-nome">'+esc(fragmento.nome)+'</span>'+cronometroFragmentoHTML()+'</div><div class="fragmento-confirmado"><b>MOSAICO CONCLU&Iacute;DO &#10003;</b><span>'+mensagem+'</span></div></div>';
+  }
   var dicas=dicasMosaico(), rascunho=(n&&n.rascunho)||{};
   var topo='<div class="mosaico-tarefa-topo"><span class="fragmento-nome">'+esc(fragmento.nome)+'</span>'+cronometroFragmentoHTML()+'<span class="cronometro-legenda">O tempo continua contando</span></div>';
   if(!souPortadorFragmento()){
@@ -2785,6 +2799,11 @@ function telaCooperacao(){
 
 function telaMercado(){
   var eu=meuJogador(); if(!eu) return '';
+  if(STATE.jogadores.length===1){
+    return '<span class="eyebrow">Mercado de pistas &middot; teste individual</span><h2>N&atilde;o h&aacute; outro jogador para negociar.</h2>'+
+      '<p class="lead">A etapa foi preservada para voc&ecirc; conferir a sequ&ecirc;ncia. Em uma partida real, aqui os jogadores compram e vendem pistas.</p>'+
+      '<button class="btn btn-ambar" onclick="abrirDeducao()">Continuar para a acusa&ccedil;&atilde;o final</button>';
+  }
   var cfg=CASO.configuracao||MosaicoV5.CONFIG_PADRAO, minhas=minhasPistas();
   var propria=minhas.find(function(p){return !p.adquirida;});
   var aberta=(STATE.v5.ofertas||[]).find(function(o){return o.vendedorId===eu.id&&o.status==='aberta';});
@@ -3406,6 +3425,13 @@ async function enviarMosaico(){
   if(ordem.join('|')!==correta.join('|')){ alert('A ordem ainda não fecha. Releiam os horários e conversem no Fragmento.'); return; }
   var eu=meuJogador(), FB=await esperarFB();
   await FB.concluirNucleo(STATE.eu.codigo,String(eu.nucleo),{numero:eu.nucleo});
+  /* Com até três jogadores há um único Fragmento compartilhado. Portanto,
+     esta entrega já conclui todos os Fragmentos e não deve depender da
+     chegada de outro snapshot para destravar a partida automática. */
+  if(STATE.jogadores.length<=3&&!ritmoConduzido()&&!partidaPausada()){
+    _autoFasePendente='mosaico';
+    try{await abrirMercado();}catch(e){_autoFasePendente=null;throw e;}
+  }
 }
 async function abrirVotoCooperacao(){ var FB=await esperarFB(); await FB.atualizarMesa(STATE.mesa.codigo,{fase:'cooperacao'}); }
 async function votarCooperacao(paraId){
