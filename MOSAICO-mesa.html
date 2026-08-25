@@ -1642,14 +1642,57 @@ function cabecalhoRodada(fase, classe){
   return '<div class="rodada-telao '+(classe||'')+'"><span class="rotulo">Rodada atual</span><span class="nome">'+esc(nomeRodada(fase))+'</span></div>'+
     (d?'<div class="dinamica-nivel '+d.classe+'"><span class="dn-titulo">'+esc(d.titulo)+'</span><span class="dn-sub">'+esc(d.sub)+'</span></div>':'');
 }
-var _audioNivel=null, _nivelSonoroAnterior=null;
+var _audioNivel=null, _nivelSonoroAnterior=null, _vozesNivel={}, _podioAudioChave="";
+var ARQUIVOS_VOZ_NIVEL={
+  encenacao:"audio/fase-encenacao.mp3",
+  votacao:"audio/fase-votacao-encenacao.mp3",
+  inclinacao:"audio/fase-janela-do-norte.mp3",
+  vidro:"audio/fase-vidro-embacado.mp3",
+  salaEscura:"audio/fase-sala-as-escuras.mp3",
+  mosaico:"audio/fase-mosaico-coletivo.mp3",
+  mercado:"audio/fase-mercado-de-pistas.mp3",
+  deducao:"audio/fase-acusacao-final.mp3",
+  podio:"audio/podio-resultado-final.mp3"
+};
+function carregarVozNivel(chave){
+  if(!_audioNivel||!ARQUIVOS_VOZ_NIVEL[chave])return Promise.resolve(null);
+  if(_vozesNivel[chave])return _vozesNivel[chave];
+  _vozesNivel[chave]=fetch(ARQUIVOS_VOZ_NIVEL[chave]).then(function(r){
+    if(!r.ok)throw new Error("Áudio não encontrado: "+ARQUIVOS_VOZ_NIVEL[chave]);
+    return r.arrayBuffer();
+  }).then(function(dados){return _audioNivel.decodeAudioData(dados);}).catch(function(e){
+    console.warn("voz de fase",chave,e);delete _vozesNivel[chave];return null;
+  });
+  return _vozesNivel[chave];
+}
+function prepararVozesNivel(){
+  Object.keys(ARQUIVOS_VOZ_NIVEL).forEach(function(chave){carregarVozNivel(chave);});
+}
 function habilitarAudioNivel(){
   var Ctx=window.AudioContext||window.webkitAudioContext;
   if(!Ctx) return;
   try{
     if(!_audioNivel) _audioNivel=new Ctx();
     if(_audioNivel.state==="suspended") _audioNivel.resume();
+    prepararVozesNivel();
   }catch(e){}
+}
+function tocarVozDeNivel(chave,atraso){
+  if(!souMestreDaMesa()||partidaPausada())return;
+  habilitarAudioNivel();
+  if(!_audioNivel||_audioNivel.state!=="running")return;
+  carregarVozNivel(chave).then(function(buffer){
+    if(!buffer||!_audioNivel||_audioNivel.state!=="running")return;
+    var fonte=_audioNivel.createBufferSource(), ganho=_audioNivel.createGain();
+    fonte.buffer=buffer;ganho.gain.value=.92;
+    fonte.connect(ganho);ganho.connect(_audioNivel.destination);
+    fonte.start(_audioNivel.currentTime+Math.max(0,Number(atraso)||0));
+  });
+}
+function vozDaFase(fase){
+  if(fase==="constelacao")return tarefaInteriorAtual()==="sala-escura"?"salaEscura":"vidro";
+  if(fase==="cooperacao"||fase==="resultado"||fase==="sala")return "";
+  return ARQUIVOS_VOZ_NIVEL[fase]?fase:"";
 }
 function emitirSomDeNivel(){
   habilitarAudioNivel();
@@ -1680,12 +1723,13 @@ function emitirSomDeNivel(){
 function verificarTrocaDeNivel(fase){
   /* Um unico emissor evita o eco de varios celulares recebendo o snapshot em tempos diferentes. */
   if(!souMestreDaMesa()||partidaPausada()) return;
-  var d=dinamicaNivel(fase), atual=d?d.id:(fase==="sala"?"sala":null);
+  var voz=vozDaFase(fase), atual=fase==="cooperacao"?"mosaico":(fase==="constelacao"?(fase+":"+voz):fase);
   if(!atual) return;
   if(_nivelSonoroAnterior===null){_nivelSonoroAnterior=atual;return;}
   if(atual!==_nivelSonoroAnterior){
     _nivelSonoroAnterior=atual;
     emitirSomDeNivel();
+    if(voz)tocarVozDeNivel(voz,4.85);
   }
 }
 document.addEventListener("pointerdown",habilitarAudioNivel,{once:true});
@@ -2613,7 +2657,12 @@ function iniciarApuracaoSeNecessario(){
   function quadro(){
     if(!document.body.contains(raiz)){_apuracaoRAF=0;return;}
     var decorrido=Math.max(0,Date.now()-inicio);
-    if(decorrido>=22000){_apuracaoRAF=0;STATE.resultadoVista="podio";render(true);return;}
+    if(decorrido>=22000){
+      _apuracaoRAF=0;STATE.resultadoVista="podio";
+      var chavePodio=inicio+":"+Number((STATE.doc&&STATE.doc.apuracaoRepeticao)||0);
+      if(souMestreDaMesa()&&_podioAudioChave!==chavePodio){_podioAudioChave=chavePodio;tocarVozDeNivel("podio",.35);}
+      render(true);return;
+    }
     var etapa=decorrido<16000?Math.min(3,Math.floor(decorrido/4000)):4;
     var local=etapa<4?decorrido-etapa*4000:decorrido-16000;
     var duracaoContagem=etapa<4?1400:1600, progresso=Math.max(0,Math.min(1,(local-600)/duracaoContagem));
