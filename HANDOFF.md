@@ -286,7 +286,7 @@ Campos avaliados:
 
 ### 7.1 Coletiva — até 20
 
-Os núcleos são classificados pela ordem de conclusão correta da carta do Mosaico, registrada pelo servidor.
+Os Fragmentos são classificados primeiro pela quantidade de posições corretas e depois pelo tempo de conclusão registrado pelo servidor.
 
 | Colocação do núcleo | Pontos por integrante |
 |---|---:|
@@ -297,12 +297,14 @@ Os núcleos são classificados pela ordem de conclusão correta da carta do Mosa
 | 5º ou mais | 4 |
 | não concluiu | 0 |
 
-Cada envio incorreto desconta **2 pontos** dessa pontuação-base, até o mínimo de zero. O erro é persistido no rascunho sincronizado do Fragmento, o cronômetro continua correndo e uma nova tentativa permanece disponível.
+Cada Fragmento realiza **um único envio definitivo**. A classificação é lexicográfica: primeiro pelo maior número de posições corretas e depois, entre Fragmentos com o mesmo número de acertos, pelo menor tempo registrado no servidor.
 
 Regras:
 
 - todos partem da mesma referência temporal;
-- montagem incorreta não encerra o cronômetro, registra a tentativa e desconta 2 pontos;
+- qualquer ordem completa pode ser enviada e encerra a tarefa daquele Fragmento;
+- a quantidade de acertos não é revelada durante a rodada;
+- não existe nova tentativa depois da confirmação final;
 - não há faixa artificial de empate;
 - o acerto posterior do suspeito não altera Cooperação;
 - o componente fecha após o Mosaico.
@@ -429,7 +431,9 @@ As seis peças da cronologia são distribuídas entre os Arquivos dos integrante
 
 Um integrante é sorteado como **Portador do Fragmento**. Nos demais celulares aparecem somente os seis horários e dicas interpretativas; as respostas selecionadas não são exibidas. Todos continuam podendo consultar o Arquivo. No celular do Portador aparecem seis horários e botões de seleção, sem repetir as dicas. A janela de escolha usa cartões de texto completo. Pistas utilizadas desaparecem das escolhas vazias; ao revisar um horário preenchido, todas reaparecem identificadas e uma opção ocupada pode ser trocada automaticamente com outra.
 
-O documento `nucleos/{numero}` persiste `portadorId`, `rascunho` e `rascunhoMs`. O mapa `rascunho` também conserva `_erros` e `_ultimaTentativaMs`, atualizados por transação para evitar perda em envios simultâneos. As regras permitem que somente o Portador — ou os Portadores compartilhados nas mesas de até três pessoas — altere o rascunho e conclua o Mosaico. O tempo coletivo continua sendo registrado no servidor no primeiro envio correto.
+O documento `nucleos/{numero}` persiste `portadorId`, `rascunho` e `rascunhoMs`. No envio final, o mapa conserva `_acertos`, `_totalItens` e `_enviadoMs`, enquanto `concluidoEm` recebe o horário do servidor. A transação aceita somente a primeira conclusão. As regras permitem que somente o Portador — ou os Portadores compartilhados nas mesas de até três pessoas — altere o rascunho e conclua o Mosaico.
+
+Em mesas de 1 a 3 participantes, cada posição correta vale 3 pontos, até 18. O bônus temporal é de 2 pontos até 2min30s, 1 ponto até 5min e zero depois disso. Portanto, seis acertos sempre superam cinco, independentemente do tempo. Em mesas de 4 a 12, a ordem `acertos decrescente → tempo crescente` recebe 20, 16, 12, 8 e 4 pontos.
 
 ### Invariante de segurança visual móvel
 
@@ -592,7 +596,7 @@ Mesas de teste antigas no Firestore devem ser removidas periodicamente.
 ## 16. Ordem recomendada de implementação
 
 1. publicar e validar `firestore.rules` no projeto Firebase;
-2. teste físico da ativação e da nova tentativa em iOS Safari e Android Chrome;
+2. teste físico da ativação e da repetição após falha do sensor em iOS Safari e Android Chrome;
 3. proteção efetiva das pistas em backend confiável;
 4. testes de integração da reconexão, duplicidade e revelação final com o Firestore;
 5. playtest presencial completo.
