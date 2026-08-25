@@ -546,6 +546,16 @@ Três decisões de integridade foram consolidadas depois da auditoria de 25 de a
 
 O login anônimo passou a ser **preguiçoso**: dispara no primeiro gesto real, não no carregamento da página. Por isso todo método de `window.MosaicoFB` começa por `await autenticar()`, e os ouvintes — que devolvem a função de cancelamento na hora — passam pelo envelope `ouvinteAdiado`. Quem mexer no módulo precisa manter essa disciplina, ou a chamada falha por falta de sessão.
 
+O código do **App Check** está escrito e inerte em `MOSAICO-mesa.html`: basta colar a chave do site em `CHAVE_APPCHECK` e marcar o Firestore como aplicado no console. Sem a chave, nada acontece — não há meia ativação.
+
+### Decisões desta passagem que mudam hábitos
+
+- **Diálogos.** `alert()` e `confirm()` saíram. No lugar existem `avisa(texto)` e `await confirmar(texto, {aceitar, recusar, perigo})`, que vivem fora de `#app`, prendem o foco e respeitam Escape. `avisa` era chamado em três lugares e **nunca havia sido definido** — cada chamada era um `ReferenceError`, inclusive a do erro de carregamento do caso.
+- **Carimbo de cache.** Um lugar só: o `?v=` da tag de `js/mosaico-v5.js`, relido em `window.MOSAICO_VERSAO`. O caso, o vídeo e os módulos usam esse valor.
+- **QR.** Gerado por `js/qr.js`, no aparelho. `api.qrserver.com` era a única dependência de terceiros no caminho de entrada da mesa.
+- **Tarefas sensoriais.** O protocolo com a Mesa e a permissão de movimento moram em `js/tarefa-sensor.js`. Correção de sensor agora se aplica **uma vez**, não três. O cronômetro, a pausa e o aborto continuam em cada tarefa, porque cada uma os entrelaça com o próprio laço de desenho.
+- **`tempoMs` das tarefas.** Continua sendo conferido, mas não é mais gravado: era auto-reportado pelo aparelho de quem joga e nada no placar o consumia. Se um dia entrar na pontuação, terá de vir de `serverTimestamp()` nas duas pontas.
+
 ### 13.3 Limite de jogadores
 
 A entrada admite de um a doze participantes. Uma pessoa utiliza o modo integral de teste e permanece simultaneamente como mestre e jogador. Até seis, cada arquétipo aparece uma vez. Do sétimo ao décimo segundo, começa um segundo ciclo equilibrado; nenhum arquétipo recebe uma terceira cópia e, com doze pessoas, existem exatamente duas de cada.
@@ -610,12 +620,12 @@ Mesas de teste antigas no Firestore devem ser removidas periodicamente.
 ## 16. Ordem recomendada de implementação
 
 1. publicar e validar `firestore.rules` no projeto Firebase — **as regras mudaram**, e o jogo publicado depende delas;
-2. ativar o **App Check** (reCAPTCHA v3): é o que falta para conter criação de sala em volume, agora que o login anônimo só ocorre no primeiro gesto;
-3. teste físico da ativação e da repetição após falha do sensor em iOS Safari e Android Chrome;
-4. extrair `js/tarefa-sensor.js` comum aos três módulos sensoriais — **antes** dos testes físicos, porque hoje cada correção de sensor precisa ser aplicada três vezes;
+2. ativar o **App Check** (reCAPTCHA v3) colando a chave em `CHAVE_APPCHECK`: é o que falta para conter criação de sala em volume, agora que o login anônimo só ocorre no primeiro gesto;
+3. teste físico da ativação e da repetição após falha do sensor em iOS Safari e Android Chrome — o código agora é um só, em `js/tarefa-sensor.js`;
+4. testar o **Service Worker** num celular e só então ligar `ATIVAR_SERVICE_WORKER`. O passo-a-passo está no comentário ao lado da constante; ele foi escrito mas nunca chegou a rodar;
 5. proteção efetiva das pistas em backend confiável (leitura e escrita);
 6. testes de integração da reconexão, duplicidade e revelação final com o Firestore;
-7. medir a carga de vídeo da abertura num playtest em 4G real antes de tratá-la como resolvida;
+7. medir a carga de vídeo da abertura num playtest em 4G real. Não há ffmpeg no ambiente de manutenção atual: recomprimir a abertura continua sendo trabalho manual;
 8. playtest presencial completo.
 
 ### Verificação automática

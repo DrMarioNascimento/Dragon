@@ -148,17 +148,17 @@ service cloud.firestore {
         allow read: if master(roomId)
           || taskId == request.auth.uid + '_constelacao'
           || taskId == request.auth.uid + '_inclinacao';
+        /* `tempoMs` saiu: era auto-reportado pelo aparelho de quem joga e
+           nada no placar o consumia. Um numero validado e nunca usado
+           convida o proximo leitor a confiar nele. */
         allow create: if active(roomId)
           && request.resource.data.jogadorId == request.auth.uid
           && request.resource.data.tarefa in ['constelacao', 'inclinacao']
           && request.resource.data.runId is string
           && request.resource.data.runId.size() > 0
-          && request.resource.data.tempoMs is int
-          && request.resource.data.tempoMs > 0
-          && request.resource.data.tempoMs <= 3600000
           && taskId == request.auth.uid + '_' + request.resource.data.tarefa
           && request.resource.data.keys().hasOnly([
-            'tarefa', 'jogadorId', 'runId', 'tempoMs', 'concluidoEm'
+            'tarefa', 'jogadorId', 'runId', 'concluidoEm'
           ]);
         allow update: if active(roomId)
           && resource.data.jogadorId == request.auth.uid
@@ -167,12 +167,9 @@ service cloud.firestore {
           && request.resource.data.tarefa == resource.data.tarefa
           && request.resource.data.runId is string
           && request.resource.data.runId.size() > 0
-          && request.resource.data.tempoMs is int
-          && request.resource.data.tempoMs > 0
-          && request.resource.data.tempoMs <= 3600000
           && taskId == request.auth.uid + '_' + request.resource.data.tarefa
           && request.resource.data.keys().hasOnly([
-            'tarefa', 'jogadorId', 'runId', 'tempoMs', 'concluidoEm'
+            'tarefa', 'jogadorId', 'runId', 'concluidoEm'
           ]);
         allow delete: if false;
       }
