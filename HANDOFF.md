@@ -611,10 +611,11 @@ O cronômetro regressivo usa a mesma classe `.fragmento-cronometro` das tarefas 
 `audio/abertura.mp3` toca **antes** da encenação, não durante. A entrada na casa tem duas vozes seguidas, e os celulares ficam no mesmo `AGUARDE...` da encenação durante as duas:
 
 1. **`audio/abertura.mp3`** — a casa recebe quem chegou. Toca inteira.
-2. **`audio/fase-encenacao.mp3`** — o anúncio da rodada, emendado logo no fim da primeira, sem sirene entre elas.
-3. Na **metade** do anúncio, a fase vira `encenacao` e a tela de quem abre destrava — com a contagem de 3 que já existia. A segunda metade do anúncio continua tocando por cima.
+2. **A sirene de nevoeiro** — 4,4 s, a mesma que separa qualquer troca de nível no resto do jogo. Duas narrações emendadas correm uma por cima da outra; a sirene abre espaço e ainda avisa que vem outra coisa. A abertura, essa, entra sem sirene: é o primeiro som da noite, não uma troca de nível.
+3. **`audio/fase-encenacao.mp3`** — o anúncio da rodada, 4,85 s depois do início da sirene.
+4. Na **metade** do anúncio, a fase vira `encenacao` e a tela de quem abre destrava — com a contagem de 3 que já existia. A segunda metade do anúncio continua tocando por cima.
 
-Quem conduz é o áudio, não o contrário. Cada etapa grava o próprio instante no documento da Sala — `aberturaIniciadaMs` e `anuncioIniciadoMs` — então um mestre que recarregue a página no meio de qualquer uma retoma no ponto em que estava. O mestre tem **Pular a abertura** no menu da Sala, em qualquer das duas etapas.
+Quem conduz é o áudio, não o contrário. Cada etapa grava o próprio instante no documento da Sala — `aberturaIniciadaMs` e `anuncioIniciadoMs` — então um mestre que recarregue a página no meio de qualquer uma retoma no ponto em que estava, e não ouve a sirene de novo. Zerar `SIRENE_ENTRE_ABERTURA_E_ANUNCIO` emenda as duas vozes como antes. O mestre tem **Pular a abertura** no menu da Sala, em qualquer das duas etapas.
 
 `concluirAbertura()` marca `_nivelSonoroAnterior="encenacao"` **antes** de gravar a fase. Sem isso, `verificarTrocaDeNivel()` veria a fase mudando e tocaria a sirene e o mesmo `fase-encenacao.mp3` de novo, por cima da segunda metade que ainda está no ar.
 

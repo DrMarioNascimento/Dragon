@@ -2024,25 +2024,46 @@ function encerrarAberturaPorFalha(){
 function passarAoAnuncioOuFalhar(){
   comecarAnuncioDaEncenacao().catch(function(e){console.error("anuncio da encenacao",e);});
 }
-/* Toca uma etapa e agenda o que vem depois dela. `fracao` diz em que
-   ponto da faixa o proximo passo acontece: 1 = no fim (a abertura inteira
-   antes do anuncio), .5 = na metade (o anuncio antes de destravar).   */
-function tocarEtapaDaAbertura(chave,inicio,fracao,seguinte,comMar){
+/* A sirene de nevoeiro separa as duas vozes da abertura, como separa
+   qualquer troca de nivel no resto do jogo: 4,4 s de chamada e a voz
+   entra em 4,85. Duas narracoes emendadas correm uma por cima da outra;
+   a sirene abre espaco e ainda avisa que vem outra coisa — quem joga ja
+   aprendeu a ouvir esse som como "presta atencao".
+   Zerar SIRENE_ENTRE_ABERTURA_E_ANUNCIO emenda as duas de novo.       */
+var SIRENE_ENTRE_ABERTURA_E_ANUNCIO = 4.85;
+
+/* Toca uma etapa da abertura e agenda o que vem depois dela.
+
+   `fracao` diz em que ponto da faixa o proximo passo acontece: 1 = no fim
+   (a abertura inteira antes do anuncio), .5 = na metade (o anuncio antes
+   de destravar a tela de quem atua).
+   `atraso` e o silencio antes da voz, contado a partir do instante
+   gravado na Sala — e onde a sirene cabe. Tudo (o inicio da voz, o mar e
+   o gatilho do proximo passo) e medido desse mesmo instante, entao um
+   mestre que recarregue no meio cai no lugar certo da faixa em vez de
+   ouvir a sirene de novo.                                             */
+function tocarEtapaDaAbertura(chave,inicio,fracao,seguinte,comMar,atraso){
   var decorridoS=Math.max(0,Date.now()-inicio)/1000;
+  var esperaS=Math.max(0,Number(atraso)||0);
   carregarVozNivel(chave).then(function(buffer){
     if(!aberturaPendente())return;
     if(!buffer||!_audioNivel||_audioNivel.state!=="running"){seguinte();return;}
-    var gatilhoS=buffer.duration*fracao, restanteS=gatilhoS-decorridoS;
+    var gatilhoS=esperaS+buffer.duration*fracao, restanteS=gatilhoS-decorridoS;
     if(restanteS<=.3){seguinte();return;}
+    /* so na primeira passagem: recarregar a pagina no meio nao repete a
+       chamada de nevoeiro que ja soou. */
+    if(esperaS&&decorridoS<.35)emitirSomDeNivel();
+    var dentroDaVozS=Math.max(0,decorridoS-esperaS);
+    var atrasoRestanteS=Math.max(0,esperaS-decorridoS);
     var fonte=_audioNivel.createBufferSource(), ganho=_audioNivel.createGain();
     fonte.buffer=buffer;ganho.gain.value=.92;
     fonte.connect(ganho);ganho.connect(_audioNivel.destination);
     _fonteAbertura=fonte;
-    fonte.start(_audioNivel.currentTime,Math.max(0,decorridoS));
+    fonte.start(_audioNivel.currentTime+atrasoRestanteS,dentroDaVozS);
     if(comMar){
       /* o mar abre junto com a voz e sobrevive a ela por tres segundos */
-      tocarTempestade(0,(buffer.duration-decorridoS)+3.2,.2);
-      tocarRajada(2.4,.24);
+      tocarTempestade(atrasoRestanteS,(buffer.duration-dentroDaVozS)+3.2,.2);
+      tocarRajada(atrasoRestanteS+2.4,.24);
     }
     _timerAbertura=setTimeout(seguinte,restanteS*1000+250);
   });
@@ -2055,8 +2076,10 @@ function sincronizarAudioAbertura(){
   if(_aberturaAudioChave===chave)return;
   pararAudioAbertura();_aberturaAudioChave=chave;
   habilitarAudioNivel();
-  if(noAnuncio)tocarEtapaDaAbertura("encenacao",inicio,.5,encerrarAberturaPorFalha,false);
-  else tocarEtapaDaAbertura("abertura",inicio,1,passarAoAnuncioOuFalhar,true);
+  /* A abertura entra sem sirene: ela e o primeiro som da noite, nao uma
+     troca de nivel. O anuncio, sim, e separado por ela.               */
+  if(noAnuncio)tocarEtapaDaAbertura("encenacao",inicio,.5,encerrarAberturaPorFalha,false,SIRENE_ENTRE_ABERTURA_E_ANUNCIO);
+  else tocarEtapaDaAbertura("abertura",inicio,1,passarAoAnuncioOuFalhar,true,0);
 }
 function encerramentoPendente(){
   return !!(STATE.doc&&STATE.doc.fase==="resultado"&&STATE.doc.encerramentoIniciadoMs&&!STATE.doc.encerramentoConcluido);
