@@ -1905,9 +1905,9 @@ function tocarAberturaComAmbiente(aoTerminar){
       fonte.connect(ganho);ganho.connect(_audioNivel.destination);
       return fonte;
     }
-    var trovao=prepararFonte(buffers[0],.16,true);
-    var abertura=prepararFonte(buffers[1],.92,false);
-    var chuva=prepararFonte(buffers[2],.10,true);
+    var trovao=prepararFonte(buffers[0],.10,true);
+    var abertura=prepararFonte(buffers[1],1.0,false);
+    var chuva=prepararFonte(buffers[2],.06,true);
     function pararAmbiente(){
       [trovao,chuva].forEach(function(fonte){if(fonte){try{fonte.stop();}catch(e){}}});
     }
@@ -2312,7 +2312,8 @@ function render(forcar){
   var encenacaoPassiva=false;
   if(STATE.eu&&STATE.tela==="encenacao"&&faseAgora==="encenacao"){
     var ordemEncenacao=ordenados(STATE.jogadores), atorEncenacao=ordemEncenacao[(STATE.doc&&STATE.doc.vez)||0];
-    encenacaoPassiva=!!atorEncenacao&&atorEncenacao.id!==STATE.eu.id;
+    encenacaoPassiva=introducaoEncenacaoPendente()||
+      (!!atorEncenacao&&atorEncenacao.id!==STATE.eu.id);
   }
   document.body.classList.toggle("fase-sala",
     STATE.tela==="painel" && faseAgora==="sala");
