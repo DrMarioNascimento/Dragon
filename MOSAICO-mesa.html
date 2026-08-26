@@ -1824,6 +1824,7 @@ var _audioNivel=null, _nivelSonoroAnterior=null, _vozesNivel={}, _podioAudioChav
 var _encerramentoAudioChave="", _fonteEncerramento=null, _timerEncerramento=null;
 var DURACAO_ENCERRAMENTO_MS=124030;
 var ARQUIVOS_VOZ_NIVEL={
+  abertura:"audio/abertura.mp3",
   encenacao:"audio/fase-encenacao.mp3",
   votacao:"audio/fase-votacao-encenacao.mp3",
   inclinacao:"audio/fase-janela-do-norte.mp3",
@@ -1863,7 +1864,10 @@ function tocarVozDeNivel(chave,atraso,aoTerminar){
   habilitarAudioNivel();
   if(!_audioNivel||_audioNivel.state!=="running")return;
   carregarVozNivel(chave).then(function(buffer){
-    if(!buffer||!_audioNivel||_audioNivel.state!=="running")return;
+    if(!buffer||!_audioNivel||_audioNivel.state!=="running"){
+      if(typeof aoTerminar==="function")aoTerminar();
+      return;
+    }
     var fonte=_audioNivel.createBufferSource(), ganho=_audioNivel.createGain();
     fonte.buffer=buffer;ganho.gain.value=.92;
     fonte.connect(ganho);ganho.connect(_audioNivel.destination);
@@ -1945,6 +1949,13 @@ function verificarTrocaDeNivel(fase){
   if(_nivelSonoroAnterior===null){_nivelSonoroAnterior=atual;return;}
   if(atual!==_nivelSonoroAnterior){
     _nivelSonoroAnterior=atual;
+    if(fase==="encenacao"){
+      tocarVozDeNivel("abertura",0,function(){
+        emitirSomDeNivel();
+        tocarVozDeNivel("encenacao",4.85);
+      });
+      return;
+    }
     emitirSomDeNivel();
     if(voz)tocarVozDeNivel(voz,4.85);
   }
