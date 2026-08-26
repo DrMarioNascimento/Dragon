@@ -1824,7 +1824,9 @@ var _audioNivel=null, _nivelSonoroAnterior=null, _vozesNivel={}, _podioAudioChav
 var _encerramentoAudioChave="", _fonteEncerramento=null, _timerEncerramento=null;
 var DURACAO_ENCERRAMENTO_MS=124030;
 var ARQUIVOS_VOZ_NIVEL={
+  tempestade:"audio/tempestade-rajada.mp3",
   abertura:"audio/abertura.mp3",
+  chuva:"audio/chuva-ambiente.mp3",
   encenacao:"audio/fase-encenacao.mp3",
   votacao:"audio/fase-votacao-encenacao.mp3",
   inclinacao:"audio/fase-janela-do-norte.mp3",
@@ -1950,9 +1952,13 @@ function verificarTrocaDeNivel(fase){
   if(atual!==_nivelSonoroAnterior){
     _nivelSonoroAnterior=atual;
     if(fase==="encenacao"){
-      tocarVozDeNivel("abertura",0,function(){
-        emitirSomDeNivel();
-        tocarVozDeNivel("encenacao",4.85);
+      tocarVozDeNivel("tempestade",0,function(){
+        tocarVozDeNivel("abertura",0,function(){
+          tocarVozDeNivel("chuva",0,function(){
+            emitirSomDeNivel();
+            tocarVozDeNivel("encenacao",4.85);
+          });
+        });
       });
       return;
     }
