@@ -615,6 +615,8 @@ O cronômetro regressivo usa a mesma classe `.fragmento-cronometro` das tarefas 
 3. **`audio/fase-encenacao.mp3`** — o anúncio da rodada, 4,85 s depois do início da sirene.
 4. Na **metade** do anúncio, a fase vira `encenacao` e a tela de quem abre destrava — com a contagem de 3 que já existia. A segunda metade do anúncio continua tocando por cima.
 
+**A tela nas duas etapas.** Nos celulares é literalmente o mesmo bloco que quem não está atuando vê durante a encenação — `<div class="encenacao-aguarde">AGUARDE...</div>`, com a mesma classe `encenacao-passiva` no corpo, então cabeçalho e mural somem igual. No telão, `telaoAbertura()` substitui a sala de espera: somem o QR, a lista e os botões, ficam o relógio da casa, o capítulo e o pulso. O capítulo troca junto com a sirene — "A tempestade chegou antes dos convidados" vira "A casa escolheu alguém" —, então a passagem se vê além de se ouvir. O `Começar o jogo` do telão **reiniciava a narração inteira** em quem encostasse nele durante a abertura; ele não existe mais nesse momento, e no lugar fica só `Pular a abertura`.
+
 Quem conduz é o áudio, não o contrário. Cada etapa grava o próprio instante no documento da Sala — `aberturaIniciadaMs` e `anuncioIniciadoMs` — então um mestre que recarregue a página no meio de qualquer uma retoma no ponto em que estava, e não ouve a sirene de novo. Zerar `SIRENE_ENTRE_ABERTURA_E_ANUNCIO` emenda as duas vozes como antes. O mestre tem **Pular a abertura** no menu da Sala, em qualquer das duas etapas.
 
 `concluirAbertura()` marca `_nivelSonoroAnterior="encenacao"` **antes** de gravar a fase. Sem isso, `verificarTrocaDeNivel()` veria a fase mudando e tocaria a sirene e o mesmo `fase-encenacao.mp3` de novo, por cima da segunda metade que ainda está no ar.

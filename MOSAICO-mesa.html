@@ -437,6 +437,11 @@
   .revelacao-passos .card:before{counter-increment:passo;content:counter(passo);position:absolute;left:18px;top:18px;color:var(--ambar);font:600 24px var(--serif)}
   .confianca-valor{font:600 28px var(--serif);color:var(--frio)}.confianca-valor.neg{color:var(--vermelho)}
   .controle-revelacao{max-width:460px;margin:24px auto 0}
+  .abertura-telao{min-height:70dvh;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;text-align:center;gap:26px}
+  .abertura-telao .pulso{margin:0}
+  .abertura-telao-sub{font-family:var(--serif);font-style:italic;color:var(--nevoa);
+    font-size:clamp(19px,2.6vw,30px);line-height:1.4;margin:0;max-width:22ch}
   .podio-layout{margin-top:18px}.podio-cena{position:relative;overflow:hidden;border:1px solid rgba(232,164,76,.38);border-radius:10px;background:#05070c center/cover no-repeat;box-shadow:0 22px 60px rgba(0,0,0,.5)}
   .podio-layout.celular .podio-cena{width:min(100%,560px);aspect-ratio:1143/2048;margin:auto;background-image:url('img/resultado-mobile.jpg')}
   .podio-layout.telao{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,300px);gap:18px;align-items:start}
@@ -2478,7 +2483,9 @@ function render(forcar){
   else if(_fonteEncerramento||_timerEncerramento)pararAudioEncerramento();
   if(aberturaPendente())sincronizarAudioAbertura();
   else if(_fonteAbertura||_timerAbertura)pararAudioAbertura();
-  var encenacaoPassiva=STATE.tela==="abertura";
+  /* Durante a abertura o telao tambem entra em modo de escuta: sem
+     cabecalho de rodada, sem mural, sem painel do caso. */
+  var encenacaoPassiva=STATE.tela==="abertura"||(STATE.tela==="painel"&&aberturaPendente());
   if(STATE.eu&&STATE.tela==="encenacao"&&faseAgora==="encenacao"){
     var ordemEncenacao=ordenados(STATE.jogadores), atorEncenacao=ordemEncenacao[(STATE.doc&&STATE.doc.vez)||0];
     encenacaoPassiva=!!atorEncenacao&&atorEncenacao.id!==STATE.eu.id;
@@ -2771,9 +2778,30 @@ function telaEntrar(){
     '<button class="btn btn-fantasma" onclick="irPara(\'inicio\')">&larr; Voltar</button>';
 }
 
+/* O telao enquanto a casa fala. Ele deixa de ser sala de espera: some o
+   QR, some a lista, some o botao. A essa altura ninguem mais entra — e o
+   "Comecar o jogo" continuava aceso ali, reiniciando a narracao inteira
+   em quem encostasse nele sem querer.
+   Fica o relogio da casa, o capitulo e o pulso. O capitulo troca junto
+   com a sirene: a passagem se ve, alem de se ouvir.                   */
+function telaoAbertura(){
+  var noAnuncio=aberturaNoAnuncio();
+  var hora=HORA_FASE["sala"]||"21:00";
+  var cap=CAP_FASE[noAnuncio?"encenacao":"sala"]||"";
+  var pular=souMestreDaMesa()
+    ? '<div class="controle-revelacao"><button class="btn btn-frio" onclick="concluirAbertura()">Pular a abertura</button></div>'
+    : '';
+  return '<div class="abertura-telao">'+
+    '<div class="relogio"><div class="hh">'+esc(hora)+'</div><div class="cap">'+esc(cap)+'</div></div>'+
+    '<div class="pulso"></div>'+
+    '<p class="abertura-telao-sub">'+
+      (noAnuncio?'A casa vai escolher algu&eacute;m.':'A casa est&aacute; recebendo quem chegou.')+
+    '</p>'+pular+'</div>';
+}
 function telaPainel(){
   var m=STATE.mesa;
   if(!m) return telaInicio();
+  if(aberturaPendente()) return telaoAbertura();
   var js=ordenados(STATE.jogadores);
   var fase=(STATE.doc&&STATE.doc.fase)||"sala";
   if(fase==="resultado"){
