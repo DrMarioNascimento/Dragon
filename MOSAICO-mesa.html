@@ -1972,17 +1972,48 @@ function vozDaFase(fase){
    som — concluirAbertura() e chamado assim mesmo. Clima nao pode ser o
    que trava uma mesa com doze pessoas em pe esperando.               */
 var _aberturaAudioChave="", _fonteAbertura=null, _timerAbertura=null;
+
+/* A entrada na casa tem duas vozes seguidas, e os celulares ficam em
+   AGUARDE... durante as duas:
+
+     1. audio/abertura.mp3        — a casa recebe quem chegou;
+     2. audio/fase-encenacao.mp3  — o anuncio da rodada.
+
+   Na METADE da segunda, a tela do primeiro a atuar destrava. E por isso
+   que a fase so vira "encenacao" ali: quem conduz a abertura e o audio,
+   nao o contrario.
+
+   Cada etapa tem seu proprio instante gravado no documento da Sala —
+   aberturaIniciadaMs e anuncioIniciadoMs. Um mestre que recarregue a
+   pagina no meio de qualquer uma retoma no ponto em que estava, em vez de
+   comecar de novo, porque o relogio nao mora na aba.                  */
 function aberturaPendente(){
   return !!(STATE.doc&&STATE.doc.fase==="sala"&&STATE.doc.aberturaIniciadaMs&&!STATE.doc.aberturaConcluida);
+}
+function aberturaNoAnuncio(){
+  return aberturaPendente()&&!!STATE.doc.anuncioIniciadoMs;
 }
 function pararAudioAbertura(){
   if(_timerAbertura)clearTimeout(_timerAbertura);_timerAbertura=null;
   if(_fonteAbertura){try{_fonteAbertura.stop();}catch(e){}_fonteAbertura=null;}
   pararTempestade(true);
 }
+/* Passa da primeira voz para a segunda sem trocar de fase: os celulares
+   continuam em AGUARDE..., so a faixa muda.                          */
+async function comecarAnuncioDaEncenacao(){
+  if(!souMestreDaMesa()||!aberturaPendente()||aberturaNoAnuncio())return;
+  pararAudioAbertura();
+  var FB=await esperarFB();
+  await FB.atualizarMesa(STATE.mesa.codigo,{anuncioIniciadoMs:Date.now()});
+}
 async function concluirAbertura(){
   if(!souMestreDaMesa()||!aberturaPendente())return;
   pararAudioAbertura();
+  /* O anuncio JA tocou aqui — foi ele que contou o tempo ate este ponto.
+     Sem esta linha, verificarTrocaDeNivel() veria a fase mudando para
+     "encenacao" e tocaria a sirene e o mesmo fase-encenacao.mp3 de novo,
+     por cima da segunda metade que ainda esta no ar.                  */
+  _nivelSonoroAnterior="encenacao";
   var FB=await esperarFB();
   await FB.atualizarMesa(STATE.mesa.codigo,
     {fase:"encenacao",vez:0,aberturaConcluida:true,aberturaConcluidaMs:Date.now()});
@@ -1990,29 +2021,42 @@ async function concluirAbertura(){
 function encerrarAberturaPorFalha(){
   concluirAbertura().catch(function(e){console.error("abertura",e);});
 }
-function sincronizarAudioAbertura(){
-  if(!souMestreDaMesa()||!aberturaPendente()||partidaPausada())return;
-  var inicio=Number(STATE.doc.aberturaIniciadaMs)||Date.now();
-  var chave=(STATE.mesa&&STATE.mesa.codigo||"")+":"+inicio;
-  if(_aberturaAudioChave===chave)return;
-  pararAudioAbertura();_aberturaAudioChave=chave;
-  habilitarAudioNivel();
+function passarAoAnuncioOuFalhar(){
+  comecarAnuncioDaEncenacao().catch(function(e){console.error("anuncio da encenacao",e);});
+}
+/* Toca uma etapa e agenda o que vem depois dela. `fracao` diz em que
+   ponto da faixa o proximo passo acontece: 1 = no fim (a abertura inteira
+   antes do anuncio), .5 = na metade (o anuncio antes de destravar).   */
+function tocarEtapaDaAbertura(chave,inicio,fracao,seguinte,comMar){
   var decorridoS=Math.max(0,Date.now()-inicio)/1000;
-  carregarVozNivel("abertura").then(function(buffer){
+  carregarVozNivel(chave).then(function(buffer){
     if(!aberturaPendente())return;
-    if(!buffer||!_audioNivel||_audioNivel.state!=="running"){encerrarAberturaPorFalha();return;}
-    var restanteS=buffer.duration-decorridoS;
-    if(restanteS<=.3){encerrarAberturaPorFalha();return;}
+    if(!buffer||!_audioNivel||_audioNivel.state!=="running"){seguinte();return;}
+    var gatilhoS=buffer.duration*fracao, restanteS=gatilhoS-decorridoS;
+    if(restanteS<=.3){seguinte();return;}
     var fonte=_audioNivel.createBufferSource(), ganho=_audioNivel.createGain();
     fonte.buffer=buffer;ganho.gain.value=.92;
     fonte.connect(ganho);ganho.connect(_audioNivel.destination);
     _fonteAbertura=fonte;
     fonte.start(_audioNivel.currentTime,Math.max(0,decorridoS));
-    /* o mar abre junto com a voz e sobrevive a ela por tres segundos */
-    tocarTempestade(0,restanteS+3.2,.2);
-    tocarRajada(2.4,.24);
-    _timerAbertura=setTimeout(encerrarAberturaPorFalha,restanteS*1000+250);
+    if(comMar){
+      /* o mar abre junto com a voz e sobrevive a ela por tres segundos */
+      tocarTempestade(0,(buffer.duration-decorridoS)+3.2,.2);
+      tocarRajada(2.4,.24);
+    }
+    _timerAbertura=setTimeout(seguinte,restanteS*1000+250);
   });
+}
+function sincronizarAudioAbertura(){
+  if(!souMestreDaMesa()||!aberturaPendente()||partidaPausada())return;
+  var noAnuncio=aberturaNoAnuncio();
+  var inicio=Number(noAnuncio?STATE.doc.anuncioIniciadoMs:STATE.doc.aberturaIniciadaMs)||Date.now();
+  var chave=(STATE.mesa&&STATE.mesa.codigo||"")+":"+(noAnuncio?"anuncio":"abertura")+":"+inicio;
+  if(_aberturaAudioChave===chave)return;
+  pararAudioAbertura();_aberturaAudioChave=chave;
+  habilitarAudioNivel();
+  if(noAnuncio)tocarEtapaDaAbertura("encenacao",inicio,.5,encerrarAberturaPorFalha,false);
+  else tocarEtapaDaAbertura("abertura",inicio,1,passarAoAnuncioOuFalhar,true);
 }
 function encerramentoPendente(){
   return !!(STATE.doc&&STATE.doc.fase==="resultado"&&STATE.doc.encerramentoIniciadoMs&&!STATE.doc.encerramentoConcluido);
@@ -2133,7 +2177,7 @@ function controlesMestreMovel(){
     if(aberturaPendente()){
       /* A abertura corre sozinha. O botao existe para a noite em que a
          casa precisa comecar antes de a voz acabar.                  */
-      autoInfo='<div class="card"><b>Abertura</b><p class="muted">A casa est&aacute; falando. A encena&ccedil;&atilde;o abre quando a narra&ccedil;&atilde;o terminar.</p></div>';
+      autoInfo='<div class="card"><b>'+(aberturaNoAnuncio()?'An&uacute;ncio da rodada':'Abertura')+'</b><p class="muted">'+(aberturaNoAnuncio()?'A tela de quem abre a encena&ccedil;&atilde;o destrava na metade do an&uacute;ncio.':'A casa est&aacute; recebendo quem chegou. Em seguida vem o an&uacute;ncio da rodada.')+'</p></div>';
       botoes+='<button class="btn btn-sm" onclick="alternarMenuMestre();concluirAbertura()">Pular a abertura</button>';
     }else{
       todos=js.length>=1&&contaProntos()===js.length;
@@ -3805,7 +3849,7 @@ function iniciarContagem(){
    deixa concluirAbertura() virar a fase quando a voz terminar.       */
 async function iniciarEncenacao(){
   var FB=await esperarFB();
-  await FB.atualizarMesa(STATE.mesa.codigo,{aberturaIniciadaMs:Date.now(),aberturaConcluida:false});
+  await FB.atualizarMesa(STATE.mesa.codigo,{aberturaIniciadaMs:Date.now(),anuncioIniciadoMs:0,aberturaConcluida:false});
 }
 
 /* Ao concluir a vez, a casa mostra mais uma linha no painel. */

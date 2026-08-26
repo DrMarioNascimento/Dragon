@@ -608,12 +608,23 @@ O cronômetro regressivo usa a mesma classe `.fragmento-cronometro` das tarefas 
 
 #### Abertura narrada e fundo de tempestade
 
-`audio/abertura.mp3` toca **antes** da encenação, não durante. O mestre aperta **Começar** e a mesa entra num compasso próprio: `aberturaIniciadaMs` é gravado no documento da Sala, a fase continua `sala`, e os celulares mostram o mesmo `AGUARDE...` que já veem quando não estão atuando na encenação — a abertura é para ser ouvida, não lida. Quando a voz termina, `concluirAbertura()` grava `fase:"encenacao"` e a rodada abre. O mestre tem **Pular a abertura** no menu da Sala.
+`audio/abertura.mp3` toca **antes** da encenação, não durante. A entrada na casa tem duas vozes seguidas, e os celulares ficam no mesmo `AGUARDE...` da encenação durante as duas:
+
+1. **`audio/abertura.mp3`** — a casa recebe quem chegou. Toca inteira.
+2. **`audio/fase-encenacao.mp3`** — o anúncio da rodada, emendado logo no fim da primeira, sem sirene entre elas.
+3. Na **metade** do anúncio, a fase vira `encenacao` e a tela de quem abre destrava — com a contagem de 3 que já existia. A segunda metade do anúncio continua tocando por cima.
+
+Quem conduz é o áudio, não o contrário. Cada etapa grava o próprio instante no documento da Sala — `aberturaIniciadaMs` e `anuncioIniciadoMs` — então um mestre que recarregue a página no meio de qualquer uma retoma no ponto em que estava. O mestre tem **Pular a abertura** no menu da Sala, em qualquer das duas etapas.
+
+`concluirAbertura()` marca `_nivelSonoroAnterior="encenacao"` **antes** de gravar a fase. Sem isso, `verificarTrocaDeNivel()` veria a fase mudando e tocaria a sirene e o mesmo `fase-encenacao.mp3` de novo, por cima da segunda metade que ainda está no ar.
 
 Duas diferenças em relação ao encerramento, que usa o mesmo desenho:
 
-- a duração **não** é uma constante. `DURACAO_ENCERRAMENTO_MS` existe porque aquela faixa foi medida; aqui o valor sai de `buffer.duration` depois de decodificar. Trocar `audio/abertura.mp3` por uma gravação maior ou menor não exige tocar em nenhum número;
-- se o áudio não carregar — arquivo fora do ar, contexto de som suspenso, aparelho sem permissão —, `concluirAbertura()` é chamado assim mesmo. A abertura é ganho de clima e não pode ser o que trava uma mesa com doze pessoas em pé.
+- a duração **não** é uma constante. `DURACAO_ENCERRAMENTO_MS` existe porque aquela faixa foi medida; aqui os dois gatilhos saem de `buffer.duration` depois de decodificar. Trocar qualquer das duas gravações por uma maior ou menor não exige tocar em nenhum número;
+- se o áudio não carregar — arquivo fora do ar, contexto de som suspenso, aparelho sem permissão —, a etapa seguinte é chamada assim mesmo. A abertura é ganho de clima e não pode ser o que trava uma mesa com doze pessoas em pé.
+
+Ponta solta conhecida: se o mestre recarregar a página **depois** da metade do anúncio e antes de o documento propagar, a fase vira na hora e a segunda metade não volta a tocar. É uma janela de poucos segundos e o silêncio é preferível a repetir o anúncio inteiro.
+
 
 O mestre que recarregar a página no meio retoma a faixa no ponto em que ela estava, porque o instante de início mora no Firestore e não na aba.
 
