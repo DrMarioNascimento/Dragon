@@ -1879,6 +1879,64 @@ function tocarVozDeNivel(chave,atraso,aoTerminar){
     fonte.start(_audioNivel.currentTime+Math.max(0,Number(atraso)||0));
   });
 }
+function tocarAberturaComAmbiente(aoTerminar){
+  if(!souMestreDaMesa()||partidaPausada()){
+    if(typeof aoTerminar==="function")aoTerminar();
+    return;
+  }
+  habilitarAudioNivel();
+  if(!_audioNivel||_audioNivel.state!=="running"){
+    if(typeof aoTerminar==="function")aoTerminar();
+    return;
+  }
+  Promise.all([
+    carregarVozNivel("tempestade"),
+    carregarVozNivel("abertura"),
+    carregarVozNivel("chuva")
+  ]).then(function(buffers){
+    if(!_audioNivel||_audioNivel.state!=="running"){
+      if(typeof aoTerminar==="function")aoTerminar();
+      return;
+    }
+    function prepararFonte(buffer,volume,repetir){
+      if(!buffer)return null;
+      var fonte=_audioNivel.createBufferSource(), ganho=_audioNivel.createGain();
+      fonte.buffer=buffer;fonte.loop=!!repetir;ganho.gain.value=volume;
+      fonte.connect(ganho);ganho.connect(_audioNivel.destination);
+      return fonte;
+    }
+    var trovao=prepararFonte(buffers[0],.16,true);
+    var abertura=prepararFonte(buffers[1],.92,false);
+    var chuva=prepararFonte(buffers[2],.10,true);
+    function pararAmbiente(){
+      [trovao,chuva].forEach(function(fonte){if(fonte){try{fonte.stop();}catch(e){}}});
+    }
+    if(!abertura){
+      pararAmbiente();
+      if(typeof aoTerminar==="function")aoTerminar();
+      return;
+    }
+    abertura.onended=function(){
+      pararAmbiente();
+      if(typeof aoTerminar==="function")aoTerminar();
+    };
+    var inicio=_audioNivel.currentTime+.08;
+    if(trovao)trovao.start(inicio);
+    if(chuva)chuva.start(inicio);
+    abertura.start(inicio);
+  });
+}
+function introducaoEncenacaoPendente(){
+  return !!(STATE.doc&&STATE.doc.fase==="encenacao"&&STATE.doc.encenacaoIntroducaoConcluida===false);
+}
+function liberarTelaEncenacao(){
+  if(!souMestreDaMesa()||!introducaoEncenacaoPendente())return Promise.resolve();
+  STATE.doc.encenacaoIntroducaoConcluida=true;
+  render(true);
+  return esperarFB().then(function(FB){
+    return FB.atualizarMesa(STATE.mesa.codigo,{encenacaoIntroducaoConcluida:true});
+  }).catch(function(e){console.error("liberar encenação",e);});
+}
 function vozDaFase(fase){
   if(fase==="constelacao")return tarefaInteriorAtual()==="sala-escura"?"salaEscura":"vidro";
   if(fase==="cooperacao"||fase==="resultado"||fase==="sala")return "";
@@ -1952,13 +2010,10 @@ function verificarTrocaDeNivel(fase){
   if(atual!==_nivelSonoroAnterior){
     _nivelSonoroAnterior=atual;
     if(fase==="encenacao"){
-      tocarVozDeNivel("tempestade",0,function(){
-        tocarVozDeNivel("abertura",0,function(){
-          tocarVozDeNivel("chuva",0,function(){
-            emitirSomDeNivel();
-            tocarVozDeNivel("encenacao",4.85);
-          });
-        });
+      tocarAberturaComAmbiente(function(){
+        liberarTelaEncenacao();
+        emitirSomDeNivel();
+        tocarVozDeNivel("encenacao",4.85);
       });
       return;
     }
@@ -2731,6 +2786,9 @@ function telaEsperando(){
 }
 
 function telaEncenacao(){
+  if(introducaoEncenacaoPendente()){
+    return '<div class="encenacao-aguarde" role="status">AGUARDE...</div>';
+  }
   var js=ordenados(STATE.jogadores);
   var vez=(STATE.doc&&STATE.doc.vez)||0;
   var atual=js[vez];
@@ -3556,12 +3614,12 @@ function sincronizarJogador(){
            : fase==="deducao"   ? "deducao"
            : "resultado";
 
-  if(nova==="encenacao" && STATE.tela!=="encenacao"){
+  if(nova==="encenacao" && !introducaoEncenacaoPendente() && STATE.tela!=="encenacao"){
     var js=ordenados(STATE.jogadores);
     var atual=js[(STATE.doc.vez||0)];
     if(atual&&atual.id===STATE.eu.id) iniciarContagem();
   }
-  if(nova==="encenacao" && STATE.tela==="encenacao"){
+  if(nova==="encenacao" && !introducaoEncenacaoPendente() && STATE.tela==="encenacao"){
     var js2=ordenados(STATE.jogadores);
     var at2=js2[(STATE.doc.vez||0)];
     if(at2&&at2.id===STATE.eu.id&&STATE.contando===0&&!_timerContagem) iniciarContagem();
@@ -3582,7 +3640,7 @@ function iniciarContagem(){
 
 async function iniciarEncenacao(){
   var FB=await esperarFB();
-  await FB.atualizarMesa(STATE.mesa.codigo,{fase:"encenacao",vez:0});
+  await FB.atualizarMesa(STATE.mesa.codigo,{fase:"encenacao",vez:0,encenacaoIntroducaoConcluida:false});
 }
 
 /* Ao concluir a vez, a casa mostra mais uma linha no painel. */
