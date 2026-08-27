@@ -5,7 +5,6 @@ import { useParty } from "@/lib/mosaico/party";
 import {
   CHAR_IDS,
   DEDUCAO,
-  ENVELOPES,
   FRAGMENTOS,
   PHONE_LINE,
   ROTEIRO,
@@ -47,7 +46,7 @@ function HostBar() {
   if (!isMaster) return null;
   if (fase && LANTERN_FASES.includes(fase)) {
     if (!lanternDone) return null;
-  } else if (!fase || !["votacao", "encaixe", "oleo", "deducao"].includes(fase)) {
+  } else if (!fase || !["votacao", "encaixe", "deducao"].includes(fase)) {
     return null;
   }
   return (
@@ -441,39 +440,6 @@ function EncaixeScreen() {
   );
 }
 
-function OleoScreen() {
-  const oilBought = useParty((s) => s.oilBought);
-  const buyOil = useParty((s) => s.buyOil);
-  return (
-    <div className="space-y-4 px-5 pb-28 pt-6">
-      <Line>{PHONE_LINE.oleo}</Line>
-      <h2 className="font-serif text-3xl">A porta que você não andou</h2>
-      <p className="text-sm text-fog">Envelope lacrado. Só o cômodo aparece. Um round. Ou guarda o óleo.</p>
-      {ENVELOPES.map((e) => (
-        <button
-          key={e.id}
-          type="button"
-          disabled={!!oilBought}
-          onClick={() => buyOil(e.id)}
-          className={cn(
-            "w-full rounded-lg px-4 py-4 text-left",
-            oilBought === e.id ? "btn-depth" : "box-depth",
-          )}
-        >
-          <p className="text-xs uppercase tracking-[0.16em] text-accent">
-            {e.comodo} · {e.preco} de óleo
-          </p>
-          {oilBought === e.id ? (
-            <p className="mt-2 text-sm">{e.txt}</p>
-          ) : (
-            <p className="mt-2 text-sm text-muted-foreground">Conteúdo cego até comprar.</p>
-          )}
-        </button>
-      ))}
-    </div>
-  );
-}
-
 function DeducaoScreen() {
   const d = useParty((s) => s.deduction);
   const setDeduction = useParty((s) => s.setDeduction);
@@ -550,7 +516,7 @@ function ResultadoScreen() {
   ].filter(Boolean).length;
   const tempo = acertou ? 32 : 0;
   const caso = acertou ? [0, 3, 6, 10, 13][qualidade] : 0;
-  const total = tempo + caso + 5 + 20;
+  const total = tempo + caso;
 
   return (
     <div className="space-y-6 px-5 pb-16 pt-6">
@@ -570,7 +536,7 @@ function ResultadoScreen() {
             : "A casa não era quem você acusou."}
         </p>
         <p className="mt-2 text-sm text-fog">
-          Tempo {tempo} · Caso {caso} · Cena 5 · Óleo 20
+          Tempo {tempo} · Caso {caso}
         </p>
         <p className="mt-3 font-serif text-4xl text-primary">{submittedAt ? total : "—"}</p>
         <ul className="mt-4 space-y-1 text-sm">
@@ -614,7 +580,6 @@ export function PartyApp() {
   const showHost =
     fase === "votacao" ||
     fase === "encaixe" ||
-    fase === "oleo" ||
     fase === "deducao" ||
     (fase === "cor" && players.some((p) => p.fragmentoPronto)) ||
     (LANTERN_FASES.includes(fase) && lanternDone);
@@ -654,7 +619,6 @@ export function PartyApp() {
       {fase === "espelho" && <EspelhoPlay />}
       {fase === "planta" && <PlantaPlay />}
       {fase === "encaixe" && <EncaixeScreen />}
-      {fase === "oleo" && <OleoScreen />}
       {fase === "deducao" && <DeducaoScreen />}
       {fase === "resultado" && <ResultadoScreen />}
       {showHost && <HostBar />}
