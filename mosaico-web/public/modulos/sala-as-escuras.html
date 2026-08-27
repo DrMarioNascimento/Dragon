@@ -652,6 +652,11 @@ var qdRumo0=0, qdDist0=1, qdAlt0=1.62;   /* pose do quadro antes de descer */   
 var farolFase=0, farol=0;       /* o farol lá fora, girando */
 var luzOn=true, pulso=0;
 var spdAng=0, rawAnt=null;
+var IPHONE=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+var iOSInstavel=false, iosHead=null;
+function folgaMao(){ return CFG.FOLGA*(IPHONE?(iOSInstavel?1.9:1.5):1); }
+function holdAlvo(){ return IPHONE?850:CFG.HOLD_MS; }
+function drenoMao(){ return IPHONE?0.28:CFG.DRENO; }
 var t0=performance.now(), tPrev=t0;
 var raio=0, raioProx=4000, raioForca=0;
 var po=[];
@@ -1613,14 +1618,20 @@ function onOrient(e){
 
   if(iOS){
     alpha=360-e.webkitCompassHeading; src="bússola (iOS)";
-    if(typeof e.webkitCompassAccuracy==="number" &&
-       (e.webkitCompassAccuracy<0||e.webkitCompassAccuracy>25)) src="bússola instável";
+    iOSInstavel=typeof e.webkitCompassAccuracy==="number" &&
+      (e.webkitCompassAccuracy<0||e.webkitCompassAccuracy>25);
+    if(iOSInstavel) src="bússola instável";
   } else if(abs){ src="bússola (absoluta)"; }
   else if(src==="nenhuma"||src==="sem sensor"){ src="relativa — calibre o norte"; }
 
   var v=eulerParaVista(alpha,e.beta,e.gamma);
   raw.bearing=wrap360(v.bearing+northOffset);
   raw.elev=v.elev; raw.roll=v.roll;
+  if(IPHONE){
+    if(iosHead==null) iosHead=raw.bearing;
+    else iosHead=wrap360(iosHead+wrap180(raw.bearing-iosHead)*(iOSInstavel?0.14:0.26));
+    raw.bearing=iosHead;
+  }
   if(!jogando) jogando=true;
 }
 function ativaSensor(){
@@ -1668,8 +1679,8 @@ function tolerancia(o){
      com ±9,7° enquanto o quadro tinha ±14° — 45% mais difícil sem que
      nada no jogo avisasse. Coeficiente menor e piso mais alto achatam
      essa diferença sem tornar nenhum deles trivial.                   */
-  return { az: clamp(meia*0.75+6.0, 9.5, 14)*CFG.FOLGA,
-           el: clamp(meiaV*0.75+5.5, 9.0, 13)*CFG.FOLGA };
+  return { az: clamp(meia*0.75+6.0, 9.5, 14)*folgaMao(),
+           el: clamp(meiaV*0.75+5.5, 9.0, 13)*folgaMao() };
 }
 function alvo(){ return iAlvo<ordem.length ? ordem[iAlvo] : null; }
 
@@ -1805,7 +1816,7 @@ function loop(){
   rawAnt=raw.bearing;
   spdAng+=(vAng-spdAng)*(1-Math.pow(0.02,dt));
   var varrendo=sstep(8,45,spdAng);
-  var k=1-Math.pow(lerp(0.18,0.0025,varrendo),dt);
+  var k=1-Math.pow(lerp(IPHONE?0.42:0.18,0.0025,varrendo),dt);
   view.bearing=wrap360(view.bearing+wrap180(raw.bearing-view.bearing)*k);
   view.elev+=(raw.elev-view.elev)*k;
   view.roll+=(wrap180(raw.roll-view.roll))*k*0.85;
@@ -1872,18 +1883,18 @@ function loop(){
 
   var elFirme=document.getElementById("firme"), elFirmeI=document.getElementById("firme-i");
   if(al.ok){
-    holdAcc=Math.min(CFG.HOLD_MS, holdAcc+dt*1000);
+    holdAcc=Math.min(holdAlvo(), holdAcc+dt*1000);
     elFirme.classList.add("on");
-    elFirmeI.style.width=(holdAcc/CFG.HOLD_MS*100)+"%";
+    elFirmeI.style.width=(holdAcc/holdAlvo()*100)+"%";
     setStatus("É isto. Segure.",true);
     elDica.textContent=al.obj.final?"o cofre se abre para você":"não desvie o feixe";
     if(agora-ultimoZum>170){ ultimoZum=agora; try{navigator.vibrate&&navigator.vibrate(6);}catch(e){} }
-    if(holdAcc>=CFG.HOLD_MS) acha(al.obj);
+    if(holdAcc>=holdAlvo()) acha(al.obj);
   } else {
     /* escoa em vez de zerar: um blip de ruído não custa a busca inteira */
     if(holdAcc>0){
-      holdAcc=Math.max(0,holdAcc-dt*1000*CFG.DRENO);
-      elFirmeI.style.width=(holdAcc/CFG.HOLD_MS*100)+"%";
+      holdAcc=Math.max(0,holdAcc-dt*1000*drenoMao());
+      elFirmeI.style.width=(holdAcc/holdAlvo()*100)+"%";
       if(holdAcc<=0) elFirme.classList.remove("on");
     }
     if(achados>=OBJETOS.length){

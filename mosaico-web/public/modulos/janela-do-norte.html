@@ -717,6 +717,13 @@ var locked=false, holdAcc=0, revealed=0, fragIdx=0;
 /* filtro adaptativo do rumo: mede a velocidade angular ja alisada, para
    separar "varrendo o horizonte" de "mirando com a mao tremendo". */
 var spdAng=0, rawAnt=null;
+/* iPhone: a agulha da Apple pula. Folga, filtro e dreno compensam o tremor
+   do magnetómetro — o rumo do mundo continua o mesmo. Android não mexe. */
+var IPHONE=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+var iOSInstavel=false, iosHead=null;
+function folgaMao(){ return CFG.FOLGA*(IPHONE?(iOSInstavel?1.9:1.5):1); }
+function holdAlvo(){ return IPHONE?900:CFG.HOLD_MS; }
+function drenoMao(){ return IPHONE?0.28:CFG.DRENO; }
 var passo=0, distAlvo=CFG.PASSOS[0], distView=CFG.PASSOS[0], passoAnim=0;
 var beamOn=true, beamPulse=0, lastPulse=-9e9;
 /* surto: o banco de nevoa que fecha a cada passo dado (1 -> 0 em ~2,2 s) */
@@ -916,9 +923,9 @@ function onOrient(e){
 
   if(iOS){
     alpha=360-e.webkitCompassHeading;  src="bússola (iOS)";
-    /* o iOS avisa quando nao confia na propria bussola */
-    if(typeof e.webkitCompassAccuracy==="number" &&
-       (e.webkitCompassAccuracy<0 || e.webkitCompassAccuracy>25)) src="bússola instável";
+    iOSInstavel=typeof e.webkitCompassAccuracy==="number" &&
+      (e.webkitCompassAccuracy<0 || e.webkitCompassAccuracy>25);
+    if(iOSInstavel) src="bússola instável";
   } else if(abs){
     src="bússola (absoluta)";
   } else if(src==="nenhuma"||src==="sem sensor"){
@@ -927,6 +934,11 @@ function onOrient(e){
   var v=eulerParaVista(alpha,e.beta,e.gamma);
   raw.bearing=wrap360(v.bearing+northOffset);
   raw.elev=v.elev; raw.roll=v.roll;
+  if(IPHONE){
+    if(iosHead==null) iosHead=raw.bearing;
+    else iosHead=wrap360(iosHead+wrap180(raw.bearing-iosHead)*(iOSInstavel?0.14:0.26));
+    raw.bearing=iosHead;
+  }
   if(!started){ started=true; }
 }
 
@@ -1068,8 +1080,8 @@ function tolerancia(){
      Cada aparelho é coerente consigo mesmo, então todos travam com a mesma
      facilidade. O grupo fica espalhado uns 20° no mundo real — e 20° no
      escuro continua lendo como todo mundo olhando para o mesmo lado.  */
-  return { az: clamp(g.hw/PPD*0.60+8.0, 9.0, 14.0)*CFG.FOLGA,
-           el: clamp(g.hh/PPD*0.30+2.2, 2.8,  4.2)*CFG.FOLGA };
+  return { az: clamp(g.hw/PPD*0.60+8.0, 9.0, 14.0)*folgaMao(),
+           el: clamp(g.hh/PPD*0.30+2.2, 2.8,  4.2)*folgaMao() };
 }
 
 /* ==========================================================================
@@ -1836,7 +1848,7 @@ function janela(tempo, clareza, prox){
 
   /* --- anel de progresso do "segurar" --- */
   if(holdAcc>0 && !locked){
-    var p=clamp(holdAcc/CFG.HOLD_MS,0,1);
+    var p=clamp(holdAcc/holdAlvo(),0,1);
     sc.strokeStyle="rgba(255,214,160,0.85)";
     sc.lineWidth=2.4; sc.lineCap="round";
     var per=(hw*4+hh*4), run=per*p;
@@ -2133,7 +2145,7 @@ function loop(){
   rawAnt=raw.bearing;
   spdAng+=(vAng-spdAng)*(1-Math.pow(0.02,dt));
   var varrendo=sstep(8,45,spdAng);                    /* 0 parado · 1 varrendo */
-  var k=1-Math.pow(lerp(0.18,0.0025,varrendo),dt);
+  var k=1-Math.pow(lerp(IPHONE?0.42:0.18,0.0025,varrendo),dt);
   view.bearing=wrap360(view.bearing+wrap180(raw.bearing-view.bearing)*k);
   view.elev+=(raw.elev-view.elev)*k;
   view.roll+=(wrap180(raw.roll-view.roll))*k*0.85;
@@ -2209,9 +2221,9 @@ function loop(){
   if(!jogando){ return; }
   if(!locked){
     if(al.ok){
-      holdAcc=Math.min(CFG.HOLD_MS, holdAcc+dt*1000);
+      holdAcc=Math.min(holdAlvo(), holdAcc+dt*1000);
       elHold.classList.add("on");
-      var p=clamp(holdAcc/CFG.HOLD_MS,0,1);
+      var p=clamp(holdAcc/holdAlvo(),0,1);
       elHoldF.style.width=(p*100)+"%";
       if(passoAnim<0.2){
         setStatus(passo>=CFG.PASSOS.length-1?"Você está debaixo dela.":"Segure o rumo.",true);
@@ -2223,8 +2235,8 @@ function loop(){
       /* escoa em vez de zerar: perder o rumo por meio segundo custa meio
          segundo de progresso, não a subida inteira.                     */
       if(holdAcc>0){
-        holdAcc=Math.max(0, holdAcc-dt*1000*CFG.DRENO);
-        elHoldF.style.width=(holdAcc/CFG.HOLD_MS*100)+"%";
+        holdAcc=Math.max(0, holdAcc-dt*1000*drenoMao());
+        elHoldF.style.width=(holdAcc/holdAlvo()*100)+"%";
         if(holdAcc<=0) elHold.classList.remove("on");
       }
       /* enquanto o banco está fechado, o jogo cala a boca: nada de "só névoa

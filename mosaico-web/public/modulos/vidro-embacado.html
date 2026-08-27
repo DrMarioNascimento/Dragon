@@ -468,6 +468,8 @@
 var TOL_B = 26, TOL_G = 30;    /* tolerancia por eixo (graus) */
 var MAX_B = 62, MAX_G = 68;    /* alcance do "esta esquentando" */
 var HOLD_MS = 1500;
+var IPHONE=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+if(IPHONE){ TOL_B=34; TOL_G=38; HOLD_MS=900; }
 var DESCANSO_A_CADA = 3;       /* ergonomia: pausa a cada N fragmentos */
 
 /* ================= FRAGMENTOS =================
