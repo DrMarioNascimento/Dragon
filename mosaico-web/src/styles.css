@@ -74,9 +74,15 @@
 .rotate-hint {
   display: none;
 }
-@media (orientation: landscape) and (max-height: 520px) {
+/* Só no celular deitado. No computador / preview largo o jogo continua. */
+@media (orientation: landscape) and (max-height: 520px) and (hover: none) and (pointer: coarse) {
   .rotate-hint {
     display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-background);
+    color: var(--color-foreground);
   }
 }
 
