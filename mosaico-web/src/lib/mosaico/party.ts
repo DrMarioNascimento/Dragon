@@ -5,6 +5,8 @@ import {
   criarSala,
   ensureAuth,
   entrarSala,
+  gravarDeducao,
+  gravarVoto,
   ouvirSala,
   type PlayerDoc,
   type RoomDoc,
@@ -288,11 +290,39 @@ export const useParty = create<PartyState>((set, get) => ({
     });
   },
 
-  vote: (targetId) => set({ voteTarget: targetId }),
+  vote: (targetId) => {
+    const { mode, code, uid } = get();
+    set({ voteTarget: targetId });
+    if (mode === "firebase" && code && uid && targetId !== uid) {
+      void gravarVoto(code, uid, targetId);
+    }
+  },
   buyOil: (id) => set({ oilBought: id }),
   setDeduction: (partial) =>
     set((s) => ({ deduction: { ...s.deduction, ...partial } })),
-  submitDeduction: () => set({ submittedAt: Date.now() }),
+  submitDeduction: () => {
+    const { mode, code, uid, deduction } = get();
+    const at = Date.now();
+    set({ submittedAt: at });
+    if (
+      mode === "firebase" &&
+      code &&
+      uid &&
+      deduction.suspectId &&
+      deduction.motiveId &&
+      deduction.actionId &&
+      deduction.proofId &&
+      deduction.gapId
+    ) {
+      void gravarDeducao(code, uid, {
+        suspeito: deduction.suspectId,
+        motivo: deduction.motiveId,
+        acao: deduction.actionId,
+        prova: deduction.proofId,
+        lacuna: deduction.gapId,
+      });
+    }
+  },
   setLocalTiles: (tiles) => set({ localTiles: tiles }),
 
   leave: () => {

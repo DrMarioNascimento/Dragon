@@ -29,7 +29,7 @@ before(async () => {
     firestore: {
       rules: readFileSync(new URL("../firestore.rules", import.meta.url), "utf8"),
       host: "127.0.0.1",
-      port: 8080
+      port: 8180
     }
   });
 });
@@ -179,4 +179,56 @@ test("sala encerrada não aceita mais escrita de participante", async () => {
   await assertFails(updateDoc(jogadora(como(ANA), ANA), {
     pronto: true, atualizadoEmMs: Date.now()
   }));
+});
+
+/* ---------- noite v3 ---------- */
+
+test("o mestre avança para uma fase v3 conhecida", async () => {
+  await assertSucceeds(updateDoc(doc(como(MESTRE), "mosaico", SALA), {
+    fase: "janela", v3: true
+  }));
+});
+
+test("fase desconhecida é recusada mesmo ao mestre", async () => {
+  await assertFails(updateDoc(doc(como(MESTRE), "mosaico", SALA), {
+    fase: "hacker"
+  }));
+});
+
+test("tarefa da Sala às Escuras é aceita no próprio UID", async () => {
+  await assertSucceeds(setDoc(
+    doc(como(ANA), "mosaico", SALA, "tarefas", ANA + "_sala"),
+    { tarefa: "sala", jogadorId: ANA, runId: "r1", concluidoEm: Date.now() }
+  ));
+});
+
+test("tarefa inventada é recusada", async () => {
+  await assertFails(setDoc(
+    doc(como(ANA), "mosaico", SALA, "tarefas", ANA + "_hack"),
+    { tarefa: "hack", jogadorId: ANA, runId: "r1", concluidoEm: Date.now() }
+  ));
+});
+
+test("em mesa v3 qualquer integrante do Fragmento grava a carta", async () => {
+  await env.withSecurityRulesDisabled(async ctx => {
+    await updateDoc(doc(ctx.firestore(), "mosaico", SALA), { v3: true });
+  });
+  await assertSucceeds(updateDoc(doc(como(BIA), "mosaico", SALA, "nucleos", "1"), {
+    rascunho: { 0: "c03" }, rascunhoMs: Date.now()
+  }));
+});
+
+test("dedução própria é aceita uma vez; outro jogador não lê", async () => {
+  const db = como(ANA);
+  await assertSucceeds(setDoc(doc(db, "mosaico", SALA, "deducoes", ANA), {
+    id: ANA,
+    suspeito: "elias",
+    motivo: "m-heranca",
+    acao: "a-disjuntor",
+    prova: "pr-marcas",
+    lacuna: "g-agua-porta",
+    pistasUsadas: [],
+    submetidoEm: Date.now()
+  }));
+  await assertFails(getDoc(doc(como(BIA), "mosaico", SALA, "deducoes", ANA)));
 });

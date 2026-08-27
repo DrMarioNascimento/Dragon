@@ -26,6 +26,23 @@ service cloud.firestore {
     function inside(roomId) {
       return master(roomId) || participant(roomId);
     }
+    function v3(roomId) {
+      return roomExists(roomId) && room(roomId).get('v3', false) == true;
+    }
+    /* Mesa HTML + noite v3. Qualquer outro valor de fase é recusado,
+       inclusive pelo mestre — impede sala fantasma / lixo no documento. */
+    function faseConhecida() {
+      return request.resource.data.fase in [
+        'sala', 'encenacao', 'votacao',
+        'inclinacao', 'constelacao', 'janela', 'comodo', 'cor',
+        'mosaico', 'encaixe', 'cooperacao',
+        'mercado', 'oleo',
+        'deducao', 'resultado'
+      ];
+    }
+    function tarefaConhecida(nome) {
+      return nome in ['constelacao', 'inclinacao', 'sala'];
+    }
     /* O cliente PRECISA poder acrescentar pista ao proprio Arquivo: e assim
        que a pista privada do personagem e a pista de cada tarefa sensorial
        chegam. O que esta regra faz e encarecer o abuso, nao elimina-lo:
@@ -86,7 +103,12 @@ service cloud.firestore {
         ]);
       allow get: if signedIn() && (resource.data.ativa == true || master(roomId) || participant(roomId));
       allow list: if false;
-      allow update: if master(roomId) && request.resource.data.mestreUid == resource.data.mestreUid;
+      allow update: if master(roomId)
+        && request.resource.data.mestreUid == resource.data.mestreUid
+        && (
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['fase'])
+          || faseConhecida()
+        );
       allow delete: if false;
 
       match /jogadores/{playerId} {
@@ -147,13 +169,14 @@ service cloud.firestore {
       match /tarefas/{taskId} {
         allow read: if master(roomId)
           || taskId == request.auth.uid + '_constelacao'
-          || taskId == request.auth.uid + '_inclinacao';
-        /* `tempoMs` saiu: era auto-reportado pelo aparelho de quem joga e
-           nada no placar o consumia. Um numero validado e nunca usado
-           convida o proximo leitor a confiar nele. */
+          || taskId == request.auth.uid + '_inclinacao'
+          || taskId == request.auth.uid + '_sala';
+        /* inclinacao = Janela do Norte; constelacao = Vidro Embaçado;
+           sala = Sala às Escuras (v3). `tempoMs` continua fora: era
+           auto-reportado e nada no placar o consumia. */
         allow create: if active(roomId)
           && request.resource.data.jogadorId == request.auth.uid
-          && request.resource.data.tarefa in ['constelacao', 'inclinacao']
+          && tarefaConhecida(request.resource.data.tarefa)
           && request.resource.data.runId is string
           && request.resource.data.runId.size() > 0
           && taskId == request.auth.uid + '_' + request.resource.data.tarefa
@@ -165,6 +188,7 @@ service cloud.firestore {
           && !resource.data.keys().hasAny(['concluidoEm'])
           && request.resource.data.jogadorId == request.auth.uid
           && request.resource.data.tarefa == resource.data.tarefa
+          && tarefaConhecida(request.resource.data.tarefa)
           && request.resource.data.runId is string
           && request.resource.data.runId.size() > 0
           && taskId == request.auth.uid + '_' + request.resource.data.tarefa
@@ -181,8 +205,11 @@ service cloud.firestore {
           active(roomId)
           && participant(roomId)
           && get(/databases/$(database)/documents/mosaico/$(roomId)/jogadores/$(request.auth.uid)).data.nucleo == resource.data.numero
-          && (resource.data.portadorId == request.auth.uid
-            || resource.data.get('portadoresCompartilhados', false) == true)
+          && (
+            resource.data.portadorId == request.auth.uid
+            || resource.data.get('portadoresCompartilhados', false) == true
+            || v3(roomId)
+          )
           && request.resource.data.portadorId == resource.data.portadorId
           && request.resource.data.get('portadoresCompartilhados', false)
             == resource.data.get('portadoresCompartilhados', false)
@@ -246,6 +273,12 @@ service cloud.firestore {
         allow create: if active(roomId)
           && deductionId == request.auth.uid
           && request.resource.data.id == request.auth.uid
+          && request.resource.data.suspeito is string
+          && request.resource.data.motivo is string
+          && request.resource.data.acao is string
+          && request.resource.data.prova is string
+          && request.resource.data.lacuna is string
+          && request.resource.data.submetidoEm is int
           && request.resource.data.keys().hasOnly([
             'id', 'suspeito', 'motivo', 'acao', 'prova', 'lacuna',
             'pistasUsadas', 'submetidoEm'

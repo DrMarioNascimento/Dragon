@@ -1,9 +1,5 @@
 import { initializeApp } from "firebase/app";
-import {
-  getAuth,
-  signInAnonymously,
-  type User,
-} from "firebase/auth";
+import { getAuth, signInAnonymously, type User } from "firebase/auth";
 import {
   collection,
   doc,
@@ -157,4 +153,49 @@ export function ouvirSala(
     un1();
     un2();
   };
+}
+
+export async function gravarVoto(code: string, uid: string, para: string) {
+  await setDoc(doc(db, ROOT, code, "votos", uid), {
+    de: uid,
+    para,
+    ms: Date.now(),
+  });
+}
+
+export async function gravarDeducao(
+  code: string,
+  uid: string,
+  d: {
+    suspeito: string;
+    motivo: string;
+    acao: string;
+    prova: string;
+    lacuna: string;
+  },
+) {
+  await setDoc(doc(db, ROOT, code, "deducoes", uid), {
+    id: uid,
+    suspeito: d.suspeito,
+    motivo: d.motivo,
+    acao: d.acao,
+    prova: d.prova,
+    lacuna: d.lacuna,
+    pistasUsadas: [],
+    submetidoEm: Date.now(),
+  });
+}
+
+export async function gravarTarefa(
+  code: string,
+  uid: string,
+  tarefa: "inclinacao" | "constelacao" | "sala",
+  runId: string,
+) {
+  await setDoc(doc(db, ROOT, code, "tarefas", `${uid}_${tarefa}`), {
+    tarefa,
+    jogadorId: uid,
+    runId,
+    concluidoEm: Date.now(),
+  });
 }
