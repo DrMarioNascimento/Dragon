@@ -62,7 +62,7 @@ export function ModuleFrame({ mod, compact }: { mod: NightModule; compact?: bool
   const src = `/modulos/${mod.file}?embed=1&run=${encodeURIComponent(runId)}${desktop ? "&dev=1" : ""}`;
 
   return (
-    <div className={cn("relative bg-background", compact ? "h-[70dvh]" : "h-dvh")}>
+    <div className={cn("relative bg-background", compact ? "h-full min-h-[52dvh]" : "h-dvh")}>
       {!compact && (
       <Link
         to="/noite"
@@ -81,7 +81,7 @@ export function ModuleFrame({ mod, compact }: { mod: NightModule; compact?: bool
         allowFullScreen
       />
       {doneMs !== null && (
-        <div className="absolute inset-x-0 bottom-0 z-30 flex flex-col items-center gap-3 bg-gradient-to-t from-background via-background/95 to-transparent px-6 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-16">
+        <div className="absolute inset-x-0 bottom-0 z-30 flex flex-col items-center gap-3 bg-gradient-to-t from-background via-background/95 to-transparent px-6 pb-[max(5.5rem,env(safe-area-inset-bottom))] pt-16">
           <p className="text-[11px] uppercase tracking-[0.2em] text-accent">Fragmento localizado</p>
           <p className="font-serif text-3xl text-foreground">{mod.title}</p>
           {doneMs > 0 && (

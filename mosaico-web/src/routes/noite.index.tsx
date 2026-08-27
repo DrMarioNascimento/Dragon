@@ -1,3 +1,4 @@
+import { MosaicMark } from "@/components/game/mark";
 import { NIGHT_MODULES } from "@/lib/mosaico/modules";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Compass } from "lucide-react";
@@ -12,24 +13,26 @@ function NoitePage() {
       <img
         src="/media/capa-vertical.jpg"
         alt=""
-        className="absolute inset-0 h-full w-full object-cover opacity-35"
+        className="cover-photo absolute inset-0 h-full w-full object-cover opacity-50"
       />
-      <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/88 to-background" />
+      <div className="cover-tint absolute inset-0" />
+      <div className="absolute inset-0 bg-gradient-to-b from-background/85 via-background/92 to-background" />
       <div className="relative mx-auto flex min-h-dvh max-w-lg flex-col px-6 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-[max(2rem,env(safe-area-inset-top))]">
         <Link
           to="/"
-          className="inline-flex min-h-11 w-fit items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-fog"
+          className="inline-flex min-h-11 w-fit items-center gap-2 text-[11px] uppercase tracking-[0.16em] text-fog"
         >
           <ArrowLeft className="size-4" />
           MOSAICO
         </Link>
         <header className="mt-8">
-          <p className="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
+          <MosaicMark className="mb-4 size-8 text-primary" />
+          <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
             A Casa da Costa
           </p>
-          <h1 className="mt-2 font-serif text-4xl">A noite da casa</h1>
+          <h1 className="mt-2 font-serif text-4xl">A lanterna</h1>
           <p className="mt-3 max-w-prose font-serif text-lg italic text-fog">
-            Quatro tarefas. Cada uma devolve um fragmento. O tempo decide a pista.
+            Aponta. O rumo devolve a pista.
           </p>
         </header>
         <ul className="mt-8 flex flex-col gap-3">
@@ -40,7 +43,7 @@ function NoitePage() {
                 params={{ slug: m.slug }}
                 className="block rounded-xl border border-border bg-card/80 p-4 transition-colors hover:border-accent/50"
               >
-                <p className="text-[11px] uppercase tracking-[0.18em] text-accent">{m.kicker}</p>
+                <p className="text-[11px] uppercase tracking-[0.16em] text-accent">{m.kicker}</p>
                 <p className="mt-1 font-serif text-2xl">{m.title}</p>
                 <p className="mt-2 text-sm leading-relaxed text-fog">{m.blurb}</p>
               </Link>

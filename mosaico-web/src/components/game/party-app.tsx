@@ -36,11 +36,14 @@ function HostBar() {
   const isMaster = useParty((s) => s.isMaster);
   const advance = useParty((s) => s.advance);
   const fase = useParty((s) => (s.mode === "local" ? s.localFase : s.room?.fase));
-  if (!isMaster || fase === "resultado") return null;
+  if (!isMaster) return null;
+  if (!fase || !["votacao", "janela", "comodo", "encaixe", "oleo", "deducao"].includes(fase)) {
+    return null;
+  }
   return (
     <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 px-4 pb-[max(0.8rem,env(safe-area-inset-bottom))] pt-3">
       <Button className="w-full" size="lg" onClick={() => void advance()}>
-        Avançar a noite
+        Avançar
       </Button>
     </div>
   );
@@ -68,7 +71,7 @@ function SalaScreen() {
       : null;
 
   return (
-    <div className="space-y-5 px-5 pb-28 pt-6">
+    <div className="space-y-5 px-5 pb-10 pt-6">
       <Line>{PHONE_LINE.sala}</Line>
       <h1 className="font-serif text-4xl">A mesa</h1>
       {code && code !== "LOCAL" && (
@@ -93,7 +96,7 @@ function SalaScreen() {
           </li>
         ))}
       </ul>
-      {eu && !eu.pronto && (
+          {eu && !eu.pronto && !isMaster && (
         <Button className="w-full" size="lg" onClick={() => void ready()}>
           Estou pronto
         </Button>
@@ -129,7 +132,7 @@ function EnceneScreen() {
   }
 
   return (
-    <div className="space-y-5 px-5 pb-28 pt-6">
+    <div className="space-y-5 px-5 pb-10 pt-6">
       <Line>{PHONE_LINE.encenacao}</Line>
       {step === "entenda" && (
         <>
@@ -209,13 +212,13 @@ function VotoScreen() {
 function JanelaScreen() {
   const mod = NIGHT_MODULES.find((m) => m.slug === "janela")!;
   return (
-    <div className="pb-24">
-      <div className="px-5 pt-5">
-        <Line>{PHONE_LINE.janela}</Line>
-        <p className="mt-2 font-serif text-2xl">A Janela do Norte</p>
-        <p className="mt-1 text-sm text-fog">Todos no mesmo rumo. A janela está naquela parede.</p>
+    <div className="flex min-h-[calc(100dvh-3.5rem)] flex-col pb-24">
+      <p className="px-5 pb-2 pt-1 text-[11px] uppercase tracking-[0.22em] text-accent">
+        {PHONE_LINE.janela}
+      </p>
+      <div className="min-h-0 flex-1">
+        <ModuleFrame mod={mod} compact />
       </div>
-      <ModuleFrame mod={mod} compact />
     </div>
   );
 }
@@ -225,13 +228,13 @@ function ComodoScreen() {
   const slug = eu?.comodo === "vidro" ? "vidro" : "sala";
   const mod = NIGHT_MODULES.find((m) => m.slug === slug)!;
   return (
-    <div className="pb-24">
-      <div className="px-5 pt-5">
-        <Line>{PHONE_LINE.comodo}</Line>
-        <p className="mt-2 font-serif text-2xl">{mod.title}</p>
-        <p className="mt-1 text-sm text-fog">{mod.blurb}</p>
+    <div className="flex min-h-[calc(100dvh-3.5rem)] flex-col pb-24">
+      <p className="px-5 pb-2 pt-1 text-[11px] uppercase tracking-[0.22em] text-accent">
+        {PHONE_LINE.comodo}
+      </p>
+      <div className="min-h-0 flex-1">
+        <ModuleFrame mod={mod} compact />
       </div>
-      <ModuleFrame mod={mod} compact />
     </div>
   );
 }
@@ -254,7 +257,7 @@ function CorScreen() {
   const locked = elapsed < 5000;
 
   return (
-    <div className={cn("flex min-h-dvh flex-col items-center justify-center px-6 text-center text-white", f.cls)}>
+    <div className={cn("relative flex min-h-dvh flex-col items-center justify-center px-6 pb-16 pt-16 text-center text-white", f.cls)}>
       <p className="text-[11px] uppercase tracking-[0.24em] opacity-80">Seu Fragmento é</p>
       <h1 className="mt-3 font-serif text-4xl">{f.nome}</h1>
       <p className="mt-2 text-lg">Tela {f.cor}</p>
@@ -511,18 +514,30 @@ export function PartyApp() {
     );
   }
 
-  const hideHost = fase === "cor";
+  const hideChrome = fase === "cor";
+  const showHost = ["votacao", "janela", "comodo", "encaixe", "oleo", "deducao"].includes(fase);
 
   return (
-    <div className="relative min-h-dvh bg-background pb-4">
+    <div className="relative min-h-dvh bg-background">
       <RotateHint />
-      <header className="flex items-center justify-between px-4 pt-[max(0.8rem,env(safe-area-inset-top))]">
-        <button type="button" className="text-xs text-muted-foreground" onClick={leave}>
+      {!hideChrome && (
+        <header className="flex items-center justify-between px-4 pt-[max(0.8rem,env(safe-area-inset-top))]">
+          <button type="button" className="inline-flex min-h-11 items-center text-xs text-muted-foreground" onClick={leave}>
+            Sair
+          </button>
+          <MosaicMark className="size-5 text-primary" />
+          <span className="w-8" />
+        </header>
+      )}
+      {hideChrome && (
+        <button
+          type="button"
+          className="absolute left-4 top-[max(0.8rem,env(safe-area-inset-top))] z-20 min-h-11 text-xs text-white/80"
+          onClick={leave}
+        >
           Sair
         </button>
-        <MosaicMark className="size-5 text-primary" />
-        <span className="w-8" />
-      </header>
+      )}
       {fase === "sala" && <SalaScreen />}
       {fase === "encenacao" && <EnceneScreen />}
       {fase === "votacao" && <VotoScreen />}
@@ -533,7 +548,7 @@ export function PartyApp() {
       {fase === "oleo" && <OleoScreen />}
       {fase === "deducao" && <DeducaoScreen />}
       {fase === "resultado" && <ResultadoScreen />}
-      {!hideHost && <HostBar />}
+      {showHost && <HostBar />}
     </div>
   );
 }

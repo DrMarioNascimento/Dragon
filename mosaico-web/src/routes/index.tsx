@@ -5,7 +5,7 @@ import { armAudio, playOnce, playStorm, stopVoice } from "@/lib/mosaico/sound";
 import { useParty } from "@/lib/mosaico/party";
 import { cn } from "@/lib/utils";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Compass, DoorOpen, Play, QrCode } from "lucide-react";
+import { Compass, DoorOpen, Play, QrCode, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 export const Route = createFileRoute("/")({
@@ -64,7 +64,7 @@ function Home() {
         ref={videoRef}
         className={cn(
           "absolute inset-0 h-full w-full object-cover transition-opacity duration-700",
-          screen === "open" ? "opacity-100" : "opacity-0",
+          screen === "open" ? "opacity-100" : "opacity-0 pointer-events-none",
         )}
         src="/media/abertura.mp4"
         poster="/media/aguardando.jpg"
@@ -80,46 +80,41 @@ function Home() {
           if (!muted) playStorm(true);
         }}
       />
-      <div className="cover-tint absolute inset-0" />
       <div
         className={cn(
-          "absolute inset-0 transition-opacity duration-500",
-          screen === "open" ? "bg-background/10" : "bg-background/72",
+          "absolute inset-0 transition-colors duration-500",
+          screen === "open"
+            ? "bg-gradient-to-b from-background/70 via-transparent to-transparent"
+            : "bg-background/90",
         )}
       />
 
       {screen === "open" && (
-        <div className="relative z-10 flex min-h-dvh flex-col justify-between px-6 pb-[max(2rem,env(safe-area-inset-bottom))] pt-[max(2rem,env(safe-area-inset-top))]">
-          <div className="flex flex-col items-center gap-3">
-            <MosaicMark className="size-8 text-primary" />
-            <p className="brand-wordmark text-4xl text-primary">MOSAICO</p>
-            <p className="text-center text-[11px] uppercase tracking-[0.28em] text-fog">
-              A Casa da Costa
-            </p>
-          </div>
-          <div className="flex flex-col items-center gap-3">
-            <Button variant="soft" size="lg" onClick={skipOpen}>
-              Pular abertura
-            </Button>
+        <div className="relative z-10 flex min-h-dvh flex-col px-4 pt-[max(0.75rem,env(safe-area-inset-top))]">
+          <div className="flex items-center justify-between gap-3">
             <button
               type="button"
-              className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground"
+              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border bg-background/70 px-3 text-xs uppercase tracking-widest text-fog backdrop-blur-sm"
               onClick={() => {
-                setMuted(false);
+                setMuted((m) => !m);
                 armAudio();
-                void videoRef.current?.play();
+                if (muted) void videoRef.current?.play();
               }}
             >
-              {muted ? "Ativar som" : "Som ligado"}
+              {muted ? <VolumeX className="size-4" /> : <Volume2 className="size-4" />}
+              {muted ? "Som" : "Som ligado"}
             </button>
-            <button
-              type="button"
-              className="text-[11px] uppercase tracking-[0.16em] text-fog"
-              onClick={() => playOnce("/audio/abertura.mp3", 0.85)}
-            >
-              Ouvir a casa
-            </button>
+            <Button variant="soft" size="sm" onClick={skipOpen}>
+              Pular
+            </Button>
           </div>
+          <button
+            type="button"
+            className="mt-3 self-start text-xs uppercase tracking-widest text-fog/90"
+            onClick={() => playOnce("/audio/abertura.mp3", 0.85)}
+          >
+            Ouvir a casa
+          </button>
         </div>
       )}
 
@@ -128,7 +123,7 @@ function Home() {
           <header className="stagger-in text-center">
             <MosaicMark className="mx-auto mb-5 size-9 text-primary" />
             <p className="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
-              A verdade é um fragmento
+              A Casa da Costa
             </p>
             <h1 className="brand-wordmark mt-2 text-6xl text-primary">MOSAICO</h1>
             <p className="mt-3 font-serif text-lg italic text-fog">
@@ -162,7 +157,7 @@ function Home() {
                 Como jogar
               </Button>
               <p className="mt-8 text-center text-[11px] leading-relaxed text-muted-foreground">
-                Cada um no próprio telefone. A mesa senta. A casa existe neste cômodo.
+                Cada um no próprio telefone. A mesa senta.
                 <br />
                 Mario Nascimento & Osana Melo Nascimento
               </p>
