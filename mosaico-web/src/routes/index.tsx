@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { MosaicMark } from "@/components/game/mark";
 import { CartaDemo } from "@/components/game/carta-demo";
 import { RotateHint } from "@/components/game/rotate-hint";
-import { armAudio, playOnce, playStorm, stopVoice } from "@/lib/mosaico/sound";
+import { armAudio, stopVoice } from "@/lib/mosaico/sound";
 import { useParty } from "@/lib/mosaico/party";
 import { cn } from "@/lib/utils";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -43,15 +43,26 @@ function Home() {
     if (mode !== "idle") void nav({ to: "/play" });
   }, [mode, nav]);
 
-  function skipOpen() {
-    const v = videoRef.current;
-    if (v) {
-      v.pause();
-      v.currentTime = v.duration || 0;
+  function skipOpen(e?: { stopPropagation?: () => void }) {
+    e?.stopPropagation?.();
+    try {
+      videoRef.current?.pause();
+    } catch {
+      /* ignore */
     }
-    stopVoice();
+    try {
+      stopVoice();
+    } catch {
+      /* ignore */
+    }
     setScreen("menu");
   }
+
+  useEffect(() => {
+    if (screen !== "open") return;
+    const id = window.setTimeout(() => setScreen("menu"), 14000);
+    return () => window.clearTimeout(id);
+  }, [screen]);
 
   return (
     <main className="relative min-h-dvh overflow-hidden bg-background text-foreground">
@@ -64,8 +75,8 @@ function Home() {
       <video
         ref={videoRef}
         className={cn(
-          "absolute inset-0 h-full w-full object-cover transition-opacity duration-700",
-          screen === "open" ? "opacity-100" : "opacity-0 pointer-events-none",
+          "pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity duration-700",
+          screen === "open" ? "opacity-100" : "opacity-0",
         )}
         src="/media/abertura.mp4"
         poster="/media/aguardando.jpg"
@@ -76,14 +87,12 @@ function Home() {
         disablePictureInPicture
         disableRemotePlayback
         {...{ "webkit-playsinline": "true", "x-playsinline": "true" }}
-        onEnded={() => {
-          setScreen("menu");
-          if (!muted) playStorm(true);
-        }}
+        onEnded={() => setScreen("menu")}
+        onError={() => setScreen("menu")}
       />
       <div
         className={cn(
-          "absolute inset-0 transition-colors duration-500",
+          "pointer-events-none absolute inset-0 transition-colors duration-500",
           screen === "open"
             ? "bg-gradient-to-b from-background/70 via-transparent to-transparent"
             : "bg-background/90",
@@ -91,32 +100,35 @@ function Home() {
       />
 
       {screen === "open" && (
-        <div className="relative z-10 flex min-h-dvh flex-col px-4 pt-[max(0.75rem,env(safe-area-inset-top))]">
+        <button
+          type="button"
+          className="relative z-10 flex min-h-dvh w-full flex-col px-4 pt-[max(0.75rem,env(safe-area-inset-top))] text-left"
+          onClick={() => skipOpen()}
+          aria-label="Pular abertura"
+        >
           <div className="flex items-center justify-between gap-3">
-            <button
-              type="button"
-              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border bg-background/70 px-3 text-xs uppercase tracking-widest text-fog backdrop-blur-sm"
-              onClick={() => {
+            <span
+              role="button"
+              tabIndex={0}
+              className="pointer-events-auto inline-flex min-h-11 items-center gap-2 rounded-full border border-border bg-background/70 px-3 text-xs uppercase tracking-widest text-fog backdrop-blur-sm"
+              onClick={(e) => {
+                e.stopPropagation();
                 setMuted((m) => !m);
                 armAudio();
                 if (muted) void videoRef.current?.play();
               }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") e.currentTarget.click();
+              }}
             >
               {muted ? <VolumeX className="size-4" /> : <Volume2 className="size-4" />}
               {muted ? "Som" : "Som ligado"}
-            </button>
-            <Button variant="soft" size="sm" onClick={skipOpen}>
-              Pular
-            </Button>
+            </span>
+            <span className="pointer-events-none rounded-full border border-primary/40 bg-background/80 px-4 py-2 text-sm text-primary backdrop-blur-sm">
+              Toque para pular
+            </span>
           </div>
-          <button
-            type="button"
-            className="mt-3 self-start text-xs uppercase tracking-widest text-fog/90"
-            onClick={() => playOnce("/audio/abertura.mp3", 0.85)}
-          >
-            Ouvir a casa
-          </button>
-        </div>
+        </button>
       )}
 
       {screen !== "open" && (
