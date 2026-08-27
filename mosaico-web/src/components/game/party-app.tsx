@@ -16,7 +16,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { CartaPuzzle } from "./carta-puzzle";
+import { CartaPuzzle, type FotoId } from "./carta-puzzle";
 import { EspelhoPlay, PalimpsestoPlay, PlantaPlay } from "./gesto-play";
 import { MosaicMark } from "./mark";
 import { ModuleFrame } from "./module-frame";
@@ -365,19 +365,44 @@ function CorScreen() {
 function EncaixeScreen() {
   const players = useParty((s) => s.players);
   const uid = useParty((s) => s.uid);
+  const mode = useParty((s) => s.mode);
   const eu = me();
   const membros = players.filter((p) => p.nucleo === (eu?.nucleo ?? 1));
   const idx = Math.max(0, membros.findIndex((p) => p.id === uid));
   const mine = pecasDoTelefone(idx, membros.length);
+  const daCasa: FotoId = (eu?.nucleo ?? 1) % 2 === 0 ? "gaveta" : "agenda";
+  const [foto, setFoto] = useState<FotoId>(daCasa);
+  const [feitas, setFeitas] = useState<FotoId[]>([]);
+  const ensaio = mode === "local";
 
   return (
     <div className="space-y-4 px-5 pb-28 pt-6">
       <Line>{PHONE_LINE.encaixe}</Line>
-      <h2 className="font-serif text-3xl">A carta</h2>
+      <h2 className="font-serif text-3xl">{foto === "agenda" ? "A agenda" : "A gaveta"}</h2>
       <p className="text-sm text-fog">
-        Primeiro as tuas peças. Depois o outro telefone. Quebra-cabeça de dente — a carta da casa.
+        {foto === "agenda"
+          ? "A jornalista deixou a agenda na escrivaninha. Dentro, uma polaroid."
+          : "A gaveta estava aberta. Um retrato da família — e quem já estava na porta."}
       </p>
-      <CartaPuzzle mine={mine} phones={membros.length} />
+      <CartaPuzzle
+        key={foto}
+        foto={foto}
+        mine={mine}
+        phones={membros.length}
+        onComplete={() =>
+          setFeitas((prev) => (prev.includes(foto) ? prev : [...prev, foto]))
+        }
+      />
+      {ensaio && feitas.includes(foto) && feitas.length < 2 && (
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full"
+          onClick={() => setFoto(foto === "agenda" ? "gaveta" : "agenda")}
+        >
+          {foto === "agenda" ? "Abrir a gaveta" : "Ver a agenda"}
+        </Button>
+      )}
     </div>
   );
 }

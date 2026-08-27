@@ -1,9 +1,23 @@
 import { Button } from "@/components/ui/button";
-import { NOITE_CARTAS, ORDEM_NOITE } from "@/lib/mosaico/v3";
+import { ORDEM_NOITE } from "@/lib/mosaico/v3";
 import { cn } from "@/lib/utils";
 import { useMemo, useRef, useState } from "react";
 
-const SRC = "/media/carta-costa.jpg";
+export const FOTOS = {
+  agenda: {
+    src: "/media/foto-agenda.jpg",
+    onde: "Escrivaninha. A agenda da jornalista.",
+    achado: "Ontem a herdeira estava no jardim. Alguém já estava na janela.",
+  },
+  gaveta: {
+    src: "/media/foto-gaveta.jpg",
+    onde: "Gaveta aberta. Retrato da família.",
+    achado: "Quem mora na casa já estava na porta — fora do retrato.",
+  },
+} as const;
+
+export type FotoId = keyof typeof FOTOS;
+
 type Tab = -1 | 0 | 1;
 
 type Piece = {
@@ -65,12 +79,23 @@ function build(cols: number, rows: number): Piece[] {
 
 type Pos = { x: number; y: number; slot: number | null };
 
-export function CartaPuzzle({ mine, phones = 1 }: { mine?: string[]; phones?: number }) {
+export function CartaPuzzle({
+  mine,
+  phones = 1,
+  foto = "agenda",
+  onComplete,
+}: {
+  mine?: string[];
+  phones?: number;
+  foto?: FotoId;
+  onComplete?: () => void;
+}) {
   const mao = mine && mine.length ? mine : [...ORDEM_NOITE];
   const gridCols = 2;
   const gridRows = 3;
   const all = useMemo(() => build(gridCols, gridRows), [gridCols, gridRows]);
   const mineSet = useMemo(() => new Set(mao), [mao]);
+  const img = FOTOS[foto];
 
   const boardRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState<Record<string, Pos>>(() => {
@@ -134,9 +159,10 @@ export function CartaPuzzle({ mine, phones = 1 }: { mine?: string[]; phones?: nu
   return (
     <div className="space-y-3">
       <p className="text-sm leading-relaxed text-fog">
+        {img.onde}{" "}
         {mao.length < 6
-          ? "Monta as tuas peças neste telefone. As que faltam estão no outro. Encosta os vidros — a carta só fecha junto."
-          : "Quebra-cabeça de mesa: dente e buraco. Arrasta as peças. A carta da casa só se lê inteira."}
+          ? "Monta as tuas peças. As que faltam estão no outro telefone."
+          : "Quebra-cabeça de mesa: dente e buraco. Arrasta."}
       </p>
 
       <div
@@ -202,7 +228,7 @@ export function CartaPuzzle({ mine, phones = 1 }: { mine?: string[]; phones?: nu
                 className="h-full w-full overflow-visible drop-shadow-md"
               >
                 <defs>
-                  <clipPath id={`clip-${p.id}`}>
+                  <clipPath id={`clip-${foto}-${p.id}`}>
                     <path
                       d={piecePath(p.tabs)}
                       transform={`translate(${p.col} ${p.row})`}
@@ -210,13 +236,13 @@ export function CartaPuzzle({ mine, phones = 1 }: { mine?: string[]; phones?: nu
                   </clipPath>
                 </defs>
                 <image
-                  href={SRC}
+                  href={img.src}
                   x={0}
                   y={0}
                   width={gridCols}
                   height={gridRows}
                   preserveAspectRatio="xMidYMid slice"
-                  clipPath={`url(#clip-${p.id})`}
+                  clipPath={`url(#clip-${foto}-${p.id})`}
                 />
                 <path
                   d={piecePath(p.tabs)}
@@ -232,11 +258,7 @@ export function CartaPuzzle({ mine, phones = 1 }: { mine?: string[]; phones?: nu
 
         {correct && done && (
           <div className="absolute inset-x-0 bottom-0 z-30 bg-gradient-to-t from-background via-background/90 to-transparent px-3 pb-3 pt-10">
-            {NOITE_CARTAS.map((c) => (
-              <p key={c.id} className="text-[11px] leading-snug text-fog">
-                <span className="text-primary">{c.hora}</span> {c.txt}
-              </p>
-            ))}
+            <p className="font-serif text-lg italic text-primary">{img.achado}</p>
           </div>
         )}
       </div>
@@ -251,10 +273,13 @@ export function CartaPuzzle({ mine, phones = 1 }: { mine?: string[]; phones?: nu
         disabled={placed < mao.length}
         onClick={() => {
           setTried(true);
-          if (correct) setDone(true);
+          if (correct) {
+            setDone(true);
+            onComplete?.();
+          }
         }}
       >
-        Encostar a carta
+        Encaixar
       </Button>
       {tried && !correct && (
         <p className="text-center font-serif text-lg italic text-destructive">
@@ -263,7 +288,7 @@ export function CartaPuzzle({ mine, phones = 1 }: { mine?: string[]; phones?: nu
       )}
       {done && correct && (
         <p className="text-center font-serif text-lg italic text-primary">
-          A imagem atravessou a fresta.
+          {img.achado}
         </p>
       )}
     </div>
