@@ -26,7 +26,7 @@ export const PHONE_LINE: Record<V3Phase, string> = {
   salaescura: "Aponta. O quadro, depois o cofre.",
   cor: "Procura a sua cor.",
   palimpsesto: "Empilha os vidros.",
-  espelho: "Mostra. Não leias.",
+  espelho: "Mostra. Não leia.",
   planta: "A mesa é a casa.",
   encaixe: "Encosta.",
   oleo: "Compra ou guarda.",

@@ -15,7 +15,7 @@ const IDEAS: { id: Idea; kicker: string; title: string; why: string }[] = [
     id: "espelho",
     kicker: "Mostra, não lê",
     title: "O espelho",
-    why: "A pista está ao contrário. Só o outro, olhando o teu ecrã, consegue ler.",
+    why: "A pista está ao contrário. Só o outro, olhando a sua tela, consegue ler.",
   },
   {
     id: "formacao",

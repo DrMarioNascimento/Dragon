@@ -28,11 +28,11 @@ export function PalimpsestoPlay() {
     return (
       <div className="space-y-4 px-5 pb-28 pt-6">
         <p className="text-[11px] uppercase tracking-[0.22em] text-accent">Empilha os vidros.</p>
-        <h2 className="font-serif text-3xl">{baixo ? "Tu ficas em baixo" : "Tu ficas em cima"}</h2>
+        <h2 className="font-serif text-3xl">{baixo ? "Você fica embaixo" : "Você fica em cima"}</h2>
         <p className="text-sm text-fog">
           {baixo
-            ? "Põe o telefone na mesa, ecrã para cima. O outro empilha no teu."
-            : "Põe o teu ecrã em cima do outro. A frase só existe nos dois."}
+            ? "Coloca o celular na mesa, tela pra cima. O outro empilha no seu."
+            : "Põe a sua tela em cima da outra. A frase só existe nos dois."}
         </p>
         <div className="box-depth mx-auto min-h-44 max-w-sm rounded-2xl px-4 py-8 text-center">
           {baixo ? (
@@ -45,7 +45,7 @@ export function PalimpsestoPlay() {
             </p>
           ) : (
             <p className="font-serif text-xl leading-7 text-fog">
-              {on ? "baixou o disjuntor" : "lanterna — ecrã escuro até empilhar"}
+              {on ? "baixou o disjuntor" : "lanterna — tela escura até empilhar"}
             </p>
           )}
         </div>
@@ -122,12 +122,12 @@ export function EspelhoPlay() {
   if (!solo) {
     return (
       <div className="space-y-4 px-5 pb-28 pt-6">
-        <p className="text-[11px] uppercase tracking-[0.22em] text-accent">Mostra. Não leias.</p>
-        <h2 className="font-serif text-3xl">{mostra ? "Mostra o ecrã" : "Lê no outro"}</h2>
+        <p className="text-[11px] uppercase tracking-[0.22em] text-accent">Mostra. Não leia.</p>
+        <h2 className="font-serif text-3xl">{mostra ? "Mostra a tela" : "Lê no outro"}</h2>
         <p className="text-sm text-fog">
           {mostra
-            ? "Não leias em voz alta. Vira o telefone para o vizinho."
-            : "Olha o ecrã do outro. Lê tu a frase."}
+            ? "Não leia em voz alta. Vira o celular pro vizinho."
+            : "Olha a tela do outro. Você lê a frase."}
         </p>
         <div className="box-depth rounded-lg px-4 py-8 text-center">
           {mostra ? (
@@ -143,7 +143,7 @@ export function EspelhoPlay() {
               )}
             </p>
           ) : (
-            <p className="font-serif text-lg text-fog">O teu ecrã está vazio de propósito.</p>
+            <p className="font-serif text-lg text-fog">A sua tela está vazia de propósito.</p>
           )}
         </div>
         <Button className="w-full" size="lg" disabled={!cofre} onClick={mostrar}>
@@ -155,7 +155,7 @@ export function EspelhoPlay() {
 
   return (
     <div className="space-y-4 px-5 pb-28 pt-6">
-      <p className="text-[11px] uppercase tracking-[0.22em] text-accent">Mostra. Não leias.</p>
+      <p className="text-[11px] uppercase tracking-[0.22em] text-accent">Mostra. Não leia.</p>
       <h2 className="font-serif text-3xl">O espelho</h2>
       <p className="text-sm text-fog">
         {cofre
@@ -214,10 +214,10 @@ export function PlantaPlay() {
     return (
       <div className="space-y-4 px-5 pb-28 pt-6">
         <p className="text-[11px] uppercase tracking-[0.22em] text-accent">A mesa é a casa.</p>
-        <h2 className="font-serif text-3xl">O teu cômodo é {mine}</h2>
+        <h2 className="font-serif text-3xl">Seu cômodo é {mine}</h2>
         <p className="text-sm text-fog">
           {frase
-            ? "Elias baixou o disjuntor e passou por aqui. Encosta o teu telefone no sítio certo da mesa."
+            ? "Elias baixou o disjuntor e passou por aqui. Encosta o celular no lugar certo da mesa."
             : "A frase da pilha ainda não veio. Sem ela, o caminho não acende."}
         </p>
         <div className="box-depth flex h-40 items-end justify-center rounded-2xl pb-4 font-serif text-2xl text-primary">
@@ -232,7 +232,7 @@ export function PlantaPlay() {
             done("planta");
           }}
         >
-          {here ? "Estou no sítio" : `Pus o telefone na ${mine}`}
+          {here ? "Estou no lugar" : `Coloquei o celular na ${mine}`}
         </Button>
       </div>
     );
