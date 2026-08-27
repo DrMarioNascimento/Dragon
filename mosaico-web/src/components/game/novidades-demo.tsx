@@ -93,14 +93,14 @@ function Palimpsesto() {
     <div className="relative flex h-full items-center justify-center">
       <Phone className={cn("absolute transition-all duration-700", on ? "-translate-x-6" : "-translate-x-16 -rotate-3")}>
         <p className="px-3 pt-6 font-serif text-[13px] leading-6 text-fog">
-          ELIAS · · · · O
+          O MORADOR · · · · O
           <br />
           · · BAIXOU · ·
           <br />
           · DISJUNTOR ·
         </p>
         <p className="absolute bottom-2 w-full text-center text-[9px] uppercase tracking-widest text-primary">
-          Helena
+          Policial
         </p>
       </Phone>
       <Phone
@@ -112,13 +112,13 @@ function Palimpsesto() {
       >
         {on && (
           <p className="px-3 pt-10 text-center font-serif text-lg leading-6 text-primary">
-            Elias baixou
+            O morador baixou
             <br />
             o disjuntor
           </p>
         )}
         <p className="absolute bottom-2 w-full text-center text-[9px] uppercase tracking-widest text-primary">
-          Nilo
+          Jornalista
         </p>
       </Phone>
     </div>
@@ -140,10 +140,10 @@ function Espelho() {
         >
           a marca na trava
           <br />
-          é de Elias
+          é de quem mora na casa
         </p>
         <p className="absolute bottom-2 w-full text-center text-[9px] uppercase tracking-widest text-primary">
-          Clara
+          Jornalista
         </p>
       </Phone>
       <div
@@ -156,7 +156,7 @@ function Espelho() {
         <p className="mt-2 px-2 text-center font-serif text-sm text-primary">
           a marca na trava
           <br />
-          é de Elias
+          é de quem mora na casa
         </p>
       </div>
     </div>

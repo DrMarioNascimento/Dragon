@@ -57,7 +57,7 @@ export type PlayerDoc = {
   id?: string;
   nome: string;
   personagem: string;
-  forma: "m" | "f";
+  forma: "m" | "f" | "n";
   pronto: boolean;
   entrouMs: number;
   votos: number;
@@ -103,7 +103,7 @@ export async function entrarSala(
   code: string,
   uid: string,
   nome: string,
-  forma: "m" | "f",
+  forma: "m" | "f" | "n",
 ) {
   const room = await getDoc(roomRef(code));
   if (!room.exists() || room.data()?.ativa !== true) {

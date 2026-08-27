@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { MosaicMark } from "@/components/game/mark";
 import { CartaDemo } from "@/components/game/carta-demo";
 import { NovidadesDemo } from "@/components/game/novidades-demo";
+import { FORMA_OPCOES, type Forma } from "@/lib/mosaico/arquetipo";
 import { armAudio, stopVoice } from "@/lib/mosaico/sound";
 import { useParty } from "@/lib/mosaico/party";
 import { cn } from "@/lib/utils";
@@ -21,7 +22,7 @@ function Home() {
   const [screen, setScreen] = useState<Screen>("novo");
   const [muted, setMuted] = useState(true);
   const [nome, setNome] = useState("");
-  const [forma, setForma] = useState<"m" | "f">("m");
+  const [forma, setForma] = useState<Forma>("n");
   const [codigo, setCodigo] = useState("");
   const create = useParty((s) => s.create);
   const join = useParty((s) => s.join);
@@ -189,7 +190,7 @@ function Home() {
                 e.preventDefault();
                 const n = nome.trim() || "Jogador";
                 if (screen === "ensaiar") {
-                  localStart(n);
+                  localStart(n, forma);
                   return;
                 }
                 if (screen === "criar") void create(n, forma);
@@ -219,21 +220,14 @@ function Home() {
                 onChange={(e) => setNome(e.target.value)}
               />
               <div className="flex gap-2">
-                {(
-                  [
-                    ["m", "Ele"],
-                    ["f", "Ela"],
-                  ] as const
-                ).map(([id, label]) => (
+                {FORMA_OPCOES.map(({ id, label }) => (
                   <button
                     key={id}
                     type="button"
                     onClick={() => setForma(id)}
                     className={cn(
-                      "h-11 flex-1 rounded-md text-sm",
-                      forma === id
-                        ? "btn-depth"
-                        : "btn-depth-outline",
+                      "h-11 flex-1 rounded-md px-1 text-sm",
+                      forma === id ? "btn-depth" : "btn-depth-outline",
                     )}
                   >
                     {label}

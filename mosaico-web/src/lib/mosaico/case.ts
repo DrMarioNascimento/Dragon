@@ -13,7 +13,7 @@ export const CHARACTERS: Character[] = [
   {
     id: "tomas",
     seat: 0,
-    title: "O Investigador",
+    title: "Investigador",
     name: "Tomás Vale",
     role: "observador",
     blurb: "Chegou primeiro. Observa paredes como se fossem testemunhas.",
@@ -22,7 +22,7 @@ export const CHARACTERS: Character[] = [
   {
     id: "helena",
     seat: 1,
-    title: "A Herdeira",
+    title: "Herdeiro",
     name: "Helena Costa",
     role: "neutro",
     blurb: "A casa deveria ser dela ao amanhecer. A trava do cofre já estava marcada.",
@@ -31,7 +31,7 @@ export const CHARACTERS: Character[] = [
   {
     id: "elias",
     seat: 2,
-    title: "O Morador",
+    title: "Morador",
     name: "Elias Costa",
     role: "boato",
     blurb: "Entrou sem fazer barulho. A casa parece conhecê-lo de cor.",
@@ -40,7 +40,7 @@ export const CHARACTERS: Character[] = [
   {
     id: "clara",
     seat: 3,
-    title: "A Jornalista",
+    title: "Jornalista",
     name: "Clara Menezes",
     role: "boato",
     blurb: "Segura a bolsa como se o que está dentro pesasse mais que a noite.",
@@ -49,7 +49,7 @@ export const CHARACTERS: Character[] = [
   {
     id: "nilo",
     seat: 4,
-    title: "O Policial",
+    title: "Policial",
     name: "Nilo Andrade",
     role: "observador",
     blurb: "Tenta parecer calmo. O reflexo metálico na janela o denuncia.",
@@ -58,7 +58,7 @@ export const CHARACTERS: Character[] = [
   {
     id: "iris",
     seat: 5,
-    title: "A Menina",
+    title: "Visitante",
     name: "Íris Viana",
     role: "neutro",
     blurb: "A última a entrar. Viu tudo. Não disse nada.",
@@ -741,7 +741,7 @@ export const STORY: Record<string, StoryCard[]> = {
 
 export const SUSPECTS: Option[] = CHARACTERS.map((c) => ({
   id: c.id,
-  label: `${c.title} — ${c.name}`,
+  label: c.title,
   hint: c.blurb,
 }));
 

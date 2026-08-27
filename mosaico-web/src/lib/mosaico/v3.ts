@@ -114,12 +114,12 @@ export const ENVELOPES = [
 
 export const DEDUCAO = {
   suspeitos: [
-    { id: "tomas", label: "O Investigador" },
-    { id: "helena", label: "A Herdeira" },
-    { id: "elias", label: "O Morador" },
-    { id: "clara", label: "A Jornalista" },
-    { id: "nilo", label: "O Policial" },
-    { id: "iris", label: "A Menina" },
+    { id: "tomas", label: "Investigador" },
+    { id: "helena", label: "Herdeiro" },
+    { id: "elias", label: "Morador" },
+    { id: "clara", label: "Jornalista" },
+    { id: "nilo", label: "Policial" },
+    { id: "iris", label: "Visitante" },
   ],
   motivos: [
     { id: "m-heranca", label: "Impedir a troca da casa ao amanhecer" },

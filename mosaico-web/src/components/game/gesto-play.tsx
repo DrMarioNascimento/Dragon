@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { tituloPapelNaMesa } from "@/lib/mosaico/arquetipo";
 import { useParty } from "@/lib/mosaico/party";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -7,17 +8,18 @@ function seat() {
   const uid = useParty((s) => s.uid);
   const players = useParty((s) => s.players);
   const i = Math.max(0, players.findIndex((p) => p.id === uid));
-  return { i, n: players.length, nome: players[i]?.nome || "tu" };
+  return { i, n: players.length, nome: players[i]?.nome || "você", players };
 }
 
 export function PalimpsestoPlay() {
   const pistas = useParty((s) => s.pistas);
   const done = useParty((s) => s.markPista);
   const [on, setOn] = useState(false);
-  const { i, n } = seat();
+  const { i, n, players } = seat();
   const janela = !!pistas.janela;
   const solo = n <= 1;
   const baixo = solo || i % 2 === 0;
+  const morador = tituloPapelNaMesa("elias", players);
 
   function empilhar() {
     setOn(true);
@@ -37,7 +39,7 @@ export function PalimpsestoPlay() {
         <div className="box-depth mx-auto min-h-44 max-w-sm rounded-2xl px-4 py-8 text-center">
           {baixo ? (
             <p className="font-serif text-xl leading-7 text-primary">
-              {janela ? "ELIAS" : "· · ·"}
+              {janela ? morador.toUpperCase() : "· · ·"}
               <br />
               · · · · ·
               <br />
@@ -76,7 +78,7 @@ export function PalimpsestoPlay() {
           )}
         >
           <p className="font-serif text-sm leading-6 text-fog">
-            {janela ? "ELIAS" : "· · · ·"} · · · · O
+            {janela ? morador.toUpperCase() : "· · · ·"} · · · · O
             <br />· · BAIXOU · ·
             <br />· DISJUNTOR ·
           </p>
@@ -89,7 +91,7 @@ export function PalimpsestoPlay() {
         >
           {on ? (
             <p className="pt-6 text-center font-serif text-xl leading-7 text-primary">
-              Elias baixou
+              {morador} baixou
               <br />
               o disjuntor
             </p>
@@ -109,10 +111,11 @@ export function EspelhoPlay() {
   const pistas = useParty((s) => s.pistas);
   const done = useParty((s) => s.markPista);
   const [shown, setShown] = useState(false);
-  const { i, n } = seat();
+  const { i, n, players } = seat();
   const cofre = !!pistas.sala || !!pistas.salaescura;
   const solo = n <= 1;
   const mostra = solo || i % 2 === 0;
+  const morador = tituloPapelNaMesa("elias", players);
 
   function mostrar() {
     setShown(true);
@@ -136,7 +139,7 @@ export function EspelhoPlay() {
                 <>
                   a marca na trava
                   <br />
-                  é de Elias
+                  é de {morador}
                 </>
               ) : (
                 "· · ·"
@@ -171,7 +174,7 @@ export function EspelhoPlay() {
             <>
               a marca na trava
               <br />
-              é de Elias
+              é de {morador}
             </>
           ) : (
             "· · ·"
@@ -192,11 +195,12 @@ export function PlantaPlay() {
   const done = useParty((s) => s.markPista);
   const [path, setPath] = useState<string[]>([]);
   const [here, setHere] = useState(false);
-  const { i, n } = seat();
+  const { i, n, players } = seat();
   const frase = !!pistas.palimpsesto;
   const solo = n <= 1;
   const mine = ROOMS[i % 3];
   const ok = path.length === 3 && path.every((x, k) => x === ROOMS[k]);
+  const morador = tituloPapelNaMesa("elias", players);
 
   function tap(name: string) {
     if (!frase) return;
@@ -217,7 +221,7 @@ export function PlantaPlay() {
         <h2 className="font-serif text-3xl">Seu cômodo é {mine}</h2>
         <p className="text-sm text-fog">
           {frase
-            ? "Elias baixou o disjuntor e passou por aqui. Encosta o celular no lugar certo da mesa."
+            ? `${morador} baixou o disjuntor e passou por aqui. Encosta o celular no lugar certo da mesa.`
             : "A frase da pilha ainda não veio. Sem ela, o caminho não acende."}
         </p>
         <div className="box-depth flex h-40 items-end justify-center rounded-2xl pb-4 font-serif text-2xl text-primary">

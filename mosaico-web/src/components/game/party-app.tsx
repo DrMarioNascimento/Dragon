@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { CHARACTERS, REVEAL_SLIDES } from "@/lib/mosaico/case";
+import { REVEAL_SLIDES } from "@/lib/mosaico/case";
+import { tituloPapel, tituloPapelNaMesa } from "@/lib/mosaico/arquetipo";
 import { useParty } from "@/lib/mosaico/party";
 import {
   CHAR_IDS,
@@ -160,6 +161,8 @@ function EnceneScreen() {
   const personagem = tour ? CHAR_IDS[charI] : ator?.personagem || "tomas";
   const mine = tour || ator?.id === uid;
   const roteiro = ROTEIRO[personagem] ?? ROTEIRO.tomas;
+  const eu = players.find((p) => p.id === uid);
+  const mascara = tituloPapel(personagem, eu?.forma);
   const markObserve = useParty((s) => s.markObserve);
   const [step, setStep] = useState<"entenda" | "faca" | "fale" | "julga">("entenda");
 
@@ -186,6 +189,7 @@ function EnceneScreen() {
   return (
     <div className="space-y-5 px-5 pb-10 pt-6">
       <Line>{PHONE_LINE.encenacao}</Line>
+      <p className="font-serif text-xl text-primary">{mascara}</p>
       {tour && (
         <p className="text-xs uppercase tracking-widest text-muted-foreground">
           Cena {charI + 1} de {CHAR_IDS.length}
@@ -413,8 +417,13 @@ function DeducaoScreen() {
   const setDeduction = useParty((s) => s.setDeduction);
   const submit = useParty((s) => s.submitDeduction);
   const submittedAt = useParty((s) => s.submittedAt);
+  const players = useParty((s) => s.players);
   const ready =
     d.suspectId && d.motiveId && d.actionId && d.proofId && d.gapId && !submittedAt;
+  const suspeitos = DEDUCAO.suspeitos.map((s) => ({
+    ...s,
+    label: tituloPapelNaMesa(s.id, players),
+  }));
 
   function Field({
     label,
@@ -451,7 +460,7 @@ function DeducaoScreen() {
     <div className="space-y-4 px-5 pb-28 pt-6">
       <Line>{PHONE_LINE.deducao}</Line>
       <h2 className="font-serif text-3xl">Quem foi?</h2>
-      <Field label="Suspeito" field="suspectId" opts={DEDUCAO.suspeitos} />
+      <Field label="Suspeito" field="suspectId" opts={suspeitos} />
       <Field label="Motivo" field="motiveId" opts={DEDUCAO.motivos} />
       <Field label="O que fez" field="actionId" opts={DEDUCAO.acoes} />
       <Field label="Prova" field="proofId" opts={DEDUCAO.provas} />
@@ -494,22 +503,21 @@ function ResultadoScreen() {
       ))}
       <div className="box-depth rounded-lg px-4 py-4">
         <p className="font-serif text-2xl text-primary">
-          {acertou ? "Você apontou o Morador." : "A casa não era quem você acusou."}
+          {acertou
+            ? `Você apontou ${tituloPapelNaMesa("elias", players)}.`
+            : "A casa não era quem você acusou."}
         </p>
         <p className="mt-2 text-sm text-fog">
           Tempo {tempo} · Caso {caso} · Cena 5 · Óleo 20
         </p>
         <p className="mt-3 font-serif text-4xl text-primary">{submittedAt ? total : "—"}</p>
         <ul className="mt-4 space-y-1 text-sm">
-          {players.map((p) => {
-            const ch = CHARACTERS.find((c) => c.id === p.personagem);
-            return (
-              <li key={p.id}>
-                {p.nome}
-                {ch ? ` · ${ch.title}` : ""}
-              </li>
-            );
-          })}
+          {players.map((p) => (
+            <li key={p.id}>
+              {p.nome}
+              {p.personagem ? ` · ${tituloPapel(p.personagem, p.forma)}` : ""}
+            </li>
+          ))}
         </ul>
       </div>
       <Link to="/" className="block text-center text-sm text-accent">

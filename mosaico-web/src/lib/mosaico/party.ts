@@ -47,9 +47,9 @@ type PartyState = {
   observe: Record<string, boolean>;
   unsub: (() => void) | null;
   connect: () => Promise<void>;
-  create: (nome: string, forma: "m" | "f") => Promise<void>;
-  join: (code: string, nome: string, forma: "m" | "f") => Promise<void>;
-  localStart: (nome: string) => void;
+  create: (nome: string, forma: "m" | "f" | "n") => Promise<void>;
+  join: (code: string, nome: string, forma: "m" | "f" | "n") => Promise<void>;
+  localStart: (nome: string, forma: "m" | "f" | "n") => void;
   ready: () => Promise<void>;
   startNight: () => Promise<void>;
   advance: () => Promise<void>;
@@ -165,7 +165,7 @@ export const useParty = create<PartyState>((set, get) => ({
     }
   },
 
-  localStart: (nome) => {
+  localStart: (nome, forma) => {
     const uid = "local";
     set({
       mode: "local",
@@ -196,7 +196,7 @@ export const useParty = create<PartyState>((set, get) => ({
           id: uid,
           nome,
           personagem: "elias",
-          forma: "m",
+          forma,
           pronto: true,
           entrouMs: Date.now(),
           votos: 0,
