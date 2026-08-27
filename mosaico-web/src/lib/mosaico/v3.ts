@@ -157,7 +157,7 @@ export function assignNucleos(n: number): number[] {
 }
 
 export function assignComodos(n: number): ("sala" | "vidro")[] {
-  return Array.from({ length: n }, (_, i) => (i % 2 === 0 ? "sala" : "vidro"));
+  return Array.from({ length: n }, (_, i) => (i % 2 === 0 ? "vidro" : "sala"));
 }
 
 export const CHAR_IDS = ["tomas", "helena", "elias", "clara", "nilo", "iris"] as const;

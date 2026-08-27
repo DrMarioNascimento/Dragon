@@ -42,6 +42,7 @@ type PartyState = {
   submittedAt: number | null;
   voteTarget: string | null;
   oilBought: string | null;
+  lanternDone: boolean;
   unsub: (() => void) | null;
   connect: () => Promise<void>;
   create: (nome: string, forma: "m" | "f") => Promise<void>;
@@ -57,6 +58,7 @@ type PartyState = {
   setDeduction: (partial: PartyState["deduction"]) => void;
   submitDeduction: () => void;
   setLocalTiles: (tiles: string[]) => void;
+  markLanternDone: () => void;
   leave: () => void;
 };
 
@@ -91,6 +93,7 @@ export const useParty = create<PartyState>((set, get) => ({
   submittedAt: null,
   voteTarget: null,
   oilBought: null,
+  lanternDone: false,
   unsub: null,
 
   connect: async () => {
@@ -169,6 +172,7 @@ export const useParty = create<PartyState>((set, get) => ({
       voteTarget: null,
       oilBought: null,
       localTiles: [],
+      lanternDone: false,
       room: {
         ativa: true,
         fase: "sala",
@@ -192,7 +196,7 @@ export const useParty = create<PartyState>((set, get) => ({
           total: 0,
           atualizadoEmMs: Date.now(),
           nucleo: 1,
-          comodo: "sala",
+          comodo: "vidro",
         },
       ],
     });
@@ -252,11 +256,13 @@ export const useParty = create<PartyState>((set, get) => ({
     if (mode === "local") {
       set((s) => ({
         localFase: nxt,
+        lanternDone: false,
         room: s.room ? { ...s.room, fase: nxt, ...extra } : s.room,
       }));
       return;
     }
     if (!code) return;
+    set({ lanternDone: false });
     await atualizarMesa(code, extra);
   },
 
@@ -324,6 +330,7 @@ export const useParty = create<PartyState>((set, get) => ({
     }
   },
   setLocalTiles: (tiles) => set({ localTiles: tiles }),
+  markLanternDone: () => set({ lanternDone: true }),
 
   leave: () => {
     get().unsub?.();

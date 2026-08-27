@@ -35,15 +35,18 @@ function Line({ children }: { children: string }) {
 function HostBar() {
   const isMaster = useParty((s) => s.isMaster);
   const advance = useParty((s) => s.advance);
+  const lanternDone = useParty((s) => s.lanternDone);
   const fase = useParty((s) => (s.mode === "local" ? s.localFase : s.room?.fase));
   if (!isMaster) return null;
-  if (!fase || !["votacao", "janela", "comodo", "encaixe", "oleo", "deducao"].includes(fase)) {
+  if (fase === "janela" || fase === "comodo") {
+    if (!lanternDone) return null;
+  } else if (!fase || !["votacao", "encaixe", "oleo", "deducao"].includes(fase)) {
     return null;
   }
   return (
     <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 px-4 pb-[max(0.8rem,env(safe-area-inset-bottom))] pt-3">
       <Button className="w-full" size="lg" onClick={() => void advance()}>
-        Avançar
+        {fase === "janela" || fase === "comodo" ? "Seguir" : "Avançar"}
       </Button>
     </div>
   );
@@ -211,13 +214,15 @@ function VotoScreen() {
 
 function JanelaScreen() {
   const mod = NIGHT_MODULES.find((m) => m.slug === "janela")!;
+  const markLanternDone = useParty((s) => s.markLanternDone);
+  const lanternDone = useParty((s) => s.lanternDone);
   return (
-    <div className="flex min-h-[calc(100dvh-3.5rem)] flex-col pb-24">
+    <div className={cn("flex min-h-[calc(100dvh-3.5rem)] flex-col", lanternDone ? "pb-24" : "pb-2")}>
       <p className="px-5 pb-2 pt-1 text-[11px] uppercase tracking-[0.22em] text-accent">
         {PHONE_LINE.janela}
       </p>
       <div className="min-h-0 flex-1">
-        <ModuleFrame mod={mod} compact />
+        <ModuleFrame mod={mod} compact onDone={() => markLanternDone()} />
       </div>
     </div>
   );
@@ -227,13 +232,15 @@ function ComodoScreen() {
   const eu = me();
   const slug = eu?.comodo === "vidro" ? "vidro" : "sala";
   const mod = NIGHT_MODULES.find((m) => m.slug === slug)!;
+  const markLanternDone = useParty((s) => s.markLanternDone);
+  const lanternDone = useParty((s) => s.lanternDone);
   return (
-    <div className="flex min-h-[calc(100dvh-3.5rem)] flex-col pb-24">
+    <div className={cn("flex min-h-[calc(100dvh-3.5rem)] flex-col", lanternDone ? "pb-24" : "pb-2")}>
       <p className="px-5 pb-2 pt-1 text-[11px] uppercase tracking-[0.22em] text-accent">
         {PHONE_LINE.comodo}
       </p>
       <div className="min-h-0 flex-1">
-        <ModuleFrame mod={mod} compact />
+        <ModuleFrame mod={mod} compact onDone={() => markLanternDone()} />
       </div>
     </div>
   );
@@ -515,7 +522,13 @@ export function PartyApp() {
   }
 
   const hideChrome = fase === "cor";
-  const showHost = ["votacao", "janela", "comodo", "encaixe", "oleo", "deducao"].includes(fase);
+  const lanternDone = useParty((s) => s.lanternDone);
+  const showHost =
+    fase === "votacao" ||
+    fase === "encaixe" ||
+    fase === "oleo" ||
+    fase === "deducao" ||
+    ((fase === "janela" || fase === "comodo") && lanternDone);
 
   return (
     <div className="relative min-h-dvh bg-background">

@@ -4,7 +4,7 @@ import type { NightModule } from "@/lib/mosaico/modules";
 import { cn } from "@/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MosaicMark } from "./mark";
 
 function formatTime(ms: number) {
@@ -16,17 +16,30 @@ function formatTime(ms: number) {
   return `${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")},${String(c).padStart(2, "0")}`;
 }
 
-export function ModuleFrame({ mod, compact }: { mod: NightModule; compact?: boolean }) {
+export function ModuleFrame({
+  mod,
+  compact,
+  onDone,
+}: {
+  mod: NightModule;
+  compact?: boolean;
+  onDone?: (ms: number) => void;
+}) {
   const [run, setRun] = useState(0);
   const [doneMs, setDoneMs] = useState<number | null>(null);
   const [mode, setMode] = useState<"wait" | "apple" | "frame">("wait");
   const [desktop, setDesktop] = useState(false);
   const runId = `${mod.slug}-${run}`;
+  const onDoneRef = useRef(onDone);
+  onDoneRef.current = onDone;
 
   useEffect(() => {
-    setMode(isAppleTouch() ? "apple" : "frame");
     setDesktop(isDesktopPointer());
-  }, []);
+    /* Na noite (compact) o iframe fica: sair da página mata a mesa.
+       Só a lanterna sozinha, no iPhone, pede tela cheia. */
+    if (compact) setMode("frame");
+    else setMode(isAppleTouch() ? "apple" : "frame");
+  }, [compact]);
 
   useEffect(() => {
     if (mode !== "apple") return;
@@ -41,6 +54,7 @@ export function ModuleFrame({ mod, compact }: { mod: NightModule; compact?: bool
       if (d.runId && d.runId !== runId) return;
       if (typeof d.tempoMs === "number") setDoneMs(d.tempoMs);
       else setDoneMs(0);
+      onDoneRef.current?.(typeof d.tempoMs === "number" ? d.tempoMs : 0);
     }
     window.addEventListener("message", onMsg);
     return () => window.removeEventListener("message", onMsg);
@@ -59,7 +73,7 @@ export function ModuleFrame({ mod, compact }: { mod: NightModule; compact?: bool
     );
   }
 
-  const src = `/modulos/${mod.file}?embed=1&run=${encodeURIComponent(runId)}${desktop ? "&dev=1" : ""}`;
+  const src = `/modulos/${mod.file}?embed=1&run=${encodeURIComponent(runId)}${!compact && desktop ? "&dev=1" : ""}`;
 
   return (
     <div className={cn("relative bg-background", compact ? "h-full min-h-[52dvh]" : "h-dvh")}>
@@ -80,7 +94,7 @@ export function ModuleFrame({ mod, compact }: { mod: NightModule; compact?: bool
         allow="accelerometer; gyroscope; magnetometer; fullscreen; autoplay"
         allowFullScreen
       />
-      {doneMs !== null && (
+      {doneMs !== null && !compact && (
         <div className="absolute inset-x-0 bottom-0 z-30 flex flex-col items-center gap-3 bg-gradient-to-t from-background via-background/95 to-transparent px-6 pb-[max(5.5rem,env(safe-area-inset-bottom))] pt-16">
           <p className="text-[11px] uppercase tracking-[0.2em] text-accent">Fragmento localizado</p>
           <p className="font-serif text-3xl text-foreground">{mod.title}</p>

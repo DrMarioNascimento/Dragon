@@ -6,7 +6,7 @@
     if (document.getElementById("mosaico-voltar")) return;
     var a = document.createElement("a");
     a.id = "mosaico-voltar";
-    a.href = "/noite";
+    a.href = q.get("from") === "play" ? "/play" : "/noite";
     a.textContent = "MOSAICO";
     a.setAttribute("aria-label", "Voltar ao MOSAICO");
     a.style.cssText =
