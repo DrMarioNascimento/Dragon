@@ -17,7 +17,7 @@ export function PalimpsestoPlay() {
       <div className="relative mx-auto h-56 w-full max-w-sm">
         <div
           className={cn(
-            "absolute left-4 top-2 h-44 w-40 rounded-2xl border-2 border-primary/40 bg-card p-3 transition-all duration-500",
+            "box-depth absolute left-4 top-2 h-44 w-40 rounded-2xl p-3 transition-all duration-500",
             on && "left-10 opacity-40",
           )}
         >
@@ -30,7 +30,7 @@ export function PalimpsestoPlay() {
         </div>
         <div
           className={cn(
-            "absolute right-4 top-6 h-44 w-40 rounded-2xl border-2 border-primary bg-background/90 p-3 shadow-lg transition-all duration-500",
+            "box-depth absolute right-4 top-6 h-44 w-40 rounded-2xl p-3 transition-all duration-500",
             on ? "right-10 top-2 ring-4 ring-primary/30" : "",
           )}
         >
@@ -69,7 +69,7 @@ export function EspelhoPlay() {
       <p className="text-sm text-fog">
         A pista está ao contrário. No ensaio, viras o ecrã. Na festa, o vizinho lê no teu telefone.
       </p>
-      <div className="rounded-lg border border-border bg-card px-4 py-8 text-center">
+      <div className="box-depth rounded-lg px-4 py-8 text-center">
         <p className="font-serif text-2xl leading-8 text-primary" style={{ transform: shown ? "none" : "scaleX(-1)" }}>
           a marca na trava
           <br />
@@ -128,8 +128,8 @@ export function PlantaPlay() {
               type="button"
               onClick={() => tap(name)}
               className={cn(
-                "flex h-36 flex-1 flex-col items-center justify-end rounded-2xl border-2 pb-3 font-serif text-lg",
-                lit ? "border-primary bg-primary/15 text-primary" : "border-border text-fog",
+                "flex h-36 flex-1 flex-col items-center justify-end rounded-2xl pb-3 font-serif text-lg",
+                lit ? "btn-depth" : "box-depth text-fog",
               )}
             >
               {name}

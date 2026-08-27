@@ -41,7 +41,7 @@ function NoitePage() {
               <Link
                 to="/noite/$slug"
                 params={{ slug: m.slug }}
-                className="block rounded-xl border border-border bg-card/80 p-4 transition-colors hover:border-accent/50"
+                className="box-depth block rounded-xl p-4"
               >
                 <p className="text-[11px] uppercase tracking-[0.16em] text-accent">{m.kicker}</p>
                 <p className="mt-1 font-serif text-2xl">{m.title}</p>

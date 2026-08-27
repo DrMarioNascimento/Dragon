@@ -205,7 +205,7 @@ function Home() {
               </h2>
               {screen === "entrar" && (
                 <input
-                  className="h-12 w-full rounded-md border border-border bg-card px-3 tracking-[0.2em] uppercase"
+                  className="field-depth h-12 w-full rounded-md px-3 tracking-[0.2em] uppercase"
                   placeholder="CÓDIGO"
                   value={codigo}
                   onChange={(e) => setCodigo(e.target.value.toUpperCase())}
@@ -213,7 +213,7 @@ function Home() {
                 />
               )}
               <input
-                className="h-12 w-full rounded-md border border-border bg-card px-3"
+                className="field-depth h-12 w-full rounded-md px-3"
                 placeholder="Seu nome"
                 value={nome}
                 onChange={(e) => setNome(e.target.value)}
@@ -230,10 +230,10 @@ function Home() {
                     type="button"
                     onClick={() => setForma(id)}
                     className={cn(
-                      "h-11 flex-1 rounded-md border text-sm",
+                      "h-11 flex-1 rounded-md text-sm",
                       forma === id
-                        ? "border-accent bg-accent/15 text-accent"
-                        : "border-border",
+                        ? "btn-depth"
+                        : "btn-depth-outline",
                     )}
                   >
                     {label}

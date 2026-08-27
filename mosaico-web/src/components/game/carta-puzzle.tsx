@@ -141,7 +141,7 @@ export function CartaPuzzle({ mine, phones = 1 }: { mine?: string[]; phones?: nu
 
       <div
         ref={boardRef}
-        className="relative aspect-[3/4] w-full touch-none overflow-hidden rounded-lg bg-muted shadow-[var(--shadow-border)]"
+        className="box-depth relative aspect-[3/4] w-full touch-none overflow-hidden rounded-lg"
         onPointerMove={onMove}
         onPointerUp={onUp}
         onPointerCancel={onUp}

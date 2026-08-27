@@ -216,7 +216,7 @@ function Phone({
   return (
     <div
       className={cn(
-        "h-[88%] w-[42%] overflow-hidden rounded-[1.35rem] border-2 border-primary/50 bg-background shadow-[var(--shadow-border)]",
+        "box-depth h-[88%] w-[42%] overflow-hidden rounded-[1.35rem]",
         lantern && "bg-background/70 ring-4 ring-primary/25",
         className,
       )}

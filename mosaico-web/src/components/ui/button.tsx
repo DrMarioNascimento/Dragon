@@ -3,16 +3,14 @@ import { type ButtonHTMLAttributes, forwardRef } from "react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 font-medium transition-[opacity,transform,background-color,border-color,box-shadow] duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-40 active:enabled:scale-[0.96]",
+  "inline-flex items-center justify-center gap-2 font-medium transition-[transform,box-shadow,background-color,opacity] duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-40",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:opacity-90",
-        outline:
-          "border border-border bg-transparent text-foreground shadow-[var(--shadow-border)] hover:bg-muted",
+        default: "btn-depth",
+        outline: "btn-depth-outline",
         ghost: "text-fog hover:bg-muted hover:text-foreground",
-        soft:
-          "border border-accent/40 bg-accent/10 text-accent hover:bg-accent/18",
+        soft: "btn-depth-soft",
       },
       size: {
         default: "h-11 min-h-11 rounded-md px-5 text-sm",
