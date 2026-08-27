@@ -37,7 +37,7 @@ export function tituloPapelNaMesa(
 }
 
 export const FORMA_OPCOES: { id: Forma; emoji: string; label: string }[] = [
-  { id: "m", emoji: "👨", label: "Menino" },
-  { id: "f", emoji: "👩", label: "Menina" },
-  { id: "n", emoji: "🧑", label: "Tanto faz" },
+  { id: "m", emoji: "👨", label: "Bem-vindo" },
+  { id: "f", emoji: "👩", label: "Bem-vinda" },
+  { id: "n", emoji: "👥", label: "Tanto faz" },
 ];

@@ -219,7 +219,7 @@ function Home() {
                 value={nome}
                 onChange={(e) => setNome(e.target.value)}
               />
-              <div className="flex gap-2" role="radiogroup" aria-label="Como te chamam">
+              <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Boas-vindas">
                 {FORMA_OPCOES.map(({ id, emoji, label }) => (
                   <button
                     key={id}
@@ -227,14 +227,16 @@ function Home() {
                     role="radio"
                     aria-checked={forma === id}
                     aria-label={label}
-                    title={label}
                     onClick={() => setForma(id)}
                     className={cn(
-                      "flex h-12 flex-1 items-center justify-center rounded-md text-2xl",
-                      forma === id ? "btn-depth" : "btn-depth-outline",
+                      "flex min-h-[6.5rem] flex-col items-center justify-center gap-2 rounded-lg px-1 py-3",
+                      forma === id ? "btn-depth" : "box-depth",
                     )}
                   >
-                    {emoji}
+                    <span className="text-3xl leading-none" aria-hidden>
+                      {emoji}
+                    </span>
+                    <span className="font-serif text-sm italic text-fog">{label}</span>
                   </button>
                 ))}
               </div>
