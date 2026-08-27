@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { MosaicMark } from "@/components/game/mark";
 import { CartaDemo } from "@/components/game/carta-demo";
+import { NovidadesDemo } from "@/components/game/novidades-demo";
 import { armAudio, stopVoice } from "@/lib/mosaico/sound";
 import { useParty } from "@/lib/mosaico/party";
 import { cn } from "@/lib/utils";
@@ -12,12 +13,12 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
-type Screen = "open" | "menu" | "criar" | "entrar" | "ensaiar" | "como" | "carta";
+type Screen = "open" | "menu" | "criar" | "entrar" | "ensaiar" | "como" | "carta" | "novo";
 
 function Home() {
   const nav = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [screen, setScreen] = useState<Screen>("carta");
+  const [screen, setScreen] = useState<Screen>("novo");
   const [muted, setMuted] = useState(true);
   const [nome, setNome] = useState("");
   const [forma, setForma] = useState<"m" | "f">("m");
@@ -131,7 +132,7 @@ function Home() {
 
       {screen !== "open" && (
         <div className="relative z-10 mx-auto flex min-h-dvh max-w-lg flex-col px-6 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-[max(1.5rem,env(safe-area-inset-top))]">
-          {screen !== "carta" && (
+          {screen !== "carta" && screen !== "novo" && (
           <header className="stagger-in text-center">
             <MosaicMark className="mx-auto mb-5 size-9 text-primary" />
             <p className="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
@@ -158,9 +159,9 @@ function Home() {
                 <Play className="size-4" />
                 Ensaiar sozinho
               </Button>
-              <Button variant="soft" size="lg" onClick={() => setScreen("carta")}>
+              <Button variant="soft" size="lg" onClick={() => setScreen("novo")}>
                 <Puzzle className="size-4" />
-                Ver a carta encostar
+                Três gestos novos
               </Button>
               <Button
                 variant="ghost"
@@ -253,6 +254,12 @@ function Home() {
                 Voltar
               </Button>
             </form>
+          )}
+
+          {screen === "novo" && (
+            <div className="stagger-in mt-2">
+              <NovidadesDemo onBack={() => setScreen("menu")} />
+            </div>
           )}
 
           {screen === "carta" && (
