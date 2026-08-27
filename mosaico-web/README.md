@@ -1,18 +1,32 @@
 # MOSAICO — cliente web (React)
 
-Protótipo do caso **A Casa da Costa** em React, separado da mesa canônica.
+**Versão 3 — a noite na mesa.** Caso *A Casa da Costa*.
 
-A mesa que está no ar continua em [`../MOSAICO-mesa.html`](../MOSAICO-mesa.html).  
-Esta pasta não substitui a mesa, o Firebase, nem as tarefas HTML da raiz.
+Cada pessoa no próprio telefone. A mesa senta (personagem, vez, cor). 
+O telefone é lanterna. No fim, cada um acusa sozinho.
 
-**Jogar a mesa atual:** [drmarionascimento.github.io/Dragon/MOSAICO-mesa.html](https://drmarionascimento.github.io/Dragon/MOSAICO-mesa.html)
+A mesa HTML canônica continua em [`../MOSAICO-mesa.html`](../MOSAICO-mesa.html).  
+Este cliente usa o **mesmo Firebase** (`mosaico-game`) e a mesma coleção `mosaico/`, 
+com o fluxo da versão 3 (Encene → Janela → cômodo → cor → carta → óleo → acusação).
 
-## O que tem aqui
+**Jogar a mesa HTML:** [drmarionascimento.github.io/Dragon/MOSAICO-mesa.html](https://drmarionascimento.github.io/Dragon/MOSAICO-mesa.html)
 
-- Caso piloto em modo solo (1 humano + bots) ou mesa local (passar o telefone)
-- Abertura, caderno, mercado, mosaico e acusação
-- As quatro tarefas de sensor, no iPhone em tela cheia (giroscópio)
-- Arte e áudio em `public/`
+## Como jogar
+
+1. **Abrir uma mesa** — gera o código. Os outros entram com o código.
+2. **Entrar com o código** — nome, pronome, o código da sala.
+3. **Ensaiar sozinho** — a noite inteira neste telefone, sem nuvem.
+4. **A lanterna** — Janela, Sala, Vidro, Mapa, para praticar o rumo.
+
+O telefone diz uma frase por vez: *Faça. Aponta. Procura a sua cor. Encosta. Compra ou guarda. Quem foi?*
+
+## Firebase
+
+Projeto `mosaico-game` (o mesmo da mesa HTML). Login anônimo. 
+Domínios autorizados: o GitHub Pages e o Firebase Hosting da mesa.
+
+Se a página atual não estiver autorizada no console do Firebase, 
+a criação de sala falha — use **Ensaiar sozinho**, ou abra o jogo num domínio já liberado.
 
 ## Como rodar
 
@@ -22,14 +36,6 @@ npm install
 npm run dev
 ```
 
-Abre no celular pelo mesmo endereço da máquina (https). Sem https o iPhone bloqueia o giroscópio.
-
-## Relação com a raiz do Dragon
-
-| Raiz do repositório | Esta pasta |
-|---|---|
-| `MOSAICO-mesa.html` + Firebase | protótipo React, sem sala na nuvem |
-| `MOSAICO-26-*.html` | cópias em `public/modulos/` para o iframe / tela cheia |
-| `audio/`, `img/` | cópias em `public/audio` e `public/media` |
+Abre no celular por HTTPS. Sem HTTPS o iPhone bloqueia o giroscópio.
 
 Autoria: Mário César Nascimento e Osana Melo Nascimento.

@@ -1,38 +1,46 @@
 import { Button } from "@/components/ui/button";
+import { MosaicMark } from "@/components/game/mark";
 import { RotateHint } from "@/components/game/rotate-hint";
-import { CHARACTERS, ROLE_LABEL } from "@/lib/mosaico/case";
 import { armAudio, playOnce, playStorm, stopVoice } from "@/lib/mosaico/sound";
-import { useGame } from "@/lib/mosaico/store";
+import { useParty } from "@/lib/mosaico/party";
 import { cn } from "@/lib/utils";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Compass, Play, Users, X } from "lucide-react";
+import { Compass, DoorOpen, Play, QrCode } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 export const Route = createFileRoute("/")({
   component: Home,
 });
 
-type Screen = "open" | "menu" | "solo" | "mesa" | "como";
+type Screen = "open" | "menu" | "criar" | "entrar" | "ensaiar" | "como";
 
 function Home() {
   const nav = useNavigate();
-  const start = useGame((s) => s.start);
-  const match = useGame((s) => s.match);
-  const hydrate = useGame((s) => s.hydrate);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [screen, setScreen] = useState<Screen>("open");
-  const [seat, setSeat] = useState<number | null>(null);
-  const [count, setCount] = useState(2);
-  const [picked, setPicked] = useState<number[]>([]);
   const [muted, setMuted] = useState(true);
+  const [nome, setNome] = useState("");
+  const [forma, setForma] = useState<"m" | "f">("m");
+  const [codigo, setCodigo] = useState("");
+  const create = useParty((s) => s.create);
+  const join = useParty((s) => s.join);
+  const localStart = useParty((s) => s.localStart);
+  const connecting = useParty((s) => s.connecting);
+  const error = useParty((s) => s.error);
+  const mode = useParty((s) => s.mode);
 
   useEffect(() => {
-    hydrate();
-  }, [hydrate]);
+    if (typeof window === "undefined") return;
+    const q = new URLSearchParams(window.location.search).get("sala");
+    if (q) {
+      setCodigo(q.toUpperCase());
+      setScreen("entrar");
+    }
+  }, []);
 
   useEffect(() => {
-    if (match) setScreen("menu");
-  }, [match]);
+    if (mode !== "idle") void nav({ to: "/play" });
+  }, [mode, nav]);
 
   function skipOpen() {
     const v = videoRef.current;
@@ -42,11 +50,6 @@ function Home() {
     }
     stopVoice();
     setScreen("menu");
-  }
-
-  function begin(seats: number[]) {
-    start(seats);
-    void nav({ to: "/play" });
   }
 
   return (
@@ -71,31 +74,36 @@ function Home() {
         preload="metadata"
         disablePictureInPicture
         disableRemotePlayback
-        {...{ "webkit-playsinline": "true", "x5-playsinline": "true" }}
+        {...{ "webkit-playsinline": "true", "x-playsinline": "true" }}
         onEnded={() => {
           setScreen("menu");
           if (!muted) playStorm(true);
         }}
       />
+      <div className="cover-tint absolute inset-0" />
       <div
         className={cn(
           "absolute inset-0 transition-opacity duration-500",
-          screen === "open" ? "bg-background/20" : "bg-background/80",
+          screen === "open" ? "bg-background/10" : "bg-background/72",
         )}
       />
 
       {screen === "open" && (
         <div className="relative z-10 flex min-h-dvh flex-col justify-between px-6 pb-[max(2rem,env(safe-area-inset-bottom))] pt-[max(2rem,env(safe-area-inset-top))]">
-          <p className="text-center text-[11px] uppercase tracking-[0.32em] text-fog">
-            A Casa da Costa
-          </p>
           <div className="flex flex-col items-center gap-3">
-            <Button variant="amber" size="lg" onClick={skipOpen}>
+            <MosaicMark className="size-8 text-primary" />
+            <p className="brand-wordmark text-4xl text-primary">MOSAICO</p>
+            <p className="text-center text-[11px] uppercase tracking-[0.28em] text-fog">
+              A Casa da Costa
+            </p>
+          </div>
+          <div className="flex flex-col items-center gap-3">
+            <Button variant="soft" size="lg" onClick={skipOpen}>
               Pular abertura
             </Button>
             <button
               type="button"
-              className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground"
+              className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground"
               onClick={() => {
                 setMuted(false);
                 armAudio();
@@ -106,7 +114,7 @@ function Home() {
             </button>
             <button
               type="button"
-              className="text-[11px] uppercase tracking-[0.18em] text-fog"
+              className="text-[11px] uppercase tracking-[0.16em] text-fog"
               onClick={() => playOnce("/audio/abertura.mp3", 0.85)}
             >
               Ouvir a casa
@@ -118,203 +126,143 @@ function Home() {
       {screen !== "open" && (
         <div className="relative z-10 mx-auto flex min-h-dvh max-w-lg flex-col px-6 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-[max(2.5rem,env(safe-area-inset-top))]">
           <header className="stagger-in text-center">
-            <p className="text-[11px] uppercase tracking-[0.34em] text-muted-foreground">
+            <MosaicMark className="mx-auto mb-5 size-9 text-primary" />
+            <p className="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
               A verdade é um fragmento
             </p>
-            <h1 className="mt-2 font-serif text-6xl font-medium tracking-[0.08em] text-primary">
-              MOSAICO
-            </h1>
+            <h1 className="brand-wordmark mt-2 text-6xl text-primary">MOSAICO</h1>
             <p className="mt-3 font-serif text-lg italic text-fog">
-              Jogo de dedução distribuída
+              A noite na mesa
             </p>
           </header>
 
           {screen === "menu" && (
-            <div className="stagger-in mt-12 flex flex-col gap-3">
-              {match && (
-                <Button size="lg" onClick={() => void nav({ to: "/play" })}>
-                  Continuar a noite
-                </Button>
-              )}
-              <Button size="lg" onClick={() => setScreen("solo")}>
-                <Play className="size-4" />
-                Jogar o caso
+            <div className="stagger-in mt-10 flex flex-col gap-3">
+              <Button size="lg" onClick={() => setScreen("criar")}>
+                <DoorOpen className="size-4" />
+                Abrir uma mesa
               </Button>
-              <Button variant="outline" size="lg" onClick={() => setScreen("mesa")}>
-                <Users className="size-4" />
-                Mesa local
+              <Button variant="outline" size="lg" onClick={() => setScreen("entrar")}>
+                <QrCode className="size-4" />
+                Entrar com o código
+              </Button>
+              <Button variant="soft" size="lg" onClick={() => setScreen("ensaiar")}>
+                <Play className="size-4" />
+                Ensaiar sozinho
               </Button>
               <Button
-                variant="amber"
+                variant="ghost"
                 size="lg"
                 onClick={() => void nav({ to: "/noite" })}
               >
                 <Compass className="size-4" />
-                A noite da casa
+                A lanterna
               </Button>
               <Button variant="ghost" onClick={() => setScreen("como")}>
                 Como jogar
               </Button>
               <p className="mt-8 text-center text-[11px] leading-relaxed text-muted-foreground">
-                Caso piloto · A Casa da Costa
+                Cada um no próprio telefone. A mesa senta. A casa existe neste cômodo.
                 <br />
                 Mario Nascimento & Osana Melo Nascimento
               </p>
             </div>
           )}
 
-          {screen === "solo" && (
-            <SeatPicker
-              title="Escolha o seu lugar na casa"
-              taken={[]}
-              selected={seat}
-              onSelect={setSeat}
-              onBack={() => setScreen("menu")}
-              onConfirm={() => begin([seat ?? 0])}
-              confirmLabel="Entrar na tempestade"
-              disabled={seat == null}
-            />
-          )}
-
-          {screen === "mesa" && (
-            <div className="mt-8 space-y-4">
-              <h2 className="font-serif text-2xl">Quantos jogadores</h2>
+          {(screen === "criar" || screen === "entrar" || screen === "ensaiar") && (
+            <form
+              className="mt-8 space-y-4"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const n = nome.trim() || "Jogador";
+                if (screen === "ensaiar") {
+                  localStart(n);
+                  return;
+                }
+                if (screen === "criar") void create(n, forma);
+                else void join(codigo, n, forma);
+              }}
+            >
+              <h2 className="font-serif text-2xl">
+                {screen === "criar"
+                  ? "Abrir a mesa"
+                  : screen === "entrar"
+                    ? "Entrar"
+                    : "Ensaiar"}
+              </h2>
+              {screen === "entrar" && (
+                <input
+                  className="h-12 w-full rounded-md border border-border bg-card px-3 tracking-[0.2em] uppercase"
+                  placeholder="CÓDIGO"
+                  value={codigo}
+                  onChange={(e) => setCodigo(e.target.value.toUpperCase())}
+                  autoCapitalize="characters"
+                />
+              )}
+              <input
+                className="h-12 w-full rounded-md border border-border bg-card px-3"
+                placeholder="Seu nome"
+                value={nome}
+                onChange={(e) => setNome(e.target.value)}
+              />
               <div className="flex gap-2">
-                {[2, 3, 4, 5, 6].map((n) => (
+                {(
+                  [
+                    ["m", "Ele"],
+                    ["f", "Ela"],
+                  ] as const
+                ).map(([id, label]) => (
                   <button
-                    key={n}
+                    key={id}
                     type="button"
-                    onClick={() => {
-                      setCount(n);
-                      setPicked([]);
-                    }}
+                    onClick={() => setForma(id)}
                     className={cn(
-                      "min-h-11 flex-1 rounded-md border tabular-nums",
-                      count === n ? "border-accent bg-accent/15 text-accent" : "border-border",
+                      "h-11 flex-1 rounded-md border text-sm",
+                      forma === id
+                        ? "border-accent bg-accent/15 text-accent"
+                        : "border-border",
                     )}
                   >
-                    {n}
+                    {label}
                   </button>
                 ))}
               </div>
-              <p className="text-sm text-muted-foreground">
-                Cada pessoa escolhe um assento. Os demais lugares ficam com a mesa.
-              </p>
-              <SeatPicker
-                title={`Assentos (${picked.length}/${count})`}
-                taken={[]}
-                selected={null}
-                multi={picked}
-                onSelect={(s) =>
-                  setPicked((prev) =>
-                    prev.includes(s)
-                      ? prev.filter((x) => x !== s)
-                      : prev.length < count
-                        ? [...prev, s]
-                        : prev,
-                  )
-                }
-                onBack={() => setScreen("menu")}
-                onConfirm={() => begin(picked)}
-                confirmLabel="Abrir a mesa"
-                disabled={picked.length !== count}
-              />
-            </div>
+              {error && <p className="text-sm text-destructive">{error}</p>}
+              <Button className="w-full" size="lg" type="submit" disabled={connecting}>
+                {connecting
+                  ? "Ligando a mesa…"
+                  : screen === "criar"
+                    ? "Criar sala"
+                    : screen === "entrar"
+                      ? "Entrar"
+                      : "Começar o ensaio"}
+              </Button>
+              <Button type="button" variant="ghost" className="w-full" onClick={() => setScreen("menu")}>
+                Voltar
+              </Button>
+            </form>
           )}
 
           {screen === "como" && (
-            <div className="mt-8 space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="font-serif text-2xl">Como jogar</h2>
-                <Button variant="ghost" size="icon" onClick={() => setScreen("menu")} aria-label="Fechar">
-                  <X className="size-5" />
-                </Button>
-              </div>
-              <ol className="space-y-3 text-sm leading-relaxed text-fog">
-                <li><strong className="text-foreground">0.</strong> A história pula — cada um lê um pedaço.</li>
-                <li><strong className="text-foreground">1.</strong> Fragmentos só seus. Ninguém vê o caderno alheio.</li>
-                <li><strong className="text-foreground">2.</strong> Hipótese I, ainda fraca.</li>
-                <li><strong className="text-foreground">3.</strong> Mercado cego: compra o tipo, não o conteúdo.</li>
-                <li><strong className="text-foreground">4.</strong> Troca vinculada: prometeu, o sistema cumpre.</li>
-                <li><strong className="text-foreground">5.</strong> Mosaico coletivo e a carta da noite.</li>
-                <li><strong className="text-foreground">6.</strong> Hipótese II, última ação, dedução individual.</li>
-                <li><strong className="text-foreground">7.</strong> A casa revela. O placar junta tempo, qualidade, cooperação, risco.</li>
+            <div className="mt-8 space-y-3 text-sm leading-relaxed text-fog">
+              <p>Resolver um caso: quem abriu o cofre na Casa da Costa, em dois minutos de apagão.</p>
+              <p>O telefone diz uma frase por vez:</p>
+              <ol className="list-decimal space-y-1 pl-5">
+                <li>É a sua vez. Faça.</li>
+                <li>Aponta — a janela, depois o cômodo.</li>
+                <li>Procura a sua cor.</li>
+                <li>Encosta a carta.</li>
+                <li>Compra ou guarda.</li>
+                <li>Quem foi?</li>
               </ol>
-              <p className="font-serif text-lg italic text-fog">
-                Todos querem resolver o caso. A vitória é individual.
-              </p>
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                Feito para o telefone, em pé. No iPhone: Compartilhar → Adicionar à Tela de Início.
-                No Android: o menu do Chrome → Adicionar à tela inicial. Quando a casa pedir movimento, aceite.
-              </p>
-              <Button className="w-full" onClick={() => setScreen("solo")}>
-                Escolher lugar
+              <p>A mesa escolhe personagem, vez e time. Cada um acusa sozinho.</p>
+              <Button variant="ghost" onClick={() => setScreen("menu")}>
+                Voltar
               </Button>
             </div>
           )}
         </div>
       )}
     </main>
-  );
-}
-
-function SeatPicker({
-  title,
-  selected,
-  taken,
-  multi,
-  onSelect,
-  onBack,
-  onConfirm,
-  confirmLabel,
-  disabled,
-}: {
-  title: string;
-  selected: number | null;
-  taken: number[];
-  multi?: number[];
-  onSelect: (seat: number) => void;
-  onBack: () => void;
-  onConfirm: () => void;
-  confirmLabel: string;
-  disabled?: boolean;
-}) {
-  return (
-    <div className="mt-8 space-y-3">
-      <h2 className="font-serif text-2xl">{title}</h2>
-      {CHARACTERS.map((c) => {
-        const isOn = selected === c.seat || Boolean(multi?.includes(c.seat));
-        const busy = taken.includes(c.seat);
-        return (
-          <button
-            key={c.id}
-            type="button"
-            disabled={busy}
-            onClick={() => onSelect(c.seat)}
-            className={cn(
-              "w-full rounded-xl border p-4 text-left transition-[border-color,background-color] duration-150",
-              isOn ? "border-accent bg-accent/10" : "border-border bg-card/80",
-            )}
-          >
-            <div className="flex items-baseline justify-between gap-2">
-              <p className="font-serif text-xl">{c.title}</p>
-              <span className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                {ROLE_LABEL[c.role]}
-              </span>
-            </div>
-            <p className="text-sm text-fog">{c.name}</p>
-            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{c.blurb}</p>
-          </button>
-        );
-      })}
-      <div className="flex gap-2 pt-2">
-        <Button variant="outline" className="flex-1" onClick={onBack}>
-          Voltar
-        </Button>
-        <Button className="flex-1" disabled={disabled} onClick={onConfirm}>
-          {confirmLabel}
-        </Button>
-      </div>
-    </div>
   );
 }

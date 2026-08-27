@@ -1,9 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { isAppleTouch, isDesktopPointer } from "@/lib/mosaico/device";
 import type { NightModule } from "@/lib/mosaico/modules";
+import { cn } from "@/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
+import { MosaicMark } from "./mark";
 
 function formatTime(ms: number) {
   const cent = Math.floor(ms / 10);
@@ -14,7 +16,7 @@ function formatTime(ms: number) {
   return `${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")},${String(c).padStart(2, "0")}`;
 }
 
-export function ModuleFrame({ mod }: { mod: NightModule }) {
+export function ModuleFrame({ mod, compact }: { mod: NightModule; compact?: boolean }) {
   const [run, setRun] = useState(0);
   const [doneMs, setDoneMs] = useState<number | null>(null);
   const [mode, setMode] = useState<"wait" | "apple" | "frame">("wait");
@@ -47,7 +49,8 @@ export function ModuleFrame({ mod }: { mod: NightModule }) {
   if (mode !== "frame") {
     return (
       <div className="flex h-dvh flex-col items-center justify-center bg-background px-6 text-center">
-        <p className="font-serif text-3xl text-primary">MOSAICO</p>
+        <MosaicMark className="mb-4 size-8 text-primary" />
+        <p className="brand-wordmark text-3xl text-primary">MOSAICO</p>
         <p className="mt-3 font-serif text-xl italic text-fog">{mod.title}</p>
         <p className="mt-4 max-w-sm text-sm text-muted-foreground">
           No iPhone a casa precisa da tela inteira para o giroscópio responder.
@@ -59,14 +62,16 @@ export function ModuleFrame({ mod }: { mod: NightModule }) {
   const src = `/modulos/${mod.file}?embed=1&run=${encodeURIComponent(runId)}${desktop ? "&dev=1" : ""}`;
 
   return (
-    <div className="relative h-dvh bg-background">
+    <div className={cn("relative bg-background", compact ? "h-[70dvh]" : "h-dvh")}>
+      {!compact && (
       <Link
         to="/noite"
-        className="absolute right-3 top-[max(0.75rem,env(safe-area-inset-top))] z-20 inline-flex min-h-11 items-center gap-2 rounded-full border border-accent/30 bg-background/80 px-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-accent backdrop-blur-sm"
+        className="absolute right-3 top-[max(0.75rem,env(safe-area-inset-top))] z-20 inline-flex min-h-11 items-center gap-2 rounded-full border border-accent/30 bg-background/80 px-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-accent backdrop-blur-sm"
       >
         <ArrowLeft className="size-4" />
         MOSAICO
       </Link>
+      )}
       <iframe
         key={runId}
         title={mod.title}
@@ -77,7 +82,7 @@ export function ModuleFrame({ mod }: { mod: NightModule }) {
       />
       {doneMs !== null && (
         <div className="absolute inset-x-0 bottom-0 z-30 flex flex-col items-center gap-3 bg-gradient-to-t from-background via-background/95 to-transparent px-6 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-16">
-          <p className="text-[11px] uppercase tracking-[0.22em] text-accent">Fragmento localizado</p>
+          <p className="text-[11px] uppercase tracking-[0.2em] text-accent">Fragmento localizado</p>
           <p className="font-serif text-3xl text-foreground">{mod.title}</p>
           {doneMs > 0 && (
             <p className="font-mono text-lg tabular-nums text-fog">{formatTime(doneMs)}</p>

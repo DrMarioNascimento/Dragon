@@ -11,7 +11,7 @@
 <title>O Vidro Embaçado — MOSAICO</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@400;500;600;700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;0,7..72,600;1,7..72,400;1,7..72,500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400..700;1,400..600&family=Cormorant Garamond:ital,opsz,wght@0,9..144,400..700;1,9..144,400..600&display=swap" rel="stylesheet">
 <style>
   :root{
     --breu:#05070c;
@@ -26,15 +26,15 @@
     --frio:#7fd4ff;      /* ciano de destaque, corpo grande */
     --frio-s:#c6ecff;    /* ciano em corpo pequeno = quase branco frio */
     --ambar:#e8a44c;     /* ambar, corpo grande */
-    --ambar-s:#ffcf8f;   /* ambar em corpo pequeno = branco quente */
+    --ambar-s:#ffcf8f;   /* vidro de sal em corpo pequeno */
     --nevoa:#dfeaf5;
 
     --scrim:0 1px 2px #000,0 2px 10px #000d,0 0 26px #000a;
     --scrim-strong:0 1px 2px #000,0 2px 8px #000,0 0 22px #000e,0 0 44px #000b;
 
-    --display:"Cormorant Garamond",Georgia,"Times New Roman",serif;
-    --serif:"Literata","Charter","Bitstream Charter","Iowan Old Style",Georgia,"Noto Serif",serif;
-    --sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    --display:"Cormorant Garamond",Georgia,serif;
+    --serif:"Cormorant Garamond",Georgia,serif;
+    --sans:"Inter",system-ui,sans-serif;
     --mono:ui-monospace,SFMono-Regular,Menlo,"Roboto Mono",monospace;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
@@ -113,7 +113,7 @@
   }
   #pistas{
     position:fixed;left:0;right:0;top:0;height:100%;height:100dvh;z-index:9;
-    background:linear-gradient(170deg,#080d14,#04060a);
+    background:linear-gradient(170deg,#080d14,#05070c);
     padding:calc(env(safe-area-inset-top,0px) + 22px) 22px
             calc(env(safe-area-inset-bottom,0px) + 28px);
     overflow-y:auto;-webkit-overflow-scrolling:touch;
@@ -231,7 +231,7 @@
 
   #intro{
     position:fixed;left:0;right:0;top:0;height:100%;height:100dvh;z-index:10;
-    background:radial-gradient(ellipse 120% 80% at 50% 32%,#080e16 0%,#04060a 66%);
+    background:radial-gradient(ellipse 120% 80% at 50% 32%,#080e16 0%,#05070c 66%);
     display:flex;flex-direction:column;align-items:center;
     justify-content:center;justify-content:safe center;
     padding:clamp(20px,4vh,34px) 24px calc(env(safe-area-inset-bottom,0px) + 28px);
@@ -345,7 +345,7 @@
   button{min-height:48px}
   button:focus-visible{outline:2px solid #fff;outline-offset:2px}
   button[disabled]{
-    color:#dfeaf5;border-color:#33465a;background:#0a0f16f2;
+    color:#dfeaf5;border-color:#33465a;background:#0c1a16f2;
     cursor:default;filter:saturate(.35)
   }
 
@@ -378,12 +378,12 @@
   #falha::before,#falha::after{content:"";margin:auto;flex:0 0 0}
   #falha-tit{font-family:"Cormorant Garamond",Georgia,serif;
     font-size:clamp(26px,6.5vw,36px);font-weight:600;color:#fff;line-height:1.1}
-  #falha-msg{font-family:"Literata",Georgia,serif;font-weight:500;
+  #falha-msg{font-family:"Cormorant Garamond",Georgia,serif;font-weight:500;
     font-size:clamp(17px,4.3vw,20px);line-height:1.45;color:#f4f9fd;max-width:24em}
   #falha button{width:min(340px,88vw);flex:0 0 auto}
   #falha-retry{padding:16px;font-size:clamp(13px,3.4vw,16px);letter-spacing:.14em;
     text-transform:uppercase;font-weight:700;border-radius:9px;
-    border:1px solid #b87433;color:#ffe0c0;background:#1a1109ee}
+    border:1px solid #5d8a7a;color:#d4e8df;background:#1a1109ee}
   #falha-toque{background:none;border:none;min-height:48px;color:#fff;
     font-size:clamp(14px,3.4vw,15px);letter-spacing:.08em;text-transform:uppercase;
     font-weight:600;text-decoration:underline;text-underline-offset:6px;padding:12px}
@@ -742,7 +742,7 @@ function quebra(x,texto,larg){
   if(cur) linhas.push(cur);
   return linhas;
 }
-var FONTE_LEITURA='"Literata","Charter","Iowan Old Style",Georgia,"Noto Serif",serif';
+var FONTE_LEITURA='"Cormorant Garamond",Georgia,serif';
 function pintaTexto(f){
   txtX.setTransform(1,0,0,1,0,0);
   txtX.clearRect(0,0,txtC.width,txtC.height);

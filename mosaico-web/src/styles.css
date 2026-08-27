@@ -49,11 +49,11 @@
   body {
     overscroll-behavior: none;
     touch-action: manipulation;
+    font-family: var(--font-sans);
   }
   button:not(:disabled),
   [role="button"]:not(:disabled) {
     cursor: pointer;
-    touch-action: manipulation;
   }
   input,
   textarea,
@@ -90,10 +90,21 @@
   }
 }
 
+.cover-tint {
+  background: color-mix(in oklab, var(--color-background) 28%, transparent);
+}
+
 .mosaic-grain {
   background-image: url("/media/fundo-painel.jpg");
   background-size: cover;
   background-position: center;
+}
+
+.brand-wordmark {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  line-height: 0.95;
 }
 
 .stagger-in > * {
@@ -116,3 +127,8 @@
     transform: translateY(0);
   }
 }
+
+.fragmento-nevoa { background: #7a1f2b; }
+.fragmento-tempestade { background: #163a6b; }
+.fragmento-farol { background: #8a5a12; }
+.fragmento-noite { background: #3b1d5c; }

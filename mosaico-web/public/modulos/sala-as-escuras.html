@@ -6,15 +6,15 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#04060a">
+<meta name="theme-color" content="#05070c">
 <script src="/modulos/voltar.js" defer></script>
 <title>A Sala às Escuras — MOSAICO</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@400;500;600;700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;0,7..72,600;1,7..72,400;1,7..72,500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400..700;1,400..600&family=Cormorant Garamond:ital,opsz,wght@0,9..144,400..700;1,9..144,400..600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --breu:#04060a;
+    --breu:#05070c;
 
     /* escala de leitura no escuro — abaixo de ~18px o texto e branco puro,
        cor so a partir de ~20px, e nunca opacity em texto.               */
@@ -22,17 +22,17 @@
     --t-hi:#f4f9fd;
     --t-mid:#dfeaf5;
 
-    --ambar:#ffb266;      /* a lanterna, o latao, o abajur */
-    --ambar-s:#ffe0c0;    /* ambar em corpo pequeno = branco quente */
+    --ambar:#9ec9b8;      /* a lanterna, o latao, o abajur */
+    --ambar-s:#ffcf8f;    /* ambar em corpo pequeno = branco quente */
     --frio:#7fd4ff;
     --frio-s:#c6ecff;
 
     --scrim:0 1px 2px #000,0 2px 10px #000d,0 0 26px #000a;
     --scrim-strong:0 1px 2px #000,0 2px 8px #000,0 0 22px #000e,0 0 44px #000b;
 
-    --display:"Cormorant Garamond",Georgia,"Times New Roman",serif;
-    --serif:"Literata","Charter","Bitstream Charter","Iowan Old Style",Georgia,"Noto Serif",serif;
-    --sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    --display:"Cormorant Garamond",Georgia,serif;
+    --serif:"Cormorant Garamond",Georgia,serif;
+    --sans:"Inter",system-ui,sans-serif;
     --mono:ui-monospace,SFMono-Regular,Menlo,"Roboto Mono",monospace;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
@@ -80,8 +80,8 @@
   #medidor{position:relative;height:6px;border-radius:6px;background:#161f2a;
     box-shadow:inset 0 0 0 1px #3b4f64,0 1px 3px #000;overflow:hidden}
   #medidor-i{position:absolute;inset:0 auto 0 0;width:0%;border-radius:6px;
-    background:linear-gradient(90deg,#4d7f9c,#ffd9b0);
-    box-shadow:0 0 14px #ffb26699;transition:width .12s linear}
+    background:linear-gradient(90deg,#4d7f9c,#c5ddd2);
+    box-shadow:0 0 14px #9ec9b899;transition:width .12s linear}
   #firme{position:relative;height:6px;border-radius:6px;background:#111820;
     box-shadow:inset 0 0 0 1px #33465a;overflow:hidden;opacity:0;transition:opacity .25s}
   #firme.on{opacity:1}
@@ -95,7 +95,7 @@
   .marca{width:10px;height:10px;border-radius:50%;
     background:rgba(8,12,18,.75);border:1.5px solid rgba(223,234,245,.5);
     box-shadow:0 1px 3px #000;transition:all .5s ease}
-  .marca.on{background:var(--ambar);border-color:#ffe9d2;
+  .marca.on{background:var(--ambar);border-color:#d4e8df;
     box-shadow:0 0 13px var(--ambar),0 0 28px rgba(255,178,102,.45);transform:scale(1.3)}
   .marca.cofre{border-style:dashed;border-color:rgba(255,178,102,.65)}
   #botoes{display:flex;gap:10px;pointer-events:auto}
@@ -105,7 +105,7 @@
     letter-spacing:.12em;text-transform:uppercase;text-shadow:0 1px 2px #000;
     backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
   button:active{background:#16212c}
-  button.acc{border-color:#b87433;color:var(--ambar-s)}
+  button.acc{border-color:#5d8a7a;color:var(--ambar-s)}
 
   /* ---------------- painel do mestre ---------------- */
   #mestre{position:fixed;left:12px;right:12px;z-index:6;
@@ -127,7 +127,7 @@
   #folga,#cal{width:100%;text-transform:none;letter-spacing:.01em;
     font-size:clamp(14px,3.5vw,16px);font-weight:600;line-height:1.35;
     padding:13px 12px;height:auto;min-height:48px}
-  #folga{margin-top:10px;border-color:#b87433;color:var(--ambar-s)}
+  #folga{margin-top:10px;border-color:#5d8a7a;color:var(--ambar-s)}
   #cal{margin-top:8px}
 
   /* ---------------- carta do objeto ---------------- */
@@ -143,7 +143,7 @@
   #carta-in{max-width:440px;width:100%;flex:0 0 auto;
     border:1px solid #4d3826;border-radius:14px;padding:26px 24px;
     background:linear-gradient(160deg,#120c06,#070a0e);
-    box-shadow:0 30px 90px #000,0 0 70px #ffb26618}
+    box-shadow:0 30px 90px #000,0 0 70px #9ec9b818}
   #k-meta{display:flex;justify-content:space-between;gap:12px;
     font-size:clamp(13px,3.2vw,15px);letter-spacing:.16em;text-transform:uppercase;
     color:var(--ambar-s);margin-bottom:16px;font-weight:700}
@@ -174,7 +174,7 @@
     line-height:1.4;max-width:26ch;text-shadow:var(--scrim)}
   #titulo{font-family:var(--display);font-size:clamp(40px,10.5vw,64px);line-height:1.02;
     font-weight:600;margin:12px 0 8px;color:#fff;
-    text-shadow:0 0 46px #ffb26640,0 4px 34px #000}
+    text-shadow:0 0 46px #9ec9b840,0 4px 34px #000}
   #titulo b{font-weight:700;color:var(--ambar-s)}
   #sub{font-family:var(--serif);font-style:italic;font-size:clamp(17px,4.4vw,22px);
     font-weight:500;color:var(--t-mid);margin-bottom:20px}
@@ -185,7 +185,7 @@
     line-height:1.5;max-width:23em}
   #intro .go{flex:0 0 auto;margin-top:20px;width:min(340px,88vw);padding:17px;
     font-size:clamp(13px,3.4vw,16px);letter-spacing:.16em;
-    border-color:#b87433;color:var(--ambar-s);background:#1a1109ee}
+    border-color:#5d8a7a;color:var(--ambar-s);background:#1a1109ee}
   #intro .alt{flex:0 0 auto;margin-top:12px;background:none;border:none;border-radius:0;
     min-height:48px;backdrop-filter:none;-webkit-backdrop-filter:none;color:var(--t-max);
     font-size:clamp(14px,3.4vw,15px);letter-spacing:.1em;text-transform:uppercase;
@@ -193,7 +193,7 @@
   #rodada{margin-top:16px;font-size:clamp(13px,3.1vw,15px);letter-spacing:.16em;
     color:var(--t-mid);font-family:var(--mono);font-weight:600}
   #rodada b{color:var(--ambar-s);letter-spacing:.2em;font-weight:700;
-    font-size:1.35em;text-shadow:0 0 16px #ffb26655}
+    font-size:1.35em;text-shadow:0 0 16px #9ec9b855}
   #nota{margin-top:8px;font-family:var(--sans);font-weight:500;
     font-size:clamp(13px,3.2vw,15px);line-height:1.45;max-width:30ch;color:var(--t-mid)}
   #nota.warn{color:var(--ambar-s);font-weight:600}
@@ -233,7 +233,7 @@
   button{min-height:48px}
   button:focus-visible{outline:2px solid #fff;outline-offset:2px}
   button[disabled]{
-    color:#dfeaf5;border-color:#33465a;background:#0a0f16f2;
+    color:#dfeaf5;border-color:#33465a;background:#0c1a16f2;
     cursor:default;filter:saturate(.35)
   }
 
@@ -266,12 +266,12 @@
   #falha::before,#falha::after{content:"";margin:auto;flex:0 0 0}
   #falha-tit{font-family:"Cormorant Garamond",Georgia,serif;
     font-size:clamp(26px,6.5vw,36px);font-weight:600;color:#fff;line-height:1.1}
-  #falha-msg{font-family:"Literata",Georgia,serif;font-weight:500;
+  #falha-msg{font-family:"Cormorant Garamond",Georgia,serif;font-weight:500;
     font-size:clamp(17px,4.3vw,20px);line-height:1.45;color:#f4f9fd;max-width:24em}
   #falha button{width:min(340px,88vw);flex:0 0 auto}
   #falha-retry{padding:16px;font-size:clamp(13px,3.4vw,16px);letter-spacing:.14em;
     text-transform:uppercase;font-weight:700;border-radius:9px;
-    border:1px solid #b87433;color:#ffe0c0;background:#1a1109ee}
+    border:1px solid #5d8a7a;color:#d4e8df;background:#1a1109ee}
   #falha-toque{background:none;border:none;min-height:48px;color:#fff;
     font-size:clamp(14px,3.4vw,15px);letter-spacing:.08em;text-transform:uppercase;
     font-weight:600;text-decoration:underline;text-underline-offset:6px;padding:12px}
@@ -1829,7 +1829,7 @@ function loop(){
 
   /* --- pintura --- */
   sc.setTransform(DPR,0,0,DPR,0,0);
-  sc.fillStyle="#04060a"; sc.fillRect(0,0,W,H);
+  sc.fillStyle="#05070c"; sc.fillRect(0,0,W,H);
   sala();
   /* a moldura gira na dobradiça assim que o quadro é lido */
   var qd=acha_id("quadro"), cf=acha_id("cofre");
