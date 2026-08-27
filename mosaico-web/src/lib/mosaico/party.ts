@@ -326,11 +326,11 @@ export const useParty = create<PartyState>((set, get) => ({
       (deduction.suspectId || deduction.actionId || deduction.proofId)
     ) {
       void gravarDeducao(code, uid, {
-        suspeito: deduction.suspectId,
-        motivo: deduction.motiveId,
-        acao: deduction.actionId,
-        prova: deduction.proofId,
-        lacuna: deduction.gapId,
+        suspeito: deduction.suspectId ?? "",
+        motivo: deduction.motiveId ?? "",
+        acao: deduction.actionId ?? "",
+        prova: deduction.proofId ?? "",
+        lacuna: deduction.gapId ?? "",
       });
     }
   },
