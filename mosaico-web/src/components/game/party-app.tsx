@@ -55,11 +55,34 @@ function HostBar() {
   );
 }
 
-function Wait({ text }: { text: string }) {
+function ObserverPlay({ nome }: { nome: string }) {
+  const [pick, setPick] = useState<null | boolean>(null);
   return (
-    <div className="flex min-h-[60dvh] flex-col items-center justify-center gap-4 px-6 text-center">
-      <MosaicMark className="size-8 text-primary" />
-      <p className="font-serif text-2xl italic text-fog">{text}</p>
+    <div className="space-y-5 px-5 pb-10 pt-6">
+      <Line>Observa. Joga.</Line>
+      <h2 className="font-serif text-3xl">{nome} está a fazer</h2>
+      <p className="text-sm text-fog">Não esperes. Isto soou verdadeiro?</p>
+      <div className="flex gap-2">
+        <Button
+          className="flex-1"
+          variant={pick === true ? "default" : "outline"}
+          onClick={() => setPick(true)}
+        >
+          Verdadeiro
+        </Button>
+        <Button
+          className="flex-1"
+          variant={pick === false ? "default" : "outline"}
+          onClick={() => setPick(false)}
+        >
+          Falso
+        </Button>
+      </div>
+      {pick !== null && (
+        <p className="text-center font-serif text-lg italic text-primary">
+          Fica. A casa ouviu.
+        </p>
+      )}
     </div>
   );
 }
@@ -81,7 +104,7 @@ function SalaScreen() {
       <Line>{PHONE_LINE.sala}</Line>
       <h1 className="font-serif text-4xl">A mesa</h1>
       <p className="text-sm text-fog">
-        Noite de teste. Um jogador passa por todas as experiências, um ecrã de cada vez.
+        Aponta. Mostra. Acusa. No teste, um jogador passa por tudo.
       </p>
       {code && code !== "LOCAL" && (
         <div className="box-depth rounded-lg px-4 py-5 text-center">
@@ -137,10 +160,27 @@ function EnceneScreen() {
   const personagem = tour ? CHAR_IDS[charI] : ator?.personagem || "tomas";
   const mine = tour || ator?.id === uid;
   const roteiro = ROTEIRO[personagem] ?? ROTEIRO.tomas;
-  const [step, setStep] = useState<"entenda" | "faca" | "fale">("entenda");
+  const markObserve = useParty((s) => s.markObserve);
+  const [step, setStep] = useState<"entenda" | "faca" | "fale" | "julga">("entenda");
 
   if (!mine) {
-    return <Wait text="Observe o ambiente e escute os sons." />;
+    return <ObserverPlay nome={ator?.nome || "Alguém"} />;
+  }
+
+  function seguir() {
+    if (tour) {
+      if (charI < CHAR_IDS.length - 1) {
+        setCharI(charI + 1);
+        setStep("entenda");
+        return;
+      }
+      void advance();
+      return;
+    }
+    const n = vez + 1;
+    if (n >= players.length || n >= 6) void advance();
+    else void setVez(n);
+    setStep("entenda");
   }
 
   return (
@@ -176,25 +216,47 @@ function EnceneScreen() {
           <Button
             className="w-full"
             size="lg"
-            onClick={() => {
-              if (tour) {
-                if (charI < CHAR_IDS.length - 1) {
-                  setCharI(charI + 1);
-                  setStep("entenda");
-                  return;
-                }
-                void advance();
-                return;
-              }
-              const n = vez + 1;
-              if (n >= players.length || n >= 6) void advance();
-              else void setVez(n);
-              setStep("entenda");
-            }}
+            onClick={() => setStep("julga")}
           >
             Toque para concluir sua apresentação
           </Button>
         </>
+      )}
+      {step === "julga" && (
+        <>
+          <h2 className="font-serif text-3xl">Isto soou verdadeiro?</h2>
+          <p className="text-sm text-fog">Mesmo sozinho: observa o que acabaste de fazer.</p>
+          <Button
+            className="w-full"
+            size="lg"
+            onClick={() => {
+              markObserve(personagem, true);
+              seguir();
+            }}
+          >
+            Verdadeiro
+          </Button>
+          <Button
+            className="w-full"
+            variant="outline"
+            size="lg"
+            onClick={() => {
+              markObserve(personagem, false);
+              seguir();
+            }}
+          >
+            Falso
+          </Button>
+        </>
+      )}
+      {step === "entenda" && !tour && (
+        <button
+          type="button"
+          className="block w-full text-center text-xs text-muted-foreground"
+          onClick={() => seguir()}
+        >
+          Prefiro observar
+        </button>
       )}
       {isMaster && players.length > 1 && (
         <button
@@ -237,13 +299,13 @@ function VotoScreen() {
 
 function LanternPhase({ slug, line }: { slug: string; line: string }) {
   const mod = NIGHT_MODULES.find((m) => m.slug === slug)!;
-  const markLanternDone = useParty((s) => s.markLanternDone);
+  const markPista = useParty((s) => s.markPista);
   const lanternDone = useParty((s) => s.lanternDone);
   return (
     <div className={cn("flex min-h-[calc(100dvh-3.5rem)] flex-col", lanternDone ? "pb-24" : "pb-2")}>
       <p className="px-5 pb-2 pt-1 text-[11px] uppercase tracking-[0.22em] text-accent">{line}</p>
       <div className="min-h-0 flex-1">
-        <ModuleFrame mod={mod} compact onDone={() => markLanternDone()} />
+        <ModuleFrame mod={mod} compact onDone={() => markPista(slug)} />
       </div>
     </div>
   );
@@ -272,7 +334,7 @@ function CorScreen() {
       <h1 className="mt-3 font-serif text-4xl">{f.nome}</h1>
       <p className="mt-2 text-lg">Tela {f.cor}</p>
       <p className="mt-6 max-w-xs text-sm leading-relaxed opacity-90">
-        Procure quem tem a mesma cor. Juntem-se para montar a carta da noite.
+        Procura quem tem a mesma cor. A carta só fecha com eles.
       </p>
       <p className="mt-8 font-serif text-3xl tabular-nums">
         {String(Math.floor(elapsed / 60000)).padStart(2, "0")}:
@@ -494,7 +556,9 @@ export function PartyApp() {
           <button type="button" className="inline-flex min-h-11 items-center text-xs text-muted-foreground" onClick={leave}>
             Sair
           </button>
-          <MosaicMark className="size-5 text-primary" />
+          <p className="max-w-[14rem] text-center text-[11px] uppercase tracking-[0.18em] text-accent">
+            {fase && fase in PHONE_LINE ? PHONE_LINE[fase as V3Phase] : "MOSAICO"}
+          </p>
           <span className="w-8" />
         </header>
       )}

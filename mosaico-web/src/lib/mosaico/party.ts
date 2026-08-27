@@ -43,6 +43,8 @@ type PartyState = {
   voteTarget: string | null;
   oilBought: string | null;
   lanternDone: boolean;
+  pistas: Record<string, boolean>;
+  observe: Record<string, boolean>;
   unsub: (() => void) | null;
   connect: () => Promise<void>;
   create: (nome: string, forma: "m" | "f") => Promise<void>;
@@ -59,6 +61,8 @@ type PartyState = {
   submitDeduction: () => void;
   setLocalTiles: (tiles: string[]) => void;
   markLanternDone: () => void;
+  markPista: (id: string) => void;
+  markObserve: (charId: string, soou: boolean) => void;
   leave: () => void;
 };
 
@@ -94,6 +98,8 @@ export const useParty = create<PartyState>((set, get) => ({
   voteTarget: null,
   oilBought: null,
   lanternDone: false,
+  pistas: {},
+  observe: {},
   unsub: null,
 
   connect: async () => {
@@ -173,6 +179,8 @@ export const useParty = create<PartyState>((set, get) => ({
       oilBought: null,
       localTiles: [],
       lanternDone: false,
+      pistas: {},
+      observe: {},
       room: {
         ativa: true,
         fase: "sala",
@@ -332,6 +340,10 @@ export const useParty = create<PartyState>((set, get) => ({
   },
   setLocalTiles: (tiles) => set({ localTiles: tiles }),
   markLanternDone: () => set({ lanternDone: true }),
+  markPista: (id) =>
+    set((s) => ({ pistas: { ...s.pistas, [id]: true }, lanternDone: true })),
+  markObserve: (charId, soou) =>
+    set((s) => ({ observe: { ...s.observe, [charId]: soou } })),
 
   leave: () => {
     get().unsub?.();
