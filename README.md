@@ -12,6 +12,8 @@ O **MOSAICO** transforma um caso em informações fragmentadas entre os particip
 
 **Jogar:** [drmarionascimento.github.io/Dragon/MOSAICO-mesa.html](https://drmarionascimento.github.io/Dragon/MOSAICO-mesa.html)
 
+Há um protótipo React separado em [`mosaico-web/`](./mosaico-web). Ele não substitui esta mesa.
+
 **Caso implementado:** *A Casa da Costa*
 
 **Participantes:** 1 a 12 (1 participante funciona como modo integral de teste)

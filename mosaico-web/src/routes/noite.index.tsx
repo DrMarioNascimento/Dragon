@@ -1,0 +1,63 @@
+import { NIGHT_MODULES } from "@/lib/mosaico/modules";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowLeft, Compass } from "lucide-react";
+
+export const Route = createFileRoute("/noite/")({
+  component: NoitePage,
+});
+
+function NoitePage() {
+  return (
+    <main className="relative min-h-dvh bg-background text-foreground">
+      <img
+        src="/media/capa-vertical.jpg"
+        alt=""
+        className="absolute inset-0 h-full w-full object-cover opacity-35"
+      />
+      <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/88 to-background" />
+      <div className="relative mx-auto flex min-h-dvh max-w-lg flex-col px-6 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-[max(2rem,env(safe-area-inset-top))]">
+        <Link
+          to="/"
+          className="inline-flex min-h-11 w-fit items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-fog"
+        >
+          <ArrowLeft className="size-4" />
+          MOSAICO
+        </Link>
+        <header className="mt-8">
+          <p className="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
+            A Casa da Costa
+          </p>
+          <h1 className="mt-2 font-serif text-4xl">A noite da casa</h1>
+          <p className="mt-3 max-w-prose font-serif text-lg italic text-fog">
+            Quatro tarefas. Cada uma devolve um fragmento. O tempo decide a pista.
+          </p>
+        </header>
+        <ul className="mt-8 flex flex-col gap-3">
+          {NIGHT_MODULES.map((m) => (
+            <li key={m.slug}>
+              <Link
+                to="/noite/$slug"
+                params={{ slug: m.slug }}
+                className="block rounded-xl border border-border bg-card/80 p-4 transition-colors hover:border-accent/50"
+              >
+                <p className="text-[11px] uppercase tracking-[0.18em] text-accent">{m.kicker}</p>
+                <p className="mt-1 font-serif text-2xl">{m.title}</p>
+                <p className="mt-2 text-sm leading-relaxed text-fog">{m.blurb}</p>
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <p className="mt-8 text-center text-[12px] leading-relaxed text-muted-foreground">
+          iPhone e Android: a casa pede o giroscópio. Aceite o movimento quando o sistema perguntar. Se recusar, dá para arrastar com o dedo.
+        </p>
+        <Link
+          to="/"
+          className="mt-4 inline-flex h-11 min-h-11 items-center justify-center gap-2 rounded-md px-5 text-sm text-fog hover:bg-muted hover:text-foreground"
+        >
+          <Compass className="size-4" />
+          Voltar ao caso
+        </Link>
+      </div>
+    </main>
+  );
+}
