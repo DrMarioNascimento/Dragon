@@ -11,12 +11,15 @@ import {
   ROTEIRO,
   VERDADE,
   pecasDoTelefone,
+  fotoDoNucleo,
+  papeisNoGrupo,
+  FOTO_IDS,
   type V3Phase,
 } from "@/lib/mosaico/v3";
 import { cn } from "@/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { CartaPuzzle, type FotoId } from "./carta-puzzle";
+import { CartaPuzzle, FOTOS, type FotoId } from "./carta-puzzle";
 import { EspelhoPlay, PalimpsestoPlay, PlantaPlay } from "./gesto-play";
 import { MosaicMark } from "./mark";
 import { ModuleFrame } from "./module-frame";
@@ -367,40 +370,58 @@ function EncaixeScreen() {
   const uid = useParty((s) => s.uid);
   const mode = useParty((s) => s.mode);
   const eu = me();
-  const membros = players.filter((p) => p.nucleo === (eu?.nucleo ?? 1));
+  const nucleo = eu?.nucleo ?? 1;
+  const membros = players
+    .filter((p) => p.nucleo === nucleo)
+    .slice()
+    .sort((a, b) => (a.id || "").localeCompare(b.id || ""));
   const idx = Math.max(0, membros.findIndex((p) => p.id === uid));
-  const mine = pecasDoTelefone(idx, membros.length);
-  const daCasa: FotoId = (eu?.nucleo ?? 1) % 2 === 0 ? "gaveta" : "agenda";
+  const papeis = papeisNoGrupo(membros.length);
+  const daCasa = fotoDoNucleo(nucleo);
   const [foto, setFoto] = useState<FotoId>(daCasa);
   const [feitas, setFeitas] = useState<FotoId[]>([]);
+  const [tarjaEnsaio, setTarjaEnsaio] = useState(false);
   const ensaio = mode === "local";
+  const papel = ensaio ? (tarjaEnsaio ? "tarja" : "full") : papeis[idx];
+  const meta = FOTOS[foto];
 
   return (
     <div className="space-y-4 px-5 pb-28 pt-6">
       <Line>{PHONE_LINE.encaixe}</Line>
-      <h2 className="font-serif text-3xl">{foto === "agenda" ? "A agenda" : "A gaveta"}</h2>
-      <p className="text-sm text-fog">
-        {foto === "agenda"
-          ? "A jornalista deixou a agenda na escrivaninha. Dentro, uma polaroid."
-          : "A gaveta estava aberta. Um retrato da família — e quem já estava na porta."}
-      </p>
+      <h2 className="font-serif text-3xl">
+        {papel === "tarja" ? "A tarja" : meta.onde.split(".")[0]}
+      </h2>
+      <p className="text-sm text-fog">{meta.onde}</p>
       <CartaPuzzle
-        key={foto}
+        key={`${foto}-${papel}`}
         foto={foto}
-        mine={mine}
+        papel={papel}
         phones={membros.length}
         onComplete={() =>
           setFeitas((prev) => (prev.includes(foto) ? prev : [...prev, foto]))
         }
       />
-      {ensaio && feitas.includes(foto) && feitas.length < 2 && (
+      {ensaio && feitas.includes(foto) && !tarjaEnsaio && feitas.length < FOTO_IDS.length && (
         <Button
           type="button"
           variant="outline"
           className="w-full"
-          onClick={() => setFoto(foto === "agenda" ? "gaveta" : "agenda")}
+          onClick={() => {
+            const i = FOTO_IDS.indexOf(foto);
+            setFoto(FOTO_IDS[(i + 1) % FOTO_IDS.length]);
+          }}
         >
-          {foto === "agenda" ? "Abrir a gaveta" : "Ver a agenda"}
+          O outro objeto
+        </Button>
+      )}
+      {ensaio && feitas.length >= 1 && !tarjaEnsaio && (
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full"
+          onClick={() => setTarjaEnsaio(true)}
+        >
+          A tarja do ímpar
         </Button>
       )}
     </div>

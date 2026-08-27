@@ -158,15 +158,14 @@ export function nextPhase(fase: string): V3Phase | null {
   return V3_PHASES[i + 1];
 }
 
-/** Tamanhos dos times: só 2 ou 3 (1 só se a mesa inteira for ≤3). No máximo 4 times. */
+/** Par é a base. Ímpar: um time de 3 (foto + tarja). A casa sorteia. */
 export function groupSizes(n: number): number[] {
   if (n <= 0) return [];
-  if (n <= 3) return [n];
-  const g =
-    n >= 6 && n % 3 === 0 ? Math.min(4, n / 3) : Math.min(4, Math.floor(n / 2));
-  const base = Math.floor(n / g);
-  const extra = n % g;
-  return Array.from({ length: g }, (_, i) => base + (i < extra ? 1 : 0));
+  if (n === 1) return [1];
+  if (n === 2) return [2];
+  if (n === 3) return [3];
+  if (n % 2 === 0) return Array.from({ length: n / 2 }, () => 2);
+  return [3, ...Array.from({ length: (n - 3) / 2 }, () => 2)];
 }
 
 export function assignNucleos(n: number): number[] {
@@ -184,6 +183,29 @@ export function assignNucleos(n: number): number[] {
     i++;
   }
   return out;
+}
+
+export type PapelFoto = "full" | "esq" | "dir" | "tarja";
+
+export function papeisNoGrupo(n: number): PapelFoto[] {
+  if (n <= 1) return ["full"];
+  if (n === 2) return ["esq", "dir"];
+  return ["esq", "dir", "tarja"];
+}
+
+export function pecasDoPapel(papel: PapelFoto): string[] {
+  if (papel === "full") return [...ORDEM_NOITE];
+  if (papel === "tarja") return ["c03", "c07"];
+  return ORDEM_NOITE.filter((_, i) =>
+    papel === "esq" ? i % 2 === 0 : i % 2 === 1,
+  );
+}
+
+export const FOTO_IDS = ["agenda", "gaveta", "farol", "noite"] as const;
+export type FotoId = (typeof FOTO_IDS)[number];
+
+export function fotoDoNucleo(nucleo: number): FotoId {
+  return FOTO_IDS[(Math.max(1, nucleo) - 1) % FOTO_IDS.length];
 }
 
 export function assignComodos(n: number): ("sala" | "vidro")[] {

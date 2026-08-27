@@ -1,22 +1,62 @@
 import { Button } from "@/components/ui/button";
-import { ORDEM_NOITE } from "@/lib/mosaico/v3";
+import {
+  FOTO_IDS,
+  ORDEM_NOITE,
+  pecasDoPapel,
+  type FotoId,
+  type PapelFoto,
+} from "@/lib/mosaico/v3";
 import { cn } from "@/lib/utils";
 import { useMemo, useRef, useState } from "react";
 
-export const FOTOS = {
+export type { FotoId, PapelFoto };
+
+export const FOTOS: Record<
+  FotoId,
+  {
+    src: string;
+    tarja: string;
+    onde: string;
+    achado: string;
+    data: string;
+    lado: "top" | "bottom";
+  }
+> = {
   agenda: {
     src: "/media/foto-agenda.jpg",
+    tarja: "/media/tarja-agenda.jpg",
     onde: "Escrivaninha. A agenda da jornalista.",
     achado: "Ontem a herdeira estava no jardim. Alguém já estava na janela.",
+    data: "ontem  21:14",
+    lado: "bottom",
   },
   gaveta: {
     src: "/media/foto-gaveta.jpg",
+    tarja: "/media/tarja-gaveta.jpg",
     onde: "Gaveta aberta. Retrato da família.",
     achado: "Quem mora na casa já estava na porta — fora do retrato.",
+    data: "Verão 1987",
+    lado: "bottom",
   },
-} as const;
+  farol: {
+    src: "/media/foto-farol.jpg",
+    tarja: "/media/tarja-farol.jpg",
+    onde: "Jornal dobrado. Recorte da trava.",
+    achado: "Duas marcas na trava. O recorte é de 27 de agosto.",
+    data: "27 AGO",
+    lado: "top",
+  },
+  noite: {
+    src: "/media/foto-noite.jpg",
+    tarja: "/media/tarja-noite.jpg",
+    onde: "Quadro caído. A escada da casa.",
+    achado: "O quarto degrau. A moldura diz Costa, 1979.",
+    data: "COSTA  1979",
+    lado: "bottom",
+  },
+};
 
-export type FotoId = keyof typeof FOTOS;
+export { FOTO_IDS };
 
 type Tab = -1 | 0 | 1;
 
@@ -83,14 +123,21 @@ export function CartaPuzzle({
   mine,
   phones = 1,
   foto = "agenda",
+  papel,
   onComplete,
 }: {
   mine?: string[];
   phones?: number;
   foto?: FotoId;
+  papel?: PapelFoto;
   onComplete?: () => void;
 }) {
-  const mao = mine && mine.length ? mine : [...ORDEM_NOITE];
+  const papelEfetivo: PapelFoto =
+    papel ?? (phones <= 1 ? "full" : phones === 2 ? "esq" : "full");
+  if (papelEfetivo === "tarja") {
+    return <TarjaPuzzle foto={foto} onComplete={onComplete} />;
+  }
+  const mao = mine && mine.length ? mine : pecasDoPapel(papelEfetivo);
   const gridCols = 2;
   const gridRows = 3;
   const all = useMemo(() => build(gridCols, gridRows), [gridCols, gridRows]);
@@ -289,6 +336,129 @@ export function CartaPuzzle({
       {done && correct && (
         <p className="text-center font-serif text-lg italic text-primary">
           {img.achado}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function TarjaPuzzle({
+  foto,
+  onComplete,
+}: {
+  foto: FotoId;
+  onComplete?: () => void;
+}) {
+  const img = FOTOS[foto];
+  const cima = img.lado === "top";
+  const ids = ["c03", "c07"] as const;
+  const [slot, setSlot] = useState<Record<string, number | null>>({
+    c03: null,
+    c07: null,
+  });
+  const [drag, setDrag] = useState<string | null>(null);
+  const [pos, setPos] = useState<Record<string, { x: number; y: number }>>({
+    c03: { x: 8, y: 72 },
+    c07: { x: 52, y: 72 },
+  });
+  const [tried, setTried] = useState(false);
+  const [done, setDone] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+  const ok = slot.c03 === 0 && slot.c07 === 1;
+
+  function pct(ev: React.PointerEvent) {
+    const r = box.current!.getBoundingClientRect();
+    return {
+      x: ((ev.clientX - r.left) / r.width) * 100,
+      y: ((ev.clientY - r.top) / r.height) * 100,
+    };
+  }
+
+  return (
+    <div className="space-y-3">
+      <p className="text-sm text-fog">
+        A casa te deu a tarja — hora ou data. Encaixa {cima ? "em cima" : "em baixo"} da foto dos outros dois.
+      </p>
+      <div
+        ref={box}
+        className="box-depth relative aspect-[2/3] w-full touch-none overflow-hidden rounded-lg"
+        onPointerMove={(e) => {
+          if (!drag) return;
+          const p = pct(e);
+          setPos((s) => ({ ...s, [drag]: { x: p.x - 20, y: p.y - 6 } }));
+        }}
+        onPointerUp={(e) => {
+          if (!drag) return;
+          const p = pct(e);
+          const band = cima ? p.y < 22 : p.y > 78;
+          const col = p.x < 50 ? 0 : 1;
+          setSlot((s) => ({ ...s, [drag]: band ? col : null }));
+          if (band) {
+            setPos((s) => ({
+              ...s,
+              [drag]: {
+                x: col * 50,
+                y: cima ? 2 : 84,
+              },
+            }));
+          }
+          setDrag(null);
+        }}
+      >
+        <img
+          src={img.src}
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover opacity-35"
+        />
+        <div
+          className="absolute left-1 right-1 h-[16%] border border-dashed border-primary/50"
+          style={{ top: cima ? "2%" : "auto", bottom: cima ? "auto" : "2%" }}
+        />
+        {ids.map((id, i) => (
+          <div
+            key={id}
+            className="absolute z-10 h-[16%] w-[48%] cursor-grab overflow-hidden rounded-sm shadow-md active:cursor-grabbing"
+            style={{ left: `${pos[id].x}%`, top: `${pos[id].y}%` }}
+            onPointerDown={(e) => {
+              e.currentTarget.setPointerCapture(e.pointerId);
+              setDrag(id);
+            }}
+          >
+            <img
+              src={img.tarja}
+              alt=""
+              className="absolute max-w-none"
+              style={{
+                width: "208%",
+                height: "100%",
+                left: i === 0 ? "0%" : "-100%",
+                objectFit: "cover",
+              }}
+            />
+          </div>
+        ))}
+      </div>
+      <Button
+        className="w-full"
+        size="lg"
+        onClick={() => {
+          setTried(true);
+          if (ok) {
+            setDone(true);
+            onComplete?.();
+          }
+        }}
+      >
+        Encaixar a tarja
+      </Button>
+      {tried && !ok && (
+        <p className="text-center font-serif italic text-destructive">
+          A data não fecha. Encosta na faixa.
+        </p>
+      )}
+      {done && ok && (
+        <p className="text-center font-serif text-lg italic text-primary">
+          {img.data} — {img.achado}
         </p>
       )}
     </div>
