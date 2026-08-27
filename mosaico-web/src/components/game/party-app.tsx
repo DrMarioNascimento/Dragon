@@ -373,7 +373,10 @@ function EncaixeScreen() {
   return (
     <div className="space-y-4 px-5 pb-28 pt-6">
       <Line>{PHONE_LINE.encaixe}</Line>
-      <h2 className="font-serif text-3xl">Encosta a carta</h2>
+      <h2 className="font-serif text-3xl">A carta</h2>
+      <p className="text-sm text-fog">
+        Primeiro as tuas peças. Depois o outro telefone. Quebra-cabeça de dente — a carta da casa.
+      </p>
       <CartaPuzzle mine={mine} phones={membros.length} />
     </div>
   );

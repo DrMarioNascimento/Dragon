@@ -3,7 +3,7 @@ import { NOITE_CARTAS, ORDEM_NOITE } from "@/lib/mosaico/v3";
 import { cn } from "@/lib/utils";
 import { useMemo, useRef, useState } from "react";
 
-const SRC = "/media/capa-vertical.jpg";
+const SRC = "/media/carta-costa.jpg";
 type Tab = -1 | 0 | 1;
 
 type Piece = {
@@ -32,8 +32,8 @@ function bump(
 ) {
   if (tab === 0) return `L ${x + dx} ${y + dy}`;
   const s = tab;
-  const px = nx * 0.2 * s;
-  const py = ny * 0.2 * s;
+  const px = nx * 0.32 * s;
+  const py = ny * 0.32 * s;
   const cx = x + dx / 2;
   const cy = y + dy / 2;
   return [
@@ -67,8 +67,8 @@ type Pos = { x: number; y: number; slot: number | null };
 
 export function CartaPuzzle({ mine, phones = 1 }: { mine?: string[]; phones?: number }) {
   const mao = mine && mine.length ? mine : [...ORDEM_NOITE];
-  const gridCols = phones === 2 ? 2 : 3;
-  const gridRows = phones === 2 ? 3 : 2;
+  const gridCols = 2;
+  const gridRows = 3;
   const all = useMemo(() => build(gridCols, gridRows), [gridCols, gridRows]);
   const mineSet = useMemo(() => new Set(mao), [mao]);
 
@@ -135,13 +135,13 @@ export function CartaPuzzle({ mine, phones = 1 }: { mine?: string[]; phones?: nu
     <div className="space-y-3">
       <p className="text-sm leading-relaxed text-fog">
         {mao.length < 6
-          ? "Este telefone tem as peças de uma faixa. Encosta o vidro no do vizinho — o desenho só fecha junto."
-          : "Arrasta as peças para o desenho. O recorte clássico encaixa, como um quebra-cabeça na mesa."}
+          ? "Monta as tuas peças neste telefone. As que faltam estão no outro. Encosta os vidros — a carta só fecha junto."
+          : "Quebra-cabeça de mesa: dente e buraco. Arrasta as peças. A carta da casa só se lê inteira."}
       </p>
 
       <div
         ref={boardRef}
-        className="box-depth relative aspect-[3/4] w-full touch-none overflow-hidden rounded-lg"
+        className="box-depth relative aspect-[2/3] w-full touch-none overflow-hidden rounded-lg"
         onPointerMove={onMove}
         onPointerUp={onUp}
         onPointerCancel={onUp}
@@ -153,8 +153,8 @@ export function CartaPuzzle({ mine, phones = 1 }: { mine?: string[]; phones?: nu
             <div
               key={`s-${p.id}`}
               className={cn(
-                "absolute box-border border border-dashed",
-                minePiece ? "border-primary/25" : "border-fog/20 bg-background/40",
+                "absolute box-border",
+                minePiece ? "border border-dashed border-primary/20" : "bg-background/50",
               )}
               style={{
                 left: `${(p.col / gridCols) * 100}%`,
@@ -162,7 +162,19 @@ export function CartaPuzzle({ mine, phones = 1 }: { mine?: string[]; phones?: nu
                 width: cellW,
                 height: cellH,
               }}
-            />
+            >
+              {!minePiece && (
+                <svg viewBox="0 0 1 1" className="h-full w-full overflow-visible">
+                  <path
+                    d={piecePath(p.tabs)}
+                    fill="none"
+                    stroke="rgba(168,184,196,0.45)"
+                    strokeWidth="0.04"
+                    strokeDasharray="0.06 0.05"
+                  />
+                </svg>
+              )}
+            </div>
           );
         })}
 
@@ -210,8 +222,8 @@ export function CartaPuzzle({ mine, phones = 1 }: { mine?: string[]; phones?: nu
                   d={piecePath(p.tabs)}
                   transform={`translate(${p.col} ${p.row})`}
                   fill="none"
-                  stroke="rgba(232,194,122,0.75)"
-                  strokeWidth="0.03"
+                  stroke="rgba(232,194,122,0.95)"
+                  strokeWidth="0.045"
                 />
               </svg>
             </div>
