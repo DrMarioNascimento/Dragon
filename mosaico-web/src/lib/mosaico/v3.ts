@@ -160,4 +160,9 @@ export function assignComodos(n: number): ("sala" | "vidro")[] {
   return Array.from({ length: n }, (_, i) => (i % 2 === 0 ? "vidro" : "sala"));
 }
 
+export function pecasDoTelefone(playerIndex: number, total: number): string[] {
+  if (total <= 1) return [...ORDEM_NOITE];
+  return ORDEM_NOITE.filter((_, i) => i % total === playerIndex);
+}
+
 export const CHAR_IDS = ["tomas", "helena", "elias", "clara", "nilo", "iris"] as const;

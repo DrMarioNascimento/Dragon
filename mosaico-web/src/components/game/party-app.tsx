@@ -5,18 +5,18 @@ import {
   DEDUCAO,
   ENVELOPES,
   FRAGMENTOS,
-  NOITE_CARTAS,
-  ORDEM_NOITE,
   PHONE_LINE,
   ROTEIRO,
   VERDADE,
+  pecasDoTelefone,
   type V3Phase,
 } from "@/lib/mosaico/v3";
 import { cn } from "@/lib/utils";
 import { Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { ModuleFrame } from "./module-frame";
+import { useEffect, useState } from "react";
+import { CartaPuzzle } from "./carta-puzzle";
 import { MosaicMark } from "./mark";
+import { ModuleFrame } from "./module-frame";
 import { NIGHT_MODULES } from "@/lib/mosaico/modules";
 import { RotateHint } from "./rotate-hint";
 
@@ -294,66 +294,18 @@ function CorScreen() {
 }
 
 function EncaixeScreen() {
-  const tiles = useParty((s) => s.localTiles);
-  const setLocalTiles = useParty((s) => s.setLocalTiles);
-  const [done, setDone] = useState(false);
-  const pool = useMemo(
-    () => NOITE_CARTAS.filter((c) => !tiles.includes(c.id)),
-    [tiles],
-  );
-  const ok = tiles.length === 6 && tiles.every((id, i) => id === ORDEM_NOITE[i]);
+  const players = useParty((s) => s.players);
+  const uid = useParty((s) => s.uid);
+  const eu = me();
+  const membros = players.filter((p) => p.nucleo === (eu?.nucleo ?? 1));
+  const idx = Math.max(0, membros.findIndex((p) => p.id === uid));
+  const mine = pecasDoTelefone(idx, membros.length);
 
   return (
     <div className="space-y-4 px-5 pb-28 pt-6">
       <Line>{PHONE_LINE.encaixe}</Line>
       <h2 className="font-serif text-3xl">Encosta a carta</h2>
-      <p className="text-sm text-fog">
-        Ponha as horas em ordem, da esquerda para a direita — como se os telefones
-        estivessem sobre a mesa. Um envio.
-      </p>
-      <ol className="space-y-2">
-        {tiles.map((id, i) => {
-          const c = NOITE_CARTAS.find((x) => x.id === id);
-          return (
-            <li key={id}>
-              <button
-                type="button"
-                className="w-full rounded-md border border-primary/40 bg-card px-3 py-3 text-left"
-                onClick={() => setLocalTiles(tiles.filter((t) => t !== id))}
-              >
-                <span className="text-xs text-accent">{c?.hora}</span>
-                <p className="text-sm">{c?.txt}</p>
-              </button>
-            </li>
-          );
-        })}
-      </ol>
-      <div className="flex flex-col gap-2">
-        {pool.map((c) => (
-          <button
-            key={c.id}
-            type="button"
-            className="rounded-md border border-border px-3 py-3 text-left text-sm"
-            onClick={() => setLocalTiles([...tiles, c.id])}
-          >
-            <span className="text-xs text-muted-foreground">{c.hora}</span>
-            <p>{c.txt}</p>
-          </button>
-        ))}
-      </div>
-      <Button
-        className="w-full"
-        size="lg"
-        disabled={tiles.length !== 6 || done}
-        onClick={() => setDone(true)}
-      >
-        Enviar a carta
-      </Button>
-      {done && (
-        <p className="text-center font-serif text-lg italic text-primary">
-          {ok ? "A imagem atravessou a fresta." : "A casa não aceitou esta ordem."}
-        </p>
-      )}
+      <CartaPuzzle mine={mine} />
     </div>
   );
 }
