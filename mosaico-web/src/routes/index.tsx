@@ -1,18 +1,19 @@
 import { Button } from "@/components/ui/button";
 import { MosaicMark } from "@/components/game/mark";
+import { CartaDemo } from "@/components/game/carta-demo";
 import { RotateHint } from "@/components/game/rotate-hint";
 import { armAudio, playOnce, playStorm, stopVoice } from "@/lib/mosaico/sound";
 import { useParty } from "@/lib/mosaico/party";
 import { cn } from "@/lib/utils";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Compass, DoorOpen, Play, QrCode, Volume2, VolumeX } from "lucide-react";
+import { Compass, DoorOpen, Play, Puzzle, QrCode, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 export const Route = createFileRoute("/")({
   component: Home,
 });
 
-type Screen = "open" | "menu" | "criar" | "entrar" | "ensaiar" | "como";
+type Screen = "open" | "menu" | "criar" | "entrar" | "ensaiar" | "como" | "carta";
 
 function Home() {
   const nav = useNavigate();
@@ -145,6 +146,10 @@ function Home() {
                 <Play className="size-4" />
                 Ensaiar sozinho
               </Button>
+              <Button variant="soft" size="lg" onClick={() => setScreen("carta")}>
+                <Puzzle className="size-4" />
+                Ver a carta encostar
+              </Button>
               <Button
                 variant="ghost"
                 size="lg"
@@ -236,6 +241,12 @@ function Home() {
                 Voltar
               </Button>
             </form>
+          )}
+
+          {screen === "carta" && (
+            <div className="stagger-in mt-6">
+              <CartaDemo onBack={() => setScreen("menu")} />
+            </div>
           )}
 
           {screen === "como" && (
