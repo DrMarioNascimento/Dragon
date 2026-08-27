@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { CHARACTERS, REVEAL_SLIDES } from "@/lib/mosaico/case";
 import { useParty } from "@/lib/mosaico/party";
 import {
+  CHAR_IDS,
   DEDUCAO,
   ENVELOPES,
   FRAGMENTOS,
@@ -15,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { CartaPuzzle } from "./carta-puzzle";
+import { EspelhoPlay, PalimpsestoPlay, PlantaPlay } from "./gesto-play";
 import { MosaicMark } from "./mark";
 import { ModuleFrame } from "./module-frame";
 import { NIGHT_MODULES } from "@/lib/mosaico/modules";
@@ -31,13 +33,15 @@ function Line({ children }: { children: string }) {
   );
 }
 
+const LANTERN_FASES = ["janela", "vidro", "salaescura", "palimpsesto", "espelho", "planta"];
+
 function HostBar() {
   const isMaster = useParty((s) => s.isMaster);
   const advance = useParty((s) => s.advance);
   const lanternDone = useParty((s) => s.lanternDone);
   const fase = useParty((s) => (s.mode === "local" ? s.localFase : s.room?.fase));
   if (!isMaster) return null;
-  if (fase === "janela" || fase === "comodo") {
+  if (fase && LANTERN_FASES.includes(fase)) {
     if (!lanternDone) return null;
   } else if (!fase || !["votacao", "encaixe", "oleo", "deducao"].includes(fase)) {
     return null;
@@ -45,7 +49,7 @@ function HostBar() {
   return (
     <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 px-4 pb-[max(0.8rem,env(safe-area-inset-bottom))] pt-3">
       <Button className="w-full" size="lg" onClick={() => void advance()}>
-        {fase === "janela" || fase === "comodo" ? "Seguir" : "Avançar"}
+        Seguir
       </Button>
     </div>
   );
@@ -76,6 +80,9 @@ function SalaScreen() {
     <div className="space-y-5 px-5 pb-10 pt-6">
       <Line>{PHONE_LINE.sala}</Line>
       <h1 className="font-serif text-4xl">A mesa</h1>
+      <p className="text-sm text-fog">
+        Noite de teste. Um jogador passa por todas as experiências, um ecrã de cada vez.
+      </p>
       {code && code !== "LOCAL" && (
         <div className="rounded-lg border border-primary/40 bg-card px-4 py-5 text-center">
           <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
@@ -125,8 +132,11 @@ function EnceneScreen() {
   const isMaster = useParty((s) => s.isMaster);
   const advance = useParty((s) => s.advance);
   const ator = players[vez] ?? players[0];
-  const mine = ator?.id === uid;
-  const roteiro = ROTEIRO[ator?.personagem || ""] ?? ROTEIRO.tomas;
+  const tour = players.length === 1;
+  const [charI, setCharI] = useState(0);
+  const personagem = tour ? CHAR_IDS[charI] : ator?.personagem || "tomas";
+  const mine = tour || ator?.id === uid;
+  const roteiro = ROTEIRO[personagem] ?? ROTEIRO.tomas;
   const [step, setStep] = useState<"entenda" | "faca" | "fale">("entenda");
 
   if (!mine) {
@@ -136,6 +146,11 @@ function EnceneScreen() {
   return (
     <div className="space-y-5 px-5 pb-10 pt-6">
       <Line>{PHONE_LINE.encenacao}</Line>
+      {tour && (
+        <p className="text-xs uppercase tracking-widest text-muted-foreground">
+          Cena {charI + 1} de {CHAR_IDS.length}
+        </p>
+      )}
       {step === "entenda" && (
         <>
           <h2 className="font-serif text-3xl">Entenda a cena</h2>
@@ -162,6 +177,15 @@ function EnceneScreen() {
             className="w-full"
             size="lg"
             onClick={() => {
+              if (tour) {
+                if (charI < CHAR_IDS.length - 1) {
+                  setCharI(charI + 1);
+                  setStep("entenda");
+                  return;
+                }
+                void advance();
+                return;
+              }
               const n = vez + 1;
               if (n >= players.length || n >= 6) void advance();
               else void setVez(n);
@@ -211,33 +235,13 @@ function VotoScreen() {
   );
 }
 
-function JanelaScreen() {
-  const mod = NIGHT_MODULES.find((m) => m.slug === "janela")!;
-  const markLanternDone = useParty((s) => s.markLanternDone);
-  const lanternDone = useParty((s) => s.lanternDone);
-  return (
-    <div className={cn("flex min-h-[calc(100dvh-3.5rem)] flex-col", lanternDone ? "pb-24" : "pb-2")}>
-      <p className="px-5 pb-2 pt-1 text-[11px] uppercase tracking-[0.22em] text-accent">
-        {PHONE_LINE.janela}
-      </p>
-      <div className="min-h-0 flex-1">
-        <ModuleFrame mod={mod} compact onDone={() => markLanternDone()} />
-      </div>
-    </div>
-  );
-}
-
-function ComodoScreen() {
-  const eu = me();
-  const slug = eu?.comodo === "vidro" ? "vidro" : "sala";
+function LanternPhase({ slug, line }: { slug: string; line: string }) {
   const mod = NIGHT_MODULES.find((m) => m.slug === slug)!;
   const markLanternDone = useParty((s) => s.markLanternDone);
   const lanternDone = useParty((s) => s.lanternDone);
   return (
     <div className={cn("flex min-h-[calc(100dvh-3.5rem)] flex-col", lanternDone ? "pb-24" : "pb-2")}>
-      <p className="px-5 pb-2 pt-1 text-[11px] uppercase tracking-[0.22em] text-accent">
-        {PHONE_LINE.comodo}
-      </p>
+      <p className="px-5 pb-2 pt-1 text-[11px] uppercase tracking-[0.22em] text-accent">{line}</p>
       <div className="min-h-0 flex-1">
         <ModuleFrame mod={mod} compact onDone={() => markLanternDone()} />
       </div>
@@ -457,7 +461,7 @@ export function PartyApp() {
   const mode = useParty((s) => s.mode);
   const fase = useParty((s) =>
     s.mode === "local" ? s.localFase : s.room?.fase || "sala",
-  ) as V3Phase | "sala";
+  ) as V3Phase | "sala" | "comodo";
   const leave = useParty((s) => s.leave);
 
   if (mode === "idle") {
@@ -473,13 +477,15 @@ export function PartyApp() {
   }
 
   const hideChrome = fase === "cor";
+  const players = useParty((s) => s.players);
   const lanternDone = useParty((s) => s.lanternDone);
   const showHost =
     fase === "votacao" ||
     fase === "encaixe" ||
     fase === "oleo" ||
     fase === "deducao" ||
-    ((fase === "janela" || fase === "comodo") && lanternDone);
+    (fase === "cor" && players.some((p) => p.fragmentoPronto)) ||
+    (LANTERN_FASES.includes(fase) && lanternDone);
 
   return (
     <div className="relative min-h-dvh bg-background">
@@ -504,9 +510,15 @@ export function PartyApp() {
       {fase === "sala" && <SalaScreen />}
       {fase === "encenacao" && <EnceneScreen />}
       {fase === "votacao" && <VotoScreen />}
-      {fase === "janela" && <JanelaScreen />}
-      {fase === "comodo" && <ComodoScreen />}
+      {fase === "janela" && <LanternPhase slug="janela" line={PHONE_LINE.janela} />}
+      {(fase === "vidro" || fase === "comodo") && (
+        <LanternPhase slug="vidro" line={PHONE_LINE.vidro} />
+      )}
+      {fase === "salaescura" && <LanternPhase slug="sala" line={PHONE_LINE.salaescura} />}
       {fase === "cor" && <CorScreen />}
+      {fase === "palimpsesto" && <PalimpsestoPlay />}
+      {fase === "espelho" && <EspelhoPlay />}
+      {fase === "planta" && <PlantaPlay />}
       {fase === "encaixe" && <EncaixeScreen />}
       {fase === "oleo" && <OleoScreen />}
       {fase === "deducao" && <DeducaoScreen />}

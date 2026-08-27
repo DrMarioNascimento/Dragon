@@ -183,9 +183,9 @@ test("sala encerrada não aceita mais escrita de participante", async () => {
 
 /* ---------- noite v3 ---------- */
 
-test("o mestre avança para uma fase v3 conhecida", async () => {
+test("o mestre avança para palimpsesto, espelho e planta", async () => {
   await assertSucceeds(updateDoc(doc(como(MESTRE), "mosaico", SALA), {
-    fase: "janela", v3: true
+    fase: "palimpsesto", v3: true
   }));
 });
 

@@ -3,8 +3,12 @@ export const V3_PHASES = [
   "encenacao",
   "votacao",
   "janela",
-  "comodo",
+  "vidro",
+  "salaescura",
   "cor",
+  "palimpsesto",
+  "espelho",
+  "planta",
   "encaixe",
   "oleo",
   "deducao",
@@ -18,8 +22,12 @@ export const PHONE_LINE: Record<V3Phase, string> = {
   encenacao: "É a sua vez. Faça.",
   votacao: "Quem deu o clima?",
   janela: "Aponta.",
-  comodo: "Aponta.",
+  vidro: "Aponta. Inclina.",
+  salaescura: "Aponta. O quadro, depois o cofre.",
   cor: "Procura a sua cor.",
+  palimpsesto: "Empilha os vidros.",
+  espelho: "Mostra. Não leias.",
+  planta: "A mesa é a casa.",
   encaixe: "Encosta.",
   oleo: "Compra ou guarda.",
   deducao: "Quem foi?",
@@ -144,6 +152,7 @@ export const VERDADE = {
 };
 
 export function nextPhase(fase: string): V3Phase | null {
+  if (fase === "comodo") return "cor";
   const i = V3_PHASES.indexOf(fase as V3Phase);
   if (i < 0 || i >= V3_PHASES.length - 1) return null;
   return V3_PHASES[i + 1];

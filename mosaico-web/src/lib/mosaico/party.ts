@@ -248,7 +248,8 @@ export const useParty = create<PartyState>((set, get) => ({
   advance: async () => {
     const { mode, room, code, localFase } = get();
     const fase = mode === "local" ? localFase : room?.fase || "sala";
-    const nxt = nextPhase(fase);
+    let nxt = nextPhase(fase);
+    if (nxt === "votacao" && get().players.length < 2) nxt = nextPhase("votacao");
     if (!nxt) return;
     const extra: Record<string, unknown> = { fase: nxt };
     if (nxt === "cor") extra.mosaicoAbertoMs = Date.now();
