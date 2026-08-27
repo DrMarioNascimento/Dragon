@@ -158,10 +158,31 @@ export function nextPhase(fase: string): V3Phase | null {
   return V3_PHASES[i + 1];
 }
 
+/** Tamanhos dos times: só 2 ou 3 (1 só se a mesa inteira for ≤3). No máximo 4 times. */
+export function groupSizes(n: number): number[] {
+  if (n <= 0) return [];
+  if (n <= 3) return [n];
+  const g =
+    n >= 6 && n % 3 === 0 ? Math.min(4, n / 3) : Math.min(4, Math.floor(n / 2));
+  const base = Math.floor(n / g);
+  const extra = n % g;
+  return Array.from({ length: g }, (_, i) => base + (i < extra ? 1 : 0));
+}
+
 export function assignNucleos(n: number): number[] {
-  if (n <= 3) return Array.from({ length: n }, () => 1);
+  const sizes = groupSizes(n);
+  const g = sizes.length;
+  const left = [...sizes];
   const out: number[] = [];
-  for (let i = 0; i < n; i++) out.push((i % 4) + 1);
+  let i = 0;
+  while (out.length < n) {
+    const k = i % g;
+    if (left[k] > 0) {
+      out.push(k + 1);
+      left[k]--;
+    }
+    i++;
+  }
   return out;
 }
 
