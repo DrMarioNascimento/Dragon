@@ -36,8 +36,8 @@ export function tituloPapelNaMesa(
   return tituloPapel(id, dono?.forma);
 }
 
-export const FORMA_OPCOES: { id: Forma; label: string }[] = [
-  { id: "m", label: "Menino" },
-  { id: "f", label: "Menina" },
-  { id: "n", label: "Tanto faz" },
+export const FORMA_OPCOES: { id: Forma; emoji: string; label: string }[] = [
+  { id: "m", emoji: "👨", label: "Menino" },
+  { id: "f", emoji: "👩", label: "Menina" },
+  { id: "n", emoji: "🧑", label: "Tanto faz" },
 ];
