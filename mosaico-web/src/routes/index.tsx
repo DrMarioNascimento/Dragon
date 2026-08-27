@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { MosaicMark } from "@/components/game/mark";
 import { CartaDemo } from "@/components/game/carta-demo";
-import { RotateHint } from "@/components/game/rotate-hint";
 import { armAudio, stopVoice } from "@/lib/mosaico/sound";
 import { useParty } from "@/lib/mosaico/party";
 import { cn } from "@/lib/utils";
@@ -18,7 +17,7 @@ type Screen = "open" | "menu" | "criar" | "entrar" | "ensaiar" | "como" | "carta
 function Home() {
   const nav = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [screen, setScreen] = useState<Screen>("open");
+  const [screen, setScreen] = useState<Screen>("carta");
   const [muted, setMuted] = useState(true);
   const [nome, setNome] = useState("");
   const [forma, setForma] = useState<"m" | "f">("m");
@@ -66,7 +65,6 @@ function Home() {
 
   return (
     <main className="relative min-h-dvh overflow-hidden bg-background text-foreground">
-      <RotateHint />
       <img
         src="/media/capa-vertical.jpg"
         alt=""
@@ -132,7 +130,8 @@ function Home() {
       )}
 
       {screen !== "open" && (
-        <div className="relative z-10 mx-auto flex min-h-dvh max-w-lg flex-col px-6 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-[max(2.5rem,env(safe-area-inset-top))]">
+        <div className="relative z-10 mx-auto flex min-h-dvh max-w-lg flex-col px-6 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-[max(1.5rem,env(safe-area-inset-top))]">
+          {screen !== "carta" && (
           <header className="stagger-in text-center">
             <MosaicMark className="mx-auto mb-5 size-9 text-primary" />
             <p className="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
@@ -143,6 +142,7 @@ function Home() {
               A noite na mesa
             </p>
           </header>
+          )}
 
           {screen === "menu" && (
             <div className="stagger-in mt-10 flex flex-col gap-3">

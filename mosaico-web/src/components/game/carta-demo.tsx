@@ -37,7 +37,7 @@ export function CartaDemo({ onBack }: { onBack?: () => void }) {
       </header>
 
       <div
-        className="relative mx-auto flex h-[min(58vh,420px)] w-full max-w-md items-center justify-center"
+        className="relative mx-auto flex h-[min(70vh,480px)] w-full max-w-lg items-center justify-center"
         data-beat={beat}
       >
         <Phone

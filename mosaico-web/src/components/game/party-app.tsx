@@ -18,7 +18,6 @@ import { CartaPuzzle } from "./carta-puzzle";
 import { MosaicMark } from "./mark";
 import { ModuleFrame } from "./module-frame";
 import { NIGHT_MODULES } from "@/lib/mosaico/modules";
-import { RotateHint } from "./rotate-hint";
 
 function me() {
   const uid = useParty((s) => s.uid);
@@ -484,7 +483,6 @@ export function PartyApp() {
 
   return (
     <div className="relative min-h-dvh bg-background">
-      <RotateHint />
       {!hideChrome && (
         <header className="flex items-center justify-between px-4 pt-[max(0.8rem,env(safe-area-inset-top))]">
           <button type="button" className="inline-flex min-h-11 items-center text-xs text-muted-foreground" onClick={leave}>

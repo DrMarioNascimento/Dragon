@@ -1,7 +1,6 @@
 import { useGame } from "@/lib/mosaico/store";
 import { Link } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { RotateHint } from "./rotate-hint";
 import {
   CoopVotePhase,
   DeductionPhase,
@@ -18,6 +17,7 @@ import {
   StoryVotePhase,
 } from "./phases";
 import { GameShell, PassGate } from "./shell";
+import { MosaicMark } from "./mark";
 
 export function GameApp() {
   const match = useGame((s) => s.match);
@@ -40,9 +40,13 @@ export function GameApp() {
         <img
           src="/media/aguardando.jpg"
           alt=""
-          className="absolute inset-0 h-full w-full object-cover opacity-50"
+          className="absolute inset-0 h-full w-full object-cover cover-photo opacity-60"
         />
-        <p className="relative font-serif text-3xl tracking-[0.28em] text-primary">MOSAICO</p>
+        <div className="absolute inset-0 cover-tint" />
+        <div className="relative flex flex-col items-center gap-3">
+          <MosaicMark className="size-8 text-primary" />
+          <p className="brand-wordmark text-3xl text-primary">MOSAICO</p>
+        </div>
       </div>
     );
   }
@@ -50,7 +54,8 @@ export function GameApp() {
   if (!match) {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-background px-6 text-center">
-        <p className="font-serif text-3xl text-primary">MOSAICO</p>
+        <MosaicMark className="size-8 text-primary" />
+        <p className="brand-wordmark text-3xl text-primary">MOSAICO</p>
         <p className="text-sm text-fog">A mesa ainda não foi aberta nesta noite.</p>
         <Link
           to="/"
@@ -64,7 +69,6 @@ export function GameApp() {
 
   return (
     <GameShell match={match}>
-      <RotateHint />
       <PassGate match={match} />
       {match.phase === "story" && <StoryPhase match={match} />}
       {match.phase === "storyVote" && <StoryVotePhase match={match} />}
