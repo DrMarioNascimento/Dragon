@@ -19,7 +19,12 @@ type Screen = "open" | "menu" | "criar" | "entrar" | "ensaiar" | "como" | "carta
 function Home() {
   const nav = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [screen, setScreen] = useState<Screen>("novo");
+  const [screen, setScreen] = useState<Screen>(() => {
+    if (typeof window === "undefined") return "menu";
+    return new URLSearchParams(window.location.search).get("sala")
+      ? "entrar"
+      : "menu";
+  });
   const [muted, setMuted] = useState(true);
   const [nome, setNome] = useState("");
   const [forma, setForma] = useState<Forma>("n");

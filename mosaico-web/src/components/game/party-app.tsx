@@ -116,7 +116,20 @@ function SalaScreen() {
             Código da sala
           </p>
           <p className="mt-2 font-serif text-4xl tracking-[0.2em] text-primary">{code}</p>
-          {link && <p className="mt-2 break-all text-xs text-fog">{link}</p>}
+          {link && (
+            <>
+              <img
+                alt="QR da mesa"
+                className="mx-auto mt-4 rounded-md bg-white p-2"
+                width={220}
+                height={220}
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(link)}`}
+              />
+              <p className="mt-3 text-sm text-fog">
+                Os outros apontam a câmera aqui. Sem digitar código.
+              </p>
+            </>
+          )}
         </div>
       )}
       <ul className="space-y-2">
