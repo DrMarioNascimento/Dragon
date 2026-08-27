@@ -215,4 +215,22 @@ export function pecasDoTelefone(playerIndex: number, total: number): string[] {
   return ORDEM_NOITE.filter((_, i) => i % total === playerIndex);
 }
 
+export const CAMPOS_FICHA = ["suspectId", "actionId", "proofId"] as const;
+export type CampoFicha = (typeof CAMPOS_FICHA)[number];
+
+/** A casa reparte a ficha. Um time não preenche os três. */
+export function camposDoNucleo(nucleo: number, nNucleos: number): CampoFicha[] {
+  if (nNucleos <= 1) return [...CAMPOS_FICHA];
+  const donos: CampoFicha[][] = Array.from({ length: nNucleos }, () => []);
+  CAMPOS_FICHA.forEach((c, i) => {
+    donos[i % nNucleos].push(c);
+  });
+  return donos[Math.max(0, nucleo - 1)] ?? [];
+}
+
+export function nucleoDoCampo(campo: CampoFicha, nNucleos: number): number {
+  const i = CAMPOS_FICHA.indexOf(campo);
+  return (i % Math.max(1, nNucleos)) + 1;
+}
+
 export const CHAR_IDS = ["tomas", "helena", "elias", "clara", "nilo", "iris"] as const;

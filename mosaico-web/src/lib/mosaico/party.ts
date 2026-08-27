@@ -323,11 +323,7 @@ export const useParty = create<PartyState>((set, get) => ({
       mode === "firebase" &&
       code &&
       uid &&
-      deduction.suspectId &&
-      deduction.motiveId &&
-      deduction.actionId &&
-      deduction.proofId &&
-      deduction.gapId
+      (deduction.suspectId || deduction.actionId || deduction.proofId)
     ) {
       void gravarDeducao(code, uid, {
         suspeito: deduction.suspectId,

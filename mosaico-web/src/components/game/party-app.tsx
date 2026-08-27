@@ -13,6 +13,10 @@ import {
   fotoDoNucleo,
   papeisNoGrupo,
   FOTO_IDS,
+  camposDoNucleo,
+  nucleoDoCampo,
+  CAMPOS_FICHA,
+  type CampoFicha,
   type V3Phase,
 } from "@/lib/mosaico/v3";
 import { cn } from "@/lib/utils";
@@ -446,8 +450,13 @@ function DeducaoScreen() {
   const submit = useParty((s) => s.submitDeduction);
   const submittedAt = useParty((s) => s.submittedAt);
   const players = useParty((s) => s.players);
-  const ready =
-    d.suspectId && d.motiveId && d.actionId && d.proofId && d.gapId && !submittedAt;
+  const mode = useParty((s) => s.mode);
+  const eu = me();
+  const nNucleos =
+    mode === "local" ? 1 : new Set(players.map((p) => p.nucleo || 1)).size;
+  const meus = camposDoNucleo(eu?.nucleo ?? 1, nNucleos);
+  const [ouvi, setOuvi] = useState<Partial<Record<CampoFicha, boolean>>>({});
+  const ready = CAMPOS_FICHA.every((c) => d[c]) && !submittedAt;
   const suspeitos = DEDUCAO.suspeitos.map((s) => ({
     ...s,
     label: tituloPapelNaMesa(s.id, players),
@@ -459,27 +468,40 @@ function DeducaoScreen() {
     opts,
   }: {
     label: string;
-    field: keyof typeof d;
+    field: CampoFicha;
     opts: { id: string; label: string }[];
   }) {
+    const dono = nucleoDoCampo(field, nNucleos);
+    const meu = meus.includes(field) || !!ouvi[field];
+    const frag = FRAGMENTOS[dono as 1 | 2 | 3 | 4];
     return (
       <label className="block space-y-1">
         <span className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
           {label}
         </span>
-        <select
-          className="field-depth h-11 w-full rounded-md px-3"
-          value={d[field] ?? ""}
-          disabled={!!submittedAt}
-          onChange={(e) => setDeduction({ ...d, [field]: e.target.value || null })}
-        >
-          <option value="">—</option>
-          {opts.map((o) => (
-            <option key={o.id} value={o.id}>
-              {o.label}
-            </option>
-          ))}
-        </select>
+        {meu ? (
+          <select
+            className="field-depth h-11 w-full rounded-md px-3"
+            value={d[field] ?? ""}
+            disabled={!!submittedAt}
+            onChange={(e) => setDeduction({ ...d, [field]: e.target.value || null })}
+          >
+            <option value="">—</option>
+            {opts.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <button
+            type="button"
+            className="box-depth w-full rounded-md px-3 py-3 text-left text-sm text-fog"
+            onClick={() => setOuvi((s) => ({ ...s, [field]: true }))}
+          >
+            A casa deu isso ao fragmento {frag?.cor ?? dono}. Quando a mesa falar, toca aqui.
+          </button>
+        )}
       </label>
     );
   }
@@ -488,11 +510,12 @@ function DeducaoScreen() {
     <div className="space-y-4 px-5 pb-28 pt-6">
       <Line>{PHONE_LINE.deducao}</Line>
       <h2 className="font-serif text-3xl">Quem foi?</h2>
+      <p className="text-sm text-fog">
+        Três linhas. A tua, tu marcas. As outras, a mesa fala.
+      </p>
       <Field label="Suspeito" field="suspectId" opts={suspeitos} />
-      <Field label="Motivo" field="motiveId" opts={DEDUCAO.motivos} />
       <Field label="O que fez" field="actionId" opts={DEDUCAO.acoes} />
-      <Field label="Prova" field="proofId" opts={DEDUCAO.provas} />
-      <Field label="A lacuna" field="gapId" opts={DEDUCAO.lacunas} />
+      <Field label="A prova" field="proofId" opts={DEDUCAO.provas} />
       <Button className="w-full" size="lg" disabled={!ready} onClick={submit}>
         Acusar — não se muda
       </Button>
@@ -509,13 +532,11 @@ function ResultadoScreen() {
   const players = useParty((s) => s.players);
   const acertou = d.suspectId === VERDADE.suspectId;
   const qualidade = [
-    d.motiveId === VERDADE.motiveId,
     d.actionId === VERDADE.actionId,
     d.proofId === VERDADE.proofId,
-    d.gapId === VERDADE.gapId,
   ].filter(Boolean).length;
   const tempo = acertou ? 32 : 0;
-  const caso = acertou ? [0, 3, 6, 10, 13][qualidade] : 0;
+  const caso = acertou ? [0, 6, 13][qualidade] : 0;
   const total = tempo + caso;
 
   return (
