@@ -1,5 +1,15 @@
 import { getApps, initializeApp } from "firebase/app";
-import { getAuth, signInAnonymously, type User } from "firebase/auth";
+import {
+  GoogleAuthProvider,
+  getAuth,
+  getRedirectResult,
+  linkWithPopup,
+  signInAnonymously,
+  signInWithPopup,
+  signInWithRedirect,
+  signOut,
+  type User,
+} from "firebase/auth";
 import {
   collection,
   doc,
@@ -36,6 +46,66 @@ export function gerarCodigo() {
   let s = "";
   for (let i = 0; i < 6; i++) s += ALPHABET[Math.floor(Math.random() * ALPHABET.length)];
   return s;
+}
+
+export function isGoogleUser(user: User | null | undefined) {
+  return !!user && user.providerData.some((p) => p.providerId === "google.com");
+}
+
+export async function consumeGoogleRedirect(): Promise<User | null> {
+  try {
+    const res = await getRedirectResult(auth);
+    return res?.user ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function googleProvider() {
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: "select_account" });
+  return provider;
+}
+
+function authMessage(e: unknown) {
+  const code = e && typeof e === "object" && "code" in e ? String((e as { code: string }).code) : "";
+  if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") {
+    return "Login com Google cancelado.";
+  }
+  if (code === "auth/unauthorized-domain") {
+    return "Este endereço ainda não está autorizado no Firebase.";
+  }
+  if (code === "auth/operation-not-allowed") {
+    return "Ligue o provedor Google em Authentication → Sign-in method.";
+  }
+  if (e instanceof Error && e.message) return e.message;
+  return "Não foi possível entrar com o Google.";
+}
+
+/** Dono da mesa: conta Google. Convidado continua anônimo. */
+export async function ensureGoogle(): Promise<User> {
+  if (isGoogleUser(auth.currentUser)) return auth.currentUser!;
+  const provider = googleProvider();
+  try {
+    if (auth.currentUser?.isAnonymous) {
+      try {
+        return (await linkWithPopup(auth.currentUser, provider)).user;
+      } catch {
+        await signOut(auth);
+      }
+    }
+    return (await signInWithPopup(auth, provider)).user;
+  } catch (e) {
+    const code = e && typeof e === "object" && "code" in e ? String((e as { code: string }).code) : "";
+    if (
+      code === "auth/popup-blocked" ||
+      code === "auth/operation-not-supported-in-this-environment"
+    ) {
+      await signInWithRedirect(auth, provider);
+      throw new Error("Redirecionando para o Google…");
+    }
+    throw new Error(authMessage(e));
+  }
 }
 
 export async function ensureAuth(): Promise<User> {

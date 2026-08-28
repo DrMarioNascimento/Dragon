@@ -2,8 +2,10 @@ import { create } from "zustand";
 import {
   atualizarJogador,
   atualizarMesa,
+  consumeGoogleRedirect,
   criarSala,
   ensureAuth,
+  ensureGoogle,
   entrarSala,
   gravarDeducao,
   gravarVoto,
@@ -120,18 +122,23 @@ export const useParty = create<PartyState>((set, get) => ({
   },
 
   create: async (nome, forma, formato = "cheia") => {
+    if (typeof sessionStorage !== "undefined") {
+      sessionStorage.setItem("noite.criar", JSON.stringify({ nome, forma, formato }));
+    }
     set({ connecting: true, error: null });
     try {
-      await get().connect();
-      const uid = get().uid!;
-      const code = await criarSala(uid, formato);
-      await entrarSala(code, uid, nome, forma);
+      await consumeGoogleRedirect();
+      const user = await ensureGoogle();
+      set({ uid: user.uid, error: null });
+      const code = await criarSala(user.uid, formato);
+      await entrarSala(code, user.uid, nome, forma);
       get().unsub?.();
       const unsub = ouvirSala(
         code,
         (room) => set({ room }),
         (players) => set({ players }),
       );
+      if (typeof sessionStorage !== "undefined") sessionStorage.removeItem("noite.criar");
       set({
         mode: "firebase",
         code,

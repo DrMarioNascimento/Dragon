@@ -38,3 +38,7 @@ Hoje as duas ainda usam o projeto `mosaico-game`. Os dados já não se cruzam. S
 7. Rebuild da v2.
 
 A mesa continua no projeto `mosaico-game`. Não mexa nas chaves da v1.
+
+## Login Google (a noite)
+
+Em Authentication → Sign-in method, ligue **Google** no projeto da noite. Só quem **abre a mesa** entra com Google. Convidado e ensaio continuam sem conta.

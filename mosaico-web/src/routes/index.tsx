@@ -3,6 +3,7 @@ import { MosaicMark } from "@/components/game/mark";
 import { CartaDemo } from "@/components/game/carta-demo";
 import { NovidadesDemo } from "@/components/game/novidades-demo";
 import { FORMA_OPCOES, type Forma } from "@/lib/mosaico/arquetipo";
+import { consumeGoogleRedirect } from "@/lib/mosaico/firebase";
 import { armAudio, stopVoice } from "@/lib/mosaico/sound";
 import { useParty } from "@/lib/mosaico/party";
 import type { NoiteFormato } from "@/lib/mosaico/v3";
@@ -45,7 +46,26 @@ function Home() {
       setCodigo(q.toUpperCase());
       setScreen("entrar");
     }
-  }, []);
+    let stop = false;
+    void (async () => {
+      const redirected = await consumeGoogleRedirect();
+      const raw = sessionStorage.getItem("noite.criar");
+      if (stop || !raw) return;
+      try {
+        const p = JSON.parse(raw) as { nome: string; forma: Forma; formato: NoiteFormato };
+        setNome(p.nome);
+        setForma(p.forma);
+        setFormato(p.formato);
+        setScreen("criar");
+        if (redirected) void create(p.nome, p.forma, p.formato);
+      } catch {
+        sessionStorage.removeItem("noite.criar");
+      }
+    })();
+    return () => {
+      stop = true;
+    };
+  }, [create]);
 
   useEffect(() => {
     if (mode !== "idle") void nav({ to: "/play" });
@@ -292,13 +312,20 @@ function Home() {
               {error && <p className="text-lg text-destructive">{error}</p>}
               <Button className="w-full" size="lg" type="submit" disabled={connecting}>
                 {connecting
-                  ? "Ligando a mesa…"
+                  ? screen === "criar"
+                    ? "Entrando com Google…"
+                    : "Ligando a mesa…"
                   : screen === "criar"
-                    ? "Criar sala"
+                    ? "Continuar com Google"
                     : screen === "entrar"
                       ? "Entrar"
                       : "Começar o ensaio"}
               </Button>
+              {screen === "criar" && (
+                <p className="text-center text-base text-muted-foreground">
+                  Só quem abre a mesa entra com Google. Os outros usam o código.
+                </p>
+              )}
               <Button type="button" variant="ghost" className="w-full" onClick={() => setScreen("menu")}>
                 Voltar
               </Button>
