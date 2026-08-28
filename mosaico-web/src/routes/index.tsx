@@ -217,7 +217,7 @@ function Home() {
                 e.preventDefault();
                 const n = nome.trim() || "Jogador";
                 if (screen === "ensaiar") {
-                  localStart(n, forma, formato);
+                  void localStart(n, forma, formato);
                   return;
                 }
                 if (screen === "criar") void create(n, forma, formato);
@@ -310,16 +310,21 @@ function Home() {
                 </div>
               )}
               {error && <p className="text-lg text-destructive">{error}</p>}
+              {screen === "ensaiar" && (
+                <p className="text-base text-muted-foreground">
+                  Entra com Google. Nas duplas este telefone faz um papel e depois o outro — a tela não divide.
+                </p>
+              )}
               <Button className="w-full" size="lg" type="submit" disabled={connecting}>
                 {connecting
-                  ? screen === "criar"
+                  ? screen === "criar" || screen === "ensaiar"
                     ? "Entrando com Google…"
                     : "Ligando a mesa…"
                   : screen === "criar"
                     ? "Continuar com Google"
                     : screen === "entrar"
                       ? "Entrar"
-                      : "Começar o ensaio"}
+                      : "Ensaiar com Google"}
               </Button>
               {screen === "criar" && (
                 <p className="text-center text-base text-muted-foreground">

@@ -54,7 +54,7 @@ type PartyState = {
   connect: () => Promise<void>;
   create: (nome: string, forma: "m" | "f" | "n", formato?: NoiteFormato) => Promise<void>;
   join: (code: string, nome: string, forma: "m" | "f" | "n") => Promise<void>;
-  localStart: (nome: string, forma: "m" | "f" | "n", formato?: NoiteFormato) => void;
+  localStart: (nome: string, forma: "m" | "f" | "n", formato?: NoiteFormato) => Promise<void>;
   ready: () => Promise<void>;
   startNight: () => Promise<void>;
   advance: () => Promise<void>;
@@ -181,52 +181,62 @@ export const useParty = create<PartyState>((set, get) => ({
     }
   },
 
-  localStart: (nome, forma, formato = "cheia") => {
-    const uid = "local";
-    const lanternaCurta: "janela" | "salaescura" = Math.random() < 0.5 ? "janela" : "salaescura";
-    set({
-      mode: "local",
-      code: "LOCAL",
-      uid,
-      isMaster: true,
-      localFase: "sala",
-      localVez: 0,
-      submittedAt: null,
-      voteTarget: null,
-      oilBought: null,
-      localTiles: [],
-      lanternDone: false,
-      pistas: {},
-      observe: {},
-      room: {
-        ativa: true,
-        fase: "sala",
-        vez: 0,
-        modo: "sem-telao",
-        ritmo: "automatico",
-        mestreUid: uid,
-        criadaEmMs: Date.now(),
-        v3: true,
-        formato,
-        lanternaCurta,
-      },
-      players: [
-        {
-          id: uid,
-          nome,
-          personagem: "elias",
-          forma,
-          pronto: true,
-          entrouMs: Date.now(),
-          votos: 0,
-          moedas: 9,
-          total: 0,
-          atualizadoEmMs: Date.now(),
-          nucleo: 1,
-          comodo: "vidro",
+  localStart: async (nome, forma, formato = "cheia") => {
+    set({ connecting: true, error: null });
+    try {
+      const user = await ensureGoogle();
+      const lanternaCurta: "janela" | "salaescura" =
+        Math.random() < 0.5 ? "janela" : "salaescura";
+      set({
+        mode: "local",
+        code: "LOCAL",
+        uid: user.uid,
+        isMaster: true,
+        connecting: false,
+        localFase: "sala",
+        localVez: 0,
+        submittedAt: null,
+        voteTarget: null,
+        oilBought: null,
+        localTiles: [],
+        lanternDone: false,
+        pistas: {},
+        observe: {},
+        room: {
+          ativa: true,
+          fase: "sala",
+          vez: 0,
+          modo: "sem-telao",
+          ritmo: "automatico",
+          mestreUid: user.uid,
+          criadaEmMs: Date.now(),
+          v3: true,
+          formato,
+          lanternaCurta,
         },
-      ],
-    });
+        players: [
+          {
+            id: user.uid,
+            nome,
+            personagem: "elias",
+            forma,
+            pronto: true,
+            entrouMs: Date.now(),
+            votos: 0,
+            moedas: 9,
+            total: 0,
+            atualizadoEmMs: Date.now(),
+            nucleo: 1,
+            comodo: "vidro",
+          },
+        ],
+      });
+    } catch (e) {
+      set({
+        connecting: false,
+        error: e instanceof Error ? e.message : "Não foi possível entrar com o Google.",
+      });
+    }
   },
 
   ready: async () => {

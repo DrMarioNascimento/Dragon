@@ -394,7 +394,6 @@ function CorScreen() {
 function EncaixeScreen() {
   const players = useParty((s) => s.players);
   const uid = useParty((s) => s.uid);
-  const mode = useParty((s) => s.mode);
   const eu = me();
   const nucleo = eu?.nucleo ?? 1;
   const membros = players
@@ -407,7 +406,7 @@ function EncaixeScreen() {
   const [foto, setFoto] = useState<FotoId>(daCasa);
   const [feitas, setFeitas] = useState<FotoId[]>([]);
   const [tarjaEnsaio, setTarjaEnsaio] = useState(false);
-  const ensaio = mode === "local";
+  const ensaio = players.length === 1;
   const papel = ensaio ? (tarjaEnsaio ? "tarja" : "full") : papeis[idx];
   const meta = FOTOS[foto];
 

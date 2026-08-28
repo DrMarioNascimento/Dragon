@@ -15,10 +15,11 @@ export function PalimpsestoPlay() {
   const pistas = useParty((s) => s.pistas);
   const done = useParty((s) => s.markPista);
   const [on, setOn] = useState(false);
+  const [papel, setPapel] = useState<"baixo" | "cima">("baixo");
   const { i, n, players } = seat();
   const janela = !!pistas.janela;
   const solo = n <= 1;
-  const baixo = solo || i % 2 === 0;
+  const baixo = solo ? papel === "baixo" : i % 2 === 0;
   const morador = tituloPapelNaMesa("elias", players);
 
   function empilhar() {
@@ -26,82 +27,43 @@ export function PalimpsestoPlay() {
     done("palimpsesto");
   }
 
-  if (!solo) {
-    return (
-      <div className="space-y-4 px-5 pb-28 pt-6">
-        <p className="text-base uppercase tracking-[0.22em] text-accent">Empilha os vidros.</p>
-        <h2 className="font-serif text-3xl">{baixo ? "Você fica embaixo" : "Você fica em cima"}</h2>
-        <p className="text-lg text-fog">
-          {baixo
-            ? "Coloca o celular na mesa, tela pra cima. O outro empilha no seu."
-            : "Põe a sua tela em cima da outra. A frase só existe nos dois."}
-        </p>
-        <div className="box-depth mx-auto min-h-44 max-w-sm rounded-2xl px-4 py-8 text-center">
-          {baixo ? (
-            <p className="font-serif text-xl leading-7 text-primary">
-              {janela ? morador.toUpperCase() : "· · ·"}
-              <br />
-              · · · · ·
-              <br />
-              · · · · ·
-            </p>
-          ) : (
-            <p className="font-serif text-xl leading-7 text-fog">
-              {on ? "baixou o disjuntor" : "lanterna — tela escura até empilhar"}
-            </p>
-          )}
-        </div>
-        <p className="text-center text-lg text-muted-foreground">
-          {janela ? "A janela deu a primeira palavra." : "A janela ainda não falou."}
-        </p>
-        <Button className="w-full" size="lg" onClick={empilhar} disabled={!janela}>
-          {on ? "Empilhado. Digam baixo o que leram." : "Empilhei"}
-        </Button>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-4 px-5 pb-28 pt-6">
       <p className="text-base uppercase tracking-[0.22em] text-accent">Empilha os vidros.</p>
-      <h2 className="font-serif text-3xl">Palimpsesto</h2>
+      <h2 className="font-serif text-3xl">{baixo ? "Você fica embaixo" : "Você fica em cima"}</h2>
       <p className="text-lg text-fog">
-        {janela
-          ? "A janela deixou a primeira palavra. Empilha para o resto."
-          : "Primeiro a janela. Sem ela, a carta não tem nome."}
+        {solo
+          ? "No ensaio o mesmo telefone faz os dois. Um depois do outro."
+          : baixo
+            ? "Coloca o celular na mesa, tela pra cima. O outro empilha no seu."
+            : "Põe a sua tela em cima da outra. A frase só existe nos dois."}
       </p>
-      <div className="relative mx-auto h-56 w-full max-w-sm">
-        <div
-          className={cn(
-            "box-depth absolute left-4 top-2 h-44 w-40 rounded-2xl p-3 transition-all duration-500",
-            on && "left-10 opacity-40",
-          )}
-        >
-          <p className="font-serif text-lg leading-6 text-fog">
-            {janela ? morador.toUpperCase() : "· · · ·"} · · · · O
-            <br />· · BAIXOU · ·
-            <br />· DISJUNTOR ·
+      <div className="box-depth mx-auto min-h-44 max-w-sm rounded-2xl px-4 py-8 text-center">
+        {baixo ? (
+          <p className="font-serif text-xl leading-7 text-primary">
+            {janela ? morador.toUpperCase() : "· · ·"}
+            <br />
+            · · · · ·
+            <br />
+            · · · · ·
           </p>
-        </div>
-        <div
-          className={cn(
-            "box-depth absolute right-4 top-6 h-44 w-40 rounded-2xl p-3 transition-all duration-500",
-            on ? "right-10 top-2 ring-4 ring-primary/30" : "",
-          )}
-        >
-          {on ? (
-            <p className="pt-6 text-center font-serif text-xl leading-7 text-primary">
-              {morador} baixou
-              <br />
-              o disjuntor
-            </p>
-          ) : (
-            <p className="pt-10 text-center text-lg text-muted-foreground">Lanterna</p>
-          )}
-        </div>
+        ) : on ? (
+          <p className="font-serif text-xl leading-7 text-primary">
+            {morador} baixou
+            <br />
+            o disjuntor
+          </p>
+        ) : (
+          <p className="font-serif text-xl leading-7 text-fog">lanterna — tela escura até empilhar</p>
+        )}
       </div>
-      <Button className="w-full" size="lg" disabled={!janela} onClick={empilhar}>
-        {on ? "A frase atravessou" : "Empilhar os vidros"}
+      {solo && papel === "baixo" && !on && (
+        <Button type="button" variant="outline" className="w-full" onClick={() => setPapel("cima")}>
+          Agora o outro telefone
+        </Button>
+      )}
+      <Button className="w-full" size="lg" onClick={empilhar} disabled={!janela || (solo && papel === "baixo")}>
+        {on ? "Empilhado. A frase fechou." : "Empilhei"}
       </Button>
     </div>
   );
@@ -111,10 +73,11 @@ export function EspelhoPlay() {
   const pistas = useParty((s) => s.pistas);
   const done = useParty((s) => s.markPista);
   const [shown, setShown] = useState(false);
+  const [papel, setPapel] = useState<"mostra" | "le">("mostra");
   const { i, n, players } = seat();
   const cofre = !!pistas.sala || !!pistas.salaescura;
   const solo = n <= 1;
-  const mostra = solo || i % 2 === 0;
+  const mostra = solo ? papel === "mostra" : i % 2 === 0;
   const morador = tituloPapelNaMesa("elias", players);
 
   function mostrar() {
@@ -122,67 +85,47 @@ export function EspelhoPlay() {
     done("espelho");
   }
 
-  if (!solo) {
-    return (
-      <div className="space-y-4 px-5 pb-28 pt-6">
-        <p className="text-base uppercase tracking-[0.22em] text-accent">Mostra. Não leia.</p>
-        <h2 className="font-serif text-3xl">{mostra ? "Mostra a tela" : "Lê no outro"}</h2>
-        <p className="text-lg text-fog">
-          {mostra
-            ? "Não leia em voz alta. Vira o celular pro vizinho."
-            : "Olha a tela do outro. Você lê a frase."}
-        </p>
-        <div className="box-depth rounded-lg px-4 py-8 text-center">
-          {mostra ? (
-            <p className="font-serif text-2xl leading-8 text-primary" style={{ transform: "scaleX(-1)" }}>
-              {cofre ? (
-                <>
-                  a marca na trava
-                  <br />
-                  é de {morador}
-                </>
-              ) : (
-                "· · ·"
-              )}
-            </p>
-          ) : (
-            <p className="font-serif text-lg text-fog">A sua tela está vazia de propósito.</p>
-          )}
-        </div>
-        <Button className="w-full" size="lg" disabled={!cofre} onClick={mostrar}>
-          {mostra ? "Mostrei" : "Li no outro telefone"}
-        </Button>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-4 px-5 pb-28 pt-6">
       <p className="text-base uppercase tracking-[0.22em] text-accent">Mostra. Não leia.</p>
-      <h2 className="font-serif text-3xl">O espelho</h2>
+      <h2 className="font-serif text-3xl">{mostra ? "Mostra a tela" : "Lê no outro"}</h2>
       <p className="text-lg text-fog">
-        {cofre
-          ? "O cofre deixou a marca. Está ao contrário — o vizinho lê."
-          : "O cofre ainda não falou. A sala às escuras vem primeiro."}
+        {solo
+          ? "No ensaio: primeiro você mostra (ao contrário). Depois vira o papel e lê."
+          : mostra
+            ? "Não leia em voz alta. Vira o celular pro vizinho."
+            : "Olha a tela do outro. Você lê a frase."}
       </p>
       <div className="box-depth rounded-lg px-4 py-8 text-center">
-        <p
-          className="font-serif text-2xl leading-8 text-primary"
-          style={{ transform: shown ? "none" : "scaleX(-1)" }}
-        >
-          {cofre ? (
-            <>
-              a marca na trava
-              <br />
-              é de {morador}
-            </>
-          ) : (
-            "· · ·"
-          )}
-        </p>
+        {mostra ? (
+          <p className="font-serif text-2xl leading-8 text-primary" style={{ transform: "scaleX(-1)" }}>
+            {cofre ? (
+              <>
+                a marca na trava
+                <br />
+                é de {morador}
+              </>
+            ) : (
+              "· · ·"
+            )}
+          </p>
+        ) : shown ? (
+          <p className="font-serif text-2xl leading-8 text-primary">
+            a marca na trava
+            <br />
+            é de {morador}
+          </p>
+        ) : (
+          <p className="font-serif text-lg text-fog">A sua tela está vazia de propósito.</p>
+        )}
       </div>
+      {solo && papel === "mostra" && !shown && (
+        <Button type="button" variant="outline" className="w-full" onClick={() => setPapel("le")}>
+          Agora o outro telefone
+        </Button>
+      )}
       <Button className="w-full" size="lg" disabled={!cofre} onClick={mostrar}>
-        {shown ? "Lido pelo outro lado" : "Mostrei ao vizinho"}
+        {mostra ? "Mostrei" : shown ? "Li no outro telefone" : "Li no outro telefone"}
       </Button>
     </div>
   );
