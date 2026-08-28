@@ -2423,7 +2423,7 @@ function modalSenha(){
         'autocomplete="off" placeholder="senha" '+
         'onkeydown="if(event.key===\'Enter\') conferirSenha()">')+
       '<div id="senha-erro"></div>'+
-      '<button class="btn btn-ambar" onclick="'+(autenticado?'criarMesa(STATE.modoMesa)':'conferirSenha()')+'">Abrir</button>'+
+      '<button class="btn btn-ambar" onclick="'+(autenticado?'criarMesa(STATE.modoMesa)':'conferirSenha()')+'">Abrir com Google</button>'+
       '<button class="btn btn-fantasma" onclick="fecharSenha()">Cancelar</button>'+
     '</div></div>';
 }
@@ -3469,9 +3469,9 @@ async function criarMesa(modo){
     render();
   }catch(e){
     console.error(e);
-    avisa("Não foi possível criar a mesa no Firestore.\n\n"+
+    avisa("Não foi possível criar a mesa.\n\n"+
           ((e&&(e.message||e.code))||e)+
-          "\n\nConfira: Firestore criado? Regras em modo teste?");
+          "\n\nSó e-mail autorizado abre mesa. Convidado entra com o código.");
   }
 }
 
@@ -4216,7 +4216,8 @@ import {
   arrayUnion, writeBatch
 } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 import {
-  getAuth, signInAnonymously, onAuthStateChanged
+  getAuth, signInAnonymously, onAuthStateChanged,
+  GoogleAuthProvider, signInWithPopup, linkWithPopup, signOut
 } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
 import {
   initializeAppCheck, ReCaptchaV3Provider
@@ -4318,6 +4319,48 @@ function autenticar(){
   return _prontoAuth;
 }
 
+function ehGoogle(u){
+  return !!(u && u.providerData && u.providerData.some(p => p.providerId === "google.com"));
+}
+
+function msgGoogle(e){
+  var code = e && e.code || "";
+  if(code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request")
+    return "Login com Google cancelado.";
+  if(code === "auth/unauthorized-domain")
+    return "Este endereço ainda não está autorizado no Firebase.";
+  if(code === "auth/operation-not-allowed")
+    return "Ligue o provedor Google em Authentication → Sign-in method (projeto mosaico-game).";
+  return (e && (e.message || e.code)) || "Não foi possível entrar com o Google.";
+}
+
+async function autenticarGoogle(){
+  if(!CONFIGURADO) throw new Error("Firebase não configurado.");
+  await autenticar();
+  var u = auth.currentUser;
+  if(ehGoogle(u)){ _uid = u.uid; return _uid; }
+  var provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: "select_account" });
+  try{
+    if(u && u.isAnonymous){
+      try{
+        var ligado = await linkWithPopup(u, provider);
+        _uid = ligado.user.uid;
+        return _uid;
+      }catch(e){
+        await signOut(auth);
+        _prontoAuth = null;
+      }
+    }
+    var cred = await signInWithPopup(auth, provider);
+    _uid = cred.user.uid;
+    _prontoAuth = Promise.resolve(_uid);
+    return _uid;
+  }catch(e){
+    throw new Error(msgGoogle(e));
+  }
+}
+
 /* Os ouvintes devolvem a funcao de cancelamento na hora, entao nao podem
    esperar o login com await. Este envelope mantem exatamente o mesmo
    contrato de fora: assina assim que a autenticacao termina e, se alguem
@@ -4333,7 +4376,7 @@ if(CONFIGURADO) window.MosaicoFB = {
   async pronto(){ return autenticar(); },
   uid(){ return _uid; },
   async criarMesa(codigo, modo, ritmo){
-    await autenticar();
+    await autenticarGoogle();
     await setDoc(doc(db, RAIZ, codigo), {
       ativa:true, fase:"sala", vez:0, modo:modo||"com-telao",
       mestreUid:_uid,

@@ -109,7 +109,7 @@ service cloud.firestore {
     match /{versao}/{roomId} {
       allow create: if known(versao)
         && signedIn()
-        && (versao != 'noite' || emailMestre())
+        && emailMestre()
         && request.resource.data.mestreUid == request.auth.uid
         && request.resource.data.ativa == true
         && request.resource.data.fase == 'sala'
