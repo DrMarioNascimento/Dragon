@@ -13,7 +13,7 @@ O hub segue o recorte visual do [Learning-lab](https://github.com/DrMarioNascime
 | | Pasta | Jogar |
 |---|---|---|
 | **01 A mesa** | [`v1/`](./v1) | [v1/MOSAICO-mesa.html](https://drmarionascimento.github.io/Dragon/v1/MOSAICO-mesa.html) |
-| **02 A noite** | [`mosaico-web/`](./mosaico-web) | código da v2; o preview jogável é o Publicar da Grok, até o build ir ao Pages |
+| **02 A noite** | [`mosaico-web/`](./mosaico-web) (código) · [`v2/`](./v2) (site) | [v2/](https://drmarionascimento.github.io/Dragon/v2/) |
 
 O endereço antigo [`MOSAICO-mesa.html`](./MOSAICO-mesa.html) redireciona para a mesa (v1).
 
@@ -109,7 +109,12 @@ App em [`mosaico-web/`](./mosaico-web) (React / Vite). **Não substitui a mesa.*
 - cronômetro âmbar com glow; a casa vira sozinha
 - arquétipo (emoji) em vez de nome de personagem na porta
 
-O GitHub Pages ainda não serve o build desta pasta. Para jogar a v2 no celular, use o Publicar do preview Grok até o `dist` ir ao Pages.
+O GitHub Pages serve o build estático em [`v2/`](https://drmarionascimento.github.io/Dragon/v2/). Código-fonte: [`mosaico-web/`](./mosaico-web).
+
+```bash
+cd mosaico-web && MOSAICO_PAGES=1 npx vite build
+# copiar dist/client para ../v2/
+```
 
 ---
 
