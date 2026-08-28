@@ -77,7 +77,7 @@ function Home() {
       <img
         src={`${import.meta.env.BASE_URL}media/capa-vertical.jpg`}
         alt=""
-        className="absolute inset-0 h-full w-full object-cover"
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover"
       />
       <video
         ref={videoRef}
@@ -139,7 +139,7 @@ function Home() {
       )}
 
       {screen !== "open" && (
-        <div className="relative z-10 mx-auto flex min-h-full max-w-lg flex-col px-6 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-[max(1.5rem,env(safe-area-inset-top))]">
+        <div className="relative z-20 mx-auto flex min-h-full max-w-lg flex-col px-6 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-[max(1.5rem,env(safe-area-inset-top))]">
           {screen !== "carta" && screen !== "novo" && (
           <header className="stagger-in shrink-0 text-center">
             <MosaicMark className="mx-auto mb-5 size-9 text-primary" />
@@ -228,55 +228,65 @@ function Home() {
               />
               <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Boas-vindas">
                 {FORMA_OPCOES.map(({ id, emoji, label }) => (
-                  <button
+                  <label
                     key={id}
-                    type="button"
-                    role="radio"
-                    aria-checked={forma === id}
-                    aria-label={label}
-                    onClick={() => setForma(id)}
                     className={cn(
-                      "flex min-h-[6.5rem] flex-col items-center justify-center gap-2 rounded-lg px-1 py-3",
-                      forma === id
-                        ? "box-depth ring-1 ring-primary/50"
-                        : "box-depth",
+                      "relative z-20 flex min-h-[6.5rem] cursor-pointer flex-col items-center justify-center gap-2 rounded-lg px-1 py-3",
+                      forma === id ? "btn-depth" : "box-depth",
                     )}
                   >
-                    <span className="text-3xl leading-none" aria-hidden>
+                    <input
+                      type="radio"
+                      name="forma"
+                      value={id}
+                      checked={forma === id}
+                      onChange={() => setForma(id)}
+                      className="absolute inset-0 z-30 cursor-pointer opacity-0"
+                      aria-label={label}
+                    />
+                    <span className="pointer-events-none text-3xl leading-none" aria-hidden>
                       {emoji}
                     </span>
-                    <span className="font-serif text-sm italic text-fog">{label}</span>
-                  </button>
+                    <span className="pointer-events-none font-serif text-sm italic text-fog">{label}</span>
+                  </label>
                 ))}
               </div>
               {(screen === "criar" || screen === "ensaiar") && (
                 <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setFormato("curta")}
+                  <label
                     className={cn(
-                      "rounded-lg px-3 py-3 text-left",
-                      formato === "curta"
-                        ? "box-depth ring-1 ring-primary/50"
-                        : "box-depth",
+                      "relative z-20 cursor-pointer rounded-lg px-3 py-3 text-left",
+                      formato === "curta" ? "btn-depth" : "box-depth",
                     )}
                   >
-                    <p className="font-serif text-lg">Noite curta</p>
-                    <p className="text-[11px] text-muted-foreground">uns 20 min</p>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setFormato("cheia")}
+                    <input
+                      type="radio"
+                      name="formato"
+                      value="curta"
+                      checked={formato === "curta"}
+                      onChange={() => setFormato("curta")}
+                      className="absolute inset-0 z-30 cursor-pointer opacity-0"
+                    />
+                    <p className="pointer-events-none font-serif text-lg">Noite curta</p>
+                    <p className="pointer-events-none text-[11px] text-muted-foreground">uns 20 min</p>
+                  </label>
+                  <label
                     className={cn(
-                      "rounded-lg px-3 py-3 text-left",
-                      formato === "cheia"
-                        ? "box-depth ring-1 ring-primary/50"
-                        : "box-depth",
+                      "relative z-20 cursor-pointer rounded-lg px-3 py-3 text-left",
+                      formato === "cheia" ? "btn-depth" : "box-depth",
                     )}
                   >
-                    <p className="font-serif text-lg">Noite cheia</p>
-                    <p className="text-[11px] text-muted-foreground">uns 40 min</p>
-                  </button>
+                    <input
+                      type="radio"
+                      name="formato"
+                      value="cheia"
+                      checked={formato === "cheia"}
+                      onChange={() => setFormato("cheia")}
+                      className="absolute inset-0 z-30 cursor-pointer opacity-0"
+                    />
+                    <p className="pointer-events-none font-serif text-lg">Noite cheia</p>
+                    <p className="pointer-events-none text-[11px] text-muted-foreground">uns 40 min</p>
+                  </label>
                 </div>
               )}
               {error && <p className="text-sm text-destructive">{error}</p>}
