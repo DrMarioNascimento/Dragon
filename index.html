@@ -103,22 +103,35 @@
       pointer-events: none;
       filter: drop-shadow(0 18px 32px rgba(255, 80, 8, .35));
     }
+    .ew-rest { display: inline; }
     @media (max-width: 819px) {
       .hero {
         grid-template-columns: 1fr;
         justify-items: stretch;
-        padding: 20px 0 28px;
+        padding: 16px 0 24px;
+        gap: 8px;
       }
       .hero-copy { display: contents; max-width: none; }
-      .hero-copy .eyebrow { order: 1; line-height: 1.55; letter-spacing: .12em; }
-      .hero-copy h1 { order: 2; text-align: center; }
+      .hero-copy .eyebrow {
+        order: 1;
+        line-height: 1.5;
+        letter-spacing: .1em;
+        text-align: center;
+      }
+      .ew-rest { display: block; margin-top: 4px; }
+      .hero-copy h1 {
+        order: 2;
+        text-align: center;
+        font-size: clamp(2rem, 11vw, 2.6rem);
+        margin: 8px 0 4px;
+      }
       .emblem {
         order: 3;
         justify-self: center;
-        width: min(250px, 68vw);
-        margin: 6px auto 10px;
+        width: min(168px, 42vw);
+        margin: 4px auto 8px;
       }
-      .hero-copy p { order: 4; }
+      .hero-copy p { order: 4; font-size: .98rem; }
       .hero-actions { order: 5; justify-content: center; }
     }
     .btn {
@@ -211,7 +224,7 @@
 
   <section class="hero shell" id="inicio">
     <div class="hero-copy">
-      <span class="eyebrow">Studio · Florianópolis · Santa Catarina · Brazil</span>
+      <span class="eyebrow">Studio · Florianópolis<span class="ew-rest"> · Santa Catarina · Brazil</span></span>
       <h1>Dragon <span>Games</span></h1>
       <p>A place for fun and ideas! A hub for learning through games, projects, and new concepts. Make yourself at home and enjoy the mystery, the action, and the company. We’re all about peace, learning, and fun. Maybe some PvP down the line (lol). I’m a beginner, so tips and suggestions are welcome!</p>
       <div class="hero-actions">
