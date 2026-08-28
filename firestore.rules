@@ -99,8 +99,15 @@ service cloud.firestore {
         && request.resource.data.fase == 'sala'
         && (!request.resource.data.keys().hasAny(['ritmo'])
           || request.resource.data.ritmo in ['automatico', 'conduzido'])
+        && (!request.resource.data.keys().hasAny(['formato'])
+          || request.resource.data.formato in ['curta', 'cheia'])
+        && (!request.resource.data.keys().hasAny(['v3'])
+          || request.resource.data.v3 == true)
+        && (!request.resource.data.keys().hasAny(['lanternaCurta'])
+          || request.resource.data.lanternaCurta in ['janela', 'salaescura'])
         && request.resource.data.keys().hasOnly([
-          'ativa', 'fase', 'vez', 'modo', 'ritmo', 'mestreUid', 'criadaEm', 'criadaEmMs'
+          'ativa', 'fase', 'vez', 'modo', 'ritmo', 'mestreUid', 'criadaEm', 'criadaEmMs',
+          'formato', 'v3', 'lanternaCurta'
         ]);
       allow get: if signedIn() && (resource.data.ativa == true || master(roomId) || participant(roomId));
       allow list: if false;
@@ -122,7 +129,7 @@ service cloud.firestore {
           && request.resource.data.nome is string
           && request.resource.data.nome.size() >= 1
           && request.resource.data.nome.size() <= 60
-          && request.resource.data.forma in ['m', 'f']
+          && request.resource.data.forma in ['m', 'f', 'n']
           && request.resource.data.moedas is int
           && request.resource.data.moedas >= 0
           && request.resource.data.keys().hasOnly([
