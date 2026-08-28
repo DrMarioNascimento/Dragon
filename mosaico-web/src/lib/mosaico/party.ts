@@ -13,9 +13,12 @@ import {
 } from "./firebase";
 import {
   CHAR_IDS,
+  FASE_S,
+  NOITE_TETO_S,
   assignComodos,
   assignNucleos,
   nextPhase,
+  type NoiteFormato,
 } from "./v3";
 
 export type PartyMode = "idle" | "firebase" | "local";
@@ -47,12 +50,13 @@ type PartyState = {
   observe: Record<string, boolean>;
   unsub: (() => void) | null;
   connect: () => Promise<void>;
-  create: (nome: string, forma: "m" | "f" | "n") => Promise<void>;
+  create: (nome: string, forma: "m" | "f" | "n", formato?: NoiteFormato) => Promise<void>;
   join: (code: string, nome: string, forma: "m" | "f" | "n") => Promise<void>;
-  localStart: (nome: string, forma: "m" | "f" | "n") => void;
+  localStart: (nome: string, forma: "m" | "f" | "n", formato?: NoiteFormato) => void;
   ready: () => Promise<void>;
   startNight: () => Promise<void>;
   advance: () => Promise<void>;
+  forcarAcusacao: () => Promise<void>;
   setVez: (vez: number) => Promise<void>;
   confirmFragment: () => Promise<void>;
   vote: (targetId: string) => void;
@@ -115,12 +119,12 @@ export const useParty = create<PartyState>((set, get) => ({
     }
   },
 
-  create: async (nome, forma) => {
+  create: async (nome, forma, formato = "cheia") => {
     set({ connecting: true, error: null });
     try {
       await get().connect();
       const uid = get().uid!;
-      const code = await criarSala(uid);
+      const code = await criarSala(uid, formato);
       await entrarSala(code, uid, nome, forma);
       get().unsub?.();
       const unsub = ouvirSala(
@@ -165,8 +169,9 @@ export const useParty = create<PartyState>((set, get) => ({
     }
   },
 
-  localStart: (nome, forma) => {
+  localStart: (nome, forma, formato = "cheia") => {
     const uid = "local";
+    const lanternaCurta: "janela" | "salaescura" = Math.random() < 0.5 ? "janela" : "salaescura";
     set({
       mode: "local",
       code: "LOCAL",
@@ -190,6 +195,8 @@ export const useParty = create<PartyState>((set, get) => ({
         mestreUid: uid,
         criadaEmMs: Date.now(),
         v3: true,
+        formato,
+        lanternaCurta,
       },
       players: [
         {
@@ -223,14 +230,20 @@ export const useParty = create<PartyState>((set, get) => ({
   },
 
   startNight: async () => {
-    const { mode, code, players } = get();
+    const { mode, code, players, room } = get();
     const chars = shuffle([...CHAR_IDS]);
     const nucleos = assignNucleos(players.length);
     const comodos = assignComodos(players.length);
+    const formato: NoiteFormato = room?.formato === "curta" ? "curta" : "cheia";
+    const lanternaCurta: "janela" | "salaescura" = Math.random() < 0.5 ? "janela" : "salaescura";
+    const now = Date.now();
+    const noiteAteMs = now + NOITE_TETO_S[formato] * 1000;
+    const faseAteMs = now + (FASE_S.encenacao ?? 90) * 1000;
+    const extra = { fase: "encenacao", vez: 0, v3: true, formato, lanternaCurta, noiteAteMs, faseAteMs };
     if (mode === "local") {
       set((s) => ({
         localFase: "encenacao",
-        room: s.room ? { ...s.room, fase: "encenacao", vez: 0 } : s.room,
+        room: s.room ? { ...s.room, ...extra } : s.room,
         players: s.players.map((p, i) => ({
           ...p,
           personagem: chars[i % chars.length],
@@ -250,23 +263,49 @@ export const useParty = create<PartyState>((set, get) => ({
         comodo: comodos[i],
       });
     }
-    await atualizarMesa(code, { fase: "encenacao", vez: 0, v3: true });
+    await atualizarMesa(code, extra);
   },
 
   advance: async () => {
     const { mode, room, code, localFase } = get();
     const fase = mode === "local" ? localFase : room?.fase || "sala";
-    let nxt = nextPhase(fase);
-    if (nxt === "votacao" && get().players.length < 2) nxt = nextPhase("votacao");
+    const formato: NoiteFormato = room?.formato === "curta" ? "curta" : "cheia";
+    const lanterna = room?.lanternaCurta === "salaescura" ? "salaescura" : "janela";
+    let nxt = nextPhase(fase, formato, lanterna);
+    if (nxt === "votacao" && get().players.length < 2) nxt = nextPhase("votacao", formato, lanterna);
     if (!nxt) return;
-    const extra: Record<string, unknown> = { fase: nxt };
-    if (nxt === "cor") extra.mosaicoAbertoMs = Date.now();
+    const now = Date.now();
+    const s = FASE_S[nxt];
+    const extra: Record<string, unknown> = {
+      fase: nxt,
+      faseAteMs: s ? now + s * 1000 : null,
+    };
+    if (nxt === "cor") extra.mosaicoAbertoMs = now;
     if (nxt === "encaixe") extra.fragmentosLiberados = true;
     if (mode === "local") {
       set((s) => ({
         localFase: nxt,
         lanternDone: false,
-        room: s.room ? { ...s.room, fase: nxt, ...extra } : s.room,
+        room: s.room ? { ...s.room, ...extra } : s.room,
+      }));
+      return;
+    }
+    if (!code) return;
+    set({ lanternDone: false });
+    await atualizarMesa(code, extra);
+  },
+
+  forcarAcusacao: async () => {
+    const { mode, room, code, localFase } = get();
+    const fase = mode === "local" ? localFase : room?.fase || "sala";
+    if (fase === "deducao" || fase === "resultado" || fase === "sala") return;
+    const now = Date.now();
+    const extra = { fase: "deducao" as const, faseAteMs: now + (FASE_S.deducao ?? 120) * 1000 };
+    if (mode === "local") {
+      set((s) => ({
+        localFase: "deducao",
+        lanternDone: false,
+        room: s.room ? { ...s.room, ...extra } : s.room,
       }));
       return;
     }

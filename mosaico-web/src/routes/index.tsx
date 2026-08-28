@@ -5,6 +5,7 @@ import { NovidadesDemo } from "@/components/game/novidades-demo";
 import { FORMA_OPCOES, type Forma } from "@/lib/mosaico/arquetipo";
 import { armAudio, stopVoice } from "@/lib/mosaico/sound";
 import { useParty } from "@/lib/mosaico/party";
+import type { NoiteFormato } from "@/lib/mosaico/v3";
 import { cn } from "@/lib/utils";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Compass, DoorOpen, Play, Puzzle, QrCode, Volume2, VolumeX } from "lucide-react";
@@ -29,6 +30,7 @@ function Home() {
   const [nome, setNome] = useState("");
   const [forma, setForma] = useState<Forma>("n");
   const [codigo, setCodigo] = useState("");
+  const [formato, setFormato] = useState<NoiteFormato>("curta");
   const create = useParty((s) => s.create);
   const join = useParty((s) => s.join);
   const localStart = useParty((s) => s.localStart);
@@ -195,10 +197,10 @@ function Home() {
                 e.preventDefault();
                 const n = nome.trim() || "Jogador";
                 if (screen === "ensaiar") {
-                  localStart(n, forma);
+                  localStart(n, forma, formato);
                   return;
                 }
-                if (screen === "criar") void create(n, forma);
+                if (screen === "criar") void create(n, forma, formato);
                 else void join(codigo, n, forma);
               }}
             >
@@ -245,6 +247,32 @@ function Home() {
                   </button>
                 ))}
               </div>
+              {(screen === "criar" || screen === "ensaiar") && (
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setFormato("curta")}
+                    className={cn(
+                      "rounded-lg px-3 py-3 text-left",
+                      formato === "curta" ? "btn-depth" : "box-depth",
+                    )}
+                  >
+                    <p className="font-serif text-lg">Noite curta</p>
+                    <p className="text-[11px] text-muted-foreground">uns 20 min</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormato("cheia")}
+                    className={cn(
+                      "rounded-lg px-3 py-3 text-left",
+                      formato === "cheia" ? "btn-depth" : "box-depth",
+                    )}
+                  >
+                    <p className="font-serif text-lg">Noite cheia</p>
+                    <p className="text-[11px] text-muted-foreground">uns 40 min</p>
+                  </button>
+                </div>
+              )}
               {error && <p className="text-sm text-destructive">{error}</p>}
               <Button className="w-full" size="lg" type="submit" disabled={connecting}>
                 {connecting

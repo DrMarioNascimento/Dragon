@@ -51,6 +51,10 @@ export type RoomDoc = {
   fragmentosLiberados?: boolean;
   mosaicoAbertoMs?: number;
   v3?: boolean;
+  formato?: "curta" | "cheia";
+  lanternaCurta?: "janela" | "salaescura";
+  faseAteMs?: number | null;
+  noiteAteMs?: number | null;
 };
 
 export type PlayerDoc = {
@@ -79,7 +83,7 @@ export function playerRef(code: string, uid: string) {
   return doc(db, ROOT, code, "jogadores", uid);
 }
 
-export async function criarSala(uid: string) {
+export async function criarSala(uid: string, formato: "curta" | "cheia" = "cheia") {
   let code = gerarCodigo();
   for (let i = 0; i < 8; i++) {
     const snap = await getDoc(roomRef(code));
@@ -95,6 +99,8 @@ export async function criarSala(uid: string) {
     mestreUid: uid,
     criadaEm: serverTimestamp(),
     criadaEmMs: Date.now(),
+    formato,
+    v3: true,
   });
   return code;
 }

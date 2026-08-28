@@ -149,11 +149,64 @@ export const VERDADE = {
   gapId: "g-agua-porta",
 };
 
-export function nextPhase(fase: string): V3Phase | null {
+export type NoiteFormato = "curta" | "cheia";
+
+export const NOITE_TETO_S: Record<NoiteFormato, number> = {
+  curta: 20 * 60,
+  cheia: 40 * 60,
+};
+
+/** Segundos por fase. Sem número = sem relógio na cara. */
+export const FASE_S: Partial<Record<V3Phase, number>> = {
+  encenacao: 90,
+  votacao: 45,
+  janela: 150,
+  vidro: 150,
+  salaescura: 150,
+  cor: 120,
+  palimpsesto: 90,
+  espelho: 90,
+  planta: 90,
+  encaixe: 180,
+  deducao: 120,
+};
+
+export function fasesDaNoite(
+  formato: NoiteFormato = "cheia",
+  lanternaCurta: "janela" | "salaescura" = "janela",
+): V3Phase[] {
+  if (formato === "curta") {
+    return [
+      "sala",
+      "encenacao",
+      "votacao",
+      lanternaCurta,
+      "cor",
+      "encaixe",
+      "deducao",
+      "resultado",
+    ];
+  }
+  return [...V3_PHASES];
+}
+
+export function formatarCronometro(ms: number) {
+  const s = Math.max(0, Math.ceil(ms / 1000));
+  const m = Math.floor(s / 60);
+  const r = s % 60;
+  return `${m}:${String(r).padStart(2, "0")}`;
+}
+
+export function nextPhase(
+  fase: string,
+  formato: NoiteFormato = "cheia",
+  lanternaCurta: "janela" | "salaescura" = "janela",
+): V3Phase | null {
   if (fase === "comodo") return "cor";
-  const i = V3_PHASES.indexOf(fase as V3Phase);
-  if (i < 0 || i >= V3_PHASES.length - 1) return null;
-  return V3_PHASES[i + 1];
+  const list = fasesDaNoite(formato, lanternaCurta);
+  const i = list.indexOf(fase as V3Phase);
+  if (i < 0 || i >= list.length - 1) return null;
+  return list[i + 1];
 }
 
 /** Par é a base. Ímpar: um time de 3 (foto + tarja). A casa sorteia. */

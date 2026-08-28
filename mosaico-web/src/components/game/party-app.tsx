@@ -24,6 +24,7 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { CartaPuzzle, FOTOS, type FotoId } from "./carta-puzzle";
 import { EspelhoPlay, PalimpsestoPlay, PlantaPlay } from "./gesto-play";
+import { FaseRelogio } from "./cronometro";
 import { MosaicMark } from "./mark";
 import { ModuleFrame } from "./module-frame";
 import { NIGHT_MODULES } from "@/lib/mosaico/modules";
@@ -47,7 +48,14 @@ function HostBar() {
   const advance = useParty((s) => s.advance);
   const lanternDone = useParty((s) => s.lanternDone);
   const fase = useParty((s) => (s.mode === "local" ? s.localFase : s.room?.fase));
+  const faseAte = useParty((s) => s.room?.faseAteMs);
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const t = window.setInterval(() => setNow(Date.now()), 500);
+    return () => window.clearInterval(t);
+  }, []);
   if (!isMaster) return null;
+  if (faseAte && faseAte > now) return null;
   if (fase && LANTERN_FASES.includes(fase)) {
     if (!lanternDone) return null;
   } else if (!fase || !["votacao", "encaixe", "deducao"].includes(fase)) {
@@ -174,8 +182,9 @@ function EnceneScreen() {
   const setVez = useParty((s) => s.setVez);
   const isMaster = useParty((s) => s.isMaster);
   const advance = useParty((s) => s.advance);
+  const formato = useParty((s) => s.room?.formato);
   const ator = players[vez] ?? players[0];
-  const tour = players.length === 1;
+  const tour = players.length === 1 && formato !== "curta";
   const [charI, setCharI] = useState(0);
   const personagem = tour ? CHAR_IDS[charI] : ator?.personagem || "tomas";
   const mine = tour || ator?.id === uid;
@@ -190,6 +199,10 @@ function EnceneScreen() {
   }
 
   function seguir() {
+    if (formato === "curta") {
+      void advance();
+      return;
+    }
     if (tour) {
       if (charI < CHAR_IDS.length - 1) {
         setCharI(charI + 1);
@@ -618,6 +631,7 @@ export function PartyApp() {
           <span className="w-8" />
         </header>
       )}
+      <FaseRelogio />
       {hideChrome && (
         <button
           type="button"
