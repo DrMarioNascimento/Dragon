@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#05070c">
-<script src="/modulos/voltar.js" defer></script>
+<script src="voltar.js" defer></script>
 <title>A Janela do Norte — MOSAICO</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -65,7 +65,7 @@
      viewport GRANDE, entao o rodape do HUD fica escondido atras da barra de
      endereco e os botoes viram intocaveis. 100dvh = viewport dinamica, que
      com overflow:hidden e sempre a menor (ja descontando as barras).      */
-  #hud{position:fixed;left:0;right:0;top:0;height:100%;height:100dvh;
+  #hud{position:fixed;left:0;right:0;top:0;height:100%;height:100dvh;z-index:1;
        pointer-events:none;
        padding:max(16px,env(safe-area-inset-top)) 16px
                calc(env(safe-area-inset-bottom,0px) + 22px);
@@ -152,7 +152,7 @@
     padding:clamp(20px,4vh,34px) 22px calc(env(safe-area-inset-bottom,0px) + 28px);
     overflow-y:auto;-webkit-overflow-scrolling:touch;
     touch-action:pan-y;overscroll-behavior:contain;
-    background:radial-gradient(120% 80% at 50% 45%,#060c13ef,#020407f2 55%,#000000fa);
+    background:#05070c;}
     backdrop-filter:blur(2px);}
   /* rede de seguranca para Safari antigo, que ignora "safe center": duas
      margens automaticas fazem o mesmo — centram quando cabe, somem quando
@@ -195,7 +195,7 @@
   #oito{position:fixed;left:0;right:0;top:0;height:100%;height:100dvh;z-index:11;
     display:none;flex-direction:column;align-items:center;justify-content:center;
     gap:18px;text-align:center;padding:24px;
-    background:radial-gradient(ellipse 110% 70% at 50% 45%,#070d15f2,#02040af7);}
+    background:#05070c;}
   #oito.on{display:flex;animation:fade .4s ease both}
   #oito-tit{font-family:var(--display);font-size:clamp(30px,7.5vw,42px);line-height:1.06;
     font-weight:600;color:#fff;text-shadow:0 0 40px #9ec9b840,0 4px 30px #000}
@@ -294,6 +294,8 @@
   body.embed #sub,
   body.embed #local{display:none}
   body.embed #intro{justify-content:center;justify-content:safe center}
+  body:has(#oito.on) #hud,
+  body:has(#intro:not(.gone)) #hud { visibility: hidden; opacity: 0; }
 
   /* ---------------- falha de sensor ---------------- */
   #falha{position:fixed;left:0;right:0;top:0;height:100%;height:100dvh;z-index:20;

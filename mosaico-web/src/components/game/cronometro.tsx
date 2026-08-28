@@ -44,8 +44,20 @@ export function FaseRelogio() {
   const show = faseLeft ?? noiteLeft ?? 0;
   const urgente = show <= 20_000;
 
+  const overlay =
+    fase === "janela" ||
+    fase === "vidro" ||
+    fase === "comodo" ||
+    fase === "salaescura";
+
   return (
-    <div className="px-4 text-center">
+    <div
+      className={
+        overlay
+          ? "pointer-events-none absolute inset-x-0 top-[max(0.35rem,env(safe-area-inset-top))] z-30 text-center"
+          : "px-4 text-center"
+      }
+    >
       {noiteLeft != null && noiteLeft > 0 && faseLeft != null && (
         <span className="cronometro-legenda">
           noite {formatarCronometro(noiteLeft)}

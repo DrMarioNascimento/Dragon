@@ -333,16 +333,13 @@ function VotoScreen() {
   );
 }
 
-function LanternPhase({ slug, line }: { slug: string; line: string }) {
+function LanternPhase({ slug }: { slug: string }) {
   const mod = NIGHT_MODULES.find((m) => m.slug === slug)!;
   const markPista = useParty((s) => s.markPista);
   const lanternDone = useParty((s) => s.lanternDone);
   return (
-    <div className={cn("flex min-h-[calc(100dvh-3.5rem)] flex-col", lanternDone ? "pb-24" : "pb-2")}>
-      <p className="px-5 pb-2 pt-1 text-[11px] uppercase tracking-[0.22em] text-accent">{line}</p>
-      <div className="min-h-0 flex-1">
-        <ModuleFrame mod={mod} compact onDone={() => markPista(slug)} />
-      </div>
+    <div className={cn("fixed inset-0 z-10 bg-background", lanternDone && "pb-24")}>
+      <ModuleFrame mod={mod} compact onDone={() => markPista(slug)} />
     </div>
   );
 }
@@ -608,7 +605,7 @@ export function PartyApp() {
     );
   }
 
-  const hideChrome = fase === "cor";
+  const hideChrome = fase === "cor" || LANTERN_FASES.includes(fase);
   const players = useParty((s) => s.players);
   const lanternDone = useParty((s) => s.lanternDone);
   const showHost =
@@ -644,11 +641,9 @@ export function PartyApp() {
       {fase === "sala" && <SalaScreen />}
       {fase === "encenacao" && <EnceneScreen />}
       {fase === "votacao" && <VotoScreen />}
-      {fase === "janela" && <LanternPhase slug="janela" line={PHONE_LINE.janela} />}
-      {(fase === "vidro" || fase === "comodo") && (
-        <LanternPhase slug="vidro" line={PHONE_LINE.vidro} />
-      )}
-      {fase === "salaescura" && <LanternPhase slug="sala" line={PHONE_LINE.salaescura} />}
+      {fase === "janela" && <LanternPhase slug="janela" />}
+      {(fase === "vidro" || fase === "comodo") && <LanternPhase slug="vidro" />}
+      {fase === "salaescura" && <LanternPhase slug="sala" />}
       {fase === "cor" && <CorScreen />}
       {fase === "palimpsesto" && <PalimpsestoPlay />}
       {fase === "espelho" && <EspelhoPlay />}

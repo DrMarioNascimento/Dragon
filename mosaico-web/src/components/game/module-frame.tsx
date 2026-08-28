@@ -76,7 +76,7 @@ export function ModuleFrame({
   const src = `${import.meta.env.BASE_URL}modulos/${mod.file}?embed=1&run=${encodeURIComponent(runId)}${!compact && desktop ? "&dev=1" : ""}`;
 
   return (
-    <div className={cn("relative bg-background", compact ? "h-full min-h-[52dvh]" : "h-dvh")}>
+    <div className={cn("relative bg-background", compact ? "h-full" : "h-dvh")}>
       {!compact && (
       <Link
         to="/noite"
