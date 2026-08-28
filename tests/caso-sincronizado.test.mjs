@@ -14,7 +14,7 @@ import assert from "node:assert/strict";
 const PREFIXO = "var CASO_FALLBACK_COMPLETO=";
 
 function casoEmbutido() {
-  const html = readFileSync(new URL("../MOSAICO-mesa.html", import.meta.url), "utf8");
+  const html = readFileSync(new URL("../v1/MOSAICO-mesa.html", import.meta.url), "utf8");
   const linha = html.split("\n").find(l => l.startsWith(PREFIXO));
   assert.ok(linha, `não encontrei uma linha começando com ${PREFIXO}`);
   const bruto = linha.slice(PREFIXO.length).replace(/;\s*$/, "");
@@ -28,7 +28,7 @@ function casoEmbutido() {
 }
 
 function casoExterno() {
-  return JSON.parse(readFileSync(new URL("../casos/casa-da-costa.json", import.meta.url), "utf8"));
+  return JSON.parse(readFileSync(new URL("../v1/casos/casa-da-costa.json", import.meta.url), "utf8"));
 }
 
 test("a reserva embutida é idêntica ao caso canônico", () => {

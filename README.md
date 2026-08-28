@@ -10,7 +10,10 @@
 
 O **MOSAICO** transforma um caso em informações fragmentadas entre os participantes. Ninguém recebe sozinho todos os fatos, a cronologia e a relevância das evidências. Os jogadores precisam encenar, competir, cooperar, negociar pistas e construir uma acusação final — enquanto cada desempenho também produz uma classificação individual.
 
-**Jogar:** [drmarionascimento.github.io/Dragon/MOSAICO-mesa.html](https://drmarionascimento.github.io/Dragon/MOSAICO-mesa.html)
+**Jogar:** [drmarionascimento.github.io/Dragon/](https://drmarionascimento.github.io/Dragon/)
+
+- **Versão 1 — A mesa:** [`v1/MOSAICO-mesa.html`](./v1/MOSAICO-mesa.html) (o endereço antigo `MOSAICO-mesa.html` redireciona)
+- **Versão 2 — A noite:** [`mosaico-web/`](./mosaico-web)
 
 Há um protótipo React separado em [`mosaico-web/`](./mosaico-web). Ele não substitui esta mesa.
 

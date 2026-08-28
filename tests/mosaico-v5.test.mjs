@@ -7,7 +7,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const fonte = readFileSync(new URL("../js/mosaico-v5.js", import.meta.url), "utf8");
+const fonte = readFileSync(new URL("../v1/js/mosaico-v5.js", import.meta.url), "utf8");
 const janela = {};
 new Function("window", fonte)(janela);
 const V5 = janela.MosaicoV5;
