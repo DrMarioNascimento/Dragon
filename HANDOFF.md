@@ -551,10 +551,20 @@ O código do **App Check** está escrito e inerte em `MOSAICO-mesa.html`: basta 
 ### Decisões desta passagem que mudam hábitos
 
 - **Diálogos.** `alert()` e `confirm()` saíram. No lugar existem `avisa(texto)` e `await confirmar(texto, {aceitar, recusar, perigo})`, que vivem fora de `#app`, prendem o foco e respeitam Escape. `avisa` era chamado em três lugares e **nunca havia sido definido** — cada chamada era um `ReferenceError`, inclusive a do erro de carregamento do caso.
-- **Carimbo de cache.** Um lugar só: o `?v=` da tag de `js/mosaico-v5.js`, relido em `window.MOSAICO_VERSAO`. O caso, o vídeo e os módulos usam esse valor.
+- **Carimbo de cache.** São **cinco** tags com `?v=` escrito à mão: `js/mosaico-v5.js` e `js/qr.js` na mesa, e `js/tarefa-sensor.js` em cada um dos três módulos sensoriais. Cada módulo é um documento próprio e não enxerga a mesa, por isso não há como reduzir a um só. Dentro da mesa, o caso e o vídeo releem `window.MOSAICO_VERSAO`, que sai da tag do `mosaico-v5.js` — esses dois, sim, acompanham sozinhos.
 - **QR.** Gerado por `js/qr.js`, no aparelho. `api.qrserver.com` era a única dependência de terceiros no caminho de entrada da mesa.
 - **Tarefas sensoriais.** O protocolo com a Mesa e a permissão de movimento moram em `js/tarefa-sensor.js`. Correção de sensor agora se aplica **uma vez**, não três. O cronômetro, a pausa e o aborto continuam em cada tarefa, porque cada uma os entrelaça com o próprio laço de desenho.
 - **`tempoMs` das tarefas.** Continua sendo conferido, mas não é mais gravado: era auto-reportado pelo aparelho de quem joga e nada no placar o consumia. Se um dia entrar na pontuação, terá de vir de `serverTimestamp()` nas duas pontas.
+
+### Toque e leitura no aparelho — passagem de 25 de agosto
+
+Três achados de um teste em aparelho real, Android e iPhone.
+
+- **Barra inferior em duas linhas.** `#btn-pistas` já está no HTML; `organizarBarraInferior()` acrescenta o Caso e a Sala depois, por `appendChild`. Com `grid-column` fixo e sem `grid-row`, a colocação automática do grid não volta atrás: o Arquivo ficava sozinho na primeira linha e os outros dois caíam para uma segunda. As três regras ganharam `grid-row:1`. Medido: a barra passou de 124 px para 65 px de altura.
+- **Botão inalcançável embaixo do texto.** Era consequência do item acima, não um problema separado. A reserva de rodapé do `#app` era o número fixo `--barra-reserva` (116 px) e a barra em duas linhas ocupava 124 px mais o afastamento da borda — o último botão da tela ficava **debaixo** da barra, visível e sem área de toque. Agora `medirBarraInferior()` escreve `--barra-reserva` a partir da barra medida, e refaz a conta em `resize` e `orientationchange`. Reserva errada deixou de ser possível por construção.
+- **Zoom de pinça.** `user-scalable=no` saiu de `a-sala-as-escuras` e `vidro-embacado`, e o `touch-action:none` dos três módulos virou `touch-action:pinch-zoom` (os filhos roláveis, `pan-y pinch-zoom`): a pinça passa, o arrasto continua preso, que é o que as tarefas de sensor precisam. Na mesa, `TELA_CHEIA_AUTOMATICA` entrou como `false` — em tela cheia o Chrome do Android suspende a pinça, e entre esconder a barra do navegador e deixar a pessoa enxergar, vale enxergar. O botão de tela cheia continua na abertura; a trava de retrato vai junto com ele, porque no Android ela só funciona em tela cheia.
+
+Nada disso pôde ser exercitado em aparelho no ambiente de manutenção: a barra foi medida num navegador de mesa com viewport de celular, e o resto é leitura de código. **É a primeira coisa a conferir no próximo teste físico.**
 
 ### 13.3 Limite de jogadores
 
@@ -574,7 +584,7 @@ Tempo, Qualidade, Cooperação, Economia, Performance, Dedução Final, mercado,
 
 ### 13.6 Parâmetros de playtest
 
-O caso define valores iniciais configuráveis: 9 moedas; preços baixo/justo/alto de 1/3/5; limites de 60 segundos para Performance, 180 segundos para cada rodada sensorial, 60 segundos para Cooperação, 480 segundos para o Mercado e 300 segundos para a Dedução; e qualidade objetiva das pistas. Os valores são parâmetros de playtest, não constantes irreversíveis do motor.
+O caso define valores iniciais configuráveis: 9 moedas; preços baixo/justo/alto de 1/3/5; limites de 60 segundos para Performance, 180 segundos para cada rodada sensorial, 60 segundos para Cooperação, 120 segundos para o Mercado e 300 segundos para a Dedução; e qualidade objetiva das pistas. Os valores são parâmetros de playtest, não constantes irreversíveis do motor.
 
 ### 13.7 Consolidação visual e audiovisual
 
@@ -585,6 +595,16 @@ A encenação apresenta somente ao ator os três blocos coloridos **Entenda a ce
 A abertura possui vídeo horizontal H.264/AAC de 1280 × 720 para telão e vídeo vertical H.264/AAC de 1080 × 1920 para participantes em modo retrato. O vídeo móvel exige o toque em **Assistir à abertura**, com **Pular** disponível, porque navegadores móveis bloqueiam reprodução automática com som.
 
 As grandes fases possuem anúncios narrados em `audio/`: Encenação, Votação, Janela do Norte, Vidro Embaçado, Sala às Escuras, Mosaico Coletivo, Mercado, Acusação Final e Pódio. Eles foram normalizados para volume uniforme. Somente o mestre/telão reproduz: a sirene de nevoeiro toca por 4,4 segundos e a voz entra em seguida. Vidro e Sala são escolhidos conforme a tarefa interna da partida; a transição interna de Mosaico para Cooperação não repete o anúncio. O pódio toca uma única vez por execução da apuração.
+
+#### Mercado: 2 minutos e cronômetro à vista
+
+O Mercado é a única fase que não termina por conclusão — não há nada para "todos terminarem". No ritmo automático ele acaba por prazo; no conduzido, espera o botão do mestre.
+
+O prazo caiu de **480 para 120 segundos**. Os 480 vinham do relógio da ficção (Mercado 21:38, Acusação 21:46), mas esse relógio é um rótulo fixo no telão, não um contador. Na prática a fase permite pouca coisa: uma oferta aberta por pessoa, 9 moedas contra preços de 1/3/5, o que limita a duas ou três compras. O que sobrava era espera. **120 segundos é valor de playtest**, escolhido para errar por pouco tempo em vez de por muito; a medida real está no jogo — comparar o último `compradaMs` das ofertas com o `mercadoAbertoMs` da mesa diz quanto tempo o mercado de fato usou.
+
+Trocar o valor exige as **duas** cópias: `casos/casa-da-costa.json` e o `CASO_FALLBACK_COMPLETO` embutido em `MOSAICO-mesa.html`. É exatamente o que `tests/caso-sincronizado.test.mjs` confere — esquecer uma quebra o CI.
+
+O cronômetro regressivo usa a mesma classe `.fragmento-cronometro` das tarefas com tempo: quem joga já leu aquele número âmbar como "tempo", e trocar a forma para dizer a mesma coisa só custaria aprendizado. A conta é a mesma que a automação usa para virar a fase, então a tela não pode discordar do que vai acontecer; a pausa congela os dois, porque `retomarPartida()` empurra `mercadoAbertoMs` para a frente pelo tempo parado. **Só aparece no ritmo automático** — no conduzido, um relógio que chega a 00:00 sem nada acontecer mentiria para a mesa inteira.
 
 O arquivo estéreo `audio/encerramento.mp3` (aproximadamente 124 segundos) é a faixa final consolidada. Ao terminar as acusações, a tela mostra **A CASA ESTÁ OUVINDO...** e essa faixa toca antes de qualquer solução aparecer. O mestre pode usar **Pular narração**. Ao concluir ou pular, a revelação por etapas é liberada; somente depois vem a apuração e a voz do pódio.
 
@@ -667,3 +687,18 @@ O motor V5 implementa as regras consolidadas de pontuação. As limitações res
 ---
 
 **Prof. Mário César Nascimento, PhD ©**
+
+### Auditoria de sobreposição — 25 de agosto
+
+Uma passagem medindo, não lendo: cada tela renderizada de verdade num navegador com viewport de celular, com o documento da Sala forjado, e três detectores validados contra defeitos injetados antes de valerem como prova (transbordo horizontal, controle debaixo da barra fixa, controle fora da tela).
+
+Cobertura: 16 estados de tela × 1, 6 e 12 jogadores × 320×568, 375×667, 414×896, 768×1024 e 667×375 (paisagem), sempre como mestre em modo sem telão — a configuração com os três botões na barra. Mais as três camadas sobrepostas (Caso, Sala com todos os acordeões abertos, Arquivo) roladas até o fim, e os três módulos sensoriais isolados.
+
+Dois defeitos reais saíram daí:
+
+- **Caso e Sala sumiam durante as rodadas sensoriais.** `limparBarraInferior()` rodava na primeira linha de `render()`, mas o caminho que preserva o iframe da tarefa retorna antes de `organizarBarraInferior()` e sem reconstruir o `#app`. Cada snapshot do Firebase durante A Janela do Norte, O Vidro Embaçado ou A Sala às Escuras apagava os dois botões e nada os devolvia — medido: barra de 3 botões para 1 no primeiro snapshot. O mestre perdia a pausa e os controles justamente na rodada em que o celular está sendo sacudido. A limpeza passou para imediatamente antes de `app.innerHTML=h`, que é o único ponto que de fato reconstrói o `#app`.
+- **Barra acesa e vazia na capa.** Sem nenhum botão visível, a `.barra-jogo` ainda desenhava 13px de moldura, fundo e sombra atravessados no rodapé. Agora `medirBarraInferior()` marca `.vazia` quando não há botão visível, o CSS a esconde, e a reserva do `#app` cai junto.
+
+Falsos positivos que valem registro, para a próxima auditoria não os perseguir de novo: `.jog .nm` corta por `text-overflow:ellipsis` de propósito; `.podio-cena` recorta a cena por desenho; o `#cartao` das tarefas mora fora da tela em `translateY(130%)` enquanto está escondido; e o `#intro` de A Sala às Escuras passa da dobra em 320×568 mas **rola** — `justify-content:safe center` com `overflow-y:auto` faz exatamente o que promete.
+
+**O que esta auditoria não cobre e nenhum teste cobre:** ela roda num navegador de mesa emulando tamanhos. Não substitui aparelho real, e nada disso está no CI — as invariantes de layout (reserva de rodapé, barra em uma linha, botão alcançável) continuam sem rede de proteção automática. Um teste de layout de verdade exigiria navegador sem cabeça no CI.
