@@ -42,3 +42,11 @@ A mesa continua no projeto `mosaico-game`. Não mexa nas chaves da v1.
 ## Login Google (a noite)
 
 Em Authentication → Sign-in method, ligue **Google** no projeto da noite. Só quem **abre a mesa** entra com Google. Convidado e ensaio continuam sem conta.
+
+
+## Ligado
+
+- **A mesa (v1)** → projeto `mosaico-game`, coleção `mosaico/`
+- **A noite (v2)** → projeto `mosaico-noite`, coleção `noite/`
+
+No `mosaico-noite`: Anonymous + Google ligados; domínio `drmarionascimento.github.io`; Rules publicadas.

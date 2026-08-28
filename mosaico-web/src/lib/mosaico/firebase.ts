@@ -26,12 +26,12 @@ import {
 export const EDICAO = "noite";
 
 export const firebaseConfig = {
-  apiKey: "AIzaSyDwshZbqaMOKxdRuyLtdpbijPRdrjVOcxE",
-  authDomain: "mosaico-game.firebaseapp.com",
-  projectId: "mosaico-game",
-  storageBucket: "mosaico-game.firebasestorage.app",
-  messagingSenderId: "436141261767",
-  appId: "1:436141261767:web:6a83555a2f7c4ed4550fe2",
+  apiKey: "AIzaSyA160bkgHBrYBwvIxlENax-aAyLWPMaOU4",
+  authDomain: "mosaico-noite.firebaseapp.com",
+  projectId: "mosaico-noite",
+  storageBucket: "mosaico-noite.firebasestorage.app",
+  messagingSenderId: "703343424116",
+  appId: "1:703343424116:web:e6990b5c00d43aca6e9721",
 };
 
 const app =
