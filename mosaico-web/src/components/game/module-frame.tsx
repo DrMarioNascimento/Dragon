@@ -43,7 +43,7 @@ export function ModuleFrame({
 
   useEffect(() => {
     if (mode !== "apple") return;
-    window.location.replace(`/modulos/${mod.file}?embed=1&from=1`);
+    window.location.replace(`${import.meta.env.BASE_URL}modulos/${mod.file}?embed=1&from=1`);
   }, [mode, mod.file]);
 
   useEffect(() => {
@@ -73,7 +73,7 @@ export function ModuleFrame({
     );
   }
 
-  const src = `/modulos/${mod.file}?embed=1&run=${encodeURIComponent(runId)}${!compact && desktop ? "&dev=1" : ""}`;
+  const src = `${import.meta.env.BASE_URL}modulos/${mod.file}?embed=1&run=${encodeURIComponent(runId)}${!compact && desktop ? "&dev=1" : ""}`;
 
   return (
     <div className={cn("relative bg-background", compact ? "h-full min-h-[52dvh]" : "h-dvh")}>

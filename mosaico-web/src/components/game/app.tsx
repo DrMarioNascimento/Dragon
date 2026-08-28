@@ -38,7 +38,7 @@ export function GameApp() {
     return (
       <div className="relative flex min-h-dvh items-center justify-center bg-background">
         <img
-          src="/media/aguardando.jpg"
+          src={`${import.meta.env.BASE_URL}media/aguardando.jpg`}
           alt=""
           className="absolute inset-0 h-full w-full object-cover cover-photo opacity-60"
         />

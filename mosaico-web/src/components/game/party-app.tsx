@@ -111,7 +111,7 @@ function SalaScreen() {
   const eu = me();
   const link =
     typeof window !== "undefined" && code && code !== "LOCAL"
-      ? `${window.location.origin}/?sala=${code}`
+      ? `${window.location.origin}${import.meta.env.BASE_URL}?sala=${code}`
       : null;
 
   return (

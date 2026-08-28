@@ -75,7 +75,7 @@ function Home() {
   return (
     <main className="relative min-h-full bg-background text-foreground">
       <img
-        src="/media/capa-vertical.jpg"
+        src={`${import.meta.env.BASE_URL}media/capa-vertical.jpg`}
         alt=""
         className="absolute inset-0 h-full w-full object-cover"
       />
@@ -85,7 +85,7 @@ function Home() {
           "pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity duration-700",
           screen === "open" ? "opacity-100" : "opacity-0",
         )}
-        src="/media/abertura.mp4"
+        src={`${import.meta.env.BASE_URL}media/abertura.mp4`}
         poster="/media/aguardando.jpg"
         autoPlay
         muted={muted}

@@ -11,7 +11,7 @@ function NoitePage() {
   return (
     <main className="relative min-h-dvh bg-background text-foreground">
       <img
-        src="/media/capa-vertical.jpg"
+        src={`${import.meta.env.BASE_URL}media/capa-vertical.jpg`}
         alt=""
         className="cover-photo absolute inset-0 h-full w-full object-cover opacity-50"
       />
