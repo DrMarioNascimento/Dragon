@@ -13,6 +13,7 @@ import {
   type PlayerDoc,
   type RoomDoc,
 } from "./firebase";
+import { podeAbrirMesa, studioPodeAbrir } from "./mestres";
 import {
   CHAR_IDS,
   FASE_S,
@@ -129,7 +130,14 @@ export const useParty = create<PartyState>((set, get) => ({
     try {
       await consumeGoogleRedirect();
       const user = await ensureGoogle();
-      set({ uid: user.uid, error: null });
+      if (!studioPodeAbrir() && !podeAbrirMesa(user.email)) {
+        set({
+          connecting: false,
+          uid: user.uid,
+          error: "Nesta fase só o estúdio abre mesa.",
+        });
+        return;
+      }
       const code = await criarSala(user.uid, formato);
       await entrarSala(code, user.uid, nome, forma);
       get().unsub?.();
@@ -142,6 +150,7 @@ export const useParty = create<PartyState>((set, get) => ({
       set({
         mode: "firebase",
         code,
+        uid: user.uid,
         isMaster: true,
         unsub,
         connecting: false,
