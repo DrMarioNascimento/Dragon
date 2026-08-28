@@ -113,7 +113,12 @@ service cloud.firestore {
           'ativa', 'fase', 'vez', 'modo', 'ritmo', 'mestreUid', 'criadaEm', 'criadaEmMs',
           'formato', 'v3', 'lanternaCurta'
         ]);
-      allow get: if signedIn() && (resource.data.ativa == true || master(versao, roomId) || participant(versao, roomId));
+      allow get: if signedIn() && (
+        !exists(roomPath(versao, roomId))
+        || resource.data.ativa == true
+        || master(versao, roomId)
+        || participant(versao, roomId)
+      );
       allow list: if false;
       allow update: if master(versao, roomId)
         && request.resource.data.mestreUid == resource.data.mestreUid
