@@ -73,7 +73,7 @@ function Home() {
   }, [screen]);
 
   return (
-    <main className="relative min-h-dvh overflow-hidden bg-background text-foreground">
+    <main className="relative min-h-full bg-background text-foreground">
       <img
         src="/media/capa-vertical.jpg"
         alt=""
@@ -139,14 +139,14 @@ function Home() {
       )}
 
       {screen !== "open" && (
-        <div className="relative z-10 mx-auto flex min-h-dvh max-w-lg flex-col px-6 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-[max(1.5rem,env(safe-area-inset-top))]">
+        <div className="relative z-10 mx-auto flex min-h-full max-w-lg flex-col px-6 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-[max(1.5rem,env(safe-area-inset-top))]">
           {screen !== "carta" && screen !== "novo" && (
-          <header className="stagger-in text-center">
+          <header className="stagger-in shrink-0 text-center">
             <MosaicMark className="mx-auto mb-5 size-9 text-primary" />
             <p className="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
               A Casa da Costa
             </p>
-            <h1 className="brand-wordmark mt-2 text-6xl text-primary">MOSAICO</h1>
+            <h1 className="brand-wordmark mt-2 text-5xl text-primary sm:text-6xl">MOSAICO</h1>
             <p className="mt-3 font-serif text-lg italic text-fog">
               A noite na mesa
             </p>
@@ -154,7 +154,7 @@ function Home() {
           )}
 
           {screen === "menu" && (
-            <div className="stagger-in mt-10 flex flex-col gap-3">
+            <div className="stagger-in mt-8 flex flex-col gap-4">
               <Button size="lg" onClick={() => setScreen("criar")}>
                 <DoorOpen className="size-4" />
                 Abrir uma mesa
@@ -237,7 +237,9 @@ function Home() {
                     onClick={() => setForma(id)}
                     className={cn(
                       "flex min-h-[6.5rem] flex-col items-center justify-center gap-2 rounded-lg px-1 py-3",
-                      forma === id ? "btn-depth" : "box-depth",
+                      forma === id
+                        ? "box-depth ring-1 ring-primary/50"
+                        : "box-depth",
                     )}
                   >
                     <span className="text-3xl leading-none" aria-hidden>
@@ -254,7 +256,9 @@ function Home() {
                     onClick={() => setFormato("curta")}
                     className={cn(
                       "rounded-lg px-3 py-3 text-left",
-                      formato === "curta" ? "btn-depth" : "box-depth",
+                      formato === "curta"
+                        ? "box-depth ring-1 ring-primary/50"
+                        : "box-depth",
                     )}
                   >
                     <p className="font-serif text-lg">Noite curta</p>
@@ -265,7 +269,9 @@ function Home() {
                     onClick={() => setFormato("cheia")}
                     className={cn(
                       "rounded-lg px-3 py-3 text-left",
-                      formato === "cheia" ? "btn-depth" : "box-depth",
+                      formato === "cheia"
+                        ? "box-depth ring-1 ring-primary/50"
+                        : "box-depth",
                     )}
                   >
                     <p className="font-serif text-lg">Noite cheia</p>

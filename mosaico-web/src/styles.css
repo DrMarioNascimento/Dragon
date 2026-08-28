@@ -11,14 +11,14 @@
   --color-muted: #121820;
   --color-muted-foreground: #879aac;
   --color-border: #ffffff18;
-  --color-primary: #e8c27a;
-  --color-primary-foreground: #05070c;
-  --color-accent: #f0ae59;
-  --color-accent-foreground: #05070c;
+  --color-primary: #c4a56a;
+  --color-primary-foreground: #1a1610;
+  --color-accent: #d4ae70;
+  --color-accent-foreground: #1a1610;
   --color-fog: #a5b8cb;
   --color-cold: #8fdaff;
   --color-destructive: #c45c4a;
-  --color-ring: #e8c27a;
+  --color-ring: #c4a56a;
 
   --radius-xs: 4px;
   --radius-sm: 8px;
@@ -28,7 +28,7 @@
 
   --shadow-border: 0 0 0 1px rgba(255, 255, 255, 0.08);
   --shadow-depth: 0 16px 38px rgba(0, 0, 0, 0.4);
-  --color-primary-lip: #8a6a2e;
+  --color-primary-lip: #6a5228;
   --color-card-lip: #07090e;
 }
 
@@ -38,16 +38,24 @@
     -moz-osx-font-smoothing: grayscale;
     -webkit-tap-highlight-color: transparent;
     height: 100%;
-    height: 100dvh;
+    overflow: hidden;
   }
   html,
   body,
   #app {
     min-height: 100%;
     min-height: 100dvh;
+    max-width: 100%;
     background: var(--color-background);
     color: var(--color-foreground);
     overflow-x: hidden;
+  }
+  body,
+  #app {
+    height: 100%;
+    height: 100dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
   body {
     overscroll-behavior: none;
@@ -107,12 +115,12 @@
 
 /* Learning-lab: brilho inset + degrau 5px + sombra. */
 .btn-depth {
-  background: linear-gradient(180deg, #f0d49a, var(--color-primary));
+  background: linear-gradient(180deg, #d4bc8a, var(--color-primary));
   color: var(--color-primary-foreground);
   border: 0;
-  margin-bottom: 6px;
+  margin-bottom: 5px;
   box-shadow:
-    inset 0 1px rgba(255, 255, 255, 0.5),
+    inset 0 1px rgba(255, 255, 255, 0.28),
     0 5px 0 var(--color-primary-lip),
     0 12px 22px rgba(0, 0, 0, 0.4);
 }
