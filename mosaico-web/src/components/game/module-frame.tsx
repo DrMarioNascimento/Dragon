@@ -66,7 +66,7 @@ export function ModuleFrame({
         <MosaicMark className="mb-4 size-8 text-primary" />
         <p className="brand-wordmark text-3xl text-primary">MOSAICO</p>
         <p className="mt-3 font-serif text-xl italic text-fog">{mod.title}</p>
-        <p className="mt-4 max-w-sm text-sm text-muted-foreground">
+        <p className="mt-4 max-w-sm text-lg text-muted-foreground">
           No iPhone a casa precisa da tela inteira para o giroscópio responder.
         </p>
       </div>
@@ -80,7 +80,7 @@ export function ModuleFrame({
       {!compact && (
       <Link
         to="/noite"
-        className="absolute right-3 top-[max(0.75rem,env(safe-area-inset-top))] z-20 inline-flex min-h-11 items-center gap-2 rounded-full border border-accent/30 bg-background/80 px-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-accent backdrop-blur-sm"
+        className="absolute right-3 top-[max(0.75rem,env(safe-area-inset-top))] z-20 inline-flex min-h-11 items-center gap-2 rounded-full border border-accent/30 bg-background/80 px-4 text-base font-semibold uppercase tracking-[0.16em] text-accent backdrop-blur-sm"
       >
         <ArrowLeft className="size-4" />
         MOSAICO
@@ -96,12 +96,12 @@ export function ModuleFrame({
       />
       {doneMs !== null && !compact && (
         <div className="absolute inset-x-0 bottom-0 z-30 flex flex-col items-center gap-3 bg-gradient-to-t from-background via-background/95 to-transparent px-6 pb-[max(5.5rem,env(safe-area-inset-bottom))] pt-16">
-          <p className="text-[11px] uppercase tracking-[0.2em] text-accent">Fragmento localizado</p>
+          <p className="text-base uppercase tracking-[0.2em] text-accent">Fragmento localizado</p>
           <p className="font-serif text-3xl text-foreground">{mod.title}</p>
           {doneMs > 0 && (
             <p className="font-mono text-lg tabular-nums text-fog">{formatTime(doneMs)}</p>
           )}
-          <p className="max-w-sm text-center text-sm text-muted-foreground">
+          <p className="max-w-sm text-center text-lg text-muted-foreground">
             O tempo ficou registrado. Na mesa, a colocação define a pista.
           </p>
           <div className="mt-2 flex w-full max-w-sm gap-2">

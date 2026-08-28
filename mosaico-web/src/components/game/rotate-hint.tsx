@@ -10,7 +10,7 @@ export function RotateHint() {
       <MosaicMark className="mx-auto mb-4 size-8 text-primary" />
       <p className="brand-wordmark text-3xl text-primary">MOSAICO</p>
       <p className="mt-4 font-serif text-xl italic text-fog">Vire o telefone em pé.</p>
-      <p className="mt-2 text-sm text-muted-foreground">A casa cabe melhor em retrato.</p>
+      <p className="mt-2 text-lg text-muted-foreground">A casa cabe melhor em retrato.</p>
     </div>
   );
 }

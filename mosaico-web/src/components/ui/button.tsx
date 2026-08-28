@@ -13,9 +13,9 @@ const buttonVariants = cva(
         soft: "btn-depth-soft",
       },
       size: {
-        default: "h-11 min-h-11 rounded-md px-5 text-sm",
-        lg: "h-12 min-h-12 rounded-lg px-6 text-sm tracking-wide",
-        sm: "h-9 min-h-9 rounded-sm px-3 text-xs",
+        default: "h-12 min-h-12 rounded-md px-5 text-base",
+        lg: "h-14 min-h-14 rounded-lg px-6 text-lg tracking-wide",
+        sm: "h-11 min-h-11 rounded-sm px-3 text-base",
         icon: "size-11 min-h-11 rounded-md",
       },
     },

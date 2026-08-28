@@ -20,14 +20,14 @@ function NoitePage() {
       <div className="relative mx-auto flex min-h-dvh max-w-lg flex-col px-6 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-[max(2rem,env(safe-area-inset-top))]">
         <Link
           to="/"
-          className="inline-flex min-h-11 w-fit items-center gap-2 text-[11px] uppercase tracking-[0.16em] text-fog"
+          className="inline-flex min-h-11 w-fit items-center gap-2 text-base uppercase tracking-[0.16em] text-fog"
         >
           <ArrowLeft className="size-4" />
           MOSAICO
         </Link>
         <header className="mt-8">
           <MosaicMark className="mb-4 size-8 text-primary" />
-          <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
+          <p className="text-base uppercase tracking-[0.24em] text-muted-foreground">
             A Casa da Costa
           </p>
           <h1 className="mt-2 font-serif text-4xl">A lanterna</h1>
@@ -43,19 +43,19 @@ function NoitePage() {
                 params={{ slug: m.slug }}
                 className="box-depth block rounded-xl p-4"
               >
-                <p className="text-[11px] uppercase tracking-[0.16em] text-accent">{m.kicker}</p>
+                <p className="text-base uppercase tracking-[0.16em] text-accent">{m.kicker}</p>
                 <p className="mt-1 font-serif text-2xl">{m.title}</p>
-                <p className="mt-2 text-sm leading-relaxed text-fog">{m.blurb}</p>
+                <p className="mt-2 text-lg leading-relaxed text-fog">{m.blurb}</p>
               </Link>
             </li>
           ))}
         </ul>
-        <p className="mt-8 text-center text-[12px] leading-relaxed text-muted-foreground">
+        <p className="mt-8 text-center text-base leading-relaxed text-muted-foreground">
           iPhone e Android: a casa pede o giroscópio. Aceite o movimento quando o sistema perguntar. Se recusar, dá para arrastar com o dedo.
         </p>
         <Link
           to="/"
-          className="mt-4 inline-flex h-11 min-h-11 items-center justify-center gap-2 rounded-md px-5 text-sm text-fog hover:bg-muted hover:text-foreground"
+          className="mt-4 inline-flex h-11 min-h-11 items-center justify-center gap-2 rounded-md px-5 text-lg text-fog hover:bg-muted hover:text-foreground"
         >
           <Compass className="size-4" />
           Voltar ao caso

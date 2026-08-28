@@ -117,7 +117,7 @@ function Home() {
             <span
               role="button"
               tabIndex={0}
-              className="pointer-events-auto inline-flex min-h-11 items-center gap-2 rounded-full border border-border bg-background/70 px-3 text-xs uppercase tracking-widest text-fog backdrop-blur-sm"
+              className="pointer-events-auto inline-flex min-h-11 items-center gap-2 rounded-full border border-border bg-background/70 px-3 text-base uppercase tracking-widest text-fog backdrop-blur-sm"
               onClick={(e) => {
                 e.stopPropagation();
                 setMuted((m) => !m);
@@ -131,7 +131,7 @@ function Home() {
               {muted ? <VolumeX className="size-4" /> : <Volume2 className="size-4" />}
               {muted ? "Som" : "Som ligado"}
             </span>
-            <span className="pointer-events-none rounded-full border border-primary/40 bg-background/80 px-4 py-2 text-sm text-primary backdrop-blur-sm">
+            <span className="pointer-events-none rounded-full border border-primary/40 bg-background/80 px-4 py-2 text-lg text-primary backdrop-blur-sm">
               Toque para pular
             </span>
           </div>
@@ -143,7 +143,7 @@ function Home() {
           {screen !== "carta" && screen !== "novo" && (
           <header className="stagger-in shrink-0 text-center">
             <MosaicMark className="mx-auto mb-5 size-9 text-primary" />
-            <p className="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
+            <p className="text-base uppercase tracking-[0.28em] text-muted-foreground">
               A Casa da Costa
             </p>
             <h1 className="brand-wordmark mt-2 text-5xl text-primary sm:text-6xl">MOSAICO</h1>
@@ -182,7 +182,7 @@ function Home() {
               <Button variant="ghost" onClick={() => setScreen("como")}>
                 Como jogar
               </Button>
-              <p className="mt-8 text-center text-[11px] leading-relaxed text-muted-foreground">
+              <p className="mt-8 text-center text-base leading-relaxed text-muted-foreground">
                 Cada um no próprio telefone. A mesa senta.
                 <br />
                 Mario Nascimento & Osana Melo Nascimento
@@ -247,7 +247,7 @@ function Home() {
                     <span className="pointer-events-none text-3xl leading-none" aria-hidden>
                       {emoji}
                     </span>
-                    <span className="pointer-events-none font-serif text-sm italic text-fog">{label}</span>
+                    <span className="pointer-events-none font-serif text-lg italic text-fog">{label}</span>
                   </label>
                 ))}
               </div>
@@ -268,7 +268,7 @@ function Home() {
                       className="absolute inset-0 z-30 cursor-pointer opacity-0"
                     />
                     <p className="pointer-events-none font-serif text-lg">Noite curta</p>
-                    <p className="pointer-events-none text-[11px] text-muted-foreground">uns 20 min</p>
+                    <p className="pointer-events-none text-base text-muted-foreground">uns 20 min</p>
                   </label>
                   <label
                     className={cn(
@@ -285,11 +285,11 @@ function Home() {
                       className="absolute inset-0 z-30 cursor-pointer opacity-0"
                     />
                     <p className="pointer-events-none font-serif text-lg">Noite cheia</p>
-                    <p className="pointer-events-none text-[11px] text-muted-foreground">uns 40 min</p>
+                    <p className="pointer-events-none text-base text-muted-foreground">uns 40 min</p>
                   </label>
                 </div>
               )}
-              {error && <p className="text-sm text-destructive">{error}</p>}
+              {error && <p className="text-lg text-destructive">{error}</p>}
               <Button className="w-full" size="lg" type="submit" disabled={connecting}>
                 {connecting
                   ? "Ligando a mesa…"
@@ -318,7 +318,7 @@ function Home() {
           )}
 
           {screen === "como" && (
-            <div className="mt-8 space-y-3 text-sm leading-relaxed text-fog">
+            <div className="mt-8 space-y-3 text-lg leading-relaxed text-fog">
               <p>Resolver um caso: quem abriu o cofre na Casa da Costa, em dois minutos de apagão.</p>
               <p>O telefone diz uma frase por vez:</p>
               <ol className="list-decimal space-y-1 pl-5">

@@ -205,7 +205,7 @@ export function CartaPuzzle({
 
   return (
     <div className="space-y-3">
-      <p className="text-sm leading-relaxed text-fog">
+      <p className="text-lg leading-relaxed text-fog">
         {img.onde}{" "}
         {mao.length < 6
           ? "Monta as tuas peças. As que faltam estão no outro telefone."
@@ -310,7 +310,7 @@ export function CartaPuzzle({
         )}
       </div>
 
-      <p className="text-center text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+      <p className="text-center text-base uppercase tracking-[0.16em] text-muted-foreground">
         {placed} de {mao.length} no lugar
       </p>
 
@@ -376,7 +376,7 @@ function TarjaPuzzle({
 
   return (
     <div className="space-y-3">
-      <p className="text-sm text-fog">
+      <p className="text-lg text-fog">
         A casa te deu a tarja — hora ou data. Encaixa {cima ? "em cima" : "em baixo"} da foto dos outros dois.
       </p>
       <div

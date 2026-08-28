@@ -54,7 +54,7 @@ export function StoryPhase({ match }: { match: Match }) {
       <Tip id="story">Cada um recebe um trecho diferente. Leia o seu — o resto da mesa não vê.</Tip>
       {card && (
         <article className="rounded-xl border border-border bg-card/80 p-5">
-          <p className="text-[11px] uppercase tracking-[0.22em] text-accent">{card.kicker}</p>
+          <p className="text-base uppercase tracking-[0.22em] text-accent">{card.kicker}</p>
           <p className="mt-4 font-serif text-2xl leading-snug text-foreground">{card.text}</p>
         </article>
       )}
@@ -117,7 +117,7 @@ export function FragmentPhase({ match }: { match: Match }) {
     <div className="space-y-3">
       <Tip id="frag">Seus fragmentos. Ninguém mais os vê ainda. Classifique: pilar, conector, contexto, boato.</Tip>
       <h2 className="font-serif text-2xl">Fragmentação</h2>
-      <p className="text-sm text-muted-foreground">
+      <p className="text-lg text-muted-foreground">
         {clues.length} peças na sua mão. Leia com calma.
       </p>
       {clues.map((c) => (
@@ -165,7 +165,7 @@ function HypoFields({
       <h2 className="font-serif text-2xl">{which === 1 ? "Hipótese I" : "Hipótese II"}</h2>
 
       <section className="space-y-2">
-        <h3 className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+        <h3 className="text-base uppercase tracking-[0.18em] text-muted-foreground">
           Duas suspeitas · {suspects.length}/2
         </h3>
         {SUSPECTS.map((o) => (
@@ -181,7 +181,7 @@ function HypoFields({
 
       {which === 2 && (
         <section className="space-y-2">
-          <h3 className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+          <h3 className="text-base uppercase tracking-[0.18em] text-muted-foreground">
             Lacuna crítica
           </h3>
           {GAPS.map((o) => (
@@ -197,7 +197,7 @@ function HypoFields({
       )}
 
       <section className="space-y-2">
-        <h3 className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+        <h3 className="text-base uppercase tracking-[0.18em] text-muted-foreground">
           Explicação provisória
         </h3>
         {EXPLANATIONS.map((o) => (
@@ -250,10 +250,10 @@ export function MarketPhase({ match }: { match: Match }) {
       <Tip id="market">Você vê o tipo, não o conteúdo. O maior lance leva o lote. Um lance por rodada.</Tip>
       <div className="flex items-end justify-between">
         <h2 className="font-serif text-2xl">Mercado cego · {round}/2</h2>
-        <p className="tabular-nums text-sm text-accent">{secs}s</p>
+        <p className="tabular-nums text-lg text-accent">{secs}s</p>
       </div>
       {already ? (
-        <p className="text-sm text-fog">Lance enviado. A mesa resolve quando todos jogarem.</p>
+        <p className="text-lg text-fog">Lance enviado. A mesa resolve quando todos jogarem.</p>
       ) : (
         <>
           {lots.map((lot) => (
@@ -267,7 +267,7 @@ export function MarketPhase({ match }: { match: Match }) {
             >
               <KindSeal kind={lot.kind} />
               <p className="mt-2 font-serif text-xl">Lote {KIND_LABEL[lot.kind].toLowerCase()}</p>
-              <p className="text-xs text-muted-foreground">Conteúdo oculto até o lance.</p>
+              <p className="text-base text-muted-foreground">Conteúdo oculto até o lance.</p>
             </button>
           ))}
           <div className="flex flex-wrap gap-2 pt-2">
@@ -328,21 +328,21 @@ export function NegotiatePhase({ match }: { match: Match }) {
       <h2 className="font-serif text-2xl">Negociação vinculada</h2>
       {won.length > 0 && (
         <div className="space-y-2 rounded-xl border border-accent/30 bg-accent/5 p-3">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-accent">Lotes que você levou</p>
+          <p className="text-base uppercase tracking-[0.18em] text-accent">Lotes que você levou</p>
           {won.map((l) => {
             const c = CLUE_BY_ID[l.clueId];
             return c ? <ClueCard key={l.id} clue={c} /> : null;
           })}
         </div>
       )}
-      <p className="text-sm text-muted-foreground">Ofereça um fragmento. Peça um tipo — não um conteúdo.</p>
+      <p className="text-lg text-muted-foreground">Ofereça um fragmento. Peça um tipo — não um conteúdo.</p>
 
-      <h3 className="pt-2 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Oferecer</h3>
+      <h3 className="pt-2 text-base uppercase tracking-[0.18em] text-muted-foreground">Oferecer</h3>
       {myClues.map((c) => (
         <ClueCard key={c.id} clue={c} selected={give === c.id} onSelect={() => setGive(c.id)} />
       ))}
 
-      <h3 className="pt-2 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Com</h3>
+      <h3 className="pt-2 text-base uppercase tracking-[0.18em] text-muted-foreground">Com</h3>
       {match.players
         .filter((p) => p.id !== me.id)
         .map((p) => {
@@ -358,14 +358,14 @@ export function NegotiatePhase({ match }: { match: Match }) {
           );
         })}
 
-      <h3 className="pt-2 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Quero um</h3>
+      <h3 className="pt-2 text-base uppercase tracking-[0.18em] text-muted-foreground">Quero um</h3>
       <div className="flex flex-wrap gap-2">
         {kinds.map((k) => (
           <button
             key={k}
             type="button"
             onClick={() => setWant(k)}
-            className={`rounded-full border px-3 py-2 text-[11px] uppercase tracking-[0.14em] ${
+            className={`rounded-full border px-3 py-2 text-base uppercase tracking-[0.14em] ${
               want === k ? "border-accent text-accent" : "border-border text-muted-foreground"
             }`}
           >
@@ -375,7 +375,7 @@ export function NegotiatePhase({ match }: { match: Match }) {
       </div>
 
       <Button
-        variant="amber"
+        variant="soft"
         className="w-full"
         disabled={!give || !toId}
         onClick={() =>
@@ -394,7 +394,7 @@ export function NegotiatePhase({ match }: { match: Match }) {
       </Button>
 
       {myTrades.length > 0 && (
-        <ul className="space-y-2 text-sm text-fog">
+        <ul className="space-y-2 text-lg text-fog">
           {myTrades.map((t) => (
             <li key={t.id} className="rounded-md border border-border px-3 py-2">
               {t.status === "done" ? "Vínculo cumprido." : t.status === "declined" ? "Recusada." : "Pendente."}{" "}
@@ -453,10 +453,10 @@ export function MosaicPhase({ match }: { match: Match }) {
     <div className="space-y-5">
       <Tip id="mosaic">Envie até 3 peças ao mosaico. Depois monte a carta do núcleo: a ordem da noite.</Tip>
       <h2 className="font-serif text-2xl">Mosaico coletivo</h2>
-      <p className="text-sm text-muted-foreground">Núcleo {nucleus.id === "alfa" ? "Alfa" : "Beta"} · até 3 envios</p>
+      <p className="text-lg text-muted-foreground">Núcleo {nucleus.id === "alfa" ? "Alfa" : "Beta"} · até 3 envios</p>
 
       {boatoWarn && (
-        <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm">
+        <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-lg">
           Você está enviando um BOATO — informação não confirmada. Confirma?
           <div className="mt-2 flex gap-2">
             <Button size="sm" variant="outline" onClick={() => setBoatoWarn(false)}>
@@ -477,7 +477,7 @@ export function MosaicPhase({ match }: { match: Match }) {
           onSelect={() => toggle(c.id)}
         />
       ))}
-      <Button variant="amber" className="w-full" onClick={share}>
+      <Button variant="soft" className="w-full" onClick={share}>
         Enviar ao mosaico
       </Button>
 
@@ -486,10 +486,10 @@ export function MosaicPhase({ match }: { match: Match }) {
         <div className="grid grid-cols-2 gap-2">
           {ROOMS.map((r) => (
             <div key={r.id} className="rounded-lg border border-border bg-card/70 p-2">
-              <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">{r.label}</p>
+              <p className="text-lg uppercase tracking-[0.16em] text-muted-foreground">{r.label}</p>
               <div className="mt-1 space-y-1">
                 {(byRoom[r.id] ?? []).map((item) => (
-                  <p key={item.clueId + item.playerId} className="text-xs text-fog">
+                  <p key={item.clueId + item.playerId} className="text-base text-fog">
                     {CLUE_BY_ID[item.clueId]?.mosaicLabel}
                   </p>
                 ))}
@@ -501,7 +501,7 @@ export function MosaicPhase({ match }: { match: Match }) {
 
       <section className="space-y-2">
         <h3 className="font-serif text-xl">A carta da noite</h3>
-        <p className="text-sm text-muted-foreground">Toque um fragmento, depois o espaço na linha do tempo.</p>
+        <p className="text-lg text-muted-foreground">Toque um fragmento, depois o espaço na linha do tempo.</p>
         <ol className="space-y-2">
           {nucleus.carta.map((id, slot) => (
             <li key={slot}>
@@ -518,7 +518,7 @@ export function MosaicPhase({ match }: { match: Match }) {
                 className="flex w-full items-center gap-3 rounded-lg border border-border bg-card px-3 py-3 text-left"
               >
                 <span className="tabular-nums text-accent">{slot + 1}</span>
-                <span className="text-sm">
+                <span className="text-lg">
                   {id ? CARTA_TILES.find((t) => t.id === id)?.label : "Vazio"}
                 </span>
               </button>
@@ -538,19 +538,19 @@ export function MosaicPhase({ match }: { match: Match }) {
                   tileId: t.id,
                 });
               }}
-              className="rounded-md border border-border px-3 py-2 text-left text-xs text-fog"
+              className="rounded-md border border-border px-3 py-2 text-left text-base text-fog"
             >
               {t.label}
             </button>
           ))}
         </div>
         {nucleus.correct && (
-          <p className="flex items-center gap-2 text-sm text-accent">
+          <p className="flex items-center gap-2 text-lg text-accent">
             <Check className="size-4" /> Carta montada. O núcleo encaixa.
           </p>
         )}
         {nucleus.attempts > 0 && !nucleus.correct && (
-          <p className="text-sm text-muted-foreground">A montagem não encaixa. O relógio segue.</p>
+          <p className="text-lg text-muted-foreground">A montagem não encaixa. O relógio segue.</p>
         )}
         <Button variant="outline" className="w-full" onClick={submitCarta} disabled={nucleus.correct}>
           Verificar carta
@@ -574,7 +574,7 @@ export function CoopVotePhase({ match }: { match: Match }) {
   if (others.length === 1) {
     return (
       <div className="space-y-4">
-        <p className="text-sm text-fog">Núcleo de dois: a votação é dispensada. Cinco pontos para cada.</p>
+        <p className="text-lg text-fog">Núcleo de dois: a votação é dispensada. Cinco pontos para cada.</p>
         <Footer
           label="Seguir"
           onClick={() =>
@@ -587,7 +587,7 @@ export function CoopVotePhase({ match }: { match: Match }) {
   return (
     <div className="space-y-3">
       <h2 className="font-serif text-2xl">Quem mais colaborou?</h2>
-      <p className="text-sm text-muted-foreground">Voto secreto, só no seu núcleo. Sem votar em si.</p>
+      <p className="text-lg text-muted-foreground">Voto secreto, só no seu núcleo. Sem votar em si.</p>
       {others.map((id) => {
         const c = CHARACTERS.find((x) => x.id === id)!;
         return (
@@ -628,7 +628,7 @@ export function LastActionPhase({ match }: { match: Match }) {
             {clue.title}: {v[1] ? "confirma." : "não se sustenta."}
           </p>
         )}
-        <p className="text-sm text-muted-foreground">Aguardando a mesa.</p>
+        <p className="text-lg text-muted-foreground">Aguardando a mesa.</p>
       </div>
     );
   }
@@ -657,7 +657,7 @@ export function LastActionPhase({ match }: { match: Match }) {
 
       {kind === "comprar" && (
         <div className="space-y-2">
-          <p className="text-sm text-muted-foreground">3 moedas. Você vê só o tipo.</p>
+          <p className="text-lg text-muted-foreground">3 moedas. Você vê só o tipo.</p>
           {LEFTOVER_BUY.map((item) => (
             <Choice
               key={item.clueId}
@@ -672,7 +672,7 @@ export function LastActionPhase({ match }: { match: Match }) {
       {kind === "verificar" && (
         <div className="space-y-2">
           {verifyTargets.length === 0 && (
-            <p className="text-sm text-muted-foreground">Nenhum boato ou ambiguidade na mão.</p>
+            <p className="text-lg text-muted-foreground">Nenhum boato ou ambiguidade na mão.</p>
           )}
           {verifyTargets.map((c) => (
             <ClueCard
@@ -690,11 +690,11 @@ export function LastActionPhase({ match }: { match: Match }) {
         ))}
       {kind === "trocar" && (
         <div className="space-y-2">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-lg text-muted-foreground">
             Escolha com quem. O sistema troca seu fragmento por um pilar ou conector deles.
           </p>
           {mine.slice(0, 1).map((c) => (
-            <p key={c.id} className="text-xs text-fog">
+            <p key={c.id} className="text-base text-fog">
               Você oferece: {c.title}
             </p>
           ))}
@@ -761,37 +761,37 @@ export function DeductionPhase({ match }: { match: Match }) {
       <h2 className="font-serif text-2xl">Dedução final</h2>
 
       <section className="space-y-2">
-        <h3 className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Suspeito principal</h3>
+        <h3 className="text-base uppercase tracking-[0.18em] text-muted-foreground">Suspeito principal</h3>
         {SUSPECTS.map((o) => (
           <Choice key={o.id} selected={d.suspectId === o.id} label={o.label} hint={o.hint} onClick={() => set("suspectId", o.id)} />
         ))}
       </section>
       <section className="space-y-2">
-        <h3 className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Motivo</h3>
+        <h3 className="text-base uppercase tracking-[0.18em] text-muted-foreground">Motivo</h3>
         {MOTIVES.map((o) => (
           <Choice key={o.id} selected={d.motiveId === o.id} label={o.label} hint={o.hint} onClick={() => set("motiveId", o.id)} />
         ))}
       </section>
       <section className="space-y-2">
-        <h3 className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Ação decisiva</h3>
+        <h3 className="text-base uppercase tracking-[0.18em] text-muted-foreground">Ação decisiva</h3>
         {ACTIONS.map((o) => (
           <Choice key={o.id} selected={d.actionId === o.id} label={o.label} hint={o.hint} onClick={() => set("actionId", o.id)} />
         ))}
       </section>
       <section className="space-y-2">
-        <h3 className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Prova-chave</h3>
+        <h3 className="text-base uppercase tracking-[0.18em] text-muted-foreground">Prova-chave</h3>
         {PROOFS.map((o) => (
           <Choice key={o.id} selected={d.proofId === o.id} label={o.label} hint={o.hint} onClick={() => set("proofId", o.id)} />
         ))}
       </section>
       <section className="space-y-2">
-        <h3 className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Lacuna resolvida</h3>
+        <h3 className="text-base uppercase tracking-[0.18em] text-muted-foreground">Lacuna resolvida</h3>
         {GAPS.map((o) => (
           <Choice key={o.id} selected={d.gapId === o.id} label={o.label} hint={o.hint} onClick={() => set("gapId", o.id)} />
         ))}
       </section>
       <section className="space-y-2">
-        <h3 className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Pistas usadas</h3>
+        <h3 className="text-base uppercase tracking-[0.18em] text-muted-foreground">Pistas usadas</h3>
         {mine.map((c) => {
           const on = d.usedClueIds.includes(c.id);
           return (
@@ -830,9 +830,9 @@ export function RevealPhase({ match }: { match: Match }) {
     const ok = d.suspectId === TRUTH.suspectId;
     return (
       <div className="space-y-4">
-        <p className="text-[11px] uppercase tracking-[0.22em] text-accent">A sua solução</p>
+        <p className="text-base uppercase tracking-[0.22em] text-accent">A sua solução</p>
         <h2 className="font-serif text-3xl">{ok ? "Você viu o Morador." : "A casa desviou o olhar."}</h2>
-        <ul className="space-y-2 text-sm text-fog">
+        <ul className="space-y-2 text-lg text-fog">
           <li>Suspeito: {SUSPECTS.find((s) => s.id === d.suspectId)?.label}</li>
           <li>Motivo: {MOTIVES.find((s) => s.id === d.motiveId)?.label}</li>
           <li>Ação: {ACTIONS.find((s) => s.id === d.actionId)?.label}</li>
@@ -848,7 +848,7 @@ export function RevealPhase({ match }: { match: Match }) {
 
   return (
     <div className="space-y-5">
-      <p className="text-[11px] uppercase tracking-[0.22em] text-accent">{slide.kicker}</p>
+      <p className="text-base uppercase tracking-[0.22em] text-accent">{slide.kicker}</p>
       <h2 className="font-serif text-3xl leading-tight">{slide.title}</h2>
       <p className="font-serif text-xl leading-relaxed text-fog">{slide.body}</p>
       <Footer label={step < 6 ? "Continuar" : "Minha solução"} onClick={() => dispatch({ type: "REVEAL_NEXT" })} />
@@ -869,7 +869,7 @@ export function ScorePhase({ match }: { match: Match }) {
 
   return (
     <div className="space-y-5 pb-8">
-      <p className="text-[11px] uppercase tracking-[0.22em] text-accent">Placar final</p>
+      <p className="text-base uppercase tracking-[0.22em] text-accent">Placar final</p>
       <h2 className="font-serif text-4xl leading-none">{wch?.title}</h2>
       <p className="text-fog">{wch?.name} · {winner?.total} pontos</p>
 
@@ -882,10 +882,10 @@ export function ScorePhase({ match }: { match: Match }) {
               className="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-3"
             >
               <div>
-                <p className="text-sm">
+                <p className="text-lg">
                   {i + 1}. {c.title}
                 </p>
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-base text-muted-foreground">
                   {r.acertou ? "Acertou o suspeito" : "Errou o suspeito"} · T{r.tempo} Q{r.qualidade} C
                   {r.coopColetiva + r.coopVoto} E{r.economia} P{r.performance}
                 </p>
@@ -906,7 +906,7 @@ export function ScorePhase({ match }: { match: Match }) {
         </Button>
         <Link
           to="/"
-          className="inline-flex h-11 min-h-11 items-center justify-center rounded-md border border-border text-sm"
+          className="inline-flex h-11 min-h-11 items-center justify-center rounded-md border border-border text-lg"
           onClick={() => reset()}
         >
           Encerrar

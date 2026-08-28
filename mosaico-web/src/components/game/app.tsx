@@ -56,10 +56,10 @@ export function GameApp() {
       <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-background px-6 text-center">
         <MosaicMark className="size-8 text-primary" />
         <p className="brand-wordmark text-3xl text-primary">MOSAICO</p>
-        <p className="text-sm text-fog">A mesa ainda não foi aberta nesta noite.</p>
+        <p className="text-lg text-fog">A mesa ainda não foi aberta nesta noite.</p>
         <Link
           to="/"
-          className="inline-flex h-11 min-h-11 items-center justify-center rounded-md bg-primary px-5 text-sm font-medium text-primary-foreground"
+          className="inline-flex h-11 min-h-11 items-center justify-center rounded-md bg-primary px-5 text-lg font-medium text-primary-foreground"
         >
           Voltar ao início
         </Link>

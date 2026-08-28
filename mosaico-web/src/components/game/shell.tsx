@@ -13,6 +13,7 @@ import { BookOpen, Coins, Home, X } from "lucide-react";
 import { type ReactNode, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ClueCard, cluesFrom } from "./clues";
+import { MosaicMark } from "./mark";
 
 export function GameShell({
   match,
@@ -31,28 +32,21 @@ export function GameShell({
 
   return (
     <div className="relative mx-auto flex min-h-dvh max-w-lg flex-col bg-background">
-      <div
-        className="pointer-events-none absolute inset-0 opacity-40"
-        style={{
-          backgroundImage: "url(/media/fundo-painel.jpg)",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-background/80 via-background/92 to-background" />
+      <div className="pointer-events-none absolute inset-0 mosaic-grain opacity-35" />
+      <div className="pointer-events-none absolute inset-0 cover-tint opacity-80" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-background/70 via-background/90 to-background" />
 
       <header className="relative z-10 flex items-center gap-3 border-b border-border px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
+        <MosaicMark className="size-5 text-primary" />
         <div className="min-w-0 flex-1">
-          <p className="font-serif text-lg leading-none tracking-[0.22em] text-primary">
-            MOSAICO
-          </p>
-          <p className="mt-1 truncate text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+          <p className="brand-wordmark text-lg text-primary">MOSAICO</p>
+          <p className="mt-1 truncate text-base uppercase tracking-[0.16em] text-muted-foreground">
             {PHASE_LABEL[match.phase]}
           </p>
         </div>
         <div className="flex items-center gap-1 text-accent">
           <Coins className="size-4" />
-          <span className="tabular-nums text-sm font-medium">{me.coins}</span>
+          <span className="tabular-nums text-lg font-medium">{me.coins}</span>
         </div>
         <Link
           to="/"
@@ -83,7 +77,7 @@ export function GameShell({
       <div className="relative z-10 flex items-center justify-between px-4 py-2">
         <div>
           <p className="font-serif text-base leading-tight">{character.title}</p>
-          <p className="text-[11px] text-muted-foreground">{character.name}</p>
+          <p className="text-base text-muted-foreground">{character.name}</p>
         </div>
         <Badge>{ROLE_LABEL[character.role]}</Badge>
       </div>
@@ -113,7 +107,7 @@ export function GameShell({
           </div>
           <div className="h-[calc(100dvh-56px)] space-y-3 overflow-y-auto px-4 py-4">
             {clues.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Ainda não há fragmentos.</p>
+              <p className="text-lg text-muted-foreground">Ainda não há fragmentos.</p>
             ) : (
               clues.map((c) => (
                 <ClueCard key={c.id} clue={c} verified={me.verified[c.id]} />
@@ -139,7 +133,7 @@ export function Tip({ id, children }: { id: string; children: string }) {
         localStorage.setItem(`mosaico.tip.${id}`, "1");
         setOpen(false);
       }}
-      className="mb-4 w-full rounded-lg border border-accent/30 bg-accent/5 px-3 py-2 text-left text-sm italic text-fog"
+      className="mb-4 w-full rounded-lg border border-accent/25 bg-accent/8 px-3 py-2 text-left text-lg italic text-fog"
     >
       {children}
     </button>
@@ -159,7 +153,8 @@ export function PassGate({ match }: { match: Match }) {
     const ch = CHARACTERS.find((c) => c.id === next.characterId);
     return (
       <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background px-6 pb-[max(2rem,env(safe-area-inset-bottom))] pt-[max(2rem,env(safe-area-inset-top))] text-center">
-        <p className="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
+        <MosaicMark className="mb-6 size-8 text-primary" />
+        <p className="text-base uppercase tracking-[0.28em] text-muted-foreground">
           Passe o celular
         </p>
         <h2 className="mt-3 font-serif text-4xl">{ch?.title}</h2>

@@ -44,14 +44,14 @@ export function ClueCard({
     >
       <div className="mb-2 flex items-center justify-between gap-2">
         <KindSeal kind={clue.kind} />
-        <span className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+        <span className="text-lg uppercase tracking-[0.16em] text-muted-foreground">
           {room}
         </span>
       </div>
       <h3 className="font-serif text-xl leading-snug text-foreground">{clue.title}</h3>
-      <p className="mt-1 text-sm leading-relaxed text-fog">{clue.body}</p>
+      <p className="mt-1 text-lg leading-relaxed text-fog">{clue.body}</p>
       {verified != null && (
-        <p className="mt-2 text-xs uppercase tracking-[0.14em] text-accent">
+        <p className="mt-2 text-base uppercase tracking-[0.14em] text-accent">
           {verified ? "Confirmado pela casa" : "Não se sustenta"}
         </p>
       )}
@@ -86,8 +86,8 @@ export function Choice({
         selected ? "border-accent bg-accent/10" : "border-border bg-card hover:border-fog/40",
       )}
     >
-      <div className="text-sm font-medium text-foreground">{label}</div>
-      {hint && <div className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{hint}</div>}
+      <div className="text-lg font-medium text-foreground">{label}</div>
+      {hint && <div className="mt-0.5 text-base leading-relaxed text-muted-foreground">{hint}</div>}
     </button>
   );
 }

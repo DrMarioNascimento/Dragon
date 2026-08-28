@@ -29,9 +29,9 @@ export function PalimpsestoPlay() {
   if (!solo) {
     return (
       <div className="space-y-4 px-5 pb-28 pt-6">
-        <p className="text-[11px] uppercase tracking-[0.22em] text-accent">Empilha os vidros.</p>
+        <p className="text-base uppercase tracking-[0.22em] text-accent">Empilha os vidros.</p>
         <h2 className="font-serif text-3xl">{baixo ? "Você fica embaixo" : "Você fica em cima"}</h2>
-        <p className="text-sm text-fog">
+        <p className="text-lg text-fog">
           {baixo
             ? "Coloca o celular na mesa, tela pra cima. O outro empilha no seu."
             : "Põe a sua tela em cima da outra. A frase só existe nos dois."}
@@ -51,7 +51,7 @@ export function PalimpsestoPlay() {
             </p>
           )}
         </div>
-        <p className="text-center text-sm text-muted-foreground">
+        <p className="text-center text-lg text-muted-foreground">
           {janela ? "A janela deu a primeira palavra." : "A janela ainda não falou."}
         </p>
         <Button className="w-full" size="lg" onClick={empilhar} disabled={!janela}>
@@ -63,9 +63,9 @@ export function PalimpsestoPlay() {
 
   return (
     <div className="space-y-4 px-5 pb-28 pt-6">
-      <p className="text-[11px] uppercase tracking-[0.22em] text-accent">Empilha os vidros.</p>
+      <p className="text-base uppercase tracking-[0.22em] text-accent">Empilha os vidros.</p>
       <h2 className="font-serif text-3xl">Palimpsesto</h2>
-      <p className="text-sm text-fog">
+      <p className="text-lg text-fog">
         {janela
           ? "A janela deixou a primeira palavra. Empilha para o resto."
           : "Primeiro a janela. Sem ela, a carta não tem nome."}
@@ -77,7 +77,7 @@ export function PalimpsestoPlay() {
             on && "left-10 opacity-40",
           )}
         >
-          <p className="font-serif text-sm leading-6 text-fog">
+          <p className="font-serif text-lg leading-6 text-fog">
             {janela ? morador.toUpperCase() : "· · · ·"} · · · · O
             <br />· · BAIXOU · ·
             <br />· DISJUNTOR ·
@@ -96,7 +96,7 @@ export function PalimpsestoPlay() {
               o disjuntor
             </p>
           ) : (
-            <p className="pt-10 text-center text-sm text-muted-foreground">Lanterna</p>
+            <p className="pt-10 text-center text-lg text-muted-foreground">Lanterna</p>
           )}
         </div>
       </div>
@@ -125,9 +125,9 @@ export function EspelhoPlay() {
   if (!solo) {
     return (
       <div className="space-y-4 px-5 pb-28 pt-6">
-        <p className="text-[11px] uppercase tracking-[0.22em] text-accent">Mostra. Não leia.</p>
+        <p className="text-base uppercase tracking-[0.22em] text-accent">Mostra. Não leia.</p>
         <h2 className="font-serif text-3xl">{mostra ? "Mostra a tela" : "Lê no outro"}</h2>
-        <p className="text-sm text-fog">
+        <p className="text-lg text-fog">
           {mostra
             ? "Não leia em voz alta. Vira o celular pro vizinho."
             : "Olha a tela do outro. Você lê a frase."}
@@ -158,9 +158,9 @@ export function EspelhoPlay() {
 
   return (
     <div className="space-y-4 px-5 pb-28 pt-6">
-      <p className="text-[11px] uppercase tracking-[0.22em] text-accent">Mostra. Não leia.</p>
+      <p className="text-base uppercase tracking-[0.22em] text-accent">Mostra. Não leia.</p>
       <h2 className="font-serif text-3xl">O espelho</h2>
-      <p className="text-sm text-fog">
+      <p className="text-lg text-fog">
         {cofre
           ? "O cofre deixou a marca. Está ao contrário — o vizinho lê."
           : "O cofre ainda não falou. A sala às escuras vem primeiro."}
@@ -217,9 +217,9 @@ export function PlantaPlay() {
   if (!solo) {
     return (
       <div className="space-y-4 px-5 pb-28 pt-6">
-        <p className="text-[11px] uppercase tracking-[0.22em] text-accent">A mesa é a casa.</p>
+        <p className="text-base uppercase tracking-[0.22em] text-accent">A mesa é a casa.</p>
         <h2 className="font-serif text-3xl">Seu cômodo é {mine}</h2>
-        <p className="text-sm text-fog">
+        <p className="text-lg text-fog">
           {frase
             ? `${morador} baixou o disjuntor e passou por aqui. Encosta o celular no lugar certo da mesa.`
             : "A frase da pilha ainda não veio. Sem ela, o caminho não acende."}
@@ -244,9 +244,9 @@ export function PlantaPlay() {
 
   return (
     <div className="space-y-4 px-5 pb-28 pt-6">
-      <p className="text-[11px] uppercase tracking-[0.22em] text-accent">A mesa é a casa.</p>
+      <p className="text-base uppercase tracking-[0.22em] text-accent">A mesa é a casa.</p>
       <h2 className="font-serif text-3xl">A planta</h2>
-      <p className="text-sm text-fog">
+      <p className="text-lg text-fog">
         {frase
           ? "A frase disse o caminho. Toca na ordem: Sala, Corredor, Cofre."
           : "Empilha primeiro. A planta espera a frase."}
@@ -269,7 +269,7 @@ export function PlantaPlay() {
           );
         })}
       </div>
-      <p className="text-center text-sm text-muted-foreground">
+      <p className="text-center text-lg text-muted-foreground">
         {ok ? "O caminho acendeu." : path.length ? path.join(" → ") : "Toca os cômodos."}
       </p>
     </div>

@@ -59,19 +59,19 @@
     padding:max(16px,env(safe-area-inset-top)) 16px
             calc(env(safe-area-inset-bottom,0px) + 22px);}
   #topo{text-align:center}
-  #local{font-size:clamp(12px,3.2vw,15px);letter-spacing:.18em;text-transform:uppercase;
+  #local{font-size:clamp(17px,4.2vw,21px);letter-spacing:.18em;text-transform:uppercase;
     color:var(--t-max);font-weight:600;text-shadow:var(--scrim-strong)}
   /* o enigma é o objetivo, então é ele que manda na hierarquia. O status
      virou telemetria: quente/frio, pequeno e branco.                    */
   #enigma{font-family:var(--serif);font-style:italic;font-weight:500;
-    font-size:clamp(19px,4.8vw,25px);line-height:1.34;
+    font-size:clamp(24px,5.8vw,31px);line-height:1.34;
     color:var(--ambar-s);margin:10px auto 0;max-width:24ch;min-height:1.4em;
     text-shadow:var(--scrim-strong);transition:opacity .45s ease}
   #enigma.trocando{opacity:0}
   #conta{margin-top:7px;font-family:var(--mono);font-weight:700;
-    font-size:clamp(11px,2.9vw,13px);letter-spacing:.22em;
+    font-size:clamp(16px,3.9vw,19px);letter-spacing:.22em;
     color:var(--t-mid);text-shadow:var(--scrim)}
-  #status{font-family:var(--sans);font-size:clamp(14px,3.5vw,16px);line-height:1.35;
+  #status{font-family:var(--sans);font-size:clamp(19px,4.5vw,22px);line-height:1.35;
     font-weight:600;color:var(--t-max);margin:9px auto 0;min-height:1.4em;
     max-width:28ch;text-shadow:var(--scrim-strong);transition:color .3s}
   #status.hot{color:var(--ambar-s)}
@@ -88,7 +88,7 @@
   #firme-i{position:absolute;inset:0 auto 0 0;width:0%;border-radius:6px;background:#fff2e0;
     box-shadow:0 0 14px #ffbe7a;transition:width .08s linear}
   #dica{font-family:var(--serif);font-style:italic;font-weight:500;
-    font-size:clamp(17px,4.2vw,20px);line-height:1.32;
+    font-size:clamp(22px,5.2vw,26px);line-height:1.32;
     color:var(--t-hi);text-align:center;min-height:1.4em;max-width:26ch;margin:0 auto;
     text-shadow:var(--scrim-strong)}
   #marcas{display:flex;gap:11px;justify-content:center;min-height:14px}
@@ -101,7 +101,7 @@
   #botoes{display:flex;gap:10px;pointer-events:auto}
   button{flex:1;min-height:54px;padding:15px 10px;border-radius:9px;
     border:1px solid #46596d;background:#080d14f2;color:var(--t-max);
-    font-family:var(--sans);font-size:clamp(14px,3.6vw,16px);font-weight:700;
+    font-family:var(--sans);font-size:clamp(19px,4.6vw,22px);font-weight:700;
     letter-spacing:.12em;text-transform:uppercase;text-shadow:0 1px 2px #000;
     backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
   button:active{background:#16212c}
@@ -113,7 +113,7 @@
     max-height:66dvh;overflow-y:auto;touch-action:pan-y;overscroll-behavior:contain;
     -webkit-overflow-scrolling:touch;
     background:#04080ef7;border:1px solid #2a3949;border-radius:12px;padding:13px 15px;
-    font-size:clamp(14px,3.4vw,16px);color:var(--t-mid);display:none;pointer-events:auto;
+    font-size:clamp(19px,4.4vw,22px);color:var(--t-mid);display:none;pointer-events:auto;
     backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
   #mestre.on{display:block}
   #mestre .l{display:flex;justify-content:space-between;gap:12px;padding:6px 0;
@@ -121,11 +121,11 @@
   #mestre .l b{color:var(--t-max);font-weight:700;font-family:var(--mono);letter-spacing:.02em}
   #mestre input{width:100%;margin-top:12px;padding:13px;border-radius:8px;
     border:1px solid #46596d;background:#0a1017;color:var(--t-max);
-    font-size:clamp(15px,3.8vw,17px);font-weight:600;
+    font-size:clamp(20px,4.8vw,23px);font-weight:600;
     font-family:var(--mono);letter-spacing:.1em;text-align:center}
-  #mestre .sub{margin-top:12px;font-size:clamp(14px,3.3vw,15px);line-height:1.6;color:var(--t-mid)}
+  #mestre .sub{margin-top:12px;font-size:clamp(19px,4.3vw,21px);line-height:1.6;color:var(--t-mid)}
   #folga,#cal{width:100%;text-transform:none;letter-spacing:.01em;
-    font-size:clamp(14px,3.5vw,16px);font-weight:600;line-height:1.35;
+    font-size:clamp(19px,4.5vw,22px);font-weight:600;line-height:1.35;
     padding:13px 12px;height:auto;min-height:48px}
   #folga{margin-top:10px;border-color:#5d8a7a;color:var(--ambar-s)}
   #cal{margin-top:8px}
@@ -145,16 +145,16 @@
     background:linear-gradient(160deg,#120c06,#070a0e);
     box-shadow:0 30px 90px #000,0 0 70px #9ec9b818}
   #k-meta{display:flex;justify-content:space-between;gap:12px;
-    font-size:clamp(13px,3.2vw,15px);letter-spacing:.16em;text-transform:uppercase;
+    font-size:clamp(18px,4.2vw,21px);letter-spacing:.16em;text-transform:uppercase;
     color:var(--ambar-s);margin-bottom:16px;font-weight:700}
-  #k-nome{font-family:var(--display);font-size:clamp(30px,8vw,42px);line-height:1.05;
+  #k-nome{font-family:var(--display);font-size:clamp(35px,9.0vw,48px);line-height:1.05;
     font-weight:600;color:#fff;margin-bottom:14px}
-  #k-txt{font-family:var(--serif);font-size:clamp(20px,5.2vw,26px);line-height:1.4;
+  #k-txt{font-family:var(--serif);font-size:clamp(25px,6.2vw,32px);line-height:1.4;
     font-weight:500;color:#fffaf3}
   #k-obs{font-family:var(--serif);font-style:italic;font-weight:500;margin-top:18px;
-    font-size:clamp(17px,4.3vw,20px);line-height:1.45;color:var(--t-mid)}
+    font-size:clamp(22px,5.3vw,26px);line-height:1.45;color:var(--t-mid)}
   #k-tempo{font-family:var(--mono);font-weight:700;margin-top:16px;
-    font-size:clamp(15px,3.8vw,18px);letter-spacing:.06em;color:var(--ambar-s);
+    font-size:clamp(20px,4.8vw,24px);letter-spacing:.06em;color:var(--ambar-s);
     font-variant-numeric:tabular-nums}
   #carta button{margin-top:20px;width:100%}
 
@@ -169,33 +169,33 @@
   /* rede para Safari antigo, que ignora "safe center" */
   #intro::before,#intro::after{content:"";margin:auto;flex:0 0 0}
   #intro.gone{display:none}
-  #kicker{font-family:var(--sans);font-size:clamp(11px,2.9vw,14px);letter-spacing:.16em;
+  #kicker{font-family:var(--sans);font-size:clamp(16px,3.9vw,20px);letter-spacing:.16em;
     text-transform:uppercase;font-weight:600;color:var(--t-max);
     line-height:1.4;max-width:26ch;text-shadow:var(--scrim)}
   #titulo{font-family:var(--display);font-size:clamp(40px,10.5vw,64px);line-height:1.02;
     font-weight:600;margin:12px 0 8px;color:#fff;
     text-shadow:0 0 46px #9ec9b840,0 4px 34px #000}
   #titulo b{font-weight:700;color:var(--ambar-s)}
-  #sub{font-family:var(--serif);font-style:italic;font-size:clamp(17px,4.4vw,22px);
+  #sub{font-family:var(--serif);font-style:italic;font-size:clamp(22px,5.4vw,28px);
     font-weight:500;color:var(--t-mid);margin-bottom:20px}
-  #intro p{font-family:var(--serif);font-size:clamp(17px,4.4vw,21px);line-height:1.45;
+  #intro p{font-family:var(--serif);font-size:clamp(22px,5.4vw,27px);line-height:1.45;
     font-weight:400;color:var(--t-hi);max-width:22em;margin:0 0 13px}
   #intro p b{color:#fff;font-weight:600}
-  #intro p.small{font-size:clamp(16px,4vw,19px);font-weight:500;color:var(--t-mid);
+  #intro p.small{font-size:clamp(21px,5.0vw,25px);font-weight:500;color:var(--t-mid);
     line-height:1.5;max-width:23em}
   #intro .go{flex:0 0 auto;margin-top:20px;width:min(340px,88vw);padding:17px;
-    font-size:clamp(13px,3.4vw,16px);letter-spacing:.16em;
+    font-size:clamp(18px,4.4vw,22px);letter-spacing:.16em;
     border-color:#5d8a7a;color:var(--ambar-s);background:#1a1109ee}
   #intro .alt{flex:0 0 auto;margin-top:12px;background:none;border:none;border-radius:0;
     min-height:48px;backdrop-filter:none;-webkit-backdrop-filter:none;color:var(--t-max);
-    font-size:clamp(14px,3.4vw,15px);letter-spacing:.1em;text-transform:uppercase;
+    font-size:clamp(19px,4.4vw,21px);letter-spacing:.1em;text-transform:uppercase;
     font-weight:600;text-decoration:underline;text-underline-offset:6px;padding:12px}
-  #rodada{margin-top:16px;font-size:clamp(13px,3.1vw,15px);letter-spacing:.16em;
+  #rodada{margin-top:16px;font-size:clamp(18px,4.1vw,21px);letter-spacing:.16em;
     color:var(--t-mid);font-family:var(--mono);font-weight:600}
   #rodada b{color:var(--ambar-s);letter-spacing:.2em;font-weight:700;
     font-size:1.35em;text-shadow:0 0 16px #9ec9b855}
   #nota{margin-top:8px;font-family:var(--sans);font-weight:500;
-    font-size:clamp(13px,3.2vw,15px);line-height:1.45;max-width:30ch;color:var(--t-mid)}
+    font-size:clamp(18px,4.2vw,21px);line-height:1.45;max-width:30ch;color:var(--t-mid)}
   #nota.warn{color:var(--ambar-s);font-weight:600}
   #nota.ok{color:#a9e8c0;font-weight:600}
 
@@ -207,9 +207,9 @@
     #rodada{margin-top:12px}
   }
   @media(max-height:640px){
-    #titulo{font-size:clamp(30px,8vw,40px)}
-    #intro p{font-size:clamp(16px,4.1vw,19px);line-height:1.4}
-    #sub{font-size:clamp(16px,4.1vw,19px);margin-bottom:10px}
+    #titulo{font-size:clamp(35px,9.0vw,46px)}
+    #intro p{font-size:clamp(21px,5.1vw,25px);line-height:1.4}
+    #sub{font-size:clamp(21px,5.1vw,25px);margin-bottom:10px}
   }
   @media(min-width:900px){ #status{max-width:24ch} #dica{max-width:34ch} }
   /* ======================================================================
@@ -265,15 +265,15 @@
   #falha.on{display:flex}
   #falha::before,#falha::after{content:"";margin:auto;flex:0 0 0}
   #falha-tit{font-family:"Cormorant Garamond",Georgia,serif;
-    font-size:clamp(26px,6.5vw,36px);font-weight:600;color:#fff;line-height:1.1}
+    font-size:clamp(31px,7.5vw,42px);font-weight:600;color:#fff;line-height:1.1}
   #falha-msg{font-family:"Cormorant Garamond",Georgia,serif;font-weight:500;
-    font-size:clamp(17px,4.3vw,20px);line-height:1.45;color:#f4f9fd;max-width:24em}
+    font-size:clamp(22px,5.3vw,26px);line-height:1.45;color:#f4f9fd;max-width:24em}
   #falha button{width:min(340px,88vw);flex:0 0 auto}
-  #falha-retry{padding:16px;font-size:clamp(13px,3.4vw,16px);letter-spacing:.14em;
+  #falha-retry{padding:16px;font-size:clamp(18px,4.4vw,22px);letter-spacing:.14em;
     text-transform:uppercase;font-weight:700;border-radius:9px;
     border:1px solid #5d8a7a;color:#d4e8df;background:#1a1109ee}
   #falha-toque{background:none;border:none;min-height:48px;color:#fff;
-    font-size:clamp(14px,3.4vw,15px);letter-spacing:.08em;text-transform:uppercase;
+    font-size:clamp(19px,4.4vw,21px);letter-spacing:.08em;text-transform:uppercase;
     font-weight:600;text-decoration:underline;text-underline-offset:6px;padding:12px}
 
 </style>

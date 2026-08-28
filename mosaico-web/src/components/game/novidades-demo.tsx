@@ -32,7 +32,7 @@ export function NovidadesDemo({ onBack }: { onBack?: () => void }) {
   return (
     <div className="flex flex-col gap-4">
       <header className="text-center">
-        <p className="text-[11px] uppercase tracking-[0.22em] text-accent">Novo nesta noite</p>
+        <p className="text-base uppercase tracking-[0.22em] text-accent">Novo nesta noite</p>
         <h2 className="mt-1 font-serif text-3xl">Três gestos que a mesa ainda não tinha</h2>
       </header>
 
@@ -46,7 +46,7 @@ export function NovidadesDemo({ onBack }: { onBack?: () => void }) {
               setRun((n) => n + 1);
             }}
             className={cn(
-              "min-h-11 flex-1 rounded-md px-2 text-[11px] uppercase tracking-widest",
+              "min-h-11 flex-1 rounded-md px-2 text-base uppercase tracking-widest",
               idea === it.id ? "bg-primary/15 text-primary" : "text-muted-foreground",
             )}
           >
@@ -55,7 +55,7 @@ export function NovidadesDemo({ onBack }: { onBack?: () => void }) {
         ))}
       </div>
 
-      <p className="text-center text-sm leading-relaxed text-fog">
+      <p className="text-center text-lg leading-relaxed text-fog">
         {IDEAS.find((i) => i.id === idea)?.why}
       </p>
 
@@ -65,7 +65,7 @@ export function NovidadesDemo({ onBack }: { onBack?: () => void }) {
         {idea === "formacao" && <Formacao key={run} />}
       </div>
 
-      <p className="text-center text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+      <p className="text-center text-base uppercase tracking-[0.16em] text-muted-foreground">
         {IDEAS.find((i) => i.id === idea)?.kicker}
       </p>
 
@@ -99,7 +99,7 @@ function Palimpsesto() {
           <br />
           · DISJUNTOR ·
         </p>
-        <p className="absolute bottom-2 w-full text-center text-[9px] uppercase tracking-widest text-primary">
+        <p className="absolute bottom-2 w-full text-center text-lg uppercase tracking-widest text-primary">
           Policial
         </p>
       </Phone>
@@ -117,7 +117,7 @@ function Palimpsesto() {
             o disjuntor
           </p>
         )}
-        <p className="absolute bottom-2 w-full text-center text-[9px] uppercase tracking-widest text-primary">
+        <p className="absolute bottom-2 w-full text-center text-lg uppercase tracking-widest text-primary">
           Jornalista
         </p>
       </Phone>
@@ -142,7 +142,7 @@ function Espelho() {
           <br />
           é de quem mora na casa
         </p>
-        <p className="absolute bottom-2 w-full text-center text-[9px] uppercase tracking-widest text-primary">
+        <p className="absolute bottom-2 w-full text-center text-lg uppercase tracking-widest text-primary">
           Jornalista
         </p>
       </Phone>
@@ -152,8 +152,8 @@ function Espelho() {
           shown ? "opacity-100" : "opacity-0",
         )}
       >
-        <p className="px-2 text-center text-[11px] uppercase tracking-widest text-fog">O vizinho lê</p>
-        <p className="mt-2 px-2 text-center font-serif text-sm text-primary">
+        <p className="px-2 text-center text-base uppercase tracking-widest text-fog">O vizinho lê</p>
+        <p className="mt-2 px-2 text-center font-serif text-lg text-primary">
           a marca na trava
           <br />
           é de quem mora na casa
@@ -199,7 +199,7 @@ function Room({ name, shift, glow }: { name: string; shift: string; glow?: boole
         shift,
       )}
     >
-      <p className="font-serif text-sm text-primary">{name}</p>
+      <p className="font-serif text-lg text-primary">{name}</p>
     </div>
   );
 }

@@ -26,9 +26,9 @@ export function CartaDemo({ onBack }: { onBack?: () => void }) {
   return (
     <div className="flex flex-col gap-5">
       <header className="text-center">
-        <p className="text-[11px] uppercase tracking-[0.22em] text-accent">Encosta.</p>
+        <p className="text-base uppercase tracking-[0.22em] text-accent">Encosta.</p>
         <h2 className="mt-1 font-serif text-3xl">A carta na mesa</h2>
-        <p className="mt-2 text-sm text-fog">
+        <p className="mt-2 text-lg text-fog">
           {beat === "apart" && "Dois telefones. Cada um, uma faixa do desenho."}
           {beat === "snap" && "As peças sentam no próprio vidro."}
           {beat === "join" && "Encostam. O recorte fecha."}
@@ -57,7 +57,7 @@ export function CartaDemo({ onBack }: { onBack?: () => void }) {
       {beat === "letter" && (
         <ol className="stagger-in space-y-1.5 px-1">
           {NOITE_CARTAS.map((c) => (
-            <li key={c.id} className="text-[12px] leading-snug text-fog">
+            <li key={c.id} className="text-base leading-snug text-fog">
               <span className="font-serif text-primary">{c.hora}</span>
               {" · "}
               {c.txt}
@@ -130,7 +130,7 @@ function Phone({
           }}
         />
       ))}
-      <p className="absolute bottom-2 left-0 right-0 text-center text-[9px] uppercase tracking-[0.18em] text-primary">
+      <p className="absolute bottom-2 left-0 right-0 text-center text-lg uppercase tracking-[0.18em] text-primary">
         {label}
       </p>
       {beat === "letter" && (
