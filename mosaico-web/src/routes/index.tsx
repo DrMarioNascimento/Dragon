@@ -4,7 +4,6 @@ import { CartaDemo } from "@/components/game/carta-demo";
 import { NovidadesDemo } from "@/components/game/novidades-demo";
 import { FORMA_OPCOES, type Forma } from "@/lib/mosaico/arquetipo";
 import { consumeGoogleRedirect } from "@/lib/mosaico/firebase";
-import { studioPodeAbrir } from "@/lib/mosaico/mestres";
 import { armAudio, stopVoice } from "@/lib/mosaico/sound";
 import { useParty } from "@/lib/mosaico/party";
 import type { NoiteFormato } from "@/lib/mosaico/v3";
@@ -26,16 +25,13 @@ function Home() {
     if (typeof window === "undefined") return "menu";
     return new URLSearchParams(window.location.search).get("sala")
       ? "entrar"
-      : studioPodeAbrir()
-        ? "menu"
-        : "menu";
+      : "menu";
   });
   const [muted, setMuted] = useState(true);
   const [nome, setNome] = useState("");
   const [forma, setForma] = useState<Forma>("n");
   const [codigo, setCodigo] = useState("");
   const [formato, setFormato] = useState<NoiteFormato>("curta");
-  const [podeAbrir] = useState(() => studioPodeAbrir());
   const create = useParty((s) => s.create);
   const join = useParty((s) => s.join);
   const localStart = useParty((s) => s.localStart);
@@ -179,12 +175,10 @@ function Home() {
 
           {screen === "menu" && (
             <div className="stagger-in mt-8 flex flex-col gap-4">
-              {podeAbrir && (
-                <Button size="lg" onClick={() => setScreen("criar")}>
-                  <DoorOpen className="size-4" />
-                  Abrir uma mesa
-                </Button>
-              )}
+              <Button size="lg" onClick={() => setScreen("criar")}>
+                <DoorOpen className="size-4" />
+                Abrir uma mesa
+              </Button>
               <Button variant="outline" size="lg" onClick={() => setScreen("entrar")}>
                 <QrCode className="size-4" />
                 Entrar com o código

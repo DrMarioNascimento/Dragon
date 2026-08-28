@@ -8,6 +8,12 @@ service cloud.firestore {
     function known(versao) {
       return versao in ['mosaico', 'noite'];
     }
+    function emailMestre() {
+      return signedIn()
+        && request.auth.token.email is string
+        && exists(/databases/$(database)/documents/config/mestres)
+        && request.auth.token.email in get(/databases/$(database)/documents/config/mestres).data.emails;
+    }
     function roomPath(versao, room) {
       return /databases/$(database)/documents/$(versao)/$(room);
     }
@@ -95,9 +101,15 @@ service cloud.firestore {
         );
     }
 
+    match /config/mestres {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
     match /{versao}/{roomId} {
       allow create: if known(versao)
         && signedIn()
+        && (versao != 'noite' || emailMestre())
         && request.resource.data.mestreUid == request.auth.uid
         && request.resource.data.ativa == true
         && request.resource.data.fase == 'sala'
