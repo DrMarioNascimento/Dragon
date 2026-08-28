@@ -61,15 +61,18 @@
     overscroll-behavior: none;
     touch-action: manipulation;
     font-family: var(--font-sans);
+    font-size: 18px;
+    line-height: 1.45;
   }
   button:not(:disabled),
   [role="button"]:not(:disabled) {
     cursor: pointer;
+    font-size: 1.05em;
   }
   input,
   textarea,
   select {
-    font-size: 16px;
+    font-size: 18px;
   }
   h1,
   h2,
@@ -242,7 +245,7 @@
   display: block;
   margin: -4px 0 6px;
   color: #ffe0df;
-  font: 800 10px/1.2 var(--font-sans);
+  font: 800 14px/1.2 var(--font-sans);
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
