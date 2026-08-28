@@ -1,4 +1,4 @@
-import { initializeApp } from "firebase/app";
+import { getApps, initializeApp } from "firebase/app";
 import { getAuth, signInAnonymously, type User } from "firebase/auth";
 import {
   collection,
@@ -12,6 +12,9 @@ import {
   type Unsubscribe,
 } from "firebase/firestore";
 
+/** A Noite — app Firebase isolado da mesa HTML (`mesa` / coleção `mosaico`). */
+export const EDICAO = "noite";
+
 export const firebaseConfig = {
   apiKey: "AIzaSyDwshZbqaMOKxdRuyLtdpbijPRdrjVOcxE",
   authDomain: "mosaico-game.firebaseapp.com",
@@ -21,10 +24,11 @@ export const firebaseConfig = {
   appId: "1:436141261767:web:6a83555a2f7c4ed4550fe2",
 };
 
-const app = initializeApp(firebaseConfig);
+const app =
+  getApps().find((a) => a.name === EDICAO) ?? initializeApp(firebaseConfig, EDICAO);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-export const ROOT = "mosaico";
+export const ROOT = "noite";
 
 const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 

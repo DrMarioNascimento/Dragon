@@ -123,14 +123,14 @@ export function GameShell({
 export function Tip({ id, children }: { id: string; children: string }) {
   const [open, setOpen] = useState(() => {
     if (typeof window === "undefined") return false;
-    return !localStorage.getItem(`mosaico.tip.${id}`);
+    return !localStorage.getItem(`noite.tip.${id}`);
   });
   if (!open) return null;
   return (
     <button
       type="button"
       onClick={() => {
-        localStorage.setItem(`mosaico.tip.${id}`, "1");
+        localStorage.setItem(`noite.tip.${id}`, "1");
         setOpen(false);
       }}
       className="mb-4 w-full rounded-lg border border-accent/25 bg-accent/8 px-3 py-2 text-left text-lg italic text-fog"

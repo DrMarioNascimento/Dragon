@@ -4246,7 +4246,7 @@ const firebaseConfig = {
 };
 
 const CONFIGURADO = firebaseConfig.apiKey !== "COLE_AQUI";
-const RAIZ = "mosaico";
+const RAIZ = "mosaico"; /* A mesa. A noite usa a coleção "noite" e o app "noite". */
 
 if(!CONFIGURADO){
   window.MOSAICO_SEM_CONFIG = true;
@@ -4254,7 +4254,7 @@ if(!CONFIGURADO){
   console.warn("MOSAICO: firebaseConfig não preenchido — modo offline.");
 }
 
-const app  = CONFIGURADO ? initializeApp(firebaseConfig) : null;
+const app  = CONFIGURADO ? initializeApp(firebaseConfig, "mesa") : null;
 
 /* ══════════════════════════════════════════════════════════════════
    APP CHECK — o que impede abrir salas em massa

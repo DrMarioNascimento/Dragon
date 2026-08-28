@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { createMatch, reduce, runBots } from "./engine";
 import type { GameAction, Match } from "./types";
 
-const KEY = "mosaico.match.v1";
+const KEY = "noite.match.v1";
 
 function loadMatch(): Match | null {
   if (typeof window === "undefined") return null;

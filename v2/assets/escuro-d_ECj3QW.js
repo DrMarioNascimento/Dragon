@@ -1,1 +1,0 @@
-import{r as e}from"./useRouter-Dpb7RwMI.js";import{a as t}from"./index-DPhwxHDA.js";var n=e(),r=()=>(0,n.jsx)(t,{to:`/noite/$slug`,params:{slug:`escuro`}});export{r as component};

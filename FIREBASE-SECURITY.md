@@ -2,7 +2,12 @@
 
 O arquivo `firestore.rules` é a fonte versionada das permissões do projeto `mosaico-game`.
 
-Serve a **mesa HTML** e a **noite v3** (`mosaico-web`), na mesma coleção `mosaico/{sala}`.
+Serve duas árvores **separadas**:
+
+- **A mesa (v1):** `mosaico/{sala}`
+- **A noite (v2):** `noite/{sala}`
+
+Não compartilham documento, Auth de app (`mesa` / `noite`) nem QR.
 
 ## Garantias implementadas
 
