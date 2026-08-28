@@ -5,11 +5,14 @@
 Cada pessoa no próprio telefone. A mesa senta (personagem, vez, cor). 
 O telefone é lanterna. No fim, cada um acusa sozinho.
 
-A mesa HTML canônica continua em [`../MOSAICO-mesa.html`](../MOSAICO-mesa.html).  
-Este cliente usa o **mesmo Firebase** (`mosaico-game`) e a mesma coleção `mosaico/`, 
-com o fluxo da versão 3 (Encene → Janela → cômodo → cor → carta → óleo → acusação).
+A mesa HTML canônica continua em [`../v1/MOSAICO-mesa.html`](../v1/MOSAICO-mesa.html).  
+Este cliente é **independente dela**: projeto Firebase próprio (`mosaico-noite`) e
+árvore própria (`noite/`), com o fluxo da versão 3 (Encene → Janela → cômodo → cor
+→ carta → óleo → acusação). Um código de uma não abre a outra — ver
+[`../FIREBASE-ISOLAMENTO.md`](../FIREBASE-ISOLAMENTO.md).
 
-**Jogar a mesa HTML:** [drmarionascimento.github.io/Dragon/MOSAICO-mesa.html](https://drmarionascimento.github.io/Dragon/MOSAICO-mesa.html)
+**Jogar a noite:** [drmarionascimento.github.io/Dragon/v2/](https://drmarionascimento.github.io/Dragon/v2/)  
+**Jogar a mesa HTML:** [drmarionascimento.github.io/Dragon/v1/MOSAICO-mesa.html](https://drmarionascimento.github.io/Dragon/v1/MOSAICO-mesa.html)
 
 ## Como jogar
 
@@ -22,8 +25,9 @@ O telefone diz uma frase por vez: *Faça. Aponta. Procura a sua cor. Encosta. Co
 
 ## Firebase
 
-Projeto `mosaico-game` (o mesmo da mesa HTML). Login anônimo. 
-Domínios autorizados: o GitHub Pages e o Firebase Hosting da mesa.
+Projeto `mosaico-noite`, só desta versão. Login anônimo para quem entra com o
+código; quem **abre** a mesa entra com Google. Domínio autorizado:
+`drmarionascimento.github.io` (e `localhost` para desenvolvimento).
 
 Se a página atual não estiver autorizada no console do Firebase, 
 a criação de sala falha — use **Ensaiar sozinho**, ou abra o jogo num domínio já liberado.
