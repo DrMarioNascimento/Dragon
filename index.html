@@ -3,193 +3,236 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MOSAICO — A Casa da Costa</title>
+  <title>Dragon Games</title>
+  <link rel="icon" href="brand/dragon-mark.jpg" />
+  <link rel="apple-touch-icon" href="brand/dragon-mark.jpg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,400&family=IBM+Plex+Mono:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;800&family=IBM+Plex+Mono:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --night: #05070c;
-      --mid: #0c1118;
-      --paper: #121820;
-      --cream: #eef4fa;
-      --ink: #eef4fa;
-      --soft: #879aac;
-      --fog: #a5b8cb;
-      --gold: #c4a56a;
-      --gold2: #d4bc8a;
-      --lip: #6a5228;
-      --line: #ffffff18;
-      --shadow: 0 16px 38px rgba(0, 0, 0, 0.4);
-      --display: "Cormorant Garamond", Georgia, serif;
+      --void: #070605;
+      --coal: #110e0c;
+      --plate: #1a1512;
+      --cream: #f4ead0;
+      --mist: #c9bba3;
+      --gold: #e0b13a;
+      --gold2: #f3d078;
+      --lip: #7a4e0e;
+      --ember: #ff6a18;
+      --blood: #c41a12;
+      --line: rgba(224, 177, 58, .22);
+      --shadow: 0 18px 40px rgba(0, 0, 0, .55);
+      --display: Cinzel, "Times New Roman", serif;
       --body: Inter, system-ui, sans-serif;
       --mono: "IBM Plex Mono", ui-monospace, monospace;
       color-scheme: dark;
     }
     * { box-sizing: border-box; }
-    html, body { margin: 0; min-height: 100%; background: var(--night); color: var(--ink); font-family: var(--body); }
+    html, body {
+      margin: 0; min-height: 100%;
+      background:
+        radial-gradient(1200px 600px at 50% -10%, #3a1408 0%, transparent 55%),
+        radial-gradient(800px 400px at 80% 120%, #2a0c08 0%, transparent 50%),
+        var(--void);
+      color: var(--cream);
+      font-family: var(--body);
+    }
     a { color: inherit; }
     .shell { width: min(1080px, calc(100% - 32px)); margin: 0 auto; }
     .eyebrow {
       display: inline-block;
       font: 700 11px/1 var(--mono);
-      letter-spacing: .16em;
+      letter-spacing: .2em;
       text-transform: uppercase;
       color: var(--gold);
     }
     .topbar {
       position: sticky; top: 0; z-index: 20;
-      background: color-mix(in oklab, var(--night) 88%, transparent);
-      backdrop-filter: blur(10px);
+      background: color-mix(in oklab, var(--void) 82%, transparent);
+      backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--line);
     }
-    .nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 64px; }
+    .nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 68px; }
     .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
-    .brand-mark {
-      width: 36px; height: 36px; border-radius: 9px;
-      display: grid; place-items: center;
-      background: linear-gradient(180deg, var(--gold2), var(--gold));
-      color: var(--night); font: 700 12px var(--mono);
-      box-shadow: inset 0 1px rgba(255,255,255,.28), 0 3px 0 var(--lip);
+    .brand img {
+      width: 44px; height: 44px; border-radius: 50%;
+      box-shadow: 0 0 0 1px var(--line), 0 4px 0 var(--lip), 0 8px 16px rgba(0,0,0,.45);
     }
     .brand-copy { display: flex; flex-direction: column; }
-    .brand-copy b { font-family: var(--display); font-size: 1.15rem; font-weight: 600; letter-spacing: .06em; color: var(--gold); }
-    .brand-copy span { font-size: 11px; color: var(--soft); }
-    .nav-links { display: flex; gap: 18px; font-size: 13px; color: var(--fog); }
+    .brand-copy b {
+      font-family: var(--display); font-size: 1.05rem; font-weight: 700;
+      letter-spacing: .14em; color: var(--gold2);
+    }
+    .brand-copy span { font-size: 11px; color: var(--mist); letter-spacing: .04em; }
+    .nav-links { display: flex; gap: 18px; font-size: 13px; color: var(--mist); }
     .nav-links a { text-decoration: none; }
-    .hero { padding: 48px 0 28px; }
+    .hero { padding: 36px 0 20px; display: grid; gap: 8px; }
+    @media (min-width: 820px) {
+      .hero { grid-template-columns: 1fr 320px; align-items: center; gap: 32px; padding: 48px 0 28px; }
+    }
     .hero h1 {
       margin: 10px 0 12px;
       font-family: var(--display);
-      font-size: clamp(2.4rem, 7vw, 4rem);
-      font-weight: 500;
-      letter-spacing: .04em;
+      font-size: clamp(2.4rem, 7vw, 4.2rem);
+      font-weight: 800;
+      letter-spacing: .12em;
       line-height: .95;
+      text-transform: uppercase;
     }
-    .hero h1 span { color: var(--gold); }
-    .hero p { max-width: 38rem; color: var(--fog); font-size: 1.05rem; line-height: 1.5; }
+    .hero h1 span {
+      display: block;
+      background: linear-gradient(180deg, var(--gold2), var(--gold) 55%, var(--ember));
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .hero p { max-width: 38rem; color: var(--mist); font-size: 1.05rem; line-height: 1.55; }
     .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 22px; }
+    .emblem {
+      justify-self: center;
+      width: min(320px, 72vw);
+      filter: drop-shadow(0 12px 28px rgba(255, 90, 10, .28));
+    }
     .btn {
       min-height: 50px; display: inline-flex; align-items: center; justify-content: center;
       gap: 8px; padding: 13px 19px; border-radius: 9px; border: 0; text-decoration: none;
-      font: 700 12px var(--mono); letter-spacing: .025em; transition: .16s;
+      font: 700 12px var(--mono); letter-spacing: .04em; text-transform: uppercase; transition: .16s;
     }
     .btn:hover { transform: translateY(-2px); }
     .btn:active { transform: translateY(4px); }
     .btn-gold {
       background: linear-gradient(180deg, var(--gold2), var(--gold));
-      color: #1a1610;
-      box-shadow: inset 0 1px rgba(255,255,255,.28), 0 5px 0 var(--lip), 0 12px 22px rgba(0,0,0,.4);
+      color: #1a1206;
+      box-shadow: inset 0 1px rgba(255,255,255,.45), 0 5px 0 var(--lip), 0 12px 22px rgba(0,0,0,.45);
     }
     .btn-gold:active { box-shadow: inset 0 1px rgba(255,255,255,.2), 0 1px 0 var(--lip); }
-    .btn-light {
-      background: linear-gradient(180deg, #1a222c, var(--mid));
-      color: var(--gold);
-      box-shadow: inset 0 1px rgba(196,165,106,.28), 0 5px 0 #07090e, 0 10px 18px rgba(0,0,0,.35);
+    .btn-ember {
+      background: linear-gradient(180deg, #ff8a32, var(--ember) 40%, #c41a12);
+      color: #fff6ea;
+      box-shadow: inset 0 1px rgba(255,220,180,.4), 0 5px 0 #6a0e08, 0 12px 22px rgba(196,26,18,.35);
     }
-    .labs { padding: 12px 0 56px; }
-    .labs-head { display: grid; gap: 8px; margin-bottom: 22px; }
-    .labs-head h2 { margin: 6px 0 0; font-family: var(--display); font-size: 2rem; font-weight: 500; }
-    .labs-head p { margin: 0; color: var(--soft); max-width: 36rem; }
-    .lab-grid { display: grid; grid-template-columns: 1fr; gap: 18px; }
-    @media (min-width: 800px) { .lab-grid { grid-template-columns: 1fr 1fr; } }
-    .lab-card {
-      position: relative; overflow: hidden; display: flex; flex-direction: column;
-      min-height: 380px; padding: 28px; border-radius: 18px;
+    .btn-ember:active { box-shadow: inset 0 1px rgba(255,220,180,.2), 0 1px 0 #6a0e08; }
+    .btn-ghost {
+      background: linear-gradient(180deg, #241c16, var(--plate));
+      color: var(--gold2);
+      box-shadow: inset 0 1px rgba(243,208,120,.22), 0 5px 0 #0a0806, 0 10px 18px rgba(0,0,0,.4);
+    }
+    .games { padding: 12px 0 64px; }
+    .games-head { margin-bottom: 22px; }
+    .games-head h2 { margin: 6px 0 0; font-family: var(--display); font-size: 2rem; font-weight: 700; letter-spacing: .08em; }
+    .games-head p { margin: 8px 0 0; color: var(--mist); max-width: 38rem; }
+    .game {
+      position: relative; overflow: hidden;
+      padding: 28px; border-radius: 18px;
       border: 1.5px solid var(--line);
-      background: linear-gradient(160deg, #161c24 0%, var(--mid) 64%, #0a0e14 100%);
-      box-shadow: inset 0 1px rgba(255,255,255,.08), 0 6px 0 #07090e, var(--shadow);
+      background: linear-gradient(165deg, #221910 0%, var(--coal) 62%, #0c0908 100%);
+      box-shadow: inset 0 1px rgba(243,208,120,.12), 0 6px 0 #0a0806, var(--shadow);
     }
-    .lab-number {
-      position: absolute; top: 18px; right: 22px;
-      font: 700 42px/1 var(--mono); color: rgba(196,165,106,.18);
+    .game-number {
+      position: absolute; top: 16px; right: 20px;
+      font: 800 42px/1 var(--display); color: rgba(224,177,58,.16);
     }
-    .lab-card h3 { margin: 10px 0 8px; font-family: var(--display); font-size: 2rem; font-weight: 500; }
-    .lab-card > p { margin: 0 0 16px; color: var(--fog); line-height: 1.45; flex: 1; }
-    .topics { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+    .game h3 { margin: 10px 0 8px; font-family: var(--display); font-size: 2.1rem; font-weight: 700; letter-spacing: .06em; }
+    .game > p { margin: 0 0 16px; color: var(--mist); line-height: 1.5; }
+    .topics { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
     .topic {
       padding: 6px 10px; border-radius: 999px; border: 1px solid var(--line);
-      font: 500 11px var(--mono); color: var(--fog);
+      font: 500 11px var(--mono); color: var(--mist);
     }
-    .status { display: flex; align-items: center; gap: 8px; margin: 0 0 18px; font-size: 13px; color: var(--soft); }
-    .status i { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); display: inline-block; }
-    .lab-card .btn { margin-top: auto; width: 100%; }
+    .versions { display: grid; gap: 12px; }
+    @media (min-width: 640px) { .versions { grid-template-columns: 1fr 1fr; } }
+    .ver {
+      display: flex; flex-direction: column; gap: 10px;
+      padding: 16px; border-radius: 12px;
+      background: rgba(0,0,0,.28);
+      border: 1px solid var(--line);
+      box-shadow: inset 0 1px rgba(255,255,255,.05);
+    }
+    .ver b { font-family: var(--display); font-size: 1.15rem; letter-spacing: .04em; }
+    .ver span { font-size: 13px; color: var(--mist); line-height: 1.4; }
+    .ver .btn { margin-top: auto; width: 100%; }
+    .soon {
+      margin-top: 18px; padding: 22px 24px; border-radius: 18px;
+      border: 1.5px dashed rgba(224,177,58,.28);
+      color: var(--mist); text-align: center;
+    }
+    .soon strong { display: block; font-family: var(--display); font-size: 1.2rem; color: var(--gold); letter-spacing: .08em; margin-bottom: 4px; }
     footer {
       padding: 28px 0 40px; border-top: 1px solid var(--line);
-      text-align: center; font-size: 12px; line-height: 1.55; color: var(--soft);
+      text-align: center; font-size: 12px; line-height: 1.55; color: var(--mist);
     }
-    @media (max-width: 640px) {
-      .nav-links { display: none; }
-    }
+    @media (max-width: 640px) { .nav-links { display: none; } }
   </style>
 </head>
 <body>
   <header class="topbar">
     <nav class="nav shell" aria-label="Principal">
       <a class="brand" href="#inicio">
-        <span class="brand-mark">M</span>
+        <img src="brand/dragon-mark.jpg" alt="" width="44" height="44" />
         <span class="brand-copy">
-          <b>MOSAICO</b>
-          <span>A Casa da Costa</span>
+          <b>DRAGON GAMES</b>
+          <span>Jogos na mesa. No celular.</span>
         </span>
       </a>
       <div class="nav-links">
-        <a href="#versoes">Versões</a>
+        <a href="#jogos">Jogos</a>
         <a href="https://github.com/DrMarioNascimento/Dragon">GitHub</a>
       </div>
     </nav>
   </header>
 
   <section class="hero shell" id="inicio">
-    <span class="eyebrow">Duas versões · um caso</span>
-    <h1>A noite na mesa.<br /><span>Você escolhe o caminho.</span></h1>
-    <p>O MOSAICO é um jogo de mistério no celular. A mesa HTML da festa continua. A noite nova — curta ou cheia — vive ao lado, sem apagar a primeira.</p>
-    <div class="hero-actions">
-      <a class="btn btn-gold" href="#versoes">Ver as versões</a>
-      <a class="btn btn-light" href="v1/MOSAICO-mesa.html">Abrir a mesa</a>
+    <div>
+      <span class="eyebrow">Estúdio · Florianópolis</span>
+      <h1>Dragon <span>Games</span></h1>
+      <p>Uma casa de jogos. Mistério, ação e gente na mesma sala. O primeiro é o MOSAICO. Os próximos entram nesta página.</p>
+      <div class="hero-actions">
+        <a class="btn btn-ember" href="#jogos">Entrar nos jogos</a>
+        <a class="btn btn-ghost" href="v2/">Abrir o MOSAICO</a>
+      </div>
     </div>
+    <img class="emblem" src="brand/dragon.jpg" alt="Emblema Dragon: dragão em armadura, escudo e espada em fogo" width="720" height="720" />
   </section>
 
-  <section class="labs shell" id="versoes">
-    <div class="labs-head">
-      <span class="eyebrow">Atividades disponíveis</span>
-      <h2>Versões</h2>
-      <p>A mesa é a versão 1, que já estava no GitHub. A noite é a versão 2, o app novo. Cada uma abre no próprio endereço.</p>
+  <section class="games shell" id="jogos">
+    <div class="games-head">
+      <span class="eyebrow">Catálogo</span>
+      <h2>Jogos</h2>
+      <p>O MOSAICO é o primeiro. Duas versões do mesmo caso — a mesa da festa e a noite no app.</p>
     </div>
-    <div class="lab-grid">
-      <article class="lab-card">
-        <span class="lab-number">01</span>
-        <span class="eyebrow">Festa · HTML</span>
-        <h3>A mesa</h3>
-        <p>A versão anterior: telão, QR, lanternas, encene, o caso na sala. Quem já jogou, joga igual.</p>
-        <div class="topics">
-          <span class="topic">Telão</span>
-          <span class="topic">QR</span>
-          <span class="topic">Janela do norte</span>
-          <span class="topic">Sala às escuras</span>
+
+    <article class="game">
+      <span class="game-number">01</span>
+      <span class="eyebrow">Dedução · festa</span>
+      <h3>MOSAICO</h3>
+      <p>A verdade é um fragmento. Cada um no próprio celular, a casa na mesma sala. Duas portas para o mesmo caso: a mesa HTML e a noite nova.</p>
+      <div class="topics">
+        <span class="topic">A Casa da Costa</span>
+        <span class="topic">1 a 12</span>
+        <span class="topic">QR</span>
+        <span class="topic">Lanternas</span>
+      </div>
+      <div class="versions">
+        <div class="ver">
+          <b>A mesa</b>
+          <span>Versão 1 — telão, QR, as lanternas originais. Quem já jogou, joga igual.</span>
+          <a class="btn btn-gold" href="v1/MOSAICO-mesa.html">Abrir a mesa</a>
         </div>
-        <p class="status"><i></i> Disponível</p>
-        <a class="btn btn-gold" href="v1/MOSAICO-mesa.html">Abrir a mesa</a>
-      </article>
-      <article class="lab-card">
-        <span class="lab-number">02</span>
-        <span class="eyebrow">App · a noite</span>
-        <h3>A noite</h3>
-        <p>A versão nova: curta ou cheia, foto partida, tarja no ímpar, ficha de três linhas. Pasta mosaico-web.</p>
-        <div class="topics">
-          <span class="topic">Noite curta</span>
-          <span class="topic">Noite cheia</span>
-          <span class="topic">Quebra-cabeça</span>
-          <span class="topic">Acusação</span>
+        <div class="ver">
+          <b>A noite</b>
+          <span>Versão 2 — curta ou cheia, foto partida, ficha de três linhas.</span>
+          <a class="btn btn-ember" href="v2/">Abrir a noite</a>
         </div>
-        <p class="status"><i></i> No ar</p>
-        <a class="btn btn-gold" href="v2/">Abrir a noite</a>
-      </article>
+      </div>
+    </article>
+
+    <div class="soon">
+      <strong>02 · em breve</strong>
+      O próximo jogo da casa entra aqui.
     </div>
   </section>
 
   <footer>
-    Cada um no próprio celular. A mesa senta.<br />
+    Dragon Games · MOSAICO e o que vier.<br />
     Mario Nascimento & Osana Melo Nascimento
   </footer>
 </body>
