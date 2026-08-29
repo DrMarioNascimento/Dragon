@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MOSAICO · versão 3 · quebra-cabeça</title>
+  <title>MOSAICO · modo solo</title>
   <link rel="icon" href="favicon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -13,72 +13,418 @@
       --bg: #070605;
       --fg: #ece6d8;
       --muted: #9a9284;
+      --subtle: #6f685c;
       --brass: #c4a36a;
       --border: #2a261f;
+      --raised: #14110d;
+      --surface: #100e0b;
       --display: "Cormorant Garamond", "Times New Roman", serif;
       --body: Outfit, system-ui, sans-serif;
     }
     * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      min-height: 100dvh;
-      background: var(--bg);
-      color: var(--fg);
-      font-family: var(--body);
+    html, body { margin: 0; min-height: 100dvh; background: var(--bg); color: var(--fg); font-family: var(--body); }
+    button { font: inherit; color: inherit; cursor: pointer; }
+    #app { min-height: 100dvh; }
+    .shell { width: min(34rem, calc(100% - 2rem)); margin: 0 auto; padding: 1.25rem 0 2.5rem; display: flex; flex-direction: column; min-height: 100dvh; }
+    .kicker { font-size: 11px; letter-spacing: .28em; text-transform: uppercase; color: var(--brass); margin: 0; }
+    h1, h2 { font-family: var(--display); font-weight: 600; margin: .35rem 0 0; }
+    h1 { font-size: clamp(3.2rem, 12vw, 5rem); line-height: .9; }
+    h2 { font-size: 1.7rem; line-height: 1.15; }
+    .lead, .muted { color: var(--muted); line-height: 1.55; }
+    .grow { flex: 1; }
+    .btn {
+      display: block; width: 100%; min-height: 48px; border: 0; border-radius: 8px;
+      background: var(--brass); color: #1a140c; font-weight: 600; padding: .8rem 1rem;
     }
-    main { width: min(1100px, calc(100% - 32px)); margin: 0 auto; padding: 40px 0 72px; }
-    .kicker {
-      font-size: 11px;
-      letter-spacing: .42em;
-      text-transform: uppercase;
-      color: var(--brass);
+    .btn:disabled { opacity: .4; }
+    .btn-ghost { background: transparent; color: var(--brass); border: 1px solid var(--border); }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; max-width: 280px; margin: 0 auto; padding: 6px; border: 1px solid color-mix(in oklab, var(--brass) 40%, transparent); border-radius: 8px; background: var(--raised); }
+    .grid2 button { padding: 0; border: 0; background: #000; border-radius: 4px; overflow: hidden; outline: 2px solid transparent; }
+    .grid2 button.on { outline-color: var(--brass); }
+    .grid2 img { display: block; width: 100%; aspect-ratio: 2/3; object-fit: cover; }
+    .row { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px; }
+    .slot, .card {
+      flex: 0 0 118px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--raised); padding: 0; text-align: left;
     }
-    h1 {
-      font-family: var(--display);
-      font-size: clamp(2.6rem, 8vw, 4.5rem);
-      font-weight: 600;
-      margin: 12px 0 8px;
-      line-height: .9;
+    .slot.on, .card.on { border-color: var(--brass); }
+    .slot img, .card img { display: block; width: 100%; aspect-ratio: 2/3; object-fit: cover; }
+    .slot .ph { aspect-ratio: 2/3; display: flex; align-items: end; padding: 8px; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--subtle); }
+    .opt {
+      display: block; width: 100%; text-align: left; border: 1px solid var(--border);
+      background: var(--surface); border-radius: 8px; padding: .75rem .9rem; margin: 0 0 8px;
     }
-    .lead { max-width: 36rem; color: var(--muted); line-height: 1.55; }
-    .strip {
-      display: flex;
-      gap: 12px;
-      overflow-x: auto;
-      padding: 28px 0 8px;
-    }
-    .strip img {
-      height: 280px;
-      width: auto;
-      border: 1px solid color-mix(in oklab, var(--brass) 40%, transparent);
-      border-radius: 6px;
-    }
-    .meta { margin-top: 28px; color: var(--muted); font-size: 14px; line-height: 1.6; }
+    .opt.on { border-color: var(--brass); background: var(--raised); }
+    .opt b { display: block; font-family: var(--display); font-size: 1.05rem; font-weight: 600; }
+    .opt small { color: var(--subtle); }
+    .label { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--subtle); margin: 1.2rem 0 .4rem; }
+    .hero { position: relative; min-height: 100dvh; overflow: hidden; }
+    .hero img.bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .35; }
+    .hero .veil { position: absolute; inset: 0; background: linear-gradient(to top, var(--bg) 18%, color-mix(in oklab, var(--bg) 80%, transparent) 55%, color-mix(in oklab, var(--bg) 40%, transparent)); }
+    .hero .inner { position: relative; width: min(34rem, calc(100% - 2.4rem)); margin: 0 auto; min-height: 100dvh; display: flex; flex-direction: column; justify-content: end; padding: 4rem 0 2.4rem; }
+    .score { font-family: var(--display); font-size: 4rem; color: var(--brass); margin: .4rem 0; }
     a { color: var(--brass); }
-    nav { margin-top: 32px; display: flex; flex-wrap: wrap; gap: 16px; font-size: 14px; }
+    nav.links { margin-top: 1.5rem; display: flex; flex-wrap: wrap; gap: 1rem; font-size: 14px; }
+    .note { font-size: 13px; color: var(--subtle); text-align: center; margin-top: 10px; }
   </style>
 </head>
 <body>
-  <main>
-    <p class="kicker">Modo solo</p>
-    <h1>MOSAICO</h1>
-    <p class="lead">Cada pista é uma peça. Ninguém vê o quadro inteiro — até encaixar. Pasta própria: não misturar com a mesa (v1) nem com a noite (v2).</p>
-    <div class="strip">
-      <img src="tiles/carta-costa.jpg" alt="Carta da Costa" />
-      <img src="tiles/foto-agenda.jpg" alt="Polaroid" />
-      <img src="tiles/foto-gaveta.jpg" alt="Gaveta" />
-      <img src="tiles/foto-noite.jpg" alt="Escada" />
-      <img src="tiles/foto-farol.jpg" alt="Recorte AMES" />
-    </div>
-    <p class="meta">
-      Caso: A Casa da Costa. Cinco cartas, quatro fragmentos cada.<br />
-      Código: <a href="https://github.com/DrMarioNascimento/Dragon/tree/main/solo/src">solo/src</a>
-    </p>
-    <nav>
-      <a href="../">Dragon Games</a>
-      <a href="../v1/MOSAICO-mesa.html">v1 · A mesa</a>
-      <a href="../v2/">v2 · A noite</a>
-    </nav>
-  </main>
+  <div id="app"></div>
+  <script>
+    const KEYS = ["tl", "tr", "bl", "br"];
+    const TILES = [
+      { id: "carta-costa", title: "Carta da Costa", kind: "Pista-pilar", caption: "A marca na trava",
+        text: "A carta lista seis horários da noite: 21:03, 21:07, 21:12, 21:14, 21:20, 21:29. Junto ao lacre: «A marca na trava».",
+        prompt: "A agenda da noite" },
+      { id: "foto-gaveta", title: "Gaveta", kind: "Pista-pilar", caption: "A chave e o retrato",
+        text: "Na gaveta da alcova: um retrato da fachada e uma chave de ferro. A fechadura da sala do cofre foi reparada na semana passada.",
+        prompt: "O que estava guardado" },
+      { id: "foto-agenda", title: "Polaroid", kind: "Ambiguidade", caption: "ontem — 8",
+        text: "Uma figura de costas, à beira da casa, na chuva. No verso, à mão: «ontem — 8». Parece ontem. Pode não ser.",
+        prompt: "O recorte de ontem" },
+      { id: "foto-noite", title: "Espelho da escada", kind: "Conector", caption: "O corredor",
+        text: "A moldura no patamar reflete a escada para o porão. Às 21:14 a luz oscilou. Alguém desceu enquanto a casa estava às escuras.",
+        prompt: "O percurso" },
+      { id: "foto-farol", title: "Recorte AMES", kind: "Pista-pilar", caption: "A trava",
+        text: "Recorte de 1872 colado por cima do cofre. A combinação não foi forçada: a trava tem uma marca recente, alinhada à carta.",
+        prompt: "A fechadura" },
+    ];
+    const BY = Object.fromEntries(TILES.map((t) => [t.id, t]));
+    const STORY = [
+      { title: "21:03", body: "A tempestade chega à Costa. Helena tranca a sala do cofre e deixa a carta no aparador, ainda sem lacre." },
+      { title: "21:12", body: "A luz oscila. Tomás discute no salão. Íris procura um casaco. Nuno diz que vai ver o telhado. Vera observa o farol da janela da casa vizinha." },
+      { title: "21:14", body: "Escuro por vinte e poucos segundos. Um metal curto, no porão. Quando a luz volta, ninguém está exatamente onde estava." },
+    ];
+    const SUSPECTS = [
+      { id: "helena", name: "Helena Vale", role: "Dona da casa" },
+      { id: "tomas", name: "Tomás Vale", role: "Irmão" },
+      { id: "iris", name: "Íris Vale", role: "Sobrinha" },
+      { id: "nuno", name: "Nuno Pires", role: "Caseiro" },
+      { id: "vera", name: "Vera do Farol", role: "Vizinha" },
+      { id: "lemos", name: "Dr. Lemos", role: "Hóspede" },
+    ];
+    const TRUTH = {
+      suspect: "nuno",
+      motive: "O testamento na sala do cofre ia tirá-lo da casa.",
+      action: "Usou a chave da gaveta às 21:14, desceu a escada e abriu a trava marcada.",
+      proof: "Carta (21:14) + chave da gaveta + marca na trava do recorte.",
+      gap: "Quem tinha a chave e conhecia a fechadura recém-reparada.",
+    };
+    const MOTIVES = [
+      TRUTH.motive,
+      "Ciúme de uma herança prometida à sobrinha.",
+      "Dívida com o hóspede, cobrada naquela noite.",
+      "Proteger a dona da casa de um escândalo.",
+      "Nada foi tirado — só um erro na escuridão.",
+    ];
+    const ACTIONS = [
+      TRUTH.action,
+      "Entrou pelo jardim às 20:00, como na polaroid.",
+      "Desligou o farol para esconder um barco.",
+      "Trocou o retrato da gaveta para incriminar outra pessoa.",
+      "Ninguém abriu o cofre; a marca é ferrugem antiga.",
+    ];
+    const PROOFS = [
+      TRUTH.proof,
+      "A polaroid «ontem — 8» prova quem estava no jardim.",
+      "O recorte de jornal prova um crime de 1872.",
+      "A moldura da escada mostra o rosto do autor.",
+      "Não há prova — só coincidência de horários.",
+    ];
+    const GAPS = [
+      TRUTH.gap,
+      "Por que o relógio da carta atrasa dois minutos.",
+      "Quem posou na polaroid.",
+      "De onde veio o recorte AMES.",
+      "Se a chuva apagou pegadas no jardim.",
+    ];
+
+    function mulberry32(a) {
+      return function () {
+        let t = (a += 0x6d2b79f5);
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+    function shuffle(list, rng) {
+      const a = list.slice();
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(rng() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+    function scramble(id, rng) {
+      const variants = [
+        ["tr", "tl", "bl", "br"],
+        ["tl", "tr", "br", "bl"],
+        ["bl", "tl", "tr", "br"],
+        ["br", "bl", "tr", "tl"],
+      ];
+      return variants[Math.floor(rng() * variants.length)].slice();
+    }
+    function newSeed() {
+      return (Math.floor(Math.random() * 0xffffffff) ^ Date.now()) >>> 0;
+    }
+    function loadSeed() {
+      try {
+        const n = Number(sessionStorage.getItem("mosaico-solo-seed"));
+        if (Number.isFinite(n) && n) return n >>> 0;
+      } catch {}
+      const s = newSeed();
+      try { sessionStorage.setItem("mosaico-solo-seed", String(s)); } catch {}
+      return s;
+    }
+    function decksFor(seed) {
+      const rng = mulberry32(seed);
+      return {
+        suspects: shuffle(SUSPECTS, rng),
+        motives: shuffle(MOTIVES, rng),
+        actions: shuffle(ACTIONS, rng),
+        proofs: shuffle(PROOFS, rng),
+        gaps: shuffle(GAPS, rng),
+      };
+    }
+
+    const QUEUE = TILES.map((t) => t.id);
+
+    const state = {
+      phase: "title",
+      story: 0,
+      seed: loadSeed(),
+      decks: null,
+      assembleI: 0,
+      order: [],
+      pick: null,
+      owned: [],
+      selected: null,
+      mosaic: [null, null, null, null, null],
+      deduce: { suspect: null, motive: null, action: null, proof: null, gap: null },
+    };
+    state.decks = decksFor(state.seed);
+    state.order = scramble(QUEUE[0], mulberry32(state.seed ^ 17));
+
+    const el = document.getElementById("app");
+
+    function go(phase) {
+      state.phase = phase;
+      render();
+    }
+    function startAssemble() {
+      state.assembleI = 0;
+      state.owned = [];
+      state.order = scramble(QUEUE[0], mulberry32(state.seed ^ (31 * 1)));
+      state.pick = null;
+      go("assemble");
+    }
+    function tapPiece(i) {
+      if (state.pick === null) { state.pick = i; render(); return; }
+      if (state.pick === i) { state.pick = null; render(); return; }
+      const a = state.pick;
+      [state.order[a], state.order[i]] = [state.order[i], state.order[a]];
+      state.pick = null;
+      const done = KEYS.every((k, n) => state.order[n] === k);
+      if (done) {
+        const id = QUEUE[state.assembleI];
+        if (!state.owned.includes(id)) state.owned.push(id);
+        if (state.assembleI < QUEUE.length - 1) {
+          state.assembleI += 1;
+          state.order = scramble(QUEUE[state.assembleI], mulberry32(state.seed ^ (31 * (state.assembleI + 1))));
+        } else {
+          state.phase = "read";
+        }
+      }
+      render();
+    }
+    function place(slot) {
+      if (state.selected) {
+        const prev = state.mosaic.indexOf(state.selected);
+        if (prev >= 0) state.mosaic[prev] = null;
+        state.mosaic[slot] = state.selected;
+        state.selected = null;
+      } else if (state.mosaic[slot]) {
+        state.mosaic[slot] = null;
+      }
+      render();
+    }
+    function setField(k, v) {
+      state.deduce[k] = v;
+      render();
+    }
+    function score() {
+      const d = state.deduce;
+      const hit = d.suspect === TRUTH.suspect;
+      const fields = [d.motive === TRUTH.motive, d.action === TRUTH.action, d.proof === TRUTH.proof, d.gap === TRUTH.gap].filter(Boolean).length;
+      const mosaicOk = TILES.every((t, i) => state.mosaic[i] === t.id);
+      const quality = hit ? [0, 3, 6, 10, 13][fields] : 0;
+      const coop = mosaicOk ? 30 : 8;
+      const time = hit ? 32 : 0;
+      return { hit, fields, mosaicOk, total: time + quality + coop + 8 };
+    }
+    function reset(newGame) {
+      if (newGame) {
+        state.seed = newSeed();
+        try { sessionStorage.setItem("mosaico-solo-seed", String(state.seed)); } catch {}
+      }
+      state.decks = decksFor(state.seed);
+      state.phase = "title";
+      state.story = 0;
+      state.assembleI = 0;
+      state.order = scramble(QUEUE[0], mulberry32(state.seed ^ 17));
+      state.pick = null;
+      state.owned = [];
+      state.selected = null;
+      state.mosaic = [null, null, null, null, null];
+      state.deduce = { suspect: null, motive: null, action: null, proof: null, gap: null };
+      render();
+    }
+
+    function shell(kicker, title, body, footer) {
+      return `<div class="shell">
+        <p class="kicker">${kicker}</p>
+        <h2>${title}</h2>
+        <div class="grow">${body}</div>
+        ${footer || ""}
+      </div>`;
+    }
+    function opts(list, value, key, html) {
+      return list.map((item, i) => {
+        const v = typeof item === "string" ? item : item.id;
+        const on = value === v ? " on" : "";
+        return `<button type="button" class="opt${on}" data-k="${key}" data-v="${encodeURIComponent(typeof item === "string" ? item : item.id)}">${html(item, i)}</button>`;
+      }).join("");
+    }
+
+    function view() {
+      if (state.phase === "title") {
+        return `<div class="hero">
+          <img class="bg" src="tiles/carta-costa.jpg" alt="" />
+          <div class="veil"></div>
+          <div class="inner">
+            <p class="kicker">Modo solo</p>
+            <h1>MOSAICO</h1>
+            <p class="lead">Cada pista nasce partida em quatro. Só a carta inteira entra no mosaico.</p>
+            <p class="muted" style="margin:1rem 0 1.5rem">A Casa da Costa · uma pessoa · um caso</p>
+            <button class="btn" data-act="brief">Jogar</button>
+            <nav class="links">
+              <a href="../">Dragon Games</a>
+              <a href="../v1/MOSAICO-mesa.html">A mesa</a>
+              <a href="../v2/">A noite</a>
+            </nav>
+          </div>
+        </div>`;
+      }
+      if (state.phase === "brief") {
+        return shell("A Casa da Costa", "Você não lê o caso. Você o monta.",
+          `<p class="muted">Cinco cartas. Cada uma chega em quatro fragmentos. Toque dois para trocar. O mosaico pede a ordem da noite. A revelação não acaba no nome.</p>
+           <ul class="muted" style="padding-left:1.1rem">
+             <li>Encaixe os quatro fragmentos.</li>
+             <li>Coloque as cinco cartas no quadro.</li>
+             <li>Feche suspeito, motivo, ação, prova e lacuna.</li>
+           </ul>`,
+          `<button class="btn" data-act="story">Começar</button>`);
+      }
+      if (state.phase === "story") {
+        const c = STORY[state.story];
+        return shell(`A história · ${state.story + 1} / 3`, c.title,
+          `<p style="font-family:var(--display);font-size:1.35rem;line-height:1.35">${c.body}</p>`,
+          `<button class="btn" data-act="next-story">${state.story >= 2 ? "Receber a primeira carta" : "Próximo fragmento"}</button>`);
+      }
+      if (state.phase === "assemble") {
+        const tile = BY[QUEUE[state.assembleI]];
+        const cells = state.order.map((k, i) =>
+          `<button type="button" class="${state.pick === i ? "on" : ""}" data-piece="${i}"><img src="tiles/${tile.id}-${k}.jpg" alt=""></button>`
+        ).join("");
+        const ok = KEYS.every((k, i) => state.order[i] === k);
+        return shell(`Peça ${state.assembleI + 1} / 5 · ${tile.kind}`, tile.title,
+          `<p class="muted">Toque duas partes para trocá-las. A carta só segue inteira.</p>
+           <div class="grid2">${cells}</div>
+           <p class="note">${ok ? "Encaixe." : "Ainda fragmentada."}</p>`);
+      }
+      if (state.phase === "read") {
+        const cards = state.owned.map((id) => {
+          const t = BY[id];
+          return `<article class="opt" style="cursor:default"><small>${t.kind}</small><b>${t.title}</b><p class="muted" style="margin:.4rem 0 0">${t.text}</p></article>`;
+        }).join("");
+        return shell("As cartas", "O que você montou",
+          `<p class="muted">Leia antes de ordenar a noite.</p>${cards}
+           <article class="opt" style="cursor:default;border-style:dashed"><small>Boato</small><b>O jardim às oito</b><p class="muted" style="margin:.4rem 0 0">«A sobrinha foi vista no jardim ontem às oito, com uma máquina fotográfica.» Pode ser verdade. Pode ser só recorte.</p></article>`,
+          `<button class="btn" data-act="mosaic">Montar o mosaico</button>`);
+      }
+      if (state.phase === "mosaic") {
+        const slots = TILES.map((t, i) => {
+          const id = state.mosaic[i];
+          if (id) return `<button type="button" class="slot" data-slot="${i}"><img src="tiles/${id}.jpg" alt="${BY[id].title}"></button>`;
+          return `<button type="button" class="slot${state.selected ? " on" : ""}" data-slot="${i}"><span class="ph">${t.prompt}</span></button>`;
+        }).join("");
+        const unused = state.owned.filter((id) => !state.mosaic.includes(id)).map((id) =>
+          `<button type="button" class="card${state.selected === id ? " on" : ""}" data-pick="${id}"><img src="tiles/${id}.jpg" alt="${BY[id].title}"></button>`
+        ).join("");
+        const placed = state.mosaic.filter(Boolean).length;
+        const complete = TILES.every((t, i) => state.mosaic[i] === t.id);
+        return shell("Mosaico", "Cinco peças, uma noite",
+          `<p class="muted">Toque uma carta, depois o vão. A ordem é a da noite.</p>
+           <div class="row">${slots}</div>
+           <p class="label">Sua mesa</p>
+           <div class="row">${unused || "<p class='muted'>Todas no quadro.</p>"}</div>
+           ${complete ? "<p class='note' style='color:var(--brass)'>Encaixe correto.</p>" : ""}`,
+          `<button class="btn" data-act="deduce" ${placed < 5 ? "disabled" : ""}>${complete ? "O quadro fecha" : "Concluir mesmo assim"}</button>`);
+      }
+      if (state.phase === "deduce") {
+        const d = state.deduce;
+        const ready = d.suspect && d.motive && d.action && d.proof && d.gap;
+        return shell("Dedução", "Feche o caso",
+          `<p class="muted">Listas fechadas. A ordem muda a cada partida — a verdade, não.</p>
+           <p class="label">Quem</p>
+           ${opts(state.decks.suspects, d.suspect, "suspect", (s) => `<b>${s.name}</b><small>${s.role}</small>`)}
+           <p class="label">Motivo</p>
+           ${opts(state.decks.motives, d.motive, "motive", (s) => s)}
+           <p class="label">Ação</p>
+           ${opts(state.decks.actions, d.action, "action", (s) => s)}
+           <p class="label">Prova</p>
+           ${opts(state.decks.proofs, d.proof, "proof", (s) => s)}
+           <p class="label">Lacuna</p>
+           ${opts(state.decks.gaps, d.gap, "gap", (s) => s)}`,
+          `<button class="btn" data-act="reveal" ${ready ? "" : "disabled"}>Revelar</button>`);
+      }
+      const s = score();
+      return shell("Revelação", s.hit ? "A casa confirma." : "A casa desmente.",
+        `<p class="score">${s.total}</p>
+         <p class="muted">${s.hit ? "Nuno Pires. A chave da gaveta, às 21:14, a marca na trava." : "Não foi " + (SUSPECTS.find((x) => x.id === state.deduce.suspect)?.name || "essa pessoa") + ". Foi Nuno Pires."}</p>
+         <p class="muted">Motivo: o testamento ia tirá-lo da casa. ${s.fields} de 4 campos. Mosaico ${s.mosaicOk ? "certo" : "fora de ordem"}.</p>
+         <p class="muted">A polaroid «ontem — 8» continua ambígua. Não prova a noite.</p>`,
+        `<button class="btn" data-act="again">Outra partida</button>
+         <button class="btn btn-ghost" style="margin-top:8px" data-act="same">Rever com as mesmas opções</button>`);
+    }
+
+    function render() {
+      el.innerHTML = view();
+    }
+
+    el.addEventListener("click", (e) => {
+      const t = e.target.closest("[data-act], [data-piece], [data-slot], [data-pick], [data-k]");
+      if (!t) return;
+      if (t.dataset.act === "brief") go("brief");
+      else if (t.dataset.act === "story") go("story");
+      else if (t.dataset.act === "next-story") {
+        if (state.story >= 2) startAssemble();
+        else { state.story += 1; render(); }
+      }
+      else if (t.dataset.act === "mosaic") go("mosaic");
+      else if (t.dataset.act === "deduce") go("deduce");
+      else if (t.dataset.act === "reveal") go("reveal");
+      else if (t.dataset.act === "again") reset(true);
+      else if (t.dataset.act === "same") reset(false);
+      else if (t.dataset.piece != null) tapPiece(Number(t.dataset.piece));
+      else if (t.dataset.slot != null) place(Number(t.dataset.slot));
+      else if (t.dataset.pick) {
+        state.selected = state.selected === t.dataset.pick ? null : t.dataset.pick;
+        render();
+      }
+      else if (t.dataset.k) setField(t.dataset.k, decodeURIComponent(t.dataset.v));
+    });
+
+    render();
+  </script>
 </body>
 </html>

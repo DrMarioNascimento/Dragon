@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { TileCard } from "@/components/game/TileCard";
 import {
-  GAPS,
   KIND_LABEL,
   PIECE_KEYS,
   STORY,
@@ -11,7 +10,7 @@ import {
   TILE_BY_ID,
   TRUTH,
 } from "@/lib/game/case";
-import { ACTIONS, MOTIVES, PROOFS, score, useGame } from "@/lib/game/store";
+import { score, useGame } from "@/lib/game/store";
 import { cn } from "@/lib/utils";
 
 function Shell({
@@ -207,6 +206,7 @@ function Hand() {
 
 function Hyp1() {
   const hyp1 = useGame((s) => s.hyp1);
+  const lists = useGame((s) => s.lists);
   const setS = useGame((s) => s.setHyp1Suspect);
   const setG = useGame((s) => s.setHyp1Gap);
   const go = useGame((s) => s.go);
@@ -226,7 +226,7 @@ function Hyp1() {
     >
       <p className="mb-3 text-sm text-muted">Até duas suspeitas. Uma lacuna.</p>
       <div className="grid grid-cols-2 gap-2">
-        {SUSPECTS.map((s) => (
+        {lists.suspects.map((s) => (
           <button
             key={s.id}
             type="button"
@@ -243,7 +243,7 @@ function Hyp1() {
       </div>
       <p className="mb-2 mt-5 text-xs uppercase tracking-[0.16em] text-subtle">Lacuna crítica</p>
       <div className="space-y-2">
-        {GAPS.map((g) => (
+        {lists.gaps.map((g) => (
           <button
             key={g}
             type="button"
@@ -374,6 +374,7 @@ function Mosaic() {
 
 function Hyp2() {
   const deduce = useGame((s) => s.deduce);
+  const lists = useGame((s) => s.lists);
   const setDeduce = useGame((s) => s.setDeduce);
   const go = useGame((s) => s.go);
   return (
@@ -388,7 +389,7 @@ function Hyp2() {
     >
       <p className="mb-3 text-sm text-muted">Revise o suspeito principal. Ainda não é a dedução final.</p>
       <div className="grid grid-cols-2 gap-2">
-        {SUSPECTS.map((s) => (
+        {lists.suspects.map((s) => (
           <button
             key={s.id}
             type="button"
@@ -477,6 +478,7 @@ function OptionList({
 
 function Deduce() {
   const d = useGame((s) => s.deduce);
+  const lists = useGame((s) => s.lists);
   const set = useGame((s) => s.setDeduce);
   const submit = useGame((s) => s.submitDeduce);
   const ready = d.suspect && d.motive && d.action && d.proof && d.gap;
@@ -492,7 +494,7 @@ function Deduce() {
     >
       <p className="mb-4 text-sm text-muted">Campos fechados. Sem texto livre.</p>
       <div className="mb-5 grid grid-cols-2 gap-2">
-        {SUSPECTS.map((s) => (
+        {lists.suspects.map((s) => (
           <button
             key={s.id}
             type="button"
@@ -507,10 +509,10 @@ function Deduce() {
           </button>
         ))}
       </div>
-      <OptionList label="Motivo" options={MOTIVES} value={d.motive} onChange={(v) => set({ motive: v })} />
-      <OptionList label="Ação decisiva" options={ACTIONS} value={d.action} onChange={(v) => set({ action: v })} />
-      <OptionList label="Prova-chave" options={PROOFS} value={d.proof} onChange={(v) => set({ proof: v })} />
-      <OptionList label="Lacuna resolvida" options={GAPS} value={d.gap} onChange={(v) => set({ gap: v })} />
+      <OptionList label="Motivo" options={lists.motives} value={d.motive} onChange={(v) => set({ motive: v })} />
+      <OptionList label="Ação decisiva" options={lists.actions} value={d.action} onChange={(v) => set({ action: v })} />
+      <OptionList label="Prova-chave" options={lists.proofs} value={d.proof} onChange={(v) => set({ proof: v })} />
+      <OptionList label="Lacuna resolvida" options={lists.gaps} value={d.gap} onChange={(v) => set({ gap: v })} />
     </Shell>
   );
 }

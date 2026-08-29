@@ -5,6 +5,7 @@ import {
   MOTIVES,
   PIECE_KEYS,
   PROOFS,
+  SUSPECTS,
   TILES,
   TRUTH,
   type PieceKey,
@@ -26,14 +27,48 @@ export type Phase =
   | "deduce"
   | "reveal";
 
-function scramblePieces(id: TileId): PieceKey[] {
+function mulberry32(a: number) {
+  return () => {
+    let t = (a += 0x6d2b79f5);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function shuffle<T>(list: readonly T[], rng: () => number): T[] {
+  const a = list.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function newSeed() {
+  return (Math.floor(Math.random() * 0xffffffff) ^ Date.now()) >>> 0;
+}
+
+function listsFor(seed: number) {
+  const rng = mulberry32(seed);
+  return {
+    suspects: shuffle(SUSPECTS, rng),
+    motives: shuffle(MOTIVES, rng),
+    actions: shuffle(ACTIONS, rng),
+    proofs: shuffle(PROOFS, rng),
+    gaps: shuffle(GAPS, rng),
+  };
+}
+
+function scramblePieces(id: TileId, seed: number): PieceKey[] {
   const variants: PieceKey[][] = [
     ["tr", "tl", "bl", "br"],
     ["tl", "tr", "br", "bl"],
     ["bl", "tl", "tr", "br"],
   ];
   const i = TILES.findIndex((t) => t.id === id);
-  return variants[(i + 3) % variants.length] ?? variants[0];
+  const rng = mulberry32(seed ^ (i + 1) * 31);
+  return variants[Math.floor(rng() * variants.length)] ?? variants[0];
 }
 
 export type Deduction = {
@@ -48,6 +83,8 @@ type MarketLot = { id: string; kindLabel: string; tileId: TileId; cost: number }
 
 type GameState = {
   phase: Phase;
+  seed: number;
+  lists: ReturnType<typeof listsFor>;
   storyIndex: number;
   coins: number;
   assembleId: TileId;
@@ -107,27 +144,35 @@ function score(s: GameState) {
   return { hit, time, quality, coop, econ, total: time + quality + coop + econ, mosaicOk, fields };
 }
 
+function blank(seed = newSeed()) {
+  return {
+    phase: "title" as Phase,
+    seed,
+    lists: listsFor(seed),
+    storyIndex: 0,
+    coins: 11,
+    assembleId: "carta-costa" as TileId,
+    assembleQueue: ["foto-gaveta"] as TileId[],
+    assembleAfter: "hand" as Phase,
+    assembleOrder: scramblePieces("carta-costa", seed),
+    assemblePick: null as number | null,
+    owned: [] as TileId[],
+    classified: {} as Partial<Record<TileId, boolean>>,
+    selectedTile: null as TileId | null,
+    mosaic: [null, null, null, null, null] as (TileId | null)[],
+    hyp1: { suspects: [] as SuspectId[], gap: null as string | null },
+    marketLots: MARKET,
+    marketRound: 0,
+    lastAction: null as GameState["lastAction"],
+    verified: null as TileId | null,
+    deduce: { suspect: null, motive: null, action: null, proof: null, gap: null } as Deduction,
+    deduceStartedAt: null as number | null,
+    deduceMs: null as number | null,
+  };
+}
+
 export const useGame = create<GameState>((set, get) => ({
-  phase: "title",
-  storyIndex: 0,
-  coins: 11,
-  assembleId: "carta-costa",
-  assembleQueue: ["foto-gaveta"],
-  assembleAfter: "hand",
-  assembleOrder: scramblePieces("carta-costa"),
-  assemblePick: null,
-  owned: [],
-  classified: {},
-  selectedTile: null,
-  mosaic: [null, null, null, null, null],
-  hyp1: { suspects: [], gap: null },
-  marketLots: MARKET,
-  marketRound: 0,
-  lastAction: null,
-  verified: null,
-  deduce: { suspect: null, motive: null, action: null, proof: null, gap: null },
-  deduceStartedAt: null,
-  deduceMs: null,
+  ...blank(),
   go: (p) =>
     set((s) => ({
       phase: p,
@@ -152,7 +197,7 @@ export const useGame = create<GameState>((set, get) => ({
       if (next) {
         return {
           owned,
-          assembleOrder: scramblePieces(next),
+          assembleOrder: scramblePieces(next, s.seed),
           assemblePick: null,
           assembleId: next,
           assembleQueue: rest,
@@ -194,7 +239,7 @@ export const useGame = create<GameState>((set, get) => ({
         assembleId: lot.tileId,
         assembleQueue: extra,
         assembleAfter: after,
-        assembleOrder: scramblePieces(lot.tileId),
+        assembleOrder: scramblePieces(lot.tileId, s.seed),
         assemblePick: null,
         phase: "assemble" as Phase,
       };
@@ -227,28 +272,7 @@ export const useGame = create<GameState>((set, get) => ({
       phase: "reveal" as Phase,
       deduceMs: s.deduceStartedAt ? Date.now() - s.deduceStartedAt : 0,
     })),
-  reset: () =>
-    set({
-      phase: "title",
-      storyIndex: 0,
-      coins: 11,
-      assembleId: "carta-costa",
-      assembleQueue: ["foto-gaveta"],
-      assembleAfter: "hand",
-      assembleOrder: scramblePieces("carta-costa"),
-      assemblePick: null,
-      owned: [],
-      classified: {},
-      selectedTile: null,
-      mosaic: [null, null, null, null, null],
-      hyp1: { suspects: [], gap: null },
-      marketRound: 0,
-      lastAction: null,
-      verified: null,
-      deduce: { suspect: null, motive: null, action: null, proof: null, gap: null },
-      deduceStartedAt: null,
-      deduceMs: null,
-    }),
+  reset: () => set({ ...blank() }),
 }));
 
-export { score, MOTIVES, ACTIONS, PROOFS, GAPS };
+export { score, listsFor, MOTIVES, ACTIONS, PROOFS, GAPS };
