@@ -17,6 +17,7 @@ import {
 import {
   CHAR_IDS,
   FASE_S,
+  nAtores,
   FASES_SENSOR,
   NOITE_TETO_S,
   assignComodos,
@@ -375,7 +376,17 @@ export const useParty = create<PartyState>((set, get) => ({
     const now = Date.now();
     const noiteAteMs = now + NOITE_TETO_S[formato] * 1000;
     const faseAteMs = now + (FASE_S.encenacao ?? 90) * 1000;
-    const extra = { fase: "encenacao", vez: 0, v3: true, formato, lanternaCurta, noiteAteMs, faseAteMs };
+    const ordem = players.map((p) => p.id).filter((id): id is string => Boolean(id));
+    const extra = {
+      fase: "encenacao",
+      vez: 0,
+      v3: true,
+      formato,
+      lanternaCurta,
+      noiteAteMs,
+      faseAteMs,
+      ordem: ordem.slice(0, nAtores(ordem.length)),
+    };
     if (mode === "local") {
       set((s) => ({
         localFase: "encenacao",
@@ -462,15 +473,16 @@ export const useParty = create<PartyState>((set, get) => ({
 
   setVez: async (vez) => {
     const { mode, code } = get();
+    const faseAteMs = Date.now() + (FASE_S.encenacao ?? 90) * 1000;
     if (mode === "local") {
       set((s) => ({
         localVez: vez,
-        room: s.room ? { ...s.room, vez } : s.room,
+        room: s.room ? { ...s.room, vez, faseAteMs } : s.room,
       }));
       return;
     }
     if (!code) return;
-    await atualizarMesa(code, { vez });
+    await atualizarMesa(code, { vez, faseAteMs });
   },
 
   confirmFragment: async () => {

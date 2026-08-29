@@ -18,6 +18,7 @@ import {
   type CampoFicha,
   podeSeguir,
   FASES_LANTERNA,
+  proximoAtor,
   type V3Phase,
 } from "@/lib/mosaico/v3";
 import { cn } from "@/lib/utils";
@@ -61,10 +62,12 @@ function formatarTempoTarefa(ms: number) {
 function HostBar({ coberto = false }: { coberto?: boolean }) {
   const isMaster = useParty((s) => s.isMaster);
   const advance = useParty((s) => s.advance);
+  const setVez = useParty((s) => s.setVez);
   const lanternDone = useParty((s) => s.lanternDone);
   const players = useParty((s) => s.players);
   const fase = useParty((s) => (s.mode === "local" ? s.localFase : s.room?.fase));
   const faseAte = useParty((s) => s.room?.faseAteMs);
+  const vez = useParty((s) => (s.mode === "local" ? s.localVez : s.room?.vez ?? 0));
   const [now, setNow] = useState(Date.now());
   const [indo, setIndo] = useState(false);
   useEffect(() => {
@@ -73,7 +76,7 @@ function HostBar({ coberto = false }: { coberto?: boolean }) {
   }, []);
   useEffect(() => {
     setIndo(false);
-  }, [fase]);
+  }, [fase, vez]);
 
   const faseVencida = !faseAte || faseAte <= now;
   const mostra = podeSeguir({
@@ -108,6 +111,13 @@ function HostBar({ coberto = false }: { coberto?: boolean }) {
         disabled={indo}
         onClick={() => {
           setIndo(true);
+          if (fase === "encenacao") {
+            const n = proximoAtor(vez, players.length);
+            if (n !== null) {
+              void setVez(n).finally(() => setIndo(false));
+              return;
+            }
+          }
           void advance();
         }}
       >
@@ -262,7 +272,7 @@ function EnceneScreen() {
     return <ObserverPlay nome={ator?.nome || "Alguém"} />;
   }
 
-  function seguir() {
+  async function seguir() {
     if (formato === "curta") {
       void advance();
       return;
@@ -276,10 +286,18 @@ function EnceneScreen() {
       void advance();
       return;
     }
-    const n = vez + 1;
-    if (n >= players.length || n >= 6) void advance();
-    else void setVez(n);
-    setStep("entenda");
+    const n = proximoAtor(vez, players.length);
+    if (n === null) {
+      void advance();
+      return;
+    }
+    try {
+      await setVez(n);
+      setStep("entenda");
+    } catch {
+      /* A escrita foi recusada. Sem isto a tela voltava para "Entenda a
+         cena" com a vez ainda no mesmo ator — parecia um laço. */
+    }
   }
 
   return (

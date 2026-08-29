@@ -132,6 +132,8 @@ export type RoomDoc = {
   /** cenário da tarefa desta fase: todos os telefones montam o mesmo */
   semente?: string;
   noiteAteMs?: number | null;
+  /** uids na ordem da mesa (entrouMs). A vez aponta para este índice. */
+  ordem?: string[];
 };
 
 export type PlayerDoc = {

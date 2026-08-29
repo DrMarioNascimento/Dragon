@@ -18,6 +18,8 @@ import {
   FASE_S,
   MAX_NUCLEOS,
   V3_PHASES,
+  nAtores,
+  proximoAtor,
   assignNucleos,
   fasesDaNoite,
   fotoDoNucleo,
@@ -226,4 +228,14 @@ test("um núcleo fora da conta não derruba a tela", () => {
     const f = fragmentoDoNucleo(n);
     assert.ok(f && f.cls, `núcleo ${n} devolveu vazio`);
   }
+});
+
+test("a encenação passa de ator em ator e acaba no sexto", () => {
+  assert.equal(nAtores(1), 1);
+  assert.equal(nAtores(4), 4);
+  assert.equal(nAtores(9), 6);
+  assert.equal(proximoAtor(0, 4), 1);
+  assert.equal(proximoAtor(2, 4), 3);
+  assert.equal(proximoAtor(3, 4), null);
+  assert.equal(proximoAtor(5, 8), null);
 });

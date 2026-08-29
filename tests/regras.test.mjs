@@ -195,6 +195,57 @@ test("fase desconhecida é recusada mesmo ao mestre", async () => {
   }));
 });
 
+test("o segundo ator passa a vez na encenação", async () => {
+  const agora = Date.now();
+  await env.withSecurityRulesDisabled(async ctx => {
+    await updateDoc(doc(ctx.firestore(), "mosaico", SALA), {
+      fase: "encenacao",
+      vez: 0,
+      ordem: [ANA, BIA],
+      faseAteMs: agora + 60_000,
+      ativa: true,
+    });
+  });
+  await assertSucceeds(updateDoc(doc(como(ANA), "mosaico", SALA), {
+    vez: 1,
+    faseAteMs: agora + 90_000,
+  }));
+});
+
+test("quem não é o ator da vez não passa a apresentação", async () => {
+  const agora = Date.now();
+  await env.withSecurityRulesDisabled(async ctx => {
+    await updateDoc(doc(ctx.firestore(), "mosaico", SALA), {
+      fase: "encenacao",
+      vez: 0,
+      ordem: [ANA, BIA],
+      faseAteMs: agora + 60_000,
+      ativa: true,
+    });
+  });
+  await assertFails(updateDoc(doc(como(BIA), "mosaico", SALA), {
+    vez: 1,
+    faseAteMs: agora + 90_000,
+  }));
+});
+
+test("convidado não põe vez no resgate de fase enquanto ainda há ator", async () => {
+  const agora = Date.now();
+  await env.withSecurityRulesDisabled(async ctx => {
+    await updateDoc(doc(ctx.firestore(), "mosaico", SALA), {
+      fase: "encenacao",
+      vez: 0,
+      ordem: [ANA, BIA],
+      faseAteMs: agora - 1_000,
+      ativa: true,
+    });
+  });
+  await assertFails(updateDoc(doc(como(BIA), "mosaico", SALA), {
+    fase: "votacao",
+    faseAteMs: agora + 45_000,
+  }));
+});
+
 test("tarefa da Sala às Escuras é aceita no próprio UID", async () => {
   await assertSucceeds(setDoc(
     doc(como(ANA), "mosaico", SALA, "tarefas", ANA + "_sala"),

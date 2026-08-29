@@ -315,6 +315,21 @@ export function nucleoDoCampo(campo: CampoFicha, nNucleos: number): number {
 
 export const CHAR_IDS = ["tomas", "helena", "elias", "clara", "nilo", "iris"] as const;
 
+/** No máximo um ator por personagem. O sétimo não encena. */
+export const ENCENE_MAX = CHAR_IDS.length;
+
+export function nAtores(nJogadores: number) {
+  return Math.min(Math.max(nJogadores, 0), ENCENE_MAX);
+}
+
+/** Próximo índice de vez, ou null se a encenação acabou. */
+export function proximoAtor(vez: number, nJogadores: number): number | null {
+  const n = nAtores(nJogadores);
+  const next = vez + 1;
+  if (next >= n) return null;
+  return next;
+}
+
 /** As fases em que a lanterna (um módulo ou um gesto) é a tarefa. */
 export const FASES_LANTERNA = [
   "janela",

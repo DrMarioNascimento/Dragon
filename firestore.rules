@@ -53,6 +53,40 @@ service cloud.firestore {
     function tarefaConhecida(nome) {
       return nome in ['constelacao', 'inclinacao', 'sala'];
     }
+    /* Passar a vez na encenação. Só mexe em vez e no relógio da fase.
+       Não é o resgate de fase: aquele avança a noite; este só chama o
+       próximo ator. */
+    function passarVezEncene() {
+      return resource.data.ativa == true
+        && resource.data.fase == 'encenacao'
+        && request.resource.data.fase == 'encenacao'
+        && request.resource.data.mestreUid == resource.data.mestreUid
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['vez', 'faseAteMs'])
+        && request.resource.data.vez is int
+        && request.resource.data.vez == resource.data.vez + 1
+        && resource.data.keys().hasAny(['ordem'])
+        && resource.data.ordem is list
+        && request.resource.data.vez < resource.data.ordem.size()
+        && request.resource.data.vez < 6
+        && request.resource.data.faseAteMs is int;
+    }
+    function atorDaVez() {
+      return resource.data.vez is int
+        && resource.data.vez >= 0
+        && resource.data.ordem is list
+        && resource.data.vez < resource.data.ordem.size()
+        && resource.data.ordem[resource.data.vez] == request.auth.uid;
+    }
+    /* Ainda há ator depois deste. O resgate de FASE não pode comê-los. */
+    function aindaHaAtor() {
+      return resource.data.fase == 'encenacao'
+        && resource.data.keys().hasAny(['ordem'])
+        && resource.data.ordem is list
+        && resource.data.vez is int
+        && resource.data.vez + 1 < resource.data.ordem.size()
+        && resource.data.vez + 1 < 6;
+    }
     /* O cliente PRECISA poder acrescentar pista ao proprio Arquivo: e assim
        que a pista privada do personagem e a pista de cada tarefa sensorial
        chegam. O que esta regra faz e encarecer o abuso, nao elimina-lo:
@@ -174,6 +208,24 @@ service cloud.firestore {
             'fase', 'faseAteMs', 'mosaicoAbertoMs', 'fragmentosLiberados', 'semente'
           ])
           && faseConhecida()
+          && !aindaHaAtor()
+        ) || (
+          /* A vez do segundo ator. O mestre já podia escrever `vez`; o
+             convidado não. Sem isto, só o primeiro (quem abriu a mesa)
+             conseguia passar a apresentação — a escrita do segundo morria
+             no console e a tela dele voltava para "Entenda a cena".
+             Só o ator da vez, e só um passo à frente, com relógio novo. */
+          participant(versao, roomId)
+          && passarVezEncene()
+          && atorDaVez()
+        ) || (
+          /* Relógio da encenação venceu e ainda há quem atuar: qualquer
+             pessoa na sala chama o próximo. Não avança a fase. */
+          participant(versao, roomId)
+          && resource.data.faseAteMs is int
+          && request.time.toMillis() > resource.data.faseAteMs
+          && passarVezEncene()
+          && request.resource.data.faseAteMs > request.time.toMillis()
         );
       allow delete: if false;
 
