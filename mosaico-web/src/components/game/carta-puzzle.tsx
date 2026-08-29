@@ -11,6 +11,13 @@ import { useMemo, useRef, useState } from "react";
 
 export type { FotoId, PapelFoto };
 
+/* O MOSAICO é publicado em /Dragon/v2/ no GitHub Pages. Estes caminhos
+   começavam em "/" e apontavam para a raiz do domínio: no site publicado a
+   fase do encaixe abria sem foto nenhuma — oito imagens em 404, e as peças
+   viravam retângulos vazios. O Vite reescreve a base dentro do CSS, mas não
+   dentro de string de JavaScript; aqui é na mão. */
+const MEDIA = import.meta.env.BASE_URL;
+
 export const FOTOS: Record<
   FotoId,
   {
@@ -23,32 +30,32 @@ export const FOTOS: Record<
   }
 > = {
   agenda: {
-    src: "/media/foto-agenda.jpg",
-    tarja: "/media/tarja-agenda.jpg",
+    src: `${MEDIA}foto-agenda.jpg`,
+    tarja: `${MEDIA}tarja-agenda.jpg`,
     onde: "Escrivaninha. A agenda da jornalista.",
     achado: "Ontem a herdeira estava no jardim. Alguém já estava na janela.",
     data: "ontem  21:14",
     lado: "bottom",
   },
   gaveta: {
-    src: "/media/foto-gaveta.jpg",
-    tarja: "/media/tarja-gaveta.jpg",
+    src: `${MEDIA}foto-gaveta.jpg`,
+    tarja: `${MEDIA}tarja-gaveta.jpg`,
     onde: "Gaveta aberta. Retrato da família.",
     achado: "Quem mora na casa já estava na porta — fora do retrato.",
     data: "Verão 1987",
     lado: "bottom",
   },
   farol: {
-    src: "/media/foto-farol.jpg",
-    tarja: "/media/tarja-farol.jpg",
+    src: `${MEDIA}foto-farol.jpg`,
+    tarja: `${MEDIA}tarja-farol.jpg`,
     onde: "Jornal dobrado. Recorte da trava.",
     achado: "Duas marcas na trava. O recorte é de 27 de agosto.",
     data: "27 AGO",
     lado: "top",
   },
   noite: {
-    src: "/media/foto-noite.jpg",
-    tarja: "/media/tarja-noite.jpg",
+    src: `${MEDIA}foto-noite.jpg`,
+    tarja: `${MEDIA}tarja-noite.jpg`,
     onde: "Quadro caído. A escada da casa.",
     achado: "O quarto degrau. A moldura diz Costa, 1979.",
     data: "COSTA  1979",
@@ -119,24 +126,36 @@ function build(cols: number, rows: number): Piece[] {
 
 type Pos = { x: number; y: number; slot: number | null };
 
-export function CartaPuzzle({
-  mine,
-  phones = 1,
-  foto = "agenda",
-  papel,
-  onComplete,
-}: {
+type CartaProps = {
   mine?: string[];
   phones?: number;
   foto?: FotoId;
   papel?: PapelFoto;
   onComplete?: () => void;
-}) {
+};
+
+/* A tarja e a grade são duas peças diferentes, e a escolha entre elas é um
+   return antecipado. Enquanto ele morava dentro do componente da grade, sete
+   hooks ficavam abaixo dele: no ensaio, "A tarja do ímpar" troca o papel na
+   mesma tela e a contagem de hooks caía de sete para zero. A `key` do
+   chamador escondia isso remontando o componente — armadilha para o próximo
+   que mexer aqui. Agora quem decide não tem hook nenhum. */
+export function CartaPuzzle(props: CartaProps) {
+  const { phones = 1, foto = "agenda", papel, onComplete } = props;
   const papelEfetivo: PapelFoto =
     papel ?? (phones <= 1 ? "full" : phones === 2 ? "esq" : "full");
   if (papelEfetivo === "tarja") {
     return <TarjaPuzzle foto={foto} onComplete={onComplete} />;
   }
+  return <CartaGrade {...props} papelEfetivo={papelEfetivo} />;
+}
+
+function CartaGrade({
+  mine,
+  foto = "agenda",
+  onComplete,
+  papelEfetivo,
+}: CartaProps & { papelEfetivo: PapelFoto }) {
   const mao = mine && mine.length ? mine : pecasDoPapel(papelEfetivo);
   const gridCols = 2;
   const gridRows = 3;

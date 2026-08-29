@@ -9,7 +9,6 @@ import {
   PHONE_LINE,
   ROTEIRO,
   VERDADE,
-  pecasDoTelefone,
   fotoDoNucleo,
   papeisNoGrupo,
   FOTO_IDS,
@@ -29,7 +28,8 @@ import { MosaicMark } from "./mark";
 import { ModuleFrame } from "./module-frame";
 import { NIGHT_MODULES } from "@/lib/mosaico/modules";
 
-function me() {
+/* Lê da store: é um hook, e o nome tem de dizer isso. */
+function useEu() {
   const uid = useParty((s) => s.uid);
   const players = useParty((s) => s.players);
   return players.find((p) => p.id === uid) ?? players[0] ?? null;
@@ -108,7 +108,7 @@ function SalaScreen() {
   const isMaster = useParty((s) => s.isMaster);
   const ready = useParty((s) => s.ready);
   const startNight = useParty((s) => s.startNight);
-  const eu = me();
+  const eu = useEu();
   const link =
     typeof window !== "undefined" && code && code !== "LOCAL"
       ? `${window.location.origin}${import.meta.env.BASE_URL}?sala=${code}`
@@ -345,7 +345,7 @@ function LanternPhase({ slug }: { slug: string }) {
 }
 
 function CorScreen() {
-  const eu = me();
+  const eu = useEu();
   const confirmFragment = useParty((s) => s.confirmFragment);
   const players = useParty((s) => s.players);
   const room = useParty((s) => s.room);
@@ -394,7 +394,7 @@ function CorScreen() {
 function EncaixeScreen() {
   const players = useParty((s) => s.players);
   const uid = useParty((s) => s.uid);
-  const eu = me();
+  const eu = useEu();
   const nucleo = eu?.nucleo ?? 1;
   const membros = players
     .filter((p) => p.nucleo === nucleo)
@@ -460,7 +460,7 @@ function DeducaoScreen() {
   const submittedAt = useParty((s) => s.submittedAt);
   const players = useParty((s) => s.players);
   const mode = useParty((s) => s.mode);
-  const eu = me();
+  const eu = useEu();
   const nNucleos =
     mode === "local" ? 1 : new Set(players.map((p) => p.nucleo || 1)).size;
   const meus = camposDoNucleo(eu?.nucleo ?? 1, nNucleos);

@@ -440,7 +440,9 @@ function fazNuvem(){
    Dentro da mesa isto e uma TAREFA, nao um jogo inteiro: um alvo so,
    e ao encontrar avisa a pagina que hospeda em vez de seguir sozinho. */
 var EMBED=false;
-try{ EMBED = new URLSearchParams(location.search).get("embed")==="1"; }catch(e){}
+/* "embed" só vale dentro de uma moldura de verdade — ver a nota nas outras
+   três tarefas. Sem pai, não há Mesa a quem avisar. */
+try{ EMBED = new URLSearchParams(location.search).get("embed")==="1" && window.parent!==window; }catch(e){}
 
 function avisaMesa(){
   try{ parent.postMessage({mosaico:"tarefa-ok", jogo:"escuro"}, "*"); }catch(e){}

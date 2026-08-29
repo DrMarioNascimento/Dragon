@@ -182,9 +182,20 @@ export const useParty = create<PartyState>((set, get) => ({
   },
 
   localStart: async (nome, forma, formato = "cheia") => {
+    /* O ensaio também entra com Google, e onde a janela de popup não abre —
+       iPhone com o MOSAICO na tela de início é o caso de sempre — o Firebase
+       cai para o redirect: sai do site, volta autenticado. "Abrir uma mesa"
+       guardava o que tinha sido digitado e retomava sozinha na volta; o
+       ensaio não guardava nada, então voltava para o menu como se o toque
+       nunca tivesse acontecido. Agora os dois caminhos retomam igual. */
+    if (typeof sessionStorage !== "undefined") {
+      sessionStorage.setItem("noite.ensaiar", JSON.stringify({ nome, forma, formato }));
+    }
     set({ connecting: true, error: null });
     try {
+      await consumeGoogleRedirect();
       const user = await ensureGoogle();
+      if (typeof sessionStorage !== "undefined") sessionStorage.removeItem("noite.ensaiar");
       const lanternaCurta: "janela" | "salaescura" =
         Math.random() < 0.5 ? "janela" : "salaescura";
       set({

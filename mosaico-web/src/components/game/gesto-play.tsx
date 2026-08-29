@@ -4,7 +4,8 @@ import { useParty } from "@/lib/mosaico/party";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 
-function seat() {
+/* Lê da store: é um hook, e o nome tem de dizer isso. */
+function useAssento() {
   const uid = useParty((s) => s.uid);
   const players = useParty((s) => s.players);
   const i = Math.max(0, players.findIndex((p) => p.id === uid));
@@ -16,7 +17,7 @@ export function PalimpsestoPlay() {
   const done = useParty((s) => s.markPista);
   const [on, setOn] = useState(false);
   const [papel, setPapel] = useState<"baixo" | "cima">("baixo");
-  const { i, n, players } = seat();
+  const { i, n, players } = useAssento();
   const janela = !!pistas.janela;
   const solo = n <= 1;
   const baixo = solo ? papel === "baixo" : i % 2 === 0;
@@ -74,7 +75,7 @@ export function EspelhoPlay() {
   const done = useParty((s) => s.markPista);
   const [shown, setShown] = useState(false);
   const [papel, setPapel] = useState<"mostra" | "le">("mostra");
-  const { i, n, players } = seat();
+  const { i, n, players } = useAssento();
   const cofre = !!pistas.sala || !!pistas.salaescura;
   const solo = n <= 1;
   const mostra = solo ? papel === "mostra" : i % 2 === 0;
@@ -138,7 +139,7 @@ export function PlantaPlay() {
   const done = useParty((s) => s.markPista);
   const [path, setPath] = useState<string[]>([]);
   const [here, setHere] = useState(false);
-  const { i, n, players } = seat();
+  const { i, n, players } = useAssento();
   const frase = !!pistas.palimpsesto;
   const solo = n <= 1;
   const mine = ROOMS[i % 3];

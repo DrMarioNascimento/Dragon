@@ -122,8 +122,19 @@ O GitHub Pages serve o build estático em [`v2/`](https://drmarionascimento.gith
 
 ```bash
 cd mosaico-web && MOSAICO_PAGES=1 npx vite build
-# copiar dist/client para ../v2/
+# copiar dist/client para ../v2/, e depois, dentro de v2/:
+#   cp _shell.html index.html   — a casca do roteador é a página de entrada
+#   cp _shell.html 404.html
+#   touch .nojekyll             — senão o Pages ignora /__grok e afins
 ```
+
+No Pages o roteador anda por hash (`.../v2/#/noite`): só existe arquivo na
+raiz do app, então endereço de rota digitado à mão devolve 404. Quem precisa
+mandar alguém para uma rota manda `.../v2/?ir=noite`.
+
+Caminho de mídia em JavaScript nunca começa com `/`: o site mora em
+`/Dragon/v2/`, e `"/media/foto.jpg"` cai na raiz do domínio. O Vite reescreve
+a base dentro do CSS, mas não dentro de string — use `import.meta.env.BASE_URL`.
 
 ---
 

@@ -5,7 +5,10 @@ import { useEffect, useState } from "react";
 
 type Beat = "apart" | "snap" | "join" | "letter";
 
-const SRC = "/media/capa-vertical.jpg";
+/* Caminho comecado em "/" sai do site: no Pages o MOSAICO mora em
+   /Dragon/v2/, e a foto dava 404. Tudo o que e servido junto passa a
+   pendurar-se na base. */
+const SRC = `${import.meta.env.BASE_URL}media/capa-vertical.jpg`;
 
 export function CartaDemo({ onBack }: { onBack?: () => void }) {
   const [beat, setBeat] = useState<Beat>("apart");

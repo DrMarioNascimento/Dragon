@@ -8,6 +8,11 @@ import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import appCss from "../styles.css?url";
 
 const APP_NAME = "MOSAICO";
+/* O MOSAICO é publicado em /Dragon/v2/ no GitHub Pages. Caminhos começados em
+   "/" saem do site inteiro: o ícone e o favicon davam 404, e no iPhone
+   "Adicionar à tela de início" gravava uma miniatura da página em vez da
+   marca. Tudo o que é servido junto com o app passa por aqui. */
+const BASE = import.meta.env.BASE_URL;
 
 export const Route = createRootRoute({
   head: () => ({
@@ -31,12 +36,19 @@ export const Route = createRootRoute({
       { name: "format-detection", content: "telephone=no" },
     ],
     links: [
-      { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
-      { rel: "icon", type: "image/png", href: "/icons/icon-192.png" },
-      { rel: "apple-touch-icon", href: "/icons/icon-192.png" },
-      { rel: "apple-touch-icon", sizes: "512x512", href: "/icons/icon-512.png" },
+      { rel: "icon", type: "image/svg+xml", href: `${BASE}favicon.svg` },
+      { rel: "icon", type: "image/png", href: `${BASE}icons/icon-192.png` },
+      { rel: "apple-touch-icon", href: `${BASE}icons/icon-192.png` },
+      { rel: "apple-touch-icon", sizes: "512x512", href: `${BASE}icons/icon-512.png` },
       { rel: "stylesheet", href: appCss },
-      { rel: "manifest", href: "/__grok/manifest.webmanifest" },
+      /* O manifesto de /__grok/ só existe como middleware do servidor de
+         desenvolvimento: a build do Pages não emite arquivo nenhum, então o
+         endereço dava 404 e o que ele descreve — nome, cor, tela cheia —
+         nunca chegava a valer. Este mora em public/, é publicado junto e diz
+         MOSAICO em vez de "Grok App". Os caminhos de dentro dele são
+         relativos ao próprio arquivo, e por isso servem à raiz no dev e a
+         /Dragon/v2/ no Pages sem mudar nada. */
+      { rel: "manifest", href: `${BASE}manifest.webmanifest` },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       {
         rel: "preconnect",

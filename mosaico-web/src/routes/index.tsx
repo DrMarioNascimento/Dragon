@@ -40,6 +40,15 @@ function Home() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    /* A tarefa em tela cheia volta por aqui: no GitHub Pages só existe
+       arquivo na raiz do app, então "/Dragon/v2/noite" digitado na barra de
+       endereço dá 404 — a rota quem monta é o roteador, já com a página
+       carregada. O botão volta para a raiz e diz aqui para onde ir. */
+    const ir = new URLSearchParams(window.location.search).get("ir");
+    if (ir === "noite" || ir === "play") {
+      void nav({ to: ir === "play" ? "/play" : "/noite", replace: true });
+      return;
+    }
     const q = new URLSearchParams(window.location.search).get("sala");
     if (q) {
       setCodigo(q.toUpperCase());
@@ -48,23 +57,34 @@ function Home() {
     let stop = false;
     void (async () => {
       const redirected = await consumeGoogleRedirect();
-      const raw = sessionStorage.getItem("noite.criar");
-      if (stop || !raw) return;
+      /* volta do Google: retoma o que a pessoa estava fazendo antes de sair
+         do site — abrir a mesa OU ensaiar. Antes só a mesa voltava. */
+      const alvo = sessionStorage.getItem("noite.criar")
+        ? ("criar" as const)
+        : sessionStorage.getItem("noite.ensaiar")
+          ? ("ensaiar" as const)
+          : null;
+      if (stop || !alvo) return;
+      const chave = alvo === "criar" ? "noite.criar" : "noite.ensaiar";
+      const raw = sessionStorage.getItem(chave)!;
       try {
         const p = JSON.parse(raw) as { nome: string; forma: Forma; formato: NoiteFormato };
         setNome(p.nome);
         setForma(p.forma);
         setFormato(p.formato);
-        setScreen("criar");
-        if (redirected) void create(p.nome, p.forma, p.formato);
+        setScreen(alvo);
+        if (redirected) {
+          if (alvo === "criar") void create(p.nome, p.forma, p.formato);
+          else void localStart(p.nome, p.forma, p.formato);
+        }
       } catch {
-        sessionStorage.removeItem("noite.criar");
+        sessionStorage.removeItem(chave);
       }
     })();
     return () => {
       stop = true;
     };
-  }, [create]);
+  }, [create, localStart, nav]);
 
   useEffect(() => {
     if (mode !== "idle") void nav({ to: "/play" });
@@ -105,7 +125,7 @@ function Home() {
           screen === "open" ? "opacity-100" : "opacity-0",
         )}
         src={`${import.meta.env.BASE_URL}media/abertura.mp4`}
-        poster="/media/aguardando.jpg"
+        poster={`${import.meta.env.BASE_URL}media/aguardando.jpg`}
         autoPlay
         muted={muted}
         playsInline

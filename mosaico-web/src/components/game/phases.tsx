@@ -863,7 +863,7 @@ export function ScorePhase({ match }: { match: Match }) {
   const wch = CHARACTERS.find((c) => c.id === winner?.playerId);
 
   useEffect(() => {
-    playOnce("/audio/encerramento.mp3", 0.45);
+    playOnce(`${import.meta.env.BASE_URL}audio/encerramento.mp3`, 0.45);
     return () => stopVoice();
   }, []);
 
