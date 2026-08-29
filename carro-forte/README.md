@@ -1,7 +1,11 @@
-# MOSAICO — A manhã do Carro-forte
+# MOSAICO — A manhã do Carro-Forte
 
-Ainda não é um modo jogável. Estas cinco cartas são as telas do caso —
-o mesmo recorte das da Casa da Costa: ouro, profundidade, encaixe.
+Versão jogável do caso de dedução distribuída. A entrada da Mesa está em
+`index.html`; estilos e lógica ficam em `styles.css` e `game.js`.
+
+O jogo inclui perspectivas individuais, Fragmentos rotacionáveis, validação
+cruzada, investigação, hipótese, Mercado de Pistas, Mosaico coletivo, dedução
+final, revelação e placar fechado em 100 pontos.
 
 ```
 carro-forte/tiles/
@@ -12,4 +16,5 @@ carro-forte/tiles/
   a-zona-cega.jpg
 ```
 
-Não misturar com `solo/` (Casa da Costa) nem com a noite (`v2/`).
+As imagens internas do jogo ficam em `carro-forte/assets/`. Não misturar esta
+versão com `solo/` (Casa da Costa) nem com a noite (`v2/`).
