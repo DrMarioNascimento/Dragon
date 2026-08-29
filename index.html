@@ -200,6 +200,13 @@
     .ver b { font-family: var(--display); font-size: 1.15rem; letter-spacing: .04em; }
     .ver span { font-size: 1rem; color: var(--mist); line-height: 1.45; }
     .ver .btn { margin-top: auto; width: 100%; }
+    .game + .game { margin-top: 18px; }
+    .btn.is-soon {
+      opacity: .42;
+      pointer-events: none;
+      transform: none !important;
+      box-shadow: none !important;
+    }
     .soon {
       margin-top: 18px; padding: 22px 24px; border-radius: 18px;
       border: 1.5px dashed rgba(224,177,58,.28);
@@ -247,7 +254,7 @@
     <div class="games-head">
       <span class="eyebrow">Catálogo</span>
       <h2>Jogos</h2>
-      <p>O MOSAICO é o primeiro. Três portas para o mesmo caso — a mesa, a noite e o modo solo.</p>
+      <p>Dois casos. Em cada um, três portas: a mesa, a noite e o modo solo.</p>
     </div>
 
     <article class="game">
@@ -279,8 +286,37 @@
       </div>
     </article>
 
+    <article class="game">
+      <span class="game-number">02</span>
+      <span class="eyebrow">Dedução · manhã</span>
+      <h3>MOSAICO <span class="case">- A manhã do Carro-forte</span></h3>
+      <p>O banco abre. O carro-forte chega cedo. O relógio da farmácia não bate com o sino da igreja. Cada um vê um fragmento da mesma manhã.</p>
+      <div class="topics">
+        <span class="topic">1 a 12</span>
+        <span class="topic">Banco</span>
+        <span class="topic">7h42</span>
+      </div>
+      <div class="versions">
+        <div class="ver">
+          <b>A mesa</b>
+          <span>Telão, QR e as lanternas. A manhã na mesma sala.</span>
+          <a class="btn btn-gold is-soon" aria-disabled="true">Em breve</a>
+        </div>
+        <div class="ver">
+          <b>A noite</b>
+          <span>Curta ou cheia. Foto partida, ficha de três linhas.</span>
+          <a class="btn btn-ember is-soon" aria-disabled="true">Em breve</a>
+        </div>
+        <div class="ver">
+          <b>Modo solo</b>
+          <span>Cada pista em quatro fragmentos. Para ensaiar sozinho.</span>
+          <a class="btn btn-ghost is-soon" aria-disabled="true">Em breve</a>
+        </div>
+      </div>
+    </article>
+
     <div class="soon">
-      <strong>02 · em breve</strong>
+      <strong>03 · em breve</strong>
       O próximo jogo da casa entra aqui.
     </div>
   </section>

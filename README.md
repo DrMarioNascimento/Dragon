@@ -27,7 +27,7 @@ O hub segue o recorte visual do [Learning-lab](https://github.com/DrMarioNascime
 
 O endereço antigo [`MOSAICO-mesa.html`](./MOSAICO-mesa.html) redireciona para a mesa (v1).
 
-**Caso:** *A Casa da Costa*  
+**Casos:** *A Casa da Costa* · *A manhã do Carro-forte* (em construção)  
 **Participantes:** 1 a 12 (1 = ensaio com todas as telas)  
 **Situação:** protótipo em playtest
 
