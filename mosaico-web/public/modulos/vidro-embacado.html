@@ -498,7 +498,12 @@ var FRAGMENTOS = [
 var EMBED=false, SEMENTE_URL="", RUN_ID="", DEV=false;
 try{
   var _q=new URLSearchParams(location.search);
-  EMBED       = _q.get("embed")==="1";
+  /* "embed" só vale dentro de uma moldura DE VERDADE. A tarefa aberta em
+     tela cheia no iPhone também carrega embed=1 no endereço, e nesse caso
+     não existe Mesa nenhuma do outro lado: o modo integrado entregava a
+     primeira pista, escrevia "aguarde a classificação" e parava para
+     sempre, sem próxima rodada e sem caderno. Sem pai, é jogo solo.  */
+  EMBED       = _q.get("embed")==="1" && window.parent!==window;
   SEMENTE_URL = (_q.get("s")||"").trim().toUpperCase();
   RUN_ID      = (_q.get("run")||"").trim();
   /* ?dev=1 — modo de teste. O botao de computador nao existe para o jogador:
@@ -1145,6 +1150,14 @@ function novaRodada(){
   graca=performance.now();
   encheGelo(1); semeiaGotas();
   document.getElementById("dica").style.opacity="1";
+  /* CADA PISTA É UMA EXECUÇÃO. Fora da Mesa a tarefa segue sozinha para a
+     próxima rodada, e o cronômetro tem de recomeçar junto: sem isto,
+     enviarConclusao() continuava travado desde o primeiro acerto e o cartão
+     repetia o tempo da PRIMEIRA pista em todas as seguintes.          */
+  if(!EMBED){
+    inicioTarefa=null; fimTarefa=null; conclusaoEnviada=false; tempoFinalMs=null;
+    iniciarCronometroOficial();
+  }
 }
 
 function revela(){
