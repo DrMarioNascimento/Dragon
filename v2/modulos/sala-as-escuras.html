@@ -440,7 +440,12 @@ var OBJETOS = [
 var EMBED=false, SEMENTE_URL="", RUN_ID="", DEV=false;
 try{
   var _q=new URLSearchParams(location.search);
-  EMBED       = _q.get("embed")==="1";
+  /* "embed" só vale dentro de uma moldura DE VERDADE. A tarefa aberta em
+     tela cheia no iPhone também carrega embed=1 no endereço, e nesse caso
+     não existe Mesa nenhuma do outro lado: o modo integrado entregava o
+     resultado, escrevia "aguarde a classificação" e parava para sempre.
+     Sem pai, é jogo solo.                                             */
+  EMBED       = _q.get("embed")==="1" && window.parent!==window;
   SEMENTE_URL = (_q.get("s")||"").trim().toUpperCase();
   RUN_ID      = (_q.get("run")||"").trim();
   /* ?dev=1 — modo de teste. O botao de computador nao existe para o jogador:
@@ -662,7 +667,7 @@ var raio=0, raioProx=4000, raioForca=0;
 var po=[];
 /* Semente vinda da URL vale como semente fixada: a virada de rodada pelo
    relógio deixa de reescrever a sala no meio da execução.              */
-var SEED="", sementeManual=!!SEMENTE_URL, rodadaVista=-1;
+var SEED="", sementeManual=!!SEMENTE_URL, rodadaVista=-1, tInicio=0;
 var mAberto=false, ultimoTickRodada=-9e9, ultimoZum=0;
 var fpsAcc=0, fpsN=0;
 
@@ -1796,7 +1801,14 @@ function loop(){
 
   /* a virada da rodada, ao vivo: quem abriu 20h58 e quem abriu 21h02 caem
      na MESMA sala às 21h30, sem recarregar nada. */
-  if(!sementeManual && roundCode()!==rodadaVista){
+  /* A RODADA CONGELA QUANDO A PARTIDA COMEÇA — a mesma regra que a Janela do
+     Norte já tinha. Sem isto, o relógio virava a meia hora no meio da busca e
+     rearranjava os oito objetos: quem estava no sétimo voltava ao zero, e
+     dentro da Mesa o cronômetro daquela execução continuava correndo. A
+     exceção é a carência: nos primeiros 90 s ninguém investiu nada, então
+     quem tocou em cima da virada ainda converge com o grupo sozinho.   */
+  var travada = jogando && (agora-tInicio)>90000;
+  if(!sementeManual && !travada && roundCode()!==rodadaVista){
     montaSala(defaultSeed());
     fechaCarta();
     setStatus("A rodada virou. A sala se rearranjou — para todos.",true);
@@ -1940,6 +1952,7 @@ function loop(){
    CONTROLES
    ========================================================================== */
 function fechaIntro(){ document.getElementById("intro").classList.add("gone"); jogando=true;
+  tInicio=performance.now();          /* daqui conta a carência de 90 s */
   /* jogavel daqui: intro fechada, permissao resolvida, sala montada */
   iniciarCronometroOficial(); enviarStatus("ativo"); }
 
