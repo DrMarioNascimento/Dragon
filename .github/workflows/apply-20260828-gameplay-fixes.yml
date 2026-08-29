@@ -26,7 +26,7 @@ jobs:
 
       - name: Instalar dependencias
         working-directory: mosaico-web
-        run: npm ci
+        run: npm install --package-lock=false --no-audit --no-fund
 
       - name: Aplicar correcoes solicitadas
         working-directory: mosaico-web
@@ -67,7 +67,8 @@ jobs:
           grep -q 'desenhaEstrela' v2/modulos/vidro-embacado.html
           grep -q 'v.elev>=12' v2/modulos/janela-do-norte.html
           grep -q '!sementeManual && !jogando' v2/modulos/sala-as-escuras.html
-          ! grep -R -q 'Três gestos novos' v2/assets || false
+          if grep -R -q 'Três gestos novos' v2/assets; then exit 1; fi
+          if grep -R -q '>A lanterna<' v2/assets; then exit 1; fi
 
       - name: Remover executor temporario e publicar
         shell: bash
