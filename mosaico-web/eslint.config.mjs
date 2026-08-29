@@ -15,6 +15,10 @@ export default tseslint.config(
       ".nitro/**",
       "node_modules/**",
       "src/routeTree.gen.ts",
+      /* Cópia byte a byte de v1/js/qr.js, conferida contra a norma em
+         tests/qr.test.mjs. Corrigir estilo aqui faria as duas cópias
+         divergirem — que é o que o teste de deriva existe para impedir. */
+      "src/lib/mosaico/qr.js",
     ],
   },
   js.configs.recommended,
