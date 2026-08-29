@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MOSAICO · versão 3 · quebra-cabeça</title>
+  <link rel="icon" href="favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #070605;
+      --fg: #ece6d8;
+      --muted: #9a9284;
+      --brass: #c4a36a;
+      --border: #2a261f;
+      --display: "Cormorant Garamond", "Times New Roman", serif;
+      --body: Outfit, system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--body);
+    }
+    main { width: min(1100px, calc(100% - 32px)); margin: 0 auto; padding: 40px 0 72px; }
+    .kicker {
+      font-size: 11px;
+      letter-spacing: .42em;
+      text-transform: uppercase;
+      color: var(--brass);
+    }
+    h1 {
+      font-family: var(--display);
+      font-size: clamp(2.6rem, 8vw, 4.5rem);
+      font-weight: 600;
+      margin: 12px 0 8px;
+      line-height: .9;
+    }
+    .lead { max-width: 36rem; color: var(--muted); line-height: 1.55; }
+    .strip {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      padding: 28px 0 8px;
+    }
+    .strip img {
+      height: 280px;
+      width: auto;
+      border: 1px solid color-mix(in oklab, var(--brass) 40%, transparent);
+      border-radius: 6px;
+    }
+    .meta { margin-top: 28px; color: var(--muted); font-size: 14px; line-height: 1.6; }
+    a { color: var(--brass); }
+    nav { margin-top: 32px; display: flex; flex-wrap: wrap; gap: 16px; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="kicker">Modo solo</p>
+    <h1>MOSAICO</h1>
+    <p class="lead">Cada pista é uma peça. Ninguém vê o quadro inteiro — até encaixar. Pasta própria: não misturar com a mesa (v1) nem com a noite (v2).</p>
+    <div class="strip">
+      <img src="tiles/carta-costa.jpg" alt="Carta da Costa" />
+      <img src="tiles/foto-agenda.jpg" alt="Polaroid" />
+      <img src="tiles/foto-gaveta.jpg" alt="Gaveta" />
+      <img src="tiles/foto-noite.jpg" alt="Escada" />
+      <img src="tiles/foto-farol.jpg" alt="Recorte AMES" />
+    </div>
+    <p class="meta">
+      Caso: A Casa da Costa. Cinco cartas, quatro fragmentos cada.<br />
+      Código-fonte: <a href="https://github.com/DrMarioNascimento/Dragon/tree/main/mosaico-solo">mosaico-solo/</a>
+    </p>
+    <nav>
+      <a href="../">Dragon Games</a>
+      <a href="../v1/MOSAICO-mesa.html">v1 · A mesa</a>
+      <a href="../v2/">v2 · A noite</a>
+    </nav>
+  </main>
+</body>
+</html>

@@ -1,10 +1,10 @@
-# mosaico-v3
+# mosaico-solo
 
-Código-fonte da **versão 3** do MOSAICO (quebra-cabeça).
+Código-fonte do **modo solo** do MOSAICO.
 
-Não é a mesa (`v1`). Não é a noite (`mosaico-web` → `v2`).
+Não é a mesa (`v1`). Não é a noite (`mosaico-web` → `v2`). Não é o arquivo `v3.ts` da noite.
 
-O site estático publicado no Pages mora em [`../v3/`](../v3).
+O site estático publicado no Pages mora em [`../solo/`](../solo).
 
 ## Regra
 
