@@ -182,6 +182,27 @@
       color: var(--mist);
     }
     .game > p { margin: 0 0 16px; color: var(--mist); line-height: 1.5; }
+    .game-strip {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      margin: 4px 0 18px;
+      padding: 8px 2px 18px;
+      scrollbar-width: thin;
+    }
+    .game-strip img {
+      height: 176px;
+      width: auto;
+      border-radius: 8px;
+      background: #050403;
+      box-shadow:
+        0 1px 0 rgba(243, 208, 120, .35),
+        0 8px 0 #0a0806,
+        0 18px 28px rgba(0, 0, 0, .55);
+      transform-origin: 50% 100%;
+    }
+    .game-strip img:nth-child(odd) { transform: rotate(-1.4deg); }
+    .game-strip img:nth-child(even) { transform: rotate(1.6deg); }
     .topics { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
     .topic {
       padding: 6px 10px; border-radius: 999px; border: 1px solid var(--line);
@@ -262,6 +283,13 @@
       <span class="eyebrow">Dedução · festa</span>
       <h3>MOSAICO <span class="case">- A Casa da Costa</span></h3>
       <p>A verdade é um fragmento. Cada um no próprio celular, a casa na mesma sala. Três portas para o mesmo caso: a mesa, a noite e o modo solo.</p>
+      <div class="game-strip" aria-hidden="true">
+        <img src="solo/tiles/carta-costa.jpg" alt="" />
+        <img src="solo/tiles/foto-agenda.jpg" alt="" />
+        <img src="solo/tiles/foto-gaveta.jpg" alt="" />
+        <img src="solo/tiles/foto-noite.jpg" alt="" />
+        <img src="solo/tiles/foto-farol.jpg" alt="" />
+      </div>
       <div class="topics">
         <span class="topic">1 a 12</span>
         <span class="topic">QR</span>
@@ -291,6 +319,13 @@
       <span class="eyebrow">Dedução · manhã</span>
       <h3>MOSAICO <span class="case">- A manhã do Carro-forte</span></h3>
       <p>O banco abre. O carro-forte chega cedo. O relógio da farmácia não bate com o sino da igreja. Cada um vê um fragmento da mesma manhã.</p>
+      <div class="game-strip" aria-hidden="true">
+        <img src="carro-forte/tiles/relogio.jpg" alt="" />
+        <img src="carro-forte/tiles/o-banco.jpg" alt="" />
+        <img src="carro-forte/tiles/o-carro-forte.jpg" alt="" />
+        <img src="carro-forte/tiles/o-malote.jpg" alt="" />
+        <img src="carro-forte/tiles/a-zona-cega.jpg" alt="" />
+      </div>
       <div class="topics">
         <span class="topic">1 a 12</span>
         <span class="topic">Banco</span>
