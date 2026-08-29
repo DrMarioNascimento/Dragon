@@ -93,8 +93,8 @@ export function GameShell({
       )}
 
       {notebook && (
-        <div className="fixed inset-0 z-40 mx-auto max-w-lg bg-background/95 backdrop-blur-sm">
-          <div className="flex items-center justify-between border-b border-border px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
+        <div className="fixed inset-0 z-40 mx-auto flex max-w-lg flex-col bg-background/95 backdrop-blur-sm">
+          <div className="shrink-0 flex items-center justify-between border-b border-border px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
             <h2 className="font-serif text-2xl">Caderno</h2>
             <Button
               variant="ghost"
@@ -105,7 +105,7 @@ export function GameShell({
               <X className="size-5" />
             </Button>
           </div>
-          <div className="h-[calc(100dvh-56px)] space-y-3 overflow-y-auto px-4 py-4">
+          <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4">
             {clues.length === 0 ? (
               <p className="text-lg text-muted-foreground">Ainda não há fragmentos.</p>
             ) : (

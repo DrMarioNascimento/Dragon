@@ -302,12 +302,6 @@ export function CartaPuzzle({
             </div>
           );
         })}
-
-        {correct && done && (
-          <div className="absolute inset-x-0 bottom-0 z-30 bg-gradient-to-t from-background via-background/90 to-transparent px-3 pb-3 pt-10">
-            <p className="font-serif text-lg italic text-primary">{img.achado}</p>
-          </div>
-        )}
       </div>
 
       <p className="text-center text-base uppercase tracking-[0.16em] text-muted-foreground">

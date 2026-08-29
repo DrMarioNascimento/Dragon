@@ -591,6 +591,24 @@ export function PartyApp() {
     s.mode === "local" ? s.localFase : s.room?.fase || "sala",
   ) as V3Phase | "sala" | "comodo";
   const leave = useParty((s) => s.leave);
+  const players = useParty((s) => s.players);
+  const lanternDone = useParty((s) => s.lanternDone);
+  const [moduleOverlay, setModuleOverlay] = useState(false);
+
+  useEffect(() => {
+    function onModuleUi(ev: MessageEvent) {
+      if (ev.origin !== window.location.origin) return;
+      const d = ev.data as { mosaico?: string; open?: boolean } | null;
+      if (!d || d.mosaico !== "ui-overlay") return;
+      setModuleOverlay(Boolean(d.open));
+    }
+    window.addEventListener("message", onModuleUi);
+    return () => window.removeEventListener("message", onModuleUi);
+  }, []);
+
+  useEffect(() => {
+    setModuleOverlay(false);
+  }, [fase]);
 
   if (mode === "idle") {
     return (
@@ -605,8 +623,6 @@ export function PartyApp() {
   }
 
   const hideChrome = fase === "cor" || LANTERN_FASES.includes(fase);
-  const players = useParty((s) => s.players);
-  const lanternDone = useParty((s) => s.lanternDone);
   const showHost =
     fase === "votacao" ||
     fase === "encaixe" ||
@@ -617,21 +633,25 @@ export function PartyApp() {
   return (
     <div className="relative min-h-dvh bg-background">
       {!hideChrome && (
-        <header className="flex items-center justify-between px-4 pt-[max(0.8rem,env(safe-area-inset-top))]">
-          <button type="button" className="inline-flex min-h-11 items-center text-base text-muted-foreground" onClick={leave}>
+        <header className="grid grid-cols-[3.5rem_minmax(0,1fr)_3.5rem] items-center px-4 pt-[max(0.8rem,env(safe-area-inset-top))]">
+          <button
+            type="button"
+            className="inline-flex min-h-11 items-center justify-start text-base text-muted-foreground"
+            onClick={leave}
+          >
             Sair
           </button>
-          <p className="max-w-[14rem] text-center text-base uppercase tracking-[0.18em] text-accent">
+          <p className="min-w-0 text-center text-base uppercase tracking-[0.16em] text-accent">
             {fase && fase in PHONE_LINE ? PHONE_LINE[fase as V3Phase] : "MOSAICO"}
           </p>
-          <span className="w-8" />
+          <span aria-hidden="true" className="w-14" />
         </header>
       )}
-      <FaseRelogio />
-      {hideChrome && (
+      {!moduleOverlay && <FaseRelogio />}
+      {hideChrome && !moduleOverlay && (
         <button
           type="button"
-          className="absolute left-4 top-[max(0.8rem,env(safe-area-inset-top))] z-20 min-h-11 text-base text-white/80"
+          className="absolute right-4 top-[max(0.8rem,env(safe-area-inset-top))] z-40 min-h-11 rounded-full border border-white/15 bg-background/70 px-3 text-base text-white/90 backdrop-blur-sm"
           onClick={leave}
         >
           Sair
@@ -650,7 +670,7 @@ export function PartyApp() {
       {fase === "encaixe" && <EncaixeScreen />}
       {fase === "deducao" && <DeducaoScreen />}
       {fase === "resultado" && <ResultadoScreen />}
-      {showHost && <HostBar />}
+      {showHost && !moduleOverlay && <HostBar />}
     </div>
   );
 }

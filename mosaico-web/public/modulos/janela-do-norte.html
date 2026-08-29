@@ -152,8 +152,7 @@
     padding:clamp(20px,4vh,34px) 22px calc(env(safe-area-inset-bottom,0px) + 28px);
     overflow-y:auto;-webkit-overflow-scrolling:touch;
     touch-action:pan-y;overscroll-behavior:contain;
-    background:#05070c;}
-    backdrop-filter:blur(2px);}
+    background:#05070c;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);}
   /* rede de seguranca para Safari antigo, que ignora "safe center": duas
      margens automaticas fazem o mesmo — centram quando cabe, somem quando
      nao cabe, e ai o conteudo comeca no topo e rola inteiro.            */
@@ -322,6 +321,8 @@
     font-size:clamp(19px,4.4vw,21px);letter-spacing:.08em;text-transform:uppercase;
     font-weight:600;text-decoration:underline;text-underline-offset:6px;padding:12px}
 
+
+  html.mosaico-embed #hud{padding-top:calc(env(safe-area-inset-top,0px) + 80px)!important;}
 </style>
 </head>
 <body>
@@ -2554,5 +2555,41 @@ if(!DEV){
 
 })();
 </script>
+
+<script id="mosaico-embed-layer-sync">
+(function(){
+  var q=new URLSearchParams(location.search);
+  if(q.get("embed")!=="1" || window.parent===window) return;
+  document.documentElement.classList.add("mosaico-embed");
+  var ids=["intro","pistas","cartao","carta","master","mestre","card"];
+  var last=null;
+  function vis(el){
+    if(!el) return false;
+    var cs=getComputedStyle(el);
+    if(cs.display==="none" || cs.visibility==="hidden") return false;
+    var op=parseFloat(cs.opacity||"1");
+    if(op<=0.05) return false;
+    if(el.classList.contains("gone")) return false;
+    return true;
+  }
+  function emit(){
+    var open=ids.some(function(id){ return vis(document.getElementById(id)); });
+    if(open===last) return;
+    last=open;
+    window.parent.postMessage({mosaico:"ui-overlay",open:open},"*");
+  }
+  var mo=new MutationObserver(emit);
+  ids.forEach(function(id){
+    var el=document.getElementById(id);
+    if(el) mo.observe(el,{attributes:true,attributeFilter:["class","style","hidden"]});
+  });
+  window.addEventListener("pageshow",emit);
+  window.addEventListener("beforeunload",function(){
+    window.parent.postMessage({mosaico:"ui-overlay",open:false},"*");
+  });
+  requestAnimationFrame(emit);
+})();
+</script>
+
 </body>
 </html>
