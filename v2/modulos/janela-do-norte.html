@@ -483,7 +483,12 @@ var PASSO_TXT = [
 var EMBED=false, SEMENTE_URL="", RUN_ID="", DEV=false;
 try{
   var _q=new URLSearchParams(location.search);
-  EMBED       = _q.get("embed")==="1";
+  /* "embed" só vale dentro de uma moldura DE VERDADE. A tarefa aberta em
+     tela cheia no iPhone também carrega embed=1 no endereço, e nesse caso
+     não existe Mesa nenhuma do outro lado: o modo integrado entregava a
+     primeira pista, escrevia "aguarde a classificação" e parava para
+     sempre, sem próxima rodada e sem caderno. Sem pai, é jogo solo.  */
+  EMBED       = _q.get("embed")==="1" && window.parent!==window;
   SEMENTE_URL = (_q.get("s")||"").trim().toUpperCase();
   RUN_ID      = (_q.get("run")||"").trim();
   /* ?dev=1 — modo de teste. O botao de computador nao existe para o jogador:
@@ -722,10 +727,12 @@ var locked=false, holdAcc=0, revealed=0, fragIdx=0;
    separar "varrendo o horizonte" de "mirando com a mao tremendo". */
 var spdAng=0, rawAnt=null;
 /* iPhone: a agulha da Apple pula. Folga, filtro e dreno compensam o tremor
-   do magnetómetro — o rumo do mundo continua o mesmo. Android não mexe. */
+   do magnetómetro — o rumo do mundo continua o mesmo. Android não mexe.
+   O alisamento do rumo em si mudou de lugar: agora está no offset da
+   bússola, em onOrient. Ver a nota grande lá.                          */
 var IPHONE=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
 var iOSInstavel=false, iosHead=null;
-function folgaMao(){ return CFG.FOLGA*(IPHONE?(iOSInstavel?1.50:1.25):1); }
+function folgaMao(){ return CFG.FOLGA*(IPHONE?(iOSInstavel?1.9:1.5):1); }
 function holdAlvo(){ return IPHONE?900:CFG.HOLD_MS; }
 function drenoMao(){ return IPHONE?0.28:CFG.DRENO; }
 var passo=0, distAlvo=CFG.PASSOS[0], distView=CFG.PASSOS[0], passoAnim=0;
@@ -912,14 +919,39 @@ function eulerParaVista(a,b,g){
 }
 
 var temAbsoluto=false;
-/* iPhone: modo baixo usa a bússola compensada; modo alto usa a atitude
-   estabilizada e a bússola apenas como referência lenta de norte.
-   Histerese 12°/8° impede ficar alternando de estratégia com tremor da mão. */
-var bussOff=null, tOrient=0, rumoSuave=null, modoAlto=false;
+/* ---- iPhone: a bússola vale como NORTE, nunca como alpha -----------------
+   webkitCompassHeading já vem compensado pela inclinação. Trocar o alpha
+   por 360-heading e mandar isso pela matriz de Euler só se sustenta com o
+   aparelho quase deitado. A janela alvo sobe até 39° acima do horizonte —
+   ali beta chega perto de 90°, que é justamente onde alpha e gamma entram
+   em travamento de cardan: o PAR reportado salta junto e continua correto,
+   a bússola compensada não salta, e a mistura dos dois faz o rumo oscilar
+   dezenas de graus com o aparelho parado na mão. Era o que acontecia toda
+   vez que se levantava o braço para mirar a janela.
+   Agora são duas coisas separadas:
+     · a ATITUDE (alpha/beta/gamma como o sistema os reporta) dá o rumo
+       relativo. Vem do giroscópio: é lisa, e o eixo que interessa — para
+       onde as costas do aparelho olham — não degenera em ângulo nenhum.
+     · a BÚSSOLA dá o norte, e o que ela corrige é um OFFSET, que anda
+       devagar de propósito: a deriva do giroscópio é de graus por MINUTO,
+       enquanto a agulha treme a cada quadro.
+   O offset só é aprendido com o aparelho inclinado PARA TRÁS — a postura de
+   quem mira uma janela no segundo andar, e a única em que esta tarefa é
+   jogada. Um lado só, uma convenção só. Enquanto ele não engata, o rumo sai
+   exatamente como saía antes: nada regride para quem segura o telefone de
+   outro jeito. Depois de engatar, tremer a mão para cima deixa de mexer no
+   rumo.                                                                  */
+var bussOff=null, tOrient=0, rumoSuave=null;
 function onOrient(e){
   if(e.alpha===null||e.beta===null||e.gamma===null) return;
   var iOS=(typeof e.webkitCompassHeading==="number" && !isNaN(e.webkitCompassHeading));
   var abs=iOS || e.absolute===true || e.type==="deviceorientationabsolute";
+
+  /* No Android os dois eventos disparam: "deviceorientationabsolute" traz o
+     rumo do mundo e "deviceorientation" traz um alpha RELATIVO ao ponto em
+     que a pagina abriu. Como ambos caiam aqui, o rumo alternava entre os
+     dois referenciais quadro a quadro. Havendo fonte absoluta, a relativa
+     e descartada.                                                       */
   if(abs) temAbsoluto=true; else if(temAbsoluto) return;
 
   var v=eulerParaVista(e.alpha,e.beta,e.gamma);
@@ -929,39 +961,49 @@ function onOrient(e){
     iOSInstavel=typeof e.webkitCompassAccuracy==="number" &&
       (e.webkitCompassAccuracy<0 || e.webkitCompassAccuracy>25);
     src=iOSInstavel?"bússola instável":"bússola (iOS)";
-
     var agora=performance.now();
     var dt=tOrient?Math.min(0.25,(agora-tOrient)/1000):0.016;
     tOrient=agora;
-
-    /* caminho absoluto conhecido: serve como norte e é alisado antes de
-       alimentar a fusão, para não ensinar ao offset o tremor da agulha */
+    /* O rumo que a bússola afirma, pelo caminho de sempre — e com o mesmo
+       alisamento de sempre. Ele continua servindo a dois fins: é o que vale
+       enquanto o offset não engatou, e é a fonte limpa de onde o offset
+       aprende. Alisar antes importa: sem isto o offset aprenderia o tremor. */
     var mundoCru=eulerParaVista(360-e.webkitCompassHeading,e.beta,e.gamma).bearing;
     if(iosHead==null) iosHead=mundoCru;
-    else iosHead=wrap360(iosHead+wrap180(mundoCru-iosHead)*(iOSInstavel?0.12:0.22));
+    else iosHead=wrap360(iosHead+wrap180(mundoCru-iosHead)*(iOSInstavel?0.14:0.26));
     var mundo=iosHead;
-
-    var eraAlto=modoAlto;
-    if(!modoAlto && v.elev>=12) modoAlto=true;
-    else if(modoAlto && v.elev<=8) modoAlto=false;
-
-    if(modoAlto){
-      /* Na entrada do modo alto o offset nasce exatamente sobre o rumo atual:
-         a troca é contínua, sem salto. Depois corrige devagar. */
-      if(!eraAlto || bussOff===null) bussOff=wrap180(mundo-v.bearing);
+    /* Quanto o topo do aparelho ainda tem de horizontal. É essa projeção que
+       a bússola compensada mede; perto de zero — aparelho de pé — ela não
+       tem o que medir e o valor é ruído. E o sinal importa: a mira desta
+       tarefa acontece toda com o aparelho INCLINADO PARA TRÁS (a janela fica
+       acima do horizonte), então só desse lado o offset é aprendido. Um lado
+       só, uma convenção só, seja ela qual for do lado da Apple.        */
+    var cB=Math.cos(e.beta*D2R);
+    var peso=cB<-0.10 ? Math.min(1,(Math.abs(cB)-0.10)/0.35) : 0;
+    if(iOSInstavel) peso*=0.35;
+    if(peso>0){
       var alvoOff=wrap180(mundo-v.bearing);
-      var erro=wrap180(alvoOff-bussOff);
-      var qualidade=iOSInstavel?0.22:1;
-      if(Math.abs(erro)>35) qualidade*=0.12;
-      bussOff=wrap180(bussOff+erro*(1-Math.pow(0.88,dt*qualidade)));
+      /* engata só numa amostra decente — o engate congela um valor, e um
+         valor ruim ficaria de herança. A troca em si é contínua: no
+         instante do engate, atitude+offset dá exatamente o mesmo rumo. */
+      if(bussOff===null){ if(peso>=0.35) bussOff=alvoOff; }
+      else {
+        var erro=wrap180(alvoOff-bussOff);
+        /* 40° num quadro é a agulha pulando, não o mundo girando */
+        if(Math.abs(erro)>40) peso*=0.15;
+        bussOff=wrap180(bussOff+erro*(1-Math.pow(0.80,dt*peso)));
+      }
     }
-
-    var fundido=modoAlto ? wrap360(v.bearing+bussOff) : mundo;
+    /* Antes de engatar, nada muda em relação ao que já existia. Depois de
+       engatar, o rumo passa a vir da ATITUDE — lisa, sem degenerescência no
+       eixo que interessa — e a bússola só mantém o norte no lugar.     */
+    var fundido = (bussOff===null) ? mundo : wrap360(v.bearing+bussOff);
+    /* Um alisamento leve na SAÍDA, e não só na bússola. Ele não é cosmético:
+       o filtro adaptativo do laço mede a velocidade angular a partir daqui,
+       e alimentá-lo com o degrau de cada evento fazia-o ler tremor como
+       varredura — e afrouxar justamente quando devia apertar.          */
     if(rumoSuave===null) rumoSuave=fundido;
-    else {
-      var ganho=modoAlto?0.24:0.30;
-      rumoSuave=wrap360(rumoSuave+wrap180(fundido-rumoSuave)*ganho);
-    }
+    else rumoSuave=wrap360(rumoSuave+wrap180(fundido-rumoSuave)*0.26);
     raw.bearing=wrap360(rumoSuave+northOffset);
   } else {
     if(abs) src="bússola (absoluta)";
@@ -1109,13 +1151,14 @@ function tolerancia(){
      Cada aparelho é coerente consigo mesmo, então todos travam com a mesma
      facilidade. O grupo fica espalhado uns 20° no mundo real — e 20° no
      escuro continua lendo como todo mundo olhando para o mesmo lado.  */
-  /* Compensação geométrica suavizada: preserva a geometria ao apontar
-     alto, mas aplica só 70% da abertura teórica e limita o ganho a 1,22.
-     Com os novos fatores do iPhone, o último alvo não fica excessivamente
-     permissivo. */
-  var c=Math.max(0.70,Math.cos(Math.abs(clamp(view.elev,-50,50))*D2R));
-  var geo=Math.min(1.22,1+0.70*(1/c-1));
-  return { az: clamp(g.hw/PPD*0.60+8.0, 9.0, 14.0)*folgaMao()*geo,
+  /* APONTAR ALTO CUSTA RUMO, e é geometria, não indulgência: a 39° acima do
+     horizonte — a última parada — um grau de rumo mede só cos(39°)=0,78° de
+     separação real no céu. Exigir os mesmos graus lá em cima é exigir mais
+     precisão do que embaixo, justo onde a bússola tem menos a oferecer. A
+     folga do rumo abre na mesma proporção; a da ALTURA, que vem da
+     gravidade, não muda — é ela que continua fazendo as seis etapas.   */
+  var alto=1/Math.max(0.55,Math.cos(clamp(view.elev,-60,60)*D2R));
+  return { az: clamp(g.hw/PPD*0.60+8.0, 9.0, 14.0)*folgaMao()*alto,
            el: clamp(g.hh/PPD*0.30+2.2, 2.8,  4.2)*folgaMao() };
 }
 
@@ -2086,6 +2129,9 @@ function alinhamento(){
   var dAz=Math.abs(wrap180(view.bearing-target.bearing));
   var dEl=Math.abs(view.elev-target.elev);
   var dRo=Math.abs(wrap180(view.roll));
+  /* mesma geometria da tolerância: perto do zênite os meridianos se fecham,
+     e um grau de rumo já não afasta um grau da janela. O medidor tem de
+     esquentar pela separação REAL, senão contradiz a trava.            */
   var dist=Math.hypot(dAz*Math.cos(clamp(view.elev,-60,60)*D2R),dEl);
   /* histerese: já engatado, a janela alarga. Sem isto, um único quadro de
      ruído do magnetômetro jogava fora 1,4 s de esforço.                 */
@@ -2175,6 +2221,11 @@ function loop(){
      da instantânea, senão o próprio tremor se disfarçaria de movimento:
        varrendo o horizonte  -> filtro leve, responde na hora
        parado, mirando       -> filtro pesado, a imagem assenta          */
+  /* Este medidor de velocidade é realimentado: ele lê raw.bearing, e era
+     alimentado com o degrau bruto de cada evento do sensor. Tremor entrava
+     como "varredura", o filtro afrouxava e devolvia o tremor à tela. O
+     alisamento na saída de onOrient corta esse laço na origem — aqui não
+     foi preciso mexer.                                                */
   if(rawAnt===null) rawAnt=raw.bearing;
   var vAng=Math.abs(wrap180(raw.bearing-rawAnt))/Math.max(dt,1e-4);
   rawAnt=raw.bearing;
@@ -2497,6 +2548,11 @@ document.getElementById("seed").addEventListener("change",function(){
 document.getElementById("c-close").addEventListener("click",function(){
   fechaCarta();
   if(!EMBED){
+    /* CADA FRAGMENTO É UMA EXECUÇÃO: sem zerar o cronômetro aqui, o cartão
+       repetia o tempo do PRIMEIRO acerto em todos os seguintes, porque
+       enviarConclusao() ficava travado desde ele.                     */
+    inicioTarefa=null; fimTarefa=null; conclusaoEnviada=false; tempoFinalMs=null;
+    iniciarCronometroOficial();
     /* NAO entra fragIdx aqui. Ele e um contador local: quem tivesse pegado
        mais fragmentos ganhava um rumo diferente de quem tivesse pegado
        menos, e o grupo se abria em leque. O rumo vem so do relogio.    */
@@ -2557,37 +2613,58 @@ if(!DEV){
 </script>
 
 <script id="mosaico-embed-layer-sync">
+/* Diz a Mesa quando uma tela interna esta cobrindo o modulo, para que ela
+   recolha o cronometro, o "Sair" e o "Seguir". Tres cuidados que a versao
+   anterior nao tinha:
+     · a origem e a do pai, nunca "*";
+     · o estado e relido num requestAnimationFrame DEPOIS da mutacao. Ler
+       getComputedStyle no instante em que a classe muda pega a opacidade
+       de antes da transicao, e a Mesa recebia o valor errado;
+     · um batimento a cada 2 s. Se uma mensagem se perder, o pai se corrige
+       sozinho — e, sem batimento nenhum, ele sabe que pode voltar a mostrar
+       os controles em vez de ficar preso escondido. */
 (function(){
   var q=new URLSearchParams(location.search);
   if(q.get("embed")!=="1" || window.parent===window) return;
   document.documentElement.classList.add("mosaico-embed");
+  var alvo=(location.origin && location.origin!=="null") ? location.origin : "*";
   var ids=["intro","oito","pistas","cartao","carta","card","final","descanso","falha","master","mestre"];
   var last=null;
   function vis(el){
     if(!el) return false;
+    /* offsetParent nulo apanha o que getComputedStyle do proprio elemento
+       nao ve: um ancestral escondido. */
+    if(el.offsetParent===null && getComputedStyle(el).position!=="fixed") return false;
     var cs=getComputedStyle(el);
     if(cs.display==="none" || cs.visibility==="hidden") return false;
-    var op=parseFloat(cs.opacity||"1");
-    if(op<=0.05) return false;
+    if(parseFloat(cs.opacity||"1")<=0.05) return false;
     if(el.classList.contains("gone")) return false;
     return true;
   }
-  function emit(){
-    var open=ids.some(function(id){ return vis(document.getElementById(id)); });
-    if(open===last) return;
-    last=open;
-    window.parent.postMessage({mosaico:"ui-overlay",open:open},"*");
+  function estado(){
+    return ids.some(function(id){ return vis(document.getElementById(id)); });
   }
-  var mo=new MutationObserver(emit);
+  function manda(open){
+    try{ window.parent.postMessage({mosaico:"ui-overlay",open:open},alvo); }catch(e){}
+  }
+  function emit(forca){
+    var open=estado();
+    if(open===last && !forca) return;
+    last=open; manda(open);
+  }
+  var mo=new MutationObserver(function(){
+    emit(false);
+    requestAnimationFrame(function(){ emit(false); });
+  });
   ids.forEach(function(id){
     var el=document.getElementById(id);
     if(el) mo.observe(el,{attributes:true,attributeFilter:["class","style","hidden"]});
   });
-  window.addEventListener("pageshow",emit);
-  window.addEventListener("beforeunload",function(){
-    window.parent.postMessage({mosaico:"ui-overlay",open:false},"*");
-  });
-  requestAnimationFrame(emit);
+  document.addEventListener("transitionend",function(){ emit(false); },true);
+  window.addEventListener("pageshow",function(){ emit(true); });
+  window.addEventListener("beforeunload",function(){ manda(false); });
+  setInterval(function(){ emit(true); },2000);
+  requestAnimationFrame(function(){ emit(true); });
 })();
 </script>
 
