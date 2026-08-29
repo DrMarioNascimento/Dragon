@@ -1,3 +1,4 @@
+import { piecePath, tabsFor, type Piece } from "@/lib/mosaico/pecas";
 import { MEDIA } from "@/lib/mosaico/assets";
 import { Button } from "@/components/ui/button";
 import {
@@ -65,57 +66,6 @@ export const FOTOS: Record<
 };
 
 export { FOTO_IDS };
-
-type Tab = -1 | 0 | 1;
-
-type Piece = {
-  id: string;
-  col: number;
-  row: number;
-  tabs: { t: Tab; r: Tab; b: Tab; l: Tab };
-};
-
-function tabsFor(col: number, row: number, cols: number, rows: number) {
-  const t: Tab = row === 0 ? 0 : ((col + row) % 2 === 0 ? 1 : -1);
-  const l: Tab = col === 0 ? 0 : ((col + row) % 2 === 0 ? -1 : 1);
-  const r: Tab = col === cols - 1 ? 0 : (-l as Tab);
-  const b: Tab = row === rows - 1 ? 0 : (-t as Tab);
-  return { t, r, b, l };
-}
-
-function bump(
-  x: number,
-  y: number,
-  dx: number,
-  dy: number,
-  tab: Tab,
-  nx: number,
-  ny: number,
-) {
-  if (tab === 0) return `L ${x + dx} ${y + dy}`;
-  const s = tab;
-  const px = nx * 0.32 * s;
-  const py = ny * 0.32 * s;
-  const cx = x + dx / 2;
-  const cy = y + dy / 2;
-  return [
-    `L ${x + dx * 0.38} ${y + dy * 0.38}`,
-    `Q ${cx + px} ${cy + py} ${x + dx * 0.62} ${y + dy * 0.62}`,
-    `L ${x + dx} ${y + dy}`,
-  ].join(" ");
-}
-
-function piecePath(tabs: Piece["tabs"]) {
-  const { t, r, b, l } = tabs;
-  return [
-    "M 0 0",
-    bump(0, 0, 1, 0, t, 0, -1),
-    bump(1, 0, 0, 1, r, 1, 0),
-    bump(1, 1, -1, 0, b, 0, 1),
-    bump(0, 1, 0, -1, l, -1, 0),
-    "Z",
-  ].join(" ");
-}
 
 function build(cols: number, rows: number): Piece[] {
   return ORDEM_NOITE.map((id, i) => {
@@ -259,7 +209,7 @@ function CartaGrade({
               {!minePiece && (
                 <svg viewBox="0 0 1 1" className="h-full w-full overflow-visible">
                   <path
-                    d={piecePath(p.tabs)}
+                    d={piecePath(p)}
                     fill="none"
                     stroke="rgba(168,184,196,0.45)"
                     strokeWidth="0.04"
@@ -292,16 +242,23 @@ function CartaGrade({
             >
               <svg
                 viewBox={`${p.col} ${p.row} 1 1`}
-                className="h-full w-full overflow-visible drop-shadow-md"
+                className="h-full w-full overflow-visible"
               >
                 <defs>
                   <clipPath id={`clip-${foto}-${p.id}`}>
                     <path
-                      d={piecePath(p.tabs)}
+                      d={piecePath(p)}
                       transform={`translate(${p.col} ${p.row})`}
                     />
                   </clipPath>
                 </defs>
+                {/* A parede: a mesma peça, deslocada, atrás. É o que dá
+                    espessura de cartão — a peça deixa de ser um decalque. */}
+                <path
+                  d={piecePath(p)}
+                  transform={`translate(${p.col} ${p.row + 0.045})`}
+                  fill="rgba(3,6,10,0.75)"
+                />
                 <image
                   href={img.src}
                   x={0}
@@ -311,12 +268,22 @@ function CartaGrade({
                   preserveAspectRatio="xMidYMid slice"
                   clipPath={`url(#clip-${foto}-${p.id})`}
                 />
+                {/* O corte, e por dentro dele o fio de luz da quina de cima. */}
                 <path
-                  d={piecePath(p.tabs)}
+                  d={piecePath(p)}
                   transform={`translate(${p.col} ${p.row})`}
                   fill="none"
                   stroke="rgba(232,194,122,0.95)"
-                  strokeWidth="0.045"
+                  strokeWidth="0.04"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d={piecePath(p)}
+                  transform={`translate(${p.col} ${p.row - 0.012})`}
+                  fill="none"
+                  stroke="rgba(255,255,255,0.22)"
+                  strokeWidth="0.016"
+                  clipPath={`url(#clip-${foto}-${p.id})`}
                 />
               </svg>
             </div>
