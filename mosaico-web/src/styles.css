@@ -245,6 +245,21 @@
     0 10px 22px rgba(0, 0, 0, 0.38);
 }
 
+/* A ESCOLHA É MARCADA, NÃO ACESA.
+   A opção escolhida usava a mesma superfície dourada do botão de ação:
+   três blocos de ouro empilhados na mesma tela, e nenhum deles dizendo qual
+   era a ação. Num jogo jogado no escuro o ouro é o recurso mais caro da
+   paleta — vale um por tela, e é o do botão. A escolha fica com o aro e a
+   letra dourados sobre superfície escura: lê à distância, sem competir. */
+.box-depth.is-escolhido {
+  background: linear-gradient(160deg, #241e15 0%, #191410 70%);
+  border-color: rgba(232, 194, 122, 0.55);
+  box-shadow:
+    inset 0 1px 0 rgba(232, 194, 122, 0.24),
+    0 4px 0 rgba(0, 0, 0, 0.5),
+    0 10px 22px rgba(0, 0, 0, 0.38);
+}
+
 /* Caixa em que se toca afunda; caixa que só mostra, não. É a distinção que a
    referência faz entre .card (parada) e .subarea (clicável) — e é o que
    ensina, sem texto, o que responde ao dedo. */

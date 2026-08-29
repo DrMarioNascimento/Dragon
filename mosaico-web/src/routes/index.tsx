@@ -253,7 +253,8 @@ function Home() {
                     key={id}
                     className={cn(
                       "relative z-20 flex min-h-[6.5rem] cursor-pointer flex-col items-center justify-center gap-2 rounded-lg px-1 py-3",
-                      forma === id ? "btn-depth" : "box-depth",
+                      "box-depth",
+                      forma === id && "is-escolhido",
                     )}
                   >
                     <input
@@ -271,7 +272,7 @@ function Home() {
                     <span
                       className={cn(
                         "pointer-events-none font-serif text-lg italic",
-                        forma === id ? "text-primary-foreground" : "text-fog",
+                        forma === id ? "text-accent" : "text-fog",
                       )}
                     >
                       {label}
@@ -284,7 +285,8 @@ function Home() {
                   <label
                     className={cn(
                       "relative z-20 cursor-pointer rounded-lg px-3 py-3 text-left",
-                      formato === "curta" ? "btn-depth" : "box-depth",
+                      "box-depth",
+                      formato === "curta" && "is-escolhido",
                     )}
                   >
                     <input
@@ -298,7 +300,7 @@ function Home() {
                     <p
                       className={cn(
                         "pointer-events-none font-serif text-lg",
-                        formato === "curta" && "text-primary-foreground",
+                        formato === "curta" && "text-accent",
                       )}
                     >
                       Noite curta
@@ -306,9 +308,7 @@ function Home() {
                     <p
                       className={cn(
                         "pointer-events-none text-base",
-                        formato === "curta"
-                          ? "text-primary-foreground/75"
-                          : "text-muted-foreground",
+                        formato === "curta" ? "text-fog" : "text-muted-foreground",
                       )}
                     >
                       uns 20 min
@@ -317,7 +317,8 @@ function Home() {
                   <label
                     className={cn(
                       "relative z-20 cursor-pointer rounded-lg px-3 py-3 text-left",
-                      formato === "cheia" ? "btn-depth" : "box-depth",
+                      "box-depth",
+                      formato === "cheia" && "is-escolhido",
                     )}
                   >
                     <input
@@ -331,7 +332,7 @@ function Home() {
                     <p
                       className={cn(
                         "pointer-events-none font-serif text-lg",
-                        formato === "cheia" && "text-primary-foreground",
+                        formato === "cheia" && "text-accent",
                       )}
                     >
                       Noite cheia
@@ -339,9 +340,7 @@ function Home() {
                     <p
                       className={cn(
                         "pointer-events-none text-base",
-                        formato === "cheia"
-                          ? "text-primary-foreground/75"
-                          : "text-muted-foreground",
+                        formato === "cheia" ? "text-fog" : "text-muted-foreground",
                       )}
                     >
                       uns 40 min
