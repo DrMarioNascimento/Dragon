@@ -1,18 +1,18 @@
 # MOSAICO — modo solo
 
-Pasta **separada** da mesa (`v1/`) e da noite (`v2/`). Não misturar.
+Pasta **única**. Não misturar com a mesa (`v1/`) nem com a noite (`v2/` / `mosaico-web/`).
 
 Cada pista nasce partida em quatro fragmentos. Só entra no mosaico inteira.
 
 **Caso:** A Casa da Costa
 
-## Onde está o quê
+```
+solo/
+  index.html     página no ar
+  tiles/         as cinco cartas
+  src/           código do protótipo
+```
 
-| Pasta | Função |
-|---|---|
-| [`solo/`](./) | site desta edição (GitHub Pages) e tiles |
-| [`mosaico-solo/`](../mosaico-solo) | código-fonte do protótipo (React) |
-
-Não copiar arquivos de `v1/`, `v2/` ou `mosaico-web/` para cá. A espinha da noite (`mosaico-web/src/lib/mosaico/v3.ts`) **não** é este modo.
+A espinha da noite (`mosaico-web/src/lib/mosaico/v3.ts`) **não** é este modo.
 
 **Jogar:** [drmarionascimento.github.io/Dragon/solo/](https://drmarionascimento.github.io/Dragon/solo/)

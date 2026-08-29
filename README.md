@@ -23,7 +23,7 @@ O hub segue o recorte visual do [Learning-lab](https://github.com/DrMarioNascime
 |---|---|---|
 | **01 A mesa** | [`v1/`](./v1) | [v1/MOSAICO-mesa.html](https://drmarionascimento.github.io/Dragon/v1/MOSAICO-mesa.html) |
 | **02 A noite** | [`mosaico-web/`](./mosaico-web) (código) · [`v2/`](./v2) (site) | [v2/](https://drmarionascimento.github.io/Dragon/v2/) |
-| **03 Modo solo** | [`mosaico-solo/`](./mosaico-solo) (código) · [`solo/`](./solo) (site) | [solo/](https://drmarionascimento.github.io/Dragon/solo/) |
+| **03 Modo solo** | [`solo/`](./solo) | [solo/](https://drmarionascimento.github.io/Dragon/solo/) |
 
 O endereço antigo [`MOSAICO-mesa.html`](./MOSAICO-mesa.html) redireciona para a mesa (v1).
 
@@ -145,8 +145,7 @@ Pasta **própria**. Não misturar com a mesa nem com a noite. Não é o arquivo 
 
 Cada pista nasce em quatro fragmentos. Só a carta inteira entra no mosaico.
 
-- site: [`solo/`](./solo) → [solo/](https://drmarionascimento.github.io/Dragon/solo/)
-- código: [`mosaico-solo/`](./mosaico-solo)
+- pasta: [`solo/`](./solo) → [solo/](https://drmarionascimento.github.io/Dragon/solo/)
 
 O endereço antigo [`v3/`](./v3) redireciona para o modo solo.
 
