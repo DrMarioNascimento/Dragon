@@ -9,7 +9,7 @@ Casa de jogos. O primeiro é o **MOSAICO**.
 # MOSAICO — A Verdade é um Fragmento
 
 
-> Jogo híbrido de dedução distribuída para smartphones, com telão opcional. Projeto autoral proprietário em desenvolvimento.
+> Jogo de dedução distribuída com experiências presenciais, multitelas e individuais. Projeto autoral proprietário em desenvolvimento.
 
 O **MOSAICO** transforma um caso em informações fragmentadas entre os participantes. Ninguém recebe sozinho todos os fatos. Os jogadores encenam, apontam, cooperam e acusam.
 
@@ -17,24 +17,58 @@ O **MOSAICO** transforma um caso em informações fragmentadas entre os particip
 
 O hub segue o recorte visual do [Learning-lab](https://github.com/DrMarioNascimento/Learning-lab), com a paleta da noite.
 
-## Três versões
+## Catálogo jogável
 
-| | Pasta | Jogar |
-|---|---|---|
-| **01 A mesa** | [`v1/`](./v1) | [v1/MOSAICO-mesa.html](https://drmarionascimento.github.io/Dragon/v1/MOSAICO-mesa.html) |
-| **02 A noite** | [`mosaico-web/`](./mosaico-web) (código) · [`v2/`](./v2) (site) | [v2/](https://drmarionascimento.github.io/Dragon/v2/) |
-| **03 Modo solo** | [`solo/`](./solo) | [solo/](https://drmarionascimento.github.io/Dragon/solo/) |
+| Caso | Versão | Pasta | Jogar |
+|---|---|---|---|
+| **A Casa da Costa** | A mesa | [`v1/`](./v1) | [Abrir a mesa](https://drmarionascimento.github.io/Dragon/v1/MOSAICO-mesa.html) |
+| **A Casa da Costa** | A noite | [`mosaico-web/`](./mosaico-web) (código) · [`v2/`](./v2) (site) | [Abrir a noite](https://drmarionascimento.github.io/Dragon/v2/) |
+| **A Casa da Costa** | Modo solo | [`solo/`](./solo) | [Jogar sozinho](https://drmarionascimento.github.io/Dragon/solo/) |
+| **A manhã do Carro-Forte** | A mesa | [`carro-forte/`](./carro-forte) | [Iniciar investigação](https://drmarionascimento.github.io/Dragon/carro-forte/) |
 
 O endereço antigo [`MOSAICO-mesa.html`](./MOSAICO-mesa.html) redireciona para a mesa (v1).
 
-**Casos:** *A Casa da Costa* · *A manhã do Carro-forte* (em construção)  
-**Participantes:** 1 a 12 (1 = ensaio com todas as telas)  
-**Situação:** protótipo em playtest
+**Casos:** *A Casa da Costa* · *A manhã do Carro-Forte*<br>
+**Participantes:** Casa da Costa: 1 a 12 · Carro-Forte: 2, 3, 4 ou 6<br>
+**Situação:** experiências jogáveis em evolução e playtest
 
 ## Autoria
 
 **Concepção:** Mário César Nascimento e Osana Melo Nascimento  
 **Perfil:** [DrMarioNascimento](https://github.com/DrMarioNascimento)
+
+---
+
+## A manhã do Carro-Forte — A mesa
+
+Experiência jogável em HTML, CSS e JavaScript, sem dependência de Firebase. Os
+investigadores alternam perspectivas no mesmo dispositivo e montam Fragmentos
+rotacionáveis sob pressão de tempo.
+
+### Fluxo
+
+1. prólogo e oito fragmentos narrativos
+2. montagem das perspectivas distribuídas
+3. três rodadas de investigação: observar, cruzar e autenticar
+4. Hipótese I
+5. Mercado Cego
+6. Mosaico coletivo e escolha da rota probatória
+7. dedução final em cinco campos
+8. revelação modular e placar fechado em 100 pontos
+
+### Arquitetura
+
+| Arquivo | Responsabilidade |
+|---|---|
+| `carro-forte/index.html` | estrutura e telas do jogo |
+| `carro-forte/styles.css` | identidade visual, profundidade e responsividade |
+| `carro-forte/game.js` | estado, quebra-cabeça, investigação e pontuação |
+| `carro-forte/assets/` | cenas das seis perspectivas |
+| `carro-forte/tiles/` | imagens do card no catálogo |
+| `carro-forte/README.md` | documentação específica do caso |
+
+O estado da partida é salvo localmente pelo navegador. A noite e o modo solo
+do Carro-Forte ainda não estão publicados.
 
 ---
 
@@ -101,10 +135,13 @@ Pontos inteiros. O escore Z não entra no placar.
 | `HANDOFF.md` | continuidade |
 
 ```bash
-npm install && npm run test:tudo
+npm install
+npm test
 ```
 
-O motor, o QR e a sincronia `v1/casos/casa-da-costa.json` ↔ HTML rodam sem emulador. As regras do Firestore precisam do emulador (`npm run test:regras`).
+O motor, o QR e a sincronia `v1/casos/casa-da-costa.json` ↔ HTML rodam sem
+emulador. As regras do Firestore precisam do emulador (`npm run test:regras`).
+Para executar as duas verificações em sequência, use `npm run test:tudo`.
 
 ---
 
@@ -153,7 +190,8 @@ O endereço antigo [`v3/`](./v3) redireciona para o modo solo.
 
 ## Estado
 
-Experiência jogável, proposta em construção.
+- **A Casa da Costa:** mesa, noite e modo solo jogáveis.
+- **A manhã do Carro-Forte:** versão A mesa jogável; noite e solo em construção.
 
 > **Tudo se adapta, nada se perde.**
 
