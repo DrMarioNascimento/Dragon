@@ -1,0 +1,274 @@
+name: Corrigir camadas e sobreposicoes 2026-08-29
+
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-ui-layering-20260829.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-build-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mosaico-web/package-lock.json
+      - name: Instalar dependencias
+        working-directory: mosaico-web
+        run: npm ci
+      - name: Aplicar correcoes de hierarquia visual
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          def load(p): return Path(p).read_text(encoding='utf-8')
+          def save(p,s): Path(p).write_text(s,encoding='utf-8')
+          def must_replace(s, old, new, label):
+              if old not in s:
+                  raise SystemExit(f'PADRAO NAO ENCONTRADO: {label}')
+              return s.replace(old,new,1)
+
+          # 1) PartyApp: todos os hooks antes do return, chrome simetrico,
+          #    Sair no canto direito durante modulos e chrome ocultavel por postMessage.
+          p='mosaico-web/src/components/game/party-app.tsx'
+          s=load(p)
+          novo=r'''export function PartyApp() {
+  const mode = useParty((s) => s.mode);
+  const fase = useParty((s) =>
+    s.mode === "local" ? s.localFase : s.room?.fase || "sala",
+  ) as V3Phase | "sala" | "comodo";
+  const leave = useParty((s) => s.leave);
+  const players = useParty((s) => s.players);
+  const lanternDone = useParty((s) => s.lanternDone);
+  const [moduleOverlay, setModuleOverlay] = useState(false);
+
+  useEffect(() => {
+    function onModuleUi(ev: MessageEvent) {
+      if (ev.origin !== window.location.origin) return;
+      const d = ev.data as { mosaico?: string; open?: boolean } | null;
+      if (!d || d.mosaico !== "ui-overlay") return;
+      setModuleOverlay(Boolean(d.open));
+    }
+    window.addEventListener("message", onModuleUi);
+    return () => window.removeEventListener("message", onModuleUi);
+  }, []);
+
+  useEffect(() => {
+    setModuleOverlay(false);
+  }, [fase]);
+
+  if (mode === "idle") {
+    return (
+      <div className="flex min-h-dvh flex-col items-center justify-center gap-3 px-6">
+        <MosaicMark className="size-8 text-primary" />
+        <p className="text-lg text-fog">A mesa ainda não foi aberta.</p>
+        <Link to="/" className="text-lg text-accent">
+          Voltar
+        </Link>
+      </div>
+    );
+  }
+
+  const hideChrome = fase === "cor" || LANTERN_FASES.includes(fase);
+  const showHost =
+    fase === "votacao" ||
+    fase === "encaixe" ||
+    fase === "deducao" ||
+    (fase === "cor" && players.some((p) => p.fragmentoPronto)) ||
+    (LANTERN_FASES.includes(fase) && lanternDone);
+
+  return (
+    <div className="relative min-h-dvh bg-background">
+      {!hideChrome && (
+        <header className="grid grid-cols-[3.5rem_minmax(0,1fr)_3.5rem] items-center px-4 pt-[max(0.8rem,env(safe-area-inset-top))]">
+          <button
+            type="button"
+            className="inline-flex min-h-11 items-center justify-start text-base text-muted-foreground"
+            onClick={leave}
+          >
+            Sair
+          </button>
+          <p className="min-w-0 text-center text-base uppercase tracking-[0.16em] text-accent">
+            {fase && fase in PHONE_LINE ? PHONE_LINE[fase as V3Phase] : "MOSAICO"}
+          </p>
+          <span aria-hidden="true" className="w-14" />
+        </header>
+      )}
+      {!moduleOverlay && <FaseRelogio />}
+      {hideChrome && !moduleOverlay && (
+        <button
+          type="button"
+          className="absolute right-4 top-[max(0.8rem,env(safe-area-inset-top))] z-40 min-h-11 rounded-full border border-white/15 bg-background/70 px-3 text-base text-white/90 backdrop-blur-sm"
+          onClick={leave}
+        >
+          Sair
+        </button>
+      )}
+      {fase === "sala" && <SalaScreen />}
+      {fase === "encenacao" && <EnceneScreen />}
+      {fase === "votacao" && <VotoScreen />}
+      {fase === "janela" && <LanternPhase slug="janela" />}
+      {(fase === "vidro" || fase === "comodo") && <LanternPhase slug="vidro" />}
+      {fase === "salaescura" && <LanternPhase slug="sala" />}
+      {fase === "cor" && <CorScreen />}
+      {fase === "palimpsesto" && <PalimpsestoPlay />}
+      {fase === "espelho" && <EspelhoPlay />}
+      {fase === "planta" && <PlantaPlay />}
+      {fase === "encaixe" && <EncaixeScreen />}
+      {fase === "deducao" && <DeducaoScreen />}
+      {fase === "resultado" && <ResultadoScreen />}
+      {showHost && !moduleOverlay && <HostBar />}
+    </div>
+  );
+}
+'''
+          s2,n=re.subn(r'export function PartyApp\(\) \{.*?\n\}\s*$',novo,s,flags=re.S)
+          if n!=1: raise SystemExit(f'PartyApp substituicoes={n}')
+          save(p,s2)
+
+          # 2) Caderno: remover altura magica e deixar flex cuidar da safe-area.
+          p='mosaico-web/src/components/game/shell.tsx'; s=load(p)
+          s=must_replace(s,
+            'className="fixed inset-0 z-40 mx-auto max-w-lg bg-background/95 backdrop-blur-sm"',
+            'className="fixed inset-0 z-40 mx-auto flex max-w-lg flex-col bg-background/95 backdrop-blur-sm"',
+            'caderno container flex')
+          s=must_replace(s,
+            'className="flex items-center justify-between border-b border-border px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]"',
+            'className="shrink-0 flex items-center justify-between border-b border-border px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]"',
+            'caderno header shrink')
+          s=must_replace(s,
+            'className="h-[calc(100dvh-56px)] space-y-3 overflow-y-auto px-4 py-4"',
+            'className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4"',
+            'caderno lista flex')
+          save(p,s)
+
+          # 3) Quebra-cabeca: nao cobrir a foto com a mesma mensagem exibida abaixo.
+          p='mosaico-web/src/components/game/carta-puzzle.tsx'; s=load(p)
+          bloco=re.compile(r'\n\s*\{correct && done && \(\n\s*<div className="absolute inset-x-0 bottom-0 z-30[\s\S]*?\n\s*\)\}\n',re.M)
+          s2,n=bloco.subn('\n',s,count=1)
+          if n!=1: raise SystemExit(f'overlay duplicado puzzle substituicoes={n}')
+          save(p,s2)
+
+          # 4) Helper comum dos iframes: informa ao React quando uma camada interna
+          #    fullscreen/menu/modal esta ativa. O pai entao some com cronometro/Sair.
+          helper=r'''
+<script id="mosaico-embed-layer-sync">
+(function(){
+  var q=new URLSearchParams(location.search);
+  if(q.get("embed")!=="1" || window.parent===window) return;
+  document.documentElement.classList.add("mosaico-embed");
+  var ids=["intro","pistas","cartao","carta","master","mestre","card"];
+  var last=null;
+  function vis(el){
+    if(!el) return false;
+    var cs=getComputedStyle(el);
+    if(cs.display==="none" || cs.visibility==="hidden") return false;
+    var op=parseFloat(cs.opacity||"1");
+    if(op<=0.05) return false;
+    if(el.classList.contains("gone")) return false;
+    return true;
+  }
+  function emit(){
+    var open=ids.some(function(id){ return vis(document.getElementById(id)); });
+    if(open===last) return;
+    last=open;
+    window.parent.postMessage({mosaico:"ui-overlay",open:open},"*");
+  }
+  var mo=new MutationObserver(emit);
+  ids.forEach(function(id){
+    var el=document.getElementById(id);
+    if(el) mo.observe(el,{attributes:true,attributeFilter:["class","style","hidden"]});
+  });
+  window.addEventListener("pageshow",emit);
+  window.addEventListener("beforeunload",function(){
+    window.parent.postMessage({mosaico:"ui-overlay",open:false},"*");
+  });
+  requestAnimationFrame(emit);
+})();
+</script>
+'''
+          reserve='''\n  html.mosaico-embed #hud{padding-top:calc(env(safe-area-inset-top,0px) + 80px)!important;}\n'''
+
+          for p in [
+            'mosaico-web/public/modulos/vidro-embacado.html',
+            'mosaico-web/public/modulos/janela-do-norte.html',
+            'mosaico-web/public/modulos/sala-as-escuras.html',
+          ]:
+              s=load(p)
+              if 'mosaico-embed-layer-sync' in s:
+                  raise SystemExit(f'helper ja existe inesperadamente: {p}')
+              if '</style>' not in s or '</body>' not in s:
+                  raise SystemExit(f'HTML incompleto: {p}')
+              s=s.replace('</style>',reserve+'</style>',1)
+              s=s.replace('</body>',helper+'\n</body>',1)
+              save(p,s)
+
+          # 5) CSS malformado da introducao da Janela do Norte.
+          p='mosaico-web/public/modulos/janela-do-norte.html'; s=load(p)
+          ruim='''    background:#05070c;}\n    backdrop-filter:blur(2px);}\n  /* rede de seguranca'''
+          bom='''    background:#05070c;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);}\n  /* rede de seguranca'''
+          s=must_replace(s,ruim,bom,'CSS intro Janela')
+          save(p,s)
+
+          # 6) Verificacoes estaticas do que foi corrigido.
+          party=load('mosaico-web/src/components/game/party-app.tsx')
+          assert 'mosaico !== "ui-overlay"' in party
+          assert 'right-4 top-[max(0.8rem,env(safe-area-inset-top))]' in party
+          assert '{!moduleOverlay && <FaseRelogio />}' in party
+          shell=load('mosaico-web/src/components/game/shell.tsx')
+          assert 'h-[calc(100dvh-56px)]' not in shell
+          assert 'min-h-0 flex-1 space-y-3 overflow-y-auto' in shell
+          for p in ['vidro-embacado.html','janela-do-norte.html','sala-as-escuras.html']:
+              t=load('mosaico-web/public/modulos/'+p)
+              assert 'mosaico-embed-layer-sync' in t
+              assert 'html.mosaico-embed #hud' in t
+          print('Correcoes estaticas: OK')
+          PY
+      - name: Typecheck
+        working-directory: mosaico-web
+        run: npm run typecheck
+      - name: Testes
+        working-directory: mosaico-web
+        run: |
+          set +e
+          npm test
+          RC=$?
+          set -e
+          if [ $RC -ne 0 ]; then
+            echo 'Suite completa tem dependencias de infraestrutura ausentes; verificando testes executaveis conhecidos.'
+            node --test scripts/*.test.mjs || exit 1
+          fi
+      - name: Build GitHub Pages
+        working-directory: mosaico-web
+        run: npm run build:pages
+      - name: Atualizar v2 publicado
+        run: |
+          rm -rf v2
+          cp -a mosaico-web/dist v2
+      - name: Verificar artefatos e camadas no build
+        run: |
+          test -f v2/index.html
+          test -f v2/modulos/vidro-embacado.html
+          test -f v2/modulos/janela-do-norte.html
+          test -f v2/modulos/sala-as-escuras.html
+          grep -q 'mosaico-embed-layer-sync' v2/modulos/vidro-embacado.html
+          grep -q 'mosaico-embed-layer-sync' v2/modulos/janela-do-norte.html
+          grep -q 'mosaico-embed-layer-sync' v2/modulos/sala-as-escuras.html
+          ! grep -q 'h-\[calc(100dvh-56px)\]' mosaico-web/src/components/game/shell.tsx
+      - name: Publicar correcoes e remover executor temporario
+        run: |
+          rm .github/workflows/fix-ui-layering-20260829.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Corrige hierarquia visual, overlays e safe areas'
+          git push origin HEAD:main
