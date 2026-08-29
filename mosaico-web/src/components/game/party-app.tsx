@@ -9,7 +9,6 @@ import {
   PHONE_LINE,
   ROTEIRO,
   VERDADE,
-  pecasDoTelefone,
   fotoDoNucleo,
   papeisNoGrupo,
   FOTO_IDS,
@@ -29,7 +28,9 @@ import { MosaicMark } from "./mark";
 import { ModuleFrame } from "./module-frame";
 import { NIGHT_MODULES } from "@/lib/mosaico/modules";
 
-function me() {
+/* Lê da store: é um hook, e o nome tem de dizer isso — a regra dos hooks se
+   aplica a ele como a qualquer outro. */
+function useEu() {
   const uid = useParty((s) => s.uid);
   const players = useParty((s) => s.players);
   return players.find((p) => p.id === uid) ?? players[0] ?? null;
@@ -108,7 +109,7 @@ function SalaScreen() {
   const isMaster = useParty((s) => s.isMaster);
   const ready = useParty((s) => s.ready);
   const startNight = useParty((s) => s.startNight);
-  const eu = me();
+  const eu = useEu();
   const link =
     typeof window !== "undefined" && code && code !== "LOCAL"
       ? `${window.location.origin}${import.meta.env.BASE_URL}?sala=${code}`
@@ -345,7 +346,7 @@ function LanternPhase({ slug }: { slug: string }) {
 }
 
 function CorScreen() {
-  const eu = me();
+  const eu = useEu();
   const confirmFragment = useParty((s) => s.confirmFragment);
   const players = useParty((s) => s.players);
   const room = useParty((s) => s.room);
@@ -394,7 +395,7 @@ function CorScreen() {
 function EncaixeScreen() {
   const players = useParty((s) => s.players);
   const uid = useParty((s) => s.uid);
-  const eu = me();
+  const eu = useEu();
   const nucleo = eu?.nucleo ?? 1;
   const membros = players
     .filter((p) => p.nucleo === nucleo)
@@ -460,7 +461,7 @@ function DeducaoScreen() {
   const submittedAt = useParty((s) => s.submittedAt);
   const players = useParty((s) => s.players);
   const mode = useParty((s) => s.mode);
-  const eu = me();
+  const eu = useEu();
   const nNucleos =
     mode === "local" ? 1 : new Set(players.map((p) => p.nucleo || 1)).size;
   const meus = camposDoNucleo(eu?.nucleo ?? 1, nNucleos);
@@ -591,6 +592,13 @@ export function PartyApp() {
     s.mode === "local" ? s.localFase : s.room?.fase || "sala",
   ) as V3Phase | "sala" | "comodo";
   const leave = useParty((s) => s.leave);
+  /* Estes dois estavam DEPOIS do return de "idle". React conta os hooks pela
+     ordem, e "Sair" leva a mesa de volta a "idle": a renderização seguinte
+     chamava três hooks onde a anterior tinha chamado cinco, e a noite morria
+     em tela branca no meio do jogo. Hook nenhum pode ficar abaixo de um
+     return. */
+  const players = useParty((s) => s.players);
+  const lanternDone = useParty((s) => s.lanternDone);
 
   if (mode === "idle") {
     return (
@@ -605,8 +613,6 @@ export function PartyApp() {
   }
 
   const hideChrome = fase === "cor" || LANTERN_FASES.includes(fase);
-  const players = useParty((s) => s.players);
-  const lanternDone = useParty((s) => s.lanternDone);
   const showHost =
     fase === "votacao" ||
     fase === "encaixe" ||
