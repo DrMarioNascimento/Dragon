@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5,user-scalable=yes,viewport-fit=cover" />
   <meta name="theme-color" content="#071114" />
   <title>MOSAICO — A Manhã do Carro-Forte</title>
   <link rel="stylesheet" href="styles.css" />
@@ -24,7 +24,7 @@
         <div class="notice"><span>SISTEMA EM ATUALIZAÇÃO</span><b>Quem mudou o destino do dinheiro?</b></div>
         <div class="setup">
           <label>Número de investigadores
-            <select id="playerCount"><option>2</option><option>3</option><option>4</option><option selected>6</option></select>
+            <select id="playerCount"><option>2</option><option>3</option><option>4</option><option>5</option><option selected>6</option><option>7</option><option>8</option></select>
           </label>
           <button class="primary" data-next="briefing">Iniciar investigação <span>→</span></button>
           <button class="ghost hidden" id="resumeBtn">Retomar partida salva</button>
@@ -43,12 +43,13 @@
     </section>
 
     <section class="screen" data-screen="pieces">
-      <div class="section-head"><div><span>FASE 1</span><h2>Fragmentos multitelas</h2></div><p>Escolha um investigador e encontre as peças vizinhas.</p></div>
+      <div class="section-head"><div><span>FASE 1</span><h2>Fragmentos em dupla</h2></div><p>Primeiro monte sua imagem. Depois encontre o celular que guarda a metade complementar da evidência.</p></div>
       <div class="player-tabs" id="playerTabs"></div>
-      <div class="puzzle-head"><div><span id="perspectiveName" class="eyebrow"></span><h3>Monte seu Fragmento</h3><p>Arraste as peças. Toque duplo ou pressione <b>R</b> para girar 90°.</p></div><div class="pressure"><small>PRESSÃO</small><strong id="puzzleTimer">01:30</strong><i><b id="pressureBar"></b></i></div></div>
-      <div class="puzzle-wrap"><canvas id="puzzleCanvas" width="900" height="560" aria-label="Quebra-cabeça de doze peças"></canvas><div id="remittanceWall" class="remittance-wall hidden"></div></div>
-      <div class="puzzle-actions"><button class="ghost" id="shufflePuzzle">Embaralhar novamente</button><span id="puzzleStatus">12 peças · orientação e posição precisam coincidir</span></div>
-      <div class="mosaic-tray"><div><small>COMPOSIÇÃO COLETIVA</small><b id="mosaicCount">0 / 6 peças</b></div><div id="mosaicMini" class="mosaic-mini"></div></div>
+      <div class="puzzle-head"><div><span id="perspectiveName" class="eyebrow"></span><h3>Monte seu Fragmento</h3><p>Arraste as peças. Toque duplo ou pressione <b>R</b> para girar. <b>Pinça com dois dedos</b> amplia ou reduz a imagem.</p></div><div class="pressure"><small>PRESSÃO</small><strong id="puzzleTimer">01:30</strong><i><b id="pressureBar"></b></i></div></div>
+      <div class="puzzle-wrap"><canvas id="puzzleCanvas" width="900" height="560" aria-label="Quebra-cabeça de doze peças com zoom por pinça"></canvas><div id="remittanceWall" class="remittance-wall hidden"></div></div>
+      <div class="puzzle-actions"><div class="zoom-tools" aria-label="Controles de ampliação"><button class="ghost" id="zoomOut" type="button" aria-label="Reduzir imagem">−</button><button class="ghost zoom-readout" id="zoomReset" type="button" aria-label="Restaurar ampliação">100%</button><button class="ghost" id="zoomIn" type="button" aria-label="Ampliar imagem">+</button></div><button class="ghost" id="shufflePuzzle">Embaralhar novamente</button><span id="puzzleStatus">12 peças · orientação e posição precisam coincidir</span></div>
+      <div class="pair-stage hidden" id="pairStage"><div class="pair-head"><small>SEGUNDA METADE</small><h3 id="pairTitle">Encontre a outra custódia</h3><p id="pairBrief"></p></div><div class="pair-options" id="pairOptions"></div><div class="status" id="pairStatus">Escolha quem possui a outra metade.</div><div class="pair-reward hidden" id="pairReward"><b>CONEXÃO REGISTRADA</b><p id="pairRewardText"></p></div></div>
+      <div class="mosaic-tray"><div><small>COMPOSIÇÃO COLETIVA</small><b id="mosaicCount">0 / 6 fragmentos</b></div><div id="mosaicMini" class="mosaic-mini"></div></div>
       <button class="primary dock" id="toInvestigation" disabled>Abrir investigação <span>→</span></button>
     </section>
 
