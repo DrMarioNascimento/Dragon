@@ -1398,7 +1398,7 @@ requestAnimationFrame(passo);
   var q=new URLSearchParams(location.search);
   if(q.get("embed")!=="1" || window.parent===window) return;
   document.documentElement.classList.add("mosaico-embed");
-  var ids=["intro","pistas","cartao","carta","master","mestre","card"];
+  var ids=["intro","oito","pistas","cartao","carta","card","final","descanso","falha","master","mestre"];
   var last=null;
   function vis(el){
     if(!el) return false;
