@@ -4,7 +4,8 @@ import { useParty } from "@/lib/mosaico/party";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 
-function seat() {
+/* Lê da store: é um hook, e o nome tem de dizer isso. */
+function useAssento() {
   const uid = useParty((s) => s.uid);
   const players = useParty((s) => s.players);
   const i = Math.max(0, players.findIndex((p) => p.id === uid));
@@ -16,7 +17,7 @@ export function PalimpsestoPlay() {
   const done = useParty((s) => s.markPista);
   const [on, setOn] = useState(false);
   const [papel, setPapel] = useState<"baixo" | "cima">("baixo");
-  const { i, n, players } = seat();
+  const { i, n, players } = useAssento();
   const janela = !!pistas.janela;
   const solo = n <= 1;
   const baixo = solo ? papel === "baixo" : i % 2 === 0;
@@ -29,7 +30,6 @@ export function PalimpsestoPlay() {
 
   return (
     <div className="space-y-4 px-5 pb-28 pt-6">
-      <p className="text-base uppercase tracking-[0.22em] text-accent">Empilha os vidros.</p>
       <h2 className="font-serif text-3xl">{baixo ? "Você fica embaixo" : "Você fica em cima"}</h2>
       <p className="text-lg text-fog">
         {solo
@@ -74,7 +74,7 @@ export function EspelhoPlay() {
   const done = useParty((s) => s.markPista);
   const [shown, setShown] = useState(false);
   const [papel, setPapel] = useState<"mostra" | "le">("mostra");
-  const { i, n, players } = seat();
+  const { i, n, players } = useAssento();
   const cofre = !!pistas.sala || !!pistas.salaescura;
   const solo = n <= 1;
   const mostra = solo ? papel === "mostra" : i % 2 === 0;
@@ -87,7 +87,6 @@ export function EspelhoPlay() {
 
   return (
     <div className="space-y-4 px-5 pb-28 pt-6">
-      <p className="text-base uppercase tracking-[0.22em] text-accent">Mostra. Não leia.</p>
       <h2 className="font-serif text-3xl">{mostra ? "Mostra a tela" : "Lê no outro"}</h2>
       <p className="text-lg text-fog">
         {solo
@@ -138,7 +137,7 @@ export function PlantaPlay() {
   const done = useParty((s) => s.markPista);
   const [path, setPath] = useState<string[]>([]);
   const [here, setHere] = useState(false);
-  const { i, n, players } = seat();
+  const { i, n, players } = useAssento();
   const frase = !!pistas.palimpsesto;
   const solo = n <= 1;
   const mine = ROOMS[i % 3];
@@ -160,7 +159,6 @@ export function PlantaPlay() {
   if (!solo) {
     return (
       <div className="space-y-4 px-5 pb-28 pt-6">
-        <p className="text-base uppercase tracking-[0.22em] text-accent">A mesa é a casa.</p>
         <h2 className="font-serif text-3xl">Seu cômodo é {mine}</h2>
         <p className="text-lg text-fog">
           {frase
@@ -187,7 +185,6 @@ export function PlantaPlay() {
 
   return (
     <div className="space-y-4 px-5 pb-28 pt-6">
-      <p className="text-base uppercase tracking-[0.22em] text-accent">A mesa é a casa.</p>
       <h2 className="font-serif text-3xl">A planta</h2>
       <p className="text-lg text-fog">
         {frase

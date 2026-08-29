@@ -16,6 +16,7 @@ import {
   getDoc,
   getFirestore,
   onSnapshot,
+  runTransaction,
   serverTimestamp,
   setDoc,
   updateDoc,
@@ -128,6 +129,8 @@ export type RoomDoc = {
   formato?: "curta" | "cheia";
   lanternaCurta?: "janela" | "salaescura";
   faseAteMs?: number | null;
+  /** cenário da tarefa desta fase: todos os telefones montam o mesmo */
+  semente?: string;
   noiteAteMs?: number | null;
 };
 
@@ -189,6 +192,20 @@ export async function entrarSala(
   if (!room.exists() || room.data()?.ativa !== true) {
     throw new Error("Sala não encontrada ou já encerrada.");
   }
+  const ja = await getDoc(playerRef(code, uid));
+  if (ja.exists()) {
+    /* REENTRADA. Recarregar a página, perder a rede um instante ou voltar do
+       Google traz a pessoa de volta por aqui — e um setDoc inteiro apagava
+       personagem, núcleo e cômodo. Ela voltava sem papel, e como o Fragmento
+       sai do núcleo, voltava sempre na cor 1. Só o que ela mesma pode mudar
+       é reescrito. */
+    await updateDoc(playerRef(code, uid), {
+      nome: nome.slice(0, 60),
+      forma,
+      atualizadoEmMs: Date.now(),
+    });
+    return;
+  }
   await setDoc(playerRef(code, uid), {
     nome: nome.slice(0, 60),
     personagem: "",
@@ -199,6 +216,28 @@ export async function entrarSala(
     moedas: 9,
     total: 0,
     atualizadoEmMs: Date.now(),
+  });
+}
+
+/** Empurra a mesa para a próxima fase sem risco de empurrar duas vezes.
+ *
+ *  Dois telefones podem tocar "Seguir" no mesmo instante — e, desde que o
+ *  resgate existe, isso deixou de ser raro. A transação relê a fase dentro
+ *  da escrita: quem chegar depois vê que ela já mudou e desiste. Sem isto,
+ *  dois toques simultâneos pulavam uma fase inteira da noite.
+ *
+ *  Devolve verdadeiro se foi esta chamada que moveu a mesa. */
+export async function avancarMesa(
+  code: string,
+  faseEsperada: string,
+  data: Record<string, unknown>,
+): Promise<boolean> {
+  return runTransaction(db, async (tx) => {
+    const snap = await tx.get(roomRef(code));
+    if (!snap.exists()) return false;
+    if ((snap.data() as RoomDoc).fase !== faseEsperada) return false;
+    tx.update(roomRef(code), data);
+    return true;
   });
 }
 
@@ -218,17 +257,26 @@ export function ouvirSala(
   code: string,
   onRoom: (room: RoomDoc | null) => void,
   onPlayers: (players: PlayerDoc[]) => void,
+  onErro?: (e: unknown) => void,
 ): Unsubscribe {
-  const un1 = onSnapshot(roomRef(code), (snap) => {
-    onRoom(snap.exists() ? ({ ...(snap.data() as RoomDoc) }) : null);
-  });
-  const un2 = onSnapshot(collection(db, ROOT, code, "jogadores"), (snap) => {
-    onPlayers(
-      snap.docs
-        .map((d) => ({ id: d.id, ...(d.data() as PlayerDoc) }))
-        .sort((a, b) => a.entrouMs - b.entrouMs),
-    );
-  });
+  /* Sem este quarto argumento, uma queda de rede ou uma regra negando
+     leitura encerrava a escuta em silêncio: a tela ficava parada e ninguém
+     sabia se era o jogo ou o sinal. */
+  const un1 = onSnapshot(
+    roomRef(code),
+    (snap) => onRoom(snap.exists() ? { ...(snap.data() as RoomDoc) } : null),
+    (e) => onErro?.(e),
+  );
+  const un2 = onSnapshot(
+    collection(db, ROOT, code, "jogadores"),
+    (snap) =>
+      onPlayers(
+        snap.docs
+          .map((d) => ({ id: d.id, ...(d.data() as PlayerDoc) }))
+          .sort((a, b) => a.entrouMs - b.entrouMs),
+      ),
+    (e) => onErro?.(e),
+  );
   return () => {
     un1();
     un2();

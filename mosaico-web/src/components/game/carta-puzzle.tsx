@@ -1,3 +1,5 @@
+import { piecePath, tabsFor, type Piece } from "@/lib/mosaico/pecas";
+import { MEDIA } from "@/lib/mosaico/assets";
 import { Button } from "@/components/ui/button";
 import {
   FOTO_IDS,
@@ -11,6 +13,13 @@ import { useMemo, useRef, useState } from "react";
 
 export type { FotoId, PapelFoto };
 
+/* O MOSAICO é publicado em /Dragon/v2/ no GitHub Pages. Estes caminhos
+   começavam em "/" e apontavam para a raiz do domínio: no site publicado a
+   fase do encaixe abria sem foto nenhuma — oito imagens em 404, e as peças
+   viravam retângulos vazios. O Vite reescreve a base dentro do CSS, mas não
+   dentro de string de JavaScript; aqui é na mão. */
+
+
 export const FOTOS: Record<
   FotoId,
   {
@@ -23,32 +32,41 @@ export const FOTOS: Record<
   }
 > = {
   agenda: {
-    src: "/media/foto-agenda.jpg",
-    tarja: "/media/tarja-agenda.jpg",
+    src: `${MEDIA}foto-agenda.jpg`,
+    tarja: `${MEDIA}tarja-agenda.jpg`,
     onde: "Escrivaninha. A agenda da jornalista.",
     achado: "Ontem a herdeira estava no jardim. Alguém já estava na janela.",
     data: "ontem  21:14",
     lado: "bottom",
   },
   gaveta: {
-    src: "/media/foto-gaveta.jpg",
-    tarja: "/media/tarja-gaveta.jpg",
+    src: `${MEDIA}foto-gaveta.jpg`,
+    tarja: `${MEDIA}tarja-gaveta.jpg`,
     onde: "Gaveta aberta. Retrato da família.",
     achado: "Quem mora na casa já estava na porta — fora do retrato.",
     data: "Verão 1987",
     lado: "bottom",
   },
   farol: {
-    src: "/media/foto-farol.jpg",
-    tarja: "/media/tarja-farol.jpg",
+    src: `${MEDIA}foto-farol.jpg`,
+    tarja: `${MEDIA}tarja-farol.jpg`,
     onde: "Jornal dobrado. Recorte da trava.",
     achado: "Duas marcas na trava. O recorte é de 27 de agosto.",
     data: "27 AGO",
     lado: "top",
   },
+  costa: {
+    src: `${MEDIA}carta-costa.jpg`,
+    /* A carta não tem tarja própria; a da noite serve, é a mesma mão. */
+    tarja: `${MEDIA}tarja-noite.jpg`,
+    onde: "A carta da casa. A linha do tempo da noite.",
+    achado: "Seis horas marcadas. A última é a que apaga a luz.",
+    data: "21:03 — 21:29",
+    lado: "bottom",
+  },
   noite: {
-    src: "/media/foto-noite.jpg",
-    tarja: "/media/tarja-noite.jpg",
+    src: `${MEDIA}foto-noite.jpg`,
+    tarja: `${MEDIA}tarja-noite.jpg`,
     onde: "Quadro caído. A escada da casa.",
     achado: "O quarto degrau. A moldura diz Costa, 1979.",
     data: "COSTA  1979",
@@ -57,57 +75,6 @@ export const FOTOS: Record<
 };
 
 export { FOTO_IDS };
-
-type Tab = -1 | 0 | 1;
-
-type Piece = {
-  id: string;
-  col: number;
-  row: number;
-  tabs: { t: Tab; r: Tab; b: Tab; l: Tab };
-};
-
-function tabsFor(col: number, row: number, cols: number, rows: number) {
-  const t: Tab = row === 0 ? 0 : ((col + row) % 2 === 0 ? 1 : -1);
-  const l: Tab = col === 0 ? 0 : ((col + row) % 2 === 0 ? -1 : 1);
-  const r: Tab = col === cols - 1 ? 0 : (-l as Tab);
-  const b: Tab = row === rows - 1 ? 0 : (-t as Tab);
-  return { t, r, b, l };
-}
-
-function bump(
-  x: number,
-  y: number,
-  dx: number,
-  dy: number,
-  tab: Tab,
-  nx: number,
-  ny: number,
-) {
-  if (tab === 0) return `L ${x + dx} ${y + dy}`;
-  const s = tab;
-  const px = nx * 0.32 * s;
-  const py = ny * 0.32 * s;
-  const cx = x + dx / 2;
-  const cy = y + dy / 2;
-  return [
-    `L ${x + dx * 0.38} ${y + dy * 0.38}`,
-    `Q ${cx + px} ${cy + py} ${x + dx * 0.62} ${y + dy * 0.62}`,
-    `L ${x + dx} ${y + dy}`,
-  ].join(" ");
-}
-
-function piecePath(tabs: Piece["tabs"]) {
-  const { t, r, b, l } = tabs;
-  return [
-    "M 0 0",
-    bump(0, 0, 1, 0, t, 0, -1),
-    bump(1, 0, 0, 1, r, 1, 0),
-    bump(1, 1, -1, 0, b, 0, 1),
-    bump(0, 1, 0, -1, l, -1, 0),
-    "Z",
-  ].join(" ");
-}
 
 function build(cols: number, rows: number): Piece[] {
   return ORDEM_NOITE.map((id, i) => {
@@ -119,24 +86,36 @@ function build(cols: number, rows: number): Piece[] {
 
 type Pos = { x: number; y: number; slot: number | null };
 
-export function CartaPuzzle({
-  mine,
-  phones = 1,
-  foto = "agenda",
-  papel,
-  onComplete,
-}: {
+type CartaProps = {
   mine?: string[];
   phones?: number;
   foto?: FotoId;
   papel?: PapelFoto;
   onComplete?: () => void;
-}) {
+};
+
+/* A tarja e a grade são duas peças diferentes, e a escolha entre elas é um
+   return antecipado. Enquanto ele morava dentro do componente da grade, sete
+   hooks ficavam abaixo dele: no ensaio, "A tarja do ímpar" troca o papel na
+   mesma tela e a contagem de hooks caía de sete para zero. A `key` do
+   chamador escondia isso remontando o componente — armadilha para o próximo
+   que mexer aqui. Agora quem decide não tem hook nenhum. */
+export function CartaPuzzle(props: CartaProps) {
+  const { phones = 1, foto = "agenda", papel, onComplete } = props;
   const papelEfetivo: PapelFoto =
     papel ?? (phones <= 1 ? "full" : phones === 2 ? "esq" : "full");
   if (papelEfetivo === "tarja") {
     return <TarjaPuzzle foto={foto} onComplete={onComplete} />;
   }
+  return <CartaGrade {...props} papelEfetivo={papelEfetivo} />;
+}
+
+function CartaGrade({
+  mine,
+  foto = "agenda",
+  onComplete,
+  papelEfetivo,
+}: CartaProps & { papelEfetivo: PapelFoto }) {
   const mao = mine && mine.length ? mine : pecasDoPapel(papelEfetivo);
   const gridCols = 2;
   const gridRows = 3;
@@ -239,7 +218,7 @@ export function CartaPuzzle({
               {!minePiece && (
                 <svg viewBox="0 0 1 1" className="h-full w-full overflow-visible">
                   <path
-                    d={piecePath(p.tabs)}
+                    d={piecePath(p)}
                     fill="none"
                     stroke="rgba(168,184,196,0.45)"
                     strokeWidth="0.04"
@@ -272,16 +251,41 @@ export function CartaPuzzle({
             >
               <svg
                 viewBox={`${p.col} ${p.row} 1 1`}
-                className="h-full w-full overflow-visible drop-shadow-md"
+                className="h-full w-full overflow-visible"
               >
                 <defs>
                   <clipPath id={`clip-${foto}-${p.id}`}>
                     <path
-                      d={piecePath(p.tabs)}
+                      d={piecePath(p)}
                       transform={`translate(${p.col} ${p.row})`}
                     />
                   </clipPath>
                 </defs>
+                {/* A espessura vem de uma sombra DESFOCADA, não de uma cópia
+                    deslocada da peça. A parede sólida serve para um retângulo,
+                    onde a cópia só aparece como uma faixa embaixo; num
+                    contorno recortado ela reaparece em volta de cada pino,
+                    como um segundo traço — o desenho fica duplicado. Aqui a
+                    peça tem UM contorno só, e a profundidade fica por conta
+                    do desfoque, que não tem aresta para duplicar. */}
+                <defs>
+                  <filter
+                    id={`funda-${foto}-${p.id}`}
+                    x="-30%"
+                    y="-30%"
+                    width="160%"
+                    height="160%"
+                  >
+                    <feDropShadow
+                      dx="0"
+                      dy="0.035"
+                      stdDeviation="0.03"
+                      floodColor="#03060a"
+                      floodOpacity="0.85"
+                    />
+                  </filter>
+                </defs>
+                <g filter={`url(#funda-${foto}-${p.id})`}>
                 <image
                   href={img.src}
                   x={0}
@@ -291,13 +295,17 @@ export function CartaPuzzle({
                   preserveAspectRatio="xMidYMid slice"
                   clipPath={`url(#clip-${foto}-${p.id})`}
                 />
+                {/* O corte. Um traço, e só um: qualquer segundo caminho com a
+                    mesma forma deslocada volta a ler como peça duplicada. */}
                 <path
-                  d={piecePath(p.tabs)}
+                  d={piecePath(p)}
                   transform={`translate(${p.col} ${p.row})`}
                   fill="none"
                   stroke="rgba(232,194,122,0.95)"
-                  strokeWidth="0.045"
+                  strokeWidth="0.04"
+                  strokeLinejoin="round"
                 />
+                </g>
               </svg>
             </div>
           );

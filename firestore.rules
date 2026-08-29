@@ -65,8 +65,23 @@ service cloud.firestore {
       let changed = request.resource.data.diff(resource.data).affectedKeys();
       return changed.hasOnly([
           'pronto', 'personagem', 'pistas', 'fragmentoPronto',
-          'fragmentoProntoMs', 'atualizadoEmMs'
+          'fragmentoProntoMs', 'atualizadoEmMs',
+          /* Reentrada: recarregar a pagina traz a pessoa de volta pelo
+             mesmo caminho da entrada. Antes o cliente reescrevia o
+             documento inteiro e apagava personagem, nucleo e comodo; agora
+             ele so atualiza o que a pessoa mesma escolheu. */
+          'nome', 'forma'
         ])
+        && (
+          !changed.hasAny(['nome'])
+          || (request.resource.data.nome is string
+            && request.resource.data.nome.size() >= 1
+            && request.resource.data.nome.size() <= 60)
+        )
+        && (
+          !changed.hasAny(['forma'])
+          || request.resource.data.forma in ['m', 'f', 'n']
+        )
         && (
           !changed.hasAny(['pistas'])
           || (
@@ -132,11 +147,33 @@ service cloud.firestore {
         || participant(versao, roomId)
       );
       allow list: if false;
-      allow update: if master(versao, roomId)
-        && request.resource.data.mestreUid == resource.data.mestreUid
-        && (
-          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['fase'])
-          || faseConhecida()
+      allow update: if (
+          master(versao, roomId)
+          && request.resource.data.mestreUid == resource.data.mestreUid
+          && (
+            !request.resource.data.diff(resource.data).affectedKeys().hasAny(['fase'])
+            || faseConhecida()
+          )
+        ) || (
+          /* RESGATE. O relogio da noite vivia so na aba de quem abriu a
+             mesa: bastava esse telefone bloquear a tela, trocar de aba ou
+             recarregar e a noite parava para todos, sem segundo caminho e
+             sem ninguem entender o que tinha acontecido.
+             Depois que o relogio da fase corrente vence, qualquer pessoa
+             que esteja na sala pode empurrar — e so isso: nao pode trocar
+             o dono da mesa nem mexer em mais nada. O cliente escreve por
+             transacao, entao dois resgates ao mesmo tempo nao pulam fase.
+             Sem faseAteMs no documento nao ha resgate: uma sala sem
+             relogio nunca esta 'vencida'. */
+          participant(versao, roomId)
+          && resource.data.ativa == true
+          && resource.data.faseAteMs is int
+          && request.time.toMillis() > resource.data.faseAteMs
+          && request.resource.data.mestreUid == resource.data.mestreUid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'fase', 'faseAteMs', 'mosaicoAbertoMs', 'fragmentosLiberados', 'semente'
+          ])
+          && faseConhecida()
         );
       allow delete: if false;
 

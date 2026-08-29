@@ -1,3 +1,4 @@
+import { MEDIA } from "@/lib/mosaico/assets";
 import { Button } from "@/components/ui/button";
 import { MosaicMark } from "@/components/game/mark";
 import { CartaDemo } from "@/components/game/carta-demo";
@@ -40,6 +41,15 @@ function Home() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    /* A tarefa em tela cheia volta por aqui: no GitHub Pages só existe
+       arquivo na raiz do app, então "/Dragon/v2/noite" digitado na barra de
+       endereço dá 404 — a rota quem monta é o roteador, já com a página
+       carregada. O botão volta para a raiz e diz aqui para onde ir. */
+    const ir = new URLSearchParams(window.location.search).get("ir");
+    if (ir === "noite" || ir === "play") {
+      void nav({ to: ir === "play" ? "/play" : "/noite", replace: true });
+      return;
+    }
     const q = new URLSearchParams(window.location.search).get("sala");
     if (q) {
       setCodigo(q.toUpperCase());
@@ -48,7 +58,11 @@ function Home() {
     let stop = false;
     void (async () => {
       const redirected = await consumeGoogleRedirect();
-      const raw = sessionStorage.getItem("noite.criar");
+      /* volta do Google: retoma o que a pessoa estava fazendo antes de sair
+         do site — abrir a mesa OU ensaiar. Antes só a mesa voltava. */
+      /* Só abrir a mesa passa pelo Google agora; o ensaio começa na hora. */
+      const chave = "noite.criar";
+      const raw = sessionStorage.getItem(chave);
       if (stop || !raw) return;
       try {
         const p = JSON.parse(raw) as { nome: string; forma: Forma; formato: NoiteFormato };
@@ -58,13 +72,13 @@ function Home() {
         setScreen("criar");
         if (redirected) void create(p.nome, p.forma, p.formato);
       } catch {
-        sessionStorage.removeItem("noite.criar");
+        sessionStorage.removeItem(chave);
       }
     })();
     return () => {
       stop = true;
     };
-  }, [create]);
+  }, [create, localStart, nav]);
 
   useEffect(() => {
     if (mode !== "idle") void nav({ to: "/play" });
@@ -94,7 +108,7 @@ function Home() {
   return (
     <main className="relative min-h-full bg-background text-foreground">
       <img
-        src={`${import.meta.env.BASE_URL}media/capa-vertical.jpg`}
+        src={`${MEDIA}capa-vertical.jpg`}
         alt=""
         className="pointer-events-none absolute inset-0 h-full w-full object-cover"
       />
@@ -104,8 +118,8 @@ function Home() {
           "pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity duration-700",
           screen === "open" ? "opacity-100" : "opacity-0",
         )}
-        src={`${import.meta.env.BASE_URL}media/abertura.mp4`}
-        poster="/media/aguardando.jpg"
+        src={`${MEDIA}abertura.mp4`}
+        poster={`${MEDIA}aguardando.jpg`}
         autoPlay
         muted={muted}
         playsInline
@@ -239,7 +253,8 @@ function Home() {
                     key={id}
                     className={cn(
                       "relative z-20 flex min-h-[6.5rem] cursor-pointer flex-col items-center justify-center gap-2 rounded-lg px-1 py-3",
-                      forma === id ? "btn-depth" : "box-depth",
+                      "box-depth",
+                      forma === id && "is-escolhido",
                     )}
                   >
                     <input
@@ -254,7 +269,14 @@ function Home() {
                     <span className="pointer-events-none text-3xl leading-none" aria-hidden>
                       {emoji}
                     </span>
-                    <span className="pointer-events-none font-serif text-lg italic text-fog">{label}</span>
+                    <span
+                      className={cn(
+                        "pointer-events-none font-serif text-lg italic",
+                        forma === id ? "text-accent" : "text-fog",
+                      )}
+                    >
+                      {label}
+                    </span>
                   </label>
                 ))}
               </div>
@@ -263,7 +285,8 @@ function Home() {
                   <label
                     className={cn(
                       "relative z-20 cursor-pointer rounded-lg px-3 py-3 text-left",
-                      formato === "curta" ? "btn-depth" : "box-depth",
+                      "box-depth",
+                      formato === "curta" && "is-escolhido",
                     )}
                   >
                     <input
@@ -274,13 +297,28 @@ function Home() {
                       onChange={() => setFormato("curta")}
                       className="absolute inset-0 z-30 cursor-pointer opacity-0"
                     />
-                    <p className="pointer-events-none font-serif text-lg">Noite curta</p>
-                    <p className="pointer-events-none text-base text-muted-foreground">uns 20 min</p>
+                    <p
+                      className={cn(
+                        "pointer-events-none font-serif text-lg",
+                        formato === "curta" && "text-accent",
+                      )}
+                    >
+                      Noite curta
+                    </p>
+                    <p
+                      className={cn(
+                        "pointer-events-none text-base",
+                        formato === "curta" ? "text-fog" : "text-muted-foreground",
+                      )}
+                    >
+                      uns 20 min
+                    </p>
                   </label>
                   <label
                     className={cn(
                       "relative z-20 cursor-pointer rounded-lg px-3 py-3 text-left",
-                      formato === "cheia" ? "btn-depth" : "box-depth",
+                      "box-depth",
+                      formato === "cheia" && "is-escolhido",
                     )}
                   >
                     <input
@@ -291,27 +329,41 @@ function Home() {
                       onChange={() => setFormato("cheia")}
                       className="absolute inset-0 z-30 cursor-pointer opacity-0"
                     />
-                    <p className="pointer-events-none font-serif text-lg">Noite cheia</p>
-                    <p className="pointer-events-none text-base text-muted-foreground">uns 40 min</p>
+                    <p
+                      className={cn(
+                        "pointer-events-none font-serif text-lg",
+                        formato === "cheia" && "text-accent",
+                      )}
+                    >
+                      Noite cheia
+                    </p>
+                    <p
+                      className={cn(
+                        "pointer-events-none text-base",
+                        formato === "cheia" ? "text-fog" : "text-muted-foreground",
+                      )}
+                    >
+                      uns 40 min
+                    </p>
                   </label>
                 </div>
               )}
               {error && <p className="text-lg text-destructive">{error}</p>}
               {screen === "ensaiar" && (
                 <p className="text-base text-muted-foreground">
-                  Entra com Google. Nas duplas este telefone faz um papel e depois o outro — a tela não divide.
+                  Nas duplas este telefone faz um papel e depois o outro — a tela não divide.
                 </p>
               )}
               <Button className="w-full" size="lg" type="submit" disabled={connecting}>
                 {connecting
-                  ? screen === "criar" || screen === "ensaiar"
+                  ? screen === "criar"
                     ? "Entrando com Google…"
                     : "Ligando a mesa…"
                   : screen === "criar"
                     ? "Continuar com Google"
                     : screen === "entrar"
                       ? "Entrar"
-                      : "Ensaiar com Google"}
+                      : "Começar o ensaio"}
               </Button>
               {screen === "criar" && (
                 <p className="text-center text-base text-muted-foreground">
@@ -339,7 +391,6 @@ function Home() {
                 <li>Aponta — a janela, depois o cômodo.</li>
                 <li>Procura a sua cor.</li>
                 <li>Encosta a carta.</li>
-                <li>Compra ou guarda.</li>
                 <li>Quem foi?</li>
               </ol>
               <p>A mesa escolhe personagem, vez e time. Cada um acusa sozinho.</p>

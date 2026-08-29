@@ -278,6 +278,51 @@
 
 
   html.mosaico-embed #hud{padding-top:calc(env(safe-area-inset-top,0px) + 80px)!important;}
+
+  /* ==BOTOES-3D-INICIO== PROFUNDIDADE DOS BOTÕES ---------------------
+     A mesma receita da Mesa e do Laboratório do Pesquisador: três camadas,
+     e é a ordem delas que dá espessura.
+       1. inset 0 1px 0 <clara>      o fio de luz na aresta de cima
+       2. 0 5px 0 <borda escura>     a PAREDE, sem desfoque nenhum
+       3. 0 10px 18px <transparente> a sombra no chão, essa sim mole
+     Ao tocar, o objeto desce 4px e a parede cai para 1px — sobra 1px para
+     ele não virar decalque. A sombra do chão encolhe mas NÃO some: quando
+     some, o pressionado lê como desligado em vez de afundado.
+     O #hud reserva 22px abaixo da fileira, então a parede cabe.        */
+  button{
+    transition:transform .15s,box-shadow .15s,background .15s;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.10),
+      0 5px 0 #22303f,
+      0 10px 18px rgba(0,0,0,.5);
+  }
+  button:active:not([disabled]){
+    transform:translateY(4px);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.06),
+      0 1px 0 #22303f,
+      0 3px 8px rgba(0,0,0,.4);
+  }
+  /* A regra genérica de alvo de toque (48px) vinha DEPOIS da fileira do
+     rodapé e a encolhia de 54 para 48. Aqui ela volta ao tamanho — é a
+     fileira que se usa no escuro, com a mão fria. */
+  #botoes button{min-height:54px}
+  /* Botão de texto sublinhado é link, não tecla: sem parede, sem curso.
+     É o mesmo que a referência faz com .ghost. */
+  #intro .alt,#alt,#b-sim,#falha-toque,#c-close{box-shadow:none}
+  #intro .alt:active,#alt:active,#b-sim:active,#falha-toque:active,
+  #c-close:active{transform:none;box-shadow:none}
+  /* Desligado não tem altura. */
+  button[disabled]{
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+    transform:none;
+  }
+  @media(prefers-reduced-motion:reduce){
+    /* A parede e a sombra continuam respondendo; sai só o movimento. */
+    button{transition:none}
+    button:active:not([disabled]){transform:none}
+  }
+  /* ==BOTOES-3D-FIM== */
 </style>
 </head>
 <body>
@@ -442,7 +487,12 @@ var OBJETOS = [
 var EMBED=false, SEMENTE_URL="", RUN_ID="", DEV=false;
 try{
   var _q=new URLSearchParams(location.search);
-  EMBED       = _q.get("embed")==="1";
+  /* "embed" só vale dentro de uma moldura DE VERDADE. A tarefa aberta em
+     tela cheia no iPhone também carrega embed=1 no endereço, e nesse caso
+     não existe Mesa nenhuma do outro lado: o modo integrado entregava o
+     resultado, escrevia "aguarde a classificação" e parava para sempre.
+     Sem pai, é jogo solo.                                             */
+  EMBED       = _q.get("embed")==="1" && window.parent!==window;
   SEMENTE_URL = (_q.get("s")||"").trim().toUpperCase();
   RUN_ID      = (_q.get("run")||"").trim();
   /* ?dev=1 — modo de teste. O botao de computador nao existe para o jogador:
@@ -647,7 +697,7 @@ function fazGrao(){
    ========================================================================== */
 var view={bearing:0,elev:0,roll:0}, raw={bearing:0,elev:0,roll:0};
 var src="nenhuma", northOffset=0;
-var jogando=false, sim=false, arrasto=null;
+var jogando=false, respondeu=false, sim=false, arrasto=null;
 var holdAcc=0, achados=0, aproxima=0;
 var ordem=[], iAlvo=0;
 var qdRumo0=0, qdDist0=1, qdAlt0=1.62;   /* pose do quadro antes de descer */          /* a fila de enigmas, semeada */
@@ -664,7 +714,7 @@ var raio=0, raioProx=4000, raioForca=0;
 var po=[];
 /* Semente vinda da URL vale como semente fixada: a virada de rodada pelo
    relógio deixa de reescrever a sala no meio da execução.              */
-var SEED="", sementeManual=!!SEMENTE_URL, rodadaVista=-1;
+var SEED="", sementeManual=!!SEMENTE_URL, rodadaVista=-1, tInicio=0;
 var mAberto=false, ultimoTickRodada=-9e9, ultimoZum=0;
 var fpsAcc=0, fpsN=0;
 
@@ -1634,7 +1684,12 @@ function onOrient(e){
     else iosHead=wrap360(iosHead+wrap180(raw.bearing-iosHead)*(iOSInstavel?0.14:0.26));
     raw.bearing=iosHead;
   }
-  if(!jogando) jogando=true;
+  /* `jogando` congela a rodada, então NÃO pode ser ligado aqui: se a
+     bússola só respondesse depois do aviso de falha, a sala congelava com
+     a pessoa ainda presa no diálogo, numa rodada que o resto do grupo já
+     tinha deixado para trás. Quem diz que a execução começou é fechaIntro.
+     Isto aqui só registra que o sensor deu sinal de vida. */
+  respondeu=true;
 }
 function ativaSensor(){
   var DOE=window.DeviceOrientationEvent;
@@ -1644,7 +1699,7 @@ function ativaSensor(){
     window.addEventListener("deviceorientation", onOrient, true);
     fechaIntro();
     setTimeout(function(){
-      if(!jogando){ src="sem sensor"; enviarStatus("sem-resposta","sensor");
+      if(!respondeu){ src="sem sensor"; enviarStatus("sem-resposta","sensor");
         mostraFalha("A bússola deste aparelho não respondeu."); }
     },1400);
   }
@@ -1798,8 +1853,14 @@ function loop(){
 
   /* a virada da rodada, ao vivo: quem abriu 20h58 e quem abriu 21h02 caem
      na MESMA sala às 21h30, sem recarregar nada. */
-  /* Depois que a execução começou, a sala não pode se rearranjar. */
-  if(!sementeManual && !jogando && roundCode()!==rodadaVista){
+  /* A RODADA CONGELA QUANDO A PARTIDA COMEÇA — a mesma regra que a Janela do
+     Norte já tinha. Sem isto, o relógio virava a meia hora no meio da busca e
+     rearranjava os oito objetos: quem estava no sétimo voltava ao zero, e
+     dentro da Mesa o cronômetro daquela execução continuava correndo. A
+     exceção é a carência: nos primeiros 90 s ninguém investiu nada, então
+     quem tocou em cima da virada ainda converge com o grupo sozinho.   */
+  var travada = jogando && (agora-tInicio)>90000;
+  if(!sementeManual && !travada && roundCode()!==rodadaVista){
     montaSala(defaultSeed());
     fechaCarta();
     setStatus("A rodada virou. A sala se rearranjou — para todos.",true);
@@ -1943,6 +2004,7 @@ function loop(){
    CONTROLES
    ========================================================================== */
 function fechaIntro(){ document.getElementById("intro").classList.add("gone"); jogando=true;
+  tInicio=performance.now();          /* daqui conta a carência de 90 s */
   /* jogavel daqui: intro fechada, permissao resolvida, sala montada */
   iniciarCronometroOficial(); enviarStatus("ativo"); }
 
@@ -2051,37 +2113,58 @@ window.addEventListener("orientationchange",function(){ setTimeout(resize,250); 
 </script>
 
 <script id="mosaico-embed-layer-sync">
+/* Diz a Mesa quando uma tela interna esta cobrindo o modulo, para que ela
+   recolha o cronometro, o "Sair" e o "Seguir". Tres cuidados que a versao
+   anterior nao tinha:
+     · a origem e a do pai, nunca "*";
+     · o estado e relido num requestAnimationFrame DEPOIS da mutacao. Ler
+       getComputedStyle no instante em que a classe muda pega a opacidade
+       de antes da transicao, e a Mesa recebia o valor errado;
+     · um batimento a cada 2 s. Se uma mensagem se perder, o pai se corrige
+       sozinho — e, sem batimento nenhum, ele sabe que pode voltar a mostrar
+       os controles em vez de ficar preso escondido. */
 (function(){
   var q=new URLSearchParams(location.search);
   if(q.get("embed")!=="1" || window.parent===window) return;
   document.documentElement.classList.add("mosaico-embed");
+  var alvo=(location.origin && location.origin!=="null") ? location.origin : "*";
   var ids=["intro","oito","pistas","cartao","carta","card","final","descanso","falha","master","mestre"];
   var last=null;
   function vis(el){
     if(!el) return false;
+    /* offsetParent nulo apanha o que getComputedStyle do proprio elemento
+       nao ve: um ancestral escondido. */
+    if(el.offsetParent===null && getComputedStyle(el).position!=="fixed") return false;
     var cs=getComputedStyle(el);
     if(cs.display==="none" || cs.visibility==="hidden") return false;
-    var op=parseFloat(cs.opacity||"1");
-    if(op<=0.05) return false;
+    if(parseFloat(cs.opacity||"1")<=0.05) return false;
     if(el.classList.contains("gone")) return false;
     return true;
   }
-  function emit(){
-    var open=ids.some(function(id){ return vis(document.getElementById(id)); });
-    if(open===last) return;
-    last=open;
-    window.parent.postMessage({mosaico:"ui-overlay",open:open},"*");
+  function estado(){
+    return ids.some(function(id){ return vis(document.getElementById(id)); });
   }
-  var mo=new MutationObserver(emit);
+  function manda(open){
+    try{ window.parent.postMessage({mosaico:"ui-overlay",open:open},alvo); }catch(e){}
+  }
+  function emit(forca){
+    var open=estado();
+    if(open===last && !forca) return;
+    last=open; manda(open);
+  }
+  var mo=new MutationObserver(function(){
+    emit(false);
+    requestAnimationFrame(function(){ emit(false); });
+  });
   ids.forEach(function(id){
     var el=document.getElementById(id);
     if(el) mo.observe(el,{attributes:true,attributeFilter:["class","style","hidden"]});
   });
-  window.addEventListener("pageshow",emit);
-  window.addEventListener("beforeunload",function(){
-    window.parent.postMessage({mosaico:"ui-overlay",open:false},"*");
-  });
-  requestAnimationFrame(emit);
+  document.addEventListener("transitionend",function(){ emit(false); },true);
+  window.addEventListener("pageshow",function(){ emit(true); });
+  window.addEventListener("beforeunload",function(){ manda(false); });
+  setInterval(function(){ emit(true); },2000);
+  requestAnimationFrame(function(){ emit(true); });
 })();
 </script>
 

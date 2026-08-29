@@ -5,11 +5,10 @@ import { useParty } from "@/lib/mosaico/party";
 import {
   CHAR_IDS,
   DEDUCAO,
-  FRAGMENTOS,
+  fragmentoDoNucleo,
   PHONE_LINE,
   ROTEIRO,
   VERDADE,
-  pecasDoTelefone,
   fotoDoNucleo,
   papeisNoGrupo,
   FOTO_IDS,
@@ -17,19 +16,24 @@ import {
   nucleoDoCampo,
   CAMPOS_FICHA,
   type CampoFicha,
+  podeSeguir,
+  FASES_LANTERNA,
   type V3Phase,
 } from "@/lib/mosaico/v3";
 import { cn } from "@/lib/utils";
 import { Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CartaPuzzle, FOTOS, type FotoId } from "./carta-puzzle";
 import { EspelhoPlay, PalimpsestoPlay, PlantaPlay } from "./gesto-play";
 import { FaseRelogio } from "./cronometro";
 import { MosaicMark } from "./mark";
 import { ModuleFrame } from "./module-frame";
 import { NIGHT_MODULES } from "@/lib/mosaico/modules";
+import MosaicoQR from "@/lib/mosaico/qr";
+import { useNavigate } from "@tanstack/react-router";
 
-function me() {
+/* Lê da store: é um hook, e o nome tem de dizer isso. */
+function useEu() {
   const uid = useParty((s) => s.uid);
   const players = useParty((s) => s.players);
   return players.find((p) => p.id === uid) ?? players[0] ?? null;
@@ -41,30 +45,73 @@ function Line({ children }: { children: string }) {
   );
 }
 
-const LANTERN_FASES = ["janela", "vidro", "salaescura", "palimpsesto", "espelho", "planta"];
+/* A mesma lista que a v3 usa para decidir o "Seguir" — uma só, para as duas
+   não se afastarem. */
+const LANTERN_FASES: readonly string[] = FASES_LANTERNA;
 
-function HostBar() {
+function formatarTempoTarefa(ms: number) {
+  const cent = Math.floor(ms / 10);
+  const seg = Math.floor(cent / 100);
+  const mm = String(Math.floor(seg / 60)).padStart(2, "0");
+  const ss = String(seg % 60).padStart(2, "0");
+  const cc = String(cent % 100).padStart(2, "0");
+  return mm + ":" + ss + "," + cc;
+}
+
+function HostBar({ coberto = false }: { coberto?: boolean }) {
   const isMaster = useParty((s) => s.isMaster);
   const advance = useParty((s) => s.advance);
   const lanternDone = useParty((s) => s.lanternDone);
+  const players = useParty((s) => s.players);
   const fase = useParty((s) => (s.mode === "local" ? s.localFase : s.room?.fase));
   const faseAte = useParty((s) => s.room?.faseAteMs);
   const [now, setNow] = useState(Date.now());
+  const [indo, setIndo] = useState(false);
   useEffect(() => {
     const t = window.setInterval(() => setNow(Date.now()), 500);
     return () => window.clearInterval(t);
   }, []);
-  if (!isMaster) return null;
-  if (faseAte && faseAte > now) return null;
-  if (fase && LANTERN_FASES.includes(fase)) {
-    if (!lanternDone) return null;
-  } else if (!fase || !["votacao", "encaixe", "deducao"].includes(fase)) {
-    return null;
-  }
+  useEffect(() => {
+    setIndo(false);
+  }, [fase]);
+
+  const faseVencida = !faseAte || faseAte <= now;
+  const mostra = podeSeguir({
+    fase,
+    isMaster,
+    lanternDone,
+    algumFragmento: players.some((p) => p.fragmentoPronto),
+    faseVencida,
+  });
+  if (!mostra) return null;
+  /* Uma tela interna do modulo cobre a moldura, e enquanto a tarefa esta em
+     curso esconder o "Seguir" e o certo: senao ele fica por cima do dialogo.
+     Mas depois que a tarefa acabou - ou que o relogio venceu - o que estiver
+     aberto la dentro deixou de importar, e era exatamente ali que a mesa
+     ficava sem saida: o aviso de "a bussola nao respondeu" nunca se fecha
+     sozinho, e com ele aberto o botao nunca voltava. */
+  if (coberto && !lanternDone && !faseVencida) return null;
+  /* Quando o relógio já venceu e quem toca não conduz a mesa, isto é um
+     resgate: vale dizer isso, senão parece que o jogo tem dois donos. */
+  const resgate = !isMaster && faseVencida;
+
   return (
     <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 px-4 pb-[max(0.8rem,env(safe-area-inset-bottom))] pt-3">
-      <Button className="w-full" size="lg" onClick={() => void advance()}>
-        Seguir
+      {resgate && (
+        <p className="mb-2 text-center text-base text-muted-foreground">
+          O tempo desta parte acabou. Qualquer um pode seguir.
+        </p>
+      )}
+      <Button
+        className="w-full"
+        size="lg"
+        disabled={indo}
+        onClick={() => {
+          setIndo(true);
+          void advance();
+        }}
+      >
+        {indo ? "Seguindo…" : "Seguir"}
       </Button>
     </div>
   );
@@ -102,13 +149,35 @@ function ObserverPlay({ nome }: { nome: string }) {
   );
 }
 
+/* O QR é por onde as pessoas entram. Ele vinha de api.qrserver.com: um
+   serviço de terceiros no caminho crítico da entrada, que exige rede boa na
+   sala e ainda manda o endereço da mesa para fora. O codificador do próprio
+   MOSAICO já existia na v1, conferido módulo a módulo contra a norma em
+   tests/qr.test.mjs — a noite só não o estava usando. */
+function QrDaMesa({ link }: { link: string }) {
+  const svg = useMemo(() => {
+    try {
+      return MosaicoQR.svg(link, { rotulo: "Código QR para entrar na mesa" });
+    } catch {
+      return null;
+    }
+  }, [link]);
+  if (!svg) return null;
+  return (
+    <div
+      className="mx-auto mt-4 w-[220px] max-w-full rounded-md bg-white p-2"
+      dangerouslySetInnerHTML={{ __html: svg }}
+    />
+  );
+}
+
 function SalaScreen() {
   const players = useParty((s) => s.players);
   const code = useParty((s) => s.code);
   const isMaster = useParty((s) => s.isMaster);
   const ready = useParty((s) => s.ready);
   const startNight = useParty((s) => s.startNight);
-  const eu = me();
+  const eu = useEu();
   const link =
     typeof window !== "undefined" && code && code !== "LOCAL"
       ? `${window.location.origin}${import.meta.env.BASE_URL}?sala=${code}`
@@ -116,10 +185,11 @@ function SalaScreen() {
 
   return (
     <div className="space-y-5 px-5 pb-10 pt-6">
-      <Line>{PHONE_LINE.sala}</Line>
       <h1 className="font-serif text-4xl">A mesa</h1>
       <p className="text-lg text-fog">
-        Aponta. Mostra. Acusa. No teste, um jogador passa por tudo.
+        {players.length > 1
+          ? "Aponta. Mostra. Acusa. Cada um no próprio telefone."
+          : "Aponta. Mostra. Acusa. Sozinho, a casa te dá todos os papéis, um de cada vez."}
       </p>
       {code && code !== "LOCAL" && (
         <div className="box-depth rounded-lg px-4 py-5 text-center">
@@ -129,13 +199,7 @@ function SalaScreen() {
           <p className="mt-2 font-serif text-4xl tracking-[0.2em] text-primary">{code}</p>
           {link && (
             <>
-              <img
-                alt="QR da mesa"
-                className="mx-auto mt-4 rounded-md bg-white p-2"
-                width={220}
-                height={220}
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(link)}`}
-              />
+              <QrDaMesa link={link} />
               <p className="mt-3 text-lg text-fog">
                 Os outros apontam a câmera aqui. Sem digitar código.
               </p>
@@ -220,7 +284,6 @@ function EnceneScreen() {
 
   return (
     <div className="space-y-5 px-5 pb-10 pt-6">
-      <Line>{PHONE_LINE.encenacao}</Line>
       <p className="font-serif text-xl text-primary">{mascara}</p>
       {tour && (
         <p className="text-base uppercase tracking-widest text-muted-foreground">
@@ -315,7 +378,6 @@ function VotoScreen() {
   const others = players.filter((p) => p.id !== uid);
   return (
     <div className="space-y-4 px-5 pb-28 pt-6">
-      <Line>{PHONE_LINE.votacao}</Line>
       <h2 className="font-serif text-3xl">Quem deu o clima?</h2>
       <p className="text-lg text-muted-foreground">Um toque. Sem votar em si.</p>
       <div className="flex flex-col gap-2">
@@ -337,20 +399,51 @@ function LanternPhase({ slug }: { slug: string }) {
   const mod = NIGHT_MODULES.find((m) => m.slug === slug)!;
   const markPista = useParty((s) => s.markPista);
   const lanternDone = useParty((s) => s.lanternDone);
+  const players = useParty((s) => s.players);
+  const semente = useParty((s) => s.room?.semente);
+  const [tempo, setTempo] = useState<number | null>(null);
   return (
     <div className={cn("fixed inset-0 z-10 bg-background", lanternDone && "pb-24")}>
-      <ModuleFrame mod={mod} compact onDone={() => markPista(slug)} />
+      <ModuleFrame
+        mod={mod}
+        compact
+        semente={semente}
+        onDone={(ms) => {
+          setTempo(ms);
+          markPista(slug);
+        }}
+      />
+      {/* Concluida a tarefa, a moldura ficava mostrando o modulo parado ate
+          o relogio vencer - podiam ser dois minutos de tela morta. Agora ela
+          diz o que aconteceu, e o "Seguir" ja esta disponivel embaixo. */}
+      {lanternDone && (
+        <div className="pointer-events-none absolute inset-x-0 bottom-24 z-20 flex flex-col items-center gap-1 bg-gradient-to-t from-background via-background/95 to-transparent px-6 pb-6 pt-16 text-center">
+          <p className="text-base uppercase tracking-[0.2em] text-accent">
+            Fragmento localizado
+          </p>
+          <p className="font-serif text-2xl text-foreground">{mod.title}</p>
+          {tempo != null && tempo > 0 && (
+            <p className="font-mono text-lg tabular-nums text-fog">
+              {formatarTempoTarefa(tempo)}
+            </p>
+          )}
+          <p className="max-w-xs text-lg text-muted-foreground">
+            {players.length > 1
+              ? "A colocação define a pista. Sigam quando a mesa estiver pronta."
+              : "A colocação define a pista."}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
 
 function CorScreen() {
-  const eu = me();
+  const eu = useEu();
   const confirmFragment = useParty((s) => s.confirmFragment);
   const players = useParty((s) => s.players);
   const room = useParty((s) => s.room);
-  const n = Number(eu?.nucleo || 1) as 1 | 2 | 3 | 4;
-  const f = FRAGMENTOS[n];
+  const f = fragmentoDoNucleo(eu?.nucleo);
   const ready = players.filter((p) => p.fragmentoPronto).length;
   const opened = Number(room?.mosaicoAbertoMs) || Date.now();
   const [tick, setTick] = useState(0);
@@ -394,7 +487,7 @@ function CorScreen() {
 function EncaixeScreen() {
   const players = useParty((s) => s.players);
   const uid = useParty((s) => s.uid);
-  const eu = me();
+  const eu = useEu();
   const nucleo = eu?.nucleo ?? 1;
   const membros = players
     .filter((p) => p.nucleo === nucleo)
@@ -412,7 +505,6 @@ function EncaixeScreen() {
 
   return (
     <div className="space-y-4 px-5 pb-28 pt-6">
-      <Line>{PHONE_LINE.encaixe}</Line>
       <h2 className="font-serif text-3xl">
         {papel === "tarja" ? "A tarja" : meta.onde.split(".")[0]}
       </h2>
@@ -453,6 +545,62 @@ function EncaixeScreen() {
   );
 }
 
+/* Estava declarado DENTRO de DeducaoScreen. A cada render o React via um
+   tipo de componente novo, desmontava o <select> e montava outro — no
+   iPhone o seletor nativo fechava sozinho no instante em que a pessoa
+   escolhia, e a ficha ficava impossível de preencher. */
+function CampoFichaSelect({
+  label,
+  opts,
+  valor,
+  meu,
+   travado,
+  dono,
+  onEscolhe,
+  onOuvi,
+}: {
+  label: string;
+  opts: { id: string; label: string }[];
+  valor: string | null;
+  meu: boolean;
+  travado: boolean;
+  dono: number;
+  onEscolhe: (v: string | null) => void;
+  onOuvi: () => void;
+}) {
+  const frag = fragmentoDoNucleo(dono);
+  return (
+    <label className="block space-y-1">
+      <span className="text-base uppercase tracking-[0.16em] text-muted-foreground">
+        {label}
+      </span>
+      {meu ? (
+        <select
+          className="field-depth h-11 w-full rounded-md px-3"
+          value={valor ?? ""}
+          disabled={travado}
+          onChange={(e) => onEscolhe(e.target.value || null)}
+        >
+          <option value="">—</option>
+          {opts.map((o) => (
+            <option key={o.id} value={o.id}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+      ) : (
+        <button
+          type="button"
+          className="box-depth w-full rounded-md px-3 py-3 text-left text-lg text-fog"
+          onClick={onOuvi}
+        >
+          A casa deu isso ao fragmento {frag?.cor ?? dono}. Quando a mesa falar, toca aqui.
+        </button>
+      )}
+    </label>
+  );
+}
+
 function DeducaoScreen() {
   const d = useParty((s) => s.deduction);
   const setDeduction = useParty((s) => s.setDeduction);
@@ -460,7 +608,7 @@ function DeducaoScreen() {
   const submittedAt = useParty((s) => s.submittedAt);
   const players = useParty((s) => s.players);
   const mode = useParty((s) => s.mode);
-  const eu = me();
+  const eu = useEu();
   const nNucleos =
     mode === "local" ? 1 : new Set(players.map((p) => p.nucleo || 1)).size;
   const meus = camposDoNucleo(eu?.nucleo ?? 1, nNucleos);
@@ -471,60 +619,31 @@ function DeducaoScreen() {
     label: tituloPapelNaMesa(s.id, players),
   }));
 
-  function Field({
-    label,
-    field,
-    opts,
-  }: {
-    label: string;
-    field: CampoFicha;
-    opts: { id: string; label: string }[];
-  }) {
-    const dono = nucleoDoCampo(field, nNucleos);
-    const meu = meus.includes(field) || !!ouvi[field];
-    const frag = FRAGMENTOS[dono as 1 | 2 | 3 | 4];
-    return (
-      <label className="block space-y-1">
-        <span className="text-base uppercase tracking-[0.16em] text-muted-foreground">
-          {label}
-        </span>
-        {meu ? (
-          <select
-            className="field-depth h-11 w-full rounded-md px-3"
-            value={d[field] ?? ""}
-            disabled={!!submittedAt}
-            onChange={(e) => setDeduction({ ...d, [field]: e.target.value || null })}
-          >
-            <option value="">—</option>
-            {opts.map((o) => (
-              <option key={o.id} value={o.id}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-        ) : (
-          <button
-            type="button"
-            className="box-depth w-full rounded-md px-3 py-3 text-left text-lg text-fog"
-            onClick={() => setOuvi((s) => ({ ...s, [field]: true }))}
-          >
-            A casa deu isso ao fragmento {frag?.cor ?? dono}. Quando a mesa falar, toca aqui.
-          </button>
-        )}
-      </label>
-    );
-  }
-
   return (
     <div className="space-y-4 px-5 pb-28 pt-6">
-      <Line>{PHONE_LINE.deducao}</Line>
       <h2 className="font-serif text-3xl">Quem foi?</h2>
       <p className="text-lg text-fog">
         Três linhas. A tua, tu marcas. As outras, a mesa fala.
       </p>
-      <Field label="Suspeito" field="suspectId" opts={suspeitos} />
-      <Field label="O que fez" field="actionId" opts={DEDUCAO.acoes} />
-      <Field label="A prova" field="proofId" opts={DEDUCAO.provas} />
+      {(
+        [
+          ["Suspeito", "suspectId", suspeitos],
+          ["O que fez", "actionId", DEDUCAO.acoes],
+          ["A prova", "proofId", DEDUCAO.provas],
+        ] as [string, CampoFicha, { id: string; label: string }[]][]
+      ).map(([label, field, opts]) => (
+        <CampoFichaSelect
+          key={field}
+          label={label}
+          opts={opts}
+          valor={d[field]}
+          meu={meus.includes(field) || !!ouvi[field]}
+          travado={!!submittedAt}
+          dono={nucleoDoCampo(field, nNucleos)}
+          onEscolhe={(v) => setDeduction({ ...d, [field]: v })}
+          onOuvi={() => setOuvi((o) => ({ ...o, [field]: true }))}
+        />
+      ))}
       <Button className="w-full" size="lg" disabled={!ready} onClick={submit}>
         Acusar — não se muda
       </Button>
@@ -536,6 +655,8 @@ function DeducaoScreen() {
 }
 
 function ResultadoScreen() {
+  const nav = useNavigate();
+  const leave = useParty((s) => s.leave);
   const d = useParty((s) => s.deduction);
   const submittedAt = useParty((s) => s.submittedAt);
   const players = useParty((s) => s.players);
@@ -550,7 +671,6 @@ function ResultadoScreen() {
 
   return (
     <div className="space-y-6 px-5 pb-16 pt-6">
-      <Line>{PHONE_LINE.resultado}</Line>
       <h2 className="font-serif text-3xl">A casa fala</h2>
       {REVEAL_SLIDES.map((s) => (
         <section key={s.title} className="space-y-1">
@@ -578,9 +698,59 @@ function ResultadoScreen() {
           ))}
         </ul>
       </div>
-      <Link to="/" className="block text-center text-lg text-accent">
+      {/* Um <Link to="/"> aqui nao voltava: a raiz ve que a mesa ainda esta
+          aberta e devolve para /play na hora. E preciso encerrar primeiro. */}
+      <button
+        type="button"
+        className="block min-h-11 w-full text-center text-lg text-accent"
+        onClick={() => {
+          leave();
+          void nav({ to: "/" });
+        }}
+      >
         Voltar ao início
-      </Link>
+      </button>
+    </div>
+  );
+}
+
+/* Recarregar a pagina no meio da noite zerava o estado e a pessoa caia numa
+   tela dizendo que a mesa nem tinha sido aberta. A aba guarda o codigo; aqui
+   ela volta sozinha, sem reescrever o proprio jogador. */
+function MesaFechada() {
+  const restore = useParty((s) => s.restore);
+  const [tentando, setTentando] = useState(true);
+  useEffect(() => {
+    let vivo = true;
+    void restore().then((ok) => {
+      if (vivo && !ok) setTentando(false);
+    });
+    return () => {
+      vivo = false;
+    };
+  }, [restore]);
+  return (
+    <div className="flex min-h-dvh flex-col items-center justify-center gap-3 px-6 text-center">
+      <MosaicMark className="size-8 text-primary" />
+      <p className="text-lg text-fog">
+        {tentando ? "Voltando para a mesa…" : "A mesa ainda não foi aberta."}
+      </p>
+      {!tentando && (
+        <Link to="/" className="text-lg text-accent">
+          Voltar
+        </Link>
+      )}
+    </div>
+  );
+}
+
+/* A escuta do Firestore caindo era indistinguivel de o jogo ter travado. */
+function AvisoSemRede() {
+  const offline = useParty((s) => s.offline);
+  if (!offline) return null;
+  return (
+    <div className="fixed inset-x-0 top-0 z-50 bg-destructive/90 px-4 py-2 text-center text-base text-white">
+      Sem ligação com a mesa. A reconectar…
     </div>
   );
 }
@@ -591,47 +761,43 @@ export function PartyApp() {
     s.mode === "local" ? s.localFase : s.room?.fase || "sala",
   ) as V3Phase | "sala" | "comodo";
   const leave = useParty((s) => s.leave);
-  const players = useParty((s) => s.players);
-  const lanternDone = useParty((s) => s.lanternDone);
   const [moduleOverlay, setModuleOverlay] = useState(false);
+  const ultimaMsg = useRef(0);
 
   useEffect(() => {
     function onModuleUi(ev: MessageEvent) {
       if (ev.origin !== window.location.origin) return;
       const d = ev.data as { mosaico?: string; open?: boolean } | null;
       if (!d || d.mosaico !== "ui-overlay") return;
+      ultimaMsg.current = Date.now();
       setModuleOverlay(Boolean(d.open));
     }
     window.addEventListener("message", onModuleUi);
     return () => window.removeEventListener("message", onModuleUi);
   }, []);
 
+  /* O modulo repete o estado a cada 2 s. Se pararmos de ouvir, a mensagem se
+     perdeu ou o iframe recarregou - e continuar escondendo o cronometro, o
+     "Sair" e o "Seguir" deixaria a fase sem nenhuma saida visivel. */
+  useEffect(() => {
+    if (!moduleOverlay) return;
+    const t = window.setInterval(() => {
+      if (Date.now() - ultimaMsg.current > 6000) setModuleOverlay(false);
+    }, 1000);
+    return () => window.clearInterval(t);
+  }, [moduleOverlay]);
+
   useEffect(() => {
     setModuleOverlay(false);
   }, [fase]);
 
-  if (mode === "idle") {
-    return (
-      <div className="flex min-h-dvh flex-col items-center justify-center gap-3 px-6">
-        <MosaicMark className="size-8 text-primary" />
-        <p className="text-lg text-fog">A mesa ainda não foi aberta.</p>
-        <Link to="/" className="text-lg text-accent">
-          Voltar
-        </Link>
-      </div>
-    );
-  }
+  if (mode === "idle") return <MesaFechada />;
 
   const hideChrome = fase === "cor" || LANTERN_FASES.includes(fase);
-  const showHost =
-    fase === "votacao" ||
-    fase === "encaixe" ||
-    fase === "deducao" ||
-    (fase === "cor" && players.some((p) => p.fragmentoPronto)) ||
-    (LANTERN_FASES.includes(fase) && lanternDone);
 
   return (
     <div className="relative min-h-dvh bg-background">
+      <AvisoSemRede />
       {!hideChrome && (
         <header className="grid grid-cols-[3.5rem_minmax(0,1fr)_3.5rem] items-center px-4 pt-[max(0.8rem,env(safe-area-inset-top))]">
           <button
@@ -647,7 +813,7 @@ export function PartyApp() {
           <span aria-hidden="true" className="w-14" />
         </header>
       )}
-      {!moduleOverlay && <FaseRelogio />}
+      <FaseRelogio oculto={moduleOverlay} />
       {hideChrome && !moduleOverlay && (
         <button
           type="button"
@@ -670,7 +836,7 @@ export function PartyApp() {
       {fase === "encaixe" && <EncaixeScreen />}
       {fase === "deducao" && <DeducaoScreen />}
       {fase === "resultado" && <ResultadoScreen />}
-      {showHost && !moduleOverlay && <HostBar />}
+      <HostBar coberto={moduleOverlay} />
     </div>
   );
 }

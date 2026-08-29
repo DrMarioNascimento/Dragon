@@ -197,3 +197,28 @@ test("o SVG sai autocontido e com rótulo acessível", () => {
   const q = QR.gerar("https://exemplo.org/sala", { nivel: "M" });
   assert.ok(svg.includes('viewBox="0 0 ' + (q.tamanho + 8) + " " + (q.tamanho + 8) + '"'));
 });
+
+/* ---------- a cópia da noite não pode se afastar da mesa ----------
+   O codificador existe duas vezes: v1/js/qr.js se pendura em window (a mesa é
+   HTML solto) e mosaico-web/src/lib/mosaico/qr.js é um módulo (o empacotador
+   da noite tem sideEffects:false e removeria um efeito no global sem avisar).
+   Só a amarração pode diferir. Se o corpo divergir, um dos dois jogos passa a
+   gerar QR com outro código — e QR errado tem a aparência exata de QR certo. */
+test("as duas cópias do codificador têm o mesmo corpo", () => {
+  const mesa = readFileSync(new URL("../v1/js/qr.js", import.meta.url), "utf8");
+  const noite = readFileSync(
+    new URL("../mosaico-web/src/lib/mosaico/qr.js", import.meta.url),
+    "utf8",
+  );
+  const corpo = (texto) => {
+    const i = texto.indexOf('"use strict";');
+    const f = texto.indexOf("  /* SVG pronto para innerHTML.");
+    assert.ok(i > 0 && f > i, "não achei os limites do corpo");
+    return texto.slice(i, f).replace(/\r\n/g, "\n");
+  };
+  assert.equal(
+    corpo(noite),
+    corpo(mesa),
+    "mosaico-web/src/lib/mosaico/qr.js divergiu de v1/js/qr.js",
+  );
+});

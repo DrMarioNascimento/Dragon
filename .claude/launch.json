@@ -1,0 +1,13 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "pages-local",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "mosaico-web/scripts/servir-pages.mjs"
+      ],
+      "port": 8123
+    }
+  ]
+}
