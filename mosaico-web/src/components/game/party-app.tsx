@@ -5,7 +5,7 @@ import { useParty } from "@/lib/mosaico/party";
 import {
   CHAR_IDS,
   DEDUCAO,
-  FRAGMENTOS,
+  fragmentoDoNucleo,
   PHONE_LINE,
   ROTEIRO,
   VERDADE,
@@ -443,8 +443,7 @@ function CorScreen() {
   const confirmFragment = useParty((s) => s.confirmFragment);
   const players = useParty((s) => s.players);
   const room = useParty((s) => s.room);
-  const n = Number(eu?.nucleo || 1) as 1 | 2 | 3 | 4;
-  const f = FRAGMENTOS[n];
+  const f = fragmentoDoNucleo(eu?.nucleo);
   const ready = players.filter((p) => p.fragmentoPronto).length;
   const opened = Number(room?.mosaicoAbertoMs) || Date.now();
   const [tick, setTick] = useState(0);
@@ -569,7 +568,7 @@ function CampoFichaSelect({
   onEscolhe: (v: string | null) => void;
   onOuvi: () => void;
 }) {
-  const frag = FRAGMENTOS[dono as 1 | 2 | 3 | 4];
+  const frag = fragmentoDoNucleo(dono);
   return (
     <label className="block space-y-1">
       <span className="text-base uppercase tracking-[0.16em] text-muted-foreground">

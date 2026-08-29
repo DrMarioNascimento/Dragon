@@ -37,7 +37,22 @@ export const FRAGMENTOS = {
   2: { nome: "Fragmento da Tempestade", cor: "Azul", cls: "fragmento-tempestade" },
   3: { nome: "Fragmento do Farol", cor: "Dourada", cls: "fragmento-farol" },
   4: { nome: "Fragmento da Noite", cor: "Roxa", cls: "fragmento-noite" },
+  /* O quinto veio de uma mesa de dez pessoas, que forma cinco núcleos e
+     pedia um Fragmento que não existia. É o da carta da casa — a linha do
+     tempo da noite, que é a única imagem do jogo que já É uma pista. */
+  5: { nome: "Fragmento da Casa", cor: "Verde", cls: "fragmento-casa" },
 } as const;
+
+/** Quantos Fragmentos a casa tem para repartir. */
+export const MAX_NUCLEOS = Object.keys(FRAGMENTOS).length;
+
+/** O Fragmento de um núcleo. Nunca devolve vazio: um núcleo sem Fragmento
+ *  derrubava a tela da cor em branco, e quem ficava sem tela era sempre
+ *  quem entrou por último. */
+export function fragmentoDoNucleo(nucleo: number | undefined) {
+  const n = Math.min(MAX_NUCLEOS, Math.max(1, Number(nucleo) || 1));
+  return FRAGMENTOS[n as keyof typeof FRAGMENTOS];
+}
 
 export const ROTEIRO: Record<
   string,
@@ -212,13 +227,19 @@ export function nextPhase(
 /** Par é a base. Ímpar: um time de 3 (foto + tarja). A casa sorteia. */
 export function groupSizes(n: number): number[] {
   if (n <= 0) return [];
-  if (n === 1) return [1];
-  if (n === 2) return [2];
-  if (n === 3) return [3];
-  if (n % 2 === 0) return Array.from({ length: n / 2 }, () => 2);
-  return [3, ...Array.from({ length: (n - 3) / 2 }, () => 2)];
+  if (n <= 3) return [n];
+  /* Antes isto formava pares sem teto: dez pessoas viravam cinco núcleos,
+     doze viravam seis, e a casa só tem Fragmento para cinco. Quem caísse
+     no núcleo sem Fragmento perdia a tela da cor. O número de times passa
+     a nascer de quantos Fragmentos existem, e o resto se distribui — um
+     time de três é o que o desenho já previa para mesa ímpar. */
+  const times = Math.min(MAX_NUCLEOS, Math.floor(n / 2));
+  const base = Math.floor(n / times);
+  const sobra = n % times;
+  return Array.from({ length: times }, (_, i) => base + (i < sobra ? 1 : 0)).sort(
+    (a, b) => b - a,
+  );
 }
-
 export function assignNucleos(n: number): number[] {
   const sizes = groupSizes(n);
   const g = sizes.length;
@@ -252,11 +273,17 @@ export function pecasDoPapel(papel: PapelFoto): string[] {
   );
 }
 
-export const FOTO_IDS = ["agenda", "gaveta", "farol", "noite"] as const;
+/* Uma para cada Fragmento, na ordem deles. A carta da costa estava órfã no
+   repositório desde que o Encaixe virou fotos ("carta da casa como
+   quebra-cabeça de dente", 78bc800): o arquivo continuava lá, e nada o
+   pedia. Ela é a única cujas seis peças são os seis horários da noite. */
+export const FOTO_IDS = ["agenda", "gaveta", "farol", "noite", "costa"] as const;
 export type FotoId = (typeof FOTO_IDS)[number];
 
+/** Uma imagem por Fragmento — a carta da casa é a do quinto. */
 export function fotoDoNucleo(nucleo: number): FotoId {
-  return FOTO_IDS[(Math.max(1, nucleo) - 1) % FOTO_IDS.length];
+  const n = Math.min(MAX_NUCLEOS, Math.max(1, nucleo));
+  return FOTO_IDS[(n - 1) % FOTO_IDS.length];
 }
 
 export function assignComodos(n: number): ("sala" | "vidro")[] {

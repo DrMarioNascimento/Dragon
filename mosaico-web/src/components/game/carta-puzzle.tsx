@@ -55,6 +55,15 @@ export const FOTOS: Record<
     data: "27 AGO",
     lado: "top",
   },
+  costa: {
+    src: `${MEDIA}carta-costa.jpg`,
+    /* A carta não tem tarja própria; a da noite serve, é a mesma mão. */
+    tarja: `${MEDIA}tarja-noite.jpg`,
+    onde: "A carta da casa. A linha do tempo da noite.",
+    achado: "Seis horas marcadas. A última é a que apaga a luz.",
+    data: "21:03 — 21:29",
+    lado: "bottom",
+  },
   noite: {
     src: `${MEDIA}foto-noite.jpg`,
     tarja: `${MEDIA}tarja-noite.jpg`,
@@ -252,13 +261,31 @@ function CartaGrade({
                     />
                   </clipPath>
                 </defs>
-                {/* A parede: a mesma peça, deslocada, atrás. É o que dá
-                    espessura de cartão — a peça deixa de ser um decalque. */}
-                <path
-                  d={piecePath(p)}
-                  transform={`translate(${p.col} ${p.row + 0.045})`}
-                  fill="rgba(3,6,10,0.75)"
-                />
+                {/* A espessura vem de uma sombra DESFOCADA, não de uma cópia
+                    deslocada da peça. A parede sólida serve para um retângulo,
+                    onde a cópia só aparece como uma faixa embaixo; num
+                    contorno recortado ela reaparece em volta de cada pino,
+                    como um segundo traço — o desenho fica duplicado. Aqui a
+                    peça tem UM contorno só, e a profundidade fica por conta
+                    do desfoque, que não tem aresta para duplicar. */}
+                <defs>
+                  <filter
+                    id={`funda-${foto}-${p.id}`}
+                    x="-30%"
+                    y="-30%"
+                    width="160%"
+                    height="160%"
+                  >
+                    <feDropShadow
+                      dx="0"
+                      dy="0.035"
+                      stdDeviation="0.03"
+                      floodColor="#03060a"
+                      floodOpacity="0.85"
+                    />
+                  </filter>
+                </defs>
+                <g filter={`url(#funda-${foto}-${p.id})`}>
                 <image
                   href={img.src}
                   x={0}
@@ -268,7 +295,8 @@ function CartaGrade({
                   preserveAspectRatio="xMidYMid slice"
                   clipPath={`url(#clip-${foto}-${p.id})`}
                 />
-                {/* O corte, e por dentro dele o fio de luz da quina de cima. */}
+                {/* O corte. Um traço, e só um: qualquer segundo caminho com a
+                    mesma forma deslocada volta a ler como peça duplicada. */}
                 <path
                   d={piecePath(p)}
                   transform={`translate(${p.col} ${p.row})`}
@@ -277,14 +305,7 @@ function CartaGrade({
                   strokeWidth="0.04"
                   strokeLinejoin="round"
                 />
-                <path
-                  d={piecePath(p)}
-                  transform={`translate(${p.col} ${p.row - 0.012})`}
-                  fill="none"
-                  stroke="rgba(255,255,255,0.22)"
-                  strokeWidth="0.016"
-                  clipPath={`url(#clip-${foto}-${p.id})`}
-                />
+                </g>
               </svg>
             </div>
           );

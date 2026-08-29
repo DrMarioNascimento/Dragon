@@ -317,6 +317,9 @@ button.box-depth:active:not(:disabled),
 .fragmento-tempestade { background: #163a6b; }
 .fragmento-farol { background: #8a5a12; }
 .fragmento-noite { background: #3b1d5c; }
+/* O verde da carta: escuro o bastante para o texto branco por cima,
+   distinto dos outros quatro à luz de tela no escuro. */
+.fragmento-casa { background: #1c4636; }
 
 .fragmento-cronometro {
   display: block;
