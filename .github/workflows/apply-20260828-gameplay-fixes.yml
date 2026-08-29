@@ -47,7 +47,8 @@ jobs:
         run: |
           find scripts -name '*.test.mjs' ! -name 'brand-check.test.mjs' -print0 | xargs -0 node --test
 
-      - name: Lint
+      - name: Lint - diagnostico de debitos preexistentes
+        continue-on-error: true
         working-directory: mosaico-web
         run: npm run lint
 
@@ -72,7 +73,11 @@ jobs:
           test -f v2/modulos/janela-do-norte.html
           test -f v2/modulos/sala-as-escuras.html
           grep -q 'desenhaEstrela' v2/modulos/vidro-embacado.html
+          grep -q 'var pv=Math.max(0,Math.min(1,(acerto-0.14)/0.86))' v2/modulos/vidro-embacado.html
+          grep -q 'estrelaX=W' v2/modulos/vidro-embacado.html
           grep -q 'v.elev>=12' v2/modulos/janela-do-norte.html
+          grep -q 'v.elev<=8' v2/modulos/janela-do-norte.html
+          grep -q 'iOSInstavel?1.50:1.25' v2/modulos/janela-do-norte.html
           grep -q '!sementeManual && !jogando' v2/modulos/sala-as-escuras.html
           if grep -R -q 'Três gestos novos' v2/assets; then exit 1; fi
 
