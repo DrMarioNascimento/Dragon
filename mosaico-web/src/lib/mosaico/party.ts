@@ -67,6 +67,8 @@ type PartyState = {
   advance: () => Promise<void>;
   forcarAcusacao: () => Promise<void>;
   setVez: (vez: number) => Promise<void>;
+  /** 90 s de novo — um ator, ou uma cena do ensaio a solo. */
+  renovarRelogio: () => Promise<void>;
   confirmFragment: () => Promise<void>;
   vote: (targetId: string) => void;
   buyOil: (id: string) => void;
@@ -483,6 +485,20 @@ export const useParty = create<PartyState>((set, get) => ({
     }
     if (!code) return;
     await atualizarMesa(code, { vez, faseAteMs });
+  },
+
+  renovarRelogio: async () => {
+    const { mode, code, room, localFase } = get();
+    const fase = mode === "local" ? localFase : room?.fase;
+    const s = fase ? FASE_S[fase as keyof typeof FASE_S] : undefined;
+    if (!s) return;
+    const faseAteMs = Date.now() + s * 1000;
+    if (mode === "local") {
+      set((st) => ({ room: st.room ? { ...st.room, faseAteMs } : st.room }));
+      return;
+    }
+    if (!code) return;
+    await atualizarMesa(code, { faseAteMs });
   },
 
   confirmFragment: async () => {

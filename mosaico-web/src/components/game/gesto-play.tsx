@@ -12,6 +12,18 @@ function useAssento() {
   return { i, n: players.length, nome: players[i]?.nome || "você", players };
 }
 
+function SemPista({ onSeguir }: { onSeguir: () => void }) {
+  return (
+    <button
+      type="button"
+      className="block w-full text-center text-base text-muted-foreground"
+      onClick={onSeguir}
+    >
+      A pista anterior não veio — seguir
+    </button>
+  );
+}
+
 export function PalimpsestoPlay() {
   const pistas = useParty((s) => s.pistas);
   const done = useParty((s) => s.markPista);
@@ -65,6 +77,7 @@ export function PalimpsestoPlay() {
       <Button className="w-full" size="lg" onClick={empilhar} disabled={!janela || (solo && papel === "baixo")}>
         {on ? "Empilhado. A frase fechou." : "Empilhei"}
       </Button>
+      {!janela && <SemPista onSeguir={() => done("palimpsesto")} />}
     </div>
   );
 }
@@ -126,6 +139,7 @@ export function EspelhoPlay() {
       <Button className="w-full" size="lg" disabled={!cofre} onClick={mostrar}>
         {mostra ? "Mostrei" : shown ? "Li no outro telefone" : "Li no outro telefone"}
       </Button>
+      {!cofre && <SemPista onSeguir={() => done("espelho")} />}
     </div>
   );
 }
@@ -179,6 +193,7 @@ export function PlantaPlay() {
         >
           {here ? "Estou no lugar" : `Coloquei o celular na ${mine}`}
         </Button>
+        {!frase && <SemPista onSeguir={() => done("planta")} />}
       </div>
     );
   }
@@ -212,6 +227,7 @@ export function PlantaPlay() {
       <p className="text-center text-lg text-muted-foreground">
         {ok ? "O caminho acendeu." : path.length ? path.join(" → ") : "Toca os cômodos."}
       </p>
+      {!frase && <SemPista onSeguir={() => done("planta")} />}
     </div>
   );
 }

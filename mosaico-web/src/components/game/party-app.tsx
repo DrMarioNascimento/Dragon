@@ -63,11 +63,13 @@ function HostBar({ coberto = false }: { coberto?: boolean }) {
   const isMaster = useParty((s) => s.isMaster);
   const advance = useParty((s) => s.advance);
   const setVez = useParty((s) => s.setVez);
+  const renovarRelogio = useParty((s) => s.renovarRelogio);
   const lanternDone = useParty((s) => s.lanternDone);
   const players = useParty((s) => s.players);
   const fase = useParty((s) => (s.mode === "local" ? s.localFase : s.room?.fase));
   const faseAte = useParty((s) => s.room?.faseAteMs);
   const vez = useParty((s) => (s.mode === "local" ? s.localVez : s.room?.vez ?? 0));
+  const formato = useParty((s) => s.room?.formato);
   const [now, setNow] = useState(Date.now());
   const [indo, setIndo] = useState(false);
   useEffect(() => {
@@ -115,6 +117,12 @@ function HostBar({ coberto = false }: { coberto?: boolean }) {
             const n = proximoAtor(vez, players.length);
             if (n !== null) {
               void setVez(n).finally(() => setIndo(false));
+              return;
+            }
+            /* Ensaio a solo: um jogador, seis cenas. O relógio vencer não
+               come as cenas que faltam — só recomeça os 90 s desta. */
+            if (players.length === 1 && formato !== "curta") {
+              void renovarRelogio().finally(() => setIndo(false));
               return;
             }
           }
@@ -254,6 +262,7 @@ function EnceneScreen() {
   const uid = useParty((s) => s.uid);
   const vez = useParty((s) => (s.mode === "local" ? s.localVez : s.room?.vez ?? 0));
   const setVez = useParty((s) => s.setVez);
+  const renovarRelogio = useParty((s) => s.renovarRelogio);
   const isMaster = useParty((s) => s.isMaster);
   const advance = useParty((s) => s.advance);
   const formato = useParty((s) => s.room?.formato);
@@ -281,6 +290,7 @@ function EnceneScreen() {
       if (charI < CHAR_IDS.length - 1) {
         setCharI(charI + 1);
         setStep("entenda");
+        void renovarRelogio();
         return;
       }
       void advance();
@@ -478,7 +488,9 @@ function CorScreen() {
       <h1 className="mt-3 font-serif text-4xl">{f.nome}</h1>
       <p className="mt-2 text-lg">Tela {f.cor}</p>
       <p className="mt-6 max-w-xs text-lg leading-relaxed opacity-90">
-        Procura quem tem a mesma cor. A carta só fecha com eles.
+        {players.length > 1
+          ? "Procura quem tem a mesma cor. A carta só fecha com eles."
+          : "Esta é a tua cor. Confirma o Fragmento."}
       </p>
       <p className="mt-8 font-serif text-3xl tabular-nums">
         {String(Math.floor(elapsed / 60000)).padStart(2, "0")}:
