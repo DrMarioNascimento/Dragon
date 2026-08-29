@@ -110,9 +110,9 @@ test("o contorno fecha e é desenhável", () => {
       assert.ok(d.startsWith("M 0 0"), "não começa na origem");
       assert.ok(d.endsWith("Z"), "não fecha");
       assert.ok(!/NaN|undefined/.test(d), `números inválidos em ${col}:${row}`);
-      /* quatro lados: cada um com pino tem 6 cúbicas */
+      /* cada lado com pino é uma cadeia de 8 cúbicas */
       const cubicas = (d.match(/C /g) || []).length;
-      assert.ok(cubicas % 6 === 0, `curvas incompletas em ${col}:${row}`);
+      assert.ok(cubicas % 8 === 0, `curvas incompletas em ${col}:${row}`);
     }
   }
 });
@@ -124,4 +124,67 @@ test("nenhuma peça é idêntica a outra", () => {
     for (let row = 0; row < ROWS; row += 1) formas.add(piecePath(peca(col, row)));
   }
   assert.equal(formas.size, COLS * ROWS);
+});
+
+/* -------------------------------------------------- a curva é a MESMA ---- */
+
+/** Os quatro lados do contorno, em coordenadas do tabuleiro.
+ *  O caminho é "M 0 0" seguido de topo, direita, base, esquerda — cada um ou
+ *  um "L" (borda reta) ou uma cadeia de "C". Separar por comando é exato;
+ *  filtrar por proximidade não é, porque o pino de um lado passa perto da
+ *  reta do lado vizinho. */
+function lados(p) {
+  const d = piecePath(p);
+  const comandos = d.match(/[LC][^LCZM]*/g) ?? [];
+  const pontos = (txt) => {
+    const n = txt.match(/-?\d+\.?\d*/g).map(Number);
+    const o = [];
+    for (let k = 0; k + 1 < n.length; k += 2) {
+      o.push(`${(n[k] + p.col).toFixed(3)},${(n[k + 1] + p.row).toFixed(3)}`);
+    }
+    return o;
+  };
+  /* Cada lado é 1 comando "L" (borda reta) ou 8 comandos "C" (com pino).
+     O ponto de PARTIDA de um lado é implícito — fica no comando anterior — e
+     sem ele a comparação acusa diferença de canto onde só há forma de
+     escrever. Por isso a caneta é seguida à mão. */
+  const saida = [];
+  let caneta = `${p.col.toFixed(3)},${p.row.toFixed(3)}`;
+  let i = 0;
+  while (i < comandos.length) {
+    const passo = comandos[i].startsWith("L") ? 1 : 8;
+    const pts = comandos.slice(i, i + passo).flatMap(pontos);
+    pts.unshift(caneta);
+    caneta = pts[pts.length - 1];
+    saida.push([...new Set(pts)].sort());
+    i += passo;
+  }
+  return { topo: saida[0], direita: saida[1], base: saida[2], esquerda: saida[3] };
+}
+
+test("a aresta partilhada é a mesma curva nas duas peças", () => {
+  /* Este é o teste que faltava. Cada aresta interna é percorrida duas vezes,
+     uma por peça, em SENTIDOS OPOSTOS — e como o perfil não é simétrico e a
+     variação desliza o pino ao longo da aresta, o mesmo parâmetro caía em
+     pontos diferentes do mundo. O contorno saía duplicado: dois traços quase
+     juntos, com frestas pretas entre o pino e o buraco. Passava nos testes de
+     sinal, porque os sinais estavam certos — errada estava a curva. */
+  for (let col = 0; col < COLS; col += 1) {
+    for (let row = 0; row + 1 < ROWS; row += 1) {
+      assert.deepEqual(
+        lados(peca(col, row)).base,
+        lados(peca(col, row + 1)).topo,
+        `aresta h ${col}:${row + 1} — o pino de uma não é o buraco da outra`,
+      );
+    }
+  }
+  for (let row = 0; row < ROWS; row += 1) {
+    for (let col = 0; col + 1 < COLS; col += 1) {
+      assert.deepEqual(
+        lados(peca(col, row)).direita,
+        lados(peca(col + 1, row)).esquerda,
+        `aresta v ${col + 1}:${row} — o pino de uma não é o buraco da outra`,
+      );
+    }
+  }
 });
