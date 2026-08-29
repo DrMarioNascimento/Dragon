@@ -679,6 +679,8 @@ var frostTile=null, temFiltro=false;
 var beta=90, gamma=0, tBeta=90, tGamma=0;
 var temSensor=false, modoDedo=false, iniciado=false;
 var alvo={b:90,g:0}, heat=0, holdStart=null, travado=false;
+/* progresso visual: uma única estrela confirma que a água corre na direção certa */
+var acerto=0, estrelaX=0, estrelaY=0;
 var fila=[], atual=null, feitos=0, revelacao=0;
 var gotas=[], chuva=[], t0=performance.now(), graca=0;
 var relampago={t:-9999,dur:0,forca:0,prox:3000};
@@ -892,6 +894,30 @@ function pintaGotas(){
 }
 
 /* ================= CENARIO ================= */
+function desenhaEstrela(){
+  /* Uma única estrela. Não é pista nem alvo fixo: é apenas um feedback
+     progressivo de que a água está correndo na direção correta. */
+  var a=travado ? Math.max(0,1-revelacao*5.5) : Math.pow(acerto,1.15);
+  if(a<0.012) return;
+  var x=estrelaX||W*0.68, y=estrelaY||H*0.23;
+  var r=3+25*a;
+  ctx.save();
+  ctx.globalCompositeOperation="lighter";
+  var g=ctx.createRadialGradient(x,y,0,x,y,r*2.2);
+  g.addColorStop(0,"rgba(255,255,255,"+(0.96*a)+")");
+  g.addColorStop(0.12,"rgba(215,230,255,"+(0.78*a)+")");
+  g.addColorStop(0.42,"rgba(116,128,255,"+(0.30*a)+")");
+  g.addColorStop(1,"rgba(70,80,255,0)");
+  ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,r*2.2,0,6.2832); ctx.fill();
+  ctx.strokeStyle="rgba(235,242,255,"+(0.88*a)+")";
+  ctx.lineWidth=0.7+1.1*a;
+  ctx.shadowColor="rgba(110,125,255,"+(0.9*a)+")";
+  ctx.shadowBlur=8+22*a;
+  var h=5+18*a;
+  ctx.beginPath(); ctx.moveTo(x-h,y); ctx.lineTo(x+h,y); ctx.moveTo(x,y-h); ctx.lineTo(x,y+h); ctx.stroke();
+  ctx.restore();
+}
+
 function tempestade(tempo,luz){
   var g=ctx.createLinearGradient(0,0,0,H);
   g.addColorStop(0,"#080d16"); g.addColorStop(0.48,"#0c1420");
@@ -1042,6 +1068,15 @@ function passo(){
   heat=hb*hg;
   var dentro = dB<=TOL_B && dG<=TOL_G && (agora-graca>1400);
 
+  /* O progresso não nasce da proximidade. Só cresce quando a água está
+     efetivamente correndo na direção correta e drena quando sai dela.
+     Isso impede a pista de aparecer cedo demais. */
+  if(!travado){
+    if(dentro) acerto=Math.min(1,acerto+dt/(IPHONE?2.2:2.5));
+    else acerto=Math.max(0,acerto-dt/1.15);
+    if(acerto>=1) revela();
+  }
+
   /* gravidade da agua */
   var gx=Math.sin(gamma*Math.PI/180);
   var gy=Math.sin(beta *Math.PI/180);
@@ -1064,9 +1099,12 @@ function passo(){
 
   /* ---------- pintura ---------- */
   tempestade(tempo,luz);
+  desenhaEstrela();
 
-  /* texto atras do vidro */
-  var vis=travado?1:Math.pow(heat,1.4);
+  /* O texto acompanha a estrela, não a mera proximidade angular.
+     Começa quase invisível e só fica inteiro quando acerto chega ao máximo. */
+  var pv=Math.max(0,Math.min(1,(acerto-0.14)/0.86));
+  var vis=travado?1:(pv*pv*(3-2*pv));
   if(vis>0.02){
     ctx.save();
     if(temFiltro && !travado && vis<0.99){
@@ -1103,19 +1141,14 @@ function passo(){
   caixilho();
   vinheta();
 
-  /* hold */
+  /* feedback verbal mínimo; o indicador principal é a estrela */
   var dica=document.getElementById("dica");
   if(!travado){
     if(dentro){
-      if(holdStart===null) holdStart=agora;
-      var el=agora-holdStart;
-      anel(Math.min(1,el/HOLD_MS));
-      dica.textContent="A água está parando. Segure.";
-      if(el>=HOLD_MS) revela();
+      dica.textContent = acerto>0.72 ? "Continue. A direção está certa." : "A água encontrou a direção.";
     } else {
-      holdStart=null;
-      dica.textContent = heat>0.55 ? "Quase. A trilha está aguentando."
-                       : heat>0.25 ? "A água escorre, mas o vidro fecha de novo."
+      dica.textContent = acerto>0.18 ? "A estrela está se apagando. Corrija a inclinação."
+                       : heat>0.25 ? "A água escorre, mas ainda não é a direção certa."
                        : "Incline o aparelho. A água obedece.";
     }
   }
@@ -1141,7 +1174,13 @@ function novaRodada(){
   /* CENÁRIO: com semente, este é o mesmo alvo em todos os aparelhos. */
   alvo.b = 58 + sorteio()*62;      /* 58 a 120 graus */
   alvo.g = -34 + sorteio()*68;     /* -34 a +34      */
-  travado=false; revelacao=0; holdStart=null;
+  travado=false; revelacao=0; holdStart=null; acerto=0;
+  /* Posição nova em cada pista para não ensinar um ponto fixo da tela.
+     Com semente fixa, permanece determinística para a mesma execução. */
+  var _r1=(typeof sorteio==="function"?sorteio():Math.random());
+  var _r2=(typeof sorteio==="function"?sorteio():Math.random());
+  estrelaX=W*(0.18+_r1*0.64);
+  estrelaY=H*(0.11+_r2*0.23);
   graca=performance.now();
   encheGelo(1); semeiaGotas();
   document.getElementById("dica").style.opacity="1";

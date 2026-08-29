@@ -724,7 +724,7 @@ var spdAng=0, rawAnt=null;
    do magnetómetro — o rumo do mundo continua o mesmo. Android não mexe. */
 var IPHONE=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
 var iOSInstavel=false, iosHead=null;
-function folgaMao(){ return CFG.FOLGA*(IPHONE?(iOSInstavel?1.9:1.5):1); }
+function folgaMao(){ return CFG.FOLGA*(IPHONE?(iOSInstavel?1.50:1.25):1); }
 function holdAlvo(){ return IPHONE?900:CFG.HOLD_MS; }
 function drenoMao(){ return IPHONE?0.28:CFG.DRENO; }
 var passo=0, distAlvo=CFG.PASSOS[0], distView=CFG.PASSOS[0], passoAnim=0;
@@ -911,36 +911,61 @@ function eulerParaVista(a,b,g){
 }
 
 var temAbsoluto=false;
+/* iPhone: modo baixo usa a bússola compensada; modo alto usa a atitude
+   estabilizada e a bússola apenas como referência lenta de norte.
+   Histerese 12°/8° impede ficar alternando de estratégia com tremor da mão. */
+var bussOff=null, tOrient=0, rumoSuave=null, modoAlto=false;
 function onOrient(e){
   if(e.alpha===null||e.beta===null||e.gamma===null) return;
-  var alpha=e.alpha;
   var iOS=(typeof e.webkitCompassHeading==="number" && !isNaN(e.webkitCompassHeading));
   var abs=iOS || e.absolute===true || e.type==="deviceorientationabsolute";
-
-  /* No Android os dois eventos disparam: "deviceorientationabsolute" traz o
-     rumo do mundo e "deviceorientation" traz um alpha RELATIVO ao ponto em
-     que a pagina abriu. Como ambos caiam aqui, o rumo alternava entre os
-     dois referenciais quadro a quadro. Havendo fonte absoluta, a relativa
-     e descartada.                                                       */
   if(abs) temAbsoluto=true; else if(temAbsoluto) return;
 
+  var v=eulerParaVista(e.alpha,e.beta,e.gamma);
+  raw.elev=v.elev; raw.roll=v.roll;
+
   if(iOS){
-    alpha=360-e.webkitCompassHeading;  src="bússola (iOS)";
     iOSInstavel=typeof e.webkitCompassAccuracy==="number" &&
       (e.webkitCompassAccuracy<0 || e.webkitCompassAccuracy>25);
-    if(iOSInstavel) src="bússola instável";
-  } else if(abs){
-    src="bússola (absoluta)";
-  } else if(src==="nenhuma"||src==="sem sensor"){
-    src="relativa — calibre o norte";
-  }
-  var v=eulerParaVista(alpha,e.beta,e.gamma);
-  raw.bearing=wrap360(v.bearing+northOffset);
-  raw.elev=v.elev; raw.roll=v.roll;
-  if(IPHONE){
-    if(iosHead==null) iosHead=raw.bearing;
-    else iosHead=wrap360(iosHead+wrap180(raw.bearing-iosHead)*(iOSInstavel?0.14:0.26));
-    raw.bearing=iosHead;
+    src=iOSInstavel?"bússola instável":"bússola (iOS)";
+
+    var agora=performance.now();
+    var dt=tOrient?Math.min(0.25,(agora-tOrient)/1000):0.016;
+    tOrient=agora;
+
+    /* caminho absoluto conhecido: serve como norte e é alisado antes de
+       alimentar a fusão, para não ensinar ao offset o tremor da agulha */
+    var mundoCru=eulerParaVista(360-e.webkitCompassHeading,e.beta,e.gamma).bearing;
+    if(iosHead==null) iosHead=mundoCru;
+    else iosHead=wrap360(iosHead+wrap180(mundoCru-iosHead)*(iOSInstavel?0.12:0.22));
+    var mundo=iosHead;
+
+    var eraAlto=modoAlto;
+    if(!modoAlto && v.elev>=12) modoAlto=true;
+    else if(modoAlto && v.elev<=8) modoAlto=false;
+
+    if(modoAlto){
+      /* Na entrada do modo alto o offset nasce exatamente sobre o rumo atual:
+         a troca é contínua, sem salto. Depois corrige devagar. */
+      if(!eraAlto || bussOff===null) bussOff=wrap180(mundo-v.bearing);
+      var alvoOff=wrap180(mundo-v.bearing);
+      var erro=wrap180(alvoOff-bussOff);
+      var qualidade=iOSInstavel?0.22:1;
+      if(Math.abs(erro)>35) qualidade*=0.12;
+      bussOff=wrap180(bussOff+erro*(1-Math.pow(0.88,dt*qualidade)));
+    }
+
+    var fundido=modoAlto ? wrap360(v.bearing+bussOff) : mundo;
+    if(rumoSuave===null) rumoSuave=fundido;
+    else {
+      var ganho=modoAlto?0.24:0.30;
+      rumoSuave=wrap360(rumoSuave+wrap180(fundido-rumoSuave)*ganho);
+    }
+    raw.bearing=wrap360(rumoSuave+northOffset);
+  } else {
+    if(abs) src="bússola (absoluta)";
+    else if(src==="nenhuma"||src==="sem sensor") src="relativa — calibre o norte";
+    raw.bearing=wrap360(v.bearing+northOffset);
   }
   if(!started){ started=true; }
 }
@@ -1083,7 +1108,13 @@ function tolerancia(){
      Cada aparelho é coerente consigo mesmo, então todos travam com a mesma
      facilidade. O grupo fica espalhado uns 20° no mundo real — e 20° no
      escuro continua lendo como todo mundo olhando para o mesmo lado.  */
-  return { az: clamp(g.hw/PPD*0.60+8.0, 9.0, 14.0)*folgaMao(),
+  /* Compensação geométrica suavizada: preserva a geometria ao apontar
+     alto, mas aplica só 70% da abertura teórica e limita o ganho a 1,22.
+     Com os novos fatores do iPhone, o último alvo não fica excessivamente
+     permissivo. */
+  var c=Math.max(0.70,Math.cos(Math.abs(clamp(view.elev,-50,50))*D2R));
+  var geo=Math.min(1.22,1+0.70*(1/c-1));
+  return { az: clamp(g.hw/PPD*0.60+8.0, 9.0, 14.0)*folgaMao()*geo,
            el: clamp(g.hh/PPD*0.30+2.2, 2.8,  4.2)*folgaMao() };
 }
 
@@ -2054,7 +2085,7 @@ function alinhamento(){
   var dAz=Math.abs(wrap180(view.bearing-target.bearing));
   var dEl=Math.abs(view.elev-target.elev);
   var dRo=Math.abs(wrap180(view.roll));
-  var dist=Math.hypot(dAz,dEl);
+  var dist=Math.hypot(dAz*Math.cos(clamp(view.elev,-60,60)*D2R),dEl);
   /* histerese: já engatado, a janela alarga. Sem isto, um único quadro de
      ruído do magnetômetro jogava fora 1,4 s de esforço.                 */
   var m = holdAcc>0 ? CFG.SOLTA : 1;

@@ -1796,7 +1796,8 @@ function loop(){
 
   /* a virada da rodada, ao vivo: quem abriu 20h58 e quem abriu 21h02 caem
      na MESMA sala às 21h30, sem recarregar nada. */
-  if(!sementeManual && roundCode()!==rodadaVista){
+  /* Depois que a execução começou, a sala não pode se rearranjar. */
+  if(!sementeManual && !jogando && roundCode()!==rodadaVista){
     montaSala(defaultSeed());
     fechaCarta();
     setStatus("A rodada virou. A sala se rearranjou — para todos.",true);

@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { MosaicMark } from "@/components/game/mark";
 import { CartaDemo } from "@/components/game/carta-demo";
-import { NovidadesDemo } from "@/components/game/novidades-demo";
 import { FORMA_OPCOES, type Forma } from "@/lib/mosaico/arquetipo";
 import { consumeGoogleRedirect } from "@/lib/mosaico/firebase";
 import { armAudio, stopVoice } from "@/lib/mosaico/sound";
@@ -9,14 +8,14 @@ import { useParty } from "@/lib/mosaico/party";
 import type { NoiteFormato } from "@/lib/mosaico/v3";
 import { cn } from "@/lib/utils";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Compass, DoorOpen, Play, Puzzle, QrCode, Volume2, VolumeX } from "lucide-react";
+import { DoorOpen, Play, QrCode, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 export const Route = createFileRoute("/")({
   component: Home,
 });
 
-type Screen = "open" | "menu" | "criar" | "entrar" | "ensaiar" | "como" | "carta" | "novo";
+type Screen = "open" | "menu" | "criar" | "entrar" | "ensaiar" | "como" | "carta";
 
 function Home() {
   const nav = useNavigate();
@@ -160,7 +159,7 @@ function Home() {
 
       {screen !== "open" && (
         <div className="relative z-20 mx-auto flex min-h-full max-w-lg flex-col px-6 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-[max(1.5rem,env(safe-area-inset-top))]">
-          {screen !== "carta" && screen !== "novo" && (
+          {screen !== "carta" && (
           <header className="stagger-in shrink-0 text-center">
             <MosaicMark className="mx-auto mb-5 size-9 text-primary" />
             <p className="text-base uppercase tracking-[0.28em] text-muted-foreground">
@@ -186,18 +185,6 @@ function Home() {
               <Button variant="soft" size="lg" onClick={() => setScreen("ensaiar")}>
                 <Play className="size-4" />
                 Ensaiar sozinho
-              </Button>
-              <Button variant="soft" size="lg" onClick={() => setScreen("novo")}>
-                <Puzzle className="size-4" />
-                Três gestos novos
-              </Button>
-              <Button
-                variant="ghost"
-                size="lg"
-                onClick={() => void nav({ to: "/noite" })}
-              >
-                <Compass className="size-4" />
-                A lanterna
               </Button>
               <Button variant="ghost" onClick={() => setScreen("como")}>
                 Como jogar
@@ -335,12 +322,6 @@ function Home() {
                 Voltar
               </Button>
             </form>
-          )}
-
-          {screen === "novo" && (
-            <div className="stagger-in mt-2">
-              <NovidadesDemo onBack={() => setScreen("menu")} />
-            </div>
           )}
 
           {screen === "carta" && (
