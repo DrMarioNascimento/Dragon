@@ -17,12 +17,13 @@ O **MOSAICO** transforma um caso em informações fragmentadas entre os particip
 
 O hub segue o recorte visual do [Learning-lab](https://github.com/DrMarioNascimento/Learning-lab), com a paleta da noite.
 
-## Duas versões
+## Três versões
 
 | | Pasta | Jogar |
 |---|---|---|
 | **01 A mesa** | [`v1/`](./v1) | [v1/MOSAICO-mesa.html](https://drmarionascimento.github.io/Dragon/v1/MOSAICO-mesa.html) |
 | **02 A noite** | [`mosaico-web/`](./mosaico-web) (código) · [`v2/`](./v2) (site) | [v2/](https://drmarionascimento.github.io/Dragon/v2/) |
+| **03 Quebra-cabeça** | [`mosaico-v3/`](./mosaico-v3) (código) · [`v3/`](./v3) (site) | [v3/](https://drmarionascimento.github.io/Dragon/v3/) |
 
 O endereço antigo [`MOSAICO-mesa.html`](./MOSAICO-mesa.html) redireciona para a mesa (v1).
 
@@ -135,6 +136,17 @@ mandar alguém para uma rota manda `.../v2/?ir=noite`.
 Caminho de mídia em JavaScript nunca começa com `/`: o site mora em
 `/Dragon/v2/`, e `"/media/foto.jpg"` cai na raiz do domínio. O Vite reescreve
 a base dentro do CSS, mas não dentro de string — use `import.meta.env.BASE_URL`.
+
+---
+
+## Versão 3 — Quebra-cabeça
+
+Pasta **própria**. Não misturar com a mesa nem com a noite.
+
+Cada pista nasce em quatro fragmentos. Só a carta inteira entra no mosaico.
+
+- site: [`v3/`](./v3) → [v3/](https://drmarionascimento.github.io/Dragon/v3/)
+- código: [`mosaico-v3/`](./mosaico-v3)
 
 ---
 

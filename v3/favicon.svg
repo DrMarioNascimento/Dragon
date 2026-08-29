@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="MOSAICO">
+  <rect width="32" height="32" rx="6" fill="#070605"/>
+  <rect x="4" y="4" width="11" height="11" rx="1.2" fill="#ece6d8"/>
+  <rect x="17" y="4" width="11" height="11" rx="1.2" fill="#c4a36a"/>
+  <rect x="4" y="17" width="11" height="11" rx="1.2" fill="#c4a36a"/>
+  <rect x="17" y="17" width="11" height="11" rx="1.2" fill="#6b1d1d"/>
+</svg>
