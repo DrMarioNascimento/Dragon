@@ -94,7 +94,11 @@
       -webkit-background-clip: text; background-clip: text; color: transparent;
     }
     .hero p { max-width: 34rem; color: var(--mist); font-size: 1.2rem; line-height: 1.55; }
-    .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 22px; }
+    .hero p, .games-head p, .game > p, .ver span {
+      text-align: justify;
+      text-justify: inter-word;
+      hyphens: auto;
+    }
     .emblem {
       display: block;
       position: static;
@@ -133,7 +137,6 @@
         margin: 4px auto 8px;
       }
       .hero-copy p { order: 4; font-size: 1.12rem; }
-      .hero-actions { order: 5; justify-content: center; }
     }
     .btn {
       min-height: 50px; display: inline-flex; align-items: center; justify-content: center;
@@ -263,10 +266,6 @@
       <span class="eyebrow">Studio · Florianópolis<span class="ew-rest"> · Santa Catarina · Brazil</span></span>
       <h1>Dragon <span>Games</span></h1>
       <p>A place for fun and ideas! A hub for learning through games, projects, and new concepts. Make yourself at home and enjoy the mystery, the action, and the company. We’re all about peace, learning, and fun. Maybe some PvP down the line (lol). I’m a beginner, so tips and suggestions are welcome!</p>
-      <div class="hero-actions">
-        <a class="btn btn-ember" href="#jogos">Entrar nos jogos</a>
-        <a class="btn btn-ghost" href="v2/">Abrir o MOSAICO</a>
-      </div>
     </div>
     <img class="emblem" src="brand/dragon.webp" alt="" width="720" height="720" />
   </section>
