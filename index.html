@@ -175,6 +175,12 @@
       font: 800 42px/1 var(--display); color: rgba(224,177,58,.16);
     }
     .game h3 { margin: 10px 0 8px; font-family: var(--display); font-size: 2.1rem; font-weight: 700; letter-spacing: .06em; }
+    .game h3 .case {
+      font-size: 0.55em;
+      font-weight: 500;
+      letter-spacing: .04em;
+      color: var(--mist);
+    }
     .game > p { margin: 0 0 16px; color: var(--mist); line-height: 1.5; }
     .topics { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
     .topic {
@@ -241,16 +247,15 @@
     <div class="games-head">
       <span class="eyebrow">Catálogo</span>
       <h2>Jogos</h2>
-      <p>O MOSAICO é o primeiro. Três versões do mesmo caso — a mesa, a noite e o quebra-cabeça.</p>
+      <p>O MOSAICO é o primeiro. Três portas para o mesmo caso — a mesa, a noite e o modo solo.</p>
     </div>
 
     <article class="game">
       <span class="game-number">01</span>
       <span class="eyebrow">Dedução · festa</span>
-      <h3>MOSAICO</h3>
-      <p>A verdade é um fragmento. Cada um no próprio celular, a casa na mesma sala. Três portas para o mesmo caso: a mesa, a noite e o quebra-cabeça.</p>
+      <h3>MOSAICO <span class="case">- A Casa da Costa</span></h3>
+      <p>A verdade é um fragmento. Cada um no próprio celular, a casa na mesma sala. Três portas para o mesmo caso: a mesa, a noite e o modo solo.</p>
       <div class="topics">
-        <span class="topic">A Casa da Costa</span>
         <span class="topic">1 a 12</span>
         <span class="topic">QR</span>
         <span class="topic">Lanternas</span>
@@ -258,18 +263,18 @@
       <div class="versions">
         <div class="ver">
           <b>A mesa</b>
-          <span>Versão 1 — telão, QR, as lanternas originais. Quem já jogou, joga igual.</span>
+          <span>Telão, QR e as lanternas originais. Quem já jogou, joga igual.</span>
           <a class="btn btn-gold" href="v1/MOSAICO-mesa.html">Abrir a mesa</a>
         </div>
         <div class="ver">
           <b>A noite</b>
-          <span>Versão 2 — curta ou cheia, foto partida, ficha de três linhas.</span>
+          <span>Curta ou cheia. Foto partida, ficha de três linhas.</span>
           <a class="btn btn-ember" href="v2/">Abrir a noite</a>
         </div>
         <div class="ver">
-          <b>Quebra-cabeça</b>
-          <span>Versão 3 — cada pista em quatro fragmentos. Pasta própria, não mistura com a noite.</span>
-          <a class="btn btn-ghost" href="v3/">Abrir o quebra-cabeça</a>
+          <b>Modo solo</b>
+          <span>Cada pista em quatro fragmentos. Para ensaiar sozinho.</span>
+          <a class="btn btn-ghost" href="v3/">Modo solo</a>
         </div>
       </div>
     </article>
