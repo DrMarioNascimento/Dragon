@@ -1,0 +1,21 @@
+(()=>{
+ const KEY='mosaico-carro-forte-checkpoint-v2';
+ const orientationGuard=document.getElementById('orientationGuard');
+ const resumeGuard=document.getElementById('resumeGuard');
+ let pausedByOrientation=false;
+ const guardedScreens=new Set(['pieces','investigation','hypothesis','market','mosaic','final']);
+ function isPhoneLike(){return matchMedia('(pointer:coarse)').matches&&Math.min(screen.width,screen.height)<600}
+ function orientationWrong(){return isPhoneLike()&&innerWidth>innerHeight&&guardedScreens.has(window.state?.screen||document.querySelector('.screen.active')?.dataset.screen)}
+ function checkOrientation(){const wrong=orientationWrong();orientationGuard?.classList.toggle('hidden',!wrong);document.body.classList.toggle('guard-orientation',wrong);pausedByOrientation=wrong;window.dispatchEvent(new CustomEvent('MOSAICO_ORIENTATION_PAUSE',{detail:{paused:wrong}}))}
+ addEventListener('resize',checkOrientation,{passive:true});addEventListener('orientationchange',()=>setTimeout(checkOrientation,150));document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkOrientation()});
+ function screenName(){return document.querySelector('.screen.active')?.dataset.screen||'intro'}
+ function snapshot(){const s=window.state;if(!s)return null;return{screen:screenName(),players:s.players,current:s.current,joined:[...(s.joined||[])],paired:[...(s.paired||[])],round:s.round,roundDone:[...(s.roundDone||[])],archive:s.archive||[],credits:s.credits,bought:[...(s.bought||[])],hypothesis:s.hypothesis||{},route:s.route,axis:s.axis,final:s.final||{},reveal:s.reveal,start:s.start,savedAt:Date.now()}}
+ function save(){try{const data=snapshot();if(data&&data.screen!=='intro'&&data.screen!=='score')localStorage.setItem(KEY,JSON.stringify(data))}catch(e){}}
+ setInterval(save,5000);addEventListener('pagehide',save);document.addEventListener('visibilitychange',()=>{if(document.hidden)save()});
+ function apply(data){const s=window.state;if(!s||!data)return false;s.players=data.players||s.players;s.current=data.current||0;s.joined=new Set(data.joined||[]);s.paired=new Set(data.paired||[]);s.round=data.round||0;s.roundDone=new Set(data.roundDone||[]);s.archive=data.archive||[];s.credits=Number.isFinite(data.credits)?data.credits:s.credits;s.bought=new Set(data.bought||[]);s.hypothesis=data.hypothesis||{};s.route=data.route||null;s.axis=data.axis||null;s.final=data.final||{};s.reveal=data.reveal||0;s.start=data.start||Date.now();if(typeof window.goto==='function')window.goto(data.screen||'briefing');if(data.screen==='pieces'&&typeof window.renderPlayers==='function')window.renderPlayers();if(data.screen==='investigation'&&typeof window.renderInvestigation==='function')window.renderInvestigation();if(data.screen==='market'&&typeof window.renderMarket==='function')window.renderMarket();if(data.screen==='mosaic'&&typeof window.renderMosaic==='function')window.renderMosaic();return true}
+ function offerResume(){let data=null;try{data=JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){}if(!data||Date.now()-data.savedAt>1000*60*60*12)return;const label={briefing:'Fase 0',pieces:'Fase 1 · Fragmentos em dupla',investigation:'Investigação',hypothesis:'Hipótese I',market:'Mercado Cego',mosaic:'Mosaico',final:'Dedução final',reveal:'Revelação'}[data.screen]||data.screen;document.getElementById('resumeWhere').textContent=`Checkpoint: ${label}.`;resumeGuard.classList.remove('hidden');document.getElementById('resumeCheckpoint').onclick=()=>{resumeGuard.classList.add('hidden');apply(data);checkOrientation()};document.getElementById('discardCheckpoint').onclick=()=>{localStorage.removeItem(KEY);resumeGuard.classList.add('hidden')}}
+ setTimeout(()=>{offerResume();checkOrientation()},350);
+ // Proteção contra zoom de página no iOS; o puzzle continua recebendo pinch próprio via Pointer Events.
+ document.addEventListener('gesturestart',e=>{if(!e.target.closest?.('.puzzle-wrap'))e.preventDefault()},{passive:false});document.addEventListener('dblclick',e=>{if(!e.target.closest?.('.puzzle-wrap'))e.preventDefault()},{passive:false});
+ window.MOSAICO_GUARD={save,checkOrientation,get paused(){return pausedByOrientation}};
+})();
