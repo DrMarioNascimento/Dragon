@@ -1,3 +1,4 @@
+import { MEDIA } from "@/lib/mosaico/assets";
 import { Button } from "@/components/ui/button";
 import { NOITE_CARTAS } from "@/lib/mosaico/v3";
 import { cn } from "@/lib/utils";
@@ -8,7 +9,7 @@ type Beat = "apart" | "snap" | "join" | "letter";
 /* Caminho comecado em "/" sai do site: no Pages o MOSAICO mora em
    /Dragon/v2/, e a foto dava 404. Tudo o que e servido junto passa a
    pendurar-se na base. */
-const SRC = `${import.meta.env.BASE_URL}media/capa-vertical.jpg`;
+const SRC = `${MEDIA}capa-vertical.jpg`;
 
 export function CartaDemo({ onBack }: { onBack?: () => void }) {
   const [beat, setBeat] = useState<Beat>("apart");

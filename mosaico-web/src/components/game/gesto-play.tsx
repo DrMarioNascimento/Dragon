@@ -30,7 +30,6 @@ export function PalimpsestoPlay() {
 
   return (
     <div className="space-y-4 px-5 pb-28 pt-6">
-      <p className="text-base uppercase tracking-[0.22em] text-accent">Empilha os vidros.</p>
       <h2 className="font-serif text-3xl">{baixo ? "Você fica embaixo" : "Você fica em cima"}</h2>
       <p className="text-lg text-fog">
         {solo
@@ -88,7 +87,6 @@ export function EspelhoPlay() {
 
   return (
     <div className="space-y-4 px-5 pb-28 pt-6">
-      <p className="text-base uppercase tracking-[0.22em] text-accent">Mostra. Não leia.</p>
       <h2 className="font-serif text-3xl">{mostra ? "Mostra a tela" : "Lê no outro"}</h2>
       <p className="text-lg text-fog">
         {solo
@@ -161,7 +159,6 @@ export function PlantaPlay() {
   if (!solo) {
     return (
       <div className="space-y-4 px-5 pb-28 pt-6">
-        <p className="text-base uppercase tracking-[0.22em] text-accent">A mesa é a casa.</p>
         <h2 className="font-serif text-3xl">Seu cômodo é {mine}</h2>
         <p className="text-lg text-fog">
           {frase
@@ -188,7 +185,6 @@ export function PlantaPlay() {
 
   return (
     <div className="space-y-4 px-5 pb-28 pt-6">
-      <p className="text-base uppercase tracking-[0.22em] text-accent">A mesa é a casa.</p>
       <h2 className="font-serif text-3xl">A planta</h2>
       <p className="text-lg text-fog">
         {frase

@@ -1,3 +1,4 @@
+import { MEDIA } from "@/lib/mosaico/assets";
 import { Button } from "@/components/ui/button";
 import {
   FOTO_IDS,
@@ -16,7 +17,7 @@ export type { FotoId, PapelFoto };
    fase do encaixe abria sem foto nenhuma — oito imagens em 404, e as peças
    viravam retângulos vazios. O Vite reescreve a base dentro do CSS, mas não
    dentro de string de JavaScript; aqui é na mão. */
-const MEDIA = import.meta.env.BASE_URL;
+
 
 export const FOTOS: Record<
   FotoId,

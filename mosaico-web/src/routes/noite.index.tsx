@@ -1,3 +1,4 @@
+import { MEDIA } from "@/lib/mosaico/assets";
 import { MosaicMark } from "@/components/game/mark";
 import { NIGHT_MODULES } from "@/lib/mosaico/modules";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -11,7 +12,7 @@ function NoitePage() {
   return (
     <main className="relative min-h-dvh bg-background text-foreground">
       <img
-        src={`${import.meta.env.BASE_URL}media/capa-vertical.jpg`}
+        src={`${MEDIA}capa-vertical.jpg`}
         alt=""
         className="cover-photo absolute inset-0 h-full w-full object-cover opacity-50"
       />

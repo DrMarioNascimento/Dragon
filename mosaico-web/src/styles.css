@@ -34,8 +34,9 @@
 
 @layer base {
   html {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    /* Nada de -webkit-font-smoothing: antialiased. Ele afina o traco do
+       texto claro sobre fundo escuro, e o MOSAICO e jogado no escuro, ao ar
+       livre: o traco fino some por halacao antes de ficar bonito. */
     -webkit-tap-highlight-color: transparent;
     height: 100%;
     overflow: hidden;
@@ -56,6 +57,10 @@
     height: 100dvh;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    /* O corpo e o container de rolagem, entao no topo o gesto de puxar virava
+       pull-to-refresh no Android: recarregava a pagina no meio do jogo e
+       jogava a pessoa para fora da sala. */
+    overscroll-behavior-y: none;
   }
   body {
     overscroll-behavior: none;

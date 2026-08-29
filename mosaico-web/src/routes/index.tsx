@@ -1,3 +1,4 @@
+import { MEDIA } from "@/lib/mosaico/assets";
 import { Button } from "@/components/ui/button";
 import { MosaicMark } from "@/components/game/mark";
 import { CartaDemo } from "@/components/game/carta-demo";
@@ -59,24 +60,17 @@ function Home() {
       const redirected = await consumeGoogleRedirect();
       /* volta do Google: retoma o que a pessoa estava fazendo antes de sair
          do site — abrir a mesa OU ensaiar. Antes só a mesa voltava. */
-      const alvo = sessionStorage.getItem("noite.criar")
-        ? ("criar" as const)
-        : sessionStorage.getItem("noite.ensaiar")
-          ? ("ensaiar" as const)
-          : null;
-      if (stop || !alvo) return;
-      const chave = alvo === "criar" ? "noite.criar" : "noite.ensaiar";
-      const raw = sessionStorage.getItem(chave)!;
+      /* Só abrir a mesa passa pelo Google agora; o ensaio começa na hora. */
+      const chave = "noite.criar";
+      const raw = sessionStorage.getItem(chave);
+      if (stop || !raw) return;
       try {
         const p = JSON.parse(raw) as { nome: string; forma: Forma; formato: NoiteFormato };
         setNome(p.nome);
         setForma(p.forma);
         setFormato(p.formato);
-        setScreen(alvo);
-        if (redirected) {
-          if (alvo === "criar") void create(p.nome, p.forma, p.formato);
-          else void localStart(p.nome, p.forma, p.formato);
-        }
+        setScreen("criar");
+        if (redirected) void create(p.nome, p.forma, p.formato);
       } catch {
         sessionStorage.removeItem(chave);
       }
@@ -114,7 +108,7 @@ function Home() {
   return (
     <main className="relative min-h-full bg-background text-foreground">
       <img
-        src={`${import.meta.env.BASE_URL}media/capa-vertical.jpg`}
+        src={`${MEDIA}capa-vertical.jpg`}
         alt=""
         className="pointer-events-none absolute inset-0 h-full w-full object-cover"
       />
@@ -124,8 +118,8 @@ function Home() {
           "pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity duration-700",
           screen === "open" ? "opacity-100" : "opacity-0",
         )}
-        src={`${import.meta.env.BASE_URL}media/abertura.mp4`}
-        poster={`${import.meta.env.BASE_URL}media/aguardando.jpg`}
+        src={`${MEDIA}abertura.mp4`}
+        poster={`${MEDIA}aguardando.jpg`}
         autoPlay
         muted={muted}
         playsInline
@@ -319,19 +313,19 @@ function Home() {
               {error && <p className="text-lg text-destructive">{error}</p>}
               {screen === "ensaiar" && (
                 <p className="text-base text-muted-foreground">
-                  Entra com Google. Nas duplas este telefone faz um papel e depois o outro — a tela não divide.
+                  Nas duplas este telefone faz um papel e depois o outro — a tela não divide.
                 </p>
               )}
               <Button className="w-full" size="lg" type="submit" disabled={connecting}>
                 {connecting
-                  ? screen === "criar" || screen === "ensaiar"
+                  ? screen === "criar"
                     ? "Entrando com Google…"
                     : "Ligando a mesa…"
                   : screen === "criar"
                     ? "Continuar com Google"
                     : screen === "entrar"
                       ? "Entrar"
-                      : "Ensaiar com Google"}
+                      : "Começar o ensaio"}
               </Button>
               {screen === "criar" && (
                 <p className="text-center text-base text-muted-foreground">
@@ -359,7 +353,6 @@ function Home() {
                 <li>Aponta — a janela, depois o cômodo.</li>
                 <li>Procura a sua cor.</li>
                 <li>Encosta a carta.</li>
-                <li>Compra ou guarda.</li>
                 <li>Quem foi?</li>
               </ol>
               <p>A mesa escolhe personagem, vez e time. Cada um acusa sozinho.</p>

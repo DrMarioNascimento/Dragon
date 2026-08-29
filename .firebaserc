@@ -1,5 +1,7 @@
 {
   "projects": {
-    "default": "mosaico-game"
+    "default": "mosaico-game",
+    "mesa": "mosaico-game",
+    "noite": "mosaico-noite"
   }
 }

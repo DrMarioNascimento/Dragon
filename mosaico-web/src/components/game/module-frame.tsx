@@ -1,3 +1,4 @@
+import { MODULOS } from "@/lib/mosaico/assets";
 import { isAppleTouch, isDesktopPointer } from "@/lib/mosaico/device";
 import type { NightModule } from "@/lib/mosaico/modules";
 import { cn } from "@/lib/utils";
@@ -18,10 +19,13 @@ import { MosaicMark } from "./mark";
 export function ModuleFrame({
   mod,
   compact,
+  semente,
   onDone,
 }: {
   mod: NightModule;
   compact?: boolean;
+  /** cenário mandado pela Mesa; sem ele a tarefa usa o próprio relógio */
+  semente?: string;
   onDone?: (ms: number) => void;
 }) {
   const [mode, setMode] = useState<"wait" | "apple" | "frame">("wait");
@@ -41,7 +45,7 @@ export function ModuleFrame({
   useEffect(() => {
     if (mode !== "apple") return;
     /* tela cheia, sem moldura: `from=1` é só o botão de volta ao MOSAICO. */
-    window.location.replace(`${import.meta.env.BASE_URL}modulos/${mod.file}?from=1`);
+    window.location.replace(`${MODULOS}${mod.file}?from=1`);
   }, [mode, mod.file]);
 
   useEffect(() => {
@@ -69,9 +73,13 @@ export function ModuleFrame({
     );
   }
 
-  const base = `${import.meta.env.BASE_URL}modulos/${mod.file}`;
+  const base = `${MODULOS}${mod.file}`;
+  /* `s` fixa o cenário: com ela, todos os telefones da mesa montam a mesma
+     janela, a mesma sala e a mesma ordem de pistas — e a virada da rodada
+     de 30 minutos deixa de reescrever o mundo no meio da fase. */
+  const semeia = semente ? `&s=${encodeURIComponent(semente)}` : "";
   const src = compact
-    ? `${base}?embed=1&run=${encodeURIComponent(runId)}`
+    ? `${base}?embed=1&run=${encodeURIComponent(runId)}${semeia}`
     : desktop
       ? `${base}?dev=1`
       : base;

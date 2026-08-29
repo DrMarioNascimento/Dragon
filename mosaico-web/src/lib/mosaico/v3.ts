@@ -287,3 +287,52 @@ export function nucleoDoCampo(campo: CampoFicha, nNucleos: number): number {
 }
 
 export const CHAR_IDS = ["tomas", "helena", "elias", "clara", "nilo", "iris"] as const;
+
+/** As fases em que a lanterna (um módulo ou um gesto) é a tarefa. */
+export const FASES_LANTERNA = [
+  "janela",
+  "vidro",
+  "salaescura",
+  "palimpsesto",
+  "espelho",
+  "planta",
+] as const;
+
+/** As três tarefas com módulo em iframe — as únicas que têm cenário para a
+ *  mesa fixar. Palimpsesto, espelho e planta são gestos entre telefones. */
+export const FASES_SENSOR: readonly string[] = ["janela", "vidro", "salaescura"];
+
+export type SeguirCtx = {
+  fase: string | undefined;
+  isMaster: boolean;
+  /** a tarefa desta fase foi concluída neste telefone */
+  lanternDone: boolean;
+  /** alguém na mesa já confirmou o Fragmento */
+  algumFragmento: boolean;
+  /** o relógio da fase já venceu (ou não existe relógio nesta fase) */
+  faseVencida: boolean;
+};
+
+/** Quem vê o "Seguir", e por quê — uma verdade só.
+ *
+ *  Isto estava escrito duas vezes, com critérios diferentes: a moldura
+ *  achava que "cor" mostrava o botão e a barra achava que não, então a fase
+ *  onde cada um procura a sua cor não tinha botão nenhum e só passava pelo
+ *  relógio. E o relógio mora na aba de quem abriu a mesa: bastava esse
+ *  telefone dormir para a noite inteira parar sem saída.
+ *
+ *  Agora são dois direitos diferentes:
+ *   · quem conduz a mesa segue assim que a tarefa da fase está feita, sem
+ *     esperar o relógio — antes o botão só aparecia quando já não importava;
+ *   · qualquer pessoa segue depois que o relógio venceu. É a rede de
+ *     segurança, e é o que impede um telefone dormindo de parar a mesa. */
+export function podeSeguir(c: SeguirCtx): boolean {
+  if (!c.fase || c.fase === "sala" || c.fase === "resultado") return false;
+  if (c.faseVencida) return true;
+  if (!c.isMaster) return false;
+  /* A encenação tem os próprios botões; uma barra por cima só confundiria. */
+  if (c.fase === "encenacao") return false;
+  if ((FASES_LANTERNA as readonly string[]).includes(c.fase)) return c.lanternDone;
+  if (c.fase === "cor") return c.algumFragmento;
+  return true;
+}

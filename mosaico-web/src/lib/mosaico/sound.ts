@@ -1,3 +1,5 @@
+import { AUDIO } from "./assets";
+
 let storm: HTMLAudioElement | null = null;
 let oneshot: HTMLAudioElement | null = null;
 let armed = false;
@@ -15,7 +17,7 @@ function make(src: string, loop = false, volume = 0.22) {
 export function armAudio() {
   if (armed || typeof window === "undefined") return;
   armed = true;
-  const a = new Audio(`${import.meta.env.BASE_URL}audio/tempestade-rajada.mp3`);
+  const a = new Audio(`${AUDIO}tempestade-rajada.mp3`);
   a.setAttribute("playsinline", "true");
   a.muted = true;
   void a.play().then(() => {
@@ -27,7 +29,7 @@ export function armAudio() {
 export function playStorm(on: boolean) {
   if (typeof window === "undefined") return;
   armAudio();
-  if (!storm) storm = make(`${import.meta.env.BASE_URL}audio/tempestade-loop.mp3`, true, 0.18);
+  if (!storm) storm = make(`${AUDIO}tempestade-loop.mp3`, true, 0.18);
   if (on) void storm.play().catch(() => {});
   else {
     storm.pause();

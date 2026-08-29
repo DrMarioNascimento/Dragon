@@ -21,7 +21,10 @@ export const Route = createRootRoute({
       {
         name: "viewport",
         content:
-          "width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1",
+          /* maximum-scale=1 bloqueava a pinca no Android. Numa atividade de
+             sala isso exclui quem precisa ampliar - e nao evitava nada: o
+             zoom por duplo toque ja e barrado por touch-action. */
+          "width=device-width, initial-scale=1, viewport-fit=cover",
       },
       { title: APP_NAME },
       {
@@ -62,7 +65,7 @@ export const Route = createRootRoute({
     ],
   }),
   component: () => (
-    <html lang="pt-BR" className="antialiased" suppressHydrationWarning>
+    <html lang="pt-BR" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>

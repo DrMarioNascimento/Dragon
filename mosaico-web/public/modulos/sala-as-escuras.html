@@ -652,7 +652,7 @@ function fazGrao(){
    ========================================================================== */
 var view={bearing:0,elev:0,roll:0}, raw={bearing:0,elev:0,roll:0};
 var src="nenhuma", northOffset=0;
-var jogando=false, sim=false, arrasto=null;
+var jogando=false, respondeu=false, sim=false, arrasto=null;
 var holdAcc=0, achados=0, aproxima=0;
 var ordem=[], iAlvo=0;
 var qdRumo0=0, qdDist0=1, qdAlt0=1.62;   /* pose do quadro antes de descer */          /* a fila de enigmas, semeada */
@@ -1639,7 +1639,12 @@ function onOrient(e){
     else iosHead=wrap360(iosHead+wrap180(raw.bearing-iosHead)*(iOSInstavel?0.14:0.26));
     raw.bearing=iosHead;
   }
-  if(!jogando) jogando=true;
+  /* `jogando` congela a rodada, então NÃO pode ser ligado aqui: se a
+     bússola só respondesse depois do aviso de falha, a sala congelava com
+     a pessoa ainda presa no diálogo, numa rodada que o resto do grupo já
+     tinha deixado para trás. Quem diz que a execução começou é fechaIntro.
+     Isto aqui só registra que o sensor deu sinal de vida. */
+  respondeu=true;
 }
 function ativaSensor(){
   var DOE=window.DeviceOrientationEvent;
@@ -1649,7 +1654,7 @@ function ativaSensor(){
     window.addEventListener("deviceorientation", onOrient, true);
     fechaIntro();
     setTimeout(function(){
-      if(!jogando){ src="sem sensor"; enviarStatus("sem-resposta","sensor");
+      if(!respondeu){ src="sem sensor"; enviarStatus("sem-resposta","sensor");
         mostraFalha("A bússola deste aparelho não respondeu."); }
     },1400);
   }
