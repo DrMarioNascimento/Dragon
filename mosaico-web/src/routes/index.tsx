@@ -268,7 +268,14 @@ function Home() {
                     <span className="pointer-events-none text-3xl leading-none" aria-hidden>
                       {emoji}
                     </span>
-                    <span className="pointer-events-none font-serif text-lg italic text-fog">{label}</span>
+                    <span
+                      className={cn(
+                        "pointer-events-none font-serif text-lg italic",
+                        forma === id ? "text-primary-foreground" : "text-fog",
+                      )}
+                    >
+                      {label}
+                    </span>
                   </label>
                 ))}
               </div>
@@ -288,8 +295,24 @@ function Home() {
                       onChange={() => setFormato("curta")}
                       className="absolute inset-0 z-30 cursor-pointer opacity-0"
                     />
-                    <p className="pointer-events-none font-serif text-lg">Noite curta</p>
-                    <p className="pointer-events-none text-base text-muted-foreground">uns 20 min</p>
+                    <p
+                      className={cn(
+                        "pointer-events-none font-serif text-lg",
+                        formato === "curta" && "text-primary-foreground",
+                      )}
+                    >
+                      Noite curta
+                    </p>
+                    <p
+                      className={cn(
+                        "pointer-events-none text-base",
+                        formato === "curta"
+                          ? "text-primary-foreground/75"
+                          : "text-muted-foreground",
+                      )}
+                    >
+                      uns 20 min
+                    </p>
                   </label>
                   <label
                     className={cn(
@@ -305,8 +328,24 @@ function Home() {
                       onChange={() => setFormato("cheia")}
                       className="absolute inset-0 z-30 cursor-pointer opacity-0"
                     />
-                    <p className="pointer-events-none font-serif text-lg">Noite cheia</p>
-                    <p className="pointer-events-none text-base text-muted-foreground">uns 40 min</p>
+                    <p
+                      className={cn(
+                        "pointer-events-none font-serif text-lg",
+                        formato === "cheia" && "text-primary-foreground",
+                      )}
+                    >
+                      Noite cheia
+                    </p>
+                    <p
+                      className={cn(
+                        "pointer-events-none text-base",
+                        formato === "cheia"
+                          ? "text-primary-foreground/75"
+                          : "text-muted-foreground",
+                      )}
+                    >
+                      uns 40 min
+                    </p>
                   </label>
                 </div>
               )}

@@ -121,86 +121,173 @@
   line-height: 0.95;
 }
 
-/* Learning-lab: brilho inset + degrau 5px + sombra. */
+/* ==========================================================================
+   PROFUNDIDADE — a mesma do Laboratório do Pesquisador
+   (drmarionascimento.github.io/Learning-lab/instrumentos-de-coleta/)
+
+   A peça não é "uma sombra": são TRÊS camadas, e é a ordem delas que faz o
+   objeto parecer ter espessura.
+
+     1. inset 0 1px 0 <clara>   o fio de luz na aresta de cima. É o que diz
+                                que existe uma quina virada para a luz.
+     2. 0 Npx 0 <sólida>        a PAREDE lateral. Sem desfoque nenhum: é ela
+                                que dá a altura. Desfocar aqui devolve o
+                                objeto ao plano.
+     3. 0 Mpx Kpx <transparente>  a sombra projetada no chão, essa sim mole.
+
+   E o toque: transform: translateY(N-1px) com a parede caindo para 0 1px 0.
+   O objeto desce até quase encostar; 1px de parede sobra para ele não virar
+   um decalque. A sombra do chão encolhe mas NÃO some — quando ela some, o
+   estado pressionado lê como "desligado" em vez de "afundado".
+
+   Referência, medida na página: parede 5px e curso 4px nos botões, parede
+   4px e curso 3px nas caixas clicáveis, e
+   transition: transform .15s, box-shadow .15s, background .15s.
+   ========================================================================== */
+
+.btn-depth,
+.btn-depth-soft,
+.btn-depth-outline,
+.box-depth {
+  /* Sem isto o degrau troca de altura num quadro só e o toque fica seco —
+     era a diferença mais visível para a referência. */
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s,
+    background 0.15s;
+}
+
 .btn-depth {
   background: linear-gradient(180deg, #d4bc8a, var(--color-primary));
   color: var(--color-primary-foreground);
   border: 0;
   margin-bottom: 5px;
   box-shadow:
-    inset 0 1px rgba(255, 255, 255, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
     0 5px 0 var(--color-primary-lip),
-    0 12px 22px rgba(0, 0, 0, 0.4);
+    0 10px 20px rgba(0, 0, 0, 0.4);
 }
 .btn-depth:hover {
   transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    0 7px 0 var(--color-primary-lip),
+    0 14px 24px rgba(0, 0, 0, 0.44);
 }
 .btn-depth:active:not(:disabled) {
   transform: translateY(4px);
   box-shadow:
-    inset 0 1px rgba(255, 255, 255, 0.28),
-    0 1px 0 var(--color-primary-lip);
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 1px 0 var(--color-primary-lip),
+    0 3px 8px rgba(0, 0, 0, 0.3);
 }
+
 .btn-depth-soft {
   background: linear-gradient(180deg, #1a222c, var(--color-card));
   color: var(--color-accent);
   border: 0;
-  margin-bottom: 6px;
+  margin-bottom: 5px;
   box-shadow:
-    inset 0 1px rgba(232, 194, 122, 0.28),
+    inset 0 1px 0 rgba(232, 194, 122, 0.28),
     0 5px 0 var(--color-card-lip),
     0 10px 18px rgba(0, 0, 0, 0.35);
 }
 .btn-depth-soft:hover {
   transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 rgba(232, 194, 122, 0.34),
+    0 7px 0 var(--color-card-lip),
+    0 13px 22px rgba(0, 0, 0, 0.4);
 }
 .btn-depth-soft:active:not(:disabled) {
   transform: translateY(4px);
   box-shadow:
-    inset 0 1px rgba(232, 194, 122, 0.18),
-    0 1px 0 var(--color-card-lip);
+    inset 0 1px 0 rgba(232, 194, 122, 0.18),
+    0 1px 0 var(--color-card-lip),
+    0 3px 8px rgba(0, 0, 0, 0.28);
 }
+
 .btn-depth-outline {
   background: linear-gradient(180deg, #161c24, var(--color-card));
   color: var(--color-foreground);
   border: 0;
-  margin-bottom: 6px;
+  margin-bottom: 5px;
   box-shadow:
-    inset 0 1px rgba(255, 255, 255, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
     0 5px 0 var(--color-card-lip),
     0 10px 18px rgba(0, 0, 0, 0.32);
 }
 .btn-depth-outline:hover {
   transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 7px 0 var(--color-card-lip),
+    0 13px 22px rgba(0, 0, 0, 0.38);
 }
 .btn-depth-outline:active:not(:disabled) {
   transform: translateY(4px);
   box-shadow:
-    inset 0 1px rgba(255, 255, 255, 0.08),
-    0 1px 0 var(--color-card-lip);
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 1px 0 var(--color-card-lip),
+    0 3px 8px rgba(0, 0, 0, 0.26);
 }
 
+/* A caixa é mais baixa que o botão: parede de 4px, como a .card e a .subarea
+   da referência. Antes eram 6px, e uma caixa mais alta que o botão que ela
+   contém inverte a hierarquia — o que devia ser fundo parecia estar na
+   frente. */
 .box-depth {
   background: linear-gradient(160deg, #141b24 0%, var(--color-card) 70%);
   border: 1.5px solid rgba(232, 194, 122, 0.18);
   box-shadow:
-    inset 0 1px rgba(255, 255, 255, 0.1),
-    0 6px 0 rgba(0, 0, 0, 0.45),
-    var(--shadow-depth);
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 4px 0 rgba(0, 0, 0, 0.5),
+    0 10px 22px rgba(0, 0, 0, 0.38);
 }
+
+/* Caixa em que se toca afunda; caixa que só mostra, não. É a distinção que a
+   referência faz entre .card (parada) e .subarea (clicável) — e é o que
+   ensina, sem texto, o que responde ao dedo. */
+a.box-depth:active,
+label.box-depth:active,
+button.box-depth:active:not(:disabled),
+.box-depth[role="button"]:active {
+  transform: translateY(3px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 1px 0 rgba(0, 0, 0, 0.5),
+    0 3px 7px rgba(0, 0, 0, 0.3);
+}
+
+/* O campo é o negativo dos outros: em vez de parede para fora, poço para
+   dentro. Um degrau aqui faria a caixa de texto parecer um botão. */
 .field-depth {
   background: #080b10;
   border: 1px solid rgba(232, 194, 122, 0.22);
-  box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  box-shadow:
+    inset 0 3px 8px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 @media (prefers-reduced-motion: reduce) {
+  /* A parede e a sombra continuam mudando — é isso que confirma o toque.
+     O que sai é o deslocamento e a transição. */
+  .btn-depth,
+  .btn-depth-soft,
+  .btn-depth-outline,
+  .box-depth {
+    transition: none;
+  }
   .btn-depth:hover,
   .btn-depth-soft:hover,
   .btn-depth-outline:hover,
   .btn-depth:active:not(:disabled),
   .btn-depth-soft:active:not(:disabled),
-  .btn-depth-outline:active:not(:disabled) {
+  .btn-depth-outline:active:not(:disabled),
+  a.box-depth:active,
+  label.box-depth:active,
+  button.box-depth:active:not(:disabled),
+  .box-depth[role="button"]:active {
     transform: none;
   }
 }
