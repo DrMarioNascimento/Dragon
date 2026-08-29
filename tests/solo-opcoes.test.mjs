@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -24,12 +24,7 @@ describe("modo solo", () => {
     assert.match(html, /shuffle\(SUSPECTS/);
   });
 
-  it("o rascunho React também lê as listas embaralhadas", () => {
-    const app = readFileSync(join(root, "solo/src/components/game/GameApp.tsx"), "utf8");
-    assert.match(app, /lists\.motives/);
-    assert.match(app, /lists\.actions/);
-    assert.match(app, /lists\.proofs/);
-    assert.match(app, /lists\.gaps/);
-    assert.doesNotMatch(app, /options=\{MOTIVES\}/);
+  it("não há uma segunda cópia em solo/src", () => {
+    assert.equal(existsSync(join(root, "solo/src")), false);
   });
 });
