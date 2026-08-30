@@ -34,7 +34,11 @@ O jogo distingue:
 
 Um fato prova apenas aquilo que efetivamente pode provar. Se o pneu de um personagem furou, por exemplo, isso não o torna automaticamente inocente nem culpado. O pneu pode ter furado independentemente de sua participação ou não em outro acontecimento.
 
-> **O jogo não engana artificialmente o jogador. O jogador pode interpretar errado um fato verdadeiro.**
+> **O MOSAICO deve explorar a distância entre aquilo que parece ter acontecido e aquilo que os fatos permitem concluir.**
+
+> **No MOSAICO, um fato verdadeiro pode estar associado à interpretação errada.**
+
+> **No MOSAICO, os jogadores constroem decisões com base nas evidências disponíveis. Novas evidências podem alterar a interpretação sem alterar nenhum fato já revelado.**
 
 Por isso, a dúvida deve surgir preferencialmente de relações possíveis entre fatos verdadeiros — coexistência × causalidade, presença × participação, oportunidade × autoria, coincidência × planejamento — e não de *red herrings* arbitrariamente falsos.
 
@@ -57,6 +61,40 @@ Antes de criar ou revisar uma partida, seguir esta ordem conceitual:
 A criação não deve começar por “quais são os cinco campos?” nem por “qual atividade ainda não usamos?”. A mecânica, os campos, a economia, o risco e a pontuação devem servir ao tipo de raciocínio exigido pela perspectiva.
 
 **No MOSAICO, a verdade não precisa mudar para que a experiência mude.**
+
+### Pergunta-mãe e natureza da incógnita
+
+A pergunta da partida é também a **venda psicológica da experiência**. Ela precisa dizer com precisão o que o jogador procura, sem revelar o caminho da solução, e deve criar curiosidade suficiente para que uma hipótese surja antes mesmo de todos os fragmentos estarem disponíveis.
+
+A incógnita não precisa ser uma pessoa. Uma partida pode procurar:
+
+- **QUEM** — pessoa, grupo, papel funcional ou cadeia de papéis;
+- **O QUÊ** — evento, objeto, ação, informação, estado ou natureza da ocorrência;
+- **QUANTO** — valor, quantidade, duração, diferença ou magnitude;
+- **ONDE** — origem, destino, posição, percurso ou local;
+- **QUANDO** — momento, janela crítica, ordem ou sincronização;
+- **COMO** — processo, mecanismo, percurso ou modo de execução;
+- **POR QUÊ** — finalidade, motivo, causa explicativa ou razão de uma escolha;
+- **QUAL / QUE TIPO** — classificação ou natureza correta de um fenômeno.
+
+A própria ocorrência pode estar em dúvida. “Há um cadáver” não prova automaticamente que a pessoa presumida morreu naquele local ou naquele momento; “a joia não está na caixa” não prova furto; “há diferença no caixa” não prova roubo. A investigação pode começar perguntando **se aquilo realmente aconteceu da forma como todos acreditam**.
+
+Em perguntas **QUEM**, é obrigatório definir a relação procurada: quem decidiu, ordenou, iniciou, coordenou, executou, sabia, ocultou, poderia impedir ou esteve presente. Quando a realidade contém funções distintas, a partida pode investigar uma posição ou a cadeia completa:
+
+`MANDANTE / CONTRATANTE → INTERMEDIÁRIO → EXECUTOR`
+
+Identificar o executor não resolve automaticamente quem ordenou; identificar quem tinha interesse não prova quem executou.
+
+Os **campos de resolução não são universais**. “Culpado”, “motivo”, “ação”, “prova” e “lacuna” podem ser adequados a uma determinada partida, mas outra pode exigir valor inicial, diferença aparente e diferença real; outra, evento aparente e evento real; outra, origem, percurso e destino. **Os campos nascem da pergunta.**
+
+Uma boa pergunta-mãe deve:
+
+1. criar uma lacuna informacional clara;
+2. prometer uma resposta demonstrável;
+3. ter consequência narrativa;
+4. não entregar a solução;
+5. fazer o jogador formular uma hipótese cedo;
+6. ser sustentada pela realidade canônica e pelas relações entre evidências.
 
 ---
 
