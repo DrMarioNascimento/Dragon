@@ -10,16 +10,18 @@ O Modo Solo é a terceira experiência do mesmo caso canônico:
 
 O Solo lê `../v1/casos/casa-da-costa.json`. A realidade factual é única e não deve ser duplicada nesta pasta.
 
-## Partidas alternadas
+## Rotação automática das partidas
 
-Cada execução escolhe uma pergunta-mãe diferente sobre a mesma realidade:
+O usuário não escolhe a pergunta. O MOSAICO alterna automaticamente, em sequência, uma pergunta-mãe diferente sobre a mesma realidade:
 
-- Sete dentro da casa
-- Cinco meses
-- Os 2 minutos e 2 segundos
-- O nome
-- Casa, corpo ou assombração?
-- Quem deveria ter percebido?
+1. Sete dentro da casa
+2. Cinco meses
+3. Os 2 minutos e 2 segundos
+4. O nome
+5. Casa, corpo ou assombração?
+6. Quem deveria ter percebido?
+
+Ao iniciar uma execução, a pergunta fica congelada até a revelação. A próxima partida avança para a pergunta seguinte e, depois da sexta, a sequência recomeça.
 
 ## Fluxo
 
