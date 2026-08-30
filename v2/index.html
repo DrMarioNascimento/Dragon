@@ -9,14 +9,15 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="MOSAICO · A Noite">
   <title>MOSAICO — A Noite · A Casa da Costa</title>
-  <meta name="description" content="A Noite — fechamento do dossiê da Casa da Costa. A verdade é um fragmento.">
+  <meta name="description" content="A Noite — fechamento multiplayer do dossiê da Casa da Costa.">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="noite.css?v=20260830-cloud">
+  <link rel="stylesheet" href="noite.css?v=20260830-room">
+  <link rel="stylesheet" href="room.css?v=20260830-room">
 </head>
 <body>
   <header class="top">
@@ -41,20 +42,10 @@
     </div>
   </div>
 
-  <script type="module" src="../firebase-user.js?v=20260830-cloud"
-          data-experience="casa-da-costa-noite"
-          data-storage-keys="mosaico_casa_ultima_partida_noite,mosaico_noite_costa_auto"></script>
-  <script>
-  (function(){
-    function iniciar(){
-      if(window.__mosaicoNoiteIniciado)return;
-      window.__mosaicoNoiteIniciado=true;
-      var s=document.createElement('script');
-      s.src='noite-auto.js?v=20260830-cloud';
-      document.body.appendChild(s);
-    }
-    window.addEventListener('mosaico-cloud-ready',iniciar,{once:true});
-  })();
-  </script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script src="../v1/js/qr.js?v=20260830-room"></script>
+  <script src="room-shell.js?v=20260830-room"></script>
 </body>
 </html>
