@@ -30,17 +30,18 @@
   </main>
 
   <script src="../v1/js/qr.js"></script>
-  <script type="module" src="../firebase-room.js"
+  <script type="module" src="../firebase-room.js?v=20260830-standard"
           data-project="mesa"
-          data-root="carroforte"
+          data-root="mosaico"
+          data-case="carro-forte"
           data-title="A Mesa · A Manhã do Carro-Forte"
           data-ready-event="carroforte-mesa-ready"></script>
   <script>
     window.addEventListener('carroforte-mesa-ready',()=>{
-      const game=document.createElement('script');game.src='game.js?v=20260830-room';document.body.appendChild(game);
+      const game=document.createElement('script');game.src='game.js?v=20260830-standard';document.body.appendChild(game);
       game.onload=()=>{
         document.addEventListener('click',e=>{const a=e.target.closest('.sensor-actions a');if(a)a.target='_blank'});
-        const guard=document.createElement('script');guard.src='iphone-guard.js?v=20260830-room';document.body.appendChild(guard);
+        const guard=document.createElement('script');guard.src='iphone-guard.js?v=20260830-standard';document.body.appendChild(guard);
       };
     },{once:true});
   </script>
