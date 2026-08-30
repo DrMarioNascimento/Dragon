@@ -1,21 +1,34 @@
-# MOSAICO — modo solo
+# MOSAICO — Modo Solo · A Casa da Costa
 
-Pasta **única**. Não misturar com a mesa (`v1/`) nem com a noite (`v2/` / `mosaico-web/`).
+O Modo Solo é a terceira experiência do mesmo caso canônico:
 
-O jogo é [`index.html`](./index.html). Não há outra fonte.
+- **A Mesa (`v1/`)**: verdade distribuída entre pessoas.
+- **A Noite (`v2/`)**: fechamento do dossiê e sustentação da conclusão.
+- **Modo Solo (`solo/`)**: verdade fragmentada reconstruída cognitivamente por uma pessoa.
 
-Cada pista nasce partida em quatro fragmentos. Só entra no mosaico inteira.
-As opções da dedução saem embaralhadas com semente da partida — recarregar
-mantém a ordem; «Outra partida» muda.
+## Fonte canônica
 
-**Caso:** A Casa da Costa
+O Solo lê `../v1/casos/casa-da-costa.json`. A realidade factual é única e não deve ser duplicada nesta pasta.
 
-```
-solo/
-  index.html     o jogo (GitHub Pages)
-  tiles/         as cinco cartas e os recortes 2×2
-```
+## Partidas alternadas
 
-A espinha da noite (`mosaico-web/src/lib/mosaico/v3.ts`) **não** é este modo.
+Cada execução escolhe uma pergunta-mãe diferente sobre a mesma realidade:
 
-**Jogar:** [drmarionascimento.github.io/Dragon/solo/](https://drmarionascimento.github.io/Dragon/solo/)
+- Sete dentro da casa
+- Cinco meses
+- Os 2 minutos e 2 segundos
+- O nome
+- Casa, corpo ou assombração?
+- Quem deveria ter percebido?
+
+## Fluxo
+
+`Pergunta → imagem em quatro fragmentos → Fato → Relação → Inferência → planta de 1867 → Decisão → Revelação`
+
+Cada evidência é remontada em quatro partes. Depois de montar, o jogador precisa separar o que o fato demonstra diretamente de interpretações que ainda não estão autorizadas. As relações entre fatos aparecem antes da decisão final.
+
+A planta `v1/img/casa-da-costa-planta-1867.svg` funciona como síntese espacial antes da resposta.
+
+O modelo antigo de `suspeito + motivo + ação + prova + lacuna`, assim como a continuidade de Nuno/Caseiro, testamento, chave e abertura criminosa do cofre, está supersedido.
+
+**Jogar:** https://drmarionascimento.github.io/Dragon/solo/
