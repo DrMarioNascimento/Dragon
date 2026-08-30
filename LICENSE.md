@@ -12,12 +12,10 @@ Esta licença abrange as expressões originais materializadas no projeto **MOSAI
 - interfaces, fluxos, layouts, identidade visual e experiência audiovisual;
 - imagens, vídeos, sons, animações, ícones e demais recursos gráficos;
 - documentos técnicos, simulações, tabelas, análises, registros de playtest e arquivos de continuidade;
+- gramáticas de criação, prompts autorais, matrizes de perspectivas e perguntas, taxonomias, checklists, critérios de conformidade e demais estruturas textuais originais usadas para criação, revisão ou auditoria de histórias e partidas;
 - versões implementadas, experimentais, adaptadas, em construção, históricas ou não publicadas.
 
-Ideias, conceitos, métodos, procedimentos, regras de jogo e mecânicas considerados
-isoladamente não são reivindicados como objeto de exclusividade autoral. A proteção
-recai sobre sua expressão concreta e original, bem como sobre a seleção, a disposição
-e a combinação criativa dos elementos, nos limites da legislação aplicável.
+Ideias, conceitos, métodos, procedimentos, regras de jogo, mecânicas, categorias abstratas de pergunta ou princípios considerados isoladamente não são reivindicados como objeto de exclusividade autoral. A proteção recai sobre sua expressão concreta e original, bem como sobre a seleção, a disposição, a redação e a combinação criativa dos elementos, nos limites da legislação aplicável.
 
 Componentes de terceiros permanecem sujeitos às respectivas licenças e aos direitos de seus próprios titulares.
 
@@ -34,11 +32,9 @@ O repositório pode permanecer publicamente visível para viabilizar demonstraç
 - não transforma a obra em software livre ou de código aberto;
 - não concede licença implícita de cópia, adaptação, distribuição ou exploração;
 - não representa cessão, transferência, renúncia ou abandono de direitos;
-- não autoriza a extração de casos, soluções, mídias, documentação ou conjuntos de dados.
+- não autoriza a extração de casos, soluções, mídias, documentação, prompts, gramáticas de criação ou conjuntos de dados.
 
-Todos os direitos não concedidos expressamente nesta licença permanecem reservados,
-sem prejuízo das utilizações que a legislação aplicável permita independentemente de
-autorização.
+Todos os direitos não concedidos expressamente nesta licença permanecem reservados, sem prejuízo das utilizações que a legislação aplicável permita independentemente de autorização.
 
 ## 4. Permissão para jogar e avaliar
 
@@ -64,13 +60,13 @@ A autorização é pessoal, limitada, revogável, intransferível e não sublice
 
 ## 6. Usos não autorizados
 
-Salvo autorização prévia e escrita dos titulares ou hipótese expressamente permitida
-pela legislação aplicável, não são autorizados, integral ou parcialmente:
+Salvo autorização prévia e escrita dos titulares ou hipótese expressamente permitida pela legislação aplicável, não são autorizados, integral ou parcialmente:
 
 - copiar, clonar, baixar em massa, extrair ou armazenar os materiais para finalidade não autorizada;
 - reproduzir, modificar, adaptar, traduzir, portar ou criar obras derivadas;
 - redistribuir, publicar, transmitir, espelhar, compartilhar, hospedar ou disponibilizar arquivos ou links internos;
 - incorporar código, interfaces, identidade visual, narrativas, casos, pistas, tabelas, documentação ou a expressão original das mecânicas em outra obra;
+- reproduzir, adaptar ou reutilizar substancialmente prompts autorais, gramáticas de criação, matrizes de perspectivas e perguntas, taxonomias, checklists ou estruturas textuais originais do projeto para criar ou orientar outro jogo, produto, serviço ou sistema;
 - revelar soluções, pistas privadas ou conteúdo suficiente para prejudicar a experiência do jogo;
 - vender, alugar, sublicenciar, ceder, licenciar, monetizar ou explorar economicamente o projeto;
 - organizar demonstração pública, atividade didática, pesquisa, evento ou coleta de dados com o projeto sem autorização;
@@ -116,10 +112,7 @@ Qualquer uso não expressamente permitido depende de autorização individual, p
 
 Esta licença deve ser interpretada segundo a legislação da República Federativa do Brasil, especialmente as normas aplicáveis a direitos autorais, software, propriedade intelectual, proteção de dados e concorrência desleal.
 
-Nenhuma disposição pretende restringir direitos, limitações, exceções ou utilizações
-que a legislação aplicável determine como irrenunciáveis ou permita
-independentemente de autorização. Se uma disposição for considerada inválida ou
-inexequível, as demais permanecem em vigor na máxima extensão permitida.
+Nenhuma disposição pretende restringir direitos, limitações, exceções ou utilizações que a legislação aplicável determine como irrenunciáveis ou permita independentemente de autorização. Se uma disposição for considerada inválida ou inexequível, as demais permanecem em vigor na máxima extensão permitida.
 
 ## 14. Identificação
 
