@@ -6,6 +6,13 @@ Este documento é normativo para todos os jogos multiplayer do MOSAICO. A refer�
 
 O que muda entre casos e modos é o jogo depois de iniciado. A infraestrutura de entrada deve permanecer igual.
 
+**O projeto Firebase é definido exclusivamente pelo tipo de partida, nunca pelo caso.**
+
+- toda experiência **A Mesa**, atual ou futura, usa `mosaico-game`;
+- toda experiência **A Noite**, atual ou futura, usa `mosaico-noite`;
+- A Casa da Costa, A Manhã do Carro-Forte e futuros casos não criam projetos Firebase próprios;
+- o caso é identificado dentro da sala por `caseId` e não pela escolha do projeto Firebase.
+
 ## Fluxo obrigatório
 
 ### 1. Tela inicial
@@ -22,14 +29,15 @@ Ao escolher **Abrir uma mesa**:
 
 1. mostrar a etapa **Mestre da Mesa**;
 2. autenticar o Mestre com **Google**;
-3. somente após o login, abrir a **Identificação do jogador**;
-4. solicitar o nome;
-5. solicitar uma das três formas de tratamento visual:
+3. autorizar a abertura somente quando o e-mail autenticado estiver em `config/mestres` do projeto Firebase daquele modo;
+4. somente após o login, abrir a **Identificação do jogador**;
+5. solicitar o nome;
+6. solicitar uma das três formas de tratamento visual:
    - 👋 **Bem-vindo** (`forma: m`)
    - 👋 **Bem-vinda** (`forma: f`)
    - ✨ **Tanto faz** (`forma: n`)
-6. o Mestre também é registrado como jogador da sala;
-7. criar a sala no Firebase do modo correspondente.
+7. o Mestre também é registrado como jogador da sala;
+8. criar a sala no Firebase do modo correspondente.
 
 ### 3. Sala de espera
 
@@ -68,12 +76,16 @@ Convidado não precisa de login Google.
 
 ## Firebase por modo
 
-| Modo | Projeto | Coleção principal |
-|---|---|---|
-| A Mesa | `mosaico-game` | `mosaico/{codigo}` |
-| A Noite | `mosaico-noite` | `noite/{codigo}` |
+| Tipo de partida | Projeto Firebase | Coleção principal | Casos |
+|---|---|---|---|
+| **A Mesa** | `mosaico-game` | `mosaico/{codigo}` | todos |
+| **A Noite** | `mosaico-noite` | `noite/{codigo}` | todos |
 
-Casos diferentes compartilham a infraestrutura do modo, mas devem gravar `caseId` para impedir que um código de outro caso seja aceito na página errada.
+Casos diferentes compartilham a infraestrutura do modo e gravam `caseId` para impedir que um código de outro caso seja aceito na página errada.
+
+### Invariante técnico
+
+Uma página marcada como `data-project="mesa"` deve carregar somente as credenciais Web do projeto `mosaico-game`. Uma página marcada como `data-project="noite"` deve carregar somente as credenciais Web do projeto `mosaico-noite`. Não reutilizar `apiKey`, `messagingSenderId` ou `appId` entre os dois projetos.
 
 ## Casos abrangidos
 
