@@ -32,9 +32,13 @@
     return saida;
   };
 
+  function principalCorreta(d) {
+    return !!(d && (d.respostaPrincipalCorreta != null ? d.respostaPrincipalCorreta : d.suspeitoCorreto));
+  }
+
   V5.pontosTempo = function (deducoes) {
     const escala = [32, 29, 26, 23, 20, 17];
-    const corretas = deducoes.filter(d => d.suspeitoCorreto).sort((a, b) => a.submetidoMs - b.submetidoMs);
+    const corretas = deducoes.filter(principalCorreta).sort((a, b) => a.submetidoMs - b.submetidoMs);
     const pontos = {};
     let inicio = 0;
     while (inicio < corretas.length) {
@@ -50,9 +54,11 @@
     return pontos;
   };
 
-  V5.pontosQualidade = function (camposCorretos, suspeitoCorreto) {
-    if (!suspeitoCorreto) return 0;
-    return [0, 3, 6, 10, 13][clamp(inteiro(camposCorretos), 0, 4)];
+  V5.pontosQualidade = function (camposCorretos, principal, totalSecundarios) {
+    if (!principal) return 0;
+    const total = Math.max(1, inteiro(totalSecundarios == null ? 4 : totalSecundarios));
+    const acertos = clamp(inteiro(camposCorretos), 0, total);
+    return Math.round(13 * acertos / total);
   };
 
   V5.pontosMoedas = function (moedas) {
@@ -81,7 +87,7 @@
   V5.pontosEconomia = function (jogador, deducao, negociacoes) {
     const moedas = V5.pontosMoedas(jogador.moedas);
     const confiabilidade = V5.pontosConfiabilidade(negociacoes, jogador.id);
-    let gasto = deducao && deducao.suspeitoCorreto ? (deducao.usouPistaAdquirida ? 5 : 2) : 0;
+    let gasto = deducao && principalCorreta(deducao) ? (deducao.usouPistaAdquirida ? 5 : 2) : 0;
     if (confiabilidade < 0) gasto = 0;
     return { moedas, gasto, confiabilidade, total: clamp(moedas + gasto + confiabilidade, 0, 20) };
   };
@@ -108,11 +114,12 @@
     const coopIndividual = entrada.coopIndividual || {};
     const performance = entrada.performance || {};
     return jogadores.map(j => {
-      const d = porId[j.id] || { suspeitoCorreto: false, camposCorretos: 0 };
+      const d = porId[j.id] || { respostaPrincipalCorreta: false, camposCorretos: 0, totalSecundarios: 4 };
+      const correta = principalCorreta(d);
       const economia = V5.pontosEconomia(j, d, negociacoes);
       const componentes = {
         tempo: tempo[j.id] || 0,
-        qualidade: V5.pontosQualidade(d.camposCorretos, d.suspeitoCorreto),
+        qualidade: V5.pontosQualidade(d.camposCorretos, correta, d.totalSecundarios),
         cooperacao: clamp((coopColetiva[j.id] || 0) + (coopIndividual[j.id] || 0), 0, 30),
         economia: economia.total,
         performance: clamp(performance[j.id] || 0, 0, 5)
@@ -123,4 +130,18 @@
   };
 
   global.MosaicoV5 = V5;
+
+  /* A camada Casa da Costa 2026.08 transforma a Mesa antiga sem duplicar
+     a infraestrutura estável (Firebase, QR, reconexão, sensores e mercado).
+     O atraso de zero coloca o override depois do script principal da página,
+     mas antes de qualquer gesto do jogador. */
+  if (typeof document !== "undefined") {
+    setTimeout(function () {
+      if (document.querySelector('script[data-casa-costa-v2]')) return;
+      var s = document.createElement("script");
+      s.src = "js/casa-da-costa-v2.js?v=20260830-canonico";
+      s.dataset.casaCostaV2 = "1";
+      document.head.appendChild(s);
+    }, 0);
+  }
 })(window);
