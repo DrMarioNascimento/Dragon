@@ -16,80 +16,19 @@
     <div class="session"><span id="phaseLabel">ESCOLHA</span><span class="dot"></span><span id="timer">00:00</span></div>
     <button class="ghost" id="resetBtn" type="button">Reiniciar</button>
   </header>
-
   <main id="app">
-    <section class="screen active" data-screen="intro">
-      <div class="hero">
-        <div class="eyebrow">AGÊNCIA 0417 · GAROA · 8H02</div>
-        <h1>A Manhã do<br><em>Carro-Forte</em></h1>
-        <p>Um saco vazio no chão. O lacre partido. A câmera 3 perdeu exatamente 87 segundos. Alguém grita: <b>“falta dinheiro”.</b></p>
-        <div class="notice"><span>REALIDADE ÚNICA · PERGUNTAS MÚLTIPLAS</span><b>Escolha qual mistério esta mesa vai perseguir.</b></div>
-        <div class="setup compact">
-          <label>Investigadores<select id="playerCount"><option>2</option><option>3</option><option>4</option><option>5</option><option selected>6</option><option>7</option><option>8</option></select></label>
-          <label>Ritmo<select id="pace"><option value="pressure">Sob pressão · 30 s</option><option value="calm">Calma · 60 s</option></select></label>
-        </div>
-        <button class="primary" id="chooseGame" type="button">Escolher partida <span>→</span></button>
-      </div>
-      <aside class="street-card"><div class="clock"><span>FARMÁCIA</span><strong>7:44</strong><small>o relógio parece atrasado</small></div><div class="bank">BANCO <span>auditoria chegando</span></div></aside>
-    </section>
-
-    <section class="screen" data-screen="games">
-      <div class="section-head"><div><span>PERGUNTA-MÃE</span><h2>Seis partidas. A mesma manhã.</h2></div><p>A realidade factual não muda. Muda o que você precisa demonstrar.</p></div>
-      <div id="gameCards" class="game-grid"></div>
-      <button class="ghost dock" data-back="intro" type="button">← Voltar</button>
-    </section>
-
-    <section class="screen" data-screen="briefing">
-      <div class="section-head"><div><span id="gameNature">PARTIDA</span><h2 id="gameTitle"></h2></div><p id="gameQuestion" class="question"></p></div>
-      <div class="brief-grid">
-        <article><small>O QUE PARECE</small><p>Houve um assalto interno e R$ 480.000 desapareceram durante uma janela de 87 segundos.</p></article>
-        <article><small>REGRA DE LEITURA</small><p>Fato não é interpretação. Uma evidência pode ser verdadeira e ainda sustentar uma leitura errada.</p></article>
-      </div>
-      <div class="activity-map"><h3>Atividades desta partida</h3><div id="activityPlan"></div></div>
-      <button class="primary dock" id="startGame" type="button">Entrar na investigação <span>→</span></button>
-    </section>
-
-    <section class="screen" data-screen="sensory">
-      <div class="section-head"><div><span>ATIVIDADES SENSORIAIS</span><h2>Abra fatos. Não conclusões.</h2></div><p>Cada atividade revela fatos relevantes para a pergunta desta partida.</p></div>
-      <div id="sensoryCards" class="sensor-grid"></div>
-      <div class="archive"><div><small>ARQUIVO DA PARTIDA</small><b id="sensorDone">0 atividades concluídas</b></div><div id="sensorTags"></div></div>
-      <button class="primary dock" id="toEvidence" type="button">Continuar com as evidências <span>→</span></button>
-    </section>
-
-    <section class="screen" data-screen="evidence">
-      <div class="section-head"><div><span>FRAGMENTOS</span><h2>O que os registros realmente dizem?</h2></div><p>Selecione relações que ajudam a responder à pergunta-mãe. Associação não é prova de causalidade.</p></div>
-      <div id="evidenceGrid" class="evidence-grid"></div>
-      <button class="primary dock" id="toHypothesis" type="button">Registrar hipótese provisória <span>→</span></button>
-    </section>
-
-    <section class="screen" data-screen="hypothesis">
-      <div class="section-head"><div><span>HIPÓTESE</span><h2>Comprometa-se antes do fechamento.</h2></div><p id="hypothesisPrompt"></p></div>
-      <form id="hypothesisForm" class="case-form"></form>
-    </section>
-
-    <section class="screen" data-screen="mosaic">
-      <div class="section-head"><div><span>MOSAICO COLETIVO</span><h2>Revise a leitura.</h2></div><p>Novas evidências podem alterar a interpretação sem alterar nenhum fato já revelado.</p></div>
-      <div id="relationGrid" class="relation-grid"></div>
-      <div class="contraproof"><span>CONTRAPROVA</span><h3 id="oldHypothesis"></h3><p id="counterPrompt"></p></div>
-      <button class="primary dock" id="toFinal" type="button">Ir para decisão final <span>→</span></button>
-    </section>
-
-    <section class="screen" data-screen="final">
-      <div class="section-head"><div><span>DECISÃO</span><h2 id="finalTitle">Feche a sua resposta.</h2></div><p id="finalPrompt"></p></div>
-      <form id="finalForm" class="case-form"></form>
-    </section>
-
-    <section class="screen reveal-screen" data-screen="reveal">
-      <div id="revealStage" class="reveal-stage"></div>
-      <button class="primary dock" id="nextReveal" type="button">Continuar revelação <span>→</span></button>
-    </section>
-
-    <section class="screen" data-screen="score">
-      <div class="score-wrap"><span class="eyebrow">RELATÓRIO ENCERRADO</span><h2 id="scoreTitle"></h2><div class="score-ring"><strong id="totalScore">0</strong><small>/ 100</small></div><div id="scoreBars" class="score-bars"></div><div id="endingCards" class="ending-cards"></div><button class="primary" id="playAgain" type="button">Escolher outra partida</button></div>
-    </section>
+    <section class="screen active" data-screen="intro"><div class="hero"><div class="eyebrow">AGÊNCIA 0417 · GAROA · 8H02</div><h1>A Manhã do<br><em>Carro-Forte</em></h1><p>Um saco vazio no chão. O lacre partido. A câmera 3 perdeu exatamente 87 segundos. Alguém grita: <b>“falta dinheiro”.</b></p><div class="notice"><span>REALIDADE ÚNICA · PERGUNTAS MÚLTIPLAS</span><b>Escolha qual mistério esta mesa vai perseguir.</b></div><div class="setup compact"><label>Investigadores<select id="playerCount"><option>2</option><option>3</option><option>4</option><option>5</option><option selected>6</option><option>7</option><option>8</option></select></label><label>Ritmo<select id="pace"><option value="pressure">Sob pressão · 30 s</option><option value="calm">Calma · 60 s</option></select></label></div><button class="primary" id="chooseGame" type="button">Escolher partida <span>→</span></button></div><aside class="street-card"><div class="clock"><span>FARMÁCIA</span><strong>7:44</strong><small>o relógio parece atrasado</small></div><div class="bank">BANCO <span>auditoria chegando</span></div></aside></section>
+    <section class="screen" data-screen="games"><div class="section-head"><div><span>PERGUNTA-MÃE</span><h2>Seis partidas. A mesma manhã.</h2></div><p>A realidade factual não muda. Muda o que você precisa demonstrar.</p></div><div id="gameCards" class="game-grid"></div><button class="ghost dock" data-back="intro" type="button">← Voltar</button></section>
+    <section class="screen" data-screen="briefing"><div class="section-head"><div><span id="gameNature">PARTIDA</span><h2 id="gameTitle"></h2></div><p id="gameQuestion" class="question"></p></div><div class="brief-grid"><article><small>O QUE PARECE</small><p>Houve um assalto interno e R$ 480.000 desapareceram durante uma janela de 87 segundos.</p></article><article><small>REGRA DE LEITURA</small><p>Fato não é interpretação. Uma evidência pode ser verdadeira e ainda sustentar uma leitura errada.</p></article></div><div class="activity-map"><h3>Atividades desta partida</h3><div id="activityPlan"></div></div><button class="primary dock" id="startGame" type="button">Entrar na investigação <span>→</span></button></section>
+    <section class="screen" data-screen="sensory"><div class="section-head"><div><span>ATIVIDADES SENSORIAIS</span><h2>Abra fatos. Não conclusões.</h2></div><p>Cada atividade revela fatos relevantes para a pergunta desta partida. Ela abre em uma nova aba para preservar o estado da Mesa.</p></div><div id="sensoryCards" class="sensor-grid"></div><div class="archive"><div><small>ARQUIVO DA PARTIDA</small><b id="sensorDone">0 atividades concluídas</b></div><div id="sensorTags"></div></div><button class="primary dock" id="toEvidence" type="button">Continuar com as evidências <span>→</span></button></section>
+    <section class="screen" data-screen="evidence"><div class="section-head"><div><span>FRAGMENTOS</span><h2>O que os registros realmente dizem?</h2></div><p>Selecione relações que ajudam a responder à pergunta-mãe. Associação não é prova de causalidade.</p></div><div id="evidenceGrid" class="evidence-grid"></div><button class="primary dock" id="toHypothesis" type="button">Registrar hipótese provisória <span>→</span></button></section>
+    <section class="screen" data-screen="hypothesis"><div class="section-head"><div><span>HIPÓTESE</span><h2>Comprometa-se antes do fechamento.</h2></div><p id="hypothesisPrompt"></p></div><form id="hypothesisForm" class="case-form"></form></section>
+    <section class="screen" data-screen="mosaic"><div class="section-head"><div><span>MOSAICO COLETIVO</span><h2>Revise a leitura.</h2></div><p>Novas evidências podem alterar a interpretação sem alterar nenhum fato já revelado.</p></div><div id="relationGrid" class="relation-grid"></div><div class="contraproof"><span>CONTRAPROVA</span><h3 id="oldHypothesis"></h3><p id="counterPrompt"></p></div><button class="primary dock" id="toFinal" type="button">Ir para decisão final <span>→</span></button></section>
+    <section class="screen" data-screen="final"><div class="section-head"><div><span>DECISÃO</span><h2 id="finalTitle">Feche a sua resposta.</h2></div><p id="finalPrompt"></p></div><form id="finalForm" class="case-form"></form></section>
+    <section class="screen reveal-screen" data-screen="reveal"><div id="revealStage" class="reveal-stage"></div><button class="primary dock" id="nextReveal" type="button">Continuar revelação <span>→</span></button></section>
+    <section class="screen" data-screen="score"><div class="score-wrap"><span class="eyebrow">RELATÓRIO ENCERRADO</span><h2 id="scoreTitle"></h2><div class="score-ring"><strong id="totalScore">0</strong><small>/ 100</small></div><div id="scoreBars" class="score-bars"></div><div id="endingCards" class="ending-cards"></div><button class="primary" id="playAgain" type="button">Escolher outra partida</button></div></section>
   </main>
-
   <script src="game.js"></script>
+  <script>document.addEventListener('click',e=>{const a=e.target.closest('.sensor-actions a');if(a)a.target='_blank'});</script>
   <script src="iphone-guard.js"></script>
-</body>
-</html>
+</body></html>
