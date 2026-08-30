@@ -132,9 +132,6 @@
   global.MosaicoV5 = V5;
 
   if (typeof document !== "undefined") {
-    /* A prancha aprovada foi convertida para uma versão SVG operacional que
-       reutiliza a imagem canônica já publicada e o ícone Dragon Games. O
-       fallback também evita tela quebrada em caches que ainda tragam .webp. */
     document.addEventListener("error", function (ev) {
       var el = ev.target;
       if (el && el.tagName === "IMG" && /casa-da-costa-planta-1867\.webp(?:\?|$)/.test(el.src || "")) {
@@ -147,6 +144,13 @@
       var s = document.createElement("script");
       s.src = "js/casa-da-costa-v2.js?v=20260830-canonico";
       s.dataset.casaCostaV2 = "1";
+      s.onload=function(){
+        if(document.querySelector('script[data-rotacao-casa]'))return;
+        var r=document.createElement("script");
+        r.src="js/rotacao-partidas-casa.js?v=20260830-auto";
+        r.dataset.rotacaoCasa="1";
+        document.head.appendChild(r);
+      };
       document.head.appendChild(s);
     }, 0);
   }
