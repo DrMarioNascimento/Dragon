@@ -187,15 +187,21 @@
     .game > p { margin: 0 0 16px; color: var(--mist); line-height: 1.5; }
     .game-strip {
       display: flex;
-      gap: 10px;
+      justify-content: space-evenly;
+      align-items: flex-end;
+      gap: 12px;
+      width: 100%;
       overflow-x: auto;
       margin: 4px 0 18px;
       padding: 8px 2px 18px;
       scrollbar-width: thin;
     }
     .game-strip img {
+      flex: 0 0 auto;
       height: 176px;
       width: auto;
+      max-width: 22%;
+      object-fit: contain;
       border-radius: 8px;
       background: #050403;
       box-shadow:
@@ -214,6 +220,14 @@
     .versions { display: grid; gap: 12px; }
     @media (min-width: 900px) { .versions { grid-template-columns: 1fr 1fr 1fr; } }
     @media (min-width: 640px) and (max-width: 899px) { .versions { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 720px) {
+      .game-strip {
+        justify-content: flex-start;
+      }
+      .game-strip img {
+        max-width: none;
+      }
+    }
     .ver {
       display: flex; flex-direction: column; gap: 10px;
       padding: 16px; border-radius: 12px;
