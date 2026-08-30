@@ -30,7 +30,7 @@
   <aside id="drawer" class="drawer" aria-hidden="true"><div class="drawer-card depth-card"><div class="modal-head"><div><small>MOSAICO · CAPTURA</small><h2>Regras desta noite</h2></div><button id="drawerClose" class="icon-btn depth" type="button">×</button></div><p><b>Comprar</b> abre um fragmento da mesa. <b>Capturar</b> transfere uma evidência de outro dossiê — não clona. <b>Arriscar</b> compromete uma resposta de campo.</p><p>Os fatos não mudam. Novas evidências podem mudar a interpretação.</p><p>A pontuação é consultável, mas não existe ranking ao vivo.</p></div></aside>
 
   <script src="../v1/js/qr.js"></script>
-  <script type="module" src="../firebase-room.js?v=20260830-standard"
+  <script type="module" src="../firebase-room.js?v=20260830-master-persistente"
           data-project="noite"
           data-root="noite"
           data-case="carro-forte"
@@ -38,7 +38,7 @@
           data-ready-event="carroforte-noite-ready"></script>
   <script>
     window.addEventListener('carroforte-noite-ready',()=>{
-      const game=document.createElement('script');game.src='game.js?v=20260830-standard';document.body.appendChild(game);
+      const game=document.createElement('script');game.src='game.js?v=20260830-master-persistente';document.body.appendChild(game);
     },{once:true});
   </script>
 </body>
