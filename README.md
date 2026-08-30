@@ -62,16 +62,16 @@ A criação não deve começar por “quais são os cinco campos?” nem por “
 
 ## Catálogo jogável
 
-| Caso | Versão | Pasta | Jogar |
-|---|---|---|---|
-| **A Casa da Costa** | A mesa | [`v1/`](./v1) | [Abrir a mesa](https://drmarionascimento.github.io/Dragon/v1/MOSAICO-mesa.html) |
-| **A Casa da Costa** | A noite | [`mosaico-web/`](./mosaico-web) (código) · [`v2/`](./v2) (site) | [Abrir a noite](https://drmarionascimento.github.io/Dragon/v2/) |
-| **A Casa da Costa** | Modo solo | [`solo/`](./solo) | [Jogar sozinho](https://drmarionascimento.github.io/Dragon/solo/) |
-| **A manhã do Carro-Forte** | A mesa | [`carro-forte/`](./carro-forte) | [Iniciar investigação](https://drmarionascimento.github.io/Dragon/carro-forte/) |
+| Experiência | Pasta | Jogar |
+|---|---|---|
+| **A Mesa — A Casa da Costa** | [`v1/`](./v1) | [Abrir a mesa](https://drmarionascimento.github.io/Dragon/v1/MOSAICO-mesa.html) |
+| **A Noite — A Casa da Costa** | [`mosaico-web/`](./mosaico-web) (código) · [`v2/`](./v2) (site) | [Abrir a noite](https://drmarionascimento.github.io/Dragon/v2/) |
+| **Modo Solo — A Casa da Costa** | [`solo/`](./solo) | [Jogar sozinho](https://drmarionascimento.github.io/Dragon/solo/) |
+| **A Mesa — A Manhã do Carro-Forte** | [`carro-forte/`](./carro-forte) | [Iniciar investigação](https://drmarionascimento.github.io/Dragon/carro-forte/) |
 
-O endereço antigo [`MOSAICO-mesa.html`](./MOSAICO-mesa.html) redireciona para a mesa (v1).
+O endereço antigo [`MOSAICO-mesa.html`](./MOSAICO-mesa.html) redireciona para **A Mesa — A Casa da Costa**.
 
-**Casos:** *A Casa da Costa* · *A manhã do Carro-Forte*<br>
+**Casos:** *A Casa da Costa* · *A Manhã do Carro-Forte*<br>
 **Participantes:** Casa da Costa: 1 a 12 · Carro-Forte: 2, 3, 4 ou 6<br>
 **Situação:** experiências jogáveis em evolução e playtest
 
@@ -82,42 +82,7 @@ O endereço antigo [`MOSAICO-mesa.html`](./MOSAICO-mesa.html) redireciona para a
 
 ---
 
-## A manhã do Carro-Forte — A mesa
-
-Experiência jogável em HTML, CSS e JavaScript, sem dependência de Firebase. Os
-investigadores alternam perspectivas no mesmo dispositivo e montam Fragmentos
-rotacionáveis sob pressão de tempo.
-
-### Fluxo
-
-1. prólogo e oito fragmentos narrativos
-2. montagem das perspectivas distribuídas
-3. três rodadas de investigação: observar, cruzar e autenticar
-4. Hipótese I
-5. Mercado Cego
-6. Mosaico coletivo e escolha da rota probatória
-7. dedução final nos campos próprios desta perspectiva
-8. revelação modular e placar fechado em 100 pontos
-
-> Os campos desta versão pertencem à perspectiva específica da partida e não constituem um formulário universal do MOSAICO.
-
-### Arquitetura
-
-| Arquivo | Responsabilidade |
-|---|---|
-| `carro-forte/index.html` | estrutura e telas do jogo |
-| `carro-forte/styles.css` | identidade visual, profundidade e responsividade |
-| `carro-forte/game.js` | estado, quebra-cabeça, investigação e pontuação |
-| `carro-forte/assets/` | cenas das seis perspectivas |
-| `carro-forte/tiles/` | imagens do card no catálogo |
-| `carro-forte/README.md` | documentação específica do caso |
-
-O estado da partida é salvo localmente pelo navegador. A noite e o modo solo
-do Carro-Forte ainda não estão publicados.
-
----
-
-## Versão 1 — A mesa
+## A Mesa — A Casa da Costa
 
 HTML + Firebase. Telão opcional. QR na sala.
 
@@ -149,7 +114,7 @@ Na criação da sala: **Automaticamente** (avança quando todos terminam) ou **C
 
 Fragmentos: Névoa, Tempestade, Farol, Noite. Cronômetro dourado na formação. 1–3 pessoas = um Fragmento, todos Portadores. 4–12 = grupos de 2 ou 3, um Portador sorteado.
 
-### Pontuação V5 — máximo 100
+### Pontuação — máximo 100
 
 | Componente | Técnico | Máximo |
 |---|---|---:|
@@ -190,9 +155,9 @@ Para executar as duas verificações em sequência, use `npm run test:tudo`.
 
 ---
 
-## Versão 2 — A noite
+## A Noite — A Casa da Costa
 
-App em [`mosaico-web/`](./mosaico-web) (React / Vite). **Não substitui a mesa.**
+App em [`mosaico-web/`](./mosaico-web) (React / Vite). **Não substitui A Mesa.**
 
 - criação da mesa: **noite curta** (~20 min) ou **noite cheia** (~40 min)
 - QR na sala
@@ -221,9 +186,9 @@ a base dentro do CSS, mas não dentro de string — use `import.meta.env.BASE_UR
 
 ---
 
-## Modo solo
+## Modo Solo — A Casa da Costa
 
-Pasta **própria**. Não misturar com a mesa nem com a noite. Não é o arquivo `v3.ts` da noite.
+Pasta **própria**. Não misturar com A Mesa nem com A Noite. Não é o arquivo `v3.ts` de A Noite.
 
 Cada pista nasce em quatro fragmentos. Só a carta inteira entra no mosaico.
 
@@ -233,10 +198,45 @@ O endereço antigo [`v3/`](./v3) redireciona para o modo solo.
 
 ---
 
+## A Mesa — A Manhã do Carro-Forte
+
+Experiência jogável em HTML, CSS e JavaScript, sem dependência de Firebase. Os
+investigadores alternam perspectivas no mesmo dispositivo e montam Fragmentos
+rotacionáveis sob pressão de tempo.
+
+### Fluxo
+
+1. prólogo e oito fragmentos narrativos
+2. montagem das perspectivas distribuídas
+3. três rodadas de investigação: observar, cruzar e autenticar
+4. Hipótese I
+5. Mercado Cego
+6. Mosaico coletivo e escolha da rota probatória
+7. dedução final nos campos próprios desta perspectiva
+8. revelação modular e placar fechado em 100 pontos
+
+> Os campos desta experiência pertencem à perspectiva específica da partida e não constituem um formulário universal do MOSAICO.
+
+### Arquitetura
+
+| Arquivo | Responsabilidade |
+|---|---|
+| `carro-forte/index.html` | estrutura e telas do jogo |
+| `carro-forte/styles.css` | identidade visual, profundidade e responsividade |
+| `carro-forte/game.js` | estado, quebra-cabeça, investigação e pontuação |
+| `carro-forte/assets/` | cenas das seis perspectivas |
+| `carro-forte/tiles/` | imagens do card no catálogo |
+| `carro-forte/README.md` | documentação específica do caso |
+
+O estado da partida é salvo localmente pelo navegador. A Noite e o Modo Solo
+de A Manhã do Carro-Forte ainda não estão publicados.
+
+---
+
 ## Estado
 
-- **A Casa da Costa:** mesa, noite e modo solo jogáveis.
-- **A manhã do Carro-Forte:** versão A mesa jogável; noite e solo em construção.
+- **A Casa da Costa:** A Mesa, A Noite e Modo Solo jogáveis.
+- **A Manhã do Carro-Forte:** A Mesa jogável; A Noite e Modo Solo em construção.
 
 > **Tudo se adapta, nada se perde.**
 
