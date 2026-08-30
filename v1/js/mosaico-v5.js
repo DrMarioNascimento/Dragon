@@ -131,11 +131,17 @@
 
   global.MosaicoV5 = V5;
 
-  /* A camada Casa da Costa 2026.08 transforma a Mesa antiga sem duplicar
-     a infraestrutura estável (Firebase, QR, reconexão, sensores e mercado).
-     O atraso de zero coloca o override depois do script principal da página,
-     mas antes de qualquer gesto do jogador. */
   if (typeof document !== "undefined") {
+    /* A prancha aprovada foi convertida para uma versão SVG operacional que
+       reutiliza a imagem canônica já publicada e o ícone Dragon Games. O
+       fallback também evita tela quebrada em caches que ainda tragam .webp. */
+    document.addEventListener("error", function (ev) {
+      var el = ev.target;
+      if (el && el.tagName === "IMG" && /casa-da-costa-planta-1867\.webp(?:\?|$)/.test(el.src || "")) {
+        el.src = "img/casa-da-costa-planta-1867.svg?v=20260830";
+      }
+    }, true);
+
     setTimeout(function () {
       if (document.querySelector('script[data-casa-costa-v2]')) return;
       var s = document.createElement("script");
