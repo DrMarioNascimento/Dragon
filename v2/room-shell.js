@@ -8,133 +8,139 @@ const MESTRE_LOCAL='mosaico_noite_mestre';
 const FORMAS={m:{emoji:'👨',label:'Bem-vindo'},f:{emoji:'👩',label:'Bem-vinda'},n:{emoji:'👥',label:'Tanto faz'}};
 const root=document.getElementById('app');
 let app,auth,db,roomCode='',roomData=null,players=[],unsubRoom=null,unsubPlayers=null,role='',pendingUser=null;
+let ritmo='automatico',localScreen='menu',ownPlayer=null,salaOpen=false;
 
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function init(){
   if(!firebase.apps.length) app=firebase.initializeApp(CFG,'noite-shell'); else app=firebase.apps[0];
   auth=firebase.auth(app);db=firebase.firestore(app);
   const q=new URLSearchParams(location.search).get('sala');
-  if(q){roomCode=q.toUpperCase();renderJoin();}else renderMenu();
+  if(q){roomCode=q.toUpperCase();localScreen='join';renderJoin(false);}else renderMenu();
 }
 function nextPartida(){let last='';try{last=localStorage.getItem(ROT)||''}catch(e){}let i=ORDEM.indexOf(last);return ORDEM[(i+1+ORDEM.length)%ORDEM.length]||'sete';}
 function markPartida(id){try{localStorage.setItem(ROT,id)}catch(e){}}
 function code(){const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<6;i++)s+=A[Math.floor(Math.random()*A.length)];return s;}
-function base(kicker,title,body){root.innerHTML=`<main class="stage shell room-stage"><section class="dossie room-card"><span class="eyebrow">${kicker}</span><h2>${title}</h2>${body}</section></main>`;}
-function formas(selected='n'){return `<div class="room-formas">${Object.entries(FORMAS).map(([id,f])=>`<label class="room-forma"><input type="radio" name="roomForma" value="${id}" ${id===selected?'checked':''}><span class="room-forma-emoji">${f.emoji}</span><span>${f.label}</span></label>`).join('')}</div>`;}
-function formaAtual(){return document.querySelector('input[name="roomForma"]:checked')?.value||'n';}
+function base(kicker,title,body,cls=''){root.innerHTML=`<main class="stage shell room-stage ${cls}"><section class="dossie room-card"><span class="eyebrow">${kicker}</span><h2>${title}</h2>${body}</section></main>`;}
+function formas(selected='m'){return `<div class="room-formas">${Object.entries(FORMAS).map(([id,f])=>`<label class="room-forma"><input type="radio" name="roomForma" value="${id}" ${id===selected?'checked':''}><span class="room-forma-emoji">${f.emoji}</span><span>${f.label}</span></label>`).join('')}</div>`;}
+function formaAtual(){return document.querySelector('input[name="roomForma"]:checked')?.value||'m';}
 async function sha256hex(txt){const buf=new TextEncoder().encode(txt);const h=await crypto.subtle.digest('SHA-256',buf);return Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,'0')).join('');}
 function senhaLiberada(){try{return sessionStorage.getItem(MESTRE_LOCAL)==='1'}catch(e){return false}}
+function joinUrl(){const u=new URL(location.href);u.search='';u.searchParams.set('sala',roomCode);return u.toString();}
+function qrSvg(){try{return window.MosaicoQR?MosaicoQR.svg(joinUrl(),{nivel:'M',margem:2,rotulo:'QR da sala',fundo:'#ffffff',tinta:'#05070c'}):''}catch(e){return '<div class="room-empty">QR indisponível — use o código.</div>';}}
+function myPlayer(){const uid=auth.currentUser&&auth.currentUser.uid;return players.find(p=>p.id===uid)||ownPlayer;}
+function readyCount(){return players.filter(p=>p.pronto===true).length;}
+function allReady(){return players.length>0&&readyCount()===players.length;}
 
 function renderMenu(){
-  base('MOSAICO · A NOITE','A Casa da Costa',`<p class="lead">Você possui uma parte da verdade. Para enxergar o todo, precisará das outras pessoas — mas elas também querem vencer.</p><div class="room-actions"><button class="btn btn-gold" id="open">Abrir uma mesa</button><button class="btn btn-ghost" id="join">Entrar em uma mesa</button><button class="btn btn-ghost" id="solo">Ensaiar sozinho</button></div>`);
-  document.getElementById('open').onclick=()=>senhaLiberada()?renderGoogle():renderSenha();
-  document.getElementById('join').onclick=renderJoin;
+  localScreen='menu';
+  base('MOSAICO · A NOITE','A Casa da Costa',`<p class="lead">Você possui uma parte da verdade. Para enxergar o todo, precisará das outras pessoas — mas elas também querem vencer.</p><div class="room-actions"><button class="btn btn-gold" id="open">Abrir uma mesa</button><button class="btn btn-ghost" id="join">Entrar em uma mesa</button><button class="btn btn-ghost" id="solo">Ensaiar sozinho</button></div>`,'room-menu');
+  document.getElementById('open').onclick=()=>renderMasterGate();
+  document.getElementById('join').onclick=()=>{localScreen='join';renderJoin(false)};
   document.getElementById('solo').onclick=launchLocal;
 }
 
-function renderSenha(msg=''){
-  base('ÁREA DO MESTRE','Abrir uma mesa',`<p class="lead">A abertura da sala possui duas camadas: senha do Mestre e autorização da conta Google.</p><label class="room-label" for="masterPass">Senha do Mestre</label><input id="masterPass" class="room-input room-password" type="password" autocomplete="off" placeholder="senha">${msg?`<div class="room-error">${esc(msg)}</div>`:''}<div class="room-actions"><button class="btn btn-gold" id="checkPass">Continuar</button><button class="btn btn-ghost" id="back">Voltar</button></div>`);
-  document.getElementById('checkPass').onclick=conferirSenha;
+function renderMasterGate(msg=''){
+  localScreen='master-gate';
+  base('ÁREA DO MESTRE','Como a mesa será usada?',`<div class="room-mode-single"><div class="room-mode-icon">📱</div><b>Celular</b><span>A Noite é conduzida diretamente pelo celular do Mestre.</span></div><span class="room-section-label">Como as rodadas devem avançar?</span><button class="room-rhythm ${ritmo==='automatico'?'on':''}" data-r="automatico"><b>AUTOMATICAMENTE · RECOMENDADO</b><span>O jogo avança quando todos terminam.</span></button><button class="room-rhythm ${ritmo==='conduzido'?'on':''}" data-r="conduzido"><b>COM MINHA LIBERAÇÃO</b><span>A Sala avisará quando for hora de avançar.</span></button>${senhaLiberada()?'<p class="muted room-master-known">Mestre reconhecido neste aparelho.</p>':'<input id="masterPass" class="room-input room-password" type="password" autocomplete="off" placeholder="senha">'}${msg?`<div class="room-error">${esc(msg)}</div>`:''}<div class="room-actions"><button class="btn btn-gold" id="openGoogle">Abrir com Google</button><button class="btn btn-ghost" id="back">Cancelar</button></div>`,'room-master-gate');
+  document.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{ritmo=b.dataset.r;renderMasterGate()});
+  document.getElementById('openGoogle').onclick=senhaLiberada()?loginGoogle:conferirSenha;
   document.getElementById('back').onclick=renderMenu;
-  document.getElementById('masterPass').onkeydown=e=>{if(e.key==='Enter')conferirSenha()};
-  setTimeout(()=>document.getElementById('masterPass')?.focus(),40);
+  const pass=document.getElementById('masterPass');if(pass){pass.onkeydown=e=>{if(e.key==='Enter')conferirSenha()};setTimeout(()=>pass.focus(),30)}
 }
 async function conferirSenha(){
-  const input=document.getElementById('masterPass');const txt=(input?.value||'').trim();
-  if(!txt)return renderSenha('Escreva a senha.');
+  const txt=(document.getElementById('masterPass')?.value||'').trim();
+  if(!txt)return renderMasterGate('Escreva a senha.');
   try{
-    if((await sha256hex(txt))!==SENHA_HASH)return renderSenha('Senha incorreta.');
+    if((await sha256hex(txt))!==SENHA_HASH)return renderMasterGate('Senha incorreta.');
     try{sessionStorage.setItem(MESTRE_LOCAL,'1')}catch(e){}
-    renderGoogle();
-  }catch(e){renderSenha('Este navegador não permite conferir a senha.');}
-}
-
-function renderGoogle(msg=''){
-  base('MESTRE DA MESA','Autorização do Mestre',`<p class="lead">A senha foi aceita. Agora entre com a conta Google autorizada para abrir a sala.</p>${msg?`<div class="room-error">${esc(msg)}</div>`:''}<div class="room-actions"><button class="btn btn-gold" id="google">Continuar com Google</button><button class="btn btn-ghost" id="back">Voltar</button></div>`);
-  document.getElementById('google').onclick=loginGoogle;
-  document.getElementById('back').onclick=renderMenu;
+    await loginGoogle();
+  }catch(e){renderMasterGate('Este navegador não permite conferir a senha.');}
 }
 async function loginGoogle(){
-  renderGoogle('Entrando com Google…');
   try{
     const provider=new firebase.auth.GoogleAuthProvider();provider.setCustomParameters({prompt:'select_account'});
     const cred=await auth.signInWithPopup(provider);pendingUser=cred.user;
     const cfg=await db.collection('config').doc('mestres').get();
     const permitidos=cfg.exists&&Array.isArray(cfg.data().emails)?cfg.data().emails:[];
-    const email=(pendingUser.email||'').trim();
-    if(!permitidos.includes(email)){
-      await auth.signOut();pendingUser=null;
-      return renderGoogle('Esta conta Google não está autorizada a abrir mesas.');
+    if(!permitidos.includes((pendingUser.email||'').trim())){
+      await auth.signOut();pendingUser=null;return renderMasterGate('Esta conta Google não está autorizada a abrir mesas.');
     }
-    renderIdentifyMaster();
-  }catch(e){renderGoogle(e&&e.message?e.message:'Não foi possível entrar com Google.');}
+    await createRoom();
+  }catch(e){renderMasterGate((e&&e.message)||'Não foi possível entrar com Google.');}
 }
-
-function renderIdentifyMaster(msg=''){
-  base('IDENTIFICAÇÃO DO JOGADOR','Quem chega agora?',`<p class="lead">O Mestre também participa da sala. Informe como o MOSAICO deve chamar você.</p><label class="room-label" for="name">Seu nome</label><input id="name" class="room-input" maxlength="60" value="${esc(pendingUser?.displayName||'')}" placeholder="Seu nome"><label class="room-label">Como quer que o MOSAICO te chame?</label>${formas('n')}${msg?`<div class="room-error">${esc(msg)}</div>`:''}<div class="room-actions"><button class="btn btn-gold" id="create">Criar sala</button><button class="btn btn-ghost" id="back">Voltar</button></div>`);
-  document.getElementById('create').onclick=createRoom;
-  document.getElementById('back').onclick=renderGoogle;
-}
-
-function renderJoin(msg=''){
-  const q=new URLSearchParams(location.search).get('sala');if(q&&!roomCode)roomCode=q.toUpperCase();
-  base('ENTRAR','Quem chega agora?',`<p class="lead">Use o código exibido pelo Mestre ou abra diretamente pelo QR.</p><label class="room-label" for="code">Código da mesa</label><input id="code" class="room-input room-code-input" maxlength="6" value="${esc(roomCode)}" placeholder="ABC123" autocapitalize="characters"><label class="room-label" for="name">Seu nome</label><input id="name" class="room-input" maxlength="60" placeholder="Como a mesa te chama"><label class="room-label">Como quer que o MOSAICO te chame?</label>${formas('n')}${msg?`<div class="room-error">${esc(msg)}</div>`:''}<div class="room-actions"><button class="btn btn-gold" id="enter">Entrar na casa</button><button class="btn btn-ghost" id="back">Voltar</button></div>`);
-  document.getElementById('enter').onclick=joinRoom;
-  document.getElementById('back').onclick=renderMenu;
-}
-
 async function createRoom(){
-  const name=(document.getElementById('name')?.value||'').trim(),forma=formaAtual();
-  if(!name)return renderIdentifyMaster('Escreva seu nome.');
   try{
     const u=pendingUser||auth.currentUser;if(!u)throw new Error('Login Google não encontrado.');
-    const cfg=await db.collection('config').doc('mestres').get();
-    const permitidos=cfg.exists&&Array.isArray(cfg.data().emails)?cfg.data().emails:[];
-    if(!permitidos.includes((u.email||'').trim()))throw new Error('Conta Google não autorizada como Mestre.');
     let c=code();for(let i=0;i<8;i++){const s=await db.collection('noite').doc(c).get();if(!s.exists)break;c=code();}
     const partidaId=nextPartida();
-    await db.collection('noite').doc(c).set({ativa:true,fase:'sala',vez:0,modo:'com-telao',ritmo:'automatico',mestreUid:u.uid,criadaEm:firebase.firestore.FieldValue.serverTimestamp(),criadaEmMs:Date.now(),formato:'cheia',v3:true,partidaId,caseId:'casa-da-costa'});
-    await db.collection('noite').doc(c).collection('jogadores').doc(u.uid).set({nome:name.slice(0,60),personagem:'',forma,pronto:true,entrouMs:Date.now(),votos:0,moedas:9,total:0,atualizadoEmMs:Date.now(),mestre:true});
-    markPartida(partidaId);role='master';roomCode=c;listen();
-  }catch(e){renderIdentifyMaster('Não foi possível criar a mesa. '+(e&&e.message?e.message:e));}
+    await db.collection('noite').doc(c).set({ativa:true,fase:'sala',vez:0,modo:'sem-telao',ritmo,mestreUid:u.uid,criadaEm:firebase.firestore.FieldValue.serverTimestamp(),criadaEmMs:Date.now(),formato:'cheia',v3:true,partidaId,caseId:'casa-da-costa'});
+    markPartida(partidaId);role='master';roomCode=c;roomData={ativa:true,fase:'sala',modo:'sem-telao',ritmo,mestreUid:u.uid,partidaId,caseId:'casa-da-costa'};
+    localScreen='master-orientation';renderMasterOrientation();
+  }catch(e){renderMasterGate('Não foi possível criar a mesa. '+((e&&e.message)||e));}
 }
 
-async function joinRoom(){
-  const c=(document.getElementById('code')?.value||'').trim().toUpperCase(),name=(document.getElementById('name')?.value||'').trim(),forma=formaAtual();
-  roomCode=c;
-  if(c.length!==6)return renderJoin('O código tem 6 caracteres.');
-  if(!name)return renderJoin('Escreva seu nome.');
+function renderMasterOrientation(){
+  localScreen='master-orientation';
+  base('ÁREA DO MESTRE','Você é o mestre da sala',`<p class="lead room-center">Ative o som do celular e fique atento ao botão <b>Sala</b>.</p><div class="room-master-info"><p><b>Durante a partida, você continuará jogando normalmente.</b></p><p>O botão <b>Sala</b> mostrará comandos exclusivos do mestre, como iniciar, avançar ou liberar uma etapa.</p><p>Quando uma intervenção for necessária, o botão Sala ficará em destaque.</p></div><button class="btn btn-gold" id="understood">Entendi · continuar</button>`,'room-orientation');
+  document.getElementById('understood').onclick=()=>{localScreen='join-master';renderJoin(true)};
+}
+
+function renderJoin(asMaster,msg=''){
+  localScreen=asMaster?'join-master':'join';
+  const codeValue=roomCode||(new URLSearchParams(location.search).get('sala')||'').toUpperCase();
+  base('ENTRAR','Quem chega agora?',`<p class="lead">Você não escolhe quem é. A casa escolhe por você — como escolheu naquela noite.</p><label class="room-label">Código da mesa</label><input id="code" class="room-input room-code-input" maxlength="6" value="${esc(codeValue)}" ${asMaster?'readonly':''} placeholder="ABC123"><label class="room-label">Seu nome</label><input id="name" class="room-input" maxlength="60" value="${asMaster?esc((pendingUser&&pendingUser.displayName)||''):''}" placeholder="Como a mesa te chama"><label class="room-label">Como quer que o MOSAICO te chame?</label>${formas('m')}${msg?`<div class="room-error">${esc(msg)}</div>`:''}<button class="btn btn-gold" id="enter">Entrar na casa</button><button class="btn btn-ghost" id="back">← Voltar</button>`,'room-join');
+  document.getElementById('enter').onclick=()=>joinRoom(asMaster);
+  document.getElementById('back').onclick=asMaster?renderMasterOrientation:renderMenu;
+}
+async function joinRoom(asMaster){
+  const c=(document.getElementById('code')?.value||'').trim().toUpperCase(),name=(document.getElementById('name')?.value||'').trim(),forma=formaAtual();roomCode=c;
+  if(c.length!==6)return renderJoin(asMaster,'O código tem 6 caracteres.');
+  if(!name)return renderJoin(asMaster,'Escreva seu nome.');
   try{
-    let user=auth.currentUser;if(!user||!user.isAnonymous){if(user)await auth.signOut();user=(await auth.signInAnonymously()).user;}
+    let user;
+    if(asMaster){user=pendingUser||auth.currentUser;if(!user)throw new Error('Mestre não autenticado.');}
+    else{user=auth.currentUser;if(!user||!user.isAnonymous){if(user)await auth.signOut();user=(await auth.signInAnonymously()).user;}}
     const ref=db.collection('noite').doc(c),snap=await ref.get();if(!snap.exists||snap.data().ativa!==true)throw new Error('Mesa não encontrada ou encerrada.');
     if(snap.data().caseId&&snap.data().caseId!=='casa-da-costa')throw new Error('Esse código pertence a outro caso do MOSAICO.');
-    await ref.collection('jogadores').doc(user.uid).set({nome:name.slice(0,60),personagem:'',forma,pronto:true,entrouMs:Date.now(),votos:0,moedas:9,total:0,atualizadoEmMs:Date.now(),mestre:false},{merge:true});
-    role='guest';listen();
-  }catch(e){renderJoin('Não foi possível entrar. '+(e&&e.message?e.message:e));}
+    await ref.collection('jogadores').doc(user.uid).set({nome:name.slice(0,60),personagem:'',forma,pronto:false,entrouMs:Date.now(),votos:0,moedas:9,total:0,atualizadoEmMs:Date.now(),mestre:!!asMaster},{merge:true});
+    role=asMaster?'master':'guest';ownPlayer={id:user.uid,nome:name.slice(0,60),forma,pronto:false,mestre:!!asMaster};
+    localScreen='objective';listen();renderObjective();
+  }catch(e){renderJoin(asMaster,'Não foi possível entrar. '+((e&&e.message)||e));}
 }
 
-function listen(){
-  if(unsubRoom)unsubRoom();if(unsubPlayers)unsubPlayers();
-  const ref=db.collection('noite').doc(roomCode);
-  unsubRoom=ref.onSnapshot(s=>{roomData=s.exists?s.data():null;if(!roomData){renderMenu();return;}if(roomData.fase==='sala')renderLobby();else launchOnline();},e=>renderMenu('Falha ao acompanhar a sala: '+e.message));
-  unsubPlayers=ref.collection('jogadores').orderBy('entrouMs').onSnapshot(s=>{players=s.docs.map(d=>({id:d.id,...d.data()}));if(roomData&&roomData.fase==='sala')renderLobby();});
+function renderObjective(){
+  localScreen='objective';
+  base('ANTES DE COMEÇAR','Objetivo do jogo',`<p class="lead room-center">Analise os fragmentos, estabeleça relações e sustente uma conclusão para a pergunta desta noite.</p><div class="room-objective-list"><div><b>CASO</b><span>Consulte a pergunta, os fatos e as relações disponíveis.</span></div><div><b>ARQUIVO</b><span>Guarda os fragmentos que você reunir durante a partida.</span></div><div><b>DECISÃO</b><span>Feche os campos da pergunta com base no que as evidências sustentam.</span></div><div><b>PONTUAÇÃO</b><span>Seu resultado permanece individual, sem ranking aberto durante a partida.</span></div></div><button class="btn btn-gold" id="objectiveOk">Entendi · entrar no jogo</button>`,'room-objective');
+  document.getElementById('objectiveOk').onclick=()=>{localScreen='preparation';renderPreparation();};
 }
-function renderLobby(){
-  if(!roomData)return;
-  const url=location.origin+location.pathname+'?sala='+encodeURIComponent(roomCode);
-  const qr=window.MosaicoQR?MosaicoQR.svg(url,{nivel:'M',margem:4,rotulo:'QR para entrar em A Noite'}):'';
-  const list=players.map(p=>{const f=FORMAS[p.forma]||FORMAS.n;return `<div class="room-player"><span class="room-player-name">${f.emoji} ${esc(p.nome||'Jogador')}</span><span>${p.mestre?'Mestre':'Jogador'}</span></div>`}).join('')||'<div class="room-empty">Ninguém chegou ainda.</div>';
-  base(role==='master'?'MESTRE DA MESA':'SALA','Sala aberta',`<div class="room-lobby"><div class="room-code"><span>Código da sala</span><strong>${esc(roomCode)}</strong></div><div class="room-grid"><div class="room-qr">${qr}</div><div><p class="muted">Aponte a câmera para o QR ou informe o código.</p><div class="room-players">${list}</div><p class="muted">${players.length} participante(s)</p></div></div>${role==='master'?'<div class="room-master-note"><b>Você é o Mestre da Sala.</b><span>Somente este aparelho pode iniciar a sessão.</span></div><button class="btn btn-gold" id="start">Começar o jogo</button>':'<div class="quote">Aguarde o Mestre iniciar a sessão.</div>'}</div>`);
-  if(role==='master')document.getElementById('start').onclick=async()=>{await db.collection('noite').doc(roomCode).update({fase:'dossie',iniciadaEmMs:Date.now()});};
+
+function renderPreparation(){
+  localScreen='preparation';const me=myPlayer();const ready=!!(me&&me.pronto);
+  base('RODADA ATUAL','Preparação da mesa',`<div class="room-prep"><span class="room-subeyebrow">VOCÊ ESTÁ NA CASA</span><div class="room-candle">🕯️</div><h3>${ready?'A casa vai começar.':'A casa já decidiu.'}</h3><p>${ready?'Mantenha o celular com você e proteja sua tela. Ele mostrará as instruções quando chegar a sua vez.':'Você ainda não sabe qual fragmento será decisivo nesta noite. Vai descobrir durante a partida.'}</p>${ready?'':`<button class="btn btn-gold" id="ready">Estou pronto para jogar</button>`}<div class="room-ready-count">${readyCount()} de ${players.length||1} já estão prontos.</div></div><div class="room-bottom"><button class="room-bottom-btn" id="caseBtn">🔎 Caso</button>${role==='master'?'<button class="room-bottom-btn room-sala-btn" id="salaBtn">Sala</button>':''}</div>${role==='master'&&salaOpen?salaPanel():''}`,'room-preparation');
+  if(!ready)document.getElementById('ready').onclick=markReady;
+  if(role==='master')document.getElementById('salaBtn').onclick=()=>{salaOpen=!salaOpen;renderPreparation()};
+  const close=document.getElementById('closeSala');if(close)close.onclick=()=>{salaOpen=false;renderPreparation()};
+  const start=document.getElementById('startGame');if(start)start.onclick=startGame;
+}
+async function markReady(){const u=auth.currentUser;if(!u)return;await db.collection('noite').doc(roomCode).collection('jogadores').doc(u.uid).update({pronto:true,atualizadoEmMs:Date.now()});ownPlayer=Object.assign({},ownPlayer,{pronto:true});renderPreparation();}
+function salaPanel(){
+  const list=players.map(p=>`<div class="room-player"><span>${esc(p.nome||'Jogador')}</span><span>${p.pronto?'pronto':'aguardando'}</span></div>`).join('')||'<div class="room-empty">Nenhum participante conectado.</div>';
+  return `<div class="room-sala-overlay"><div class="room-sala-panel"><div class="room-sala-head"><div><span class="eyebrow">MESTRE · PREPARAÇÃO DA MESA</span><h2>Sala</h2><p class="muted">${ritmo==='conduzido'?'Ritmo conduzido pelo mestre':'Ritmo automático'}</p></div><button class="btn btn-ghost room-close" id="closeSala">Fechar</button></div><details open class="room-accordion room-action"><summary>Ação do mestre necessária</summary><div><button class="btn btn-gold" id="startGame" ${allReady()?'':'disabled'}>Começar</button></div></details><details class="room-accordion"><summary>Código e QR da sala</summary><div><div class="room-code"><strong>${esc(roomCode)}</strong></div><div class="room-qr">${qrSvg()}</div></div></details><details class="room-accordion"><summary>Participantes · ${players.length}</summary><div class="room-players">${list}</div></details></div></div>`;
+}
+async function startGame(){if(!allReady())return;await db.collection('noite').doc(roomCode).update({fase:'dossie',iniciadaEmMs:Date.now()});}
+
+function listen(){
+  if(unsubRoom)unsubRoom();if(unsubPlayers)unsubPlayers();const ref=db.collection('noite').doc(roomCode);
+  unsubRoom=ref.onSnapshot(s=>{roomData=s.exists?s.data():null;if(!roomData){renderMenu();return;}if(roomData.fase!=='sala'){launchOnline();return;}if(localScreen==='preparation')renderPreparation();});
+  unsubPlayers=ref.collection('jogadores').orderBy('entrouMs').onSnapshot(s=>{players=s.docs.map(d=>({id:d.id,...d.data()}));ownPlayer=myPlayer();if(localScreen==='preparation')renderPreparation();});
 }
 function launchOnline(){
-  if(window.__MOSAICO_NOITE_LAUNCHED)return;
-  window.__MOSAICO_NOITE_LAUNCHED=true;window.MosaicoSala={online:true,role,roomCode,roomData,players,auth,db};
-  const id=roomData.partidaId||'sete',idx=ORDEM.indexOf(id);
+  if(window.__MOSAICO_NOITE_LAUNCHED)return;window.__MOSAICO_NOITE_LAUNCHED=true;
+  window.MosaicoSala={online:true,role,roomCode,roomData,players,auth,db};const id=roomData.partidaId||'sete',idx=ORDEM.indexOf(id);
   try{localStorage.setItem(ROT,ORDEM[(idx-1+ORDEM.length)%ORDEM.length]);localStorage.removeItem('mosaico_noite_costa_auto');}catch(e){}
-  root.innerHTML='';const s=document.createElement('script');s.src='noite-auto.js?v=20260830-master';document.body.appendChild(s);
+  root.innerHTML='';const s=document.createElement('script');s.src='noite-auto.js?v=20260830-mesa-flow';document.body.appendChild(s);
 }
-function launchLocal(){window.__MOSAICO_NOITE_LAUNCHED=true;root.innerHTML='';const s=document.createElement('script');s.src='noite-auto.js?v=20260830-master';document.body.appendChild(s);}
+function launchLocal(){window.__MOSAICO_NOITE_LAUNCHED=true;root.innerHTML='';const s=document.createElement('script');s.src='noite-auto.js?v=20260830-mesa-flow';document.body.appendChild(s);}
 window.addEventListener('beforeunload',()=>{if(unsubRoom)unsubRoom();if(unsubPlayers)unsubPlayers();});
 init();
 })();
