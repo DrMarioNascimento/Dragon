@@ -28,7 +28,20 @@
     <section class="screen reveal-screen" data-screen="reveal"><div id="revealStage" class="reveal-stage"></div><button class="primary dock" id="nextReveal" type="button">Continuar revelação <span>→</span></button></section>
     <section class="screen" data-screen="score"><div class="score-wrap"><span class="eyebrow">RELATÓRIO ENCERRADO</span><h2 id="scoreTitle"></h2><div class="score-ring"><strong id="totalScore">0</strong><small>/ 100</small></div><div id="scoreBars" class="score-bars"></div><div id="endingCards" class="ending-cards"></div><button class="primary" id="playAgain" type="button">Escolher outra partida</button></div></section>
   </main>
-  <script src="game.js"></script>
-  <script>document.addEventListener('click',e=>{const a=e.target.closest('.sensor-actions a');if(a)a.target='_blank'});</script>
-  <script src="iphone-guard.js"></script>
+
+  <script src="../v1/js/qr.js"></script>
+  <script type="module" src="../firebase-room.js"
+          data-project="mesa"
+          data-root="carroforte"
+          data-title="A Mesa · A Manhã do Carro-Forte"
+          data-ready-event="carroforte-mesa-ready"></script>
+  <script>
+    window.addEventListener('carroforte-mesa-ready',()=>{
+      const game=document.createElement('script');game.src='game.js?v=20260830-room';document.body.appendChild(game);
+      game.onload=()=>{
+        document.addEventListener('click',e=>{const a=e.target.closest('.sensor-actions a');if(a)a.target='_blank'});
+        const guard=document.createElement('script');guard.src='iphone-guard.js?v=20260830-room';document.body.appendChild(guard);
+      };
+    },{once:true});
+  </script>
 </body></html>
