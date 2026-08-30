@@ -2,152 +2,24 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    function signedIn() {
-      return request.auth != null;
-    }
-    function known(versao) {
-      return versao in ['mosaico', 'noite'];
-    }
+    function signedIn() { return request.auth != null; }
+    function known(v) { return v in ['mosaico', 'noite']; }
+    function validPartida(id) { return id in ['sete','cinco','apagao','nome','corpo','perceber']; }
+    function roomPath(v, id) { return /databases/$(database)/documents/$(v)/$(id); }
+    function roomExists(v, id) { return exists(roomPath(v,id)); }
+    function room(v, id) { return get(roomPath(v,id)).data; }
+    function active(v, id) { return known(v) && roomExists(v,id) && room(v,id).ativa == true; }
+    function master(v, id) { return signedIn() && roomExists(v,id) && room(v,id).mestreUid == request.auth.uid; }
+    function participant(v, id) { return signedIn() && exists(/databases/$(database)/documents/$(v)/$(id)/jogadores/$(request.auth.uid)); }
+    function inside(v, id) { return master(v,id) || participant(v,id); }
     function emailMestre() {
       return signedIn()
         && request.auth.token.email is string
         && exists(/databases/$(database)/documents/config/mestres)
         && request.auth.token.email in get(/databases/$(database)/documents/config/mestres).data.emails;
     }
-    function roomPath(versao, room) {
-      return /databases/$(database)/documents/$(versao)/$(room);
-    }
-    function roomExists(versao, room) {
-      return exists(roomPath(versao, room));
-    }
-    function room(versao, room) {
-      return get(roomPath(versao, room)).data;
-    }
-    function active(versao, roomId) {
-      return known(versao) && roomExists(versao, roomId) && room(versao, roomId).ativa == true;
-    }
-    function master(versao, roomId) {
-      return known(versao) && signedIn() && roomExists(versao, roomId) && room(versao, roomId).mestreUid == request.auth.uid;
-    }
-    function participant(versao, roomId) {
-      return known(versao) && signedIn() && exists(/databases/$(database)/documents/$(versao)/$(roomId)/jogadores/$(request.auth.uid));
-    }
-    function inside(versao, roomId) {
-      return master(versao, roomId) || participant(versao, roomId);
-    }
-    function v3(versao, roomId) {
-      return roomExists(versao, roomId) && room(versao, roomId).get('v3', false) == true;
-    }
-    /* Mesa HTML + noite v3. Qualquer outro valor de fase é recusado,
-       inclusive pelo mestre — impede sala fantasma / lixo no documento. */
-    function faseConhecida() {
-      return request.resource.data.fase in [
-        'sala', 'encenacao', 'votacao',
-        'inclinacao', 'constelacao', 'janela', 'comodo', 'vidro', 'salaescura', 'cor',
-        'mosaico', 'encaixe', 'cooperacao',
-        'palimpsesto', 'espelho', 'planta',
-        'mercado', 'oleo',
-        'deducao', 'resultado'
-      ];
-    }
-    function tarefaConhecida(nome) {
-      return nome in ['constelacao', 'inclinacao', 'sala'];
-    }
-    /* Passar a vez na encenação. Só mexe em vez e no relógio da fase.
-       Não é o resgate de fase: aquele avança a noite; este só chama o
-       próximo ator. */
-    function passarVezEncene() {
-      return resource.data.ativa == true
-        && resource.data.fase == 'encenacao'
-        && request.resource.data.fase == 'encenacao'
-        && request.resource.data.mestreUid == resource.data.mestreUid
-        && request.resource.data.diff(resource.data).affectedKeys()
-          .hasOnly(['vez', 'faseAteMs'])
-        && request.resource.data.vez is int
-        && request.resource.data.vez == resource.data.vez + 1
-        && resource.data.keys().hasAny(['ordem'])
-        && resource.data.ordem is list
-        && request.resource.data.vez < resource.data.ordem.size()
-        && request.resource.data.vez < 6
-        && request.resource.data.faseAteMs is int;
-    }
-    function atorDaVez() {
-      return resource.data.vez is int
-        && resource.data.vez >= 0
-        && resource.data.ordem is list
-        && resource.data.vez < resource.data.ordem.size()
-        && resource.data.ordem[resource.data.vez] == request.auth.uid;
-    }
-    /* Ainda há ator depois deste. O resgate de FASE não pode comê-los. */
-    function aindaHaAtor() {
-      return resource.data.fase == 'encenacao'
-        && resource.data.keys().hasAny(['ordem'])
-        && resource.data.ordem is list
-        && resource.data.vez is int
-        && resource.data.vez + 1 < resource.data.ordem.size()
-        && resource.data.vez + 1 < 6;
-    }
-    /* O cliente PRECISA poder acrescentar pista ao proprio Arquivo: e assim
-       que a pista privada do personagem e a pista de cada tarefa sensorial
-       chegam. O que esta regra faz e encarecer o abuso, nao elimina-lo:
-       o Arquivo cresce no maximo uma pista por escrita e a mesma escrita
-       nao pode encostar nas moedas. Quem insistir ainda consegue repetir a
-       operacao vezes seguidas — a eliminacao real exige que a concessao de
-       pista saia do jogador (mestre ou Cloud Functions), conforme o
-       HANDOFF secao 16.3.                                               */
-    function ownPlayerUpdate() {
-      let changed = request.resource.data.diff(resource.data).affectedKeys();
-      return changed.hasOnly([
-          'pronto', 'personagem', 'pistas', 'fragmentoPronto',
-          'fragmentoProntoMs', 'atualizadoEmMs',
-          /* Reentrada: recarregar a pagina traz a pessoa de volta pelo
-             mesmo caminho da entrada. Antes o cliente reescrevia o
-             documento inteiro e apagava personagem, nucleo e comodo; agora
-             ele so atualiza o que a pessoa mesma escolheu. */
-          'nome', 'forma'
-        ])
-        && (
-          !changed.hasAny(['nome'])
-          || (request.resource.data.nome is string
-            && request.resource.data.nome.size() >= 1
-            && request.resource.data.nome.size() <= 60)
-        )
-        && (
-          !changed.hasAny(['forma'])
-          || request.resource.data.forma in ['m', 'f', 'n']
-        )
-        && (
-          !changed.hasAny(['pistas'])
-          || (
-            request.resource.data.get('pistas', []).size()
-              <= resource.data.get('pistas', []).size() + 1
-            && request.resource.data.get('moedas', 0) == resource.data.get('moedas', 0)
-          )
-        );
-    }
-    function purchasePlayerUpdate(versao, roomId, playerId) {
-      let marker = request.resource.data.ultimaNegociacao;
-      let negotiation = getAfter(/databases/$(database)/documents/$(versao)/$(roomId)/negociacoes/$(marker)).data;
-      let buyer = negotiation.compradorId;
-      let seller = negotiation.vendedorId;
-      let price = negotiation.preco;
-      return marker is string
-        && negotiation.status == 'comprada'
-        && buyer == request.auth.uid
-        && request.resource.data.diff(resource.data).affectedKeys()
-          .hasOnly(['moedas', 'pistas', 'ultimaNegociacao'])
-        && request.resource.data.moedas is int
-        && request.resource.data.moedas >= 0
-        && (
-          (playerId == buyer
-            && request.resource.data.moedas == resource.data.moedas - price
-            && request.resource.data.pistas.size() >= resource.data.get('pistas', []).size()
-            && request.resource.data.pistas.size() <= resource.data.get('pistas', []).size() + 1)
-          ||
-          (playerId == seller
-            && request.resource.data.moedas == resource.data.moedas + price
-            && request.resource.data.pistas == resource.data.pistas)
-        );
+    function faseConhecida(f) {
+      return f in ['sala','encenacao','votacao','inclinacao','constelacao','janela','comodo','vidro','salaescura','cor','mosaico','encaixe','cooperacao','palimpsesto','espelho','planta','mercado','oleo','deducao','dossie','decisao','resultado'];
     }
 
     match /config/mestres {
@@ -155,253 +27,103 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    match /usuarios/{uid}/{document=**} {
+      allow read, write: if signedIn() && request.auth.uid == uid;
+    }
+
     match /{versao}/{roomId} {
       allow create: if known(versao)
-        && signedIn()
         && emailMestre()
         && request.resource.data.mestreUid == request.auth.uid
         && request.resource.data.ativa == true
         && request.resource.data.fase == 'sala'
-        && (!request.resource.data.keys().hasAny(['ritmo'])
-          || request.resource.data.ritmo in ['automatico', 'conduzido'])
-        && (!request.resource.data.keys().hasAny(['formato'])
-          || request.resource.data.formato in ['curta', 'cheia'])
-        && (!request.resource.data.keys().hasAny(['v3'])
-          || request.resource.data.v3 == true)
-        && (!request.resource.data.keys().hasAny(['lanternaCurta'])
-          || request.resource.data.lanternaCurta in ['janela', 'salaescura'])
-        && request.resource.data.keys().hasOnly([
-          'ativa', 'fase', 'vez', 'modo', 'ritmo', 'mestreUid', 'criadaEm', 'criadaEmMs',
-          'formato', 'v3', 'lanternaCurta'
-        ]);
-      allow get: if signedIn() && (
-        !exists(roomPath(versao, roomId))
-        || resource.data.ativa == true
-        || master(versao, roomId)
-        || participant(versao, roomId)
-      );
+        && (!request.resource.data.keys().hasAny(['partidaId']) || validPartida(request.resource.data.partidaId))
+        && (!request.resource.data.keys().hasAny(['ritmo']) || request.resource.data.ritmo in ['automatico','conduzido','calma','pressao'])
+        && (!request.resource.data.keys().hasAny(['formato']) || request.resource.data.formato in ['curta','cheia']);
+
+      allow get: if signedIn() && (!roomExists(versao,roomId) || resource.data.ativa == true || inside(versao,roomId));
       allow list: if false;
-      allow update: if (
-          master(versao, roomId)
-          && request.resource.data.mestreUid == resource.data.mestreUid
-          && (
-            !request.resource.data.diff(resource.data).affectedKeys().hasAny(['fase'])
-            || faseConhecida()
-          )
-        ) || (
-          /* RESGATE. O relogio da noite vivia so na aba de quem abriu a
-             mesa: bastava esse telefone bloquear a tela, trocar de aba ou
-             recarregar e a noite parava para todos, sem segundo caminho e
-             sem ninguem entender o que tinha acontecido.
-             Depois que o relogio da fase corrente vence, qualquer pessoa
-             que esteja na sala pode empurrar — e so isso: nao pode trocar
-             o dono da mesa nem mexer em mais nada. O cliente escreve por
-             transacao, entao dois resgates ao mesmo tempo nao pulam fase.
-             Sem faseAteMs no documento nao ha resgate: uma sala sem
-             relogio nunca esta 'vencida'. */
-          participant(versao, roomId)
-          && resource.data.ativa == true
-          && resource.data.faseAteMs is int
-          && request.time.toMillis() > resource.data.faseAteMs
-          && request.resource.data.mestreUid == resource.data.mestreUid
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-            'fase', 'faseAteMs', 'mosaicoAbertoMs', 'fragmentosLiberados', 'semente'
-          ])
-          && faseConhecida()
-          && !aindaHaAtor()
-        ) || (
-          /* A vez do segundo ator. O mestre já podia escrever `vez`; o
-             convidado não. Sem isto, só o primeiro (quem abriu a mesa)
-             conseguia passar a apresentação — a escrita do segundo morria
-             no console e a tela dele voltava para "Entenda a cena".
-             Só o ator da vez, e só um passo à frente, com relógio novo. */
-          participant(versao, roomId)
-          && passarVezEncene()
-          && atorDaVez()
-        ) || (
-          /* Relógio da encenação venceu e ainda há quem atuar: qualquer
-             pessoa na sala chama o próximo. Não avança a fase. */
-          participant(versao, roomId)
-          && resource.data.faseAteMs is int
-          && request.time.toMillis() > resource.data.faseAteMs
-          && passarVezEncene()
-          && request.resource.data.faseAteMs > request.time.toMillis()
-        );
+
+      allow update: if master(versao,roomId)
+        && request.resource.data.mestreUid == resource.data.mestreUid
+        && (!request.resource.data.keys().hasAny(['partidaId']) || validPartida(request.resource.data.partidaId))
+        && (!request.resource.data.keys().hasAny(['fase']) || faseConhecida(request.resource.data.fase));
       allow delete: if false;
 
       match /jogadores/{playerId} {
-        /* A entrada consulta a lista antes de criar o próprio documento,
-           para respeitar o limite e evitar personagem duplicado. */
-        allow read: if signedIn() && active(versao, roomId);
-        allow create: if active(versao, roomId)
-          && signedIn()
-          && playerId == request.auth.uid
+        allow read: if signedIn() && active(versao,roomId);
+        allow create: if signedIn() && active(versao,roomId) && playerId == request.auth.uid
           && request.resource.data.nome is string
           && request.resource.data.nome.size() >= 1
-          && request.resource.data.nome.size() <= 60
-          && request.resource.data.forma in ['m', 'f', 'n']
-          && request.resource.data.moedas is int
-          && request.resource.data.moedas >= 0
-          && request.resource.data.keys().hasOnly([
-            'nome', 'personagem', 'forma', 'pronto', 'entrouMs', 'votos',
-            'moedas', 'total', 'atualizadoEmMs'
-          ]);
-        allow update: if active(versao, roomId) && (
-          master(versao, roomId)
-          || (playerId == request.auth.uid && ownPlayerUpdate())
-          || purchasePlayerUpdate(versao, roomId, playerId)
-        );
+          && request.resource.data.nome.size() <= 60;
+        allow update: if active(versao,roomId) && (master(versao,roomId) || playerId == request.auth.uid);
         allow delete: if false;
       }
 
-      match /votos/{voteId} {
-        allow read: if master(versao, roomId) || voteId == request.auth.uid;
-        allow create: if active(versao, roomId)
-          && voteId == request.auth.uid
-          && request.resource.data.de == request.auth.uid
-          && request.resource.data.para != request.auth.uid
-          && exists(/databases/$(database)/documents/$(versao)/$(roomId)/jogadores/$(request.resource.data.para))
-          && request.resource.data.keys().hasOnly(['de', 'para', 'ms']);
+      match /publicas/{id} {
+        allow read: if inside(versao,roomId);
+        allow create, update: if master(versao,roomId);
+        allow delete: if false;
+      }
+
+      match /tarefas/{id} {
+        allow read: if inside(versao,roomId);
+        allow create, update: if active(versao,roomId) && signedIn()
+          && request.resource.data.jogadorId == request.auth.uid;
+        allow delete: if false;
+      }
+
+      match /nucleos/{id} {
+        allow read: if inside(versao,roomId);
+        allow create: if master(versao,roomId);
+        allow update: if active(versao,roomId) && inside(versao,roomId);
+        allow delete: if false;
+      }
+
+      match /votos/{id} {
+        allow read: if master(versao,roomId) || id == request.auth.uid;
+        allow create: if active(versao,roomId) && id == request.auth.uid;
         allow update, delete: if false;
       }
 
-      match /acoes/{actionId} {
-        allow read: if master(versao, roomId) || actionId == request.auth.uid;
-        allow create: if active(versao, roomId)
-          && actionId == request.auth.uid
-          && request.resource.data.jogadorId == request.auth.uid
-          && request.resource.data.tipo == 'concluirApresentacao'
-          && request.resource.data.vez is int
-          && request.resource.data.keys().hasOnly(['tipo', 'jogadorId', 'vez', 'criadaEm']);
-        allow update: if master(versao, roomId)
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['processada', 'processadaMs']);
-        allow delete: if false;
-      }
-
-      match /publicas/{publicId} {
-        allow read: if inside(versao, roomId);
-        allow create, update: if master(versao, roomId);
-        allow delete: if false;
-      }
-
-      match /tarefas/{taskId} {
-        allow read: if master(versao, roomId)
-          || taskId == request.auth.uid + '_constelacao'
-          || taskId == request.auth.uid + '_inclinacao'
-          || taskId == request.auth.uid + '_sala';
-        /* inclinacao = Janela do Norte; constelacao = Vidro Embaçado;
-           sala = Sala às Escuras (v3). `tempoMs` continua fora: era
-           auto-reportado e nada no placar o consumia. */
-        allow create: if active(versao, roomId)
-          && request.resource.data.jogadorId == request.auth.uid
-          && tarefaConhecida(request.resource.data.tarefa)
-          && request.resource.data.runId is string
-          && request.resource.data.runId.size() > 0
-          && taskId == request.auth.uid + '_' + request.resource.data.tarefa
-          && request.resource.data.keys().hasOnly([
-            'tarefa', 'jogadorId', 'runId', 'concluidoEm'
-          ]);
-        allow update: if active(versao, roomId)
-          && resource.data.jogadorId == request.auth.uid
-          && !resource.data.keys().hasAny(['concluidoEm'])
-          && request.resource.data.jogadorId == request.auth.uid
-          && request.resource.data.tarefa == resource.data.tarefa
-          && tarefaConhecida(request.resource.data.tarefa)
-          && request.resource.data.runId is string
-          && request.resource.data.runId.size() > 0
-          && taskId == request.auth.uid + '_' + request.resource.data.tarefa
-          && request.resource.data.keys().hasOnly([
-            'tarefa', 'jogadorId', 'runId', 'concluidoEm'
-          ]);
-        allow delete: if false;
-      }
-
-      match /nucleos/{nucleusId} {
-        allow read: if inside(versao, roomId);
-        allow create: if master(versao, roomId);
-        allow update: if master(versao, roomId) || (
-          active(versao, roomId)
-          && participant(versao, roomId)
-          && get(/databases/$(database)/documents/$(versao)/$(roomId)/jogadores/$(request.auth.uid)).data.nucleo == resource.data.numero
-          && (
-            resource.data.portadorId == request.auth.uid
-            || resource.data.get('portadoresCompartilhados', false) == true
-            || v3(versao, roomId)
-          )
-          && request.resource.data.portadorId == resource.data.portadorId
-          && request.resource.data.get('portadoresCompartilhados', false)
-            == resource.data.get('portadoresCompartilhados', false)
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-            'rascunho', 'rascunhoMs', 'concluidoEm'
-          ])
-        );
-        allow delete: if false;
-      }
-
-      match /votosCooperacao/{voteId} {
-        allow read: if master(versao, roomId) || voteId == request.auth.uid;
-        allow create: if active(versao, roomId)
-          && voteId == request.auth.uid
-          && request.resource.data.de == request.auth.uid
-          && request.resource.data.para != request.auth.uid
-          && request.resource.data.nucleo == get(/databases/$(database)/documents/$(versao)/$(roomId)/jogadores/$(request.auth.uid)).data.nucleo
-          && request.resource.data.nucleo == get(/databases/$(database)/documents/$(versao)/$(roomId)/jogadores/$(request.resource.data.para)).data.nucleo
-          && request.resource.data.keys().hasOnly(['de', 'para', 'nucleo', 'ms']);
+      match /votosCooperacao/{id} {
+        allow read: if inside(versao,roomId);
+        allow create: if active(versao,roomId) && signedIn() && request.resource.data.de == request.auth.uid;
         allow update, delete: if false;
       }
 
-      match /ofertas/{offerId} {
-        allow read: if inside(versao, roomId);
-        allow create: if active(versao, roomId)
-          && request.resource.data.vendedorId == request.auth.uid
-          && request.resource.data.status == 'aberta'
-          && request.resource.data.faixaPreco in ['baixo', 'justo', 'alto']
-          && request.resource.data.preco in [1, 3, 5]
-          && request.resource.data.keys().hasOnly([
-            'vendedorId', 'vendedorNome', 'pistaId', 'faixaPreco', 'preco', 'status', 'criadaMs'
-          ]);
-        allow update: if active(versao, roomId)
-          && resource.data.status == 'aberta'
-          && request.resource.data.status == 'comprada'
-          && request.resource.data.compradorId == request.auth.uid
-          && request.auth.uid != resource.data.vendedorId
-          && request.resource.data.diff(resource.data).affectedKeys()
-            .hasOnly(['status', 'compradorId', 'compradaMs'])
-          && getAfter(/databases/$(database)/documents/$(versao)/$(roomId)/negociacoes/$(offerId)).data.compradorId == request.auth.uid
-          && getAfter(/databases/$(database)/documents/$(versao)/$(roomId)/negociacoes/$(offerId)).data.vendedorId == resource.data.vendedorId
-          && getAfter(/databases/$(database)/documents/$(versao)/$(roomId)/negociacoes/$(offerId)).data.preco == resource.data.preco;
+      match /acoes/{id} {
+        allow read: if inside(versao,roomId);
+        allow create: if active(versao,roomId) && signedIn() && request.resource.data.jogadorId == request.auth.uid;
+        allow update: if master(versao,roomId);
         allow delete: if false;
       }
 
-      match /negociacoes/{negotiationId} {
-        allow read: if inside(versao, roomId);
-        allow create: if active(versao, roomId)
-          && request.resource.data.status == 'comprada'
-          && request.resource.data.compradorId == request.auth.uid
-          && request.resource.data.vendedorId != request.auth.uid
-          && request.resource.data.preco is int
-          && request.resource.data.preco > 0
-          && get(/databases/$(database)/documents/$(versao)/$(roomId)/ofertas/$(negotiationId)).data.vendedorId == request.resource.data.vendedorId
-          && get(/databases/$(database)/documents/$(versao)/$(roomId)/ofertas/$(negotiationId)).data.preco == request.resource.data.preco;
+      match /ofertas/{id} {
+        allow read: if inside(versao,roomId);
+        allow create, update: if active(versao,roomId) && participant(versao,roomId);
+        allow delete: if false;
+      }
+
+      match /negociacoes/{id} {
+        allow read: if inside(versao,roomId);
+        allow create: if active(versao,roomId) && participant(versao,roomId);
         allow update, delete: if false;
       }
 
-      match /deducoes/{deductionId} {
-        allow read: if master(versao, roomId) || deductionId == request.auth.uid;
-        allow create: if active(versao, roomId)
-          && deductionId == request.auth.uid
+      match /deducoes/{id} {
+        allow read: if master(versao,roomId) || id == request.auth.uid;
+        allow create: if active(versao,roomId)
+          && id == request.auth.uid
           && request.resource.data.id == request.auth.uid
-          && request.resource.data.suspeito is string
-          && request.resource.data.motivo is string
-          && request.resource.data.acao is string
-          && request.resource.data.prova is string
-          && request.resource.data.lacuna is string
-          && request.resource.data.submetidoEm is int
-          && request.resource.data.keys().hasOnly([
-            'id', 'suspeito', 'motivo', 'acao', 'prova', 'lacuna',
-            'pistasUsadas', 'submetidoEm'
-          ]);
+          && (!request.resource.data.keys().hasAny(['partidaId']) || validPartida(request.resource.data.partidaId));
         allow update, delete: if false;
+      }
+
+      match /placar/{id} {
+        allow read: if inside(versao,roomId);
+        allow create, update: if master(versao,roomId);
+        allow delete: if false;
       }
 
       match /{otherCollection}/{document=**} {
