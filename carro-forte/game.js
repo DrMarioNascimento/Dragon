@@ -1,73 +1,89 @@
-const story=[
- 'A garoa apagava as cores, menos os números no verso de um recibo.',
- 'O relógio da farmácia insistia num horário que a rua já havia deixado para trás.',
- 'No pulso do Técnico, duas palavras apareceram e desapareceram.',
- 'Uma pasta azul abriu; metal girou sob o balcão.',
- 'A voz no rádio parecia conhecida, mas o chiado guardou parte dela.',
- 'A fechadura nova cedeu para uma mão que conhecia o encaixe.',
- 'Quando a imagem voltou, havia uma etiqueta nova e um malote baixo demais.',
- 'A frase “falta dinheiro” chegou antes da conferência.'
+const PARTIDAS={
+  peso:{title:'O Peso do Malote 41',nature:'QUANTO + QUANDO',question:'O banco anuncia que faltam quatrocentos e oitenta mil reais. Quanto realmente desapareceu?',short:'Um número parece óbvio. A direção do dinheiro não.',activities:['vidro','escura'],fields:[
+    ['Valor declarado',['R$ 480.000','R$ 384.000','R$ 96.000','R$ 0'],'R$ 480.000'],
+    ['Valor físico antes da manhã',['R$ 480.000','R$ 384.000','R$ 96.000','R$ 0'],'R$ 384.000'],
+    ['Movimento líquido da manhã',['+ R$ 96.000','− R$ 96.000','− R$ 480.000','R$ 0'],'+ R$ 96.000'],
+    ['Diferença física real às 8h40',['R$ 480.000','R$ 384.000','R$ 96.000','R$ 0'],'R$ 0'],
+    ['Quando nasceu a diferença?',['Na janela de 87 s','Às 8h02','Na véspera','Onze dias antes'],'Onze dias antes']],
+    answer:'Naquela manhã, R$ 0 desapareceram fisicamente. A diferença de R$ 96.000 nasceu onze dias antes como duplicidade escritural.',
+    reveals:['O saco no chão pesa 0,4 kg. O malote coletado pesa 5,1 kg.','Às 8h40 a tesouraria confere R$ 480.000 íntegros.','A janela de 87 segundos foi usada para inserir R$ 96.000.','Um depósito de R$ 96.000 foi lançado duas vezes onze dias antes.']},
+  janela:{title:'Os 87 Segundos',nature:'O QUÊ + COMO',question:'O que realmente aconteceu enquanto a câmera 3 ficou cega?',short:'Reconstrua a janela sem pressupor retirada.',activities:['norte','escura','vidro'],fields:[
+    ['Primeiro evento',['Rádio afasta Vigilância','Lacre é rompido','Malote sai da agência','Etiqueta é impressa'],'Rádio afasta Vigilância'],
+    ['O que ocorre no malote?',['R$ 480.000 saem','R$ 96.000 entram','Nada é tocado','O malote é trocado'],'R$ 96.000 entram'],
+    ['O que ocorre com o lacre?',['Permanece ML-8842','É trocado por ML-8847','Desaparece','É rompido só no destino'],'É trocado por ML-8847'],
+    ['Direção do fluxo',['Agência → rua','Malote → corredor','Fora → dentro do malote','Tesouraria → agência'],'Fora → dentro do malote'],
+    ['Fim da janela',['7h58min12s','7h58min50s','7h59min39s','8h02'],'7h59min39s']],
+    answer:'Durante os 87 segundos, a vigilância foi afastada, o lacre foi rompido, R$ 96.000 foram inseridos no malote, um novo lacre foi aplicado e o malote voltou à custódia.',
+    reveals:['A câmera cai às 7h58min12s.','O lacre é rompido e R$ 96.000 entram.','ML-8847 substitui ML-8842.','A câmera retorna às 7h59min39s.']},
+  roubo:{title:'Foi um roubo?',nature:'QUAL / QUE TIPO',question:'Todo mundo viu os sinais de um assalto. Mas houve realmente um roubo?',short:'Classifique o acontecimento sem confundir irregularidade com subtração.',activities:['vidro','escura'],fields:[
+    ['Natureza da manhã',['Roubo consumado','Tentativa de roubo','Bagunça administrativa sem ação deliberada','Encenação operacional de reparação clandestina'],'Encenação operacional de reparação clandestina'],
+    ['Houve subtração de valores?',['Sim, R$ 480.000','Sim, R$ 96.000','Não','Não é possível saber'],'Não'],
+    ['A falha da câmera foi',['Acidental','Deliberadamente preparada','Rotina técnica','Produzida pela transportadora'],'Deliberadamente preparada'],
+    ['A diferença central é',['Patrimonial','Escritural','De transporte','De lacre'],'Escritural'],
+    ['A leitura “só bagunça” é',['Totalmente correta','Parcialmente correta','Totalmente falsa','Irrelevante'],'Parcialmente correta']],
+    answer:'Não houve roubo naquela manhã. Houve uma encenação operacional deliberada para reparar clandestinamente uma diferença escritural anterior.',
+    reveals:['Os sinais de crime são reais.','A preparação da câmera e do acesso foi deliberada.','Nenhum dinheiro foi subtraído.','A irregularidade é grave, mas não é furto.']},
+  antes:{title:'Antes das 8h02',nature:'QUANDO',question:'Quando nasceu a diferença que todos procuram?',short:'A mesa olha para minutos; a resposta está onze dias atrás.',activities:['norte'],fields:[
+    ['Âncora da manhã',['7h47','7h58min12s','8h02','8h40'],'7h47'],
+    ['Janela crítica',['87 segundos','3 minutos','11 dias','40 minutos'],'87 segundos'],
+    ['Momento da duplicidade',['Na manhã','Na véspera','Onze dias antes','No destino'],'Onze dias antes'],
+    ['Evento que transforma o erro em ameaça',['Chegada do carro-forte','Auditoria anunciada na véspera','Grito às 8h02','Reset da câmera'],'Auditoria anunciada na véspera'],
+    ['A diferença física nasce',['Às 7h58','Às 8h02','Onze dias antes','Nunca nasce'],'Nunca nasce']],
+    answer:'A diferença nasce onze dias antes, quando um depósito de R$ 96.000 é reconsolidado e lançado pela segunda vez. A manhã apenas tenta dar corpo ao número.',
+    reveals:['7h47 ancora a manhã, não a origem.','Os 87 segundos explicam uma operação, não a criação da diferença.','A auditoria torna o erro antigo urgente.','O nascimento factual está no D-11.']},
+  quem:{title:'Quem construiu a janela?',nature:'QUEM COMPOSTO',question:'Quem colocou cada peça daqueles 87 segundos em movimento?',short:'Separe decisão, preparação, execução, participação sem conhecimento e negligência.',activities:['norte','escura'],fields:[
+    ['Quem decide a operação?',['Subgerente','Limpeza','Manutenção','Gerência'],'Subgerente'],
+    ['Quem prepara a falha?',['Subgerente','Manutenção','Vigilância','Transporte'],'Subgerente'],
+    ['Quem abre o acesso sem conhecer a finalidade?',['Limpeza','Aprendiz','Gerência','Cliente'],'Limpeza'],
+    ['Quem executa o reset autorizado?',['Manutenção','Subgerente','Gerência','Vigilância'],'Manutenção'],
+    ['Quem autoriza o reset sem contingência?',['Gerência','Manutenção','Transporte','Caixa Sênior'],'Gerência']],
+    answer:'Subgerente decide e constrói a janela; Limpeza abre o acesso sem conhecer a finalidade; Manutenção executa um reset autorizado; Gerência autoriza sem contingência.',
+    reveals:['Presença não é autoria.','Execução técnica não é decisão.','Abrir a porta não prova conhecimento da finalidade.','A cadeia é distribuída, mas a coordenação é identificável.']},
+  proteger:{title:'O que estava sendo protegido?',nature:'POR QUÊ',question:'Se não era o dinheiro, o que alguém estava tentando salvar?',short:'A ação material contradiz o motivo aparente.',activities:['vidro'],fields:[
+    ['O que Subgerente teme perder?',['R$ 480.000','A assinatura e a carreira','O malote 41','A chave 17-B'],'A assinatura e a carreira'],
+    ['Por que usar dinheiro próprio?',['Para lavar produto de crime','Para completar fisicamente o saldo','Para pagar Transporte','Para comprar silêncio'],'Para completar fisicamente o saldo'],
+    ['O que dispara a urgência?',['A garoa','A auditoria integral','O Cliente','O relógio da farmácia'],'A auditoria integral'],
+    ['Qual ato original precisa ser escondido?',['Roubo anterior','Assinatura sem conferência física','Erro da transportadora','Abertura do cofre pelo Cliente'],'Assinatura sem conferência física'],
+    ['O objetivo final é',['Enriquecimento','Desviar a auditoria para inocentes','Fazer registros e dinheiro coincidirem','Fechar a agência'],'Fazer registros e dinheiro coincidirem']],
+    answer:'O objeto protegido era a assinatura — e, por extensão, a carreira. O dinheiro próprio foi usado para fazer a realidade física coincidir com um registro errado.',
+    reveals:['R$ 96.000 saem da conta pessoal de Subgerente.','O dinheiro entra, não sai.','A auditoria ameaça revelar uma assinatura sem conferência.','A operação tenta salvar reputação, não patrimônio.']}
+};
+
+const SENSORS={
+ norte:{title:'A Janela do Norte',desc:'Oriente o aparelho pelos setores da agência e fixe horários e posições.',href:'janela-do-norte.html'},
+ vidro:{title:'O Vidro Embaçado',desc:'Limpe camadas de informação para revelar peso, lacres, valores e registros.',href:'vidro-embacado.html'},
+ escura:{title:'A Sala às Escuras',desc:'Procure no corredor objetos físicos da zona cega sem transformá-los automaticamente em culpa.',href:'sala-as-escuras.html'}
+};
+
+const EVIDENCES=[
+ ['F1','Antecipação interna','Terminal registra pedido de rota alternativa às 6h52.'],
+ ['F2','Âncora 7h47','Recibo e registros eletrônicos fixam a chegada às 7h47.'],
+ ['F5','Zona cega','A câmera 3 fica fora entre 7h58min12s e 7h59min39s.'],
+ ['F7','Duas etiquetas','ML-8842 aparece rompido; ML-8847 foi impresso às 7h53.'],
+ ['F8','Saco vazio','O saco no chão pesa 0,4 kg.'],
+ ['F9','O peso','O malote entregue à custódia pesa 5,1 kg.'],
+ ['F10','Destino','Às 8h40 a tesouraria confere R$ 480.000 íntegros.'],
+ ['F11','Saque','Às 6h20 Subgerente saca R$ 96.000 de origem pessoal.'],
+ ['F13','Duplicidade','O mesmo depósito de R$ 96.000 aparece duas vezes na consolidação D-11.'],
+ ['F14','Assinatura','A consolidação D-11 foi assinada sem abertura física do cofre.'],
+ ['F15','Auditoria','Às 21h47 da véspera chega convocação para contagem física integral.'],
+ ['F16','Trajeto','Marcas e sensor ligam mesa, arquivos e retorno à custódia.']
 ];
-const terminalText='Um malote está no chão. A câmera 3 perdeu 87 segundos. O sistema insiste que nada foi registrado.';
-function typeTerminal(){const el=document.getElementById('terminalLine');let i=0;el.textContent='';const write=()=>{if(i<terminalText.length){const step=Math.random()>.9?2:1;el.textContent=terminalText.slice(0,i+=step);setTimeout(write,22+Math.random()*34)}};setTimeout(write,420)}
-typeTerminal();
-const typedScreens=new Set();
-document.querySelectorAll('.section-head>p').forEach(el=>{const text=el.getAttribute('aria-label')||el.textContent.trim();el.dataset.terminalText=text;el.classList.add('terminal-copy');el.textContent=''});
-function typeScreenTerminal(name){if(typedScreens.has(name))return;const el=document.querySelector(`[data-screen="${name}"] .section-head>p`);if(!el)return;typedScreens.add(name);const text=el.dataset.terminalText||el.getAttribute('aria-label')||'';let i=0;el.textContent='';const write=()=>{if(i<text.length){el.textContent=text.slice(0,++i);setTimeout(write,24+Math.random()*28)}};setTimeout(write,220)}
-const pieces=[
- {id:'F2-01',title:'O recibo',text:'7h47 está legível sob uma mancha de café. A borda procura o reflexo de um relógio.',pos:'0% 0%'},
- {id:'F2-02',title:'A rota',text:'A prancheta registra R-4. A entrada parece ter sido antecipada.',pos:'50% 0%'},
- {id:'F2-03',title:'Erro 17',text:'No pulso do Técnico, a captura termina antes do nome do remetente.',pos:'100% 0%'},
- {id:'F2-08',title:'A fechadura',text:'O reparo é recente. Alguém conhecia o estalo do novo encaixe.',pos:'0% 100%'},
- {id:'F2-09',title:'A voz',text:'“Fundos. Dois minutos.” O áudio carrega uma voz conhecida.',pos:'50% 100%'},
- {id:'F2-10',title:'A etiqueta',text:'Duas fibras, dois brilhos, dois destinos na mesma superfície.',pos:'100% 100%'}
-];
-const suspects=['Selecione…','Subgerente','Funcionário da Limpeza','Técnico de Manutenção','Caixa Veterano','Estagiária','Segurança Interno','Motorista do carro-forte','Cliente Desconhecido','Gerente'];
-const motives=['Selecione…','Encobrir/desviar diferença da auditoria','Roubo oportunista','Erro humano','Golpe externo','Vingança pessoal'];
-const actions=['Selecione…','Induzir reset + afastar Segurança + trocar/reetiquetar','Deslocar o malote por engano','Desligar a câmera para manutenção','Trocar a pasta azul','Alterar a rota do veículo'];
-const evidence=['P01 + P02 · antecipação e 7h47','P03 + P07 · Erro 17 e fio preparado','P05 + P08 · chaveiro e porta','P09 + P06 · rádio e 87 segundos','P10 + P11 · etiqueta e percurso','P12 · pasta azul'];
-const routes=[
- {id:'Relógio',items:['P02 fixa 7h47','P01 prova pedido interno','P06 fecha 87 segundos','P11 mostra deslocamento','P10 revela reetiqueta']},
- {id:'Acesso',items:['P12 localiza a queda','P05 identifica a chave','P08 liga Limpeza à porta','P11 traça o malote','P04 liga 17—B ao Subgerente']},
- {id:'Código 17—B',items:['P03 mostra convocação','P04 põe o código com o Subgerente','P09 prova o afastamento','P05 converte código em acesso','P06 encaixa a janela']}
-];
-const investigations=[
- {verb:'OBSERVAR',name:'Janela do Norte',brief:'Compare a rua com registros internos. Selecione duas peças que corrigem o relógio da farmácia.',clues:['Recibo 7h47','Farmácia 7h44','Chegada do veículo','Garoa na calçada'],correct:[0,1],reward:['P01','P02']},
- {verb:'DISCERNIR',name:'Sala Clara',brief:'A luz revela tudo e destaca nada. Entre reflexos e objetos semelhantes, selecione as três observações que formam uma rota física verificável até os arquivos.',clues:['Reflexo do chaveiro 17—B','Pasta azul sob o balcão','Fechadura com riscos recentes','Envelope com tinta azul','Sola úmida no corredor','Mancha vermelha do lacre'],correct:[0,2,4],reward:['P05','P08','P11']},
- {verb:'AUTENTICAR',name:'Rádio em Três Camadas',brief:'Separe voz, aparelho e horário. Selecione as camadas que ligam a ordem ao início dos 87 segundos.',clues:['Voz atribuída ao Subgerente','Mancha vermelha','Log do rádio reserva','Recibo da padaria'],correct:[0,2],reward:['P09','P06']}
-];
-const lots=[
- {type:'PILAR',name:'Lacre sob luz',cost:4,text:'Revela a borda de uma etiqueta sobreposta.',result:'P10 validado: havia duas etiquetas e dois destinos.'},
- {type:'CONECTOR',name:'Rastro de água',cost:3,text:'Liga posições antes e depois da câmera.',result:'P11 conectado: mesa → arquivos → chão.'},
- {type:'CONTEXTO',name:'Auditoria 17—B',cost:3,text:'Explica por que o código importava.',result:'Motivo validado: diferença ligada à auditoria.'},
- {type:'AMBIGUIDADE',name:'A pasta azul',cost:2,text:'Pode acusar ou inocentar a Estagiária.',result:'P12 corrige a rota: a troca da pasta foi acidental.'}
-];
-const perspectives=['Técnico','Caixa Veterano','Estagiária','Segurança Interno','Motorista','Cliente Desconhecido','Subgerente','Funcionário da Limpeza'];
-const perspectiveImages=['assets/fragmento-tecnico.png','assets/fragmento-veterano.png','assets/fragmento-estagiaria.png','assets/fragmento-seguranca.png','assets/carro-forte-hero.png','assets/fragmento-cliente.png','assets/carro-forte-hero.png','assets/fragmento-seguranca.png'];
-const pairCases=[
- {id:'D01',name:'Recibo + rua',symbol:'◷',color:'ÂMBAR',reward:'A dupla aproxima 7h47 da rua e prepara P01/P02; o relógio da farmácia ainda precisa ser corrigido por outra rota.'},
- {id:'D02',name:'Erro 17 + câmera 3',symbol:'⌁',color:'CIANO',reward:'A mensagem e a perda de imagem passam a pertencer ao mesmo minuto, sem revelar sozinhas quem coordenou.'},
- {id:'D03',name:'Chaveiro 17-B + porta reparada',symbol:'⚿',color:'VERDE-PETRÓLEO',reward:'A dupla valida capacidade específica de acesso; presença no corredor continua necessária.'},
- {id:'D04',name:'Rádio + corredor vazio',symbol:'⌁',color:'VERMELHO-LACRE',reward:'A ordem e o afastamento do Segurança passam a formar uma relação temporal verificável.'},
- {id:'D05',name:'Etiqueta + posição do malote',symbol:'◇',color:'OURO-VELHO',reward:'A dupla mostra manipulação material e posição divergente; o motivo 17-B ainda precisa de outra evidência.'},
- {id:'D06',name:'Pasta azul + padaria',symbol:'▱',color:'AZUL-PAPEL',reward:'A dupla corrige a leitura da pasta: ela liga padaria e banco, mas não prova culpa da Estagiária.'}
-];
-const state={screen:'intro',players:6,current:0,joined:new Set(),paired:new Set(),round:0,roundDone:new Set(),archive:[],credits:12,bought:new Set(),hypothesis:{},route:null,axis:null,final:{},reveal:0,start:Date.now()};
+
+const state={screen:'intro',game:null,players:6,pace:'pressure',selected:new Set(),sensorDone:new Set(),hypothesis:{},final:{},reveal:0,start:Date.now()};
 const screens=[...document.querySelectorAll('.screen')];
-function goto(name){screens.forEach(s=>s.classList.toggle('active',s.dataset.screen===name));state.screen=name;document.getElementById('phaseLabel').textContent=({intro:'PRÓLOGO',briefing:'FASE 0',pieces:'FASE 1',investigation:'INVESTIGAÇÃO',hypothesis:'HIPÓTESE I',market:'MERCADO',mosaic:'MOSAICO',final:'DEDUÇÃO',reveal:'REVELAÇÃO',score:'PLACAR'})[name];typeScreenTerminal(name);scrollTo(0,0)}
-document.querySelectorAll('[data-next]').forEach(b=>b.onclick=()=>{if(b.dataset.next==='briefing')state.players=+document.getElementById('playerCount').value;goto(b.dataset.next);if(b.dataset.next==='pieces')renderPlayers()});
-document.getElementById('storyFragments').innerHTML=story.map((x,i)=>`<article class="story-fragment"><b>FRAGMENTO 0${i+1}</b><p>${x}</p></article>`).join('');
-function partnerFor(i){if(state.players===2)return 1-i;return i%2===0?(i+1<state.players?i+1:i-1):i-1}
-function pairCaseFor(i){return pairCases[Math.floor(i/2)%pairCases.length]}
-function renderPlayers(){const tabs=document.getElementById('playerTabs');tabs.innerHTML=Array.from({length:state.players},(_,i)=>`<button class="player-tab ${i===state.current?'active':''}" data-i="${i}"><small>ARQUIVO ${String(i+1).padStart(2,'0')}</small><span>${perspectives[i%perspectives.length]}</span>${state.paired.has(i)?'<b>✓</b>':''}</button>`).join('');tabs.querySelectorAll('button').forEach(b=>b.onclick=()=>{state.current=+b.dataset.i;renderPlayers()});renderPiece();renderMini()}
-let puzzle=null,puzzleTick=null;
-function renderPiece(){document.getElementById('perspectiveName').textContent=`PERSPECTIVA DISTRIBUÍDA · ${perspectives[state.current%perspectives.length]}`;document.getElementById('pairStage')?.classList.add('hidden');const wall=document.getElementById('remittanceWall');wall.className='remittance-wall hidden';if(state.joined.has(state.current)){showRemittance();return}startPuzzle()}
-function showRemittance(){const pc=pairCaseFor(state.current),wall=document.getElementById('remittanceWall');wall.className='remittance-wall';wall.innerHTML=`<div><span>REMESSA ${pc.color}</span><strong>${pc.symbol}</strong><small>${pc.name} · encontre a outra custódia desta remessa.</small></div>`;document.getElementById('puzzleStatus').textContent=state.paired.has(state.current)?'Fragmento e pareamento concluídos.':'Fragmento concluído · encontre a segunda metade.';setTimeout(()=>renderPairStage(),250)}
-function renderPairStage(){const stage=document.getElementById('pairStage');if(!stage)return;stage.classList.remove('hidden');const pc=pairCaseFor(state.current),partner=partnerFor(state.current);document.getElementById('pairTitle').textContent=pc.name;document.getElementById('pairBrief').textContent=`Seu aparelho guarda apenas metade. Localize o Arquivo que completa a remessa ${pc.color}.`;const opts=document.getElementById('pairOptions');opts.innerHTML=Array.from({length:state.players},(_,i)=>i===state.current?'':`<button type="button" data-pair="${i}">Arquivo ${String(i+1).padStart(2,'0')} · ${perspectives[i%perspectives.length]}</button>`).join('');const status=document.getElementById('pairStatus'),reward=document.getElementById('pairReward');reward.classList.toggle('hidden',!state.paired.has(state.current));if(state.paired.has(state.current)){status.textContent='Segunda metade confirmada.';document.getElementById('pairRewardText').textContent=pc.reward}opts.querySelectorAll('[data-pair]').forEach(b=>b.onclick=()=>{const chosen=+b.dataset.pair;if(chosen!==partner){status.textContent='Essas bordas não pertencem à mesma remessa. Compare símbolo e cor.';return}state.paired.add(state.current);state.paired.add(partner);b.classList.add('correct');status.textContent='Encaixe confirmado entre os dois celulares.';reward.classList.remove('hidden');document.getElementById('pairRewardText').textContent=pc.reward;renderMini();setTimeout(()=>renderPlayers(),450)})}
-function startPuzzle(){clearInterval(puzzleTick);const canvas=document.getElementById('puzzleCanvas'),ctx=canvas.getContext('2d'),img=new Image();const board={x:28,y:28,w:480,h:300},pw=120,ph=100;let selected=null,drag={x:0,y:0},lastTap=0,time=90,zoom=1;const pointers=new Map();let pinchStart=null;
- const ps=Array.from({length:12},(_,i)=>{const row=Math.floor(i/4),col=i%4;return{i,row,col,tx:board.x+col*pw+pw/2,ty:board.y+row*ph+ph/2,x:560+Math.random()*220,y:45+Math.random()*420,rot:[0,90,180,270][Math.floor(Math.random()*4)],snapped:false}});
- function path(){const x=-pw/2,y=-ph/2,s=14;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+pw*.38,y);ctx.bezierCurveTo(x+pw*.38,y+s,x+pw*.62,y+s,x+pw*.62,y);ctx.lineTo(x+pw,y);ctx.lineTo(x+pw,y+ph*.38);ctx.bezierCurveTo(x+pw-s,y+ph*.38,x+pw-s,y+ph*.62,x+pw,y+ph*.62);ctx.lineTo(x+pw,y+ph);ctx.lineTo(x+pw*.62,y+ph);ctx.bezierCurveTo(x+pw*.62,y+ph-s,x+pw*.38,y+ph-s,x+pw*.38,y+ph);ctx.lineTo(x,y+ph);ctx.lineTo(x,y+ph*.62);ctx.bezierCurveTo(x+s,y+ph*.62,x+s,y+ph*.38,x,y+ph*.38);ctx.closePath()}
- function draw(){ctx.clearRect(0,0,canvas.width,canvas.height);ctx.save();ctx.scale(zoom,zoom);ctx.globalAlpha=.22;ctx.drawImage(img,board.x,board.y,board.w,board.h);ctx.globalAlpha=1;ctx.strokeStyle='#d4ad68';ctx.strokeRect(board.x,board.y,board.w,board.h);for(const p of ps){ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot*Math.PI/180);path();ctx.save();ctx.clip();ctx.drawImage(img,-p.col*pw-pw/2,-p.row*ph-ph/2,board.w,board.h);ctx.restore();ctx.strokeStyle=p.snapped?'#9be0cf':'#d4ad68';ctx.lineWidth=(p.snapped?2.5:1.2)/zoom;ctx.stroke();ctx.restore()}ctx.restore();const zr=document.getElementById('zoomReset');if(zr)zr.textContent=`${Math.round(zoom*100)}%`}
- function point(e){const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*canvas.width/r.width/zoom,y:(e.clientY-r.top)*canvas.height/r.height/zoom}}
- function pick(q){return [...ps].reverse().find(p=>!p.snapped&&Math.abs(q.x-p.x)<pw*.58&&Math.abs(q.y-p.y)<ph*.62)}
- function setZoom(v){zoom=Math.max(1,Math.min(2.5,v
+function go(name){screens.forEach(s=>s.classList.toggle('active',s.dataset.screen===name));state.screen=name;document.getElementById('phaseLabel').textContent=({intro:'PRÓLOGO',games:'PARTIDAS',briefing:'PERGUNTA',sensory:'SENSORES',evidence:'FRAGMENTOS',hypothesis:'HIPÓTESE',mosaic:'RELAÇÕES',final:'DECISÃO',reveal:'REVELAÇÃO',score:'PLACAR'})[name]||name.toUpperCase();scrollTo(0,0)}
+function optionList(opts,value=''){return `<option value="">Selecione…</option>${opts.map(o=>`<option ${o===value?'selected':''}>${o}</option>`).join('')}`}
+function renderGames(){const host=document.getElementById('gameCards');host.innerHTML=Object.entries(PARTIDAS).map(([id,g])=>`<button class="game-card" data-game="${id}" type="button"><small>${g.nature}</small><h3>${g.title}</h3><p>${g.question}</p><b>${g.short}</b></button>`).join('');host.querySelectorAll('[data-game]').forEach(b=>b.onclick=()=>selectGame(b.dataset.game))}
+function selectGame(id){state.game=id;state.selected.clear();state.sensorDone.clear();state.hypothesis={};state.final={};state.reveal=0;const g=PARTIDAS[id];document.getElementById('gameNature').textContent=g.nature;document.getElementById('gameTitle').textContent=g.title;document.getElementById('gameQuestion').textContent=g.question;document.getElementById('activityPlan').innerHTML=g.activities.map(a=>`<span class="activity-chip"><strong>${SENSORS[a].title}</strong> · ${SENSORS[a].desc}</span>`).join('');go('briefing')}
+function renderSensors(){const g=PARTIDAS[state.game],host=document.getElementById('sensoryCards');host.innerHTML=g.activities.map(id=>{const s=SENSORS[id],done=state.sensorDone.has(id)||localStorage.getItem(`mosaico-cf-${id}`)==='done';if(done)state.sensorDone.add(id);return `<article class="sensor-card ${done?'done':''}" data-sensor="${id}"><small>ATIVIDADE SENSORIAL</small><h3>${s.title}</h3><p>${s.desc}</p><div class="sensor-actions"><a class="primary" href="${s.href}?partida=${state.game}&ritmo=${state.pace}">Abrir atividade</a><button class="ghost mark-sensor" type="button">${done?'Concluída ✓':'Marcar concluída'}</button></div></article>`}).join('');host.querySelectorAll('.mark-sensor').forEach(btn=>btn.onclick=()=>{const id=btn.closest('[data-sensor]').dataset.sensor;state.sensorDone.add(id);localStorage.setItem(`mosaico-cf-${id}`,'done');renderSensors()});renderSensorArchive()}
+function renderSensorArchive(){const n=state.sensorDone.size;document.getElementById('sensorDone').textContent=`${n} atividade${n===1?'':'s'} concluída${n===1?'':'s'}`;document.getElementById('sensorTags').innerHTML=[...state.sensorDone].map(id=>`<span class="tag">${SENSORS[id].title}</span>`).join('')}
+function renderEvidence(){const host=document.getElementById('evidenceGrid');host.innerHTML=EVIDENCES.map(([id,t,p])=>`<button class="evidence-card ${state.selected.has(id)?'selected':''}" data-e="${id}" type="button"><small>${id}</small><h3>${t}</h3><p>${p}</p></button>`).join('');host.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>{const id=b.dataset.e;state.selected.has(id)?state.selected.delete(id):state.selected.add(id);renderEvidence()})}
+function renderHypothesis(){const g=PARTIDAS[state.game];document.getElementById('hypothesisPrompt').textContent=g.question;const f=g.fields.slice(0,2);document.getElementById('hypothesisForm').innerHTML=f.map(([label,opts])=>`<label><span>${label}</span><select name="${label}" required>${optionList(opts)}</select></label>`).join('')+`<button class="primary" type="submit">Fechar hipótese provisória</button>`}
+function renderRelations(){const g=PARTIDAS[state.game];const rels={peso:['Saco vazio ↔ peso do malote','Peso ↔ conferência de destino','Saque ↔ janela de 87 s','Duplicidade ↔ auditoria'],janela:['Rádio ↔ início da zona cega','Saque ↔ lacre rompido','Etiqueta nova ↔ retorno do malote','Peso ↔ direção do fluxo'],roubo:['Irregularidade ↔ ausência de subtração','Saco vazio ↔ malote íntegro','Falha preparada ↔ finalidade não patrimonial','Erro administrativo ↔ encenação'],antes:['7h47 ↔ coleta','87 s ↔ operação','D-11 ↔ duplicidade','D-1 ↔ urgência'],quem:['Decisão ↔ Subgerente','Acesso ↔ Limpeza','Reset ↔ Manutenção','Autorização ↔ Gerência'],proteger:['Saque pessoal ↔ reposição','Auditoria ↔ medo','Assinatura ↔ omissão','Dinheiro entrando ↔ finalidade']}[state.game];document.getElementById('relationGrid').innerHTML=rels.map((r,i)=>`<button class="relation-card" type="button"><small>R${i+1}</small><h3>${r}</h3><p>Use esta relação para testar sua hipótese; o fato continua o mesmo mesmo se a interpretação mudar.</p></button>`).join('');document.querySelectorAll('.relation-card').forEach(b=>b.onclick=()=>b.classList.toggle('selected'));document.getElementById('oldHypothesis').textContent=Object.values(state.hypothesis).filter(Boolean).join(' · ')||'Nenhuma hipótese registrada';document.getElementById('counterPrompt').textContent=`Qual relação enfraquece a leitura inicial de “${g.short}”?`}
+function renderFinal(){const g=PARTIDAS[state.game];document.getElementById('finalPrompt').textContent=g.question;document.getElementById('finalForm').innerHTML=g.fields.map(([label,opts])=>`<label><span>${label}</span><select name="${label}" required>${optionList(opts)}</select></label>`).join('')+`<button class="primary" type="submit">Fechar decisão</button>`}
+function scoreFinal(){const g=PARTIDAS[state.game];let correct=0;g.fields.forEach(([label,,ans])=>{if(state.final[label]===ans)correct++});const quality=Math.round(correct/g.fields.length*55),relations=Math.min(20,state.selected.size*3),sensory=Math.round(state.sensorDone.size/g.activities.length*15),commit=10;return {total:quality+relations+sensory+commit,quality,relations,sensory,commit,correct}}
+function renderReveal(){const g=PARTIDAS[state.game],steps=[{k:'O QUE PARECIA',h:'R$ 480.000 desapareceram.',p:'Um saco vazio, câmera cega e vigilância afastada organizam a interpretação antes da conferência.'},...g.reveals.map((x,i)=>({k:`RELAÇÃO ${i+1}`,h:x,p:'Nenhum fato anterior foi alterado; mudou a relação entre as evidências.'})),{k:'INFERÊNCIA CANÔNICA',h:g.answer,p:'A realidade é a mesma em todas as partidas. Esta pergunta apenas exige outro corte dela.'}];const s=steps[Math.min(state.reveal,steps.length-1)];document.getElementById('revealStage').innerHTML=`<div><span class="kicker">${s.k}</span><h2>${s.h}</h2><p>${s.p}</p></div>`;document.getElementById('nextReveal').textContent=state.reveal>=steps.length-1?'Ver resultado →':'Continuar revelação →'}
+function renderScore(){const g=PARTIDAS[state.game],s=scoreFinal();document.getElementById('scoreTitle').textContent=g.title;document.getElementById('totalScore').textContent=s.total;const rows=[['Qualidade da decisão',s.quality,55],['Relações construídas',s.relations,20],['Atividades sensoriais',s.sensory,15],['Compromisso com hipótese',s.commit,10]];document.getElementById('scoreBars').innerHTML=rows.map(([n,v,m])=>`<div class="score-row"><span>${n}</span><div class="bar"><i style="width:${v/m*100}%"></i></div><b>${v}</b></div>`).join('');document.getElementById('endingCards').innerHTML=`<article class="ending-card"><b>PERGUNTA</b><h3>${g.question}</h3><p>${g.answer}</p></article><article class="ending-card"><b>ACERTOS</b><h3>${s.correct}/${g.fields.length}</h3><p>Campos corretos da resolução específica desta partida.</p></article><article class="ending-card"><b>PRINCÍPIO</b><h3>Fato não é interpretação.</h3><p>Uma nova evidência pode reorganizar a leitura sem reescrever nenhum fato.</p></article>`}
+
+document.getElementById('chooseGame').onclick=()=>{state.players=+document.getElementById('playerCount').value;state.pace=document.getElementById('pace').value;renderGames();go('games')};document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>go(b.dataset.back));document.getElementById('startGame').onclick=()=>{renderSensors();go('sensory')};document.getElementById('toEvidence').onclick=()=>{renderEvidence();go('evidence')};document.getElementById('toHypothesis').onclick=()=>{renderHypothesis();go('hypothesis')};document.getElementById('hypothesisForm').onsubmit=e=>{e.preventDefault();state.hypothesis=Object.fromEntries(new FormData(e.currentTarget));renderRelations();go('mosaic')};document.getElementById('toFinal').onclick=()=>{renderFinal();go('final')};document.getElementById('finalForm').onsubmit=e=>{e.preventDefault();state.final=Object.fromEntries(new FormData(e.currentTarget));state.reveal=0;renderReveal();go('reveal')};document.getElementById('nextReveal').onclick=()=>{const max=PARTIDAS[state.game].reveals.length+1;if(state.reveal>=max){renderScore();go('score')}else{state.reveal++;renderReveal()}};document.getElementById('playAgain').onclick=()=>{renderGames();go('games')};document.getElementById('resetBtn').onclick=()=>{if(confirm('Reiniciar a Mesa e voltar à escolha inicial?'))location.reload()};setInterval(()=>{const d=Math.floor((Date.now()-state.start)/1000),m=String(Math.floor(d/60)).padStart(2,'0'),s=String(d%60).padStart(2,'0');document.getElementById('timer').textContent=`${m}:${s}`},1000);
