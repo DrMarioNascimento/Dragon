@@ -109,9 +109,11 @@ Uma boa pergunta-mãe deve:
 
 O endereço antigo [`MOSAICO-mesa.html`](./MOSAICO-mesa.html) redireciona para **A Mesa — A Casa da Costa**.
 
-**Casos:** *A Casa da Costa* · *A Manhã do Carro-Forte*<br>
+**Estória em desenvolvimento:** *O Peso do Malote 41* — primeira estória estruturada explicitamente a partir da nova gramática de incógnitas, com foco principal em **QUANTO** e camada de **QUAL / QUE TIPO**. Ainda não possui experiência jogável publicada.
+
+**Casos/estórias:** *A Casa da Costa* · *A Manhã do Carro-Forte* · *O Peso do Malote 41*<br>
 **Participantes:** Casa da Costa: 1 a 12 · Carro-Forte: 2, 3, 4 ou 6<br>
-**Situação:** experiências jogáveis em evolução e playtest
+**Situação:** experiências jogáveis em evolução e playtest; novas estórias em desenvolvimento
 
 ## Autoria
 
@@ -271,10 +273,37 @@ de A Manhã do Carro-Forte ainda não estão publicados.
 
 ---
 
+## O Peso do Malote 41 — estória em desenvolvimento
+
+Nova estória concebida diretamente a partir da gramática consolidada do MOSAICO. Em vez de partir de “quem roubou?”, a partida desloca o mistério para a magnitude e a natureza do acontecimento.
+
+**Pergunta-mãe:**
+
+> **O banco anuncia que faltam quatrocentos e oitenta mil reais. Quanto realmente desapareceu?**
+
+A natureza principal da incógnita é **QUANTO**, com uma segunda camada de **QUAL / QUE TIPO**. Identificar quem esteve no corredor, quem alterou um lacre ou quem preparou uma janela operacional não resolve automaticamente a partida.
+
+Os campos de resolução foram derivados da pergunta: valor declarado, valor físico real, movimentações legítimas, diferença aparente, diferença real, origem da diferença e fechamento. Não existe campo universal “culpado”.
+
+A estória foi construída para explorar de forma explícita os princípios:
+
+- um fato verdadeiro pode estar associado à interpretação errada;
+- a evidência nova pode mudar a interpretação sem reescrever nenhum fato anterior;
+- irregularidade não equivale automaticamente a subtração;
+- presença, oportunidade, omissão e execução material são relações distintas;
+- a surpresa deve ser retrospectivamente justa: ao final, o jogador deve poder reconhecer que os fatos necessários já estavam disponíveis.
+
+O elenco usa **funções sem nomes próprios e sem marcação obrigatória de gênero**, permitindo que cada mesa projete os arquétipos livremente.
+
+Esta estória ainda não possui pasta ou experiência jogável publicada. Sua implementação deverá nascer da pergunta e dos campos próprios, e não copiar automaticamente a estrutura de acusação de A Casa da Costa ou de A Manhã do Carro-Forte.
+
+---
+
 ## Estado
 
 - **A Casa da Costa:** A Mesa, A Noite e Modo Solo jogáveis.
 - **A Manhã do Carro-Forte:** A Mesa jogável; A Noite e Modo Solo em construção.
+- **O Peso do Malote 41:** documento de estória estruturado pela nova gramática; implementação jogável ainda não publicada.
 
 > **Tudo se adapta, nada se perde.**
 
