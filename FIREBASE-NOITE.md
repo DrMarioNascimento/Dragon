@@ -1,75 +1,81 @@
-# Firebase — A Noite e Modo Solo
+# Firebase — MOSAICO
 
-O repositório usa **dois projetos Firebase separados**.
+O repositório usa dois projetos Firebase separados.
 
-| Experiência | Projeto Firebase | Dados principais |
+| Experiência | Projeto Firebase | Estrutura principal |
 |---|---|---|
 | A Mesa (`v1`) | `mosaico-game` | `mosaico/{codigo}` |
-| A Noite (`v2`) | `mosaico-noite` | progresso pessoal em `usuarios/{uid}/experiencias/casa-da-costa-noite` |
-| Modo Solo (`solo`) | `mosaico-noite` | progresso pessoal em `usuarios/{uid}/experiencias/casa-da-costa-solo` |
+| A Noite (`v2`) | `mosaico-noite` | `noite/{codigo}` |
+| Modo Solo (`solo`) | `mosaico-noite` | `usuarios/{uid}/experiencias/casa-da-costa-solo` |
 
-A Mesa continua isolada e não deve ter suas chaves alteradas.
+## A Noite — estrutura restaurada
 
-## Login Google
+A Noite voltou ao modelo multiplayer:
 
-A Noite e o Modo Solo agora carregam `firebase-user.js` **antes do jogo**. O jogo só inicia depois que uma conta Google é resolvida.
+1. Mestre escolhe **Abrir uma mesa**.
+2. Mestre entra com Google.
+3. O Firestore cria `noite/{codigo}` e grava a `partidaId` escolhida automaticamente pelo MOSAICO.
+4. A sala mostra código e QR.
+5. Convidados entram anonimamente por `?sala=CODIGO` ou digitando o código.
+6. Todos permanecem vinculados à mesma sala e à mesma pergunta.
+7. O Mestre inicia a sessão.
 
-No projeto `mosaico-noite`, conferir em **Authentication → Sign-in method**:
+Projeto: `mosaico-noite`.
 
-- **Google** ligado;
-- domínio `drmarionascimento.github.io` autorizado.
+Authentication deve ter:
 
-O código usa popup e cai para redirect quando o navegador bloquear popup.
+- Google habilitado para o Mestre;
+- Anônimo habilitado para os convidados;
+- `drmarionascimento.github.io` autorizado.
 
-## O que é sincronizado
+O documento `config/mestres` deve conter o e-mail autorizado em `emails`.
 
-O Firestore guarda somente estado de jogo e identificação básica da conta:
+## Rotação automática
 
-- pergunta atual / rotação;
-- progresso da investigação;
-- respostas e fragmentos já processados;
-- nome e e-mail retornados pelo Google;
-- horário da última sincronização.
+IDs válidos:
 
-A fonte canônica da história continua sendo `v1/casos/casa-da-costa.json`.
+- `sete`
+- `cinco`
+- `apagao`
+- `nome`
+- `corpo`
+- `perceber`
 
-## Regras obrigatórias
+`partidaId` pode existir no documento da sala. Uma vez criada a sala, a pergunta fica congelada nela.
 
-Além das regras já existentes para `mosaico/` e `noite/`, o projeto `mosaico-noite` precisa permitir a árvore pessoal abaixo:
+## Regras
 
-```rules
-match /usuarios/{uid}/{document=**} {
-  allow read, write: if request.auth != null && request.auth.uid == uid;
-}
-```
+`firestore.rules` foi atualizado para:
 
-O mesmo bloco está versionado em `FIRESTORE-USUARIOS.rules.snippet`.
+- aceitar `partidaId` nas salas;
+- aceitar as fases `dossie` e `decisao`;
+- permitir deduções com campos dinâmicos derivados da pergunta;
+- manter `config/mestres` como autorização de quem pode abrir sala;
+- permitir progresso pessoal do Modo Solo em `usuarios/{uid}` apenas ao próprio usuário.
 
-**Importante:** editar o repositório não publica regras no console Firebase. Depois de incorporar esse bloco ao `firestore.rules`, publicar no projeto da noite:
+### Publicação obrigatória
+
+Alterar o arquivo no GitHub **não publica as regras nos projetos Firebase**. Depois desta atualização, publicar nos dois projetos:
 
 ```bash
+firebase deploy --only firestore:rules -P mesa
 firebase deploy --only firestore:rules -P noite
 ```
 
-Enquanto a regra ainda não estiver publicada, o login Google funciona e o jogo continua localmente, mas o selo da conta mostra `local` em vez de `Firebase` e o console registra a recusa do Firestore.
+Enquanto isso não for feito, uma versão antiga das regras pode continuar devolvendo `Missing or insufficient permissions` mesmo com Google e Anônimo habilitados.
 
-## Configuração usada pelo cliente
+## Arquivos publicados da Noite
 
-Projeto: `mosaico-noite`
+- `v2/index.html` — entrada multiplayer.
+- `v2/room-shell.js` — Mestre, Google, criação de sala, entrada anônima, código, QR e lobby.
+- `v2/room.css` — visual do lobby e QR.
+- `v2/noite-auto.js` — experiência canônica após o Mestre iniciar.
+- `v1/js/qr.js` — gerador local de QR, sem serviço externo.
 
-```text
-authDomain: mosaico-noite.firebaseapp.com
-projectId: mosaico-noite
-storageBucket: mosaico-noite.firebasestorage.app
-```
+## Solo
 
-A configuração Web completa está centralizada em `firebase-user.js`. O antigo código React em `mosaico-web/src/lib/mosaico/firebase.ts` continua apenas como legado/referência e não é mais a camada de autenticação das páginas publicadas atuais.
+O Solo não cria sala. Ele usa conta Google e progresso pessoal em:
 
-## Arquitetura
+`usuarios/{uid}/experiencias/casa-da-costa-solo`
 
-- `firebase-user.js` — Google Auth + leitura/gravação do progresso por uid.
-- `v2/index.html` — espera `mosaico-cloud-ready` e só então carrega `noite-auto.js`.
-- `solo/index.html` — espera `mosaico-cloud-ready`, carrega `solo-auto.js` e depois `solo-cloud-state.js`.
-- `solo/solo-cloud-state.js` — transforma o estado em memória do Solo em snapshot sincronizável.
-
-Assim, recarregar a página ou abrir a experiência em outro aparelho com a mesma conta recupera a rotação e o progresso após a sincronização do Firestore.
+A Mesa continua isolada no projeto `mosaico-game` e A Noite no projeto `mosaico-noite`.
