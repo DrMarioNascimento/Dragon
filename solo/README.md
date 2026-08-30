@@ -10,6 +10,18 @@ O Modo Solo é a terceira experiência do mesmo caso canônico:
 
 O Solo lê `../v1/casos/casa-da-costa.json`. A realidade factual é única e não deve ser duplicada nesta pasta.
 
+## Conta e Firebase
+
+O Modo Solo exige **login Google** antes de iniciar. A autenticação e a sincronização usam o projeto Firebase `mosaico-noite`, separado da Mesa.
+
+O progresso pessoal é salvo em:
+
+`usuarios/{uid}/experiencias/casa-da-costa-solo`
+
+`firebase-user.js` sincroniza a rotação e o snapshot local. `solo-cloud-state.js` transforma o estado em memória do jogo em um snapshot que pode ser retomado em outro aparelho com a mesma conta.
+
+Para a gravação no Firestore funcionar, o projeto `mosaico-noite` precisa ter publicada a regra de `FIRESTORE-USUARIOS.rules.snippet`.
+
 ## Rotação automática das partidas
 
 O usuário não escolhe a pergunta. O MOSAICO alterna automaticamente, em sequência, uma pergunta-mãe diferente sobre a mesma realidade:
