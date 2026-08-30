@@ -12,11 +12,9 @@ service cloud.firestore {
     function master(v, id) { return signedIn() && roomExists(v,id) && room(v,id).mestreUid == request.auth.uid; }
     function participant(v, id) { return signedIn() && exists(/databases/$(database)/documents/$(v)/$(id)/jogadores/$(request.auth.uid)); }
     function inside(v, id) { return master(v,id) || participant(v,id); }
-    function emailMestre() {
+    function googleMestre() {
       return signedIn()
-        && request.auth.token.email is string
-        && exists(/databases/$(database)/documents/config/mestres)
-        && request.auth.token.email in get(/databases/$(database)/documents/config/mestres).data.emails;
+        && request.auth.token.firebase.sign_in_provider == 'google.com';
     }
     function faseConhecida(f) {
       return f in ['sala','jogo','encenacao','votacao','inclinacao','constelacao','janela','comodo','vidro','salaescura','cor','mosaico','encaixe','cooperacao','palimpsesto','espelho','planta','mercado','oleo','deducao','dossie','decisao','resultado'];
@@ -33,7 +31,7 @@ service cloud.firestore {
 
     match /{versao}/{roomId} {
       allow create: if known(versao)
-        && emailMestre()
+        && googleMestre()
         && request.resource.data.mestreUid == request.auth.uid
         && request.resource.data.ativa == true
         && request.resource.data.fase == 'sala'
