@@ -8,14 +8,57 @@ Casa de jogos. O primeiro é o **MOSAICO**.
 
 # MOSAICO — A Verdade é um Fragmento
 
-
 > Jogo de dedução distribuída com experiências presenciais, multitelas e individuais. Projeto autoral proprietário em desenvolvimento.
 
-O **MOSAICO** transforma um caso em informações fragmentadas entre os participantes. Ninguém recebe sozinho todos os fatos. Os jogadores encenam, apontam, cooperam e acusam.
+O **MOSAICO** transforma uma realidade factual em informações fragmentadas entre os participantes. Ninguém recebe sozinho todos os fatos. Os jogadores observam, encenam, negociam, recordam, relacionam, interpretam, arriscam e deduzem.
 
 **Entrar:** [drmarionascimento.github.io/Dragon/](https://drmarionascimento.github.io/Dragon/)
 
 O hub segue o recorte visual do [Learning-lab](https://github.com/DrMarioNascimento/Learning-lab), com a paleta da noite.
+
+## Essência canônica do MOSAICO
+
+> **A perspectiva muda a pergunta. Não muda o que aconteceu.**
+
+Cada história possui uma **realidade factual única e canônica**. Os fatos não são trocados, sorteados novamente ou contraditos para produzir replay. O que muda entre partidas é o **ângulo de análise**: a pergunta feita sobre a mesma realidade.
+
+Uma partida pode perguntar **quem** articulou um acontecimento; outra, **quanto** foi retirado; outra, **quando** determinada ação ocorreu; outra, **o que aconteceu durante uma janela temporal**; outra, **quem tinha acesso**; outra, **qual foi o percurso de um objeto**; outra, **por que um personagem se atrasou**; outra, **qual decisão ou falha tornou um evento possível**.
+
+Assim, **dedução não é sinônimo de descobrir culpado**. O modelo `autor → motivo → ação → prova → lacuna` é uma perspectiva possível, não um formulário universal do MOSAICO. Os campos finais, as atividades e a própria natureza da resposta devem nascer da perspectiva específica de cada partida.
+
+### Fato não é interpretação
+
+O jogo distingue:
+
+**FATO → INTERPRETAÇÃO → RELAÇÃO → INFERÊNCIA**
+
+Um fato prova apenas aquilo que efetivamente pode provar. Se o pneu de um personagem furou, por exemplo, isso não o torna automaticamente inocente nem culpado. O pneu pode ter furado independentemente de sua participação ou não em outro acontecimento.
+
+> **O jogo não engana artificialmente o jogador. O jogador pode interpretar errado um fato verdadeiro.**
+
+Por isso, a dúvida deve surgir preferencialmente de relações possíveis entre fatos verdadeiros — coexistência × causalidade, presença × participação, oportunidade × autoria, coincidência × planejamento — e não de *red herrings* arbitrariamente falsos.
+
+Nem todo acontecimento precisa ter relação com a pergunta principal. Uma pessoa pode caminhar com seu cachorro diante do banco e isso simplesmente ter acontecido. **O mundo da história é maior do que o mistério investigado.**
+
+### Fatos são do universo; pistas são da perspectiva
+
+Um mesmo fato pode ser central em uma partida, complementar em outra, gerar dúvida em uma terceira e ser incidental em uma quarta. Sua verdade não muda; muda sua relevância diante da pergunta.
+
+Isso permite que a mesma manhã sustente várias partidas sem trocar a realidade. Conhecer quem articulou um crime não significa saber quanto saiu, o que ocorreu durante uma janela de 87 segundos, qual foi o percurso de um objeto ou por que determinado procedimento falhou.
+
+> **Conhecer uma resposta não significa conhecer a história inteira.**
+
+### Regra de criação
+
+Antes de criar ou revisar uma partida, seguir esta ordem conceitual:
+
+`REALIDADE CANÔNICA → PERSPECTIVA → PERGUNTA → FRAGMENTOS → RELAÇÕES → INFERÊNCIA → DECISÃO`
+
+A criação não deve começar por “quais são os cinco campos?” nem por “qual atividade ainda não usamos?”. A mecânica, os campos, a economia, o risco e a pontuação devem servir ao tipo de raciocínio exigido pela perspectiva.
+
+**No MOSAICO, a verdade não precisa mudar para que a experiência mude.**
+
+---
 
 ## Catálogo jogável
 
@@ -53,8 +96,10 @@ rotacionáveis sob pressão de tempo.
 4. Hipótese I
 5. Mercado Cego
 6. Mosaico coletivo e escolha da rota probatória
-7. dedução final em cinco campos
+7. dedução final nos campos próprios desta perspectiva
 8. revelação modular e placar fechado em 100 pontos
+
+> Os campos desta versão pertencem à perspectiva específica da partida e não constituem um formulário universal do MOSAICO.
 
 ### Arquitetura
 
@@ -195,7 +240,7 @@ O endereço antigo [`v3/`](./v3) redireciona para o modo solo.
 
 > **Tudo se adapta, nada se perde.**
 
-Antes de mudar regra, narrativa ou pontuação: `HANDOFF.md` e o histórico Git.
+Antes de mudar regra, narrativa ou pontuação: consultar este README, `HANDOFF.md` e o histórico Git. Ao criar uma nova perspectiva, preservar a realidade factual e redefinir a pergunta antes de definir campos ou atividades.
 
 ## Licença e uso
 
