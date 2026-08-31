@@ -32,16 +32,22 @@
 
   <script src="../v1/js/qr.js"></script>
   <script src="../carro-forte-terminal.js?v=20260830-all-screens"></script>
-  <script type="module" src="../firebase-room.js?v=20260830-master-persistente"
+  <script>
+    window.__carroForteNoiteGameLoaded=false;
+    window.addEventListener('carroforte-noite-ready',()=>{
+      if(window.__carroForteNoiteGameLoaded)return;
+      window.__carroForteNoiteGameLoaded=true;
+      const game=document.createElement('script');
+      game.src='game.js?v=20260831-click-fix';
+      game.onerror=()=>{window.__carroForteNoiteGameLoaded=false;console.error('MOSAICO: falha ao carregar game.js');};
+      document.body.appendChild(game);
+    });
+  </script>
+  <script type="module" src="../firebase-room.js?v=20260831-ready-listener-fix"
           data-project="noite"
           data-root="noite"
           data-case="carro-forte"
           data-title="A Noite · A Manhã do Carro-Forte"
           data-ready-event="carroforte-noite-ready"></script>
-  <script>
-    window.addEventListener('carroforte-noite-ready',()=>{
-      const game=document.createElement('script');game.src='game.js?v=20260830-master-persistente';document.body.appendChild(game);
-    },{once:true});
-  </script>
 </body>
 </html>
