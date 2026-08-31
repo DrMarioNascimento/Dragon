@@ -1,82 +1,90 @@
 # Segurança do Firebase
 
-O arquivo `firestore.rules` é a fonte versionada das permissões do projeto `mosaico-game`.
+O MOSAICO usa **dois projetos Firebase independentes**. Essa separação é intencional e deve ser preservada:
 
-Serve duas árvores **separadas**:
+| Experiência | Alias Firebase | Projeto | Estrutura principal |
+|---|---|---|---|
+| **A Mesa** | `mesa` | `mosaico-game` | `mosaico/{sala}` |
+| **A Noite** | `noite` | `mosaico-noite` | `noite/{sala}` |
+| **Modo Solo** | `noite` | `mosaico-noite` | `usuarios/{uid}/...` |
 
-- **A mesa (v1):** `mosaico/{sala}`
-- **A noite (v2):** `noite/{sala}`
+O arquivo `firestore.rules` é a fonte versionada das regras. Ele pode ser mantido como fonte comum no repositório, mas **precisa ser publicado separadamente em cada projeto Firebase**. Publicar no projeto da Mesa não altera as regras de A Noite, e vice-versa.
 
-Não compartilham documento, Auth de app (`mesa` / `noite`) nem QR.
+Os projetos não compartilham banco Firestore, sessão de Authentication, documento `config/mestres` nem estado de sala. Cada projeto deve ter sua própria configuração operacional.
+
+## Autorização do Mestre
+
+A abertura de uma sala exige:
+
+- autenticação Firebase válida;
+- login com provedor Google;
+- e-mail presente em `config/mestres.emails` **no mesmo projeto Firebase usado pela experiência**;
+- `mestreUid` igual ao UID autenticado;
+- sala criada ativa e na fase inicial permitida pelas regras.
+
+Portanto, para **A Noite**, reconhecer o Mestre na interface não é suficiente se as regras ou `config/mestres` do projeto `mosaico-noite` estiverem ausentes/desatualizados. Nessa situação o Firestore devolve `Missing or insufficient permissions`.
 
 ## Garantias implementadas
 
 - toda operação exige autenticação;
 - somente o UID que criou a sala pode alterar fases, encerrá-la e publicar o placar;
-- a fase da sala só pode ser um valor conhecido (mesa HTML **ou** noite v3: `janela`, `comodo`, `cor`, `encaixe`, `oleo`); qualquer outro valor é recusado, inclusive ao mestre;
-- em mesas de 4–12, somente o Portador sorteado pode gravar o rascunho e concluir seu Mosaico;
-- em mesas de 1–3, todos os integrantes do Fragmento compartilhado podem editar e concluir;
-- em mesas **v3** (`v3: true`), qualquer integrante do próprio Fragmento grava a carta — não há Portador;
+- a fase da sala só pode ser um valor conhecido; qualquer outro valor é recusado, inclusive ao mestre;
 - cada participante cria apenas o documento correspondente ao próprio UID;
 - uma pessoa autenticada com o código de uma sala ativa pode consultar a lista de jogadores necessária à entrada;
-- alterações ordinárias ficam limitadas a prontidão, personagem e Arquivo do próprio jogador;
-- o Arquivo cresce no máximo uma pista por escrita, e a mesma escrita não pode encostar nas moedas;
-- o campo `concluidoMs` do Fragmento não é mais aceito: só o carimbo do servidor conta como hora de entrega;
-- compras validam, na mesma transação, oferta, comprador, vendedor, preço e variação das moedas;
-- votos de Performance e Cooperação são únicos, sem voto em si e legíveis apenas pelo autor e pelo mestre;
-- tarefas sensoriais (`inclinacao` = Janela, `constelacao` = Vidro, `sala` = Sala às Escuras) e Dedução Final são únicas por jogador;
-- o avanço após uma apresentação é solicitado pelo jogador, mas executado pelo mestre;
 - documentos e coleções desconhecidos são negados por padrão;
-- exclusões diretas são bloqueadas.
+- exclusões diretas são bloqueadas;
+- `usuarios/{uid}` é privado ao próprio usuário autenticado.
 
-## Publicação
+## Publicação das regras
 
-Com a Firebase CLI autenticada por uma conta autorizada no projeto:
+Os aliases oficiais estão em `.firebaserc`:
+
+- `mesa` → `mosaico-game`
+- `noite` → `mosaico-noite`
+
+Com a Firebase CLI autenticada em uma conta autorizada, publique explicitamente no destino desejado:
 
 ```bash
-firebase deploy --only firestore:rules --project mosaico-game
+# A Mesa
+firebase deploy --only firestore:rules -P mesa
+
+# A Noite + Solo
+firebase deploy --only firestore:rules -P noite
 ```
 
-A matriz abaixo deixou de ser conferida à mão. Ela está escrita em `tests/regras.test.mjs` e roda contra o emulador configurado em `firebase.json` (porta **8180**, para não colidir com o cliente web):
+Quando `firestore.rules` mudar e a alteração for aplicável às duas experiências, publique **nos dois projetos**:
+
+```bash
+firebase deploy --only firestore:rules -P mesa
+firebase deploy --only firestore:rules -P noite
+```
+
+Não use apenas o projeto `default` para uma atualização destinada a A Noite. O `default` aponta para `mosaico-game` e, portanto, atualiza somente A Mesa.
+
+## Checklist de implantação — A Noite
+
+Antes de testar a criação de uma mesa em A Noite, conferir no projeto `mosaico-noite`:
+
+1. Google habilitado em Authentication;
+2. autenticação anônima habilitada para convidados;
+3. domínio publicado autorizado;
+4. documento `config/mestres` existente;
+5. campo `emails` contendo o e-mail autorizado do Mestre;
+6. `firestore.rules` publicado com `-P noite`;
+7. cliente apontando para `projectId: mosaico-noite` e coleção `noite`.
+
+Se a interface mostrar o Mestre reconhecido, mas a criação retornar `Missing or insufficient permissions`, verificar primeiro os itens **4, 5 e 6**.
+
+## Testes
+
+A matriz automatizada está em `tests/regras.test.mjs` e roda contra o emulador configurado em `firebase.json`:
 
 ```bash
 npm run test:regras
 ```
 
-Antes de uma sessão presencial, execute também o jogo contra o emulador e confirme o comportamento em tela.
+O emulador valida a regra versionada; ele **não comprova que essa mesma versão já foi implantada nos dois projetos remotos**. Antes de uma sessão presencial, além dos testes locais, confirme a publicação das regras no projeto correspondente à experiência que será usada.
 
-| Teste | Resultado esperado |
-|---|---|
-| jogador atualiza o próprio estado permitido | aceita |
-| jogador altera moedas ou pontuação diretamente | nega |
-| jogador altera outro participante | nega |
-| jogador muda fase ou encerra sala | nega |
-| mestre muda fase ou encerra sala | aceita |
-| mestre avança para fase v3 (`janela`) | aceita |
-| mestre grava fase desconhecida | nega |
-| voto em si mesmo ou segundo voto | nega |
-| compra sem saldo ou fora da transação | nega |
-| compra válida | aceita comprador, vendedor, oferta e negociação juntos |
-| participante lê voto ou dedução de outro | nega |
-| integrante comum altera o rascunho do Fragmento | nega |
-| Portador altera o rascunho do próprio Fragmento | aceita |
-| integrante do Fragmento compartilhado (1–3) altera o rascunho | aceita |
-| participante de outro Fragmento tenta alterar o rascunho | nega |
-| mesa v3: integrante do Fragmento grava a carta | aceita |
-| tarefa `sala` no próprio UID | aceita |
-| tarefa inventada | nega |
-| retorno a uma sala encerrada | nega |
-| jogador acrescenta uma pista ao próprio Arquivo | aceita |
-| jogador acrescenta duas pistas na mesma escrita | nega |
-| jogador acrescenta pista e altera moedas juntos | nega |
-| qualquer pessoa grava `concluidoMs` no Fragmento | nega |
+## Princípio de isolamento
 
-## Limites conhecidos
-
-**Leitura das pistas.** Os documentos públicos de jogadores ainda contêm o Arquivo de pistas porque o Mercado Cego atual transfere pistas por uma transação executada no cliente. A interface não revela esses campos, mas um participante tecnicamente experiente pode inspecioná-los nas ferramentas do navegador. A ocultação criptograficamente efetiva das pistas exige separar dados privados e processar compras em ambiente confiável, como Cloud Functions. Isso pertence ao item específico de proteção dos segredos do caso.
-
-**Escrita das pistas.** O cliente precisa acrescentar pistas ao próprio Arquivo: é assim que a pista privada do personagem e a pista de cada tarefa sensorial chegam. A regra atual encarece o abuso — uma pista por escrita, sem tocar nas moedas — mas não o elimina: quem insistir repete a operação. Isso não fere apenas o sigilo; fere a Economia e Risco, porque moedas guardadas viram pontos e a compra deixa de ser necessária. A eliminação real exige que a concessão de pista saia do jogador, seja pelo mestre (que já processa a coleção `acoes`), seja por Cloud Functions.
-
-**Segredos do caso no cliente.** `CASO.solucao` e a revelação completa chegam ao navegador de todos no carregamento. Para produto ou competição, o caso precisará ser servido em partes, no momento correto.
-
-**Apuração no aparelho do mestre.** O placar é calculado num único cliente. Se ele cair no encerramento, não há quem calcule, e o `mestreUid` é imutável por regra. É risco operacional de sessão presencial, não falha de autorização.
+**A Mesa e A Noite não devem ser reunidas em um único projeto Firebase.** O isolamento `mosaico-game` / `mosaico-noite` é parte da arquitetura do MOSAICO. Alterações futuras de autenticação, regras ou dados devem sempre indicar explicitamente a qual dos dois projetos se destinam.
