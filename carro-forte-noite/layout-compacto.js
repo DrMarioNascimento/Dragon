@@ -1,7 +1,7 @@
 /* MOSAICO · layout compacto seguro e não invasivo */
 (function(){
   if(!document.querySelector('link[data-layout-compacto]')){
-    const css=document.createElement('link');css.rel='stylesheet';css.href='layout-compacto.css?v=20260831-hud3';css.dataset.layoutCompacto='1';document.head.appendChild(css);
+    const css=document.createElement('link');css.rel='stylesheet';css.href='layout-compacto.css?v=20260831-hud7';css.dataset.layoutCompacto='1';document.head.appendChild(css);
   }
   const brand=document.querySelector('.brand');
   const topline=document.querySelector('.topline');
@@ -15,8 +15,13 @@
   const brandB=brand.querySelector('b'),brandSmall=brand.querySelector('small'),mark=brand.querySelector('.mark');
   if(brandB)brandB.textContent='MOSAICO · A MANHÃ DO CARRO-FORTE · A NOITE';
   if(brandSmall)brandSmall.hidden=true;
-  if(mark)mark.hidden=true;
+  /* O M continua na linha, ao lado do nome — a folha dá o tamanho maior. */
   topline.classList.add('compact-topline');
+  /* O ⓘ mora dentro do .hud, que sai de cena logo abaixo. Sem mudar de pai
+     ele iria junto e a gaveta de regras ficaria sem porta. appendChild move
+     o nó com o ouvinte que o núcleo já pendurou; o CSS já o esperava aqui. */
+  const info=hud.querySelector('#infoBtn');
+  if(info)topline.appendChild(info);
   hud.classList.add('compact-source-hidden');
   turn.classList.add('compact-source-hidden');
 
