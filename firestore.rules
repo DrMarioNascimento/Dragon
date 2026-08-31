@@ -14,8 +14,8 @@ service cloud.firestore {
     function inside(v, id) { return master(v,id) || participant(v,id); }
     function emailMestre() {
       return signedIn()
-        && request.auth.token.firebase.sign_in_provider == 'google.com'
         && request.auth.token.email is string
+        && request.auth.token.email_verified == true
         && exists(/databases/$(database)/documents/config/mestres)
         && request.auth.token.email in get(/databases/$(database)/documents/config/mestres).data.emails;
     }
