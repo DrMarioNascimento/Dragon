@@ -7,13 +7,11 @@ async function init(){
   const fs=await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js');
   const app=appmod.getApps().find(a=>a.name==='dragon-noite');
   if(!app)throw new Error('Firebase da sala ainda não foi inicializado.');
-  const db=fs.getFirestore(app);
-  const code=String(window.MOSAICO_ROOM?.code||'').toUpperCase();
+  const db=fs.getFirestore(app),code=String(window.MOSAICO_ROOM?.code||'').toUpperCase();
   if(!code)throw new Error('Código da sala indisponível.');
   const ref=fs.doc(db,'noite',code);
-  api={
-    code,
-    async setOpening(data){await fs.updateDoc(ref,{opening:{...data,updatedAtMs:Date.now()}})},
+  api={code,
+    async setOpening(data){const patch={'opening.updatedAtMs':Date.now()};for(const[k,v]of Object.entries(data))patch['opening.'+k]=v;await fs.updateDoc(ref,patch)},
     watchOpening(cb){return fs.onSnapshot(ref,s=>cb(s.exists()?(s.data().opening||{}):{}))}
   };
   return api;
