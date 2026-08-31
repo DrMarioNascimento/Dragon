@@ -1,12 +1,12 @@
 /* MOSAICO A Noite — fluxo celular em validação */
 (function(){
   const s=document.createElement('script');
-  s.src='game-fixed.js?v=20260831-cellular1';
+  s.src='game-fixed.js?v=20260831-actions2';
   s.onerror=()=>console.error('MOSAICO: falha ao carregar núcleo funcional.');
   document.head.appendChild(s);
 
   const o=document.createElement('script');
-  o.src='opening-flow.js?v=20260831-cellular1';
+  o.src='opening-flow.js?v=20260831-opening2';
   o.onerror=()=>console.error('MOSAICO: falha ao carregar abertura celular.');
   document.head.appendChild(o);
 })();
