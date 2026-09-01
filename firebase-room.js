@@ -74,7 +74,21 @@ async function loginMestre(){
   try{
     const provider=new GoogleAuthProvider();provider.setCustomParameters({prompt:'select_account'});
     let user;
-    try{user=(await signInWithPopup(auth,provider)).user}catch(e){if(['auth/popup-blocked','auth/operation-not-supported-in-this-environment'].includes(e.code)){sessionStorage.setItem('dragon.room.open','1');await signInWithRedirect(auth,provider);return}throw e}
+    /* No celular o popup abre o Google, é bloqueado ou fechado, e só então o
+       código caía no redirect — que abre o Google outra vez. Duas viagens para
+       um login só, e a segunda parecia falha. Em tela de toque vamos direto de
+       redirect, que é o caminho recomendado em navegador móvel; o popup fica
+       para o desktop, onde funciona e evita sair da página.
+
+       A lista de erros que justificam a queda para redirect também estava
+       curta: popup-closed-by-user e cancelled-popup-request são os mais comuns
+       em celular e caíam no throw, virando mensagem de erro em vez de
+       segunda tentativa. */
+    const porRedirect=async()=>{try{sessionStorage.setItem('dragon.room.open','1')}catch{}await signInWithRedirect(auth,provider)};
+    let telaDeToque=false;try{telaDeToque=matchMedia('(pointer:coarse)').matches||innerWidth<900}catch{}
+    if(telaDeToque){await porRedirect();return}
+    const quedasConhecidas=['auth/popup-blocked','auth/popup-closed-by-user','auth/cancelled-popup-request','auth/web-storage-unsupported','auth/operation-not-supported-in-this-environment'];
+    try{user=(await signInWithPopup(auth,provider)).user}catch(e){if(quedasConhecidas.includes(e.code)){await porRedirect();return}throw e}
     pendingUser=user;
     const cfg=await getDoc(doc(db,'config','mestres'));
     const permitidos=cfg.exists()&&Array.isArray(cfg.data().emails)?cfg.data().emails:[];
