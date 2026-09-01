@@ -47,7 +47,10 @@ function formaAtual(){return document.querySelector('input[name="drForma"]:check
 
 function menu(error=''){
   gate().innerHTML=`<div class="dr-shell"><div class="dr-brand">DRAGON GAMES · ${esc(TITLE)}</div><div class="dr-card"><h1>${esc(TITLE)}</h1><p>O Mestre abre a mesa. Os jogadores entram pelo QR ou pelo código.</p>${error?`<div class="dr-error">${esc(error)}</div>`:''}<button class="dr-btn" id="drOpen">Abrir uma mesa</button><button class="dr-btn secondary" id="drJoin">Entrar em uma mesa</button><button class="dr-btn secondary" id="drSolo">Ensaiar neste aparelho</button></div></div>`;
-  document.getElementById('drOpen').onclick=renderMasterGate;
+  /* Sem a seta, o clique entra como primeiro argumento — e o primeiro
+     argumento de renderMasterGate é a mensagem de erro. A tela abria
+     acusando '[object PointerEvent]' antes de qualquer coisa dar errado. */
+  document.getElementById('drOpen').onclick=()=>renderMasterGate();
   document.getElementById('drJoin').onclick=()=>formEntrar('');
   document.getElementById('drSolo').onclick=()=>liberar({local:true});
 }
