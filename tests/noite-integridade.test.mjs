@@ -255,6 +255,30 @@ test("se a sincronia não carregar, o jogo abre mesmo assim", () => {
   );
 });
 
+/* O convidado que chega pelo QR não tem sessão nenhuma. A regra de `get` do
+   documento da sala exige signedIn(), então ler antes de autenticar devolve
+   "Missing or insufficient permissions" — e o Mestre nunca vê isso, porque
+   entrou com o Google e já está autenticado quando chega aqui. O bug só
+   aparece no segundo aparelho, que é o mais caro de testar.
+
+   A ordem é a correção: autenticar anonimamente, depois ler. Este teste
+   guarda a ordem, que é o que se perde numa refatoração distraída. */
+test("o convidado autentica antes de ler a sala", () => {
+  const sala = readFileSync(new URL("../firebase-room.js", pasta), "utf8");
+  const inicio = sala.indexOf("async function entrar");
+  const fim = sala.indexOf("function ", inicio + 30);
+  const corpo = sala.slice(inicio, fim > inicio ? fim : undefined);
+
+  const autentica = corpo.indexOf("signInAnonymously");
+  const le = corpo.indexOf("getDoc(roomRef(code))");
+  assert.ok(autentica >= 0, "entrar() não autentica mais o convidado");
+  assert.ok(le >= 0, "entrar() não confere mais se a sala existe");
+  assert.ok(
+    autentica < le,
+    "entrar() voltou a ler a sala antes de autenticar: o convidado leva permission-denied no QR"
+  );
+});
+
 /* Três caixas de texto estavam com a altura pregada e overflow:hidden — a
    introdução da noite, a faixa da pergunta e o corpo digitado dentro dela. O
    texto não some com aviso: ele simplesmente termina antes. Na introdução o

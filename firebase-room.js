@@ -105,11 +105,17 @@ async function entrar(asMaster=false){
   try{
     code=(document.getElementById('drCode').value||'').trim().toUpperCase();const nome=(document.getElementById('drName').value||'').trim(),forma=formaAtual();
     if(code.length!==6||!nome)return formEntrar('Informe o código e seu nome.',asMaster);
-    const snap=await getDoc(roomRef(code));if(!snap.exists()||snap.data().ativa!==true)return formEntrar('Sala não encontrada ou encerrada.',asMaster);
-    if(snap.data().caseId&&snap.data().caseId!==CASE_ID)return formEntrar('Esse código pertence a outro caso do MOSAICO.',asMaster);
+    /* Autenticar antes de ler. A regra de `get` exige signedIn(), e um
+       aparelho que chega pelo QR não tem sessão nenhuma: lendo primeiro, o
+       convidado levava "Missing or insufficient permissions" antes mesmo de
+       existir para o Firebase. O Mestre nunca viu, porque já entrou com o
+       Google. O padrão manda que a autenticação anônima do convidado
+       aconteça em segundo plano — é este o lugar dela. */
     let u;
     if(asMaster){u=pendingUser||auth.currentUser;if(!u)throw new Error('Mestre não autenticado.');}
     else{u=auth.currentUser;if(!u||!u.isAnonymous){if(u)await signOut(auth);u=(await signInAnonymously(auth)).user;}}
+    const snap=await getDoc(roomRef(code));if(!snap.exists()||snap.data().ativa!==true)return formEntrar('Sala não encontrada ou encerrada.',asMaster);
+    if(snap.data().caseId&&snap.data().caseId!==CASE_ID)return formEntrar('Esse código pertence a outro caso do MOSAICO.',asMaster);
     await setDoc(playerRef(code,u.uid),{nome:nome.slice(0,60),forma,mestre:!!asMaster,pronto:true,entrouMs:Date.now(),atualizadoEmMs:Date.now()},{merge:true});
     role=asMaster?'master':'guest';ouvir();
   }catch(e){formEntrar(e?.message||'Não foi possível entrar.',asMaster)}
