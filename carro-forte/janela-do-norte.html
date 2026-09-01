@@ -1,9 +1,10 @@
 <!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#050b12"><title>A Janela do Norte — Carro-Forte</title>
-<link rel="stylesheet" href="atividade.css?v=20260901-colheita1"></head>
+<link rel="stylesheet" href="atividade.css?v=20260901-bussola2"></head>
 <body>
 <header><span id="kicker">MOSAICO</span><h1>A Janela do Norte</h1><p>Cada setor da agência guarda um registro, e só se abre quando o aparelho aponta para ele. Gire o telefone e segure a direção até o setor fixar.</p></header>
 <main>
   <button id="permitir" class="ghost" hidden>Permitir a bússola deste aparelho</button>
+  <button id="usarDedo" class="ghost">Girar com o dedo</button>
   <div id="dica" class="dica">Procurando a bússola…</div>
   <div id="bussola" class="bussola"><div id="agulha" class="agulha"></div><div class="grau" id="grau">—</div></div>
   <div class="placar"><b id="conta">0 de 0</b><span>setores fixados</span></div>
@@ -13,25 +14,48 @@
 <script src="fragmentos.js?v=20260901-colheita1"></script>
 <script src="atividade.js?v=20260901-colheita1"></script>
 <script>
-/* Antes a agulha girava com o `deviceorientation` e não gateava nada: os fatos
-   saíam de um botão "próximo" que só incrementava um contador. Dava para jogar
-   com o telefone virado para baixo na mesa. O sensor era enfeite.
+/* iOS e Android não são o mesmo instrumento, e tratá-los igual castiga o iPhone.
 
-   Agora cada setor tem um rumo, e fixa quando o aparelho aponta para ele e
-   permanece apontando. O botão saiu.
+   No Android, `deviceorientationabsolute` entrega o rumo do mundo, firme. Os
+   dois eventos disparam lá, e o `deviceorientation` traz um alpha RELATIVO ao
+   ponto onde a página abriu — havendo fonte absoluta, a relativa é descartada,
+   senão o rumo alterna de referencial quadro a quadro. (A lição é da v1,
+   MOSAICO-26-a-janela-do-norte.html.)
 
-   Nem todo aparelho tem bússola — o telão não tem, o desktop não tem, e o iOS
-   exige permissão pedida dentro de um gesto. Quando não há leitura em um
-   segundo e meio, a mesma roda passa a ser girada com o dedo: continua sendo
-   um gesto por setor, e não uma lista que avança sozinha. */
+   No iOS não existe evento absoluto: só `webkitCompassHeading`, que pede
+   permissão por gesto, oscila bem mais e depende de calibração. Com a mesma
+   tolerância e a mesma exigência de permanência, o iPhone fica caçando o grau
+   enquanto o Android fixa de primeira.
+
+   Daí as três diferenças, e a quarta que vale para todos:
+
+   1. leitura suavizada por média circular — janela longa no iOS, curta na
+      fonte absoluta, nenhuma no dedo;
+   2. tolerância e permanência mais folgadas no iOS;
+   3. `webkitCompassAccuracy` ruim (negativo ou acima de 25) significa bússola
+      descalibrada: em vez de deixar falhar sem entender, pede o oito e afrouxa
+      mais a tolerância;
+   4. o tempo apontando é ACUMULADO, não um cronômetro que zera no primeiro
+      quadro fora da faixa. Um tremor apagava a permanência inteira — era o que
+      mais doía, e não era só no iOS. Sair da faixa por menos que a folga não
+      perde o acumulado; o delta por quadro é limitado, senão uma aba em segundo
+      plano entregaria o setor de graça ao voltar. */
 (function(){
   const A=window.MosaicoAtividade, itens=A.itens('norte');
   const agulha=document.getElementById('agulha'), grau=document.getElementById('grau');
   const bussola=document.getElementById('bussola'), dica=document.getElementById('dica');
-  const permitir=document.getElementById('permitir');
+  const permitir=document.getElementById('permitir'), usarDedo=document.getElementById('usarDedo');
   const achados=new Set();
-  const TOLERANCIA=20, PARADA=600;
   const passo=360/itens.length;
+
+  const PERFIL={
+    ios:      {tolerancia:28,parada:900,graca:450,janela:8,rotulo:'bússola do iPhone'},
+    instavel: {tolerancia:36,parada:900,graca:600,janela:10,rotulo:'bússola descalibrada'},
+    absoluta: {tolerancia:18,parada:600,graca:250,janela:3,rotulo:'bússola'},
+    relativa: {tolerancia:24,parada:700,graca:350,janela:5,rotulo:'sensor sem norte verdadeiro'},
+    dedo:     {tolerancia:18,parada:600,graca:250,janela:1,rotulo:'giro com o dedo'}
+  };
+  let perfil=PERFIL.absoluta, fonte='', temAbsoluto=false, respondeu=false, modoDedo=false;
 
   const setores=itens.map((cod,i)=>{
     const rumo=Math.round(i*passo);
@@ -40,58 +64,101 @@
     el.style.transform=`rotate(${rumo}deg) translateY(-2px)`;
     el.textContent=`${rumo}°`;
     bussola.appendChild(el);
-    return {cod,rumo,el,desde:0};
+    return {cod,rumo,el,tempo:0,saiu:0};
   });
 
-  let rumoAtual=0, temSensor=false;
-  const distancia=(a,b)=>{const d=Math.abs(((a-b)%360+540)%360-180);return d};
+  const wrap360=d=>((d%360)+360)%360;
+  const distancia=(a,b)=>Math.abs(((a-b)%360+540)%360-180);
 
-  /* `conta` distingue desenhar a agulha de contar permanência. O desenho
-     inicial da roda não pode valer como tempo apontando: sem isso, o setor de
-     0° já nascia meio fixado, e o primeiro toque o fechava de graça. */
-  function apontar(valor,conta=true){
-    rumoAtual=((valor%360)+360)%360;
-    agulha.style.transform=`rotate(${rumoAtual}deg)`;
-    grau.textContent=Math.round(rumoAtual)+'°';
-    if(!conta){for(const s of setores)s.desde=0;return}
+  /* Média circular: média aritmética de graus erra feio na virada do 360. */
+  const amostras=[];
+  function suavizar(v){
+    amostras.push(v*Math.PI/180);
+    while(amostras.length>perfil.janela)amostras.shift();
+    let sx=0,sy=0;
+    for(const a of amostras){sx+=Math.cos(a);sy+=Math.sin(a)}
+    return wrap360(Math.atan2(sy,sx)*180/Math.PI);
+  }
+
+  let ultimo=0;
+  function apontar(bruto,conta=true){
+    const rumo=suavizar(wrap360(bruto));
+    agulha.style.transform=`rotate(${rumo}deg)`;
+    grau.textContent=Math.round(rumo)+'°';
     const agora=Date.now();
+    if(!conta){ultimo=agora;for(const s of setores){s.tempo=0;s.saiu=0}return}
+    /* 120 ms de teto: se a aba ficou em segundo plano, o salto de tempo não
+       pode contar como dedo firme. */
+    const delta=Math.min(120,ultimo?agora-ultimo:0);
+    ultimo=agora;
     for(const s of setores){
-      if(achados.has(s.cod)){continue}
-      if(distancia(rumoAtual,s.rumo)<=TOLERANCIA){
-        if(!s.desde)s.desde=agora;
-        s.el.style.color='#efc878';
-        if(agora-s.desde>=PARADA){
-          achados.add(s.cod);
-          s.el.style.color='#8ce4b0';
-          A.marcar(achados,itens);
+      if(achados.has(s.cod))continue;
+      if(distancia(rumo,s.rumo)<=perfil.tolerancia){
+        s.saiu=0;
+        s.tempo+=delta;
+        if(s.tempo>=perfil.parada){
+          achados.add(s.cod);s.el.style.color='#8ce4b0';A.marcar(achados,itens);
+        }else{
+          const p=s.tempo/perfil.parada;
+          s.el.style.color=p>.5?'#efc878':'#b08a3e';
         }
-      }else{s.desde=0;s.el.style.color='#5d7386'}
+      }else{
+        if(s.tempo){
+          if(!s.saiu)s.saiu=agora;
+          else if(agora-s.saiu>perfil.graca){s.tempo=0;s.saiu=0;s.el.style.color='#5d7386'}
+        }else s.el.style.color='#5d7386';
+      }
     }
-    if(achados.size<itens.length){
-      const alvo=setores.find(s=>!achados.has(s.cod));
-      dica.textContent=`Aponte para ${alvo.rumo}° e segure.`;
-    }else dica.textContent='Todos os setores fixados.';
+    const alvo=setores.find(s=>!achados.has(s.cod));
+    dica.textContent=alvo?`Aponte para ${alvo.rumo}° e segure · ${perfil.rotulo}`:'Todos os setores fixados.';
   }
 
+  function onOrient(e){
+    if(e.alpha==null&&e.webkitCompassHeading==null)return;
+    const ios=typeof e.webkitCompassHeading==='number'&&!isNaN(e.webkitCompassHeading);
+    const abs=ios||e.absolute===true||e.type==='deviceorientationabsolute';
+    if(abs)temAbsoluto=true;else if(temAbsoluto)return;
+    if(modoDedo)return;
+    let valor;
+    if(ios){
+      valor=360-e.webkitCompassHeading;
+      const ruim=typeof e.webkitCompassAccuracy==='number'&&(e.webkitCompassAccuracy<0||e.webkitCompassAccuracy>25);
+      trocarPerfil(ruim?'instavel':'ios');
+    }else{
+      valor=e.alpha;
+      trocarPerfil(abs?'absoluta':'relativa');
+    }
+    if(!respondeu){respondeu=true;permitir.hidden=true;usarDedo.hidden=false;amostras.length=0;ultimo=0}
+    apontar(valor);
+  }
+  function trocarPerfil(nome){
+    if(fonte===nome)return;
+    fonte=nome;perfil=PERFIL[nome];amostras.length=0;
+    if(nome==='instavel')dica.textContent='Bússola descalibrada — faça um oito no ar com o aparelho.';
+  }
   function ligarSensor(){
-    addEventListener('deviceorientation',e=>{
-      const v=(e.webkitCompassHeading!=null)?e.webkitCompassHeading:e.alpha;
-      if(v==null)return;
-      temSensor=true;permitir.hidden=true;
-      apontar(v);
-    });
+    addEventListener('deviceorientationabsolute',onOrient);
+    addEventListener('deviceorientation',onOrient);
   }
-  if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){
+  const pedePermissao=typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function';
+  if(pedePermissao){
     permitir.hidden=false;
+    dica.textContent='Este iPhone precisa de permissão para usar a bússola.';
     permitir.onclick=async()=>{
-      try{if(await DeviceOrientationEvent.requestPermission()==='granted')ligarSensor()}catch(e){}
+      try{
+        if(await DeviceOrientationEvent.requestPermission()==='granted'){ligarSensor();esperarLeitura()}
+        else caiParaDedo('Permissão negada — gire a roda com o dedo.');
+      }catch(e){caiParaDedo('Não deu para pedir a bússola — gire a roda com o dedo.')}
     };
-  }else ligarSensor();
+  }else{ligarSensor();esperarLeitura()}
 
-  /* Sem leitura em 1,5 s, a roda passa a ser girada com o dedo. */
-  setTimeout(()=>{
-    if(temSensor)return;
-    dica.textContent='Sem bússola neste aparelho — gire a roda com o dedo.';
+  /* O dedo não é castigo nem espera: está disponível desde o primeiro segundo,
+     para o telão, para o computador e para quem não quer girar o aparelho. */
+  function caiParaDedo(msg){
+    if(modoDedo)return;
+    modoDedo=true;permitir.hidden=true;usarDedo.hidden=true;
+    trocarPerfil('dedo');
+    dica.textContent=msg||'Gire a roda com o dedo.';
     const centro=()=>{const r=bussola.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2}};
     const girar=e=>{
       if(e.pointerType==='mouse'&&!e.buttons)return;
@@ -101,7 +168,19 @@
     bussola.addEventListener('pointermove',girar);
     bussola.addEventListener('pointerdown',girar);
     apontar(0,false);
-  },1500);
+  }
+  usarDedo.onclick=()=>caiParaDedo();
+  /* A espera é longa de propósito: o oito da calibração leva alguns segundos, e
+     antes disso o sensor parece mudo sem estar. Ninguém fica preso esperando —
+     o botão do dedo já está na tela.
+
+     E ela só começa a correr QUANDO há o que esperar. Contando desde o
+     carregamento, o iPhone de quem demorasse mais de 4,5 s para tocar em
+     "Permitir" caía no modo dedo — e aí a bússola recém-concedida passava a
+     ser ignorada, porque onOrient volta cedo em modo dedo. */
+  function esperarLeitura(){
+    setTimeout(()=>{if(!respondeu)caiParaDedo('A bússola não respondeu — gire a roda com o dedo.')},4500);
+  }
 
   A.iniciar({sensor:'norte',itens,achados});
 })();
