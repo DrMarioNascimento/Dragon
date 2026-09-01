@@ -153,10 +153,12 @@
         s.onload=()=>depois?.();
         document.body.appendChild(s);
       };
-      carregar('opening-flow.js?v=20260901-abertura1',()=>{
-        carregar('game.js?v=20260901-rodizio1',()=>{
-          document.addEventListener('click',e=>{const a=e.target.closest('.sensor-actions a');if(a)a.target='_blank'});
-          carregar('iphone-guard.js?v=20260901-rodizio1');
+      carregar('fragmentos.js?v=20260901-colheita1',()=>{
+        carregar('opening-flow.js?v=20260901-abertura1',()=>{
+          carregar('game.js?v=20260901-colheita1',()=>{
+            document.addEventListener('click',e=>{const a=e.target.closest('.sensor-actions a');if(a)a.target='_blank'});
+            carregar('iphone-guard.js?v=20260901-rodizio1');
+          });
         });
       });
     },{once:true});

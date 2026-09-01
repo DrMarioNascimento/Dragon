@@ -1,1 +1,58 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>O Vidro Embaçado — Carro-Forte</title><style>body{margin:0;background:#05080c;color:#f2f6f6;font-family:system-ui;min-height:100dvh;display:grid;place-items:center;padding:20px;box-sizing:border-box}main{max-width:620px;width:100%}small{color:#8bd0d8;letter-spacing:.16em}h1{font:44px Georgia;margin:.2em 0}p{color:#a9b8b8;line-height:1.55}.glass{position:relative;border:1px solid #34505a;background:linear-gradient(145deg,#b8ced255,#5d7d8533);min-height:360px;overflow:hidden;box-shadow:inset 0 0 80px #d9eeee20}.fog{position:absolute;inset:0;background:radial-gradient(circle at 40% 30%,#dce8e7dd,#9fb3b5cc 55%,#6d8588dd);transition:.4s;pointer-events:none}.glass.clear .fog{opacity:.12}.facts{padding:24px;display:grid;gap:12px}.fact{background:#071114dd;border-left:2px solid #d4ad68;padding:15px;opacity:.12;transition:.4s}.glass.clear .fact{opacity:1}.fact b{color:#d4ad68}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}button,a{border:1px solid #496065;background:#0d1a1d;color:#eef4f3;padding:13px 16px;border-radius:5px;text-decoration:none;font:inherit}.primary{background:#d4ad68;color:#17201e;border:0;font-weight:700}</style></head><body><main><small id="kicker">MOSAICO · A MANHÃ DO CARRO-FORTE</small><h1>O Vidro Embaçado</h1><p>Limpe a superfície. O que aparece é verdadeiro; a leitura ainda precisa ser construída.</p><div id="glass" class="glass"><div id="facts" class="facts"></div><div class="fog"></div></div><div class="actions"><button id="wipe">Limpar o vidro</button><button id="finish" class="primary" disabled>Concluir atividade</button><a href="index.html">Voltar à Mesa</a></div></main><script>const p=new URLSearchParams(location.search).get('partida')||'peso';const sets={peso:[['8h06','Malote 41: 5,1 kg.'],['Tabela operacional','R$ 480 mil em notas de cem ≈ 5,0–5,2 kg.'],['8h40','Tesouraria: R$ 480.000 íntegros.'],['D-11','Um depósito de R$ 96.000 aparece em dois pontos da consolidação.']],janela:[['7h53','ML-8847 é impresso no terminal da subgerência.'],['7h58min50s','O lacre antigo é rompido.'],['Dentro da janela','R$ 96.000 entram no malote.'],['7h59min39s','A câmera retorna.']],roubo:[['Saco do chão','0,4 kg, sem conteúdo.'],['Malote coletado','5,1 kg.'],['Destino','R$ 480.000 conferidos.'],['Sistema','Falha de imagem foi preparada.']],proteger:[['22h10','Empréstimo pessoal é acionado.'],['Véspera','Joias de família são empenhadas.'],['6h20','R$ 96.000 são sacados da conta pessoal.'],['D-11','A consolidação havia sido assinada sem contagem física.']]};document.getElementById('kicker').textContent=`MOSAICO · ${p.toUpperCase()}`;document.getElementById('facts').innerHTML=(sets[p]||sets.peso).map(([a,b])=>`<div class="fact"><b>${a}</b><br>${b}</div>`).join('');const g=document.getElementById('glass'),f=document.getElementById('finish');let n=0;function clear(){n++;if(n>=2){g.classList.add('clear');f.disabled=false}}document.getElementById('wipe').onclick=clear;g.addEventListener('pointermove',e=>{if(e.buttons||e.pointerType==='touch'){n++;if(n>8){g.classList.add('clear');f.disabled=false}}});f.onclick=()=>{/* A Mesa fica noutra aba, e antes ninguém avisava: quem marcava era o botão de lá. O aviso vai por duas vias porque nenhuma cobre tudo — o BroadcastChannel alcança qualquer aba da mesma origem, e o opener cobre quem não tem BroadcastChannel. Chegar pelas duas não faz mal: marcar é idempotente. E nada mais é gravado em localStorage: guardada, a conclusão voltava marcada na partida seguinte, pronta sem ninguém ter feito nada. */const aviso={fonte:'mosaico-carro-forte',tipo:'sensor-concluido',sensor:'vidro',partida:p};try{new BroadcastChannel('mosaico-carro-forte').postMessage(aviso)}catch(e){}try{opener&&opener.postMessage(aviso,location.origin)}catch(e){}f.textContent='Concluída ✓ · volte para a Mesa';f.disabled=true}</script></body></html>
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#050b12"><title>O Vidro Embaçado — Carro-Forte</title>
+<link rel="stylesheet" href="atividade.css?v=20260901-colheita1"></head>
+<body>
+<header><span id="kicker">MOSAICO</span><h1>O Vidro Embaçado</h1><p>Cada faixa do vidro esconde um registro. Passe o dedo — ou o ponteiro — sobre a faixa até ela abrir. O que continuar embaçado não vai para o dossiê.</p></header>
+<main>
+  <div id="glass" class="glass" aria-label="Vidro embaçado"></div>
+  <div class="placar"><b id="conta">0 de 0</b><span>fragmentos limpos</span></div>
+  <div id="lista" class="lista"></div>
+  <button id="finish" class="primary">Concluir</button>
+</main>
+<script src="fragmentos.js?v=20260901-colheita1"></script>
+<script src="atividade.js?v=20260901-colheita1"></script>
+<script>
+/* Antes: os quatro fatos entravam no DOM no carregamento, cobertos por uma
+   camada embaçada, e dois cliques num botão "limpar" abriam tudo de uma vez.
+   O texto estava lá para quem abrisse o inspetor, e o gesto não separava nada.
+
+   Agora cada fragmento tem a sua faixa, o texto só é inserido quando a faixa
+   abre, e abrir exige movimento continuado sobre aquela faixa. Limpar um canto
+   e sair é uma jogada válida: você lê o peso e não lê a tabela — e sem o par,
+   R-A não fecha. */
+(function(){
+  const A=window.MosaicoAtividade, itens=A.itens('vidro');
+  const glass=document.getElementById('glass');
+  const achados=new Set();
+  const ESFORCO=14;
+
+  const faixas=itens.map(cod=>{
+    const el=document.createElement('div');
+    el.className='faixa';
+    el.dataset.cod=cod;
+    el.innerHTML='<div class="conteudo"></div><div class="embacado"><div class="gotas"></div></div>';
+    glass.appendChild(el);
+    return {cod,el,passes:0};
+  });
+
+  function limpar(faixa){
+    if(achados.has(faixa.cod))return;
+    if(++faixa.passes<ESFORCO)return;
+    faixa.el.querySelector('.conteudo').innerHTML=`<b>${faixa.cod} · ${A.titulo(faixa.cod)}</b>${A.texto(faixa.cod)}`;
+    faixa.el.classList.add('limpa');
+    achados.add(faixa.cod);
+    A.marcar(achados,itens);
+  }
+  function esfregar(e){
+    if(e.pointerType==='mouse'&&!e.buttons)return;
+    const alvo=e.target.closest('.faixa');
+    if(!alvo)return;
+    const f=faixas.find(x=>x.el===alvo);
+    if(f)limpar(f);
+  }
+  glass.addEventListener('pointermove',esfregar);
+  glass.addEventListener('pointerdown',esfregar);
+
+  A.iniciar({sensor:'vidro',itens,achados});
+})();
+</script>
+</body></html>

@@ -119,6 +119,31 @@ Banco reutilizável de mecânicas: quais entram e o que revelam muda conforme a 
 todos juntos, na ordem que a partida declara. Só a atividade da vez tem ação; as seguintes
 ficam apagadas e sem nada para clicar, e o dossiê só abre quando todas foram fechadas.
 
+### As atividades são a distribuição
+
+Elas não são interlúdio. **Cada atividade guarda um lote de quatro fragmentos, e só o que a
+mesa descobrir com o gesto entra no dossiê.** O que ficar para trás não volta por nenhuma
+outra porta: não entra pelo preenchimento, não entra por garantia de relação. O dossiê
+encolhe, e com ele as relações que fecham.
+
+Medido nas dezoito combinações de partida × duração. Em *O Peso do Malote 41*, na duração
+padrão: descobrir tudo dá 18 fragmentos e 6 relações completas; metade dá 14 e 5; pular as
+duas atividades dá 10 e 3. Pular é uma jogada legítima — pede confirmação e diz o preço.
+
+Cada atividade exige o gesto que lhe é próprio, e nenhuma tem atalho:
+
+- **A Janela do Norte** — cada setor tem um rumo, e só fixa quando o aparelho aponta para
+  ele e **permanece** apontando. Sem bússola (telão, desktop, permissão negada no iOS), a
+  mesma roda é girada com o dedo — continua um gesto por setor.
+- **O Vidro Embaçado** — cada fragmento tem a sua faixa, e a faixa só abre com movimento
+  continuado sobre ela. Limpar um canto e sair é jogada: você lê o peso e não lê a tabela,
+  e sem o par R-A não fecha.
+- **A Sala às Escuras** — o facho revela por proximidade. O que ele não tocar, você não leva.
+
+O texto de um fragmento **não existe no DOM antes de ser alcançado**. O Vidro antigo
+escrevia os quatro fatos no carregamento e cobria com um CSS embaçado: quem abrisse o
+inspetor lia tudo sem passar o dedo.
+
 A conclusão vale por partida e não é guardada entre elas: guardada, a atividade voltava
 marcada na partida seguinte e em qualquer aparelho que já tivesse jogado — pronta sem
 ninguém ter feito nada, que é o furo que a fila fecha.
@@ -154,6 +179,8 @@ o HUD de partida. Isso é Captura, e Captura é outro jogo.
 | `styles.css` | identidade visual herdada de A Noite |
 | `game.js` | banco F01–F30, hipóteses H1–H10, relações R-A…R-G, rodízio das perguntas, montagem do dossiê, decisão, revelação e relatório |
 | `opening-flow.js` | abertura audiovisual; gêmeo do arquivo de mesmo nome em `../carro-forte-noite/` |
+| `fragmentos.js` | banco F01–F30, fonte única lida pela Mesa e pelas três atividades |
+| `atividade.js` / `atividade.css` | núcleo comum das atividades: lote pela URL, colheita de volta, placar e identidade visual |
 | `janela-do-norte.html` | atividade sensorial temporal/espacial |
 | `vidro-embacado.html` | atividade sensorial documental/física |
 | `sala-as-escuras.html` | atividade sensorial de busca material |

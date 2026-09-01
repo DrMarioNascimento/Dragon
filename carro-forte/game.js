@@ -6,44 +6,8 @@
    o dossiê abre em três terços e o que se administra é interpretação, não liquidez.
    REALIDADE CANÔNICA → FOCO DA PARTIDA → PERGUNTA → FRAGMENTOS → RELAÇÕES → INFERÊNCIA → DECISÃO */
 
-/* ── Banco de fragmentos (V4 §13). Função conforme V4 §12:
-      estrutural   — indispensável para o fechamento auditável;
-      interpretativo — sustenta ou enfraquece hipóteses sem fechá-las;
-      relacional   — vale sobretudo cruzado com outro fragmento;
-      contextual   — aprofunda horário, acesso, personagem e circunstância.
-      fecho: true  — pista de fechamento, protegida contra aparição precoce (V4 §15). */
-const FRAGMENTOS={
- F01:{t:'Rota antecipada',d:'Solicitação de rota alternativa às 6h52, feita com credencial da subgerência.',f:'interpretativo'},
- F02:{t:'Chegada às 7h47',d:'O carro-forte estaciona às 7h47; Caixa Sênior anota o horário no verso de um recibo.',f:'contextual'},
- F03:{t:'A cafeteira',d:'A cafeteira registra 7h46min51s, reforçando a âncora temporal próxima de 7h47.',f:'relacional'},
- F04:{t:'Relógio da farmácia',d:'O relógio da farmácia, usado como referência externa, estava três minutos atrasado.',f:'relacional'},
- F05:{t:'Erro 17',d:'O Erro 17 é enviado às 6h58.',f:'interpretativo'},
- F06:{t:'Mensagem apagada',d:'A mensagem do Erro 17 é apagada remotamente às 7h02.',f:'interpretativo'},
- F07:{t:'Papel 17-B',d:'Um papel com o código 17-B aparece ligado à sala da subgerência.',f:'relacional'},
- F08:{t:'Chave reserva',d:'A chave reserva 17-B dos arquivos consta como retirada.',f:'relacional'},
- F09:{t:'Zona cega',d:'A câmera 3 fica cega por 87 segundos: 7h58min12s–7h59min39s.',f:'estrutural'},
- F10:{t:'Contato do rack',d:'O contato do rack aparece recém-solto, sem poeira; a estabilidade do sistema estava limpa até 6h49.',f:'interpretativo'},
- F11:{t:'Lacre da véspera',d:'O malote 41 fora lacrado na véspera com ML-8842.',f:'estrutural'},
- F12:{t:'Lacre novo',d:'A etiqueta ML-8847 é impressa às 7h53 no terminal da subgerência.',f:'estrutural'},
- F13:{t:'Saco vazio',d:'O saco encontrado no corredor às 8h02 pesa 0,4 kg e está sem conteúdo.',f:'estrutural',fecho:1},
- F14:{t:'O peso coletado',d:'A prancheta da transportadora registra o malote 41 com 5,1 kg às 8h06.',f:'estrutural',fecho:1},
- F15:{t:'Tabela de peso',d:'R$ 480 mil em notas de cem pesam de 5,0 a 5,2 kg; R$ 384 mil, cerca de 4,1 kg.',f:'estrutural',fecho:1},
- F16:{t:'Conferência de destino',d:'Às 8h40 a tesouraria confere o malote 41 com R$ 480.000 e sem divergência.',f:'estrutural',fecho:1},
- F17:{t:'Saque em espécie',d:'Subgerente saca R$ 96.000 em espécie às 6h20 na agência 0392.',f:'estrutural'},
- F18:{t:'Origem do saque',d:'Penhor e empréstimo pessoal liquidados na véspera originam o valor sacado.',f:'interpretativo'},
- F19:{t:'Depósito do Cliente',d:'O Cliente Corporativo depositara R$ 96.000 em espécie onze dias antes.',f:'estrutural'},
- F20:{t:'Duplicidade D-11',d:'O relatório de consolidação mostra o mesmo depósito em dois pontos: guichê 16h10 e reconsolidação 18h55.',f:'estrutural',fecho:1},
- F21:{t:'Assinatura sem cofre',d:'Existe assinatura de conferência física sem registro correspondente de abertura do cofre.',f:'estrutural',fecho:1},
- F22:{t:'Marcas de água',d:'Marcas de água no piso ligam mesa de recebimento, corredor dos arquivos e o ponto onde o saco foi encontrado.',f:'relacional'},
- F23:{t:'Rádio reserva',d:'O rádio reserva foi retirado e devolvido na sala da subgerência.',f:'contextual'},
- F24:{t:'A ordem no rádio',d:'A gravação do rádio registra a ordem que afastou Vigilância para o corredor oposto.',f:'interpretativo'},
- F25:{t:'Duas pastas azuis',d:'Câmeras 1 e 2 registram duas pastas azuis caindo simultaneamente às 7h57min40s.',f:'relacional'},
- F26:{t:'A pasta trocada',d:'Aprendiz recolhe a pasta errada; nela seguem o papel 17-B e um chaveiro.',f:'relacional'},
- F27:{t:'Envelope do Cliente',d:'O Cliente protocola um envelope às 8h05, o que explica sua permanência silenciosa no saguão.',f:'contextual'},
- F28:{t:'E-mail de auditoria',d:'Às 21h47 da véspera chega e-mail exigindo contagem física integral às 8h00.',f:'interpretativo'},
- F29:{t:'Contestação do Transporte',d:'Transporte contesta a rota antecipada pelo rádio; o canal do banco confirma a alteração.',f:'interpretativo'},
- F30:{t:'Sequência da janela',d:'Porta abre 7h58min24s; ML-8842 é rompido 7h58min50s; ML-8847 é aplicado 7h59min20s.',f:'estrutural'}
-};
+/* O banco mora em fragmentos.js, lido também pelas três atividades sensoriais. */
+const FRAGMENTOS=window.MOSAICO_FRAGMENTOS;
 
 /* ── Relações (V4 §15). Cada peça é um grupo de alternativas: basta um código do grupo. */
 const RELACOES=[
@@ -153,18 +117,35 @@ const PARTIDAS={
   reveals:['R$ 96.000 saem da conta pessoal de Subgerente.','O dinheiro entra no malote; não sai.','A auditoria ameaça revelar uma assinatura sem conferência.','A operação tenta salvar reputação, não patrimônio.']}
 };
 
+/* As atividades não são interlúdio: são a distribuição.
+
+   Cada uma tem um `rende` — a família de fragmentos que aquele gesto alcança.
+   A Janela do Norte alcança tempo, posição e sequência; o Vidro Embaçado
+   alcança número, peso, lacre e documento; a Sala às Escuras alcança vestígio
+   material. Na hora da partida, o `rende` é cruzado com o que aquela pergunta
+   torna relevante, e o resultado é o lote daquela atividade.
+
+   O que o lote traz para o dossiê é só o que a mesa efetivamente descobriu.
+   Quem varre a sala inteira leva os quatro; quem acha dois, leva dois — e os
+   dois que ficaram para trás não entram por outra porta. É por isso que a
+   montagem do dossiê deixou de acontecer na escolha da pergunta e passou a
+   acontecer depois das atividades. */
 const SENSORS={
- norte:{title:'A Janela do Norte',desc:'Oriente o aparelho pelos setores da agência e fixe horários e posições.',href:'janela-do-norte.html'},
- vidro:{title:'O Vidro Embaçado',desc:'Limpe camadas de informação para revelar peso, lacres, valores e registros.',href:'vidro-embacado.html'},
- escura:{title:'A Sala às Escuras',desc:'Procure no corredor objetos físicos da zona cega sem transformá-los automaticamente em culpa.',href:'sala-as-escuras.html'}
+ norte:{title:'A Janela do Norte',desc:'Oriente o aparelho pelos setores da agência e fixe horários e posições.',href:'janela-do-norte.html',
+  rende:['F30','F09','F02','F03','F04','F01','F24','F28','F22']},
+ vidro:{title:'O Vidro Embaçado',desc:'Limpe camadas de informação para revelar peso, lacres, valores e registros.',href:'vidro-embacado.html',
+  rende:['F14','F15','F16','F13','F12','F11','F20','F21','F19','F17','F18']},
+ escura:{title:'A Sala às Escuras',desc:'Procure no corredor objetos físicos da zona cega sem transformá-los automaticamente em culpa.',href:'sala-as-escuras.html',
+  rende:['F13','F22','F23','F25','F26','F07','F08','F10','F05','F06']}
 };
+const POR_ATIVIDADE=4;
 
 const FASES={intro:'PRÓLOGO',briefing:'PAUTA',sensory:'SENSORES',evidence:'DOSSIÊ',hypothesis:'HIPÓTESE',mosaic:'RELAÇÕES',final:'DECISÃO',reveal:'REVELAÇÃO',score:'RELATÓRIO'};
 const PASSOS={intro:1,briefing:2,sensory:3,evidence:4,hypothesis:5,mosaic:6,final:7,reveal:8,score:9};
 const TERCO_ROT=['PRIMEIRO TERÇO','SEGUNDO TERÇO','TERÇO FINAL'];
 
 const state={screen:'intro',game:null,players:6,pace:'pressure',duration:'padrao',
- dossie:[],tercos:[[],[],[]],aberto:1,marcados:new Set(),
+ dossie:[],tercos:[[],[],[]],aberto:1,marcados:new Set(),lotes:{},colhidos:new Set(),
  relacoes:new Set(),hipoteseProv:'',hipoteseFinal:'',
  sensorDone:new Set(),final:{},reveal:0,start:Date.now()};
 
@@ -190,19 +171,49 @@ function go(name){
 function faltantes(rel,tem){return rel.pecas.filter(g=>!g.some(c=>tem.has(c))).map(g=>g[0])}
 function relacaoCompleta(rel,tem){return rel.pecas.every(g=>g.some(c=>tem.has(c)))}
 
+/* O lote de cada atividade: o que ela alcança, cruzado com o que esta pergunta
+   torna relevante. Centrais primeiro — são eles que doem quando faltam —, e
+   nenhum fragmento em dois lotes, senão falhar numa atividade seria perdoado
+   pela outra. */
+function montarLotes(){
+ const g=PARTIDAS[state.game],usados=new Set(),lotes={};
+ for(const id of g.activities){
+  const s=SENSORS[id];
+  const candidatos=s.rende.filter(c=>!usados.has(c)&&!g.incidentais.includes(c));
+  const centrais=candidatos.filter(c=>g.centrais.includes(c));
+  const resto=candidatos.filter(c=>!g.centrais.includes(c));
+  const lote=[...centrais,...resto].slice(0,POR_ATIVIDADE);
+  lote.forEach(c=>usados.add(c));
+  lotes[id]=lote;
+ }
+ return lotes;
+}
+function sensoriais(){return Object.values(state.lotes).flat()}
+
 function montarDossie(){
- const g=PARTIDAS[state.game],cfg=DURACOES[state.duration],tem=new Set(g.centrais);
- const ordem=[...RELACOES].sort((a,b)=>faltantes(a,tem).length-faltantes(b,tem).length);
+ const g=PARTIDAS[state.game],cfg=DURACOES[state.duration];
+ /* Fragmentos sensoriais só entram se foram descobertos. Os perdidos não são
+    substituídos: o dossiê encolhe, e é essa a consequência do gesto. */
+ const doSensor=new Set(sensoriais()),perdidos=sensoriais().filter(c=>!state.colhidos.has(c));
+ const alvo=Math.max(4,cfg.n-perdidos.length);
+ const tem=new Set([...g.centrais.filter(c=>!doSensor.has(c)),...sensoriais().filter(c=>state.colhidos.has(c))]);
+ /* Um fragmento perdido na atividade não pode voltar pela porta das relações
+    nem pelo preenchimento — senão falhar não custaria nada. */
+ const proibido=c=>doSensor.has(c)&&!state.colhidos.has(c);
+ const ordem=[...RELACOES].filter(r=>!r.pecas.flat().every(c=>proibido(c)))
+   .sort((a,b)=>faltantes(a,tem).length-faltantes(b,tem).length);
  let garantidas=0;
  for(const rel of ordem){
   if(garantidas>=cfg.rel)break;
-  faltantes(rel,tem).forEach(c=>tem.add(c));
+  const faltam=faltantes(rel,tem).filter(c=>!proibido(c));
+  if(faltam.length<faltantes(rel,tem).length)continue;
+  faltam.forEach(c=>tem.add(c));
   garantidas++;
  }
- const resto=Object.keys(FRAGMENTOS).filter(c=>!tem.has(c));
+ const resto=Object.keys(FRAGMENTOS).filter(c=>!tem.has(c)&&!proibido(c));
  const peso=c=>(g.incidentais.includes(c)?2:0)+({estrutural:0,interpretativo:.3,relacional:.5,contextual:1.2})[FRAGMENTOS[c].f]+Math.random();
  resto.sort((a,b)=>peso(a)-peso(b));
- for(const c of resto){if(tem.size>=cfg.n)break;tem.add(c)}
+ for(const c of resto){if(tem.size>=alvo)break;tem.add(c)}
  state.dossie=[...tem].sort();
  state.tercos=distribuirTercos(state.dossie);
  state.aberto=1;state.marcados.clear();state.relacoes.clear();
@@ -252,9 +263,8 @@ function fechadas(){return (lerRodizio().fechadas||[]).filter(id=>PARTIDAS[id])}
 
 /* ── Telas ─────────────────────────────────────────────────────────────── */
 function selectGame(id){
- state.game=id;state.hipoteseProv='';state.hipoteseFinal='';state.final={};state.reveal=0;state.sensorDone.clear();
+ state.game=id;state.hipoteseProv='';state.hipoteseFinal='';state.final={};state.reveal=0;state.sensorDone.clear();state.colhidos.clear();state.lotes=montarLotes();
  const g=PARTIDAS[id],cfg=DURACOES[state.duration];
- montarDossie();
  $('gameNature').textContent=g.nature;
  $('gameTitle').textContent=g.title;
  $('gameQuestion').textContent=g.question;
@@ -263,7 +273,7 @@ function selectGame(id){
   ? `A pauta desta mesa foi sorteada. ${feitas} de ${total} perguntas já foram fechadas aqui — faltam ${total-feitas}.`
   : 'A pauta desta mesa foi sorteada. São seis perguntas sobre a mesma manhã, e você não escolhe qual delas cai.';
  $('planCards').innerHTML=[
-  `<article class="plan-card depth-card gold"><small>DOSSIÊ</small><strong>${state.dossie.length} fragmentos</strong><p>${cfg.rot} · ${cfg.nota}. O dossiê abre em três terços; pistas de fechamento não aparecem no primeiro.</p></article>`,
+  `<article class="plan-card depth-card gold"><small>DOSSIÊ</small><strong>até ${cfg.n} fragmentos</strong><p>${cfg.rot}. ${sensoriais().length} deles só entram se a mesa descobrir nas atividades — o que ficar para trás não volta por outra porta. Depois, o dossiê abre em três terços.</p></article>`,
   `<article class="plan-card depth-card green"><small>CAMPOS DESTA PERGUNTA</small><strong>${g.fields.length} campos</strong><p>${g.fields.map(f=>f[0]).join(' · ')}</p></article>`,
   `<article class="plan-card depth-card blue"><small>ATIVIDADES SENSORIAIS</small><strong>${g.activities.length} atividade${g.activities.length===1?'':'s'}</strong><p>${g.activities.map(a=>SENSORS[a].title).join(' · ')}</p></article>`
  ].join('');
@@ -286,14 +296,23 @@ function renderSensors(){
  const atual=ordem.findIndex(id=>!state.sensorDone.has(id));
  host.innerHTML=ordem.map((id,i)=>{
   const s=SENSORS[id],feita=state.sensorDone.has(id),ativa=i===atual;
-  const rot=feita?`${i+1} · CONCLUÍDA ✓`:ativa?`${i+1} DE ${ordem.length} · AGORA`:`${i+1} DE ${ordem.length} · AGUARDA A ANTERIOR`;
-  return `<article class="sensor-card depth-card blue ${feita?'feita':ativa?'atual':'travada'}" data-sensor="${id}"><small>${rot}</small><h3>${s.title}</h3><p>${s.desc}</p>${ativa?`<div class="sensor-actions"><a class="btn primary depth" href="${s.href}?partida=${state.game}&ritmo=${state.pace}">Abrir atividade</a><button class="btn ghost depth mark-sensor" type="button">A mesa concluiu</button></div>`:''}</article>`;
+  const lote=state.lotes[id]||[],pegos=lote.filter(c=>state.colhidos.has(c));
+  const rot=feita?`${i+1} · ${pegos.length} DE ${lote.length} FRAGMENTOS`:ativa?`${i+1} DE ${ordem.length} · AGORA`:`${i+1} DE ${ordem.length} · AGUARDA A ANTERIOR`;
+  /* O que está em jogo fica escrito antes, não depois. Marcar sem abrir é uma
+     escolha legítima — e custa o lote inteiro. */
+  const aposta=feita
+   ? `<p class="lote">${pegos.length?`Trouxe ${pegos.join(', ')}.`:'Nada foi descoberto aqui.'}${pegos.length<lote.length?` ${lote.length-pegos.length} ficaram no escuro.`:''}</p>`
+   : `<p class="lote">${lote.length} fragmentos do dossiê dependem desta atividade.</p>`;
+  return `<article class="sensor-card depth-card blue ${feita?'feita':ativa?'atual':'travada'}" data-sensor="${id}"><small>${rot}</small><h3>${s.title}</h3><p>${s.desc}</p>${aposta}${ativa?`<div class="sensor-actions"><a class="btn primary depth" href="${s.href}?partida=${state.game}&ritmo=${state.pace}&itens=${lote.join(",")}">Abrir atividade</a><button class="btn ghost depth mark-sensor" type="button">Pular · perde ${lote.length}</button></div>`:''}</article>`;
  }).join('');
  host.querySelectorAll('.mark-sensor').forEach(btn=>btn.onclick=()=>{
-  concluirSensor(btn.closest('[data-sensor]').dataset.sensor);
+  const id=btn.closest('[data-sensor]').dataset.sensor,lote=state.lotes[id]||[];
+  if(lote.length&&!confirm(`Pular esta atividade custa ${lote.length} fragmentos, que não entram no dossiê por nenhuma outra porta. Seguir assim?`))return;
+  concluirSensor(id);
  });
  const n=state.sensorDone.size,faltam=ordem.length-n;
- $('sensorDone').textContent=`${n} de ${ordem.length} concluída${ordem.length===1?'':'s'}`;
+ const total=sensoriais().length,ganhos=state.colhidos.size;
+ $('sensorDone').textContent=`${ganhos} de ${total} fragmentos descobertos`;
  $('sensorTags').innerHTML=ordem.filter(id=>state.sensorDone.has(id)).map(id=>`<span class="tag">${SENSORS[id].title}</span>`).join('');
  const seguir=$('toEvidence');
  seguir.disabled=faltam>0;
@@ -322,6 +341,10 @@ function concluirSensor(sensor){
 function receberAviso(dado){
  if(!dado||dado.fonte!=='mosaico-carro-forte'||dado.tipo!=='sensor-concluido')return;
  if(dado.partida!==state.game)return;
+ /* A colheita é filtrada pelo lote que a Mesa entregou àquela atividade: a
+    página só devolve o que recebeu, e um aviso forjado não injeta fragmento. */
+ if(Array.isArray(dado.colheita))
+  dado.colheita.filter(x=>(state.lotes[dado.sensor]||[]).includes(x)).forEach(x=>state.colhidos.add(x));
  concluirSensor(dado.sensor);
 }
 try{new BroadcastChannel('mosaico-carro-forte').onmessage=e=>receberAviso(e.data)}catch(e){}
@@ -486,7 +509,7 @@ $('chooseGame').onclick=()=>{
 })();
 document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>go(b.dataset.back));
 $('startGame').onclick=()=>{renderSensors();go('sensory')};
-$('toEvidence').onclick=()=>{renderDossie();go('evidence')};
+$('toEvidence').onclick=()=>{montarDossie();renderDossie();go('evidence')};
 $('nextWave').onclick=()=>{if(state.aberto<3){state.aberto++;renderDossie()}};
 $('toHypothesis').onclick=()=>{renderHypothesis();go('hypothesis')};
 $('hypothesisForm').onsubmit=e=>{

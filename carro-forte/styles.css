@@ -142,6 +142,8 @@ h1,h2,h3{font-family:var(--display);font-weight:600;margin:0}
 .sensor-card.feita>small{color:var(--green-soft)}
 .sensor-card.travada{opacity:.45;filter:grayscale(.5)}
 .sensor-card.travada>small{color:#63798a}
+.sensor-card .lote{margin:2px 0 0;font:600 11px var(--mono);color:var(--gold2)}
+.sensor-card.travada .lote{color:#63798a}
 .btn:disabled{opacity:.42;filter:grayscale(.7);cursor:not-allowed}
 .btn:disabled:active{transform:none}
 .archive{margin-top:10px;padding:12px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
