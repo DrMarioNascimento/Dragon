@@ -25,7 +25,7 @@ const auth=getAuth(app),db=getFirestore(app);
 const ALPH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const FORMAS={m:{emoji:'👨',label:'Bem-vindo'},f:{emoji:'👩',label:'Bem-vinda'},n:{emoji:'👥',label:'Tanto faz'}};
 let role='',code='',players=[],room=null,unsubRoom=null,unsubPlayers=null,pendingUser=null;
-let modo=PROJECT==='mesa'?'com-telao':'sem-telao',ritmo='automatico',salaAberta=false,gameReleased=false;
+let modo=PROJECT==='mesa'?'com-telao':'sem-telao',ritmo='automatico',salaAberta=false,gameReleased=false,intencao='sala';
 const q=new URLSearchParams(location.search).get('sala');
 
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -50,15 +50,25 @@ function menu(error=''){
   /* Sem a seta, o clique entra como primeiro argumento — e o primeiro
      argumento de renderMasterGate é a mensagem de erro. A tela abria
      acusando '[object PointerEvent]' antes de qualquer coisa dar errado. */
-  document.getElementById('drOpen').onclick=()=>renderMasterGate();
+  document.getElementById('drOpen').onclick=()=>{intencao='sala';renderMasterGate()};
   document.getElementById('drJoin').onclick=()=>formEntrar('');
-  document.getElementById('drSolo').onclick=()=>liberar({local:true});
+  /* Ensaiar era a porta dos fundos: entrava direto no jogo, sem conta e sem
+     conferência nenhuma. Passa pela mesma validação do Google e pela mesma
+     lista de mestres — o que ele dispensa é a SALA, não a autorização. Nenhum
+     documento é criado no Firestore, e sem sala não há botão Sala. */
+  document.getElementById('drSolo').onclick=()=>{intencao='ensaio';renderMasterGate()};
 }
 function renderMasterGate(error=''){
+  const ensaio=intencao==='ensaio';
   const modoHtml=PROJECT==='mesa'
     ? `<div class="dr-ident">Como a mesa será usada?</div><button class="dr-choice ${modo==='com-telao'?'on':''}" data-mode="com-telao"><b>📺 Com telão</b><span>Um aparelho fica no painel.</span></button><button class="dr-choice ${modo==='sem-telao'?'on':''}" data-mode="sem-telao"><b>📱 Sem telão</b><span>Quem abre também joga pelo celular.</span></button>`
     : `<div class="dr-ident">Como a mesa será usada?</div><div class="dr-master-info"><p><b>📱 Celular</b></p><p>A Noite é conduzida diretamente pelo celular do Mestre.</p></div>`;
-  gate().innerHTML=`<div class="dr-shell"><div class="dr-brand">${esc(TITLE)} · ÁREA DO MESTRE</div><div class="dr-card"><h2>Abrir uma mesa</h2>${modoHtml}<div class="dr-ident">Como as rodadas devem avançar?</div><button class="dr-choice ${ritmo==='automatico'?'on':''}" data-rhythm="automatico"><b>AUTOMATICAMENTE · RECOMENDADO</b><span>O jogo avança quando todos terminam.</span></button><button class="dr-choice ${ritmo==='conduzido'?'on':''}" data-rhythm="conduzido"><b>COM MINHA LIBERAÇÃO</b><span>A Sala avisará quando for hora de avançar.</span></button>${senhaLiberada()?'<p class="dr-note">Mestre reconhecido neste aparelho.</p>':'<input class="dr-input" id="drPass" type="password" autocomplete="off" placeholder="senha">'}${error?`<div class="dr-error">${esc(error)}</div>`:''}<button class="dr-btn" id="drGoogle">Abrir com Google</button><button class="dr-btn secondary" id="drBack">Cancelar</button></div></div>`;
+  /* No ensaio o modo e o ritmo não têm o que configurar: não existe sala, não
+     existe telão e não existe ninguém para esperar. Fica só a validação. */
+  const corpo=ensaio
+    ? `<div class="dr-master-info"><p><b>📱 Só neste aparelho</b></p><p>Nenhuma sala é aberta e ninguém entra por QR. Serve para você percorrer a partida sozinho.</p></div>`
+    : `${modoHtml}<div class="dr-ident">Como as rodadas devem avançar?</div><button class="dr-choice ${ritmo==='automatico'?'on':''}" data-rhythm="automatico"><b>AUTOMATICAMENTE · RECOMENDADO</b><span>O jogo avança quando todos terminam.</span></button><button class="dr-choice ${ritmo==='conduzido'?'on':''}" data-rhythm="conduzido"><b>COM MINHA LIBERAÇÃO</b><span>A Sala avisará quando for hora de avançar.</span></button>`;
+  gate().innerHTML=`<div class="dr-shell"><div class="dr-brand">${esc(TITLE)} · ÁREA DO MESTRE</div><div class="dr-card"><h2>${ensaio?'Ensaiar neste aparelho':'Abrir uma mesa'}</h2>${corpo}${senhaLiberada()?'<p class="dr-note">Mestre reconhecido neste aparelho.</p>':'<input class="dr-input" id="drPass" type="password" autocomplete="off" placeholder="senha">'}${error?`<div class="dr-error">${esc(error)}</div>`:''}<button class="dr-btn" id="drGoogle">${ensaio?'Ensaiar com Google':'Abrir com Google'}</button><button class="dr-btn secondary" id="drBack">Cancelar</button></div></div>`;
   document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{modo=b.dataset.mode;renderMasterGate()});
   document.querySelectorAll('[data-rhythm]').forEach(b=>b.onclick=()=>{ritmo=b.dataset.rhythm;renderMasterGate()});
   document.getElementById('drGoogle').onclick=senhaLiberada()?loginMestre:conferirSenha;
@@ -104,7 +114,15 @@ function recuperarEscolhas(){
 async function abrirComoMestre(user){
   pendingUser=user;
   if(!(await autorizado(user))){await signOut(auth);pendingUser=null;return renderMasterGate('Esta conta Google não está autorizada a abrir mesas.');}
+  if(intencao==='ensaio')return liberarEnsaio();
   await criarSalaBase();
+}
+/* O ensaio passa pela mesma validação e não cria nada: sem documento de sala,
+   sem código, sem QR. `role` fica vazio de propósito — é ele que decide se o
+   botão flutuante da Sala é instalado, e no ensaio não há sala para abrir. */
+function liberarEnsaio(){
+  role='';code='';room=null;
+  liberar({local:true,ensaio:true});
 }
 /* A mensagem crua do SDK chegava em inglês e falando de SAML: "Unable to
    process request due to missing initial state…". Quem lê é o Mestre com o

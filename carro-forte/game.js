@@ -252,7 +252,7 @@ function fechadas(){return (lerRodizio().fechadas||[]).filter(id=>PARTIDAS[id])}
 
 /* ── Telas ─────────────────────────────────────────────────────────────── */
 function selectGame(id){
- state.game=id;state.hipoteseProv='';state.hipoteseFinal='';state.final={};state.reveal=0;
+ state.game=id;state.hipoteseProv='';state.hipoteseFinal='';state.final={};state.reveal=0;state.sensorDone.clear();
  const g=PARTIDAS[id],cfg=DURACOES[state.duration];
  montarDossie();
  $('gameNature').textContent=g.nature;
@@ -270,20 +270,36 @@ function selectGame(id){
  go('briefing');
 }
 
+/* As atividades são uma fila, não um cardápio.
+
+   A mesa faz uma de cada vez, todos juntos, na ordem que a partida declara em
+   `activities`. Antes eram cartões soltos: qualquer um podia ser aberto, todos
+   ao mesmo tempo, e o dossiê abria mesmo sem nenhum — cada participante via
+   fatos diferentes na hora de relacionar.
+
+   A conclusão também deixou de morar no localStorage. Guardada, ela voltava
+   marcada na partida seguinte e no aparelho que já tinha jogado: a atividade
+   aparecia pronta sem ninguém ter feito nada, que é exatamente o furo que a
+   fila fecha. Agora vale por partida, e `selectGame` zera. */
 function renderSensors(){
- const g=PARTIDAS[state.game],host=$('sensoryCards');
- host.innerHTML=g.activities.map(id=>{
-  const s=SENSORS[id],done=state.sensorDone.has(id)||localStorage.getItem(`mosaico-cf-${id}`)==='done';
-  if(done)state.sensorDone.add(id);
-  return `<article class="sensor-card depth-card blue ${done?'done':''}" data-sensor="${id}"><small>ATIVIDADE SENSORIAL</small><h3>${s.title}</h3><p>${s.desc}</p><div class="sensor-actions"><a class="btn primary depth" href="${s.href}?partida=${state.game}&ritmo=${state.pace}">Abrir atividade</a><button class="btn ghost depth mark-sensor" type="button">${done?'Concluída ✓':'Marcar concluída'}</button></div></article>`;
+ const g=PARTIDAS[state.game],host=$('sensoryCards'),ordem=g.activities;
+ const atual=ordem.findIndex(id=>!state.sensorDone.has(id));
+ host.innerHTML=ordem.map((id,i)=>{
+  const s=SENSORS[id],feita=state.sensorDone.has(id),ativa=i===atual;
+  const rot=feita?`${i+1} · CONCLUÍDA ✓`:ativa?`${i+1} DE ${ordem.length} · AGORA`:`${i+1} DE ${ordem.length} · AGUARDA A ANTERIOR`;
+  return `<article class="sensor-card depth-card blue ${feita?'feita':ativa?'atual':'travada'}" data-sensor="${id}"><small>${rot}</small><h3>${s.title}</h3><p>${s.desc}</p>${ativa?`<div class="sensor-actions"><a class="btn primary depth" href="${s.href}?partida=${state.game}&ritmo=${state.pace}">Abrir atividade</a><button class="btn ghost depth mark-sensor" type="button">A mesa concluiu</button></div>`:''}</article>`;
  }).join('');
  host.querySelectorAll('.mark-sensor').forEach(btn=>btn.onclick=()=>{
-  const id=btn.closest('[data-sensor]').dataset.sensor;
-  state.sensorDone.add(id);localStorage.setItem(`mosaico-cf-${id}`,'done');renderSensors();
+  state.sensorDone.add(btn.closest('[data-sensor]').dataset.sensor);renderSensors();
  });
- const n=state.sensorDone.size;
- $('sensorDone').textContent=`${n} de ${g.activities.length} concluída${n===1?'':'s'}`;
- $('sensorTags').innerHTML=[...state.sensorDone].map(id=>`<span class="tag">${SENSORS[id].title}</span>`).join('');
+ const n=state.sensorDone.size,faltam=ordem.length-n;
+ $('sensorDone').textContent=`${n} de ${ordem.length} concluída${ordem.length===1?'':'s'}`;
+ $('sensorTags').innerHTML=ordem.filter(id=>state.sensorDone.has(id)).map(id=>`<span class="tag">${SENSORS[id].title}</span>`).join('');
+ const seguir=$('toEvidence');
+ seguir.disabled=faltam>0;
+ seguir.innerHTML=faltam>0
+  ? (faltam===1?'Falta 1 atividade':`Faltam ${faltam} atividades`)
+  : 'Abrir o dossiê <span>→</span>';
 }
 
 function cartaoFragmento(cod){

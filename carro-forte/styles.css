@@ -135,7 +135,15 @@ h1,h2,h3{font-family:var(--display);font-weight:600;margin:0}
 .sensor-card p{margin:0;font-size:13px;line-height:1.5;color:var(--muted)}
 .sensor-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
 .sensor-actions .btn{flex:1;min-width:150px;text-decoration:none}
-.sensor-card.done{border-left-color:var(--green)}
+/* A fila das atividades: a de agora tem anel, a feita fica verde, a que espera
+   fica apagada e sem ação nenhuma — não há o que clicar fora da vez. */
+.sensor-card.atual{box-shadow:0 0 0 2px #6aa8ca99,var(--shadow)}
+.sensor-card.feita{border-left-color:var(--green)}
+.sensor-card.feita>small{color:var(--green-soft)}
+.sensor-card.travada{opacity:.45;filter:grayscale(.5)}
+.sensor-card.travada>small{color:#63798a}
+.btn:disabled{opacity:.42;filter:grayscale(.7);cursor:not-allowed}
+.btn:disabled:active{transform:none}
 .archive{margin-top:10px;padding:12px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
 .archive small{display:block;font:700 9px var(--mono);letter-spacing:.14em;color:var(--gold)}
 .archive b{font:800 13px var(--mono)}
