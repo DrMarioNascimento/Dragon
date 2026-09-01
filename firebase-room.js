@@ -58,7 +58,7 @@ function renderMasterGate(error=''){
   const modoHtml=PROJECT==='mesa'
     ? `<div class="dr-ident">Como a mesa será usada?</div><button class="dr-choice ${modo==='com-telao'?'on':''}" data-mode="com-telao"><b>📺 Com telão</b><span>Um aparelho fica no painel.</span></button><button class="dr-choice ${modo==='sem-telao'?'on':''}" data-mode="sem-telao"><b>📱 Sem telão</b><span>Quem abre também joga pelo celular.</span></button>`
     : `<div class="dr-ident">Como a mesa será usada?</div><div class="dr-master-info"><p><b>📱 Celular</b></p><p>A Noite é conduzida diretamente pelo celular do Mestre.</p></div>`;
-  gate().innerHTML=`<div class="dr-shell"><div class="dr-brand">${esc(TITLE)} · ÁREA DO MESTRE</div><div class="dr-card"><h2>Como a mesa será usada?</h2>${modoHtml}<div class="dr-ident">Como as rodadas devem avançar?</div><button class="dr-choice ${ritmo==='automatico'?'on':''}" data-rhythm="automatico"><b>AUTOMATICAMENTE · RECOMENDADO</b><span>O jogo avança quando todos terminam.</span></button><button class="dr-choice ${ritmo==='conduzido'?'on':''}" data-rhythm="conduzido"><b>COM MINHA LIBERAÇÃO</b><span>A Sala avisará quando for hora de avançar.</span></button>${senhaLiberada()?'<p class="dr-note">Mestre reconhecido neste aparelho.</p>':'<input class="dr-input" id="drPass" type="password" autocomplete="off" placeholder="senha">'}${error?`<div class="dr-error">${esc(error)}</div>`:''}<button class="dr-btn" id="drGoogle">Abrir com Google</button><button class="dr-btn secondary" id="drBack">Cancelar</button></div></div>`;
+  gate().innerHTML=`<div class="dr-shell"><div class="dr-brand">${esc(TITLE)} · ÁREA DO MESTRE</div><div class="dr-card"><h2>Abrir uma mesa</h2>${modoHtml}<div class="dr-ident">Como as rodadas devem avançar?</div><button class="dr-choice ${ritmo==='automatico'?'on':''}" data-rhythm="automatico"><b>AUTOMATICAMENTE · RECOMENDADO</b><span>O jogo avança quando todos terminam.</span></button><button class="dr-choice ${ritmo==='conduzido'?'on':''}" data-rhythm="conduzido"><b>COM MINHA LIBERAÇÃO</b><span>A Sala avisará quando for hora de avançar.</span></button>${senhaLiberada()?'<p class="dr-note">Mestre reconhecido neste aparelho.</p>':'<input class="dr-input" id="drPass" type="password" autocomplete="off" placeholder="senha">'}${error?`<div class="dr-error">${esc(error)}</div>`:''}<button class="dr-btn" id="drGoogle">Abrir com Google</button><button class="dr-btn secondary" id="drBack">Cancelar</button></div></div>`;
   document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{modo=b.dataset.mode;renderMasterGate()});
   document.querySelectorAll('[data-rhythm]').forEach(b=>b.onclick=()=>{ritmo=b.dataset.rhythm;renderMasterGate()});
   document.getElementById('drGoogle').onclick=senhaLiberada()?loginMestre:conferirSenha;
@@ -70,30 +70,54 @@ async function conferirSenha(){
   try{if((await sha256hex(txt))!==SENHA_HASH)return renderMasterGate('Senha incorreta.');try{sessionStorage.setItem(MESTRE_LOCAL,'1')}catch(e){}await loginMestre();}
   catch(e){renderMasterGate('Este navegador não permite conferir a senha.');}
 }
+/* O redirect só volta com resultado quando a página e o authDomain estão na
+   mesma origem. Aqui a página é drmarionascimento.github.io e o authDomain é
+   <projeto>.firebaseapp.com — origens diferentes. Desde o SDK 9.13 todo
+   navegador que particiona armazenamento de terceiros (Safari e, por tabela,
+   qualquer navegador de iPhone; Firefox; e cada vez mais o Chrome) devolve
+   getRedirectResult VAZIO nessa situação: a pessoa vai ao Google, volta, e o
+   bootstrap cai no menu. É o login em laço que nunca abre mesa.
+
+   Mandar todo celular direto para o redirect (d21682b, "Abre o Google uma vez
+   só no celular") transformou o caso raro em regra: no celular não havia mais
+   nenhum caminho que funcionasse.
+
+   O popup funciona nos dois lados — no celular ele abre uma aba e volta
+   sozinho, sem sair da página. Ele volta a ser o caminho; o redirect fica só
+   para quem realmente bloqueia popup, e nesse caso a volta é anunciada em vez
+   de virar menu silencioso. */
+async function autorizado(user){
+  const cfg=await getDoc(doc(db,'config','mestres'));
+  const permitidos=cfg.exists()&&Array.isArray(cfg.data().emails)?cfg.data().emails:[];
+  return permitidos.includes((user.email||'').trim());
+}
+/* O redirect recarrega a página, e `modo`/`ritmo` são variáveis de módulo:
+   voltavam ao padrão sem avisar, e a sala nascia com escolhas que o Mestre não
+   fez. Guardar junto com a marca da viagem devolve o que ele escolheu. */
+function guardarEscolhas(){try{sessionStorage.setItem('dragon.room.open',JSON.stringify({modo,ritmo}))}catch{}}
+function recuperarEscolhas(){
+  let bruto=null;try{bruto=sessionStorage.getItem('dragon.room.open')}catch{}
+  if(!bruto)return false;
+  try{sessionStorage.removeItem('dragon.room.open')}catch{}
+  try{const e=JSON.parse(bruto);if(e?.modo)modo=e.modo;if(e?.ritmo)ritmo=e.ritmo}catch{}
+  return true;
+}
+async function abrirComoMestre(user){
+  pendingUser=user;
+  if(!(await autorizado(user))){await signOut(auth);pendingUser=null;return renderMasterGate('Esta conta Google não está autorizada a abrir mesas.');}
+  await criarSalaBase();
+}
 async function loginMestre(){
   try{
     const provider=new GoogleAuthProvider();provider.setCustomParameters({prompt:'select_account'});
-    let user;
-    /* No celular o popup abre o Google, é bloqueado ou fechado, e só então o
-       código caía no redirect — que abre o Google outra vez. Duas viagens para
-       um login só, e a segunda parecia falha. Em tela de toque vamos direto de
-       redirect, que é o caminho recomendado em navegador móvel; o popup fica
-       para o desktop, onde funciona e evita sair da página.
-
-       A lista de erros que justificam a queda para redirect também estava
-       curta: popup-closed-by-user e cancelled-popup-request são os mais comuns
-       em celular e caíam no throw, virando mensagem de erro em vez de
+    /* popup-closed-by-user e cancelled-popup-request são os mais comuns em
+       celular e antes caíam no throw, virando mensagem de erro em vez de
        segunda tentativa. */
-    const porRedirect=async()=>{try{sessionStorage.setItem('dragon.room.open','1')}catch{}await signInWithRedirect(auth,provider)};
-    let telaDeToque=false;try{telaDeToque=matchMedia('(pointer:coarse)').matches||innerWidth<900}catch{}
-    if(telaDeToque){await porRedirect();return}
     const quedasConhecidas=['auth/popup-blocked','auth/popup-closed-by-user','auth/cancelled-popup-request','auth/web-storage-unsupported','auth/operation-not-supported-in-this-environment'];
-    try{user=(await signInWithPopup(auth,provider)).user}catch(e){if(quedasConhecidas.includes(e.code)){await porRedirect();return}throw e}
-    pendingUser=user;
-    const cfg=await getDoc(doc(db,'config','mestres'));
-    const permitidos=cfg.exists()&&Array.isArray(cfg.data().emails)?cfg.data().emails:[];
-    if(!permitidos.includes((user.email||'').trim())){await signOut(auth);pendingUser=null;return renderMasterGate('Esta conta Google não está autorizada a abrir mesas.');}
-    await criarSalaBase();
+    let user;
+    try{user=(await signInWithPopup(auth,provider)).user}
+    catch(e){if(quedasConhecidas.includes(e.code)){guardarEscolhas();await signInWithRedirect(auth,provider);return}throw e}
+    await abrirComoMestre(user);
   }catch(e){renderMasterGate(e?.message||'Não foi possível entrar com Google.')}
 }
 async function criarSalaBase(){
@@ -175,6 +199,18 @@ async function encerrarSala(){
 }
 css();
 getRedirectResult(auth).then(r=>{
-  if(r?.user&&sessionStorage.getItem('dragon.room.open')){sessionStorage.removeItem('dragon.room.open');pendingUser=r.user;criarSalaBase();}
-  else if(q){code=q.toUpperCase();formEntrar('',false)}else menu();
-}).catch(()=>{if(q){code=q.toUpperCase();formEntrar('',false)}else menu()});
+  const voltandoDoGoogle=recuperarEscolhas();
+  /* Se o Google devolveu usuário, seguimos mesmo sem a marca da viagem: alguns
+     navegadores limpam o sessionStorage no salto. O contrário é o que não pode
+     passar em silêncio — saiu para o Google, voltou sem nada, e antes disso
+     reaparecia o menu como se nada tivesse acontecido. */
+  if(r?.user)return abrirComoMestre(r.user);
+  if(voltandoDoGoogle)return renderMasterGate('O Google voltou sem concluir o login neste navegador. Toque em “Abrir com Google” de novo: desta vez a janela abre por cima desta página, sem sair dela.');
+  if(q){code=q.toUpperCase();return formEntrar('',false)}
+  menu();
+}).catch(e=>{
+  const voltandoDoGoogle=recuperarEscolhas();
+  if(voltandoDoGoogle)return renderMasterGate(e?.message||'Não foi possível concluir o login com Google.');
+  if(q){code=q.toUpperCase();return formEntrar('',false)}
+  menu();
+});
