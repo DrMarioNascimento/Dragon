@@ -13,3 +13,14 @@
    receberem hidden=true, porque .mark e .field declaram display. Normalizar
    uma vez resolve a classe inteira, inclusive a próxima. */
 [hidden]{display:none!important}
+/* Alvo de toque de 44px sem mexer no desenho.
+
+   Os botões pequenos do MOSAICO — o ⓘ, o recolher dos campos, a Pergunta,
+   os Custos, o SALA — têm entre 27 e 32px de altura. Isso é 60 a 70 por
+   cento do mínimo recomendado, e o contexto é o pior possível: celular, no
+   escuro, com trinta segundos por mão. Engordar os botões estragaria a
+   densidade da tela, então quem cresce é só a zona invisível que o dedo
+   alcança: o retângulo abaixo fica centrado no botão e não pinta nada. */
+:root{--alvo-de-toque:44px}
+.icon-btn,.collapse-btn,.question-toggle,.mini,.turnline button{position:relative}
+.icon-btn::after,.collapse-btn::after,.question-toggle::after,.mini::after,.turnline button::after{content:'';position:absolute;left:50%;top:50%;width:max(100%,var(--alvo-de-toque));height:max(100%,var(--alvo-de-toque));transform:translate(-50%,-50%)}

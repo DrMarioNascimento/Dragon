@@ -3,7 +3,7 @@
   if (!document.querySelector('link[data-layout-compacto]')) {
     const css = document.createElement('link');
     css.rel = 'stylesheet';
-    css.href = 'layout-compacto.css?v=20260901-ordem1';
+    css.href = 'layout-compacto.css?v=20260901-auditoria';
     css.dataset.layoutCompacto = '1';
     document.head.appendChild(css);
   }

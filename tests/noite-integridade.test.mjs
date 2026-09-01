@@ -174,6 +174,41 @@ test("o M fica ao lado do nome, não acima dele", () => {
   );
 });
 
+/* Os botões pequenos — o ⓘ, o recolher dos campos, a Pergunta, os Custos, o
+   SALA — têm entre 27 e 32px de altura. É 60 a 70 por cento do mínimo
+   recomendado, num jogo de celular jogado no escuro com trinta segundos por
+   mão. Engordá-los estragaria a densidade da tela, então quem cresce é a zona
+   invisível que o dedo alcança. Se a regra sumir, os alvos voltam a 27px sem
+   que nada pareça diferente — que é o pior tipo de regressão. */
+test("os botões pequenos mantêm alvo de toque de 44px", () => {
+  const css = ler("styles.css");
+  assert.ok(css.includes("--alvo-de-toque:44px"), "a medida do alvo de toque sumiu");
+  for (const alvo of [".icon-btn", ".collapse-btn", ".question-toggle", ".mini", ".turnline button"]) {
+    assert.ok(
+      css.includes(`${alvo}::after`),
+      `${alvo} perdeu a zona de toque ampliada e voltou ao tamanho do desenho`
+    );
+  }
+  assert.ok(
+    ler("layout-compacto.css").includes("#hudSalaMirror::after"),
+    "o SALA da barra de ações perdeu a zona de toque ampliada"
+  );
+});
+
+/* Sinal disparado que ninguém escuta é código morto com aparência de vivo —
+   e foi código assim que custou caro aqui. Esta auditoria não deixa nascer
+   outro por descuido; a exceção está nomeada com o motivo. */
+test("nenhum sinal novo é disparado no vazio", () => {
+  const js = scripts.map(n => ler(n)).join("\n");
+  const disparados = new Set([...js.matchAll(/CustomEvent\(\s*['"]([\w-]+)['"]/g)].map(m => m[1]));
+  const escutados = new Set([...js.matchAll(/addEventListener\(\s*['"]([\w-]+)['"]/g)].map(m => m[1]));
+  /* Este é disparado quando um campo fecha, e espera a sincronia da partida
+     para virar o "fecha para todos" que a regra da noite promete. */
+  const esperandoASincronia = new Set(["mosaico-public-field-closed"]);
+  const orfaos = [...disparados].filter(e => !escutados.has(e) && !esperandoASincronia.has(e));
+  assert.deepEqual(orfaos, [], `sinais disparados sem ninguém do outro lado: ${orfaos.join(", ")}`);
+});
+
 test("o núcleo não confunde o diálogo com a própria função modal", () => {
   assert.ok(
     !ler("game-fixed.js").includes("window.modal."),

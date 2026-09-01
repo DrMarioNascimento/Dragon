@@ -114,6 +114,5 @@ if (sala && !sala.local && sala.code) {
         return estado.jogadores;
       },
     };
-    window.dispatchEvent(new CustomEvent('mosaico-sala-partida-pronta'));
   }
 }

@@ -1,4 +1,15 @@
-/* MOSAICO · ponte Firebase independente para a abertura audiovisual */
+/* MOSAICO · ponte Firebase para a abertura audiovisual.
+
+   ATENÇÃO: este arquivo NÃO é carregado por ninguém hoje. Não é sobra — é
+   metade construída. Ele publica o estado da abertura em `noite/{sala}.opening`
+   para que os outros aparelhos e o telão acompanhem o que toca no telefone do
+   Mestre, e `telao.html` já lê exatamente esses campos (`opening.on`,
+   `opening.displaySeenMs`) — hoje espera por um dado que ninguém publica.
+
+   Enquanto não for ligado, o convidado não vê nada durante a abertura, e o
+   caminho para abrir o telão também não existe: o `formTelao` que o criava
+   estava no pedaço truncado do firebase-room.js e não voltou. Antes de
+   apagar isto, leia a auditoria — apagar custa mais do que ligar. */
 (async function () {
   let api = null,
     initPromise = null;

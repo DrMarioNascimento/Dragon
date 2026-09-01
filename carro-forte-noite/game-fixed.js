@@ -313,7 +313,6 @@ function nota(texto) {
   if (!texto) return;
   state.log.push({ at: Date.now(), texto: String(texto) });
   if (state.log.length > 150) state.log.shift();
-  window.dispatchEvent(new CustomEvent('mosaico-mesa-nota', { detail: { texto: String(texto) } }));
 }
 function timer() {
   clearInterval(state.timer);

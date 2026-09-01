@@ -65,9 +65,9 @@
           await navigator.clipboard.writeText(link(c));
         } catch {}
     };
+    /* Encerrar o ensaio é recomeçá-lo: não há sala remota para fechar. */
     panel.querySelector('#soloEnd2').onclick = () =>
-      document.getElementById('soloEnd')?.click() ||
-      location.assign(location.pathname + '?soloLab=1&bots=max');
+      location.assign(location.pathname + '?soloLab=1');
   }
   window.setInterval(() => {
     if (!document.getElementById('soloRoomPanel')?.classList.contains('on')) return;
