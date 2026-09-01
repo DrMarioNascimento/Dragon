@@ -25,16 +25,63 @@ const pasta = new URL("../carro-forte-noite/", import.meta.url);
 const ler = nome => readFileSync(new URL(nome, pasta), "utf8");
 const scripts = readdirSync(pasta).filter(nome => nome.endsWith(".js")).sort();
 
+function compila(caminho, nome) {
+  try {
+    execFileSync(process.execPath, ["--check", caminho], { stdio: "pipe" });
+  } catch (erro) {
+    assert.fail(`${nome} não compila:\n${erro.stderr?.toString() ?? erro.message}`);
+  }
+}
+
 test("todo script de A Noite compila", () => {
   assert.ok(scripts.length >= 8, "a pasta perdeu scripts");
-  for (const nome of scripts) {
-    const caminho = fileURLToPath(new URL(nome, pasta));
+  for (const nome of scripts) compila(fileURLToPath(new URL(nome, pasta)), nome);
+});
+
+/* A auditoria acima só olhava a própria pasta, e por isso deixou passar o
+   segundo arquivo cortado: `firebase-room.js` mora na raiz, é compartilhado
+   com a Mesa, e estava truncado no meio de `formTelao` — sem `liberar` nem
+   `ouvir`. O módulo inteiro era descartado, o evento de liberação nunca era
+   disparado, o jogo nunca carregava, e o sintoma era o mesmo de antes: o
+   botão de entrar na reunião sem resposta.
+
+   Conferir uma pasta não basta quando a página monta a si mesma a partir de
+   três diretórios. Esta varre o que o próprio index.html pede. */
+test("todo script que a página pede compila, venha de onde vier", () => {
+  const html = ler("index.html");
+  const pedidos = [...html.matchAll(/(?:src|f\.src)\s*=\s*['"]([^'"]+\.js)(?:\?[^'"]*)?['"]/g)]
+    .map(m => m[1])
+    .filter(src => !src.startsWith("http"));
+  const deFora = pedidos.filter(src => src.startsWith("../"));
+  assert.ok(deFora.length >= 2, "a página deixou de carregar scripts compartilhados; a varredura ficou cega");
+  for (const src of new Set(pedidos)) {
+    const url = new URL(src, pasta);
+    let caminho;
     try {
-      execFileSync(process.execPath, ["--check", caminho], { stdio: "pipe" });
-    } catch (erro) {
-      assert.fail(`${nome} não compila:\n${erro.stderr?.toString() ?? erro.message}`);
+      caminho = fileURLToPath(url);
+      readFileSync(caminho);
+    } catch {
+      assert.fail(`index.html pede ${src}, que não existe`);
     }
+    compila(caminho, src);
   }
+});
+
+/* E o terceiro defeito da mesma pilha: a folha é carregada com type="module",
+   onde `document.currentScript` é sempre null. Toda a configuração da página
+   — projeto Firebase, coleção, nome do evento — virava undefined e caía no
+   padrão da Mesa. A página da Noite falava com o projeto errado e anunciava
+   um evento que ninguém escutava. */
+test("a sala lê a configuração da página mesmo sendo um módulo", () => {
+  const sala = readFileSync(new URL("../firebase-room.js", pasta), "utf8");
+  assert.ok(
+    sala.includes("document.currentScript||"),
+    "firebase-room.js voltou a depender só de document.currentScript, que é null em módulo"
+  );
+  assert.ok(
+    /function\s+liberar\s*\(/.test(sala) && /function\s+ouvir\s*\(/.test(sala),
+    "firebase-room.js perdeu liberar/ouvir: o portão abre e o jogo nunca começa"
+  );
 });
 
 test("o núcleo termina com a fiação que a página espera", () => {
