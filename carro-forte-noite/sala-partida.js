@@ -22,14 +22,21 @@
    instala: o núcleo decide local, que é o certo lá. */
 
 import { getApps } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
-import { getFirestore, doc, onSnapshot, updateDoc } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+import {
+  getFirestore,
+  doc,
+  onSnapshot,
+  updateDoc,
+} from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
 
 const sala = window.MOSAICO_ROOM;
 
 if (sala && !sala.local && sala.code) {
-  const app = getApps().find(a => a.name === 'dragon-noite');
+  const app = getApps().find((a) => a.name === 'dragon-noite');
   if (!app) {
-    console.error('MOSAICO: a sala existe mas o app do Firebase não foi encontrado; a partida não será sincronizada.');
+    console.error(
+      'MOSAICO: a sala existe mas o app do Firebase não foi encontrado; a partida não será sincronizada.',
+    );
   } else {
     const db = getFirestore(app);
     const ref = doc(db, 'noite', sala.code);
@@ -44,25 +51,33 @@ if (sala && !sala.local && sala.code) {
       while (esperando[campo]?.length) esperando[campo].shift()(valor);
     }
 
-    onSnapshot(ref, s => {
-      const p = (s.exists() && s.data()?.partida) || {};
-      if (p.jogadores) estado.jogadores = p.jogadores;
-      recebeu('pergunta', p.pergunta);
-      recebeu('ritmo', p.ritmo);
-    }, erro => console.error('MOSAICO: perdi a sala de vista.', erro));
+    onSnapshot(
+      ref,
+      (s) => {
+        const p = (s.exists() && s.data()?.partida) || {};
+        if (p.jogadores) estado.jogadores = p.jogadores;
+        recebeu('pergunta', p.pergunta);
+        recebeu('ritmo', p.ritmo);
+      },
+      (erro) => console.error('MOSAICO: perdi a sala de vista.', erro),
+    );
 
-    const gravar = patch =>
-      updateDoc(ref, { ...patch, 'partida.atualizadaEmMs': Date.now() })
-        .catch(erro => { console.error('MOSAICO: não consegui gravar na sala.', erro); });
+    const gravar = (patch) =>
+      updateDoc(ref, { ...patch, 'partida.atualizadaEmMs': Date.now() }).catch((erro) => {
+        console.error('MOSAICO: não consegui gravar na sala.', erro);
+      });
 
     /* A pauta da noite e quantos a discutem. O Mestre sorteia e grava na
        primeira vez; todos os outros — e o próprio Mestre ao reconectar —
        recebem o que já está lá. O número de investigadores é quem estava na
        sala quando ela começou, não um seletor por aparelho. */
     function abrir(ids, jogadoresNaSala) {
-      if (estado.pergunta) return Promise.resolve({ pergunta: estado.pergunta, jogadores: estado.jogadores });
+      if (estado.pergunta)
+        return Promise.resolve({ pergunta: estado.pergunta, jogadores: estado.jogadores });
       if (!mestre) {
-        return new Promise(resolve => esperando.pergunta.push(pergunta => resolve({ pergunta, jogadores: estado.jogadores })));
+        return new Promise((resolve) =>
+          esperando.pergunta.push((pergunta) => resolve({ pergunta, jogadores: estado.jogadores })),
+        );
       }
       const escolhida = ids[Math.floor(Math.random() * ids.length)];
       const quantos = Math.max(2, Math.min(8, jogadoresNaSala || 0)) || 8;
@@ -77,7 +92,7 @@ if (sala && !sala.local && sala.code) {
        os convidados não veem a escolha, esperam por ela. */
     function ritmo() {
       if (estado.ritmo) return Promise.resolve(estado.ritmo);
-      return new Promise(resolve => esperando.ritmo.push(resolve));
+      return new Promise((resolve) => esperando.ritmo.push(resolve));
     }
 
     function definirRitmo(valor) {
@@ -88,9 +103,16 @@ if (sala && !sala.local && sala.code) {
     }
 
     window.MosaicoSalaPartida = {
-      abrir, ritmo, definirRitmo, mestre,
-      get atual() { return estado.pergunta; },
-      get jogadores() { return estado.jogadores; }
+      abrir,
+      ritmo,
+      definirRitmo,
+      mestre,
+      get atual() {
+        return estado.pergunta;
+      },
+      get jogadores() {
+        return estado.jogadores;
+      },
     };
     window.dispatchEvent(new CustomEvent('mosaico-sala-partida-pronta'));
   }

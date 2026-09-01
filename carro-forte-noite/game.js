@@ -16,18 +16,21 @@
    O layout compacto continua por último: ele move os botões de ação para
    dentro de um grupo, e só pode fazer isso depois que o núcleo pendurou os
    ouvintes neles. appendChild move o nó com os ouvintes junto; recriar, não. */
-(function(){
-  const carregar=(src,depois)=>{
-    const s=document.createElement('script');
-    s.async=false;
-    s.src=src;
-    s.onerror=()=>{console.error('MOSAICO: falha ao carregar '+src);depois?.()};
-    s.onload=()=>depois?.();
+(function () {
+  const carregar = (src, depois) => {
+    const s = document.createElement('script');
+    s.async = false;
+    s.src = src;
+    s.onerror = () => {
+      console.error('MOSAICO: falha ao carregar ' + src);
+      depois?.();
+    };
+    s.onload = () => depois?.();
     document.head.appendChild(s);
   };
 
-  carregar('opening-flow.js?v=20260901-ordem1',()=>{
-    carregar('game-fixed.js?v=20260901-sala-decide',()=>{
+  carregar('opening-flow.js?v=20260901-ordem1', () => {
+    carregar('game-fixed.js?v=20260901-sala-decide', () => {
       carregar('layout-compacto.js?v=20260901-ordem1');
     });
   });

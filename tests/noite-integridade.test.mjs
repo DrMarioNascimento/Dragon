@@ -25,6 +25,13 @@ const pasta = new URL("../carro-forte-noite/", import.meta.url);
 const ler = nome => readFileSync(new URL(nome, pasta), "utf8");
 const scripts = readdirSync(pasta).filter(nome => nome.endsWith(".js")).sort();
 
+/* Estas auditorias afirmam coisas sobre o código, não sobre sua formatação.
+   Comparar sem espaço nenhum deixa o prettier reimprimir o arquivo à vontade
+   sem quebrar nada — e foi justamente a fonte comprimida, ilegível em diff,
+   que escondeu os dois arquivos truncados. */
+const semEspacos = texto => texto.replace(/\s+/g, "");
+const contem = (fonte, trecho) => semEspacos(fonte).includes(semEspacos(trecho));
+
 function compila(caminho, nome) {
   try {
     execFileSync(process.execPath, ["--check", caminho], { stdio: "pipe" });
@@ -107,7 +114,7 @@ test("o núcleo expõe a API que os bots do Solo Lab chamam", () => {
     assert.match(nucleo, new RegExp(String.raw`\b${nome}\s*[(:]`), `MosaicoCore.solo perdeu ${nome}`);
   }
   assert.ok(
-    nucleo.includes("answers:state.question?"),
+    contem(nucleo, "answers: state.question ?"),
     "getSnapshot deixou de devolver answers, e os bots decidem no escuro"
   );
 });
@@ -201,12 +208,12 @@ test("a frase que os bots escrevem chega ao diário", () => {
    deles sem erro nenhum no console. */
 test("quem escreve a vez e quem lê a vez falam a mesma língua", () => {
   assert.ok(
-    ler("game-fixed.js").includes("turnPlayer.textContent=actorName()"),
+    contem(ler("game-fixed.js"), "turnPlayer.textContent = actorName()"),
     "o indicador de vez voltou a ser Arquivo NN e discorda do resto da tela"
   );
   const bots = ler("solo-bots.js");
   assert.ok(
-    bots.includes("BOTS.find(b=>b.name===t)"),
+    contem(bots, "b.name === t"),
     "slotFrom só entende Arquivo NN: com nome de bot na vez, a mesa congela"
   );
   assert.ok(
@@ -224,8 +231,8 @@ test("quem escreve a vez e quem lê a vez falam a mesma língua", () => {
    voltar é ele ser o único caminho. */
 test("a pergunta da noite é perguntada à sala antes de ser sorteada", () => {
   const nucleo = ler("game-fixed.js");
-  const consulta = nucleo.indexOf("window.MosaicoSalaPartida");
-  const sorteio = nucleo.indexOf("ids[Math.floor(Math.random()*ids.length)]");
+  const consulta = semEspacos(nucleo).indexOf("window.MosaicoSalaPartida");
+  const sorteio = semEspacos(nucleo).indexOf(semEspacos("ids[Math.floor(Math.random() * ids.length)]"));
   assert.ok(consulta >= 0, "o núcleo voltou a sortear sem perguntar à sala");
   assert.ok(sorteio >= 0, "o sorteio local sumiu: o ensaio neste aparelho fica sem pergunta");
   assert.ok(consulta < sorteio, "o sorteio local acontece antes de consultar a sala e vence a pergunta congelada");
@@ -235,11 +242,11 @@ test("a pergunta da noite é perguntada à sala antes de ser sorteada", () => {
     assert.ok(sala.includes(campo), `sala-partida.js não grava mais ${campo} no documento da sala`);
   }
   assert.ok(
-    sala.includes("if (estado.pergunta) return Promise.resolve"),
+    contem(sala, "if (estado.pergunta) return Promise.resolve"),
     "a pauta deixou de ser idempotente: reconectar volta a re-sortear"
   );
   assert.ok(
-    sala.includes("if (estado.ritmo) return Promise.resolve"),
+    contem(sala, "if (estado.ritmo) return Promise.resolve"),
     "o ritmo deixou de ser idempotente: reconectar volta a redefinir o relógio da mesa"
   );
 });
@@ -251,15 +258,15 @@ test("a pergunta da noite é perguntada à sala antes de ser sorteada", () => {
 test("o convidado não escolhe o que é da mesa", () => {
   const nucleo = ler("game-fixed.js");
   assert.ok(
-    nucleo.includes("if(sala.mestre)return mostrarRitmo()"),
+    contem(nucleo, "if (sala.mestre) return mostrarRitmo()"),
     "a tela de ritmo voltou a aparecer para o convidado"
   );
   assert.ok(
-    nucleo.includes("sala.ritmo().then("),
+    contem(nucleo, "sala.ritmo().then("),
     "o convidado não espera mais o ritmo do Mestre: cada mesa volta a correr num relógio próprio"
   );
   assert.ok(
-    nucleo.includes("if(jogadores)state.players=jogadores"),
+    contem(nucleo, "if (jogadores) state.players = jogadores"),
     "o número de investigadores voltou a sair do seletor local em vez da sala"
   );
   assert.ok(
@@ -362,7 +369,10 @@ test("hidden esconde de verdade", () => {
    precisa mostrar quem está ganhando. */
 test("a lista do capturar mostra quem está fechando campos", () => {
   const nucleo = ler("game-fixed.js");
-  assert.ok(nucleo.includes("fechados=s=>"), "a lista do capturar voltou a mostrar todos iguais");
+  assert.ok(
+    contem(nucleo, "state.lockedBy.values()") && nucleo.includes("fechados"),
+    "a lista do capturar voltou a mostrar todos iguais"
+  );
   assert.ok(
     nucleo.includes("${fechados(x.slot)}"),
     "o número de campos fechados sumiu dos botões de escolha"
