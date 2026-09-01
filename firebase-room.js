@@ -134,7 +134,13 @@ function renderOrientacaoMestre(){
   document.getElementById('drContinue').onclick=()=>formEntrar('',true);
 }
 function formEntrar(err='',asMaster=false){
-  gate().innerHTML=`<div class="dr-shell"><div class="dr-brand">${esc(TITLE)}</div><div class="dr-card"><h2>Quem chega agora?</h2><p>Informe seu nome e como o MOSAICO deve chamar você.</p><input class="dr-input" id="drCode" maxlength="6" placeholder="CÓDIGO" value="${esc(code||q||'')}" ${asMaster?'readonly':''}><div class="dr-ident">Identificação do jogador</div><input class="dr-input" id="drName" maxlength="60" placeholder="Seu nome" value="${asMaster?esc(pendingUser?.displayName||''):''}">${formas('m')}${err?`<div class="dr-error">${esc(err)}</div>`:''}<button class="dr-btn" id="drEnter">Entrar</button><button class="dr-btn secondary" id="drBack">Voltar</button></div></div>`;
+  /* O campo do nome vinha preenchido com o displayName da conta Google, então o
+     Mestre entrava na mesa com o nome civil completo e ele aparecia no lobby e
+     no estado público para todos os participantes. Isto é um jogo: o nome é da
+     partida, escolhido na hora, e a conta Google serve só para autorizar quem
+     abre. O campo nasce vazio, e nada da conta é gravado — o documento do
+     jogador guarda apenas o que foi digitado aqui. */
+  gate().innerHTML=`<div class="dr-shell"><div class="dr-brand">${esc(TITLE)}</div><div class="dr-card"><h2>Quem chega agora?</h2><p>Escolha o nome que a mesa vai ver nesta partida. Não precisa ser o seu.</p><input class="dr-input" id="drCode" maxlength="6" placeholder="CÓDIGO" value="${esc(code||q||'')}" ${asMaster?'readonly':''}><div class="dr-ident">Nome nesta partida</div><input class="dr-input" id="drName" maxlength="24" placeholder="Como quer ser chamado" autocomplete="off">${formas('m')}${err?`<div class="dr-error">${esc(err)}</div>`:''}<button class="dr-btn" id="drEnter">Entrar</button><button class="dr-btn secondary" id="drBack">Voltar</button></div></div>`;
   document.getElementById('drBack').onclick=()=>asMaster?renderOrientacaoMestre():menu();
   document.getElementById('drEnter').onclick=()=>entrar(asMaster);
   setTimeout(()=>document.getElementById('drName')?.focus(),20)
@@ -154,7 +160,7 @@ async function entrar(asMaster=false){
     else{u=auth.currentUser;if(!u||!u.isAnonymous){if(u)await signOut(auth);u=(await signInAnonymously(auth)).user;}}
     const snap=await getDoc(roomRef(code));if(!snap.exists()||snap.data().ativa!==true)return formEntrar('Sala não encontrada ou encerrada.',asMaster);
     if(snap.data().caseId&&snap.data().caseId!==CASE_ID)return formEntrar('Esse código pertence a outro caso do MOSAICO.',asMaster);
-    await setDoc(playerRef(code,u.uid),{nome:nome.slice(0,60),forma,mestre:!!asMaster,pronto:true,entrouMs:Date.now(),atualizadoEmMs:Date.now()},{merge:true});
+    await setDoc(playerRef(code,u.uid),{nome:nome.slice(0,24),forma,mestre:!!asMaster,pronto:true,entrouMs:Date.now(),atualizadoEmMs:Date.now()},{merge:true});
     /* Quem manda sobre isto é o documento da sala, não o caminho que a pessoa
        tomou para chegar aqui. O Mestre que recarrega, que volta pelo QR ou que
        reconecta entra pelo mesmo formulário do convidado — e saía marcado como
