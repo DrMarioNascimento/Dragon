@@ -36,6 +36,29 @@ etiqueta nova são fatos verdadeiros. A interpretação imediata de roubo é pla
 
 Os campos finais são próprios de cada pergunta. Não existe formulário universal.
 
+**A mesa não escolhe a pergunta — o sistema sorteia.** Escolher num menu ensinava a
+decorar: quem já tinha fechado uma partida reconhecia os fragmentos e pulava a dedução.
+O rodízio é um saco de seis: sorteia a ordem, entrega uma por vez e só reembaralha quando
+acaba, empurrando para o fim a que acabou de sair — nenhuma pergunta se repete antes que
+as seis tenham caído, e nenhuma cai duas vezes seguidas. O estado fica em `localStorage`,
+na tela da mesa. O relatório mostra quantas das seis já foram fechadas, sem revelar qual
+vem a seguir.
+
+> Se um dia a Mesa for jogada em vários aparelhos na mesma sala, o sorteio precisa subir
+> para o documento da sala — como A Noite faz em `sala-partida.js` —, senão cada aparelho
+> abre uma pergunta diferente.
+
+## Abertura
+
+A Mesa usa a mesma abertura audiovisual de A Noite: tela de preparo (ativar o som), imagem
+em cheio e narração, com pausar, reiniciar e pular. Ela roda **uma vez**, na primeira
+entrada, e a pauta só é sorteada quando termina ou é pulada.
+
+Duas telas, dois enquadramentos: o celular do Mestre recebe `AberturaCelular.jpg`; a tela
+grande recebe `AberturaTelão.jpg`. O papel de parede do jogo segue a mesma regra — o hero
+do caso no celular, o papel largo do telão a partir de 900px. Imagem, papel e áudio moram
+numa cópia só, em `../carro-forte-noite/`.
+
 ## O que a V4 trouxe para esta Mesa
 
 **Banco modular F01–F30.** Os fatos canônicos foram parcelados em trinta fragmentos de
@@ -68,15 +91,15 @@ relação vale +5 no relatório. Erro é cicatriz, não sentença.
 ## Fluxo
 
 1. prólogo — investigadores, ritmo e duração;
-2. pauta — escolha da pergunta-mãe entre as seis partidas;
-3. pergunta — dossiê dimensionado, campos e atividades daquela partida;
-4. atividades sensoriais próprias da pergunta;
-5. dossiê em três terços — marcar os fragmentos relevantes;
-6. hipótese provisória entre H1–H10, com apoio e contraprova visíveis;
-7. mosaico de relações e contraprova da hipótese registrada;
-8. decisão final — campos da pergunta + hipótese sustentada;
-9. revelação canônica pelo corte daquela pergunta;
-10. relatório em 100 pontos.
+2. abertura audiovisual, e então a pauta sorteada: pergunta-mãe, dossiê dimensionado,
+   campos e atividades daquela partida;
+3. atividades sensoriais próprias da pergunta;
+4. dossiê em três terços — marcar os fragmentos relevantes;
+5. hipótese provisória entre H1–H10, com apoio e contraprova visíveis;
+6. mosaico de relações e contraprova da hipótese registrada;
+7. decisão final — campos da pergunta + hipótese sustentada;
+8. revelação canônica pelo corte daquela pergunta;
+9. relatório em 100 pontos, com a coleção das seis.
 
 ## Pontuação
 
@@ -110,6 +133,10 @@ cartões com espessura e três cores de função — **ouro** para o dossiê, **
 pergunta, **azul** para leitura sensorial e relações. Os fragmentos são cartões de papel; tudo o
 mais é metal escuro. Alvos de toque de 44px sem engordar o desenho, como em A Noite.
 
+O botão **SALA** do Mestre fica no cabeçalho, como em A Noite: o `#dragonSalaBtn` flutuante
+do `firebase-room.js` continua existindo (é por ele que a página reconhece o aparelho do
+Mestre, e é ele que recebe o clique), mas fica escondido — flutuando, cobria o dock.
+
 O que **não** veio de A Noite: moeda, vez, carteira, ações de ARRISCAR/CAPTURAR/COMPRAR e
 o HUD de partida. Isso é Captura, e Captura é outro jogo.
 
@@ -119,7 +146,8 @@ o HUD de partida. Isso é Captura, e Captura é outro jogo.
 |---|---|
 | `index.html` | casca da Mesa, HUD, gaveta de regras e navegação entre telas |
 | `styles.css` | identidade visual herdada de A Noite |
-| `game.js` | banco F01–F30, hipóteses H1–H10, relações R-A…R-G, montagem do dossiê, decisão, revelação e relatório |
+| `game.js` | banco F01–F30, hipóteses H1–H10, relações R-A…R-G, rodízio das perguntas, montagem do dossiê, decisão, revelação e relatório |
+| `opening-flow.js` | abertura audiovisual; gêmeo do arquivo de mesmo nome em `../carro-forte-noite/` |
 | `janela-do-norte.html` | atividade sensorial temporal/espacial |
 | `vidro-embacado.html` | atividade sensorial documental/física |
 | `sala-as-escuras.html` | atividade sensorial de busca material |

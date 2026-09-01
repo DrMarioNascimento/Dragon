@@ -26,7 +26,7 @@
     </div>
     <div class="turnline">
       <span><small id="phaseStep">1</small> <b id="phaseName">PRÓLOGO</b></span>
-      <b id="partidaLabel" hidden></b>
+      <span class="turnline-right"><b id="partidaLabel" hidden></b><button id="hudSala" type="button" hidden>SALA</button></span>
     </div>
   </header>
 
@@ -43,7 +43,7 @@
         <label class="field depth-card">Investigadores<select id="playerCount"><option>2</option><option>3</option><option>4</option><option>5</option><option selected>6</option><option>7</option><option>8</option></select></label>
         <label class="field depth-card">Ritmo<select id="pace"><option value="pressure">Sob pressão · 30 s</option><option value="calm">Calma · 60 s</option></select></label>
         <label class="field depth-card">Duração<select id="duration"><option value="curta">Curta · 13 fragmentos</option><option value="padrao" selected>Padrão · 18 fragmentos</option><option value="longa">Longa · 24 fragmentos</option></select></label>
-        <button class="btn primary depth" id="chooseGame" type="button">Escolher a partida <span>→</span></button>
+        <button class="btn primary depth" id="chooseGame" type="button">Começar a investigação <span>→</span></button>
       </div>
       <aside class="street-card">
         <div class="clock"><span>FARMÁCIA</span><strong>7:44</strong><small>o relógio parece atrasado</small></div>
@@ -51,21 +51,15 @@
       </aside>
     </section>
 
-    <section class="screen" data-screen="games">
-      <div class="section-head"><span class="eyebrow">PAUTA · PERGUNTA-MÃE</span><h2>Seis partidas. A mesma manhã.</h2><p>A realidade factual não muda. Muda o que você precisa demonstrar — e, com ela, o que cada fragmento vale.</p></div>
-      <div id="gameCards" class="question-grid"></div>
-      <div class="dock"><button class="btn ghost depth" data-back="intro" type="button">← Voltar</button></div>
-    </section>
-
     <section class="screen" data-screen="briefing">
-      <div class="section-head"><span class="eyebrow" id="gameNature">PARTIDA</span><h2 id="gameTitle"></h2></div>
+      <div class="section-head"><span class="eyebrow" id="gameNature">PARTIDA</span><h2 id="gameTitle"></h2><p id="pautaNota"></p></div>
       <p class="question-banner depth-card" id="gameQuestion"></p>
       <div class="brief-grid">
         <article class="depth-card gold"><small>O QUE PARECE</small><p>Houve um assalto interno e R$ 480.000 desapareceram durante uma janela de 87 segundos.</p></article>
         <article class="depth-card green"><small>REGRA DE LEITURA</small><p>Fato não é interpretação. Uma evidência pode ser verdadeira e ainda sustentar uma leitura errada.</p></article>
       </div>
       <div class="plan-grid" id="planCards"></div>
-      <div class="dock"><button class="btn ghost depth" data-back="games" type="button">← Pauta</button><button class="btn primary depth" id="startGame" type="button">Entrar na investigação <span>→</span></button></div>
+      <div class="dock"><button class="btn ghost depth" data-back="intro" type="button">← Prólogo</button><button class="btn primary depth" id="startGame" type="button">Entrar na investigação <span>→</span></button></div>
     </section>
 
     <section class="screen" data-screen="sensory">
@@ -114,7 +108,8 @@
         <div class="score-ring depth-card"><strong id="totalScore">0</strong><small>/ 100</small></div>
         <div id="scoreBars" class="score-bars"></div>
         <div id="endingCards" class="ending-cards"></div>
-        <div class="dock"><button class="btn primary depth" id="playAgain" type="button">Escolher outra partida <span>→</span></button></div>
+        <div class="colecao depth-card" id="colecao"></div>
+        <div class="dock"><button class="btn primary depth" id="playAgain" type="button">Sortear a próxima investigação <span>→</span></button></div>
       </div>
     </section>
 
@@ -144,12 +139,26 @@
           data-title="A Mesa · A Manhã do Carro-Forte"
           data-ready-event="carroforte-mesa-ready"></script>
   <script>
+    /* A ordem aqui não é estética, é corrida evitada — a lição está no
+       carro-forte-noite/game.js. Quem dá vida ao "Começar a investigação" é o
+       game.js; quem cria a abertura é o opening-flow.js. Com a abertura vindo
+       depois, existe uma janela — um pedido de rede inteiro — em que o botão já
+       responde e window.MosaicoOpening ainda é undefined: quem tocar dentro
+       dessa janela pula a abertura em silêncio. Em localhost a janela é de zero
+       milissegundo; no celular, em rede de verdade, não. */
     window.addEventListener('carroforte-mesa-ready',()=>{
-      const game=document.createElement('script');game.src='game.js?v=20260831-v4-noite';document.body.appendChild(game);
-      game.onload=()=>{
-        document.addEventListener('click',e=>{const a=e.target.closest('.sensor-actions a');if(a)a.target='_blank'});
-        const guard=document.createElement('script');guard.src='iphone-guard.js?v=20260831-v4-noite';document.body.appendChild(guard);
+      const carregar=(src,depois)=>{
+        const s=document.createElement('script');s.async=false;s.src=src;
+        s.onerror=()=>{console.error('MOSAICO: falha ao carregar '+src);depois?.()};
+        s.onload=()=>depois?.();
+        document.body.appendChild(s);
       };
+      carregar('opening-flow.js?v=20260901-abertura1',()=>{
+        carregar('game.js?v=20260901-rodizio1',()=>{
+          document.addEventListener('click',e=>{const a=e.target.closest('.sensor-actions a');if(a)a.target='_blank'});
+          carregar('iphone-guard.js?v=20260901-rodizio1');
+        });
+      });
     },{once:true});
   </script>
 </body></html>

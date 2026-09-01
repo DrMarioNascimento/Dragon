@@ -159,8 +159,8 @@ const SENSORS={
  escura:{title:'A Sala às Escuras',desc:'Procure no corredor objetos físicos da zona cega sem transformá-los automaticamente em culpa.',href:'sala-as-escuras.html'}
 };
 
-const FASES={intro:'PRÓLOGO',games:'PAUTA',briefing:'PERGUNTA',sensory:'SENSORES',evidence:'DOSSIÊ',hypothesis:'HIPÓTESE',mosaic:'RELAÇÕES',final:'DECISÃO',reveal:'REVELAÇÃO',score:'RELATÓRIO'};
-const PASSOS={intro:1,games:2,briefing:3,sensory:4,evidence:5,hypothesis:6,mosaic:7,final:8,reveal:9,score:10};
+const FASES={intro:'PRÓLOGO',briefing:'PAUTA',sensory:'SENSORES',evidence:'DOSSIÊ',hypothesis:'HIPÓTESE',mosaic:'RELAÇÕES',final:'DECISÃO',reveal:'REVELAÇÃO',score:'RELATÓRIO'};
+const PASSOS={intro:1,briefing:2,sensory:3,evidence:4,hypothesis:5,mosaic:6,final:7,reveal:8,score:9};
 const TERCO_ROT=['PRIMEIRO TERÇO','SEGUNDO TERÇO','TERÇO FINAL'];
 
 const state={screen:'intro',game:null,players:6,pace:'pressure',duration:'padrao',
@@ -221,14 +221,36 @@ function distribuirTercos(lista){
  return t.map(embaralhar);
 }
 
-/* ── Telas ─────────────────────────────────────────────────────────────── */
-function renderGames(){
- const host=$('gameCards');
- host.innerHTML=Object.entries(PARTIDAS).map(([id,g])=>
-  `<button class="question-card depth" data-game="${id}" type="button"><small>${g.nature}</small><h3>${g.title}</h3><p>${g.question}</p><b>${g.short}</b></button>`).join('');
- host.querySelectorAll('[data-game]').forEach(b=>b.onclick=()=>selectGame(b.dataset.game));
-}
+/* ── Rodízio: o sistema escolhe, e escolhe alternando ───────────────────
+   Escolher a pergunta num menu ensinava a mesa a decorar — quem já tinha
+   fechado "O Peso do Malote 41" reconhecia os fragmentos e pulava a dedução.
+   O rodízio é um saco de seis: sorteia a ordem, entrega uma por vez e só
+   reembaralha quando acaba. Ao reembaralhar, empurra para o fim a que acabou
+   de sair, senão a virada do saco repetiria a mesma pergunta duas vezes
+   seguidas. Ninguém revê uma pergunta antes de ver as seis.
 
+   A Mesa roda numa tela só, a da mesa, então o rodízio é dessa tela. Se um dia
+   ela for jogada em vários aparelhos na mesma sala, esta escolha precisa subir
+   para o documento da sala — como A Noite faz em sala-partida.js —, senão cada
+   aparelho abre uma pergunta diferente. */
+const RODIZIO='mosaico-cf-rodizio';
+function lerRodizio(){try{return JSON.parse(localStorage.getItem(RODIZIO))||{}}catch(e){return{}}}
+function salvarRodizio(r){try{localStorage.setItem(RODIZIO,JSON.stringify(r))}catch(e){}}
+function proximaPartida(){
+ const ids=Object.keys(PARTIDAS),r=lerRodizio();
+ let saco=Array.isArray(r.saco)?r.saco.filter(id=>ids.includes(id)):[];
+ if(!saco.length){saco=embaralhar(ids);if(saco[0]===r.ultima&&saco.length>1)saco.push(saco.shift())}
+ const id=saco.shift();
+ salvarRodizio({...r,saco,ultima:id});
+ return id;
+}
+function marcarFechada(id){
+ const r=lerRodizio();
+ salvarRodizio({...r,fechadas:[...new Set([...(r.fechadas||[]),id])]});
+}
+function fechadas(){return (lerRodizio().fechadas||[]).filter(id=>PARTIDAS[id])}
+
+/* ── Telas ─────────────────────────────────────────────────────────────── */
 function selectGame(id){
  state.game=id;state.hipoteseProv='';state.hipoteseFinal='';state.final={};state.reveal=0;
  const g=PARTIDAS[id],cfg=DURACOES[state.duration];
@@ -236,6 +258,10 @@ function selectGame(id){
  $('gameNature').textContent=g.nature;
  $('gameTitle').textContent=g.title;
  $('gameQuestion').textContent=g.question;
+ const feitas=fechadas().filter(x=>x!==id).length,total=Object.keys(PARTIDAS).length;
+ $('pautaNota').textContent=feitas
+  ? `A pauta desta mesa foi sorteada. ${feitas} de ${total} perguntas já foram fechadas aqui — faltam ${total-feitas}.`
+  : 'A pauta desta mesa foi sorteada. São seis perguntas sobre a mesma manhã, e você não escolhe qual delas cai.';
  $('planCards').innerHTML=[
   `<article class="plan-card depth-card gold"><small>DOSSIÊ</small><strong>${state.dossie.length} fragmentos</strong><p>${cfg.rot} · ${cfg.nota}. O dossiê abre em três terços; pistas de fechamento não aparecem no primeiro.</p></article>`,
   `<article class="plan-card depth-card green"><small>CAMPOS DESTA PERGUNTA</small><strong>${g.fields.length} campos</strong><p>${g.fields.map(f=>f[0]).join(' · ')}</p></article>`,
@@ -370,6 +396,7 @@ function renderReveal(){
 
 function renderScore(){
  const g=PARTIDAS[state.game],s=pontuar(),hFinal=HIPOTESES.find(h=>h.id===state.hipoteseFinal);
+ marcarFechada(state.game);
  $('scoreTitle').textContent=g.title;
  $('totalScore').textContent=s.total;
  const rows=[['Campos da pergunta',s.campos,45],['Hipótese sustentada',s.hipotese,15],['Relações costuradas',s.relacoes,20],['Leitura do dossiê',s.leitura,10],['Atividades sensoriais',s.sensorial,10],['Revisão de hipótese',s.revisao,5]];
@@ -380,13 +407,42 @@ function renderScore(){
   `<article class="ending-card depth-card blue"><small>RELAÇÕES</small><h3>${s.relFeitas}/${s.relDisp}</h3><p>Relações completas nesta mesa que você efetivamente costurou.</p></article>`,
   `<article class="ending-card depth-card"><small>HIPÓTESE</small><h3>${hFinal?hFinal.id+' · '+hFinal.t:'—'}</h3><p>${hFinal&&hFinal.canonica?'Sobrevive ao fechamento auditável.':'Continua plausível, mas não sobrevive às relações físicas.'}${s.revisao?' Você abandonou uma leitura anterior diante de nova evidência — isso conta a favor.':''}</p></article>`
  ].join('');
+ /* A coleção é o que traz a mesa de volta: as seis perguntas caem em rodízio,
+    e o que falta fica visível sem revelar qual vem a seguir. */
+ const feitas=fechadas(),total=Object.keys(PARTIDAS).length;
+ $('colecao').innerHTML=`<small>PERGUNTAS DESTA MESA</small><b>${feitas.length} de ${total} fechadas</b><div class="colecao-marcas">${Object.keys(PARTIDAS).map(id=>`<span class="marca ${feitas.includes(id)?'on':''}">${feitas.includes(id)?PARTIDAS[id].nature:'?'}</span>`).join('')}</div><p>${feitas.length>=total?'A mesa fechou as seis. O rodízio recomeça em outra ordem, com outro dossiê.':'A próxima pergunta é sorteada pelo sistema — e nenhuma se repete antes que as seis tenham caído.'}</p>`;
 }
 
 /* ── Ligações ──────────────────────────────────────────────────────────── */
-$('chooseGame').onclick=()=>{
+/* A abertura roda uma vez, na primeira entrada, e só então a pauta é sorteada —
+   a pergunta aparece depois da narração, não antes. Nas entradas seguintes
+   (voltar ao prólogo, sortear a próxima) ela não volta: MosaicoOpening.show()
+   é inerte depois de terminada, e sem esta bandeira o clique ficaria esperando
+   um evento que não viria mais. */
+let aberturaPedida=false;
+function abrirPauta(){
  state.players=+$('playerCount').value;state.pace=$('pace').value;state.duration=$('duration').value;
- renderGames();go('games');
+ selectGame(proximaPartida());
+}
+window.addEventListener('mosaico-opening-finished',()=>{if(aberturaPedida)abrirPauta()},{once:true});
+$('chooseGame').onclick=()=>{
+ if(window.MosaicoOpening&&!aberturaPedida){aberturaPedida=true;window.MosaicoOpening.show();return}
+ abrirPauta();
 };
+
+/* A sala tem duas portas e só precisa de uma. O #dragonSalaBtn flutuante vem do
+   firebase-room.js, compartilhado com A Noite, onde ele é a única porta e não
+   pode sumir — aqui ele cobria o dock e atrapalhava a mão. Fica escondido pelo
+   CSS, não removido: o clique programático continua funcionando e a presença do
+   nó ainda é como esta página reconhece que este aparelho é o do Mestre.
+   Quando game.js roda, liberar() já instalou o botão, então uma conferida
+   basta. */
+(function(){
+ const flutuante=document.getElementById('dragonSalaBtn'),hud=$('hudSala');
+ if(!flutuante)return;
+ hud.hidden=false;
+ hud.onclick=()=>flutuante.click();
+})();
 document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>go(b.dataset.back));
 $('startGame').onclick=()=>{renderSensors();go('sensory')};
 $('toEvidence').onclick=()=>{renderDossie();go('evidence')};
@@ -409,7 +465,7 @@ $('nextReveal').onclick=()=>{
  if(state.reveal>=state.revealMax){renderScore();go('score')}
  else{state.reveal++;renderReveal()}
 };
-$('playAgain').onclick=()=>{renderGames();go('games')};
+$('playAgain').onclick=()=>selectGame(proximaPartida());
 $('resetBtn').onclick=()=>{if(confirm('Reiniciar a Mesa e voltar à escolha inicial?'))location.reload()};
 $('infoBtn').onclick=()=>$('drawer').classList.add('on');
 $('drawerClose').onclick=()=>$('drawer').classList.remove('on');

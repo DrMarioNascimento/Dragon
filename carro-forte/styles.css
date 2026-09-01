@@ -23,7 +23,13 @@ button,select,input{font:inherit}
 .hidden{display:none!important}
 
 /* ── Cenário ─────────────────────────────────────────────────────────── */
+/* Dois papéis de parede, um por tamanho de tela. O celular fica com o hero
+   apertado do caso; a tela grande da mesa recebe o papel largo que A Noite usa
+   no telão — os arquivos moram numa cópia só, em ../carro-forte-noite/. */
 .scene{position:fixed;inset:0;z-index:-3;background:linear-gradient(180deg,#06111be8,#03070bf5),url('assets/carro-forte-hero.png') center/cover no-repeat;filter:saturate(.72) brightness(.42)}
+@media(min-width:900px){
+ .scene{background:linear-gradient(180deg,#06111be8,#03070bf5),url('../carro-forte-noite/Papel-de-Parede-CarroforteTelao.jpg') center/cover no-repeat}
+}
 .rain{position:fixed;inset:0;z-index:-2;pointer-events:none;opacity:.12;background:repeating-linear-gradient(108deg,transparent 0 22px,#b5d4e633 23px,transparent 24px 50px)}
 
 /* ── Placa do topo ───────────────────────────────────────────────────── */
@@ -44,7 +50,11 @@ button,select,input{font:inherit}
 .turnline>span{display:flex;align-items:center;gap:8px;min-width:0}
 .turnline small{width:32px;height:32px;flex:0 0 32px;display:grid;place-items:center;border:1px solid #56768a;background:#102330;color:var(--gold2);font:900 12px var(--mono)}
 .turnline b{font:800 13px var(--mono);letter-spacing:.08em}
-.turnline>b{color:var(--gold2);font-size:11px;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.turnline-right{display:flex;align-items:center;gap:7px;min-width:0}
+.turnline-right>b{color:var(--gold2);font-size:11px;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#hudSala{flex:0 0 auto;height:32px;padding:0 11px;border:1px solid #56768a;border-radius:7px;background:#102330;color:var(--gold2);font:800 10px var(--mono);letter-spacing:.12em;cursor:pointer;position:relative}
+#hudSala::after{content:'';position:absolute;left:50%;top:50%;width:max(100%,var(--alvo-de-toque));height:max(100%,var(--alvo-de-toque));transform:translate(-50%,-50%)}
+#hudSala:active{transform:translateY(2px)}
 
 /* ── Espessura ───────────────────────────────────────────────────────── */
 .depth-card{border:1px solid var(--edge);background:linear-gradient(165deg,#152431,#0b141d 68%,#071018);box-shadow:var(--shadow);border-radius:10px}
@@ -199,6 +209,15 @@ h1,h2,h3{font-family:var(--display);font-weight:600;margin:0}
 .ending-card h3{font-size:19px;line-height:1.15}
 .ending-card p{margin:0;font-size:12.5px;line-height:1.45;color:var(--muted)}
 
+/* ── Coleção das seis perguntas ──────────────────────────────────────── */
+.colecao{padding:13px;display:grid;gap:7px;border-left:4px solid var(--gold)}
+.colecao>small{font:700 9px var(--mono);letter-spacing:.14em;color:var(--gold)}
+.colecao>b{font:600 22px var(--display)}
+.colecao p{margin:0;font-size:12.5px;line-height:1.45;color:var(--muted)}
+.colecao-marcas{display:flex;flex-wrap:wrap;gap:5px}
+.marca{padding:5px 8px;border:1px solid #3a4a56;border-radius:6px;font:700 9px var(--mono);letter-spacing:.08em;color:#63798a}
+.marca.on{border-color:#58c78a;background:#10271f;color:var(--green-soft)}
+
 /* ── Gaveta de regras ────────────────────────────────────────────────── */
 .drawer{position:fixed;inset:0;z-index:70;background:#000b;display:none;padding:12px;overflow:auto}
 .drawer.on{display:block}
@@ -243,7 +262,10 @@ h1,h2,h3{font-family:var(--display);font-weight:600;margin:0}
  .dock .btn.ghost{min-width:0}
 }
 
-/* A sala do firebase-room.js injeta um botão flutuante próprio. Aqui ele
-   continua sendo a única porta da Mesa, então permanece visível — ao
-   contrário de A Noite, que tem o SALA no HUD. Só recebe respiro do dock. */
-#dragonSalaBtn{bottom:calc(var(--dock-h) + 22px + env(safe-area-inset-bottom))!important}
+/* A sala tem duas portas e só precisa de uma. O #dragonSalaBtn flutuante vem do
+   firebase-room.js, compartilhado com A Noite — lá ele é a única porta e não
+   pode sumir. Aqui ele flutuava por cima do dock e atrapalhava a mão, e o
+   cabeçalho tinha espaço sobrando. Escondido, não removido: o clique
+   programático do #hudSala continua funcionando, e a presença do nó ainda é
+   como o game.js reconhece que este aparelho é o do Mestre. */
+#dragonSalaBtn{display:none}
