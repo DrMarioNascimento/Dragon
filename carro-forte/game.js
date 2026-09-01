@@ -290,7 +290,7 @@ function renderSensors(){
   return `<article class="sensor-card depth-card blue ${feita?'feita':ativa?'atual':'travada'}" data-sensor="${id}"><small>${rot}</small><h3>${s.title}</h3><p>${s.desc}</p>${ativa?`<div class="sensor-actions"><a class="btn primary depth" href="${s.href}?partida=${state.game}&ritmo=${state.pace}">Abrir atividade</a><button class="btn ghost depth mark-sensor" type="button">A mesa concluiu</button></div>`:''}</article>`;
  }).join('');
  host.querySelectorAll('.mark-sensor').forEach(btn=>btn.onclick=()=>{
-  state.sensorDone.add(btn.closest('[data-sensor]').dataset.sensor);renderSensors();
+  concluirSensor(btn.closest('[data-sensor]').dataset.sensor);
  });
  const n=state.sensorDone.size,faltam=ordem.length-n;
  $('sensorDone').textContent=`${n} de ${ordem.length} concluída${ordem.length===1?'':'s'}`;
@@ -301,6 +301,31 @@ function renderSensors(){
   ? (faltam===1?'Falta 1 atividade':`Faltam ${faltam} atividades`)
   : 'Abrir o dossiê <span>→</span>';
 }
+
+/* A atividade abre em outra aba e agora avisa sozinha quando termina — antes
+   quem marcava era só o botão daqui, e o aparelho da mesa tinha de lembrar.
+
+   Só o aviso da atividade DA VEZ é aceito. A fila não anda fora de ordem nem
+   por mensagem: uma aba velha de outra partida, ou um aviso repetido, não
+   adianta o dossiê. O botão "A mesa concluiu" continua existindo para quando a
+   atividade for feita fora do aparelho, ou a aba for fechada antes do fim. */
+function atividadeDaVez(){
+ if(!state.game)return null;
+ const ordem=PARTIDAS[state.game].activities;
+ return ordem.find(id=>!state.sensorDone.has(id))||null;
+}
+function concluirSensor(sensor){
+ if(!sensor||sensor!==atividadeDaVez())return;
+ state.sensorDone.add(sensor);
+ if(state.screen==='sensory')renderSensors();
+}
+function receberAviso(dado){
+ if(!dado||dado.fonte!=='mosaico-carro-forte'||dado.tipo!=='sensor-concluido')return;
+ if(dado.partida!==state.game)return;
+ concluirSensor(dado.sensor);
+}
+try{new BroadcastChannel('mosaico-carro-forte').onmessage=e=>receberAviso(e.data)}catch(e){}
+addEventListener('message',e=>{if(e.origin===location.origin)receberAviso(e.data)});
 
 function cartaoFragmento(cod){
  const f=FRAGMENTOS[cod],m=state.marcados.has(cod);
