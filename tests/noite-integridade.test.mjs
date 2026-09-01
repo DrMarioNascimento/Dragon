@@ -215,6 +215,46 @@ test("quem escreve a vez e quem lê a vez falam a mesma língua", () => {
   );
 });
 
+/* Seção 5 do PADRAO-SALA-MULTIPLAYER: "qualquer pergunta, cenário ou variante
+   definida pelo sistema deve ser gravada no documento da sala e permanecer
+   congelada durante aquela sessão; recarga ou reconexão não pode gerar outra
+   variante." O núcleo fazia o oposto — `Math.random()` em cada aparelho — e
+   numa sala de oito eram oito perguntas diferentes. O sorteio local continua
+   existindo, e deve: é o certo no ensaio, onde não há sala. O que não pode
+   voltar é ele ser o único caminho. */
+test("a pergunta da noite é perguntada à sala antes de ser sorteada", () => {
+  const nucleo = ler("game-fixed.js");
+  const consulta = nucleo.indexOf("window.MosaicoSalaPartida");
+  const sorteio = nucleo.indexOf("ids[Math.floor(Math.random()*ids.length)]");
+  assert.ok(consulta >= 0, "o núcleo voltou a sortear sem perguntar à sala");
+  assert.ok(sorteio >= 0, "o sorteio local sumiu: o ensaio neste aparelho fica sem pergunta");
+  assert.ok(consulta < sorteio, "o sorteio local acontece antes de consultar a sala e vence a pergunta congelada");
+
+  const sala = ler("sala-partida.js");
+  assert.ok(sala.includes("'partida.pergunta'"), "sala-partida.js não grava mais a pergunta no documento da sala");
+  assert.ok(
+    sala.includes("if (atual) return Promise.resolve(atual)"),
+    "a gravação deixou de ser idempotente: reconectar volta a re-sortear"
+  );
+});
+
+/* Um módulo de sincronia que não carrega não pode levar o jogo junto. Foi
+   assim que a página ficou morta duas vezes: um arquivo não compilou e o
+   navegador descartou tudo em silêncio. Aqui a falha é prevista e o jogo
+   abre assim mesmo, sorteando local. */
+test("se a sincronia não carregar, o jogo abre mesmo assim", () => {
+  const html = ler("index.html");
+  const i = html.indexOf("sala-partida.js");
+  assert.ok(i >= 0, "index.html deixou de carregar a sincronia da pergunta");
+  const trecho = html.slice(i, i + 320);
+  assert.ok(trecho.includes("onerror"), "a falha do módulo de sala não é tratada");
+  assert.match(
+    trecho,
+    /onerror=\(\)=>\{[^}]*loadGame\(\)/,
+    "o onerror não carrega o jogo: um módulo ausente volta a deixar a página morta"
+  );
+});
+
 /* A escolha do CAPTURAR é de quem tirar, nunca de qual fragmento — o segredo
    do dossiê alheio é a tensão da mesa. Para a escolha não ser sorteio, ela
    precisa mostrar quem está ganhando. */

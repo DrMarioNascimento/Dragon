@@ -5,7 +5,7 @@
 (function(){
   const s=document.createElement('script');
   s.async=false;
-  s.src='game-fixed.js?v=20260831-actions9';
+  s.src='game-fixed.js?v=20260901-pergunta1';
   s.onerror=()=>console.error('MOSAICO: falha ao carregar núcleo funcional.');
   s.onload=()=>{
     const o=document.createElement('script');
