@@ -1,5 +1,5 @@
 import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signInAnonymously, signOut } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
+import { getAuth, GoogleAuthProvider, signInWithPopup, getRedirectResult, signInAnonymously, signOut } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
 import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
 
 /* Esta folha é carregada com type="module", e em módulo document.currentScript
@@ -91,10 +91,9 @@ async function autorizado(user){
   const permitidos=cfg.exists()&&Array.isArray(cfg.data().emails)?cfg.data().emails:[];
   return permitidos.includes((user.email||'').trim());
 }
-/* O redirect recarrega a página, e `modo`/`ritmo` são variáveis de módulo:
-   voltavam ao padrão sem avisar, e a sala nascia com escolhas que o Mestre não
-   fez. Guardar junto com a marca da viagem devolve o que ele escolheu. */
-function guardarEscolhas(){try{sessionStorage.setItem('dragon.room.open',JSON.stringify({modo,ritmo}))}catch{}}
+/* Ninguém mais parte para o redirect, mas quem já estava no meio de uma viagem
+   antiga volta com esta marca. Ler e apagar limpa o resto e devolve o que o
+   Mestre havia escolhido antes de sair da página. */
 function recuperarEscolhas(){
   let bruto=null;try{bruto=sessionStorage.getItem('dragon.room.open')}catch{}
   if(!bruto)return false;
@@ -107,18 +106,36 @@ async function abrirComoMestre(user){
   if(!(await autorizado(user))){await signOut(auth);pendingUser=null;return renderMasterGate('Esta conta Google não está autorizada a abrir mesas.');}
   await criarSalaBase();
 }
+/* A mensagem crua do SDK chegava em inglês e falando de SAML: "Unable to
+   process request due to missing initial state…". Quem lê é o Mestre com o
+   celular na mão, no escuro, com a mesa esperando. Cada erro que a gente sabe
+   nomear vira uma frase que diz o que fazer. */
+function mensagemLogin(e){
+  const c=e?.code||'',txt=String(e?.message||'');
+  if(c==='auth/missing-initial-state'||/missing initial state/i.test(txt))
+    return 'Este navegador apagou o estado do login no meio do caminho — é o que acontece quando a página volta de um redirecionamento. Toque em “Abrir com Google” de novo: agora a janela abre por cima desta página, sem sair dela.';
+  if(c==='auth/popup-blocked')
+    return 'O navegador bloqueou a janela do Google. Libere o pop-up para esta página e tente de novo. Se você abriu por dentro de outro aplicativo, abra a página no Safari ou no Chrome.';
+  if(c==='auth/popup-closed-by-user'||c==='auth/cancelled-popup-request')
+    return 'A janela do Google foi fechada antes de concluir. Toque em “Abrir com Google” para tentar outra vez.';
+  if(c==='auth/unauthorized-domain')
+    return 'Este endereço não está autorizado no Firebase Auth deste projeto.';
+  if(c==='auth/network-request-failed')
+    return 'A rede caiu durante o login. Confira a conexão e tente de novo.';
+  return txt||'Não foi possível entrar com Google.';
+}
+/* Sem queda para o redirect. Nesta hospedagem ele nunca conclui — a página sai
+   de drmarionascimento.github.io e o authDomain é <projeto>.firebaseapp.com, e
+   o navegador que particiona armazenamento devolve missing-initial-state na
+   volta. Mandar alguém para lá é tirá-lo da página para trazê-lo de volta com
+   um erro. Quando o popup não abre, o caminho é liberar o popup — e a mensagem
+   diz isso. */
 async function loginMestre(){
   try{
     const provider=new GoogleAuthProvider();provider.setCustomParameters({prompt:'select_account'});
-    /* popup-closed-by-user e cancelled-popup-request são os mais comuns em
-       celular e antes caíam no throw, virando mensagem de erro em vez de
-       segunda tentativa. */
-    const quedasConhecidas=['auth/popup-blocked','auth/popup-closed-by-user','auth/cancelled-popup-request','auth/web-storage-unsupported','auth/operation-not-supported-in-this-environment'];
-    let user;
-    try{user=(await signInWithPopup(auth,provider)).user}
-    catch(e){if(quedasConhecidas.includes(e.code)){guardarEscolhas();await signInWithRedirect(auth,provider);return}throw e}
+    const {user}=await signInWithPopup(auth,provider);
     await abrirComoMestre(user);
-  }catch(e){renderMasterGate(e?.message||'Não foi possível entrar com Google.')}
+  }catch(e){renderMasterGate(mensagemLogin(e))}
 }
 async function criarSalaBase(){
   try{
@@ -126,12 +143,8 @@ async function criarSalaBase(){
     code=gerar();for(let i=0;i<8;i++){if(!(await getDoc(roomRef(code))).exists())break;code=gerar()}
     await setDoc(roomRef(code),{ativa:true,fase:'sala',mestreUid:u.uid,criadaEm:serverTimestamp(),criadaEmMs:Date.now(),modo,ritmo,caseId:CASE_ID});
     role='master';room={ativa:true,fase:'sala',mestreUid:u.uid,modo,ritmo,caseId:CASE_ID};
-    renderOrientacaoMestre();
+    formEntrar('',true);
   }catch(e){renderMasterGate('Não foi possível criar a mesa. '+(e?.message||e))}
-}
-function renderOrientacaoMestre(){
-  gate().innerHTML=`<div class="dr-shell"><div class="dr-brand">${esc(TITLE)} · ÁREA DO MESTRE</div><div class="dr-card"><h2>Você é o mestre da sala</h2><p>Durante a partida, você continuará jogando normalmente.</p><div class="dr-master-info"><p>O botão <b>Sala</b> ficará disponível durante toda a partida.</p><p>Por ele você poderá acompanhar participantes, consultar QR/código e encerrar a sala.</p></div><button class="dr-btn" id="drContinue">Entendi · continuar</button></div></div>`;
-  document.getElementById('drContinue').onclick=()=>formEntrar('',true);
 }
 function formEntrar(err='',asMaster=false){
   /* O campo do nome vinha preenchido com o displayName da conta Google, então o
@@ -140,8 +153,16 @@ function formEntrar(err='',asMaster=false){
      partida, escolhido na hora, e a conta Google serve só para autorizar quem
      abre. O campo nasce vazio, e nada da conta é gravado — o documento do
      jogador guarda apenas o que foi digitado aqui. */
-  gate().innerHTML=`<div class="dr-shell"><div class="dr-brand">${esc(TITLE)}</div><div class="dr-card"><h2>Quem chega agora?</h2><p>Escolha o nome que a mesa vai ver nesta partida. Não precisa ser o seu.</p><input class="dr-input" id="drCode" maxlength="6" placeholder="CÓDIGO" value="${esc(code||q||'')}" ${asMaster?'readonly':''}><div class="dr-ident">Nome nesta partida</div><input class="dr-input" id="drName" maxlength="24" placeholder="Como quer ser chamado" autocomplete="off">${formas('m')}${err?`<div class="dr-error">${esc(err)}</div>`:''}<button class="dr-btn" id="drEnter">Entrar</button><button class="dr-btn secondary" id="drBack">Voltar</button></div></div>`;
-  document.getElementById('drBack').onclick=()=>asMaster?renderOrientacaoMestre():menu();
+  /* Eram duas telas para o Mestre: uma explicando o botão Sala, com um "Entendi
+     · continuar", e só depois o formulário de nome. Logo após o Google, isso
+     parecia pedido de login repetido. O aviso da Sala virou um bloco dentro do
+     próprio formulário, e o Mestre entra na mesa em um toque.
+
+     Aqui o Mestre não tem "Voltar": a sala já existe no Firestore quando esta
+     tela aparece, e voltar ao menu a deixaria órfã, aberta e sem dono. */
+  const aviso=asMaster?`<div class="dr-master-info"><p>Sala criada. Durante a partida você continua jogando normalmente.</p><p>O botão <b>Sala</b> fica disponível o tempo todo: por ele você acompanha os participantes, consulta QR e código, e encerra a sala.</p></div>`:'';
+  gate().innerHTML=`<div class="dr-shell"><div class="dr-brand">${esc(TITLE)}${asMaster?' · ÁREA DO MESTRE':''}</div><div class="dr-card"><h2>${asMaster?'Sua mesa está aberta':'Quem chega agora?'}</h2><p>Escolha o nome que a mesa vai ver nesta partida. Não precisa ser o seu.</p>${aviso}<input class="dr-input" id="drCode" maxlength="6" placeholder="CÓDIGO" value="${esc(code||q||'')}" ${asMaster?'readonly':''}><div class="dr-ident">Nome nesta partida</div><input class="dr-input" id="drName" maxlength="24" placeholder="Como quer ser chamado" autocomplete="off">${formas('m')}${err?`<div class="dr-error">${esc(err)}</div>`:''}<button class="dr-btn" id="drEnter">${asMaster?'Entrar na mesa':'Entrar'}</button>${asMaster?'':'<button class="dr-btn secondary" id="drBack">Voltar</button>'}</div></div>`;
+  document.getElementById('drBack')?.addEventListener('click',()=>menu());
   document.getElementById('drEnter').onclick=()=>entrar(asMaster);
   setTimeout(()=>document.getElementById('drName')?.focus(),20)
 }
@@ -216,7 +237,12 @@ getRedirectResult(auth).then(r=>{
   menu();
 }).catch(e=>{
   const voltandoDoGoogle=recuperarEscolhas();
-  if(voltandoDoGoogle)return renderMasterGate(e?.message||'Não foi possível concluir o login com Google.');
+  /* O missing-initial-state é justamente o caso em que a marca da viagem some
+     junto com o resto do estado — exigir a marca para mostrar o erro deixava a
+     falha cair no menu outra vez, calada. O código do erro basta para saber que
+     havia um login em curso. */
+  const erroDeLogin=/missing initial state|auth\//i.test(String(e?.code||'')+' '+String(e?.message||''));
+  if(voltandoDoGoogle||erroDeLogin)return renderMasterGate(mensagemLogin(e));
   if(q){code=q.toUpperCase();return formEntrar('',false)}
   menu();
 });
