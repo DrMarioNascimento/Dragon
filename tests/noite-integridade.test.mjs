@@ -255,6 +255,50 @@ test("se a sincronia não carregar, o jogo abre mesmo assim", () => {
   );
 });
 
+/* Três caixas de texto estavam com a altura pregada e overflow:hidden — a
+   introdução da noite, a faixa da pergunta e o corpo digitado dentro dela. O
+   texto não some com aviso: ele simplesmente termina antes. Na introdução o
+   que ficava de fora era a última frase, "As interpretações ainda estão em
+   disputa", que é a premissa do jogo inteiro.
+
+   Altura fixa nessas caixas serve para o texto não pular enquanto é digitado;
+   min-height resolve isso sem cortar nada. O que não pode voltar é o par
+   height + overflow:hidden em caixa de texto que varia com o aparelho. */
+test("nenhuma caixa de texto tem a altura pregada", () => {
+  const folhas = {
+    "styles.css": ler("styles.css"),
+    "carro-forte-terminal.css": readFileSync(new URL("../carro-forte-terminal.css", pasta), "utf8")
+  };
+  const caixas = [".intro-copy>p", ".question-banner", ".terminal-body", ".terminal-copy"];
+  for (const [nome, css] of Object.entries(folhas)) {
+    for (const regra of css.split("}")) {
+      const seletor = regra.split("{")[0] || "";
+      if (!caixas.some(c => seletor.includes(c))) continue;
+      const corpo = regra.split("{")[1] || "";
+      assert.ok(
+        !/(^|;)\s*height:\s*\d/.test(corpo),
+        `${nome}: ${seletor.trim()} prega a altura e corta o texto; use min-height`
+      );
+      assert.ok(
+        !/max-height:\s*\d/.test(corpo),
+        `${nome}: ${seletor.trim()} limita a altura e corta o texto`
+      );
+    }
+  }
+});
+
+/* O atributo hidden do HTML perde para qualquer display declarado numa folha,
+   e o projeto já foi mordido duas vezes por isso: o M da marca e o seletor de
+   investigadores continuaram na tela depois de receberem hidden=true, porque
+   .mark e .field declaram display. A normalização abaixo resolve a classe
+   inteira; sem ela, cada novo hidden vira uma caçada. */
+test("hidden esconde de verdade", () => {
+  assert.ok(
+    ler("styles.css").includes("[hidden]{display:none!important}"),
+    "sem normalizar [hidden], todo elemento com display declarado ignora hidden=true"
+  );
+});
+
 /* A escolha do CAPTURAR é de quem tirar, nunca de qual fragmento — o segredo
    do dossiê alheio é a tensão da mesa. Para a escolha não ser sorteio, ela
    precisa mostrar quem está ganhando. */
