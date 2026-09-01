@@ -27,7 +27,7 @@
   };
 
   carregar('opening-flow.js?v=20260901-ordem1',()=>{
-    carregar('game-fixed.js?v=20260901-ordem1',()=>{
+    carregar('game-fixed.js?v=20260901-vez-fica',()=>{
       carregar('layout-compacto.js?v=20260901-ordem1');
     });
   });
