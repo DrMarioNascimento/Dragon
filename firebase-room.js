@@ -117,7 +117,12 @@ async function entrar(asMaster=false){
     const snap=await getDoc(roomRef(code));if(!snap.exists()||snap.data().ativa!==true)return formEntrar('Sala não encontrada ou encerrada.',asMaster);
     if(snap.data().caseId&&snap.data().caseId!==CASE_ID)return formEntrar('Esse código pertence a outro caso do MOSAICO.',asMaster);
     await setDoc(playerRef(code,u.uid),{nome:nome.slice(0,60),forma,mestre:!!asMaster,pronto:true,entrouMs:Date.now(),atualizadoEmMs:Date.now()},{merge:true});
-    role=asMaster?'master':'guest';ouvir();
+    /* Quem manda sobre isto é o documento da sala, não o caminho que a pessoa
+       tomou para chegar aqui. O Mestre que recarrega, que volta pelo QR ou que
+       reconecta entra pelo mesmo formulário do convidado — e saía marcado como
+       convidado, perdendo a abertura e o painel Sala na própria mesa que abriu.
+       Comparar o uid com mestreUid devolve a verdade em qualquer caminho. */
+    role=(asMaster||snap.data().mestreUid===u.uid)?'master':'guest';ouvir();
   }catch(e){formEntrar(e?.message||'Não foi possível entrar.',asMaster)}
 }
 function ouvir(){

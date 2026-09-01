@@ -1,7 +1,7 @@
 /* MOSAICO · layout compacto seguro e não invasivo */
 (function(){
   if(!document.querySelector('link[data-layout-compacto]')){
-    const css=document.createElement('link');css.rel='stylesheet';css.href='layout-compacto.css?v=20260831-hud7';css.dataset.layoutCompacto='1';document.head.appendChild(css);
+    const css=document.createElement('link');css.rel='stylesheet';css.href='layout-compacto.css?v=20260901-ordem1';css.dataset.layoutCompacto='1';document.head.appendChild(css);
   }
   const brand=document.querySelector('.brand');
   const topline=document.querySelector('.topline');
