@@ -3,36 +3,141 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
-  <meta name="theme-color" content="#071114" />
-  <title>MOSAICO — A Manhã do Carro-Forte</title>
-  <link rel="stylesheet" href="styles.css" />
-  <link rel="stylesheet" href="../carro-forte-terminal.css?v=20260830-all-screens" />
-  <link rel="stylesheet" href="iphone-guard.css" />
+  <meta name="theme-color" content="#050b12" />
+  <title>MOSAICO — A Mesa · A Manhã do Carro-Forte</title>
+  <link rel="stylesheet" href="styles.css?v=20260831-v4-noite" />
+  <link rel="stylesheet" href="../carro-forte-terminal.css?v=20260901-linha-inteira" />
+  <link rel="stylesheet" href="iphone-guard.css?v=20260831-v4-noite" />
 </head>
 <body>
+  <div class="scene" aria-hidden="true"></div>
   <div class="rain" aria-hidden="true"></div>
+
   <div id="orientationGuard" class="system-guard hidden" role="dialog" aria-live="assertive"><div><span>ORIENTAÇÃO</span><strong>Gire o iPhone para continuar</strong><p>Esta mesa foi preparada para o modo vertical. O cronômetro fica pausado enquanto a tela estiver girada.</p></div></div>
+
   <header class="topbar">
-    <div class="brand"><span class="mark">M</span><div><b>MOSAICO</b><small>A Manhã do Carro-Forte · V4</small></div></div>
-    <div class="session"><span id="phaseLabel">ESCOLHA</span><span class="dot"></span><span id="timer">00:00</span></div>
-    <button class="ghost" id="resetBtn" type="button">Reiniciar</button>
+    <div class="topline">
+      <div class="brand"><span class="mark">M</span><div><b>MOSAICO · A MESA</b><small>A MANHÃ DO CARRO-FORTE</small></div></div>
+      <div class="hud">
+        <button class="icon-btn depth" id="infoBtn" type="button" aria-label="Regras da mesa">ⓘ</button>
+        <span class="hud-pill">⏱ <b id="timer">00:00</b></span>
+        <button class="icon-btn depth" id="resetBtn" type="button" aria-label="Reiniciar a mesa">⟲</button>
+      </div>
+    </div>
+    <div class="turnline">
+      <span><small id="phaseStep">1</small> <b id="phaseName">PRÓLOGO</b></span>
+      <b id="partidaLabel" hidden></b>
+    </div>
   </header>
+
   <main id="app">
-    <section class="screen active" data-screen="intro"><div class="hero"><div class="eyebrow">AGÊNCIA 0417 · GAROA · 8H02</div><h1>A Manhã do<br><em>Carro-Forte</em></h1><p>Um saco vazio no chão. O lacre partido. A câmera 3 perdeu exatamente 87 segundos. Alguém grita: <b>“falta dinheiro”.</b></p><div class="notice"><span>REALIDADE ÚNICA · PERGUNTAS MÚLTIPLAS</span><b>Escolha qual mistério esta mesa vai perseguir.</b></div><div class="setup compact"><label>Investigadores<select id="playerCount"><option>2</option><option>3</option><option>4</option><option>5</option><option selected>6</option><option>7</option><option>8</option></select></label><label>Ritmo<select id="pace"><option value="pressure">Sob pressão · 30 s</option><option value="calm">Calma · 60 s</option></select></label></div><button class="primary" id="chooseGame" type="button">Escolher partida <span>→</span></button></div><aside class="street-card"><div class="clock"><span>FARMÁCIA</span><strong>7:44</strong><small>o relógio parece atrasado</small></div><div class="bank">BANCO <span>auditoria chegando</span></div></aside></section>
-    <section class="screen" data-screen="games"><div class="section-head"><div><span>PERGUNTA-MÃE</span><h2>Seis partidas. A mesma manhã.</h2></div><p>A realidade factual não muda. Muda o que você precisa demonstrar.</p></div><div id="gameCards" class="game-grid"></div><button class="ghost dock" data-back="intro" type="button">← Voltar</button></section>
-    <section class="screen" data-screen="briefing"><div class="section-head"><div><span id="gameNature">PARTIDA</span><h2 id="gameTitle"></h2></div><p id="gameQuestion" class="question"></p></div><div class="brief-grid"><article><small>O QUE PARECE</small><p>Houve um assalto interno e R$ 480.000 desapareceram durante uma janela de 87 segundos.</p></article><article><small>REGRA DE LEITURA</small><p>Fato não é interpretação. Uma evidência pode ser verdadeira e ainda sustentar uma leitura errada.</p></article></div><div class="activity-map"><h3>Atividades desta partida</h3><div id="activityPlan"></div></div><button class="primary dock" id="startGame" type="button">Entrar na investigação <span>→</span></button></section>
-    <section class="screen" data-screen="sensory"><div class="section-head"><div><span>ATIVIDADES SENSORIAIS</span><h2>Abra fatos. Não conclusões.</h2></div><p>Cada atividade revela fatos relevantes para a pergunta desta partida. Ela abre em uma nova aba para preservar o estado da Mesa.</p></div><div id="sensoryCards" class="sensor-grid"></div><div class="archive"><div><small>ARQUIVO DA PARTIDA</small><b id="sensorDone">0 atividades concluídas</b></div><div id="sensorTags"></div></div><button class="primary dock" id="toEvidence" type="button">Continuar com as evidências <span>→</span></button></section>
-    <section class="screen" data-screen="evidence"><div class="section-head"><div><span>FRAGMENTOS</span><h2>O que os registros realmente dizem?</h2></div><p>Selecione relações que ajudam a responder à pergunta-mãe. Associação não é prova de causalidade.</p></div><div id="evidenceGrid" class="evidence-grid"></div><button class="primary dock" id="toHypothesis" type="button">Registrar hipótese provisória <span>→</span></button></section>
-    <section class="screen" data-screen="hypothesis"><div class="section-head"><div><span>HIPÓTESE</span><h2>Comprometa-se antes do fechamento.</h2></div><p id="hypothesisPrompt"></p></div><form id="hypothesisForm" class="case-form"></form></section>
-    <section class="screen" data-screen="mosaic"><div class="section-head"><div><span>MOSAICO COLETIVO</span><h2>Revise a leitura.</h2></div><p>Novas evidências podem alterar a interpretação sem alterar nenhum fato já revelado.</p></div><div id="relationGrid" class="relation-grid"></div><div class="contraproof"><span>CONTRAPROVA</span><h3 id="oldHypothesis"></h3><p id="counterPrompt"></p></div><button class="primary dock" id="toFinal" type="button">Ir para decisão final <span>→</span></button></section>
-    <section class="screen" data-screen="final"><div class="section-head"><div><span>DECISÃO</span><h2 id="finalTitle">Feche a sua resposta.</h2></div><p id="finalPrompt"></p></div><form id="finalForm" class="case-form"></form></section>
-    <section class="screen reveal-screen" data-screen="reveal"><div id="revealStage" class="reveal-stage"></div><button class="primary dock" id="nextReveal" type="button">Continuar revelação <span>→</span></button></section>
-    <section class="screen" data-screen="score"><div class="score-wrap"><span class="eyebrow">RELATÓRIO ENCERRADO</span><h2 id="scoreTitle"></h2><div class="score-ring"><strong id="totalScore">0</strong><small>/ 100</small></div><div id="scoreBars" class="score-bars"></div><div id="endingCards" class="ending-cards"></div><button class="primary" id="playAgain" type="button">Escolher outra partida</button></div></section>
+
+    <section class="screen active" data-screen="intro">
+      <div class="intro-copy">
+        <span class="eyebrow">AGÊNCIA 0417 · GAROA · 8H02</span>
+        <h1>A Manhã do<br><em>Carro-Forte</em></h1>
+        <p>Um saco vazio no chão. O lacre partido. A câmera 3 perdeu exatamente 87 segundos. Alguém grita: “falta dinheiro”.</p>
+        <div class="principle depth-card green"><small>REGRA DA MESA</small><strong>A realidade é uma só.</strong><span>A pergunta muda o que cada fragmento vale. Não muda o que aconteceu.</span></div>
+      </div>
+      <div class="intro-actions">
+        <label class="field depth-card">Investigadores<select id="playerCount"><option>2</option><option>3</option><option>4</option><option>5</option><option selected>6</option><option>7</option><option>8</option></select></label>
+        <label class="field depth-card">Ritmo<select id="pace"><option value="pressure">Sob pressão · 30 s</option><option value="calm">Calma · 60 s</option></select></label>
+        <label class="field depth-card">Duração<select id="duration"><option value="curta">Curta · 13 fragmentos</option><option value="padrao" selected>Padrão · 18 fragmentos</option><option value="longa">Longa · 24 fragmentos</option></select></label>
+        <button class="btn primary depth" id="chooseGame" type="button">Escolher a partida <span>→</span></button>
+      </div>
+      <aside class="street-card">
+        <div class="clock"><span>FARMÁCIA</span><strong>7:44</strong><small>o relógio parece atrasado</small></div>
+        <div class="bank">BANCO <span>auditoria chegando</span></div>
+      </aside>
+    </section>
+
+    <section class="screen" data-screen="games">
+      <div class="section-head"><span class="eyebrow">PAUTA · PERGUNTA-MÃE</span><h2>Seis partidas. A mesma manhã.</h2><p>A realidade factual não muda. Muda o que você precisa demonstrar — e, com ela, o que cada fragmento vale.</p></div>
+      <div id="gameCards" class="question-grid"></div>
+      <div class="dock"><button class="btn ghost depth" data-back="intro" type="button">← Voltar</button></div>
+    </section>
+
+    <section class="screen" data-screen="briefing">
+      <div class="section-head"><span class="eyebrow" id="gameNature">PARTIDA</span><h2 id="gameTitle"></h2></div>
+      <p class="question-banner depth-card" id="gameQuestion"></p>
+      <div class="brief-grid">
+        <article class="depth-card gold"><small>O QUE PARECE</small><p>Houve um assalto interno e R$ 480.000 desapareceram durante uma janela de 87 segundos.</p></article>
+        <article class="depth-card green"><small>REGRA DE LEITURA</small><p>Fato não é interpretação. Uma evidência pode ser verdadeira e ainda sustentar uma leitura errada.</p></article>
+      </div>
+      <div class="plan-grid" id="planCards"></div>
+      <div class="dock"><button class="btn ghost depth" data-back="games" type="button">← Pauta</button><button class="btn primary depth" id="startGame" type="button">Entrar na investigação <span>→</span></button></div>
+    </section>
+
+    <section class="screen" data-screen="sensory">
+      <div class="section-head"><span class="eyebrow">ATIVIDADES SENSORIAIS</span><h2>Abra fatos. Não conclusões.</h2><p>Cada atividade revela fatos relevantes para esta pergunta. Ela abre em uma nova aba para preservar o estado da Mesa.</p></div>
+      <div id="sensoryCards" class="sensor-grid"></div>
+      <div class="archive depth-card"><div><small>ARQUIVO DA PARTIDA</small><b id="sensorDone">0 concluídas</b></div><div id="sensorTags"></div></div>
+      <div class="dock"><button class="btn primary depth" id="toEvidence" type="button">Abrir o dossiê <span>→</span></button></div>
+    </section>
+
+    <section class="screen" data-screen="evidence">
+      <div class="section-head"><span class="eyebrow">DOSSIÊ EM TRÊS TERÇOS</span><h2>O que os registros realmente dizem?</h2><p>Marque os fragmentos que você considera relevantes para esta pergunta. Associação não é prova de causalidade — e nenhuma pista de fechamento aparece no primeiro terço.</p></div>
+      <div class="dossier-meta depth-card" id="dossierMeta"></div>
+      <div id="dossierWaves"></div>
+      <div class="dock"><button class="btn ghost depth" id="nextWave" type="button">Abrir o segundo terço →</button><button class="btn primary depth" id="toHypothesis" type="button" hidden>Registrar hipótese provisória <span>→</span></button></div>
+    </section>
+
+    <section class="screen" data-screen="hypothesis">
+      <div class="section-head"><span class="eyebrow">HIPÓTESES CONCORRENTES</span><h2>Comprometa-se antes do fechamento.</h2><p id="hypothesisPrompt"></p></div>
+      <form id="hypothesisForm">
+        <div id="hypothesisList" class="hyp-grid"></div>
+        <div class="dock"><button class="btn primary depth" type="submit">Fechar hipótese provisória <span>→</span></button></div>
+      </form>
+    </section>
+
+    <section class="screen" data-screen="mosaic">
+      <div class="section-head"><span class="eyebrow">MOSAICO · RELAÇÕES</span><h2>Costure o que sozinho não diz nada.</h2><p>Uma relação só existe quando as duas peças estão na mesa. Novas evidências podem alterar a interpretação sem alterar nenhum fato já revelado.</p></div>
+      <div id="relationGrid" class="relation-grid"></div>
+      <div class="contraproof depth-card green"><small>CONTRAPROVA</small><h3 id="oldHypothesis"></h3><p id="counterPrompt"></p></div>
+      <div class="dock"><button class="btn primary depth" id="toFinal" type="button">Ir para a decisão final <span>→</span></button></div>
+    </section>
+
+    <section class="screen" data-screen="final">
+      <div class="section-head"><span class="eyebrow">DECISÃO</span><h2>Feche a sua resposta.</h2><p id="finalPrompt"></p></div>
+      <form id="finalForm" class="case-form"></form>
+    </section>
+
+    <section class="screen reveal-screen" data-screen="reveal">
+      <div id="revealStage" class="reveal-stage"></div>
+      <div class="dock"><button class="btn primary depth" id="nextReveal" type="button">Continuar revelação <span>→</span></button></div>
+    </section>
+
+    <section class="screen" data-screen="score">
+      <div class="score-wrap">
+        <span class="eyebrow">RELATÓRIO ENCERRADO</span>
+        <h2 id="scoreTitle"></h2>
+        <div class="score-ring depth-card"><strong id="totalScore">0</strong><small>/ 100</small></div>
+        <div id="scoreBars" class="score-bars"></div>
+        <div id="endingCards" class="ending-cards"></div>
+        <div class="dock"><button class="btn primary depth" id="playAgain" type="button">Escolher outra partida <span>→</span></button></div>
+      </div>
+    </section>
+
   </main>
 
+  <aside id="drawer" class="drawer">
+    <div class="drawer-card depth-card">
+      <div class="drawer-head"><div><small>MOSAICO · A MESA</small><h2>Como esta mesa lê</h2></div><button id="drawerClose" class="icon-btn" type="button" aria-label="Fechar">×</button></div>
+      <div class="rules-list">
+        <div class="rule-line"><b>Gramática</b><span>FATO → INTERPRETAÇÃO → RELAÇÃO → INFERÊNCIA</span></div>
+        <div class="rule-line"><b>Dossiê</b><span>três terços</span></div>
+        <div class="rule-line"><b>Relação</b><span>duas peças ou nada</span></div>
+      </div>
+      <p><b>A realidade canônica é única.</b> Nenhuma partida reescreve fatos para produzir replay: a multiplicidade está nas perguntas, não em verdades alternativas.</p>
+      <p><b>Fragmentos têm função.</b> Estruturais fecham a pergunta; interpretativos sustentam ou enfraquecem hipóteses; relacionais só valem cruzados; contextuais aprofundam horário, acesso e circunstância.</p>
+      <p><b>Hipótese não é sentença.</b> Abandonar uma leitura plausível diante de nova relação conta a favor no relatório, nunca contra.</p>
+      <p class="coin-start"><b>O MOSAICO deve explorar a distância entre aquilo que parece ter acontecido e aquilo que os fatos permitem concluir.</b></p>
+    </div>
+  </aside>
+
   <script src="../v1/js/qr.js"></script>
-  <script src="../carro-forte-terminal.js?v=20260830-all-screens"></script>
-  <script type="module" src="../firebase-room.js?v=20260830-master-persistente"
+  <script src="../carro-forte-terminal.js?v=20260901-linha-inteira"></script>
+  <script type="module" src="../firebase-room.js?v=20260901-login-uma-viagem"
           data-project="mesa"
           data-root="mosaico"
           data-case="carro-forte"
@@ -40,10 +145,10 @@
           data-ready-event="carroforte-mesa-ready"></script>
   <script>
     window.addEventListener('carroforte-mesa-ready',()=>{
-      const game=document.createElement('script');game.src='game.js?v=20260830-master-persistente';document.body.appendChild(game);
+      const game=document.createElement('script');game.src='game.js?v=20260831-v4-noite';document.body.appendChild(game);
       game.onload=()=>{
         document.addEventListener('click',e=>{const a=e.target.closest('.sensor-actions a');if(a)a.target='_blank'});
-        const guard=document.createElement('script');guard.src='iphone-guard.js?v=20260830-master-persistente';document.body.appendChild(guard);
+        const guard=document.createElement('script');guard.src='iphone-guard.js?v=20260831-v4-noite';document.body.appendChild(guard);
       };
     },{once:true});
   </script>

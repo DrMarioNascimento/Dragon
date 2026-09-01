@@ -1,52 +1,156 @@
+/* MOSAICO — A Manhã do Carro-Forte · A MESA
+   Consolidação V4 (31/08/2026): banco modular F01–F30, hipóteses concorrentes H1–H10,
+   relações em pares/tríades R-A…R-G e duração por seleção de subconjuntos.
+
+   A Mesa não é o Captura. Aqui não há moeda, vez nem carteira: a partida é coletiva,
+   o dossiê abre em três terços e o que se administra é interpretação, não liquidez.
+   REALIDADE CANÔNICA → FOCO DA PARTIDA → PERGUNTA → FRAGMENTOS → RELAÇÕES → INFERÊNCIA → DECISÃO */
+
+/* ── Banco de fragmentos (V4 §13). Função conforme V4 §12:
+      estrutural   — indispensável para o fechamento auditável;
+      interpretativo — sustenta ou enfraquece hipóteses sem fechá-las;
+      relacional   — vale sobretudo cruzado com outro fragmento;
+      contextual   — aprofunda horário, acesso, personagem e circunstância.
+      fecho: true  — pista de fechamento, protegida contra aparição precoce (V4 §15). */
+const FRAGMENTOS={
+ F01:{t:'Rota antecipada',d:'Solicitação de rota alternativa às 6h52, feita com credencial da subgerência.',f:'interpretativo'},
+ F02:{t:'Chegada às 7h47',d:'O carro-forte estaciona às 7h47; Caixa Sênior anota o horário no verso de um recibo.',f:'contextual'},
+ F03:{t:'A cafeteira',d:'A cafeteira registra 7h46min51s, reforçando a âncora temporal próxima de 7h47.',f:'relacional'},
+ F04:{t:'Relógio da farmácia',d:'O relógio da farmácia, usado como referência externa, estava três minutos atrasado.',f:'relacional'},
+ F05:{t:'Erro 17',d:'O Erro 17 é enviado às 6h58.',f:'interpretativo'},
+ F06:{t:'Mensagem apagada',d:'A mensagem do Erro 17 é apagada remotamente às 7h02.',f:'interpretativo'},
+ F07:{t:'Papel 17-B',d:'Um papel com o código 17-B aparece ligado à sala da subgerência.',f:'relacional'},
+ F08:{t:'Chave reserva',d:'A chave reserva 17-B dos arquivos consta como retirada.',f:'relacional'},
+ F09:{t:'Zona cega',d:'A câmera 3 fica cega por 87 segundos: 7h58min12s–7h59min39s.',f:'estrutural'},
+ F10:{t:'Contato do rack',d:'O contato do rack aparece recém-solto, sem poeira; a estabilidade do sistema estava limpa até 6h49.',f:'interpretativo'},
+ F11:{t:'Lacre da véspera',d:'O malote 41 fora lacrado na véspera com ML-8842.',f:'estrutural'},
+ F12:{t:'Lacre novo',d:'A etiqueta ML-8847 é impressa às 7h53 no terminal da subgerência.',f:'estrutural'},
+ F13:{t:'Saco vazio',d:'O saco encontrado no corredor às 8h02 pesa 0,4 kg e está sem conteúdo.',f:'estrutural',fecho:1},
+ F14:{t:'O peso coletado',d:'A prancheta da transportadora registra o malote 41 com 5,1 kg às 8h06.',f:'estrutural',fecho:1},
+ F15:{t:'Tabela de peso',d:'R$ 480 mil em notas de cem pesam de 5,0 a 5,2 kg; R$ 384 mil, cerca de 4,1 kg.',f:'estrutural',fecho:1},
+ F16:{t:'Conferência de destino',d:'Às 8h40 a tesouraria confere o malote 41 com R$ 480.000 e sem divergência.',f:'estrutural',fecho:1},
+ F17:{t:'Saque em espécie',d:'Subgerente saca R$ 96.000 em espécie às 6h20 na agência 0392.',f:'estrutural'},
+ F18:{t:'Origem do saque',d:'Penhor e empréstimo pessoal liquidados na véspera originam o valor sacado.',f:'interpretativo'},
+ F19:{t:'Depósito do Cliente',d:'O Cliente Corporativo depositara R$ 96.000 em espécie onze dias antes.',f:'estrutural'},
+ F20:{t:'Duplicidade D-11',d:'O relatório de consolidação mostra o mesmo depósito em dois pontos: guichê 16h10 e reconsolidação 18h55.',f:'estrutural',fecho:1},
+ F21:{t:'Assinatura sem cofre',d:'Existe assinatura de conferência física sem registro correspondente de abertura do cofre.',f:'estrutural',fecho:1},
+ F22:{t:'Marcas de água',d:'Marcas de água no piso ligam mesa de recebimento, corredor dos arquivos e o ponto onde o saco foi encontrado.',f:'relacional'},
+ F23:{t:'Rádio reserva',d:'O rádio reserva foi retirado e devolvido na sala da subgerência.',f:'contextual'},
+ F24:{t:'A ordem no rádio',d:'A gravação do rádio registra a ordem que afastou Vigilância para o corredor oposto.',f:'interpretativo'},
+ F25:{t:'Duas pastas azuis',d:'Câmeras 1 e 2 registram duas pastas azuis caindo simultaneamente às 7h57min40s.',f:'relacional'},
+ F26:{t:'A pasta trocada',d:'Aprendiz recolhe a pasta errada; nela seguem o papel 17-B e um chaveiro.',f:'relacional'},
+ F27:{t:'Envelope do Cliente',d:'O Cliente protocola um envelope às 8h05, o que explica sua permanência silenciosa no saguão.',f:'contextual'},
+ F28:{t:'E-mail de auditoria',d:'Às 21h47 da véspera chega e-mail exigindo contagem física integral às 8h00.',f:'interpretativo'},
+ F29:{t:'Contestação do Transporte',d:'Transporte contesta a rota antecipada pelo rádio; o canal do banco confirma a alteração.',f:'interpretativo'},
+ F30:{t:'Sequência da janela',d:'Porta abre 7h58min24s; ML-8842 é rompido 7h58min50s; ML-8847 é aplicado 7h59min20s.',f:'estrutural'}
+};
+
+/* ── Relações (V4 §15). Cada peça é um grupo de alternativas: basta um código do grupo. */
+const RELACOES=[
+ {id:'R-A',t:'5,1 kg contra a tabela de peso',pecas:[['F14'],['F15']],efeito:'Transforma um número neutro em evidência de conteúdo.'},
+ {id:'R-B',t:'O saco de 0,4 kg contra o malote de 5,1 kg',pecas:[['F13'],['F14']],efeito:'Separa o objeto descartado do malote efetivamente coletado.'},
+ {id:'R-C',t:'5,1 kg contra os R$ 480.000 no destino',pecas:[['F14'],['F16']],efeito:'Derruba a retirada física do valor.'},
+ {id:'R-D',t:'O saque contra o lacre novo e a janela',pecas:[['F17'],['F12','F30']],efeito:'Converte dinheiro suspeito em possível material de inserção.'},
+ {id:'R-E',t:'O depósito único contra a duplicidade',pecas:[['F19'],['F20','F21']],efeito:'Localiza a origem escritural onze dias antes.'},
+ {id:'R-F',t:'O acidente das pastas contra a prova em mãos',pecas:[['F25'],['F26']],efeito:'O mesmo acidente que incrimina Aprendiz explica por que a prova estava com Aprendiz.'},
+ {id:'R-G',t:'O Erro 17 apagado contra a zona cega',pecas:[['F05','F06'],['F09','F10']],efeito:'Demonstra preparação da zona cega sem dizer se a finalidade era retirar ou inserir.'}
+];
+
+/* ── Hipóteses concorrentes (V4 §14). Nenhuma é pista falsa: todas nascem de fatos
+      verdadeiros interpretados de forma incompleta. Canônica = sobrevive ao fechamento. */
+const HIPOTESES=[
+ {id:'H1',t:'Furto consumado de R$ 480 mil',d:'Saco vazio, câmera cega, vigilância afastada e lacre rompido.',apoia:['F13','F09','F24','F30'],enfraquece:['F14','F15','F16']},
+ {id:'H2',t:'Furto parcial de R$ 96 mil',d:'A diferença entre R$ 384 mil físicos e R$ 480 mil declarados.',apoia:['F15','F17'],enfraquece:['F14','F16','F20']},
+ {id:'H3',t:'Troca ou desvio do malote',d:'Duas etiquetas, coleta antecipada e trajeto pelo corredor.',apoia:['F11','F12','F01','F22'],enfraquece:['F16','F30']},
+ {id:'H4',t:'Tentativa de furto frustrada',d:'Saco vazio e perturbação da segurança, mas o valor aparece no destino.',apoia:['F13','F09','F24'],enfraquece:['F16','F30']},
+ {id:'H5',t:'Cumplicidade logística',d:'Rota antecipada, contestação do Transporte e confirmação interna.',apoia:['F01'],enfraquece:['F29']},
+ {id:'H6',t:'Cumplicidade de acesso',d:'Chave 17-B, Limpeza e Aprendiz com pasta e chaveiro.',apoia:['F07','F08','F26'],enfraquece:['F25']},
+ {id:'H7',t:'O saque é produto do desvio',d:'O dinheiro em espécie visto antes de sua origem e direção serem compreendidas.',apoia:['F17'],enfraquece:['F18','F16']},
+ {id:'H8',t:'O saque é reposição',d:'384 + 96 = 480, com lacre novo e janela preparada.',apoia:['F17','F18','F12','F30','F15'],enfraquece:[],canonica:1},
+ {id:'H9',t:'Fraude ou erro contábil anterior',d:'Duplicidade D-11 e ausência de contagem física explicam o buraco sem subtração.',apoia:['F19','F20','F21','F28'],enfraquece:[],canonica:1},
+ {id:'H10',t:'Nenhum desaparecimento físico na manhã',d:'Peso de 5,1 kg, tabela operacional e conferência às 8h40.',apoia:['F14','F15','F16'],enfraquece:[],canonica:1}
+];
+
+/* ── Duração modular (V4 §16). O número é alvo, não teto: fragmentos centrais da pergunta
+      e peças de relação garantida entram mesmo que estourem o alvo. */
+const DURACOES={
+ curta:{n:13,rel:3,rot:'Curta',nota:'12–14 fragmentos · foco em relações estruturais'},
+ padrao:{n:18,rel:4,rot:'Padrão',nota:'16–20 fragmentos · equilíbrio entre as quatro funções'},
+ longa:{n:24,rel:6,rot:'Longa',nota:'22–26 fragmentos · mais pistas paralelas e hipóteses intermediárias'}
+};
+
 const PARTIDAS={
-  peso:{title:'O Peso do Malote 41',nature:'QUANTO + QUANDO',question:'O banco anuncia que faltam quatrocentos e oitenta mil reais. Quanto realmente desapareceu?',short:'Um número parece óbvio. A direção do dinheiro não.',activities:['vidro','escura'],fields:[
-    ['Valor declarado',['R$ 480.000','R$ 384.000','R$ 96.000','R$ 0'],'R$ 480.000'],
-    ['Valor físico antes da manhã',['R$ 480.000','R$ 384.000','R$ 96.000','R$ 0'],'R$ 384.000'],
-    ['Movimento líquido da manhã',['+ R$ 96.000','− R$ 96.000','− R$ 480.000','R$ 0'],'+ R$ 96.000'],
-    ['Diferença física real às 8h40',['R$ 480.000','R$ 384.000','R$ 96.000','R$ 0'],'R$ 0'],
-    ['Quando nasceu a diferença?',['Na janela de 87 s','Às 8h02','Na véspera','Onze dias antes'],'Onze dias antes']],
-    answer:'Naquela manhã, R$ 0 desapareceram fisicamente. A diferença de R$ 96.000 nasceu onze dias antes como duplicidade escritural.',
-    reveals:['O saco no chão pesa 0,4 kg. O malote coletado pesa 5,1 kg.','Às 8h40 a tesouraria confere R$ 480.000 íntegros.','A janela de 87 segundos foi usada para inserir R$ 96.000.','Um depósito de R$ 96.000 foi lançado duas vezes onze dias antes.']},
-  janela:{title:'Os 87 Segundos',nature:'O QUÊ + COMO',question:'O que realmente aconteceu enquanto a câmera 3 ficou cega?',short:'Reconstrua a janela sem pressupor retirada.',activities:['norte','escura','vidro'],fields:[
-    ['Primeiro evento',['Rádio afasta Vigilância','Lacre é rompido','Malote sai da agência','Etiqueta é impressa'],'Rádio afasta Vigilância'],
-    ['O que ocorre no malote?',['R$ 480.000 saem','R$ 96.000 entram','Nada é tocado','O malote é trocado'],'R$ 96.000 entram'],
-    ['O que ocorre com o lacre?',['Permanece ML-8842','É trocado por ML-8847','Desaparece','É rompido só no destino'],'É trocado por ML-8847'],
-    ['Direção do fluxo',['Agência → rua','Malote → corredor','Fora → dentro do malote','Tesouraria → agência'],'Fora → dentro do malote'],
-    ['Fim da janela',['7h58min12s','7h58min50s','7h59min39s','8h02'],'7h59min39s']],
-    answer:'Durante os 87 segundos, a vigilância foi afastada, o lacre foi rompido, R$ 96.000 foram inseridos no malote, um novo lacre foi aplicado e o malote voltou à custódia.',
-    reveals:['A câmera cai às 7h58min12s.','O lacre é rompido e R$ 96.000 entram.','ML-8847 substitui ML-8842.','A câmera retorna às 7h59min39s.']},
-  roubo:{title:'Foi um roubo?',nature:'QUAL / QUE TIPO',question:'Todo mundo viu os sinais de um assalto. Mas houve realmente um roubo?',short:'Classifique o acontecimento sem confundir irregularidade com subtração.',activities:['vidro','escura'],fields:[
-    ['Natureza da manhã',['Roubo consumado','Tentativa de roubo','Bagunça administrativa sem ação deliberada','Encenação operacional de reparação clandestina'],'Encenação operacional de reparação clandestina'],
-    ['Houve subtração de valores?',['Sim, R$ 480.000','Sim, R$ 96.000','Não','Não é possível saber'],'Não'],
-    ['A falha da câmera foi',['Acidental','Deliberadamente preparada','Rotina técnica','Produzida pela transportadora'],'Deliberadamente preparada'],
-    ['A diferença central é',['Patrimonial','Escritural','De transporte','De lacre'],'Escritural'],
-    ['A leitura “só bagunça” é',['Totalmente correta','Parcialmente correta','Totalmente falsa','Irrelevante'],'Parcialmente correta']],
-    answer:'Não houve roubo naquela manhã. Houve uma encenação operacional deliberada para reparar clandestinamente uma diferença escritural anterior.',
-    reveals:['Os sinais de crime são reais.','A preparação da câmera e do acesso foi deliberada.','Nenhum dinheiro foi subtraído.','A irregularidade é grave, mas não é furto.']},
-  antes:{title:'Antes das 8h02',nature:'QUANDO',question:'Quando nasceu a diferença que todos procuram?',short:'A mesa olha para minutos; a resposta está onze dias atrás.',activities:['norte'],fields:[
-    ['Âncora da manhã',['7h47','7h58min12s','8h02','8h40'],'7h47'],
-    ['Janela crítica',['87 segundos','3 minutos','11 dias','40 minutos'],'87 segundos'],
-    ['Momento da duplicidade',['Na manhã','Na véspera','Onze dias antes','No destino'],'Onze dias antes'],
-    ['Evento que transforma o erro em ameaça',['Chegada do carro-forte','Auditoria anunciada na véspera','Grito às 8h02','Reset da câmera'],'Auditoria anunciada na véspera'],
-    ['A diferença física nasce',['Às 7h58','Às 8h02','Onze dias antes','Nunca nasce'],'Nunca nasce']],
-    answer:'A diferença nasce onze dias antes, quando um depósito de R$ 96.000 é reconsolidado e lançado pela segunda vez. A manhã apenas tenta dar corpo ao número.',
-    reveals:['7h47 ancora a manhã, não a origem.','Os 87 segundos explicam uma operação, não a criação da diferença.','A auditoria torna o erro antigo urgente.','O nascimento factual está no D-11.']},
-  quem:{title:'Quem construiu a janela?',nature:'QUEM COMPOSTO',question:'Quem colocou cada peça daqueles 87 segundos em movimento?',short:'Separe decisão, preparação, execução, participação sem conhecimento e negligência.',activities:['norte','escura'],fields:[
-    ['Quem decide a operação?',['Subgerente','Limpeza','Manutenção','Gerência'],'Subgerente'],
-    ['Quem prepara a falha?',['Subgerente','Manutenção','Vigilância','Transporte'],'Subgerente'],
-    ['Quem abre o acesso sem conhecer a finalidade?',['Limpeza','Aprendiz','Gerência','Cliente'],'Limpeza'],
-    ['Quem executa o reset autorizado?',['Manutenção','Subgerente','Gerência','Vigilância'],'Manutenção'],
-    ['Quem autoriza o reset sem contingência?',['Gerência','Manutenção','Transporte','Caixa Sênior'],'Gerência']],
-    answer:'Subgerente decide e constrói a janela; Limpeza abre o acesso sem conhecer a finalidade; Manutenção executa um reset autorizado; Gerência autoriza sem contingência.',
-    reveals:['Presença não é autoria.','Execução técnica não é decisão.','Abrir a porta não prova conhecimento da finalidade.','A cadeia é distribuída, mas a coordenação é identificável.']},
-  proteger:{title:'O que estava sendo protegido?',nature:'POR QUÊ',question:'Se não era o dinheiro, o que alguém estava tentando salvar?',short:'A ação material contradiz o motivo aparente.',activities:['vidro'],fields:[
-    ['O que Subgerente teme perder?',['R$ 480.000','A assinatura e a carreira','O malote 41','A chave 17-B'],'A assinatura e a carreira'],
-    ['Por que usar dinheiro próprio?',['Para lavar produto de crime','Para completar fisicamente o saldo','Para pagar Transporte','Para comprar silêncio'],'Para completar fisicamente o saldo'],
-    ['O que dispara a urgência?',['A garoa','A auditoria integral','O Cliente','O relógio da farmácia'],'A auditoria integral'],
-    ['Qual ato original precisa ser escondido?',['Roubo anterior','Assinatura sem conferência física','Erro da transportadora','Abertura do cofre pelo Cliente'],'Assinatura sem conferência física'],
-    ['O objetivo final é',['Enriquecimento','Desviar a auditoria para inocentes','Fazer registros e dinheiro coincidirem','Fechar a agência'],'Fazer registros e dinheiro coincidirem']],
-    answer:'O objeto protegido era a assinatura — e, por extensão, a carreira. O dinheiro próprio foi usado para fazer a realidade física coincidir com um registro errado.',
-    reveals:['R$ 96.000 saem da conta pessoal de Subgerente.','O dinheiro entra, não sai.','A auditoria ameaça revelar uma assinatura sem conferência.','A operação tenta salvar reputação, não patrimônio.']}
+ peso:{title:'O Peso do Malote 41',nature:'QUANTO + QUANDO',question:'O banco anuncia que faltam quatrocentos e oitenta mil reais. Quanto realmente desapareceu?',short:'Um número parece óbvio. A direção do dinheiro não.',
+  activities:['vidro','escura'],hipotese:'H10',
+  centrais:['F13','F14','F15','F16','F17','F19','F20','F21'],incidentais:['F25','F26','F27','F23','F07','F08'],
+  fields:[
+   ['Valor declarado',['R$ 480.000','R$ 384.000','R$ 96.000','R$ 0'],'R$ 480.000'],
+   ['Valor físico antes da manhã',['R$ 480.000','R$ 384.000','R$ 96.000','R$ 0'],'R$ 384.000'],
+   ['Movimento líquido da manhã',['+ R$ 96.000','− R$ 96.000','− R$ 480.000','R$ 0'],'+ R$ 96.000'],
+   ['Diferença física real às 8h40',['R$ 480.000','R$ 384.000','R$ 96.000','R$ 0'],'R$ 0'],
+   ['Quando nasceu a diferença?',['Na janela de 87 s','Às 8h02','Na véspera','Onze dias antes'],'Onze dias antes']],
+  answer:'Naquela manhã, R$ 0 desapareceram fisicamente. A diferença de R$ 96.000 nasceu onze dias antes, como duplicidade escritural.',
+  reveals:['O saco no chão pesa 0,4 kg. O malote coletado pesa 5,1 kg.','Às 8h40 a tesouraria confere R$ 480.000 íntegros.','A janela de 87 segundos foi usada para inserir R$ 96.000.','Um depósito de R$ 96.000 foi lançado duas vezes onze dias antes.']},
+
+ janela:{title:'Os 87 Segundos',nature:'O QUÊ + COMO',question:'O que realmente aconteceu enquanto a câmera 3 ficou cega?',short:'Reconstrua a janela sem pressupor retirada.',
+  activities:['norte','escura','vidro'],hipotese:'H8',
+  centrais:['F09','F30','F11','F12','F24','F10'],incidentais:['F19','F20','F21','F27','F04','F03'],
+  fields:[
+   ['Primeiro evento',['Rádio afasta Vigilância','Lacre é rompido','Malote sai da agência','Etiqueta é impressa'],'Rádio afasta Vigilância'],
+   ['O que ocorre no malote?',['R$ 480.000 saem','R$ 96.000 entram','Nada é tocado','O malote é trocado'],'R$ 96.000 entram'],
+   ['O que ocorre com o lacre?',['Permanece ML-8842','É trocado por ML-8847','Desaparece','É rompido só no destino'],'É trocado por ML-8847'],
+   ['Direção do fluxo',['Agência → rua','Malote → corredor','Fora → dentro do malote','Tesouraria → agência'],'Fora → dentro do malote'],
+   ['Fim da janela',['7h58min12s','7h58min50s','7h59min39s','8h02'],'7h59min39s']],
+  answer:'Durante os 87 segundos a vigilância foi afastada, o lacre foi rompido, R$ 96.000 foram inseridos no malote, um novo lacre foi aplicado e o malote voltou à custódia.',
+  reveals:['A câmera cai às 7h58min12s.','A porta abre às 7h58min24s e o lacre ML-8842 é rompido às 7h58min50s.','R$ 96.000 entram e ML-8847 é aplicado às 7h59min20s.','A câmera retorna às 7h59min39s.']},
+
+ roubo:{title:'Foi um roubo?',nature:'QUAL / QUE TIPO',question:'Todo mundo viu os sinais de um assalto. Mas houve realmente um roubo?',short:'Classifique o acontecimento sem confundir irregularidade com subtração.',
+  activities:['vidro','escura'],hipotese:'H10',
+  centrais:['F09','F13','F14','F16','F20','F30'],incidentais:['F03','F04','F27','F02'],
+  fields:[
+   ['Natureza da manhã',['Roubo consumado','Tentativa de roubo','Bagunça administrativa sem ação deliberada','Encenação operacional de reparação clandestina'],'Encenação operacional de reparação clandestina'],
+   ['Houve subtração de valores?',['Sim, R$ 480.000','Sim, R$ 96.000','Não','Não é possível saber'],'Não'],
+   ['A falha da câmera foi',['Acidental','Deliberadamente preparada','Rotina técnica','Produzida pela transportadora'],'Deliberadamente preparada'],
+   ['A diferença central é',['Patrimonial','Escritural','De transporte','De lacre'],'Escritural'],
+   ['A leitura “só bagunça” é',['Totalmente correta','Parcialmente correta','Totalmente falsa','Irrelevante'],'Parcialmente correta']],
+  answer:'Não houve roubo naquela manhã. Houve uma encenação operacional deliberada para reparar clandestinamente uma diferença escritural anterior.',
+  reveals:['Os sinais de crime são reais.','A preparação da câmera e do acesso foi deliberada.','Nenhum dinheiro foi subtraído.','A irregularidade é grave, mas não é furto.']},
+
+ antes:{title:'Antes das 8h02',nature:'QUANDO',question:'Quando nasceu a diferença que todos procuram?',short:'A mesa olha para minutos; a resposta está onze dias atrás.',
+  activities:['norte'],hipotese:'H9',
+  centrais:['F19','F20','F21','F28','F02','F03','F04'],incidentais:['F22','F25','F26','F27','F13'],
+  fields:[
+   ['Âncora da manhã',['7h47','7h58min12s','8h02','8h40'],'7h47'],
+   ['Janela crítica',['87 segundos','3 minutos','11 dias','40 minutos'],'87 segundos'],
+   ['Momento da duplicidade',['Na manhã','Na véspera','Onze dias antes','No destino'],'Onze dias antes'],
+   ['Evento que transforma o erro em ameaça',['Chegada do carro-forte','Auditoria anunciada na véspera','Grito às 8h02','Reset da câmera'],'Auditoria anunciada na véspera'],
+   ['A diferença física nasce',['Às 7h58','Às 8h02','Onze dias antes','Nunca nasce'],'Nunca nasce']],
+  answer:'A diferença nasce onze dias antes, quando um depósito de R$ 96.000 é reconsolidado e lançado pela segunda vez. A manhã apenas tenta dar corpo ao número.',
+  reveals:['7h47 ancora a manhã, não a origem.','Os 87 segundos explicam uma operação, não a criação da diferença.','A auditoria da véspera torna urgente um erro antigo.','O nascimento factual está no D-11.']},
+
+ quem:{title:'Quem construiu a janela?',nature:'QUEM COMPOSTO',question:'Quem colocou cada peça daqueles 87 segundos em movimento?',short:'Separe decisão, preparação, execução, participação sem conhecimento e negligência.',
+  activities:['norte','escura'],hipotese:'H8',
+  centrais:['F01','F05','F06','F07','F08','F10','F24','F26'],incidentais:['F15','F16','F19','F20','F03'],
+  fields:[
+   ['Quem decide a operação?',['Subgerente','Limpeza','Manutenção','Gerência'],'Subgerente'],
+   ['Quem prepara a falha?',['Subgerente','Manutenção','Vigilância','Transporte'],'Subgerente'],
+   ['Quem abre o acesso sem conhecer a finalidade?',['Limpeza','Aprendiz','Gerência','Cliente'],'Limpeza'],
+   ['Quem executa o reset autorizado?',['Manutenção','Subgerente','Gerência','Vigilância'],'Manutenção'],
+   ['Quem autoriza o reset sem contingência?',['Gerência','Manutenção','Transporte','Caixa Sênior'],'Gerência']],
+  answer:'Subgerente decide e constrói a janela; Limpeza abre o acesso sem conhecer a finalidade; Manutenção executa um reset autorizado; Gerência autoriza sem contingência.',
+  reveals:['Presença não é autoria.','Execução técnica não é decisão.','Abrir a porta não prova conhecimento da finalidade.','A cadeia é distribuída, mas a coordenação é identificável.']},
+
+ proteger:{title:'O que estava sendo protegido?',nature:'POR QUÊ',question:'Se não era o dinheiro, o que alguém estava tentando salvar?',short:'A ação material contradiz o motivo aparente.',
+  activities:['vidro'],hipotese:'H9',
+  centrais:['F17','F18','F19','F20','F21','F28','F12'],incidentais:['F02','F03','F22','F25','F27'],
+  fields:[
+   ['O que Subgerente teme perder?',['R$ 480.000','A assinatura e a carreira','O malote 41','A chave 17-B'],'A assinatura e a carreira'],
+   ['Por que usar dinheiro próprio?',['Para lavar produto de crime','Para completar fisicamente o saldo','Para pagar Transporte','Para comprar silêncio'],'Para completar fisicamente o saldo'],
+   ['O que dispara a urgência?',['A garoa','A auditoria integral','O Cliente','O relógio da farmácia'],'A auditoria integral'],
+   ['Qual ato original precisa ser escondido?',['Roubo anterior','Assinatura sem conferência física','Erro da transportadora','Abertura do cofre pelo Cliente'],'Assinatura sem conferência física'],
+   ['O objetivo final é',['Enriquecimento','Desviar a auditoria para inocentes','Fazer registros e dinheiro coincidirem','Fechar a agência'],'Fazer registros e dinheiro coincidirem']],
+  answer:'O objeto protegido era a assinatura — e, por extensão, a carreira. O dinheiro próprio foi usado para fazer a realidade física coincidir com um registro errado.',
+  reveals:['R$ 96.000 saem da conta pessoal de Subgerente.','O dinheiro entra no malote; não sai.','A auditoria ameaça revelar uma assinatura sem conferência.','A operação tenta salvar reputação, não patrimônio.']}
 };
 
 const SENSORS={
@@ -55,35 +159,265 @@ const SENSORS={
  escura:{title:'A Sala às Escuras',desc:'Procure no corredor objetos físicos da zona cega sem transformá-los automaticamente em culpa.',href:'sala-as-escuras.html'}
 };
 
-const EVIDENCES=[
- ['F1','Antecipação interna','Terminal registra pedido de rota alternativa às 6h52.'],
- ['F2','Âncora 7h47','Recibo e registros eletrônicos fixam a chegada às 7h47.'],
- ['F5','Zona cega','A câmera 3 fica fora entre 7h58min12s e 7h59min39s.'],
- ['F7','Duas etiquetas','ML-8842 aparece rompido; ML-8847 foi impresso às 7h53.'],
- ['F8','Saco vazio','O saco no chão pesa 0,4 kg.'],
- ['F9','O peso','O malote entregue à custódia pesa 5,1 kg.'],
- ['F10','Destino','Às 8h40 a tesouraria confere R$ 480.000 íntegros.'],
- ['F11','Saque','Às 6h20 Subgerente saca R$ 96.000 de origem pessoal.'],
- ['F13','Duplicidade','O mesmo depósito de R$ 96.000 aparece duas vezes na consolidação D-11.'],
- ['F14','Assinatura','A consolidação D-11 foi assinada sem abertura física do cofre.'],
- ['F15','Auditoria','Às 21h47 da véspera chega convocação para contagem física integral.'],
- ['F16','Trajeto','Marcas e sensor ligam mesa, arquivos e retorno à custódia.']
-];
+const FASES={intro:'PRÓLOGO',games:'PAUTA',briefing:'PERGUNTA',sensory:'SENSORES',evidence:'DOSSIÊ',hypothesis:'HIPÓTESE',mosaic:'RELAÇÕES',final:'DECISÃO',reveal:'REVELAÇÃO',score:'RELATÓRIO'};
+const PASSOS={intro:1,games:2,briefing:3,sensory:4,evidence:5,hypothesis:6,mosaic:7,final:8,reveal:9,score:10};
+const TERCO_ROT=['PRIMEIRO TERÇO','SEGUNDO TERÇO','TERÇO FINAL'];
 
-const state={screen:'intro',game:null,players:6,pace:'pressure',selected:new Set(),sensorDone:new Set(),hypothesis:{},final:{},reveal:0,start:Date.now()};
+const state={screen:'intro',game:null,players:6,pace:'pressure',duration:'padrao',
+ dossie:[],tercos:[[],[],[]],aberto:1,marcados:new Set(),
+ relacoes:new Set(),hipoteseProv:'',hipoteseFinal:'',
+ sensorDone:new Set(),final:{},reveal:0,start:Date.now()};
+
+const $=id=>document.getElementById(id);
 const screens=[...document.querySelectorAll('.screen')];
-function go(name){screens.forEach(s=>s.classList.toggle('active',s.dataset.screen===name));state.screen=name;document.getElementById('phaseLabel').textContent=({intro:'PRÓLOGO',games:'PARTIDAS',briefing:'PERGUNTA',sensory:'SENSORES',evidence:'FRAGMENTOS',hypothesis:'HIPÓTESE',mosaic:'RELAÇÕES',final:'DECISÃO',reveal:'REVELAÇÃO',score:'PLACAR'})[name]||name.toUpperCase();scrollTo(0,0)}
-function optionList(opts,value=''){return `<option value="">Selecione…</option>${opts.map(o=>`<option ${o===value?'selected':''}>${o}</option>`).join('')}`}
-function renderGames(){const host=document.getElementById('gameCards');host.innerHTML=Object.entries(PARTIDAS).map(([id,g])=>`<button class="game-card" data-game="${id}" type="button"><small>${g.nature}</small><h3>${g.title}</h3><p>${g.question}</p><b>${g.short}</b></button>`).join('');host.querySelectorAll('[data-game]').forEach(b=>b.onclick=()=>selectGame(b.dataset.game))}
-function selectGame(id){state.game=id;state.selected.clear();state.sensorDone.clear();state.hypothesis={};state.final={};state.reveal=0;const g=PARTIDAS[id];document.getElementById('gameNature').textContent=g.nature;document.getElementById('gameTitle').textContent=g.title;document.getElementById('gameQuestion').textContent=g.question;document.getElementById('activityPlan').innerHTML=g.activities.map(a=>`<span class="activity-chip"><strong>${SENSORS[a].title}</strong> · ${SENSORS[a].desc}</span>`).join('');go('briefing')}
-function renderSensors(){const g=PARTIDAS[state.game],host=document.getElementById('sensoryCards');host.innerHTML=g.activities.map(id=>{const s=SENSORS[id],done=state.sensorDone.has(id)||localStorage.getItem(`mosaico-cf-${id}`)==='done';if(done)state.sensorDone.add(id);return `<article class="sensor-card ${done?'done':''}" data-sensor="${id}"><small>ATIVIDADE SENSORIAL</small><h3>${s.title}</h3><p>${s.desc}</p><div class="sensor-actions"><a class="primary" href="${s.href}?partida=${state.game}&ritmo=${state.pace}">Abrir atividade</a><button class="ghost mark-sensor" type="button">${done?'Concluída ✓':'Marcar concluída'}</button></div></article>`}).join('');host.querySelectorAll('.mark-sensor').forEach(btn=>btn.onclick=()=>{const id=btn.closest('[data-sensor]').dataset.sensor;state.sensorDone.add(id);localStorage.setItem(`mosaico-cf-${id}`,'done');renderSensors()});renderSensorArchive()}
-function renderSensorArchive(){const n=state.sensorDone.size;document.getElementById('sensorDone').textContent=`${n} atividade${n===1?'':'s'} concluída${n===1?'':'s'}`;document.getElementById('sensorTags').innerHTML=[...state.sensorDone].map(id=>`<span class="tag">${SENSORS[id].title}</span>`).join('')}
-function renderEvidence(){const host=document.getElementById('evidenceGrid');host.innerHTML=EVIDENCES.map(([id,t,p])=>`<button class="evidence-card ${state.selected.has(id)?'selected':''}" data-e="${id}" type="button"><small>${id}</small><h3>${t}</h3><p>${p}</p></button>`).join('');host.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>{const id=b.dataset.e;state.selected.has(id)?state.selected.delete(id):state.selected.add(id);renderEvidence()})}
-function renderHypothesis(){const g=PARTIDAS[state.game];document.getElementById('hypothesisPrompt').textContent=g.question;const f=g.fields.slice(0,2);document.getElementById('hypothesisForm').innerHTML=f.map(([label,opts])=>`<label><span>${label}</span><select name="${label}" required>${optionList(opts)}</select></label>`).join('')+`<button class="primary" type="submit">Fechar hipótese provisória</button>`}
-function renderRelations(){const g=PARTIDAS[state.game];const rels={peso:['Saco vazio ↔ peso do malote','Peso ↔ conferência de destino','Saque ↔ janela de 87 s','Duplicidade ↔ auditoria'],janela:['Rádio ↔ início da zona cega','Saque ↔ lacre rompido','Etiqueta nova ↔ retorno do malote','Peso ↔ direção do fluxo'],roubo:['Irregularidade ↔ ausência de subtração','Saco vazio ↔ malote íntegro','Falha preparada ↔ finalidade não patrimonial','Erro administrativo ↔ encenação'],antes:['7h47 ↔ coleta','87 s ↔ operação','D-11 ↔ duplicidade','D-1 ↔ urgência'],quem:['Decisão ↔ Subgerente','Acesso ↔ Limpeza','Reset ↔ Manutenção','Autorização ↔ Gerência'],proteger:['Saque pessoal ↔ reposição','Auditoria ↔ medo','Assinatura ↔ omissão','Dinheiro entrando ↔ finalidade']}[state.game];document.getElementById('relationGrid').innerHTML=rels.map((r,i)=>`<button class="relation-card" type="button"><small>R${i+1}</small><h3>${r}</h3><p>Use esta relação para testar sua hipótese; o fato continua o mesmo mesmo se a interpretação mudar.</p></button>`).join('');document.querySelectorAll('.relation-card').forEach(b=>b.onclick=()=>b.classList.toggle('selected'));document.getElementById('oldHypothesis').textContent=Object.values(state.hypothesis).filter(Boolean).join(' · ')||'Nenhuma hipótese registrada';document.getElementById('counterPrompt').textContent=`Qual relação enfraquece a leitura inicial de “${g.short}”?`}
-function renderFinal(){const g=PARTIDAS[state.game];document.getElementById('finalPrompt').textContent=g.question;document.getElementById('finalForm').innerHTML=g.fields.map(([label,opts])=>`<label><span>${label}</span><select name="${label}" required>${optionList(opts)}</select></label>`).join('')+`<button class="primary" type="submit">Fechar decisão</button>`}
-function scoreFinal(){const g=PARTIDAS[state.game];let correct=0;g.fields.forEach(([label,,ans])=>{if(state.final[label]===ans)correct++});const quality=Math.round(correct/g.fields.length*55),relations=Math.min(20,state.selected.size*3),sensory=Math.round(state.sensorDone.size/g.activities.length*15),commit=10;return {total:quality+relations+sensory+commit,quality,relations,sensory,commit,correct}}
-function renderReveal(){const g=PARTIDAS[state.game],steps=[{k:'O QUE PARECIA',h:'R$ 480.000 desapareceram.',p:'Um saco vazio, câmera cega e vigilância afastada organizam a interpretação antes da conferência.'},...g.reveals.map((x,i)=>({k:`RELAÇÃO ${i+1}`,h:x,p:'Nenhum fato anterior foi alterado; mudou a relação entre as evidências.'})),{k:'INFERÊNCIA CANÔNICA',h:g.answer,p:'A realidade é a mesma em todas as partidas. Esta pergunta apenas exige outro corte dela.'}];const s=steps[Math.min(state.reveal,steps.length-1)];document.getElementById('revealStage').innerHTML=`<div><span class="kicker">${s.k}</span><h2>${s.h}</h2><p>${s.p}</p></div>`;document.getElementById('nextReveal').textContent=state.reveal>=steps.length-1?'Ver resultado →':'Continuar revelação →'}
-function renderScore(){const g=PARTIDAS[state.game],s=scoreFinal();document.getElementById('scoreTitle').textContent=g.title;document.getElementById('totalScore').textContent=s.total;const rows=[['Qualidade da decisão',s.quality,55],['Relações construídas',s.relations,20],['Atividades sensoriais',s.sensory,15],['Compromisso com hipótese',s.commit,10]];document.getElementById('scoreBars').innerHTML=rows.map(([n,v,m])=>`<div class="score-row"><span>${n}</span><div class="bar"><i style="width:${v/m*100}%"></i></div><b>${v}</b></div>`).join('');document.getElementById('endingCards').innerHTML=`<article class="ending-card"><b>PERGUNTA</b><h3>${g.question}</h3><p>${g.answer}</p></article><article class="ending-card"><b>ACERTOS</b><h3>${s.correct}/${g.fields.length}</h3><p>Campos corretos da resolução específica desta partida.</p></article><article class="ending-card"><b>PRINCÍPIO</b><h3>Fato não é interpretação.</h3><p>Uma nova evidência pode reorganizar a leitura sem reescrever nenhum fato.</p></article>`}
+const embaralhar=a=>a.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(p=>p[1]);
+const listar=a=>a.length<2?a.join(''):`${a.slice(0,-1).join(', ')} e ${a[a.length-1]}`;
+const mao=()=>new Set(state.tercos.slice(0,state.aberto).flat());
 
-document.getElementById('chooseGame').onclick=()=>{state.players=+document.getElementById('playerCount').value;state.pace=document.getElementById('pace').value;renderGames();go('games')};document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>go(b.dataset.back));document.getElementById('startGame').onclick=()=>{renderSensors();go('sensory')};document.getElementById('toEvidence').onclick=()=>{renderEvidence();go('evidence')};document.getElementById('toHypothesis').onclick=()=>{renderHypothesis();go('hypothesis')};document.getElementById('hypothesisForm').onsubmit=e=>{e.preventDefault();state.hypothesis=Object.fromEntries(new FormData(e.currentTarget));renderRelations();go('mosaic')};document.getElementById('toFinal').onclick=()=>{renderFinal();go('final')};document.getElementById('finalForm').onsubmit=e=>{e.preventDefault();state.final=Object.fromEntries(new FormData(e.currentTarget));state.reveal=0;renderReveal();go('reveal')};document.getElementById('nextReveal').onclick=()=>{const max=PARTIDAS[state.game].reveals.length+1;if(state.reveal>=max){renderScore();go('score')}else{state.reveal++;renderReveal()}};document.getElementById('playAgain').onclick=()=>{renderGames();go('games')};document.getElementById('resetBtn').onclick=()=>{if(confirm('Reiniciar a Mesa e voltar à escolha inicial?'))location.reload()};setInterval(()=>{const d=Math.floor((Date.now()-state.start)/1000),m=String(Math.floor(d/60)).padStart(2,'0'),s=String(d%60).padStart(2,'0');document.getElementById('timer').textContent=`${m}:${s}`},1000);
+function go(name){
+ screens.forEach(s=>s.classList.toggle('active',s.dataset.screen===name));
+ state.screen=name;
+ $('phaseName').textContent=FASES[name]||name.toUpperCase();
+ $('phaseStep').textContent=PASSOS[name]||'·';
+ const rot=$('partidaLabel');
+ rot.hidden=!state.game||name==='intro'||name==='games';
+ if(state.game)rot.textContent=PARTIDAS[state.game].title;
+ scrollTo(0,0);
+}
+
+/* ── Montagem do dossiê (V4 §12 e §16): relações garantidas, centrais da pergunta,
+      preenchimento por função e proteção contra concentração de pistas de fechamento. */
+function faltantes(rel,tem){return rel.pecas.filter(g=>!g.some(c=>tem.has(c))).map(g=>g[0])}
+function relacaoCompleta(rel,tem){return rel.pecas.every(g=>g.some(c=>tem.has(c)))}
+
+function montarDossie(){
+ const g=PARTIDAS[state.game],cfg=DURACOES[state.duration],tem=new Set(g.centrais);
+ const ordem=[...RELACOES].sort((a,b)=>faltantes(a,tem).length-faltantes(b,tem).length);
+ let garantidas=0;
+ for(const rel of ordem){
+  if(garantidas>=cfg.rel)break;
+  faltantes(rel,tem).forEach(c=>tem.add(c));
+  garantidas++;
+ }
+ const resto=Object.keys(FRAGMENTOS).filter(c=>!tem.has(c));
+ const peso=c=>(g.incidentais.includes(c)?2:0)+({estrutural:0,interpretativo:.3,relacional:.5,contextual:1.2})[FRAGMENTOS[c].f]+Math.random();
+ resto.sort((a,b)=>peso(a)-peso(b));
+ for(const c of resto){if(tem.size>=cfg.n)break;tem.add(c)}
+ state.dossie=[...tem].sort();
+ state.tercos=distribuirTercos(state.dossie);
+ state.aberto=1;state.marcados.clear();state.relacoes.clear();
+}
+
+function distribuirTercos(lista){
+ const fecho=embaralhar(lista.filter(c=>FRAGMENTOS[c].fecho)),livres=embaralhar(lista.filter(c=>!FRAGMENTOS[c].fecho));
+ const tam=Math.ceil(lista.length/3),t=[[],[],[]];
+ /* O primeiro terço não recebe nenhuma pista de fechamento; o segundo recebe no
+    máximo duas, para que a tensão entre “retirada” e “inserção” cresça sem que
+    uma única leva entregue a conclusão (V4 §14 e §15). */
+ while(t[0].length<tam&&livres.length)t[0].push(livres.shift());
+ for(let i=0;i<2&&fecho.length&&t[1].length<tam;i++)t[1].push(fecho.shift());
+ while(t[1].length<tam&&livres.length)t[1].push(livres.shift());
+ t[2]=[...livres,...fecho];
+ return t.map(embaralhar);
+}
+
+/* ── Telas ─────────────────────────────────────────────────────────────── */
+function renderGames(){
+ const host=$('gameCards');
+ host.innerHTML=Object.entries(PARTIDAS).map(([id,g])=>
+  `<button class="question-card depth" data-game="${id}" type="button"><small>${g.nature}</small><h3>${g.title}</h3><p>${g.question}</p><b>${g.short}</b></button>`).join('');
+ host.querySelectorAll('[data-game]').forEach(b=>b.onclick=()=>selectGame(b.dataset.game));
+}
+
+function selectGame(id){
+ state.game=id;state.hipoteseProv='';state.hipoteseFinal='';state.final={};state.reveal=0;
+ const g=PARTIDAS[id],cfg=DURACOES[state.duration];
+ montarDossie();
+ $('gameNature').textContent=g.nature;
+ $('gameTitle').textContent=g.title;
+ $('gameQuestion').textContent=g.question;
+ $('planCards').innerHTML=[
+  `<article class="plan-card depth-card gold"><small>DOSSIÊ</small><strong>${state.dossie.length} fragmentos</strong><p>${cfg.rot} · ${cfg.nota}. O dossiê abre em três terços; pistas de fechamento não aparecem no primeiro.</p></article>`,
+  `<article class="plan-card depth-card green"><small>CAMPOS DESTA PERGUNTA</small><strong>${g.fields.length} campos</strong><p>${g.fields.map(f=>f[0]).join(' · ')}</p></article>`,
+  `<article class="plan-card depth-card blue"><small>ATIVIDADES SENSORIAIS</small><strong>${g.activities.length} atividade${g.activities.length===1?'':'s'}</strong><p>${g.activities.map(a=>SENSORS[a].title).join(' · ')}</p></article>`
+ ].join('');
+ go('briefing');
+}
+
+function renderSensors(){
+ const g=PARTIDAS[state.game],host=$('sensoryCards');
+ host.innerHTML=g.activities.map(id=>{
+  const s=SENSORS[id],done=state.sensorDone.has(id)||localStorage.getItem(`mosaico-cf-${id}`)==='done';
+  if(done)state.sensorDone.add(id);
+  return `<article class="sensor-card depth-card blue ${done?'done':''}" data-sensor="${id}"><small>ATIVIDADE SENSORIAL</small><h3>${s.title}</h3><p>${s.desc}</p><div class="sensor-actions"><a class="btn primary depth" href="${s.href}?partida=${state.game}&ritmo=${state.pace}">Abrir atividade</a><button class="btn ghost depth mark-sensor" type="button">${done?'Concluída ✓':'Marcar concluída'}</button></div></article>`;
+ }).join('');
+ host.querySelectorAll('.mark-sensor').forEach(btn=>btn.onclick=()=>{
+  const id=btn.closest('[data-sensor]').dataset.sensor;
+  state.sensorDone.add(id);localStorage.setItem(`mosaico-cf-${id}`,'done');renderSensors();
+ });
+ const n=state.sensorDone.size;
+ $('sensorDone').textContent=`${n} de ${g.activities.length} concluída${n===1?'':'s'}`;
+ $('sensorTags').innerHTML=[...state.sensorDone].map(id=>`<span class="tag">${SENSORS[id].title}</span>`).join('');
+}
+
+function cartaoFragmento(cod){
+ const f=FRAGMENTOS[cod],m=state.marcados.has(cod);
+ return `<button class="fragment depth ${m?'marked':''}" data-f="${cod}" type="button" aria-pressed="${m}"><small>${cod} · ${f.f.toUpperCase()}</small><strong>${f.t}</strong><p>${f.d}</p></button>`;
+}
+
+function renderDossie(){
+ const host=$('dossierWaves');
+ host.innerHTML=state.tercos.slice(0,state.aberto).map((lote,i)=>
+  `<section class="wave"><div class="wave-head"><small>${TERCO_ROT[i]}</small><span>${lote.length} fragmento${lote.length===1?'':'s'}</span></div><div class="hand">${lote.map(cartaoFragmento).join('')}</div></section>`).join('');
+ host.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{
+  const c=b.dataset.f;
+  state.marcados.has(c)?state.marcados.delete(c):state.marcados.add(c);
+  renderDossie();
+ });
+ const tem=mao(),abertas=RELACOES.filter(r=>relacaoCompleta(r,tem)).length;
+ $('dossierMeta').innerHTML=`<b>${state.marcados.size}</b> marcado${state.marcados.size===1?'':'s'} de ${tem.size} em mesa · <b>${abertas}</b> ${abertas===1?'relação já costurável':'relações já costuráveis'}`;
+ const fim=state.aberto>=3;
+ $('nextWave').hidden=fim;
+ $('nextWave').textContent=`Abrir o ${state.aberto===1?'segundo terço':'terço final'} →`;
+ $('toHypothesis').hidden=!fim;
+}
+
+function renderHypothesis(){
+ const g=PARTIDAS[state.game],tem=mao();
+ $('hypothesisPrompt').textContent=g.question;
+ $('hypothesisList').innerHTML=HIPOTESES.map(h=>{
+  const a=h.apoia.filter(c=>tem.has(c)),e=h.enfraquece.filter(c=>tem.has(c));
+  const cls=a.length&&e.length?'tensao':a.length?'apoiada':e.length?'fraca':'neutra';
+  const rot=a.length&&e.length?'EM TENSÃO':a.length?'APOIADA':e.length?'ENFRAQUECIDA':'SEM APOIO NA MESA';
+  const marcas=[a.length?`apoiada por ${a.join(', ')}`:'',e.length?`enfraquecida por ${e.join(', ')}`:''].filter(Boolean).join(' · ')||'nenhum fragmento desta mesa a toca';
+  return `<label class="hyp-card depth-card ${cls} ${state.hipoteseProv===h.id?'chosen':''}"><input type="radio" name="hip" value="${h.id}" ${state.hipoteseProv===h.id?'checked':''}><span class="hyp-body"><small>${h.id} · ${rot}</small><strong>${h.t}</strong><p>${h.d}</p><em>${marcas}</em></span></label>`;
+ }).join('');
+ $('hypothesisList').querySelectorAll('input').forEach(i=>i.onchange=()=>{state.hipoteseProv=i.value;renderHypothesis()});
+}
+
+function renderRelations(){
+ const tem=mao();
+ $('relationGrid').innerHTML=RELACOES.map(r=>{
+  const completa=relacaoCompleta(r,tem),feita=state.relacoes.has(r.id);
+  const pecas=r.pecas.map(gr=>{const c=gr.find(x=>tem.has(x));return c?`<b>${c}</b>`:`<i>${gr.join(' ou ')}</i>`}).join(' ↔ ');
+  return `<button class="relation-card depth-card ${completa?'':'locked'} ${feita?'selected':''}" data-r="${r.id}" type="button" ${completa?'':'disabled'}><small>${r.id}${completa?'':' · INCOMPLETA'}</small><h3>${r.t}</h3><div class="rel-pecas">${pecas}</div><p>${completa?r.efeito:'Falta o fragmento que permite interpretar o outro. Sem o par, o dado continua neutro.'}</p></button>`;
+ }).join('');
+ $('relationGrid').querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{
+  const id=b.dataset.r;
+  state.relacoes.has(id)?state.relacoes.delete(id):state.relacoes.add(id);
+  renderRelations();
+ });
+ const h=HIPOTESES.find(x=>x.id===state.hipoteseProv);
+ $('oldHypothesis').textContent=h?`${h.id} · ${h.t}`:'Nenhuma hipótese registrada';
+ const inimigas=h?RELACOES.filter(r=>relacaoCompleta(r,tem)&&h.enfraquece.some(c=>r.pecas.flat().includes(c))):[];
+ $('counterPrompt').textContent=h
+  ? (inimigas.length?`${listar(inimigas.map(r=>r.id))} contradiz${inimigas.length>1?'em':''} esta leitura sem tornar falso nenhum fato já revelado. Abandonar uma hipótese plausível diante de nova relação conta a favor no relatório.`
+                    :'Nenhuma relação desta mesa contradiz a sua hipótese até aqui. Isso não a confirma: pode apenas significar que a peça que a testaria ainda não foi costurada.')
+  : 'Registre uma hipótese provisória para que a contraprova tenha o que atacar.';
+}
+
+function optionList(opts,value=''){return `<option value="">Selecione…</option>${opts.map(o=>`<option ${o===value?'selected':''}>${o}</option>`).join('')}`}
+
+function renderFinal(){
+ const g=PARTIDAS[state.game];
+ $('finalPrompt').textContent=g.question;
+ $('finalForm').innerHTML=g.fields.map(([label,opts])=>
+  `<label class="field depth-card"><span>${label}</span><select name="${label}" required>${optionList(opts)}</select></label>`).join('')
+ +`<label class="field depth-card green"><span>Hipótese que você sustenta no fechamento</span><select name="__hip" required>${optionList(HIPOTESES.map(h=>`${h.id} · ${h.t}`),state.hipoteseProv?`${state.hipoteseProv} · ${HIPOTESES.find(h=>h.id===state.hipoteseProv).t}`:'')}</select></label>`
+ +`<button class="btn primary depth" type="submit">Fechar a decisão <span>→</span></button>`;
+}
+
+function pontuar(){
+ const g=PARTIDAS[state.game],tem=mao();
+ let acertos=0;g.fields.forEach(([label,,ans])=>{if(state.final[label]===ans)acertos++});
+ const campos=Math.round(acertos/g.fields.length*45);
+
+ const hFinal=HIPOTESES.find(h=>h.id===state.hipoteseFinal);
+ const hipotese=hFinal?(hFinal.id===g.hipotese?15:hFinal.canonica?10:0):0;
+
+ const disp=RELACOES.filter(r=>relacaoCompleta(r,tem)),feitas=disp.filter(r=>state.relacoes.has(r.id));
+ const relacoes=disp.length?Math.round(feitas.length/disp.length*20):0;
+
+ const centrais=g.centrais.filter(c=>tem.has(c));
+ const certos=[...state.marcados].filter(c=>centrais.includes(c)).length;
+ const ruido=[...state.marcados].filter(c=>g.incidentais.includes(c)).length;
+ const leitura=centrais.length?Math.max(0,Math.round(certos/centrais.length*10)-Math.min(4,ruido)):0;
+
+ const sensorial=Math.round(state.sensorDone.size/g.activities.length*10);
+ const revisao=(state.hipoteseProv&&hFinal&&hFinal.canonica&&!HIPOTESES.find(h=>h.id===state.hipoteseProv).canonica)?5:0;
+
+ return {total:Math.min(100,campos+hipotese+relacoes+leitura+sensorial+revisao),
+  campos,hipotese,relacoes,leitura,sensorial,revisao,acertos,
+  relFeitas:feitas.length,relDisp:disp.length};
+}
+
+function renderReveal(){
+ const g=PARTIDAS[state.game],tem=mao();
+ const caidas=HIPOTESES.filter(h=>!h.canonica&&h.enfraquece.some(c=>tem.has(c))).slice(0,3);
+ const steps=[
+  {k:'O QUE PARECIA',h:'R$ 480.000 desapareceram.',p:'Um saco vazio, uma câmera cega e a vigilância afastada organizam a interpretação antes de qualquer conferência.'},
+  ...g.reveals.map((x,i)=>({k:`RELAÇÃO ${i+1}`,h:x,p:'Nenhum fato anterior foi alterado. Mudou a relação entre as evidências.'})),
+  {k:'HIPÓTESES QUE CAEM',h:caidas.length?caidas.map(h=>h.id).join(' · '):'Nenhuma hipótese foi derrubada nesta mesa.',
+   p:caidas.length?caidas.map(h=>`${h.id} — ${h.t}`).join('; ')+'. Cada uma nasceu de fatos verdadeiros lidos de forma incompleta.':'As pistas de fechamento não chegaram a se cruzar nesta duração.'},
+  {k:'INFERÊNCIA CANÔNICA',h:g.answer,p:'A realidade é a mesma em todas as partidas. Esta pergunta apenas exige outro corte dela.'},
+  {k:'PRINCÍPIO',h:'A verdade devolve o dinheiro; a mentira fica com ele.',p:'No MOSAICO, um fato verdadeiro pode estar associado à interpretação errada.'}
+ ];
+ state.revealMax=steps.length-1;
+ const s=steps[Math.min(state.reveal,state.revealMax)];
+ $('revealStage').innerHTML=`<div class="reveal-card depth-card"><span class="eyebrow">${s.k}</span><h2>${s.h}</h2><p>${s.p}</p></div>`;
+ $('nextReveal').innerHTML=state.reveal>=state.revealMax?'Ver o relatório <span>→</span>':'Continuar revelação <span>→</span>';
+}
+
+function renderScore(){
+ const g=PARTIDAS[state.game],s=pontuar(),hFinal=HIPOTESES.find(h=>h.id===state.hipoteseFinal);
+ $('scoreTitle').textContent=g.title;
+ $('totalScore').textContent=s.total;
+ const rows=[['Campos da pergunta',s.campos,45],['Hipótese sustentada',s.hipotese,15],['Relações costuradas',s.relacoes,20],['Leitura do dossiê',s.leitura,10],['Atividades sensoriais',s.sensorial,10],['Revisão de hipótese',s.revisao,5]];
+ $('scoreBars').innerHTML=rows.map(([n,v,m])=>`<div class="score-row"><span>${n}</span><div class="bar"><i style="width:${Math.min(100,v/m*100)}%"></i></div><b>${v}</b></div>`).join('');
+ $('endingCards').innerHTML=[
+  `<article class="ending-card depth-card green"><small>PERGUNTA</small><h3>${g.question}</h3><p>${g.answer}</p></article>`,
+  `<article class="ending-card depth-card gold"><small>CAMPOS</small><h3>${s.acertos}/${g.fields.length}</h3><p>Campos corretos da resolução específica desta partida.</p></article>`,
+  `<article class="ending-card depth-card blue"><small>RELAÇÕES</small><h3>${s.relFeitas}/${s.relDisp}</h3><p>Relações completas nesta mesa que você efetivamente costurou.</p></article>`,
+  `<article class="ending-card depth-card"><small>HIPÓTESE</small><h3>${hFinal?hFinal.id+' · '+hFinal.t:'—'}</h3><p>${hFinal&&hFinal.canonica?'Sobrevive ao fechamento auditável.':'Continua plausível, mas não sobrevive às relações físicas.'}${s.revisao?' Você abandonou uma leitura anterior diante de nova evidência — isso conta a favor.':''}</p></article>`
+ ].join('');
+}
+
+/* ── Ligações ──────────────────────────────────────────────────────────── */
+$('chooseGame').onclick=()=>{
+ state.players=+$('playerCount').value;state.pace=$('pace').value;state.duration=$('duration').value;
+ renderGames();go('games');
+};
+document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>go(b.dataset.back));
+$('startGame').onclick=()=>{renderSensors();go('sensory')};
+$('toEvidence').onclick=()=>{renderDossie();go('evidence')};
+$('nextWave').onclick=()=>{if(state.aberto<3){state.aberto++;renderDossie()}};
+$('toHypothesis').onclick=()=>{renderHypothesis();go('hypothesis')};
+$('hypothesisForm').onsubmit=e=>{
+ e.preventDefault();
+ if(!state.hipoteseProv){alert('Comprometa-se com uma hipótese provisória antes de seguir.');return}
+ renderRelations();go('mosaic');
+};
+$('toFinal').onclick=()=>{renderFinal();go('final')};
+$('finalForm').onsubmit=e=>{
+ e.preventDefault();
+ const dados=Object.fromEntries(new FormData(e.currentTarget));
+ state.hipoteseFinal=(dados.__hip||'').split(' · ')[0];
+ delete dados.__hip;
+ state.final=dados;state.reveal=0;renderReveal();go('reveal');
+};
+$('nextReveal').onclick=()=>{
+ if(state.reveal>=state.revealMax){renderScore();go('score')}
+ else{state.reveal++;renderReveal()}
+};
+$('playAgain').onclick=()=>{renderGames();go('games')};
+$('resetBtn').onclick=()=>{if(confirm('Reiniciar a Mesa e voltar à escolha inicial?'))location.reload()};
+$('infoBtn').onclick=()=>$('drawer').classList.add('on');
+$('drawerClose').onclick=()=>$('drawer').classList.remove('on');
+$('drawer').onclick=e=>{if(e.target===$('drawer'))$('drawer').classList.remove('on')};
+
+setInterval(()=>{
+ const d=Math.floor((Date.now()-state.start)/1000);
+ $('timer').textContent=`${String(Math.floor(d/60)).padStart(2,'0')}:${String(d%60).padStart(2,'0')}`;
+},1000);
+
+go('intro');
