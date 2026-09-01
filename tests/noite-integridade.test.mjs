@@ -231,10 +231,44 @@ test("a pergunta da noite é perguntada à sala antes de ser sorteada", () => {
   assert.ok(consulta < sorteio, "o sorteio local acontece antes de consultar a sala e vence a pergunta congelada");
 
   const sala = ler("sala-partida.js");
-  assert.ok(sala.includes("'partida.pergunta'"), "sala-partida.js não grava mais a pergunta no documento da sala");
+  for (const campo of ["'partida.pergunta'", "'partida.jogadores'", "'partida.ritmo'"]) {
+    assert.ok(sala.includes(campo), `sala-partida.js não grava mais ${campo} no documento da sala`);
+  }
   assert.ok(
-    sala.includes("if (atual) return Promise.resolve(atual)"),
-    "a gravação deixou de ser idempotente: reconectar volta a re-sortear"
+    sala.includes("if (estado.pergunta) return Promise.resolve"),
+    "a pauta deixou de ser idempotente: reconectar volta a re-sortear"
+  );
+  assert.ok(
+    sala.includes("if (estado.ritmo) return Promise.resolve"),
+    "o ritmo deixou de ser idempotente: reconectar volta a redefinir o relógio da mesa"
+  );
+});
+
+/* Numa sala, quantos investigadores há e quanto tempo cada mão dura são fatos
+   da mesa, não preferências de aparelho. Os dois apareciam como escolha em
+   todo telefone, inclusive no do convidado, e cada um só mexia na partida
+   local de quem tocou — enfeite que parecia comando. */
+test("o convidado não escolhe o que é da mesa", () => {
+  const nucleo = ler("game-fixed.js");
+  assert.ok(
+    nucleo.includes("if(sala.mestre)return mostrarRitmo()"),
+    "a tela de ritmo voltou a aparecer para o convidado"
+  );
+  assert.ok(
+    nucleo.includes("sala.ritmo().then("),
+    "o convidado não espera mais o ritmo do Mestre: cada mesa volta a correr num relógio próprio"
+  );
+  assert.ok(
+    nucleo.includes("if(jogadores)state.players=jogadores"),
+    "o número de investigadores voltou a sair do seletor local em vez da sala"
+  );
+  assert.ok(
+    nucleo.includes("definirRitmo(v)"),
+    "quem escolhe o ritmo não grava mais para a mesa inteira"
+  );
+  assert.ok(
+    ler("index.html").includes("playerField.hidden=true;soloCount.hidden=false"),
+    "o seletor de investigadores voltou a aparecer numa sala"
   );
 });
 
