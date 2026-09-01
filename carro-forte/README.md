@@ -114,8 +114,14 @@ relação vale +5 no relatório. Erro é cicatriz, não sentença.
 
 ## Atividades sensoriais
 
-Banco reutilizável de mecânicas, não sequência obrigatória. O conteúdo revelado e a função
-cognitiva mudam conforme a partida.
+Banco reutilizável de mecânicas: quais entram e o que revelam muda conforme a pergunta. Mas
+**dentro de uma partida elas são uma fila, não um cardápio** — a mesa faz uma de cada vez,
+todos juntos, na ordem que a partida declara. Só a atividade da vez tem ação; as seguintes
+ficam apagadas e sem nada para clicar, e o dossiê só abre quando todas foram fechadas.
+
+A conclusão vale por partida e não é guardada entre elas: guardada, a atividade voltava
+marcada na partida seguinte e em qualquer aparelho que já tivesse jogado — pronta sem
+ninguém ter feito nada, que é o furo que a fila fecha.
 
 | Partida | Janela do Norte | Vidro Embaçado | Sala às Escuras |
 |---|:---:|:---:|:---:|
