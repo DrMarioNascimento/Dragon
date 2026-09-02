@@ -148,26 +148,26 @@ function listaEmMesa(){return tercos.slice(0,aberto).reduce((a,l)=>a.concat(l),[
 function markers(){
  const b=banco();
  return listaEmMesa().filter(c=>b[c]&&b[c].m).map(c=>
-  `<span class="marker x" style="left:${b[c].m[0]}%;top:${b[c].m[1]}%" title="${c} · ${esc(b[c].t)}"></span>`).join("");
+  `<span class="marker x" style="left:${b[c].m[0]}%;top:${b[c].m[1]}%" title="${esc(b[c].t)}"></span>`).join("");
 }
 function fatosHtml(){
  const b=banco();
  return tercos.slice(0,aberto).map((lote,i)=>
   `<div class="wave"><small>${TERCO_ROT[i]} · ${lote.length} fragmento${lote.length===1?"":"s"}</small>`+
-  lote.map(c=>`<div class="fact f-${esc(b[c].f||"")}"><strong>${c} · ${esc(b[c].t)}</strong><time>${esc(b[c].h||"—")} · ${esc(FUNCAO_ROT[b[c].f]||"")}</time><p>${esc(b[c].d)}</p></div>`).join("")+
+  lote.map(c=>`<div class="fact f-${esc(b[c].f||"")}"><strong>${esc(b[c].t)}</strong><time>${esc(b[c].h||"—")} · ${esc(FUNCAO_ROT[b[c].f]||"")}</time><p>${esc(b[c].d)}</p></div>`).join("")+
   `</div>`).join("");
 }
 function relacoesHtml(){
  const tem=emMesa(),completas=relacoes().filter(r=>relacaoCompleta(r,tem));
  if(!completas.length)return `<p class="lead">Nenhuma relação fecha ainda. Falta peça em mesa — e nenhuma pista isolada resolve.</p>`;
- return completas.map(r=>`<div class="rel"><b>${esc(r.id)} · ${esc(r.t)}</b><br>${esc(r.efeito)}</div>`).join("");
+ return completas.map(r=>`<div class="rel"><b>${esc(r.t)}</b><br>${esc(r.efeito)}</div>`).join("");
 }
 function hipotesesHtml(){
  const tem=emMesa();
  return hipoteses().map(h=>{
   const caiu=(h.enfraquece||[]).some(c=>tem[c]);
   const forca=(h.apoia||[]).filter(c=>tem[c]).length;
-  return `<div class="rel hip${caiu?" caiu":""}"><b>${esc(h.id)} · ${esc(h.t)}</b><br>`+
+  return `<div class="rel hip${caiu?" caiu":""}"><b>${esc(h.t)}</b><br>`+
    (caiu?"Contrariada por evidência já aberta.":forca?`Sustentada por ${forca} fragmento${forca===1?"":"s"} em mesa.`:"Ainda sem apoio material.")+
    `</div>`;
  }).join("");
@@ -289,13 +289,15 @@ function finalizar(){
  const p=pergunta(),total=p.campos.length,tem=emMesa();
  let acertos=0;p.campos.forEach(c=>{if(respostas[c.id]===c.resposta)acertos++});
  const sel=selecao(),hSobrevive=hipoteses().find(h=>h.id===sel.hipotese);
- const caidas=hipoteses().filter(h=>!h.canonica&&(h.enfraquece||[]).some(c=>tem[c])).map(h=>h.id);
- const abertasRel=relacoes().filter(r=>relacaoCompleta(r,tem)).map(r=>r.id);
+ /* Pelo NOME, não pelo código: a tela de resultado era onde a mesa mais
+    olhava, e listar "H1 · H4 · H7" ensinava o código antes de ensinar o fato. */
+ const caidas=hipoteses().filter(h=>!h.canonica&&(h.enfraquece||[]).some(c=>tem[c])).map(h=>h.t);
+ const abertasRel=relacoes().filter(r=>relacaoCompleta(r,tem)).map(r=>r.t);
  fase="resultado";salvar();
  app().innerHTML=`<main class="stage shell"><section class="result"><span class="eyebrow">Fechamento do dossiê</span>`+
   `<h2>${esc(p.titulo)}</h2><div class="big">${acertos}/${total}</div>`+
   `<p class="lead">${esc(p.revelacao)}</p>`+
-  (hSobrevive?`<div class="rel"><b>Hipótese que sobrevive · ${esc(hSobrevive.id)}</b><br>${esc(hSobrevive.t)} — ${esc(hSobrevive.d)}</div>`:"")+
+  (hSobrevive?`<div class="rel"><b>Hipótese que sobrevive</b><br>${esc(hSobrevive.t)} — ${esc(hSobrevive.d)}</div>`:"")+
   `<div class="rel"><b>Hipóteses derrubadas nesta mesa</b><br>${caidas.length?esc(caidas.join(" · ")):"Nenhuma. A mesa fechou sem contrariar nenhuma leitura concorrente."}</div>`+
   `<div class="rel"><b>Relações abertas</b><br>${abertasRel.length?esc(abertasRel.join(" · ")):"Nenhuma relação chegou a fechar."}</div>`+
   `<div class="quote">A verdade não mudou. Mudou a pergunta — e, com ela, o que precisava ser demonstrado.</div>`+

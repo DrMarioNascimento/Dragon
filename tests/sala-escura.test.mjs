@@ -198,3 +198,37 @@ test("a entrada de /Dragon/v2/ carrega A Noite, não o app React", () => {
     "A Noite deixou de ler o banco do caso"
   );
 });
+
+test("nenhum código do banco chega à tela", () => {
+  /* F11, H3, R7 e P-D são endereços internos. Na tela viram atalho de memória
+     entre partidas: quem já jogou decora que uma certa hipótese é a que sempre
+     cai, e passa a resolver pelo código em vez de pelo fato. O banco continua
+     usando os códigos — eles só não aparecem.
+
+     Este teste procura o padrão que os põe em texto: uma interpolação do campo
+     `id`/`cod`/`frag` seguida de separador visível. Atributo que só serve de
+     endereço (value=, onclick=, data-, name=) não conta. */
+  const RAIZ_REPO = new URL("../", import.meta.url);
+  const lerRepo = (n) => readFileSync(new URL(n, RAIZ_REPO), "utf8");
+  const vazando =
+    /(\$\{|\+ *)(esc0?\()?[a-zA-Z.]*\.(id|cod|frag)\)?[^;\n]{0,15}(·|<\/)/;
+  const arquivos = [
+    "mosaico-web/public/noite-auto.js",
+    "v1/js/banco-casa-da-costa.js",
+    "v1/js/rendimento-casa-da-costa.js",
+    "v1/js/mercado-casa-da-costa.js",
+    "v1/js/mosaico-casa-da-costa.js",
+  ];
+  for (const arq of arquivos) {
+    const linhas = lerRepo(arq)
+      .split("\n")
+      .filter((l) => vazando.test(l) && !/value=|onclick|data-|name=/.test(l));
+    assert.deepEqual(linhas, [], `${arq} voltou a mostrar código do banco`);
+  }
+  /* E o dossiê de A Noite, que era o pior caso: "F11 · A porta do jardim". */
+  const noite = lerRepo("mosaico-web/public/noite-auto.js");
+  assert.ok(
+    !/<strong>\$\{c\} ·/.test(noite),
+    "o fragmento voltou a ser rotulado pelo código"
+  );
+});
