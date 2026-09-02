@@ -35,27 +35,28 @@
 
   var css=document.createElement("style");
   css.textContent=`
+    /* A profundidade destes elementos saiu daqui em 02/09/2026 e mora em
+       css/profundidade.css. Este bloco desenhava a parede de rgba(0,0,0,.72)
+       sobre o breu #05070c: preto sobre preto, volume nenhum. E, por ser um
+       <style> injetado depois de tudo, vencia a folha da pagina — consertar o
+       CSS nao adiantava enquanto isto existisse. Camada de caso declara a
+       classe; a altura e a parede saem do arquivo. NAO devolver box-shadow
+       aqui. O que ficou e so o arredondamento, que e forma, nao volume. */
+    .card,.jog,.fragmento-encontro,.sala-acordeao,.deducao-card{border-radius:9px}
     .btn,.forma-op,.pers-op,.ritmo-op,.mosaico-escolher,.mosaico-opcao{
-      border-width:1px;border-bottom-width:2px;
-      box-shadow:inset 0 1px rgba(255,255,255,.08),0 5px 0 rgba(0,0,0,.72),0 12px 24px rgba(0,0,0,.34);
-      transform:translateY(0);transition:transform .12s ease,box-shadow .12s ease,border-color .2s ease,background .2s ease}
-    .btn:active,.forma-op:active,.pers-op:active,.ritmo-op:active,.mosaico-escolher:active,.mosaico-opcao:active{
-      transform:translateY(4px);box-shadow:inset 0 1px rgba(255,255,255,.06),0 1px 0 rgba(0,0,0,.8),0 5px 12px rgba(0,0,0,.3)}
-    .card,.jog,.fragmento-encontro,.sala-acordeao,.deducao-card{
-      border-radius:9px;box-shadow:inset 0 1px rgba(255,255,255,.045),0 5px 0 rgba(0,0,0,.42),0 16px 36px rgba(0,0,0,.25)}
+      border-width:1px;border-bottom-width:2px}
     .partidas-casa{display:grid;gap:10px;margin:16px 0 22px}
     .partida-casa{width:100%;text-align:left;padding:15px 16px;border:1px solid rgba(143,163,184,.28);border-radius:10px;
-      background:linear-gradient(165deg,rgba(17,27,39,.96),rgba(7,11,17,.98));color:var(--texto);
-      box-shadow:inset 0 1px rgba(255,255,255,.06),0 5px 0 #020407,0 14px 30px rgba(0,0,0,.38)}
-    .partida-casa.on{border-color:rgba(232,164,76,.78);background:linear-gradient(165deg,rgba(69,47,21,.96),rgba(18,14,11,.98));box-shadow:inset 0 1px rgba(255,225,180,.13),0 5px 0 #130b04,0 0 28px rgba(232,164,76,.12)}
+      background:linear-gradient(165deg,rgba(17,27,39,.96),rgba(7,11,17,.98));color:var(--texto)}
+    .partida-casa.on{border-color:rgba(232,164,76,.78);background:linear-gradient(165deg,rgba(69,47,21,.96),rgba(18,14,11,.98))}
     .partida-casa b{display:block;color:#fff;font:700 19px/1.15 var(--serif)}
     .partida-casa small{display:block;color:var(--ambar);font:800 10px/1.2 var(--sans);letter-spacing:.15em;text-transform:uppercase;margin:5px 0}
     .partida-casa span{display:block;color:var(--nevoa);font:600 14px/1.38 var(--serif)}
     .pergunta-mae{margin:8px 0 16px;padding:16px 18px;border:1px solid rgba(232,164,76,.45);border-left:4px solid var(--ambar);border-radius:8px;
-      background:linear-gradient(145deg,rgba(72,47,19,.92),rgba(11,15,21,.95));box-shadow:inset 0 1px rgba(255,255,255,.06),0 6px 0 rgba(0,0,0,.48),0 18px 38px rgba(0,0,0,.3)}
+      background:linear-gradient(145deg,rgba(72,47,19,.92),rgba(11,15,21,.95))}
     .pergunta-mae b{display:block;color:var(--ambar);font:800 10px var(--sans);letter-spacing:.18em;text-transform:uppercase;margin-bottom:7px}
     .pergunta-mae p{margin:0;color:#fff;font:600 clamp(21px,5.4vw,29px)/1.3 var(--serif)}
-    .painel-mapa{position:relative;margin:0 0 14px;border:1px solid rgba(232,164,76,.34);border-radius:10px;overflow:hidden;background:#090d13;box-shadow:0 8px 0 rgba(0,0,0,.48),0 20px 42px rgba(0,0,0,.35)}
+    .painel-mapa{position:relative;margin:0 0 14px;border:1px solid rgba(232,164,76,.34);border-radius:10px;overflow:hidden;background:#090d13}
     .painel-mapa img{width:100%;display:block;opacity:.92}
     .mapa-faixa{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(232,164,76,.18)}
     .mapa-dado{padding:9px 7px;background:rgba(5,7,12,.96);text-align:center}

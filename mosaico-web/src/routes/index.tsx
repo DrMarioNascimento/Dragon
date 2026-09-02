@@ -4,7 +4,7 @@ import { MosaicMark } from "@/components/game/mark";
 import { CartaDemo } from "@/components/game/carta-demo";
 import { FORMA_OPCOES, type Forma } from "@/lib/mosaico/arquetipo";
 import { consumeGoogleRedirect } from "@/lib/mosaico/firebase";
-import { armAudio, stopVoice } from "@/lib/mosaico/sound";
+import { armAudio } from "@/lib/mosaico/sound";
 import { useParty } from "@/lib/mosaico/party";
 import type { NoiteFormato } from "@/lib/mosaico/v3";
 import { cn } from "@/lib/utils";
@@ -88,11 +88,6 @@ function Home() {
     e?.stopPropagation?.();
     try {
       videoRef.current?.pause();
-    } catch {
-      /* ignore */
-    }
-    try {
-      stopVoice();
     } catch {
       /* ignore */
     }

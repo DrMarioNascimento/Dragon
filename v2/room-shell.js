@@ -138,9 +138,9 @@ function launchOnline(){
   if(window.__MOSAICO_NOITE_LAUNCHED)return;window.__MOSAICO_NOITE_LAUNCHED=true;
   window.MosaicoSala={online:true,role,roomCode,roomData,players,auth,db};const id=roomData.partidaId||'sete',idx=ORDEM.indexOf(id);
   try{localStorage.setItem(ROT,ORDEM[(idx-1+ORDEM.length)%ORDEM.length]);localStorage.removeItem('mosaico_noite_costa_auto');}catch(e){}
-  root.innerHTML='';const s=document.createElement('script');s.src='noite-auto.js?v=20260830-mesa-flow';document.body.appendChild(s);
+  root.innerHTML='';const s=document.createElement('script');s.src='noite-auto.js?v=20260902-tecnica';document.body.appendChild(s);
 }
-function launchLocal(){window.__MOSAICO_NOITE_LAUNCHED=true;root.innerHTML='';const s=document.createElement('script');s.src='noite-auto.js?v=20260830-mesa-flow';document.body.appendChild(s);}
+function launchLocal(){window.__MOSAICO_NOITE_LAUNCHED=true;root.innerHTML='';const s=document.createElement('script');s.src='noite-auto.js?v=20260902-tecnica';document.body.appendChild(s);}
 window.addEventListener('beforeunload',()=>{if(unsubRoom)unsubRoom();if(unsubPlayers)unsubPlayers();});
 init();
 })();

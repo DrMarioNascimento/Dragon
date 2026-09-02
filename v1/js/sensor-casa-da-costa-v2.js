@@ -33,43 +33,34 @@
     if(!intro)return;
     var box=document.createElement('div');
     box.id='nota-canonica-casa';
-    box.style.cssText='width:min(520px,92vw);margin:8px auto 15px;padding:12px 14px;border:1px solid rgba(255,217,176,.38);border-left:4px solid '+dados.cor+';border-radius:9px;background:rgba(3,7,12,.78);box-shadow:inset 0 1px rgba(255,255,255,.06),0 5px 0 rgba(0,0,0,.55),0 16px 30px rgba(0,0,0,.28);text-align:left;';
+    /* A classe pega a profundidade em css/profundidade.css. O style inline
+       abaixo NAO pode voltar a trazer box-shadow: inline vence folha, e a
+       parede preta que estava aqui sumia no breu. Ver o item 5 de la. */
+    box.className='nota-canonica';
+    box.style.cssText='width:min(520px,92vw);margin:16px auto 15px;padding:12px 14px;border:1px solid rgba(255,217,176,.38);border-left:4px solid '+dados.cor+';border-radius:9px;background:rgba(3,7,12,.78);text-align:left;';
     box.innerHTML='<b style="display:block;color:'+dados.cor+';font:700 11px/1.2 Inter,system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px">'+dados.rotulo+'</b><span style="display:block;color:#f6f9fc;font:500 16px/1.45 Literata,Georgia,serif">'+dados.texto+'</span><em style="display:block;color:'+dados.cor+';font:600 15px/1.4 Literata,Georgia,serif;margin-top:7px">'+dados.pista+'</em>';
     var go=intro.querySelector('.go');
     if(go)intro.insertBefore(box,go);else intro.appendChild(box);
   }
+  /* 02/09/2026 — daqui saiu `corrigirTexto`, que varria TODOS os nós de texto
+     da página com um TreeWalker e trocava as frases do cânone antigo por
+     regex, mais um MutationObserver sobre document.documentElement com
+     subtree:true que repetia a varredura a cada nó inserido.
 
-  function corrigirTexto(root){
-    var walker=document.createTreeWalker(root||document.body,NodeFilter.SHOW_TEXT);
-    var n;
-    while((n=walker.nextNode())){
-      var t=n.nodeValue||'';
-      if(!t.trim())continue;
-      if(tipo==='janela'){
-        t=t.replace(/procure (?:a )?marca recente na trava do cofre/gi,'procure o movimento que acontece pelo lado de dentro');
-        t=t.replace(/o pequeno objeto metálico[^.]*\.?/gi,'o vulto cruza uma zona que nenhum dos seis deveria ocupar.');
-        t=t.replace(/a marca recente na trava[^.]*\.?/gi,'a posição do vulto permanece como ponto fixo da observação.');
-      }
-      if(tipo==='vidro'){
-        t=t.replace(/marca recente na trava do cofre/gi,'sete xícaras limpas na cozinha');
-        t=t.replace(/marca da trava/gi,'diferença de poeira entre os cômodos');
-        t=t.replace(/pequeno objeto metálico/gi,'sinal de uso recente');
-      }
-      if(tipo==='escura'){
-        t=t.replace(/a busca convergiu para o cofre/gi,'as posições dos seis deixam um ponto sem autor');
-        t=t.replace(/marca recente na trava[^.]*\.?/gi,'respiração, vulto e colher permanecem como sinais de um trajeto.');
-        t=t.replace(/procure o cofre/gi,'reconstrua as posições');
-      }
-      n.nodeValue=t;
-    }
-  }
+     As nove expressões foram testadas contra os três módulos: NENHUMA acertava
+     nada. O texto que elas procuravam não existe nestes arquivos, e a Mesa não
+     manda texto para o quadro — `urlTarefaSensor` passa só s, run, folga e
+     decl, e o postMessage carrega apenas pausar/retomar. Era varredura
+     permanente do DOM para efeito nenhum.
 
-  function aplicar(){ inserir(); corrigirTexto(document.body); }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',aplicar);else aplicar();
+     Pior: o remendo dava a impressão de que o cânone antigo estava resolvido.
+     Não estava. Ele vivia onde regex nunca alcançaria — no array FRAGMENTOS da
+     Janela e no cofre da Sala às Escuras, que é objeto de cena com geometria,
+     não frase. Os dois foram corrigidos na origem na mesma data.
 
-  var ocupado=false;
-  new MutationObserver(function(muts){
-    if(ocupado)return;ocupado=true;
-    try{muts.forEach(function(m){m.addedNodes.forEach(function(n){if(n.nodeType===1)corrigirTexto(n);});});}finally{ocupado=false;}
-  }).observe(document.documentElement,{childList:true,subtree:true});
+     Se algum dia o cânone precisar mudar de novo, mude o TEXTO NA FONTE. Não
+     volte a remendar a página depois de pronta. */
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',inserir);
+  else inserir();
 })();

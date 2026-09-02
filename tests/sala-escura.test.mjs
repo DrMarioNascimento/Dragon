@@ -1,0 +1,174 @@
+/* A Sala às Escuras — invariantes da sala e do cânone.
+ *
+ * Existe por causa de 02/09/2026: o cânone antigo sobreviveu meses dentro dos
+ * três módulos sensoriais porque ninguém tinha como perceber. O que havia era
+ * um remendo por regex em `sensor-casa-da-costa-v2.js` que varria o texto da
+ * página em tempo de execução — e que, medido, não acertava NADA. O cofre
+ * arrombado continuou lá o tempo todo, porque cofre não é frase: é objeto de
+ * cena, com geometria.
+ *
+ * Estes testes olham a FONTE, não a página renderizada. É a única forma de o
+ * cânone antigo não voltar sem aviso.
+ */
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+
+const RAIZ = new URL("../v1/", import.meta.url);
+const ler = (n) => readFileSync(new URL(n, RAIZ), "utf8");
+
+const SALA = ler("MOSAICO-26-a-sala-as-escuras.html");
+const JANELA = ler("MOSAICO-26-a-janela-do-norte.html");
+const VIDRO = ler("MOSAICO-26-vidro-embacado.html");
+const SENSOR = ler("js/sensor-casa-da-costa-v2.js");
+
+/* O array OBJETOS lido da fonte. Não dá para importar: a sala é uma página
+   inteira com canvas. Ler o literal é o suficiente para as invariantes. */
+function objetosDaSala() {
+  const ini = SALA.indexOf("var OBJETOS = [");
+  const fim = SALA.indexOf("\n];", ini);
+  assert.ok(ini > 0 && fim > ini, "array OBJETOS não localizado na sala");
+  const bloco = SALA.slice(ini, fim);
+  const campo = (t, nome, aspas = true) => {
+    const re = aspas
+      ? new RegExp(nome + ':"([^"]*)"')
+      : new RegExp(nome + ":(true|false)");
+    const m = t.match(re);
+    return m ? m[1] : null;
+  };
+  return bloco
+    .split(/\n\s*\{ id:/)
+    .slice(1)
+    .map((pedaco) => {
+      const t = "id:" + pedaco;
+      return {
+        id: campo(t, "id"),
+        hora: campo(t, "hora"),
+        escondeAtras: campo(t, "escondeAtras"),
+        final: /final:true/.test(t),
+      };
+    });
+}
+
+test("a sala tem nove objetos e dois deles ficam escondidos", () => {
+  const o = objetosDaSala();
+  assert.equal(o.length, 9, "número de objetos");
+  const escondidos = o.filter((x) => x.escondeAtras);
+  assert.deepEqual(
+    escondidos.map((x) => x.id + "←" + x.escondeAtras),
+    ["cofre←quadro", "secretaria←escrivaninha"]
+  );
+});
+
+test("toda capa existe, e vem antes do que ela esconde", () => {
+  const o = objetosDaSala();
+  const pos = new Map(o.map((x, i) => [x.id, i]));
+  for (const x of o) {
+    if (!x.escondeAtras) continue;
+    assert.ok(pos.has(x.escondeAtras), `capa inexistente: ${x.escondeAtras}`);
+    /* Se o escondido vier antes, a sala pede para achar o cofre antes do
+       quadro que o cobre — e o enigma fica impossível. */
+    assert.ok(
+      pos.get(x.escondeAtras) < pos.get(x.id),
+      `${x.id} vem antes da sua capa ${x.escondeAtras}`
+    );
+  }
+});
+
+test("as horas sobem: a ordem do array é a ordem dos enigmas", () => {
+  const o = objetosDaSala();
+  for (let i = 1; i < o.length; i++) {
+    assert.ok(
+      o[i].hora >= o[i - 1].hora,
+      `${o[i].id} (${o[i].hora}) vem depois de ${o[i - 1].id} (${o[i - 1].hora})`
+    );
+  }
+});
+
+test("cabe um setor de 45° para cada objeto procurável", () => {
+  const o = objetosDaSala();
+  const aoRedor = o.filter((x) => !x.escondeAtras).length;
+  /* Os escondidos herdam o rumo da capa e não gastam setor. Se um dia
+     sobrarem mais de oito procuráveis, `setores[i]` vira undefined e o rumo
+     do último objeto vira NaN — some da sala sem erro nenhum no console. */
+  assert.ok(aoRedor <= 8, `${aoRedor} objetos ao redor para 8 setores`);
+});
+
+test("a sala termina no nome", () => {
+  const o = objetosDaSala();
+  const finais = o.filter((x) => x.final);
+  assert.equal(finais.length, 1, "só um objeto pode ser o fecho");
+  assert.equal(finais[0].id, "secretaria");
+  assert.equal(finais[0], o[o.length - 1], "o fecho é o último enigma");
+});
+
+test("o cânone antigo não voltou a nenhum dos três módulos", () => {
+  /* Cada uma destas frases é do caso anterior — o herdeiro que arromba o
+     cofre para pegar um documento. O caso agora é a sétima pessoa que nunca
+     saiu da casa, e nada foi levado do cofre (F32). */
+  const proibidas = [
+    /marca (recente|de dedo) na trava/i,
+    /pequeno objeto met[áa]lico/i,
+    /a n[ée]voa entrou pela fresta/i,
+    /a busca convergiu para o cofre/i,
+    /a linha da verdade estava tra[çc]ada/i,
+    /21h03/,                       /* o apagão antigo: agora é 21h29 */
+    /a porta da sala estava entreaberta/i,
+  ];
+  for (const [nome, txt] of [
+    ["A Sala às Escuras", SALA],
+    ["A Janela do Norte", JANELA],
+    ["O Vidro Embaçado", VIDRO],
+  ]) {
+    for (const re of proibidas) {
+      assert.ok(!re.test(txt), `${nome} ainda diz ${re}`);
+    }
+  }
+});
+
+test("a camada do caso não remenda mais o texto da página", () => {
+  /* O TreeWalker e o MutationObserver saíram em 02/09/2026. Se voltarem, é
+     porque alguém tentou consertar cânone por regex de novo — e o certo é
+     mudar o texto na fonte. As duas menções que sobram estão no comentário
+     que explica isso. */
+  assert.equal(
+    (SENSOR.match(/createTreeWalker|new MutationObserver/g) || []).length,
+    0,
+    "sensor-casa-da-costa-v2.js voltou a varrer o DOM"
+  );
+  assert.ok(
+    !/\.replace\(\//.test(SENSOR),
+    "sensor-casa-da-costa-v2.js voltou a trocar texto por regex"
+  );
+});
+
+test("as camadas do jogador resolvem o código da sala pelo STATE.eu", () => {
+  /* `STATE.mesa` só existe em três caminhos — criar mesa, painel do Mestre e
+     reconexão. Quem entra pelo QR e não recarrega joga a partida inteira com
+     `STATE.mesa` null, e o código dele está em `STATE.eu.codigo`.
+     Em 02/09/2026 duas camadas ignoravam isso e gravavam calado no vazio:
+     o carimbo de chegada (e com ele os 5 pontos de duração) nunca acontecia,
+     e consignar no mercado apagava a peça da mão sem pôr no balaio. */
+  for (const arq of [
+    "js/rendimento-casa-da-costa.js",
+    "js/mercado-casa-da-costa.js",
+  ]) {
+    const txt = ler(arq);
+    assert.match(
+      txt,
+      /STATE\.eu && STATE\.eu\.codigo/,
+      `${arq} não tem alternativa a STATE.mesa para o código da sala`
+    );
+  }
+});
+
+test("uma gravação de balaio que não pode acontecer lança, não volta calada", () => {
+  /* Voltar calado fazia o chamador seguir em frente como se tivesse gravado —
+     e o passo seguinte tirava a peça da mão do jogador. */
+  const txt = ler("js/mercado-casa-da-costa.js");
+  const bloco = txt.slice(
+    txt.indexOf("async function salvarBalaio"),
+    txt.indexOf("async function salvarBalaio") + 400
+  );
+  assert.match(bloco, /throw new Error/, "salvarBalaio voltou a falhar em silêncio");
+});

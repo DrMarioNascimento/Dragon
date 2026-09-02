@@ -15,6 +15,25 @@
   TS.concluir = function (tempoMs, ctx) {
     TS.enviar({ mosaico: "tarefa-ok", tempoMs: tempoMs }, ctx);
   };
+  /* PRONTO: a tarefa ficou jogável — permissão resolvida, calibragem feita.
+     Até 02/09/2026 o `enviarStatus` dos módulos só guardava uma variável
+     local: os estados que o Documento V8 diz serem "registrados" pela Mesa
+     nunca saíam de dentro do iframe. Agora saem, e a Mesa carimba a chegada
+     no servidor — é a ponta de largada da duração que pontua.
+
+     Medir daqui, e não da abertura da fase, é o que tira do iPhone o custo da
+     permissão, do diálogo do sistema e do oito no ar. */
+  TS.status = function (estado, ctx) {
+    TS.enviar({ mosaico: "tarefa-status", estado: String(estado || "") }, ctx);
+  };
+
+  /* NÃO existe canal de progresso parcial, e é decisão, não esquecimento.
+     Cheguei a construí-lo — a tarefa avisava "estou em 4 de 7" — para que
+     travar no sexto passo não custasse o mesmo que nunca ter começado. Mario
+     decidiu em 02/09/2026 que quem não conclui leva ZERO fragmento, e aí o
+     canal não pagava mais nada: sinal disparado no vazio é código morto com
+     aparência de vivo, que é justamente o que a auditoria de A Noite proíbe.
+     Se um dia o progresso parcial voltar a valer, ele volta aqui. */
   TS.ouvirMesa = function (acoes, ctx) {
     ctx = ctx || {};
     function aoReceber(ev) {
@@ -71,7 +90,7 @@
   setTimeout(function(){
     if(document.querySelector('script[data-sensor-casa-costa-v2]'))return;
     var s=document.createElement('script');
-    s.src='js/sensor-casa-da-costa-v2.js?v=20260830-canonico';
+    s.src='js/sensor-casa-da-costa-v2.js?v=20260902-profundidade';
     s.dataset.sensorCasaCostaV2='1';
     document.head.appendChild(s);
   },0);

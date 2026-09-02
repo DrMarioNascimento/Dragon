@@ -1,56 +1,40 @@
-import { AUDIO } from "./assets";
+/* Destravar o áudio do iOS — e mais nada.
+ *
+ * 02/09/2026: os arquivos de som foram apagados do projeto a pedido do Mario.
+ * Este módulo tinha `playStorm` e `playOnce`, que NUNCA foram chamados por
+ * ninguém: tocavam `tempestade-loop.mp3` e um som avulso que nenhum caminho
+ * do jogo pedia. Saíram junto com os arquivos.
+ *
+ * O que ficou tem motivo. O iOS só permite áudio depois de um gesto, e o
+ * botão de som da abertura precisa disso para o VÍDEO tocar com som. Antes o
+ * destravamento usava `tempestade-rajada.mp3` mudo; sem arquivo ele falharia
+ * em silêncio — `play()` rejeitado, `.catch()` engolindo — e o sintoma
+ * apareceria só num iPhone, como vídeo sem som.
+ *
+ * Agora o destravamento não depende de arquivo nenhum: um WAV silencioso de
+ * 44 bytes embutido aqui faz o mesmo trabalho e não pode faltar do servidor.
+ */
 
-let storm: HTMLAudioElement | null = null;
-let oneshot: HTMLAudioElement | null = null;
+/* WAV mono, 8 kHz, um quadro de silêncio. É o menor arquivo válido possível,
+   e existe só para que o navegador registre um play() bem-sucedido dentro do
+   gesto. */
+const SILENCIO =
+  "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=";
+
 let armed = false;
 
-function make(src: string, loop = false, volume = 0.22) {
-  const a = new Audio(src);
-  a.loop = loop;
-  a.volume = volume;
-  a.preload = "auto";
-  a.setAttribute("playsinline", "true");
-  return a;
-}
-
-/** iOS only starts audio after a tap. Call from the first gesture. */
+/** iOS só libera áudio depois de um toque. Chamar do primeiro gesto. */
 export function armAudio() {
   if (armed || typeof window === "undefined") return;
   armed = true;
-  const a = new Audio(`${AUDIO}tempestade-rajada.mp3`);
+  const a = new Audio(SILENCIO);
   a.setAttribute("playsinline", "true");
   a.muted = true;
-  void a.play().then(() => {
-    a.pause();
-    a.src = "";
-  }).catch(() => {});
-}
-
-export function playStorm(on: boolean) {
-  if (typeof window === "undefined") return;
-  armAudio();
-  if (!storm) storm = make(`${AUDIO}tempestade-loop.mp3`, true, 0.18);
-  if (on) void storm.play().catch(() => {});
-  else {
-    storm.pause();
-    storm.currentTime = 0;
-  }
-}
-
-export function playOnce(src: string, volume = 0.7) {
-  if (typeof window === "undefined") return;
-  armAudio();
-  if (oneshot) {
-    oneshot.pause();
-    oneshot = null;
-  }
-  oneshot = make(src, false, volume);
-  void oneshot.play().catch(() => {});
-}
-
-export function stopVoice() {
-  if (oneshot) {
-    oneshot.pause();
-    oneshot = null;
-  }
+  void a
+    .play()
+    .then(() => {
+      a.pause();
+      a.src = "";
+    })
+    .catch(() => {});
 }

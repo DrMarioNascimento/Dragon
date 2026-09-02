@@ -50,9 +50,21 @@
   #arte::after{
     content:"";position:absolute;inset:0;
   }
+  /* A ABERTURA E PAPEL DE PAREDE MAIS NARRACAO (02/09/2026).
+     Antes era o video que segurava a abertura na tela larga, e o poster
+     capa-vertical.jpg no celular. Agora o audio narrado E a abertura, e a
+     imagem existe para ele ter onde acontecer: vertical no telefone,
+     horizontal no telao. Os TRES convivem: no celular, retrato, o video 16:9
+     nao cabe e fica escondido, entao a abertura e papel vertical mais audio;
+     na tela larga o video toca por cima, com o papel horizontal de poster —
+     enquanto ele carrega e se ele falhar. Antes o poster era a imagem
+     vertical atras de um video 16:9, que nao casava em nenhuma tela. */
   body.t-inicio #arte{
-    background-image:url("img/capa-vertical.jpg");
+    background-image:url("img/abertura-vertical.jpg");
     opacity:1;
+  }
+  @media (min-aspect-ratio: 1/1){
+    body.t-inicio #arte{background-image:url("img/abertura-telao.jpg")}
   }
   /* video de abertura: se img/abertura.mp4 existir, cobre o poster.
      Se nao existir, o <video> some sozinho e o poster continua valendo. */
@@ -383,13 +395,11 @@
     border:1px solid var(--linha);background:var(--painel);color:var(--texto);
     transition:border-color .25s ease,background .25s ease;
   }
-  .btn:active{background:#141d28}
   .btn-ambar{border-color:rgba(232,164,76,.5);color:var(--ambar);background:rgba(232,164,76,.06)}
   .btn-frio{border-color:rgba(127,212,255,.45);color:var(--frio);background:rgba(127,212,255,.06)}
   .btn-fantasma{border-color:transparent;color:var(--dim);letter-spacing:.12em;padding:16px}
   .btn-perigo{border-color:rgba(224,103,79,.45);color:var(--vermelho);
     background:rgba(224,103,79,.06)}
-  .btn-perigo:active{background:rgba(224,103,79,.16)}
   .btn:disabled{opacity:.32;cursor:default}
   .btn-menu-mestre{position:fixed;z-index:45;left:50%;right:auto;transform:translateX(-50%);
     bottom:max(16px,env(safe-area-inset-bottom));padding:12px 16px;border-radius:100px;
@@ -1219,13 +1229,18 @@
     text-align:center;letter-spacing:.18em;margin-bottom:16px;
   }
 </style>
+
+<!-- O volume dos botoes mora num arquivo so, lido por esta pagina e pelas
+     outras tres. Entra DEPOIS do <style> de proposito: em empate de
+     especificidade, quem vem por ultimo vence, e o padrao tem de vencer. -->
+<link rel="stylesheet" href="css/profundidade.css?v=20260902-profundidade">
 </head>
 <body>
 <div id="arte">
   <!-- Coloque o video em img/abertura.mp4 e ele assume a abertura sozinho.
        Sem o arquivo, nada quebra: fica o poster capa-vertical.jpg. -->
   <video id="video-abertura" muted loop playsinline preload="auto"
-         poster="img/capa-vertical.jpg"></video>
+         poster="img/abertura-telao.jpg"></video>
 </div>
 <nav id="barra-jogo" class="barra-jogo" aria-label="Navega&ccedil;&atilde;o da partida">
   <button id="btn-pistas" title="Abrir os fragmentos guardados" aria-label="Abrir Arquivo">🗂 Arquivo <b>0</b></button>
@@ -1255,7 +1270,7 @@
 <div id="abertura-participante" class="hidden" aria-hidden="true">
   <video id="video-abertura-participante" playsinline webkit-playsinline preload="auto"
          controls controlslist="nodownload noplaybackrate"
-         poster="img/capa-vertical.jpg"></video>
+         poster="img/abertura-vertical.jpg"></video>
   <div class="abertura-participante-portao">
     <div class="abertura-participante-intro">
       <span class="eyebrow">Antes de entrar</span>
@@ -1833,22 +1848,19 @@ function cabecalhoRodada(fase, classe){
 }
 var _audioNivel=null, _nivelSonoroAnterior=null, _vozesNivel={}, _podioAudioChave="";
 var _encerramentoAudioChave="", _fonteEncerramento=null, _timerEncerramento=null;
-var DURACAO_ENCERRAMENTO_MS=124030;
+/* Só a abertura tem narração (02/09/2026). Os outros doze áudios foram
+   apagados a pedido do Mario. As chaves ausentes são inofensivas: quem lê
+   este mapa já guarda com `if(!ARQUIVOS_VOZ_NIVEL[chave])return`, e
+   vozDaFase devolve "" para fase sem áudio. */
 var ARQUIVOS_VOZ_NIVEL={
-  tempestade:"audio/tempestade-rajada.mp3",
-  abertura:"audio/abertura.mp3",
-  chuva:"audio/chuva-ambiente.mp3",
-  encenacao:"audio/fase-encenacao.mp3",
-  votacao:"audio/fase-votacao-encenacao.mp3",
-  inclinacao:"audio/fase-janela-do-norte.mp3",
-  vidro:"audio/fase-vidro-embacado.mp3",
-  salaEscura:"audio/fase-sala-as-escuras.mp3",
-  mosaico:"audio/fase-mosaico-coletivo.mp3",
-  mercado:"audio/fase-mercado-de-pistas.mp3",
-  deducao:"audio/fase-acusacao-final.mp3",
-  encerramento:"audio/encerramento.mp3",
-  podio:"audio/podio-resultado-final.mp3"
+  abertura:"audio/A-Casa-da-Costa-Abertura.mp3"
 };
+/* A espera do encerramento existia para caber a narração de 124 s. Com o
+   áudio apagado, o temporizador continuava segurando a mesa por dois minutos
+   EM SILÊNCIO — ele nunca dependeu do arquivo carregar. Agora a duração sai
+   do próprio mapa: sem narração de encerramento, a espera é zero e a fase
+   passa direto. Devolver o áudio ao mapa devolve a espera junto. */
+var DURACAO_ENCERRAMENTO_MS=ARQUIVOS_VOZ_NIVEL.encerramento?124030:0;
 function carregarVozNivel(chave){
   if(!_audioNivel||!ARQUIVOS_VOZ_NIVEL[chave])return Promise.resolve(null);
   if(_vozesNivel[chave])return _vozesNivel[chave];
@@ -3082,10 +3094,40 @@ function execucaoTarefaSensor(tipo){
   var runId=[codigo,variante,aberta].join("-");
   return {runId:runId,semente:runId};
 }
+/* A folga do rumo e o desvio da bussola sao decisao DA MESA, nao do aparelho.
+   Antes o painel "Mestre" ficava no HUD de todo jogador dentro do iframe:
+   qualquer um abria e punha a folga em "muito largo" — 1,9x a tolerancia — ou
+   recalibrava o proprio norte. Enquanto a tarefa so dizia "pronto", isso era
+   desigualdade silenciosa; com o tempo da atividade valendo ponto, vira
+   comprar colocacao com dois toques.
+
+   Descem pela mesma via que a semente ja usava. A DECLINACAO e um numero so
+   para a mesa inteira; quem decide se ele vale e o modulo, que aplica apenas
+   nos aparelhos de norte verdadeiro (iPhone). Nao da para o grupo medir isso
+   sozinho: cada aparelho trava quando a LEITURA DELE bate com o alvo, entao
+   todos travam lendo o mesmo numero e a discordancia — que existe na direcao
+   fisica — fica invisivel para qualquer bussola. Por isso e um valor do
+   lugar de jogo, nao uma medida.
+
+   Ausentes, o modulo usa o que ja usava — nada quebra em sala antiga.      */
+var DECLINACAO_PADRAO=-19;   /* Florianopolis, arredondado. Ver DECL no modulo. */
+function ajustesTarefaSensor(){
+  var doc=STATE.doc||{};
+  var folga=Number(doc.folgaRumo);
+  var decl=doc.declinacao==null?DECLINACAO_PADRAO:Number(doc.declinacao);
+  return {
+    folga:(isFinite(folga)&&folga>=0.5&&folga<=2.5)?folga:null,
+    decl:(isFinite(decl)&&decl>=-90&&decl<=90)?decl:null
+  };
+}
 function urlTarefaSensor(cfg,tipo){
   var base=String((cfg&&cfg.arquivo)||"");
   var ex=execucaoTarefaSensor(tipo), sep=base.indexOf("?")>=0?"&":"?";
-  return base+sep+"s="+encodeURIComponent(ex.semente)+"&run="+encodeURIComponent(ex.runId);
+  var url=base+sep+"s="+encodeURIComponent(ex.semente)+"&run="+encodeURIComponent(ex.runId);
+  var aj=ajustesTarefaSensor();
+  if(aj.folga!==null) url+="&folga="+encodeURIComponent(aj.folga);
+  if(aj.decl!==null)  url+="&decl="+encodeURIComponent(aj.decl);
+  return url;
 }
 function sincronizarControleTarefa(frame,tipo){
   if(!frame||!frame.contentWindow) return;
@@ -3648,10 +3690,20 @@ async function entrarNaMesa(){
       abrirCortina();
       STATE.revelando=true;   /* a animacao so comeca com a cortina subindo */
       render();
-      abrirAberturaParticipante(function(){
+      /* A abertura e do TELAO e do Mestre, nao do celular de cada jogador
+         (02/09/2026). Este ponto e o fluxo de ENTRADA do participante; o
+         Mestre chega por criarMesa e nao passa por aqui, entao basta nao
+         chamar. A chave fica no caso para poder voltar sem tocar em codigo. */
+      var soNoTelao=!(CASO.arte&&CASO.arte.aberturaSoNoTelao===false);
+      if(soNoTelao){
         STATE.orientacaoParticipanteAberta=true;
         render();
-      });
+      } else {
+        abrirAberturaParticipante(function(){
+          STATE.orientacaoParticipanteAberta=true;
+          render();
+        });
+      }
     }, Math.max(0, 2400-jaPassou));
   }catch(e){
     console.error(e);
