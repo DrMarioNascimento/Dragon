@@ -219,7 +219,7 @@ function renderDossie(){
    (proximoExige?`<p class="muted">${proximoExige}</p>`:"")+
   `</section>`+
   `<h2>Ferramentas da reunião</h2><div class="grid modules">${modulosHtml()}</div>`+
-  `<h2>Mapa coletivo</h2><div class="mapwrap"><img src="../v1/img/casa-da-costa-planta-1867.svg" alt="Planta esquemática da Casa da Costa, construída em 1867">${markers()}</div>`+
+  `<h2>Mapa coletivo</h2><div class="mapwrap"><img src="../v1/img/casa-da-costa-planta-1867.svg?v=20260902-selo" alt="Planta esquemática da Casa da Costa, construída em 1867">${markers()}</div>`+
   `<h2>Relações que já fecham</h2><div class="relacoes">${relacoesHtml()}</div>`+
   `<h2>Hipóteses concorrentes</h2><div class="relacoes">${hipotesesHtml()}</div>`+
   `<div class="toolbar"><button class="btn btn-gold" id="decidir" ${aberto<2?"disabled":""}>Fechar decisão</button></div>`+

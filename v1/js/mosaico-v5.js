@@ -195,7 +195,7 @@
     document.addEventListener("error", function (ev) {
       var el = ev.target;
       if (el && el.tagName === "IMG" && /casa-da-costa-planta-1867\.webp(?:\?|$)/.test(el.src || "")) {
-        el.src = "img/casa-da-costa-planta-1867.svg?v=20260830";
+        el.src = "img/casa-da-costa-planta-1867.svg?v=20260902-selo";
       }
     }, true);
 
