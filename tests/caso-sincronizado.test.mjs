@@ -196,11 +196,16 @@ test("a pergunta-mãe reúne as três famílias de evidência nas centrais", () 
 /* Duas camadas leem o mesmo banco e nenhuma é carregada por <script> no HTML:
    a Mesa injeta a sua no fim de mosaico-v5.js, A Noite injeta a sua em
    room-shell.js. Arquivo que não compila é descartado em silêncio pelo
-   navegador — a página abre, e o que some é a distribuição. */
+   navegador — a página abre, e o que some é a distribuição.
+
+   A camada da Noite é lida de mosaico-web/public/, que é onde ela MORA desde
+   02/09/2026. Antes isto apontava para v2/noite-auto.js — o arquivo
+   publicado —, e um teste que lê o build passa a verde com fonte quebrada
+   enquanto ninguém publica. */
 test("as duas camadas que gastam o banco existem e compilam", async () => {
   const { execFileSync } = await import("node:child_process");
   const { fileURLToPath } = await import("node:url");
-  const camadas = ["../v1/js/banco-casa-da-costa.js", "../v2/noite-auto.js"];
+  const camadas = ["../v1/js/banco-casa-da-costa.js", "../mosaico-web/public/noite-auto.js"];
   for (const rel of camadas) {
     const caminho = fileURLToPath(new URL(rel, import.meta.url));
     try {
@@ -212,7 +217,7 @@ test("as duas camadas que gastam o banco existem e compilam", async () => {
   const v5 = readFileSync(new URL("../v1/js/mosaico-v5.js", import.meta.url), "utf8");
   assert.match(v5, /banco-casa-da-costa\.js\?v=/,
     "a Mesa deixou de carregar o banco modular: o dossiê some sem erro nenhum");
-  const noite = readFileSync(new URL("../v2/noite-auto.js", import.meta.url), "utf8");
+  const noite = readFileSync(new URL("../mosaico-web/public/noite-auto.js", import.meta.url), "utf8");
   assert.ok(noite.includes("CASO.fragmentos"),
     "A Noite voltou a ter a própria lista de evidências em vez de ler o banco do caso");
 });

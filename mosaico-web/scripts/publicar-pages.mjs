@@ -10,6 +10,17 @@
  * fonte fica para trás no build para sempre, e o site continua servindo um
  * asset que ninguém mais consegue explicar.
  *
+ * NADA SE ESCREVE EM v2/. Ele é apagado inteiro a cada publicação, então
+ * arquivo editado ali é arquivo perdido — e não em teoria: em 02/09/2026 este
+ * rmSync comeu seis arquivos escritos à mão (room-shell.js, noite-auto.js,
+ * noite.js, master-sala.js, noite.css, room.css), e a restauração por git
+ * levou junto a reescrita do dia, que teve de ser refeita de memória.
+ *
+ * Os seis passaram a morar em public/, que o Vite copia verbatim para o
+ * build. Continuam chegando a v2/ com o mesmo nome e a mesma URL — o que muda
+ * é que agora saem da fonte, e a limpeza não os alcança. A conferência no fim
+ * deste arquivo é o alarme para o dia em que alguém mover um de volta.
+ *
  *   node scripts/publicar-pages.mjs
  */
 import { execFileSync } from "node:child_process";
@@ -38,6 +49,8 @@ if (!existsSync(join(DIST, "_shell.html"))) {
   throw new Error("dist/client/_shell.html não saiu do build — a base de Pages não foi aplicada");
 }
 
+/* Tudo o que v2/ precisa ter nasce do build. O que não nascer é apagado aqui
+   e cobrado na conferência lá embaixo. */
 passo("apaga v2/ (senão asset removido da fonte fica para sempre)");
 rmSync(V2, { recursive: true, force: true });
 mkdirSync(V2, { recursive: true });
@@ -55,6 +68,23 @@ for (const nome of ["index.html", "404.html"]) {
 
 passo(".nojekyll (o Jekyll do Pages engole pastas com _ na frente)");
 writeFileSync(join(V2, ".nojekyll"), "");
+
+/* A SALA NÃO É COMPILADA: room-shell.js e companhia são JavaScript escrito à
+   mão que o Vite apenas copia. Se um deles sumir de public/, o build passa, o
+   site sobe, e A Noite abre numa página em branco — sem erro em lugar nenhum,
+   porque <script> que dá 404 é descartado em silêncio. A publicação falha
+   aqui, antes de alguém descobrir isso numa mesa. */
+passo("confere os arquivos escritos à mão");
+const A_MAO = ["room-shell.js", "noite-auto.js", "noite.js", "master-sala.js",
+               "noite.css", "room.css"];
+const faltando = A_MAO.filter((nome) => !existsSync(join(V2, nome)));
+if (faltando.length) {
+  throw new Error(
+    "não chegaram ao build: " + faltando.join(", ") +
+    "\nEles moram em mosaico-web/public/ e o Vite os copia verbatim." +
+    "\nSe foram movidos para v2/, mova de volta: v2/ é apagado a cada publicação."
+  );
+}
 
 const n = (function conta(dir) {
   let total = 0;
