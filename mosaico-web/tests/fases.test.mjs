@@ -13,6 +13,12 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
+/* 02/09/2026: `v3.ts` foi partido em dois. O caso antigo — os Fragmentos com
+   nome e cor, as fotos, as cartas da noite — saiu junto com `case.ts`,
+   `routes/play.tsx` e `party-app.tsx`, que era quem os desenhava. O motor de
+   fases ficou, em `noite-fases.ts`, porque `party.ts` depende dele.
+   Os testes de `fragmentoDoNucleo` e `fotoDoNucleo` saíram com as funções: a
+   tela da cor que elas alimentavam não existe mais. */
 import {
   FASES_SENSOR,
   FASE_S,
@@ -22,12 +28,10 @@ import {
   proximoAtor,
   assignNucleos,
   fasesDaNoite,
-  fotoDoNucleo,
-  fragmentoDoNucleo,
   groupSizes,
   nextPhase,
   podeSeguir,
-} from "../src/lib/mosaico/v3.ts";
+} from "../src/lib/mosaico/noite-fases.ts";
 
 const FORMATOS = ["curta", "cheia"];
 const LANTERNAS = ["janela", "salaescura"];
@@ -172,7 +176,7 @@ test("só as tarefas com módulo pedem semente à mesa", () => {
 
 /* ------------------------------------------------- núcleos e Fragmentos -- */
 
-test("toda mesa até 16 pessoas cabe nos Fragmentos que existem", () => {
+test("toda mesa até 16 pessoas cabe nos núcleos que existem", () => {
   /* FRAGMENTOS tinha quatro entradas e groupSizes formava pares sem teto: dez
      pessoas viravam CINCO núcleos, e o quinto lia FRAGMENTOS[5] — undefined.
      A tela da cor quebrava em branco, e quem ficava sem tela era sempre quem
@@ -184,10 +188,6 @@ test("toda mesa até 16 pessoas cabe nos Fragmentos que existem", () => {
       Math.max(...nucleos) <= MAX_NUCLEOS,
       `${n} pessoas formam ${Math.max(...nucleos)} núcleos e só há ${MAX_NUCLEOS} Fragmentos`,
     );
-    for (const nucleo of nucleos) {
-      const f = fragmentoDoNucleo(nucleo);
-      assert.ok(f && f.nome && f.cls, `${n}: núcleo ${nucleo} sem Fragmento`);
-    }
   }
 });
 
@@ -208,27 +208,7 @@ test("os times somam a mesa e ninguém joga sozinho a partir de quatro", () => {
   }
 });
 
-test("cada Fragmento tem a sua imagem, e a carta da casa é a do quinto", () => {
-  /* A carta-costa ficou órfã no repositório quando o Encaixe virou fotos: o
-     arquivo continuava em public/media e nada o pedia. É a única imagem cujas
-     seis peças são os seis horários da noite — o quebra-cabeça É a pista. */
-  const vistas = new Set();
-  for (let nucleo = 1; nucleo <= MAX_NUCLEOS; nucleo += 1) {
-    vistas.add(fotoDoNucleo(nucleo));
-  }
-  assert.equal(vistas.size, MAX_NUCLEOS, "dois Fragmentos dividem a mesma imagem");
-  assert.equal(fotoDoNucleo(MAX_NUCLEOS), "costa");
-  assert.equal(fragmentoDoNucleo(MAX_NUCLEOS).cor, "Verde");
-});
 
-test("um núcleo fora da conta não derruba a tela", () => {
-  /* Defesa em profundidade: mesmo que a distribuição volte a passar do teto,
-     a tela da cor mostra alguma coisa em vez de morrer. */
-  for (const n of [0, -1, 99, undefined, NaN]) {
-    const f = fragmentoDoNucleo(n);
-    assert.ok(f && f.cls, `núcleo ${n} devolveu vazio`);
-  }
-});
 
 test("a encenação passa de ator em ator e acaba no sexto", () => {
   assert.equal(nAtores(1), 1);

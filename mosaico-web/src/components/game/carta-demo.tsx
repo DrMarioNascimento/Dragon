@@ -1,6 +1,5 @@
 import { MEDIA } from "@/lib/mosaico/assets";
 import { Button } from "@/components/ui/button";
-import { NOITE_CARTAS } from "@/lib/mosaico/v3";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 
@@ -10,6 +9,23 @@ type Beat = "apart" | "snap" | "join" | "letter";
    /Dragon/v2/, e a foto dava 404. Tudo o que e servido junto passa a
    pendurar-se na base. */
 const SRC = `${MEDIA}capa-vertical.jpg`;
+
+/* A demonstração mostrava as seis cartas de `v3.ts`, que eram do caso antigo —
+   o cofre arrombado, a névoa convidada. Saíram junto com o arquivo. Estas seis
+   são a mesma linha do tempo que A Noite monta a partir do banco em
+   v1/casos/casa-da-costa.json: F22, F21, F23, F02, F25 e F08.
+
+   Ficam inline porque aqui é ilustração de abertura, não jogo: puxar o banco
+   por fetch só para animar uma carta pagaria uma requisição por visita. Ao
+   mexer no banco, confira se ainda batem. */
+const CARTAS_DEMO = [
+  { id: "f22", hora: "21:02", txt: "Alguém já estava no vão do sótão quando o primeiro carro parou." },
+  { id: "f21", hora: "21:19", txt: "Seis chegadas em fila. E nenhuma antes das 21h02." },
+  { id: "f23", hora: "21:21", txt: "O quarto degrau rangeu sob peso. O grupo inteiro estava na sala." },
+  { id: "f02", hora: "21:24", txt: "Cozinha e corredor sem poeira. O resto da casa tem cinco meses." },
+  { id: "f25", hora: "21:29", txt: "A luz cai. Dois minutos e dois segundos de escuro." },
+  { id: "f08", hora: "21:31", txt: "A secretária reinicia e diz um nome que não é de nenhum dos seis." },
+] as const;
 
 export function CartaDemo({ onBack }: { onBack?: () => void }) {
   const [beat, setBeat] = useState<Beat>("apart");
@@ -60,7 +76,7 @@ export function CartaDemo({ onBack }: { onBack?: () => void }) {
 
       {beat === "letter" && (
         <ol className="stagger-in space-y-1.5 px-1">
-          {NOITE_CARTAS.map((c) => (
+          {CARTAS_DEMO.map((c) => (
             <li key={c.id} className="text-base leading-snug text-fog">
               <span className="font-serif text-primary">{c.hora}</span>
               {" · "}

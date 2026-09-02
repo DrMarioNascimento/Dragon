@@ -6,7 +6,7 @@ import { FORMA_OPCOES, type Forma } from "@/lib/mosaico/arquetipo";
 import { consumeGoogleRedirect } from "@/lib/mosaico/firebase";
 import { armAudio } from "@/lib/mosaico/sound";
 import { useParty } from "@/lib/mosaico/party";
-import type { NoiteFormato } from "@/lib/mosaico/v3";
+import type { NoiteFormato } from "@/lib/mosaico/noite-fases";
 import { cn } from "@/lib/utils";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { DoorOpen, Play, QrCode, Volume2, VolumeX } from "lucide-react";
@@ -37,7 +37,6 @@ function Home() {
   const localStart = useParty((s) => s.localStart);
   const connecting = useParty((s) => s.connecting);
   const error = useParty((s) => s.error);
-  const mode = useParty((s) => s.mode);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -45,9 +44,13 @@ function Home() {
        arquivo na raiz do app, então "/Dragon/v2/noite" digitado na barra de
        endereço dá 404 — a rota quem monta é o roteador, já com a página
        carregada. O botão volta para a raiz e diz aqui para onde ir. */
+    /* `?ir=play` foi embora com a rota /play, em 02/09/2026. Ela montava o
+       jogo do app React a partir de `case.ts`, que ainda contava o caso
+       antigo. A Noite é a página escrita à mão (noite-shell.html); o que
+       sobra aqui é a entrada e a rota /noite. */
     const ir = new URLSearchParams(window.location.search).get("ir");
-    if (ir === "noite" || ir === "play") {
-      void nav({ to: ir === "play" ? "/play" : "/noite", replace: true });
+    if (ir === "noite") {
+      void nav({ to: "/noite", replace: true });
       return;
     }
     const q = new URLSearchParams(window.location.search).get("sala");
@@ -80,9 +83,10 @@ function Home() {
     };
   }, [create, localStart, nav]);
 
-  useEffect(() => {
-    if (mode !== "idle") void nav({ to: "/play" });
-  }, [mode, nav]);
+  /* Aqui havia `if (mode !== "idle") nav({ to: "/play" })`. A rota foi apagada
+     junto com o caso antigo que ela jogava; quem abre mesa a partir desta tela
+     fica nela, e o jogo é A Noite, servida por noite-shell.html. Se um dia o
+     app React voltar a ter uma tela de jogo, o destino entra aqui. */
 
   function skipOpen(e?: { stopPropagation?: () => void }) {
     e?.stopPropagation?.();
