@@ -434,7 +434,7 @@
   <div id="kicker">A noite da tempestade</div>
   <div id="title">A Casa<br><b>da Costa</b></div>
   <div id="sub">A janela do segundo andar</div>
-  <p>A tempestade não esperou ninguém. Às 21h03 a luz da casa oscilou. Não foi queda. Foi aviso.</p>
+  <p>A tempestade não esperou ninguém. Às 21h29 a casa apagou por dois minutos e dois segundos. Não foi queda. Foi janela.</p>
   <p>A janela acesa fica sempre no <b>mesmo rumo real do mundo</b>. Todos viram o corpo para o mesmo lado.</p>
   <button class="go" id="b-start">Descer do carro</button>
   <button class="alt" id="b-sim">Estou no computador</button>
@@ -496,14 +496,18 @@ var CFG = {
 };
 
 /* o que a janela devolve a cada chegada — curto de propósito */
+/* 02/09/2026: esta lista era do cânone antigo — o cofre arrombado, a névoa
+   convidada — e nenhuma linha dela existia mais no caso. Sai do banco
+   (v1/casos/casa-da-costa.json) e desce até o que a Janela do Norte prova, que
+   é POSIÇÃO: o corpo que atravessa por dentro. Espelha v1/. */
 var FRAGMENTOS = [
-  { hora:"21:03", txt:"A luz da casa oscilou pela primeira vez. Não foi queda. Foi aviso." },
-  { hora:"21:07", txt:"A porta estava entreaberta. A cortina balançava. E a janela estava trancada." },
-  { hora:"21:12", txt:"O cofre, fechado como deveria. Mas a marca de dedo na trava era recente." },
-  { hora:"21:14", txt:"Um som no andar de cima. Não era passo. Não era objeto. Era algo entre os dois." },
-  { hora:"21:17", txt:"O corredor escureceu por um segundo. Uma sombra passou rápido demais." },
-  { hora:"21:20", txt:"A névoa entrou pela fresta da porta como se tivesse sido convidada." },
-  { hora:"21:23", txt:"A linha da verdade estava traçada. Não por alguém — pelos detalhes." }
+  { hora:"21:02", txt:"Alguém já estava no vão do sótão quando o primeiro carro parou." },              /* F22 */
+  { hora:"21:19", txt:"As chegadas em fila: 21h02, 21h05, 21h08, 21h11, 21h14, 21h19. Seis, e nenhuma antes." }, /* F21 */
+  { hora:"21:21", txt:"O quarto degrau rangeu sob peso. O terceiro não. O grupo inteiro estava na sala." },      /* F23 F04 */
+  { hora:"21:24", txt:"Cozinha e corredor sem poeira. O resto da casa tem cinco meses fechados." },     /* F02 */
+  { hora:"21:27", txt:"Uma colher no piso do corredor. Não estava ali às 21h19." },                      /* F05 F24 */
+  { hora:"21:29", txt:"A luz cai. Dois minutos e dois segundos de escuro, e uma respiração perto demais." }, /* F25 F06 */
+  { hora:"21:52", txt:"Um corpo atravessa entre o observador e a janela. Por dentro." }                  /* F07 */
 ];
 
 /* uma frase por passo dado */

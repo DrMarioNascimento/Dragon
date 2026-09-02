@@ -172,3 +172,29 @@ test("uma gravação de balaio que não pode acontecer lança, não volta calada
   );
   assert.match(bloco, /throw new Error/, "salvarBalaio voltou a falhar em silêncio");
 });
+
+test("a entrada de /Dragon/v2/ carrega A Noite, não o app React", () => {
+  /* 02/09/2026: a publicação copiava a casca do React por cima de index.html
+     e 404.html, e isso trocava o jogo publicado sem quebrar nada visível —
+     a página abre, só que abre OUTRO caso (case.ts, TRUTH elias/m-heranca).
+     Salvar os arquivos do rmSync não bastou: a página que os carrega era
+     sobrescrita na linha seguinte. */
+  const RAIZ_REPO = new URL("../", import.meta.url);
+  const lerRepo = (n) => readFileSync(new URL(n, RAIZ_REPO), "utf8");
+  for (const nome of ["v2/index.html", "v2/404.html", "v2/_shell.html"]) {
+    assert.match(
+      lerRepo(nome),
+      /room-shell\.js/,
+      `${nome} deixou de carregar A Noite`
+    );
+  }
+  /* E a cadeia inteira: a página carrega room-shell, que carrega noite-auto,
+     que lê o banco. Qualquer elo que caia deixa o jogo abrindo em branco ou
+     contando a história errada. */
+  assert.match(lerRepo("mosaico-web/public/room-shell.js"), /noite-auto\.js/);
+  assert.match(
+    lerRepo("mosaico-web/public/noite-auto.js"),
+    /casos\/casa-da-costa\.json/,
+    "A Noite deixou de ler o banco do caso"
+  );
+});

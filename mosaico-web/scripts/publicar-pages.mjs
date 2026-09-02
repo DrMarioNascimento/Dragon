@@ -21,6 +21,11 @@
  * é que agora saem da fonte, e a limpeza não os alcança. A conferência no fim
  * deste arquivo é o alarme para o dia em que alguém mover um de volta.
  *
+ * A PÁGINA que carrega os seis — noite-shell.html — mora em public/ pelo mesmo
+ * motivo, e é ela que vira index.html, 404.html e _shell.html no fim. Salvar
+ * um arquivo do apagamento não adianta se a página que o carrega é
+ * sobrescrita na linha seguinte; foi exatamente o que aconteceu.
+ *
  *   node scripts/publicar-pages.mjs
  */
 import { execFileSync } from "node:child_process";
@@ -58,12 +63,34 @@ mkdirSync(V2, { recursive: true });
 passo("copia dist/client → v2/");
 cpSync(DIST, V2, { recursive: true });
 
-passo("_shell.html vira index.html e 404.html");
-/* O Pages serve 404.html para qualquer endereço sem arquivo; sendo o mesmo
-   documento, uma rota digitada à mão ainda carrega o app, que então lê o
-   hash. Os três TÊM de ser idênticos — tests/v2-publicado.test.mjs confere. */
-for (const nome of ["index.html", "404.html"]) {
-  copyFileSync(join(V2, "_shell.html"), join(V2, nome));
+/* A ENTRADA DE /Dragon/v2/ É A NOITE, NÃO O APP REACT.
+ *
+ * Aqui estava `copyFileSync(_shell.html → index.html)`, e isso foi o segundo
+ * estrago desta publicação, gêmeo do rmSync: em 02/09/2026 ele substituiu a
+ * página escrita à mão de A Noite pela casca do React. Os arquivos dela
+ * sobreviveram — room-shell.js, noite-auto.js, master-sala.js e as duas CSS —,
+ * mas nada mais os carregava. A Noite publicada passou a ser o app React, cujo
+ * caso ainda é o antigo (case.ts, TRUTH: elias/m-heranca/a-disjuntor), e
+ * ninguém percebeu porque a página abre normalmente: ela só abre OUTRO jogo.
+ *
+ * Salvar um arquivo do apagamento não adianta se a página que o carrega é
+ * sobrescrita na linha seguinte.
+ *
+ * Os três nomes recebem noite-shell.html, que mora em public/ como todo o
+ * resto escrito à mão. O Pages serve 404.html para qualquer endereço sem
+ * arquivo, então os três TÊM de ser o mesmo documento —
+ * tests/v2-publicado.test.mjs confere isso. */
+passo("noite-shell.html vira _shell.html, index.html e 404.html");
+const SHELL = join(V2, "noite-shell.html");
+if (!existsSync(SHELL)) {
+  throw new Error(
+    "noite-shell.html não chegou ao build.\n" +
+    "É a página de entrada de A Noite e mora em mosaico-web/public/.\n" +
+    "Sem ela, /Dragon/v2/ abre o app React em vez do jogo."
+  );
+}
+for (const nome of ["_shell.html", "index.html", "404.html"]) {
+  copyFileSync(SHELL, join(V2, nome));
 }
 
 passo(".nojekyll (o Jekyll do Pages engole pastas com _ na frente)");
@@ -75,8 +102,8 @@ writeFileSync(join(V2, ".nojekyll"), "");
    porque <script> que dá 404 é descartado em silêncio. A publicação falha
    aqui, antes de alguém descobrir isso numa mesa. */
 passo("confere os arquivos escritos à mão");
-const A_MAO = ["room-shell.js", "noite-auto.js", "noite.js", "master-sala.js",
-               "noite.css", "room.css"];
+const A_MAO = ["noite-shell.html", "room-shell.js", "noite-auto.js", "noite.js",
+               "master-sala.js", "noite.css", "room.css"];
 const faltando = A_MAO.filter((nome) => !existsSync(join(V2, nome)));
 if (faltando.length) {
   throw new Error(
