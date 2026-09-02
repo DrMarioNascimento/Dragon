@@ -172,10 +172,32 @@ function hipotesesHtml(){
    `</div>`;
  }).join("");
 }
+/* A MESA FAZ AS ATIVIDADES JUNTA, E NA ORDEM QUE A PERGUNTA DEFINE.
+   Antes esta grade dava um "Abrir atividade" a cada uma das três ao mesmo
+   tempo, e quem estivesse com o telefone na mão escolhia por qual começar.
+   Duas coisas quebravam com isso:
+
+   · a ordem de MODULOS[partida] não é decorativa — ela é o percurso da
+     pergunta (em "sete" a Janela vem antes do Escuro, em "apagao" é o
+     contrário), e escolher fora de ordem entrega o espaço antes do tempo;
+   · cada atividade concluída ABRE UM TERÇO do dossiê. Com três botões
+     abertos, a mesa podia abrir dois terços sem nunca ter feito a primeira
+     junto — o gesto coletivo virava clique de um só.
+
+   Agora só a PRÓXIMA da fila tem botão. As anteriores ficam marcadas como
+   feitas, as seguintes ficam em espera dizendo a sua vez. */
 function modulosHtml(){
- return (MODULOS[partida]||[]).map(id=>{
-  const m=MODINFO[id],done=modsFeitos.includes(id);
-  return `<div class="tool ${done?"done":""}"><b>${esc(m.titulo)}</b><p>${esc(m.desc)}</p><button class="btn ${done?"btn-ghost":"btn-ember"}" data-mod="${id}">${done?"Reabrir":"Abrir atividade"}</button></div>`;
+ const fila=MODULOS[partida]||[];
+ const vez=fila.findIndex(id=>!modsFeitos.includes(id));
+ return fila.map((id,i)=>{
+  const m=MODINFO[id],feita=modsFeitos.includes(id),agora=(i===vez);
+  const estado=feita?"done":agora?"agora":"espera";
+  const rodape=feita
+   ? `<p class="tool-estado">Concluída pela mesa.</p>`
+   : agora
+    ? `<button class="btn btn-ember" data-mod="${id}">Abrir atividade</button>`
+    : `<p class="tool-estado">${i===fila.length-1?"Por último.":i-vez===1?"Depois desta.":`${i-vez}ª na fila.`}</p>`;
+  return `<div class="tool ${estado}"><b>${esc(m.titulo)}</b><p>${esc(m.desc)}</p>${rodape}</div>`;
  }).join("");
 }
 
@@ -218,7 +240,7 @@ function renderDossie(){
    `</div><div class="facts">${fatosHtml()}</div>`+
    (proximoExige?`<p class="muted">${proximoExige}</p>`:"")+
   `</section>`+
-  `<h2>Ferramentas da reunião</h2><div class="grid modules">${modulosHtml()}</div>`+
+  `<h2>Ferramentas da reunião</h2><p class="muted">A mesa faz uma de cada vez, junta, na ordem desta pergunta.</p><div class="grid modules">${modulosHtml()}</div>`+
   `<h2>Mapa coletivo</h2><div class="mapwrap"><img src="../v1/img/casa-da-costa-planta-1867.svg?v=20260902-selo" alt="Planta esquemática da Casa da Costa, construída em 1867">${markers()}</div>`+
   `<h2>Relações que já fecham</h2><div class="relacoes">${relacoesHtml()}</div>`+
   `<h2>Hipóteses concorrentes</h2><div class="relacoes">${hipotesesHtml()}</div>`+
