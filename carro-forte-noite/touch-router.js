@@ -2,24 +2,22 @@
    Executa controles essenciais na fase de captura do click. Assim o comando
    não depende da ordem dos listeners nem do layout compacto.
 
-   IMPORTANTE: o botão visível SALA não pode chamar .click() no
-   #dragonSalaBtn. Este roteador também captura esse click sintético; o
-   resultado era SALA -> dragonSalaBtn -> roteador -> .click() de novo, uma
-   recursão síncrona até estourar a pilha. Depois disso o Safari ficava com a
-   interação da página aparentemente morta. O painel é aberto diretamente
-   pelo botão Firebase: temporariamente deixamos o click sintético passar pelo
-   roteador sem interceptá-lo. */
+   SALA é tratada sem click sintético. O firebase-room instala no botão
+   #dragonSalaBtn um controlador onclick que alterna salaAberta e redesenha o
+   painel. Chamar esse controlador diretamente preserva a única fonte de
+   verdade do Firebase e não cria um novo evento DOM que possa voltar pelo
+   roteador, pelo espelho do HUD ou por listeners de apresentação. */
 (function(){
-  let encaminhandoSala=false;
   function alvo(e){return e.target?.closest?.('#infoBtn,#hudSalaMirror,#hudSala,#scoreBtn,#modalClose,#drawerClose,[data-action]')||null}
   function abrirSala(){
     const real=document.getElementById('dragonSalaBtn');
-    if(!real)return;
-    encaminhandoSala=true;
-    try{real.click()}finally{encaminhandoSala=false}
+    if(!real)return false;
+    const controlador=real.onclick;
+    if(typeof controlador!=='function')return false;
+    controlador.call(real);
+    return true;
   }
   function intercept(e){
-    if(encaminhandoSala)return;
     const b=alvo(e);if(!b)return;
     const id=b.id||'';
     if(id==='infoBtn'){e.preventDefault();e.stopImmediatePropagation();document.getElementById('drawer')?.classList.add('on');return}
@@ -27,8 +25,10 @@
     if(id==='modalClose'){e.preventDefault();e.stopImmediatePropagation();const d=document.getElementById('modal');if(d?.open)d.close();return}
     if(id==='hudSala'||id==='hudSalaMirror'){
       e.preventDefault();e.stopImmediatePropagation();
-      if(new URLSearchParams(location.search).get('soloLab')==='1'){document.getElementById('soloRoomPanel')?.classList.add('on');window.MosaicoSoloSalaCasa?.render?.()}
-      else abrirSala();
+      if(new URLSearchParams(location.search).get('soloLab')==='1'){
+        document.getElementById('soloRoomPanel')?.classList.add('on');
+        window.MosaicoSoloSalaCasa?.render?.();
+      }else abrirSala();
       return;
     }
     if(id==='scoreBtn'){
