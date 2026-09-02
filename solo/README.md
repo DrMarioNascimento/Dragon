@@ -10,6 +10,12 @@ O Modo Solo é a terceira experiência do mesmo caso canônico:
 
 O Solo lê `../v1/casos/casa-da-costa.json`. A realidade factual é única e não deve ser duplicada nesta pasta.
 
+Até 02/09/2026 essa regra estava escrita aqui e desmentida no código: `solo-auto.js` tinha a própria tabela `EVID`, com dezenove fatos reescritos, e um `SETS` com a seleção por pergunta. Duas listas da mesma verdade, sem nada que obrigasse as duas a mudarem juntas — o mesmo arranjo que deixou o cânone antigo sobreviver meses dentro dos módulos sensoriais.
+
+Hoje tudo sai do banco: título e fato de `fragmentos`, agrupamento e inferência de `relacoes`, e o que entra em cada partida de `selecao`. O único dado local é o ÍCONE de cada fragmento, que é decoração e não fato.
+
+**Os códigos do banco (F01, H3, R7) não aparecem na tela**, aqui nem nos outros dois jogos: na tela eles viram atalho de memória entre partidas.
+
 ## Conta e Firebase
 
 O Modo Solo exige **login Google** antes de iniciar. A autenticação e a sincronização usam o projeto Firebase `mosaico-noite`, separado da Mesa.
