@@ -906,10 +906,17 @@
     padding:6px;border:1px solid rgba(127,212,255,.18);border-radius:18px;
     background:rgba(3,6,11,.94);box-shadow:0 10px 34px rgba(0,0,0,.5);
     backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);pointer-events:none}
+  /* Estes dois eram os ÚNICOS botões planos do jogo: a regra tinha
+     `box-shadow:none`, e o argumento era que a barra de vidro já é a
+     superfície. Deixou de valer quando a Sala subiu para o cabeçalho e ganhou
+     volume — os três controles da partida ficariam divididos, dois rasos e um
+     em relevo. Agora os três usam a mesma parede de 3px, que vem de
+     css/profundidade.css; aqui só fica a face, porque sobre transparente o
+     degrau vira uma sombra solta sem peça em cima dela. */
   .barra-jogo .btn-caso,.barra-jogo #btn-pistas{
     position:static;left:auto;right:auto;bottom:auto;transform:none;width:100%;min-width:0;
-    grid-row:1;min-height:52px;margin:0;padding:9px 3px;display:none;align-items:center;justify-content:center;
-    border-radius:12px;background:transparent;box-shadow:none;
+    min-height:52px;margin:0 0 3px;padding:9px 3px;display:none;align-items:center;justify-content:center;
+    border-radius:12px;background:rgba(20,29,40,.62);
     font-size:clamp(11px,3.1vw,14px);letter-spacing:.09em;white-space:nowrap;
     overflow:hidden;text-overflow:ellipsis;pointer-events:auto}
   /* COLUNAS AUTOMÁTICAS, não duas fixas. O Arquivo só aparece quando há
@@ -922,9 +929,15 @@
   .barra-jogo #btn-pistas{order:2}
   .barra-jogo #btn-pistas.on{display:flex}
   .barra-jogo.vazia{display:none}
-  .barra-jogo button.ativo{background:rgba(127,212,255,.1);border-color:rgba(127,212,255,.8);
-    color:#bdeeff;box-shadow:inset 0 0 18px rgba(127,212,255,.08)}
-  .barra-jogo #btn-pistas.ativo{background:rgba(232,164,76,.1);border-color:rgba(232,164,76,.72);color:#ffd18d}
+  /* Painel aberto = botão AFUNDADO, não botão plano. A regra antiga trocava a
+     sombra inteira por um brilho interno, e com isso o degrau sumia: aberto
+     ficava mais raso que fechado, o que lê como desligado. Agora ele desce o
+     curso e guarda 1px de parede, igual ao :active do padrão. */
+  .barra-jogo button.ativo{background:rgba(127,212,255,.12);border-color:rgba(127,212,255,.8);
+    color:#bdeeff;transform:translateY(var(--curso-sm));
+    box-shadow:inset 0 0 18px rgba(127,212,255,.08),
+      0 1px 0 var(--p),0 2px 0 1px var(--pf),0 3px 6px rgba(0,0,0,.32)}
+  .barra-jogo #btn-pistas.ativo{background:rgba(232,164,76,.12);border-color:rgba(232,164,76,.72);color:#ffd18d}
 
   /* ---------- roteiro de cinema ---------- */
   #escuro{
