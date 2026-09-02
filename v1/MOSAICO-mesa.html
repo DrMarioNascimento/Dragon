@@ -165,6 +165,22 @@
     line-height:1.05;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
   .rodada-celular{margin:0 auto 8px;padding:10px 14px;width:100%}
   .rodada-celular .nome{font-size:clamp(22px,7vw,32px)}
+  /* O CABEÇALHO DO JOGO GRUDA NO TOPO porque agora ele carrega a Sala. Solto
+     no fluxo, ele rolava para fora e o Mestre perdia a pausa justamente ao
+     descer a tela. A busca-fragmento fica de fora: ali o body vira o
+     container de rolagem e o cabeçalho já é item de um flex próprio. */
+  body:not(.busca-fragmento) .rodada-telao.topo-jogo{
+    position:sticky;top:0;z-index:40;
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  .rodada-telao.topo-jogo{display:flex;align-items:center;gap:10px;
+    text-align:left;margin:0 auto 10px;padding:8px 10px 8px 14px}
+  .rodada-telao.topo-jogo .rr{flex:1;min-width:0}
+  .rodada-telao.topo-jogo .nome{font-size:clamp(17px,4.8vw,24px);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rodada-telao.topo-jogo .rotulo{margin-bottom:2px;font-size:9px}
+  .rodada-telao.topo-jogo .btn-menu-mestre{flex:0 0 auto;min-height:40px;
+    padding:9px 13px;border-radius:11px;font-size:clamp(10px,2.6vw,12px);
+    letter-spacing:.1em}
   .dinamica-nivel{width:min(86%,620px);margin:-2px auto 18px;padding:8px 14px 9px;text-align:center;
     border:1px solid rgba(232,164,76,.5);border-radius:7px;
     background:linear-gradient(135deg,rgba(67,44,17,.94),rgba(28,24,21,.94));
@@ -401,8 +417,12 @@
   .btn-perigo{border-color:rgba(224,103,79,.45);color:var(--vermelho);
     background:rgba(224,103,79,.06)}
   .btn:disabled{opacity:.32;cursor:default}
-  .btn-menu-mestre{position:fixed;z-index:45;left:50%;right:auto;transform:translateX(-50%);
-    bottom:max(16px,env(safe-area-inset-bottom));padding:12px 16px;border-radius:100px;
+  /* 02/09/2026: a Sala era um botão FLUTUANTE, fixo no centro do rodapé — e
+     ao mesmo tempo a barra inferior a reposicionava como coluna 2 de uma
+     grade. Duas identidades para o mesmo botão, e a flutuante nunca chegava a
+     aparecer: organizarBarraInferior() a movia no fim de todo render. Sobrou
+     uma só, e ela é a do cabeçalho. */
+  .btn-menu-mestre{padding:12px 16px;border-radius:100px;
     border:1px solid rgba(127,212,255,.5);background:rgba(5,7,12,.82);color:var(--frio);
     font:700 clamp(11px,3vw,14px) var(--sans);letter-spacing:.16em;text-transform:uppercase}
   .btn-menu-mestre.acao-necessaria{
@@ -877,27 +897,29 @@
     font-size:clamp(16px,4.3vw,20px);line-height:1.35;margin-top:3px;
   }
 
-  /* Barra inferior única: Caso | Sala | Arquivo. */
+  /* Barra inferior: Caso | Arquivo. A Sala subiu para o cabeçalho em
+     02/09/2026 — ver organizarBarraInferior(). Com duas colunas em vez de
+     três os rótulos deixam de precisar de reticências. */
   .barra-jogo{position:fixed;z-index:45;left:12px;right:12px;
     bottom:max(8px,env(safe-area-inset-bottom));display:grid;
-    grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;align-items:stretch;
+    grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:7px;align-items:stretch;
     padding:6px;border:1px solid rgba(127,212,255,.18);border-radius:18px;
     background:rgba(3,6,11,.94);box-shadow:0 10px 34px rgba(0,0,0,.5);
     backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);pointer-events:none}
-  .barra-jogo .btn-caso,.barra-jogo .btn-menu-mestre,.barra-jogo #btn-pistas{
+  .barra-jogo .btn-caso,.barra-jogo #btn-pistas{
     position:static;left:auto;right:auto;bottom:auto;transform:none;width:100%;min-width:0;
     grid-row:1;min-height:52px;margin:0;padding:9px 3px;display:none;align-items:center;justify-content:center;
     border-radius:12px;background:transparent;box-shadow:none;
-    font-size:clamp(9px,2.65vw,12px);letter-spacing:.07em;white-space:nowrap;
+    font-size:clamp(11px,3.1vw,14px);letter-spacing:.09em;white-space:nowrap;
     overflow:hidden;text-overflow:ellipsis;pointer-events:auto}
-  /* grid-row:1 nas tres: o #btn-pistas ja esta no HTML e o Caso e a Sala
-     entram depois, por appendChild. Sem a linha fixa, a colocacao
-     automatica nao volta para tras — o Arquivo ficava sozinho numa
-     primeira linha e os outros dois caiam para uma segunda, alta demais
-     para caber na reserva de rodape do #app. */
-  .barra-jogo .btn-caso{grid-column:1;grid-row:1;display:flex}
-  .barra-jogo .btn-menu-mestre{grid-column:2;grid-row:1;display:flex}
-  .barra-jogo #btn-pistas{grid-column:3;grid-row:1}
+  /* COLUNAS AUTOMÁTICAS, não duas fixas. O Arquivo só aparece quando há
+     fragmento guardado (#btn-pistas.on), e com duas colunas fixas o Caso
+     ficava com metade da barra e uma coluna vazia ao lado. Assim a barra tem
+     tantas colunas quantos botões visíveis, e eles esticam.
+     A ORDEM vem da propriedade order, não do DOM: o #btn-pistas já está no HTML e o
+     Caso entra depois, por appendChild — sem isto o Arquivo viria primeiro. */
+  .barra-jogo .btn-caso{order:1;display:flex}
+  .barra-jogo #btn-pistas{order:2}
   .barra-jogo #btn-pistas.on{display:flex}
   .barra-jogo.vazia{display:none}
   .barra-jogo button.ativo{background:rgba(127,212,255,.1);border-color:rgba(127,212,255,.8);
@@ -1843,7 +1865,10 @@ function dinamicaNivel(fase){
 }
 function cabecalhoRodada(fase, classe){
   var d=dinamicaNivel(fase);
-  return '<div class="rodada-telao '+(classe||'')+'"><span class="rotulo">Rodada atual</span><span class="nome">'+esc(nomeRodada(fase))+'</span></div>'+
+  /* O envelope .rr existe para o cabeçalho do celular poder ser uma linha:
+     texto à esquerda, botão da Sala à direita. No telão ele não muda nada —
+     as regras de .rotulo e .nome são por descendência. */
+  return '<div class="rodada-telao '+(classe||'')+'"><span class="rr"><span class="rotulo">Rodada atual</span><span class="nome">'+esc(nomeRodada(fase))+'</span></span></div>'+
     (d?'<div class="dinamica-nivel '+d.classe+'"><span class="dn-titulo">'+esc(d.titulo)+'</span><span class="dn-sub">'+esc(d.sub)+'</span></div>':'');
 }
 var _audioNivel=null, _nivelSonoroAnterior=null, _vozesNivel={}, _podioAudioChave="";
@@ -2299,12 +2324,23 @@ function limparBarraInferior(){
   if(!barra)return;
   barra.querySelectorAll(".btn-caso,.btn-menu-mestre").forEach(function(el){el.remove();});
 }
+/* CASO e ARQUIVO embaixo; SALA no alto, à direita.
+   Os três dividiam uma fila de três colunas, e não cabiam: o CSS da barra
+   precisava de clamp(9px,2.65vw,12px) com reticências para os rótulos
+   caberem. Mas as naturezas são diferentes — Caso e Arquivo são CONSULTA, que
+   a pessoa abre no meio da rodada e quer no alcance do polegar; a Sala é
+   CONDUÇÃO, que só o Mestre usa e de vez em quando.
+   Separando, a barra cai para duas colunas e os rótulos respiram, e o
+   controle raro sai da zona onde o polegar bate sem querer. */
 function organizarBarraInferior(){
   var barra=document.getElementById("barra-jogo"), app=document.getElementById("app");
   if(!barra||!app)return;
   var caso=app.querySelector(".btn-caso"), sala=app.querySelector(".btn-menu-mestre");
   if(caso)barra.appendChild(caso);
-  if(sala)barra.appendChild(sala);
+  /* Sem cabeçalho do topo — telão, telas fora da partida — a Sala fica onde
+     nasceu, dentro do #app, e o CSS a trata como bloco comum. */
+  var topo=app.querySelector(".topo-jogo");
+  if(sala&&topo)topo.appendChild(sala);
   medirBarraInferior();
 }
 /* A reserva de rodape do #app era um numero escrito a mao. Quando a barra
@@ -2422,7 +2458,7 @@ function render(forcar){
     default:            h=telaInicio();
   }
   if(STATE.eu&&!encenacaoPassiva){
-    h=cabecalhoRodada((STATE.doc&&STATE.doc.fase)||"sala","rodada-celular")+h;
+    h=cabecalhoRodada((STATE.doc&&STATE.doc.fase)||"sala","rodada-celular topo-jogo")+h;
     if(modoAtual()==="sem-telao") h+=muralColetivoMovel();
   }
   if(STATE.eu&&!encenacaoPassiva) h+=painelCasoMovel();

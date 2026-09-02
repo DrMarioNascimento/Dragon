@@ -170,9 +170,11 @@
     0 3px 6px rgba(0,0,0,.32);
 }
 
-/* O menu do Mestre ja usa translateX(-50%) para se centralizar. O transform e
-   substituido, nao acumulado: somar so um translateY apagaria a centralizacao
-   e o botao pularia para a esquerda no toque. Por isso ele repete o -50%. */
+/* A Sala morava fixa no centro do rodape, com translateX(-50%), e por isso
+   precisava repetir o -50% ao afundar: transform e substituido, nao
+   acumulado, e um translateY sozinho a jogaria para a esquerda no toque.
+   Em 02/09/2026 ela subiu para o cabecalho e deixou de ser flutuante, entao
+   o caso especial saiu. */
 .btn-menu-mestre{
   transition:transform .15s ease,box-shadow .15s ease,background .25s ease;
   box-shadow:
@@ -182,7 +184,7 @@
     0 calc(var(--parede-sm) + 4px) 10px rgba(0,0,0,.42);
 }
 .btn-menu-mestre:active{
-  transform:translate(-50%,var(--curso-sm));
+  transform:translateY(var(--curso-sm));
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,.05),
     0 1px 0 var(--p),
