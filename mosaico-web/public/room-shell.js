@@ -85,10 +85,16 @@ function renderMasterOrientation(){
   document.getElementById('understood').onclick=()=>{localScreen='join-master';renderJoin(true)};
 }
 
+/* O campo do nome vinha preenchido com o displayName da conta Google, e o
+   Mestre entrava na casa com o nome civil completo — que aparece no lobby e no
+   estado público para todos. Isto é um jogo: o nome é da partida, escolhido na
+   hora, e a conta Google serve só para autorizar quem abre. O campo nasce
+   vazio, e nada da conta é gravado. Mesma regra de firebase-room.js, onde ela
+   foi escrita primeiro (3c8d643) e não tinha atravessado para cá. */
 function renderJoin(asMaster,msg=''){
   localScreen=asMaster?'join-master':'join';
   const codeValue=roomCode||(new URLSearchParams(location.search).get('sala')||'').toUpperCase();
-  base('ENTRAR','Quem chega agora?',`<p class="lead">Você não escolhe quem é. A casa escolhe por você — como escolheu naquela noite.</p><label class="room-label">Código da mesa</label><input id="code" class="room-input room-code-input" maxlength="6" value="${esc(codeValue)}" ${asMaster?'readonly':''} placeholder="ABC123"><label class="room-label">Seu nome</label><input id="name" class="room-input" maxlength="60" value="${asMaster?esc((pendingUser&&pendingUser.displayName)||''):''}" placeholder="Como a mesa te chama"><label class="room-label">Como quer que o MOSAICO te chame?</label>${formas('m')}${msg?`<div class="room-error">${esc(msg)}</div>`:''}<button class="btn btn-gold" id="enter">Entrar na casa</button><button class="btn btn-ghost" id="back">← Voltar</button>`,'room-join');
+  base('ENTRAR','Quem chega agora?',`<p class="lead">Você não escolhe quem é. A casa escolhe por você — como escolheu naquela noite.</p><label class="room-label">Código da mesa</label><input id="code" class="room-input room-code-input" maxlength="6" value="${esc(codeValue)}" ${asMaster?'readonly':''} placeholder="ABC123"><label class="room-label">Seu nome</label><input id="name" class="room-input" maxlength="60" value="" placeholder="Como a mesa te chama"><label class="room-label">Como quer que o MOSAICO te chame?</label>${formas('m')}${msg?`<div class="room-error">${esc(msg)}</div>`:''}<button class="btn btn-gold" id="enter">Entrar na casa</button><button class="btn btn-ghost" id="back">← Voltar</button>`,'room-join');
   document.getElementById('enter').onclick=()=>joinRoom(asMaster);
   document.getElementById('back').onclick=asMaster?renderMasterOrientation:renderMenu;
 }

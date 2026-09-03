@@ -64,6 +64,98 @@ const FUNCAO_ROT={estrutural:"estrutural",relacional:"relacional",interpretativo
 let CASO=null,partida="",fase="inicio",duracao="padrao",dossie=[],tercos=[[],[],[]],aberto=1,
     modsFeitos=[],respostas={},inicioTurno=0,limite=60,timer=null;
 const $=s=>document.querySelector(s),app=()=>$("#app");
+
+/* ── A MESA, QUANDO HÁ UMA ─────────────────────────────────────────────────
+   room-shell.js deixa isto aqui antes de carregar este arquivo. Até
+   03/09/2026 ninguém lia: o "online" d'A Noite era um saguão que sincronizava
+   o "todos prontos" e depois soltava N jogos locais independentes. A fila de
+   atividades era localStorage, então "Concluída pela mesa" queria dizer
+   "concluída NESTE telefone" — e o terço do dossiê abria para um só.
+
+   Agora a fila mora na sala. Cada pessoa carimba a atividade que terminou em
+   `tarefas` (que é o que as regras deixam ela escrever), e quem vira a
+   página é o Mestre: no ritmo automático, quando a mesa inteira terminou; no
+   conduzido, quando ele libera. Ninguém avança sozinho. */
+const SALA=window.MosaicoSala||null;
+const ONLINE=!!(SALA&&SALA.online&&SALA.db&&SALA.roomCode);
+let naMesa=[],concluidos={},unsubSala=null,unsubJog=null,unsubTar=null;
+function meuUid(){try{return SALA.auth.currentUser.uid}catch(e){return ""}}
+function souMestre(){return ONLINE&&SALA.role==="master"}
+function ritmoDaSala(){return ((SALA&&SALA.roomData)||{}).ritmo||"automatico"}
+function salaRef(){return SALA.db.collection("noite").doc(SALA.roomCode)}
+function quemConcluiu(id){return concluidos[id]||[]}
+function euConclui(id){return quemConcluiu(id).indexOf(meuUid())>=0}
+function vezDaFila(){const f=MODULOS[partida]||[];return f.find(id=>!modsFeitos.includes(id))||""}
+
+function ouvirSala(){
+ if(!ONLINE)return;
+ const ref=salaRef();
+ unsubSala=ref.onSnapshot(s=>{
+  const d=(s.exists&&s.data())||{};
+  const antes=modsFeitos.length;
+  modsFeitos=Array.isArray(d.modsFeitos)?d.modsFeitos.slice():[];
+  /* o terço acompanha a mesa, como acompanhava o clique quando era local */
+  if(modsFeitos.length>antes&&aberto<tercoDisponivel())aberto++;
+  salvar();
+  if(fase==="dossie")renderDossie();
+ },e=>console.error("sala",e));
+ unsubJog=ref.collection("jogadores").onSnapshot(s=>{
+  naMesa=s.docs.map(d=>d.id);
+  if(fase==="dossie")renderDossie();
+  avancarSePronto();
+ },e=>console.error("jogadores",e));
+ unsubTar=ref.collection("tarefas").onSnapshot(s=>{
+  concluidos={};
+  s.docs.forEach(d=>{
+   const t=d.data()||{};
+   if(!t.tarefa||!t.concluidoEm||!t.jogadorId)return;
+   (concluidos[t.tarefa]=concluidos[t.tarefa]||[]).push(t.jogadorId);
+  });
+  if(fase==="dossie")renderDossie();
+  avancarSePronto();
+ },e=>console.error("tarefas",e));
+}
+
+/* Só o Mestre grava no documento da sala — as regras não deixam outra pessoa,
+   e é bom que não deixem: quem avança a mesa é uma autoridade só, senão duas
+   pessoas terminando ao mesmo tempo escrevem por cima uma da outra. */
+let _liberando="";
+async function avancarSePronto(){
+ if(!souMestre()||ritmoDaSala()==="conduzido")return;
+ const vez=vezDaFila();
+ if(!vez||!naMesa.length||_liberando===vez)return;
+ const quem=quemConcluiu(vez);
+ if(naMesa.some(uid=>quem.indexOf(uid)<0))return;
+ await liberar(vez);
+}
+async function liberar(id){
+ if(!souMestre()||!id||_liberando===id)return;
+ _liberando=id;
+ try{
+  await salaRef().update({
+   modsFeitos:firebase.firestore.FieldValue.arrayUnion(id),
+   atualizadoEmMs:Date.now()
+  });
+ }catch(e){console.error("liberar",e);}
+ finally{_liberando="";}
+}
+
+/* Carimbo da pessoa. Offline continua sendo o array local — é o mesmo jogo,
+   só que a mesa é de um. */
+async function marcarConcluida(id){
+ if(!ONLINE){
+  if(!modsFeitos.includes(id))modsFeitos.push(id);
+  if(aberto<tercoDisponivel())aberto++;
+  salvar();
+  return;
+ }
+ const uid=meuUid();
+ if(!uid)return;
+ try{
+  await salaRef().collection("tarefas").doc(uid+"_"+id)
+   .set({tarefa:id,jogadorId:uid,concluidoEm:Date.now()},{merge:true});
+ }catch(e){console.error("concluir",e);}
+}
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));}
 
 function banco(){return (CASO&&CASO.fragmentos)||EVIDENCIAS_ANTIGAS;}
@@ -83,7 +175,11 @@ function carregar(){
   let s=JSON.parse(localStorage.getItem(CHAVE_ESTADO)||"null");
   if(s&&valida(s.partida)&&s.fase&&s.fase!=="inicio"&&Array.isArray(s.tercos)&&s.tercos.length===3){
    partida=s.partida;fase=s.fase;duracao=s.duracao||"padrao";dossie=s.dossie||[];tercos=s.tercos;
-   aberto=s.aberto||1;modsFeitos=s.modsFeitos||[];respostas=s.respostas||{};limite=s.limite||60;return;
+   aberto=s.aberto||1;modsFeitos=s.modsFeitos||[];respostas=s.respostas||{};limite=s.limite||60;
+   /* com mesa, a fila é da SALA. Restaurá-la do aparelho faria este telefone
+      achar que a mesa já passou por atividades que ela não fez. */
+   if(ONLINE)modsFeitos=[];
+   return;
   }
  }catch(e){}
  partida=proxima();fase="inicio";
@@ -185,7 +281,31 @@ function hipotesesHtml(){
      junto — o gesto coletivo virava clique de um só.
 
    Agora só a PRÓXIMA da fila tem botão. As anteriores ficam marcadas como
-   feitas, as seguintes ficam em espera dizendo a sua vez. */
+   feitas, as seguintes ficam em espera dizendo a sua vez.
+
+   E, com mesa, a atividade da vez fica ABERTA PARA TODOS ao mesmo tempo:
+   quem termina espera os outros, e a fila só anda quando a mesa inteira
+   terminou (ritmo automático) ou quando o Mestre libera (conduzido). */
+/* O rodapé da atividade DA VEZ. Sem mesa é um botão e pronto. Com mesa ele
+   conta gente: quem terminou vê quantos faltam, e o Mestre no ritmo conduzido
+   ganha o botão de liberar — que só aparece quando todos terminaram, porque
+   liberar antes é o mesmo que deixar um clique valer pela mesa. */
+function esperaDaMesa(id){
+ if(!ONLINE)return `<button class="btn btn-ember" data-mod="${id}">Abrir atividade</button>`;
+ const total=naMesa.length||1,feitos=quemConcluiu(id).length,todos=feitos>=total;
+ if(!euConclui(id)){
+  return `<button class="btn btn-ember" data-mod="${id}">Abrir atividade</button>`
+   +`<p class="tool-estado">${feitos} de ${total} já concluíram.</p>`;
+ }
+ if(souMestre()&&ritmoDaSala()==="conduzido"){
+  return `<button class="btn btn-gold" id="liberarMod" data-liberar="${id}" ${todos?"":"disabled"}>`
+   +`${todos?"Liberar a próxima":"Aguardando a mesa"}</button>`
+   +`<p class="tool-estado">${feitos} de ${total} concluíram.</p>`;
+ }
+ return `<p class="tool-estado">Você concluiu. ${todos?"A mesa vai avançar.":`Faltam ${total-feitos} na mesa.`}</p>`
+  +`<button class="btn btn-ghost" data-mod="${id}">Rever a atividade</button>`;
+}
+
 function modulosHtml(){
  const fila=MODULOS[partida]||[];
  const vez=fila.findIndex(id=>!modsFeitos.includes(id));
@@ -195,7 +315,7 @@ function modulosHtml(){
   const rodape=feita
    ? `<p class="tool-estado">Concluída pela mesa.</p>`
    : agora
-    ? `<button class="btn btn-ember" data-mod="${id}">Abrir atividade</button>`
+    ? esperaDaMesa(id)
     : `<p class="tool-estado">${i===fila.length-1?"Por último.":i-vez===1?"Depois desta.":`${i-vez}ª na fila.`}</p>`;
   return `<div class="tool ${estado}"><b>${esc(m.titulo)}</b><p>${esc(m.desc)}</p>${rodape}</div>`;
  }).join("");
@@ -220,7 +340,11 @@ function renderInicio(){
   `<p class="muted">A próxima investigação receberá automaticamente a pergunta seguinte.</p></section>`;
  document.querySelectorAll("[data-ritmo]").forEach(b=>b.onclick=()=>{limite=Number(b.dataset.ritmo);renderInicio()});
  document.querySelectorAll("[data-dur]").forEach(b=>b.onclick=()=>{duracao=b.dataset.dur;renderInicio()});
- $("#comecar").onclick=()=>{marcarUsada();modsFeitos=[];respostas={};montarDossie();fase="dossie";salvar();render()};
+ $("#comecar").onclick=async()=>{
+  marcarUsada();modsFeitos=[];respostas={};montarDossie();fase="dossie";salvar();render();
+  /* a fila da sala começa vazia junto com o dossiê */
+  if(souMestre()){try{await salaRef().update({modsFeitos:[],atualizadoEmMs:Date.now()})}catch(e){console.error("zerar fila",e)}}
+ };
 }
 
 function renderDossie(){
@@ -250,6 +374,7 @@ function renderDossie(){
  const bt=$("#abrirTerco");if(bt)bt.onclick=()=>{if(aberto<tercoDisponivel())aberto++;salvar();renderDossie()};
  $("#decidir").onclick=()=>{fase="decisao";inicioTurno=Date.now();salvar();render()};
  document.querySelectorAll("[data-mod]").forEach(b=>b.onclick=()=>abrirModulo(b.dataset.mod));
+ const lib=$("#liberarMod");if(lib)lib.onclick=()=>liberar(lib.dataset.liberar);
 }
 
 function abrirModulo(id){
@@ -259,10 +384,11 @@ function abrirModulo(id){
  $("#modframe").src=m.file+"?embed=0&noite=1&partida="+encodeURIComponent(partida);
  /* Concluir a atividade não sorteia fragmento: ela LIBERA o próximo terço,
     que já estava montado com a proteção de fechamento aplicada. */
- $("#moddone").onclick=()=>{
-  if(!modsFeitos.includes(id))modsFeitos.push(id);
-  if(aberto<tercoDisponivel())aberto++;
-  salvar();fecharModulo();renderDossie();
+ $("#moddone").onclick=async()=>{
+  /* Concluir não avança mais a fila por conta própria: carimba a sua parte e
+     espera a mesa. Quem vira a página é o Mestre — ver avancarSePronto(). */
+  await marcarConcluida(id);
+  fecharModulo();renderDossie();
  };
 }
 function fecharModulo(){$("#modal").classList.add("hide");$("#modframe").src="about:blank"}
@@ -333,7 +459,7 @@ document.head.appendChild(estilo);
 
 fetch("../v1/casos/casa-da-costa.json?v=20260902-tecnica")
  .then(r=>r.ok?r.json():Promise.reject())
- .then(c=>{CASO=c;carregar();render()})
+ .then(c=>{CASO=c;carregar();ouvirSala();render()})
  .catch(()=>{app().innerHTML='<main class="stage shell"><h2>Não foi possível abrir o caso.</h2><p class="lead">Recarregue quando a conexão estiver disponível.</p></main>'});
 
 window.MosaicoNoite={fecharModulo};
