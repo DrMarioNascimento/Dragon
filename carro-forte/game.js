@@ -144,7 +144,7 @@ const FASES={intro:'PRÓLOGO',briefing:'PAUTA',sensory:'SENSORES',evidence:'DOSS
 const PASSOS={intro:1,briefing:2,sensory:3,evidence:4,hypothesis:5,mosaic:6,final:7,reveal:8,score:9};
 const TERCO_ROT=['PRIMEIRO TERÇO','SEGUNDO TERÇO','TERÇO FINAL'];
 
-const state={screen:'intro',game:null,players:6,pace:'pressure',duration:'padrao',
+const state={screen:'intro',game:null,semente:0,players:6,pace:'pressure',duration:'padrao',
  dossie:[],tercos:[[],[],[]],aberto:1,marcados:new Set(),lotes:{},colhidos:new Set(),
  relacoes:new Set(),hipoteseProv:'',hipoteseFinal:'',
  sensorDone:new Set(),final:{},reveal:0,start:Date.now()};
@@ -263,7 +263,7 @@ function fechadas(){return (lerRodizio().fechadas||[]).filter(id=>PARTIDAS[id])}
 
 /* ── Telas ─────────────────────────────────────────────────────────────── */
 function selectGame(id){
- state.game=id;state.hipoteseProv='';state.hipoteseFinal='';state.final={};state.reveal=0;state.sensorDone.clear();state.colhidos.clear();state.lotes=montarLotes();
+ state.game=id;state.semente=(Math.random()*0xffffffff)>>>0;state.hipoteseProv='';state.hipoteseFinal='';state.final={};state.reveal=0;state.sensorDone.clear();state.colhidos.clear();state.lotes=montarLotes();
  const g=PARTIDAS[id],cfg=DURACOES[state.duration];
  $('gameNature').textContent=g.nature;
  $('gameTitle').textContent=g.title;
@@ -406,13 +406,36 @@ function renderRelations(){
   : 'Registre uma hipótese provisória para que a contraprova tenha o que atacar.';
 }
 
-function optionList(opts,value=''){return `<option value="">Selecione…</option>${opts.map(o=>`<option ${o===value?'selected':''}>${o}</option>`).join('')}`}
+/* A RESPOSTA CERTA NÃO PODE SER SEMPRE A PRIMEIRA.
+   Em "Quem construiu a janela?" os cinco campos tinham a verdade na primeira
+   opção: escolher a de cima em tudo fechava 5/5 sem ler um fragmento — numa
+   pergunta cuja graça é separar quem decidiu de quem executou e de quem abriu
+   a porta sem saber para quê. É a forma como a lista nasce: escreve-se a
+   verdade primeiro, porque é ela que se tem em mente, e as alternativas vêm
+   depois. Por isso o conserto não é reordenar o arquivo à mão — a próxima
+   lista que alguém acrescentar nasceria torta do mesmo jeito.
+
+   A ordem é sorteada POR PARTIDA e POR CAMPO. Por partida, senão recarregar
+   até a resposta subir vira estratégia, e a ordem mudaria debaixo do dedo de
+   quem voltasse à tela. Por campo, senão as listas sairiam correlacionadas e
+   quem notasse uma adivinharia as outras.
+
+   O value de cada <option> é o próprio texto e pontuar() compara texto, então
+   a ordem não mexe em quem pontua o quê. */
+function ordenar(opts,chave){
+ let h=state.semente>>>0;
+ for(let i=0;i<chave.length;i++)h=Math.imul(h^chave.charCodeAt(i),16777619)>>>0;
+ const a=opts.slice();
+ for(let i=a.length-1;i>0;i--){h=Math.imul(h^h>>>15,2246822507)>>>0;const j=(h>>>8)%(i+1);[a[i],a[j]]=[a[j],a[i]]}
+ return a;
+}
+function optionList(opts,value='',chave=''){const lista=chave?ordenar(opts,chave):opts;return `<option value="">Selecione…</option>${lista.map(o=>`<option ${o===value?'selected':''}>${o}</option>`).join('')}`}
 
 function renderFinal(){
  const g=PARTIDAS[state.game];
  $('finalPrompt').textContent=g.question;
  $('finalForm').innerHTML=g.fields.map(([label,opts])=>
-  `<label class="field depth-card"><span>${label}</span><select name="${label}" required>${optionList(opts)}</select></label>`).join('')
+  `<label class="field depth-card"><span>${label}</span><select name="${label}" required>${optionList(opts,'',state.game+'·'+label)}</select></label>`).join('')
  +`<label class="field depth-card green"><span>Hipótese que você sustenta no fechamento</span><select name="__hip" required>${optionList(HIPOTESES.map(h=>`${h.id} · ${h.t}`),state.hipoteseProv?`${state.hipoteseProv} · ${HIPOTESES.find(h=>h.id===state.hipoteseProv).t}`:'')}</select></label>`
  +`<button class="btn primary depth" type="submit">Fechar a decisão <span>→</span></button>`;
 }
