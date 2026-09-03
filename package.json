@@ -6,14 +6,14 @@
   "type": "module",
   "scripts": {
     "test": "node --test tests/mosaico-v5.test.mjs tests/caso-sincronizado.test.mjs tests/qr.test.mjs tests/carimbo-cache.test.mjs tests/v2-publicado.test.mjs tests/solo-opcoes.test.mjs tests/noite-integridade.test.mjs tests/sala-escura.test.mjs",
-    "test:regras": "firebase emulators:exec --only firestore \"node --test tests/regras.test.mjs\"",
+    "test:regras": "firebase emulators:exec --only firestore --project demo-mosaico \"node --test tests/regras.test.mjs\"",
     "test:tudo": "npm test && npm run test:regras",
     "economia": "node ferramentas/economia-mercado.mjs",
     "duracao": "node ferramentas/duracao-sensorial.mjs"
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^5.0.2",
-    "firebase": "^12.17.1",
-    "firebase-tools": "^13.29.1"
+    "firebase": "^12.18.0",
+    "firebase-tools": "^13.35.1"
   }
 }

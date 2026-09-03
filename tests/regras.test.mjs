@@ -3,6 +3,13 @@
 
        npm run test:regras
 
+   Precisa de JAVA e do emulador do Firestore. Em 03/09/2026 esta máquina
+   não tinha nenhum dos dois, e por isso o teste vivia falhando na suíte por
+   dependência ausente — o que escondia que ele existia e valia. Instalados:
+   Microsoft OpenJDK 17 (winget) e firebase-tools como devDependency.
+   Se der "Could not spawn java", abra um terminal NOVO: o PATH permanente
+   está certo, o que fica velho é a sessão aberta antes da instalação.
+
    Cobre com prioridade o que mudou em `ownPlayerUpdate` (o Arquivo cresce
    no máximo uma pista por escrita e a mesma escrita não encosta nas moedas)
    e a retirada de `concluidoMs` do Fragmento. */
@@ -282,4 +289,58 @@ test("dedução própria é aceita uma vez; outro jogador não lê", async () =>
     submetidoEm: Date.now()
   }));
   await assertFails(getDoc(doc(como(BIA), "mosaico", SALA, "deducoes", ANA)));
+});
+
+/* ---------- O mercado: por que ele teve de virar pedido ----------
+   Em 02/09/2026 o mercado gravava direto do aparelho de quem comprava. Os
+   testes abaixo mostram, contra o emulador, por que aquilo nunca chegaria ao
+   servidor — e por que o caminho novo chega. */
+
+test("o jogador NÃO debita a própria moeda: era assim que o mercado gravava", async () => {
+  /* {moedas, acoesMercado} é exatamente a escrita que mercadoLevar fazia.
+     hasOnly reprova a escrita inteira porque nenhuma das duas chaves está em
+     ['pronto','forma','atualizadoEmMs','pistas']. */
+  await assertFails(updateDoc(jogadora(como(ANA), ANA), {
+    moedas: 5, acoesMercado: 1
+  }));
+});
+
+test("nem sequer levando a pista junto, que é a chave permitida", async () => {
+  const db = como(ANA);
+  const atual = (await getDoc(jogadora(db, ANA))).data().pistas;
+  await assertFails(updateDoc(jogadora(db, ANA), {
+    pistas: [...atual, PISTA_NOVA], moedas: 5, acoesMercado: 1
+  }));
+});
+
+test("o jogador não mexe no balaio: ele mora no documento da sala", async () => {
+  await assertFails(updateDoc(doc(como(ANA), "mosaico", SALA), {
+    balaio: [{ frag: "F09", dono: ANA }]
+  }));
+});
+
+test("o pedido em acoes é aceito quando o jogadorId é o próprio", async () => {
+  await assertSucceeds(setDoc(doc(como(ANA), "mosaico", SALA, "acoes", ANA + "-mkt-1"), {
+    tipo: "mercadoComprar", jogadorId: ANA, frag: "F09", origem: "nova"
+  }));
+});
+
+test("e recusado quando o pedido diz ser de outra pessoa", async () => {
+  await assertFails(setDoc(doc(como(ANA), "mosaico", SALA, "acoes", "forjado"), {
+    tipo: "mercadoComprar", jogadorId: BIA, frag: "F09", origem: "nova"
+  }));
+});
+
+test("o Mestre debita a moeda de quem pediu, e é ele que aplica", async () => {
+  await assertSucceeds(updateDoc(jogadora(como(MESTRE), ANA), {
+    moedas: 5, acoesMercado: 1
+  }));
+});
+
+test("o Mestre move o balaio e credita o consignante", async () => {
+  const db = como(MESTRE);
+  await assertSucceeds(updateDoc(doc(db, "mosaico", SALA), {
+    balaio: [{ frag: "F09", dono: BIA }]
+  }));
+  await assertSucceeds(updateDoc(jogadora(db, BIA), { moedas: 11 }));
 });
