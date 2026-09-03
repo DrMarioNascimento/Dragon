@@ -247,7 +247,7 @@
                 m.onload=function(){
                   if(document.querySelector("script[data-mercado-casa]"))return;
                   var k=document.createElement("script");
-                  k.src="js/mercado-casa-da-costa.js?v=20260902-profundidade";
+                  k.src="js/mercado-casa-da-costa.js?v=20260902-mediado";
                   k.dataset.mercadoCasa="1";
                   document.head.appendChild(k);
                 };

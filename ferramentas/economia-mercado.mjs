@@ -23,20 +23,28 @@
  * função real volta na primeira linha se não houver painel aberto. Comprar é
  * abrir o painel e só então levar — o mesmo caminho do dedo.
  *
+ * E desde que o mercado passou a ser MEDIADO PELO MESTRE, o arnês também é:
+ * o jogador cria o pedido em `acoes`, e a cada volta o "jogador 0" assume o
+ * papel de Mestre e roda `processarAcoesMestre()`. Quem valida moeda, teto e
+ * balaio é a autoridade, aqui como no jogo.
+ *
  * O QUE ELE NÃO FAZ: tela, dedo, gente. Ele não sabe se é bom, se 480 s
  * parecem longos, se o botão cai onde o polegar está. Número se mede aqui;
- * feel se joga.
+ * feel se joga. E ele NÃO valida as regras do Firestore: para isso é
+ * `npm run test:regras`, que precisa do emulador.
  *
  * ---------------------------------------------------------------------------
- * O QUE ELE ACHOU NA PRIMEIRA RODADA (02/09/2026)
+ * O QUE ELE ACHOU (02/09/2026)
  *
- * Numa mesa de 12, metade nunca compra nada e cada um usa meia ação das três
- * — e NÃO por falta de moeda: terminam com 10 das 12. O mercado não está
- * apertado de dinheiro, está SEM ESTOQUE. O dossiê cresce com a mesa (13, 18,
- * 24, 30 fragmentos), mas o monte fica em 6, porque as mãos crescem junto.
- * Com três fragmentos por pessoa, o mercado abre vazio a partir de seis.
+ * O MONTE NÃO CRESCE COM A MESA. O dossiê cresce — 13, 18, 24, 30 fragmentos
+ * conforme o número de jogadores — mas o que sobra para vender fica entre 2 e
+ * 7, porque exclui o que está nas mãos e as mãos crescem junto. E não cai de
+ * forma suave: oscila, porque o dossiê salta em degraus enquanto as mãos
+ * crescem de um em um. A mesa de 8 é a pior de todas, com monte 2.
  *
- * Nenhum playtest de três pessoas mostraria isso: na mesa de 3 está tudo bem.
+ * Com três fragmentos por pessoa (`--mao 3`) o mercado abre VAZIO a partir de
+ * seis jogadores. Nenhum playtest de três pessoas mostraria isso: na mesa de
+ * 3 está tudo bem.
  * ==========================================================================*/
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -91,7 +99,7 @@ function abrirMesa(nJog, semente) {
     console, Math, JSON, setTimeout, Date, document: doc, CASO: caso,
     STATE: {
       eu: null, doc: sala, mesa: { codigo: "T", fb: true }, jogadores,
-      mercadoPainel: null, v5: { tarefas: [] }, publicas: [],
+      mercadoPainel: null, v5: { tarefas: [], acoes: [] }, publicas: [],
     },
     avisa() {}, render() {},
     /* a Mesa fornece estas três; sem meuJogador() o mercado lê zero moeda e
@@ -105,8 +113,22 @@ function abrirMesa(nJog, semente) {
         const j = jogadores.find((x) => x.id === id);
         if (j) j.pistas = (j.pistas || []).concat([p]);
       },
-      async gravarServidor() {},
+      /* o pedido do jogador vira documento em `acoes`, como no Firestore */
+      async gravarServidor(_c, col, id, d) {
+        if (col !== 'acoes') return;
+        const lista = ctx.STATE.v5.acoes;
+        const i = lista.findIndex((x) => x.id === id);
+        const doc = Object.assign({ id, criadaEm: Date.now() + lista.length }, d);
+        if (i < 0) lista.push(doc); else Object.assign(lista[i], d);
+      },
+      async gravar(_c, col, id, d) {
+        if (col !== 'acoes') return;
+        const a = ctx.STATE.v5.acoes.find((x) => x.id === id);
+        if (a) Object.assign(a, d);
+      },
     }),
+    /* o Mestre é o jogador 0; é ele quem aplica os pedidos */
+    souMestreDaMesa() { return (ctx.STATE.eu || {}).id === 'j0'; },
     MosaicoV5: { calcular: () => ({}) },
   };
   ctx.window = ctx; ctx.globalThis = ctx;
@@ -151,6 +173,11 @@ function abrirMesa(nJog, semente) {
           }
         } catch (e) { ctx.STATE.mercadoPainel = null; }
       }
+      /* o Mestre aplica o que foi pedido nesta volta */
+      const antes = ctx.STATE.eu;
+      ctx.STATE.eu = { id: 'j0', codigo: 'T' };
+      try { await ctx.processarAcoesMestre(); } catch (e) { /* medido abaixo */ }
+      ctx.STATE.eu = antes;
     }
     return { jogadores, sala, monteInicial, dossie: abertos.length };
   })();

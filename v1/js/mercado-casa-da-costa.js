@@ -99,17 +99,59 @@
   }
 
   /* ── Gravação ───────────────────────────────────────────────────────── */
-  async function salvarJogador(dados) {
-    var eu = global.STATE && STATE.eu; if (!eu) return;
-    var FB = await esperarFB();
-    await FB.atualizarJogador(eu.codigo, eu.id, dados);
-  }
+  /* salvarJogador saiu em 02/09/2026: ficou sem chamador quando as cinco
+     ações viraram pedido. Toda escrita no documento do jogador passou a ser
+     do Mestre, dentro de aplicar(), com FB.atualizarJogador. */
+  /* O MERCADO NÃO GRAVA DIRETO. PEDE, E O MESTRE APLICA.
+     ========================================================================
+     As regras do Firestore (firestore.rules, `ownPlayerUpdate`) deixam o
+     jogador mexer só em `pronto`, `forma`, `atualizadoEmMs` e `pistas` do
+     próprio documento — e `hasOnly` reprova a escrita inteira se UMA chave
+     estiver fora. Medido em 02/09/2026: as cinco escritas que este arquivo
+     fazia — {moedas,acoesMercado}, {pistas,acoesMercado}, {travados,moedas,
+     acoesMercado}, {mercadoPronto} e {moedas} — eram todas negadas. O balaio
+     é pior: mora no documento da SALA, que só o Mestre pode atualizar.
+
+     Na tela funcionava, porque o estado local mudava e o render rodava. No
+     servidor não acontecia nada: o jogador levava o fragmento (`pistas` é
+     permitido, +1) e NÃO pagava, nem gastava ação.
+
+     A regra está certa — sem ela qualquer um se dá `moedas: 99`. Quem estava
+     errado era o mercado. Agora o jogador CRIA um pedido em `acoes`, que as
+     regras permitem porque exigem `jogadorId == request.auth.uid`, e o
+     aparelho do Mestre aplica. É o mesmo trilho que a encenação já usa em
+     `processarAcoesMestre`.
+
+     O jogador não observa o pedido: ele escuta só `acoes/{o próprio id}` e só
+     pode CRIAR uma vez. Ele observa o EFEITO — moedas, pistas e balaio já
+     chegam a todos por snapshot. E quem valida passa a ser a autoridade, o
+     que de quebra resolve a corrida do balaio melhor do que a guarda local:
+     dois pedidos pela mesma peça chegam ordenados por `criadaEm`, e o
+     segundo é recusado com a peça já fora.
+     ====================================================================== */
   /* Mesmo problema do rendimento: `STATE.mesa` é null no celular de quem
      entrou pelo QR, e o código da sala está em `STATE.eu.codigo`. */
   function codigoSala() {
     return (global.STATE && STATE.mesa && STATE.mesa.codigo) ||
            (global.STATE && STATE.eu && STATE.eu.codigo) || "";
   }
+  /* Um pedido por clique, com id próprio: `acoes` só aceita CREATE do
+     jogador, então reaproveitar o mesmo id viraria update e seria negado. */
+  var _pedindo = false;
+  async function pedir(tipo, dados) {
+    var eu = global.STATE && STATE.eu; if (!eu) return false;
+    var codigo = codigoSala(); if (!codigo) return false;
+    if (_pedindo) return false;
+    _pedindo = true;
+    try {
+      var FB = await esperarFB();
+      var id = eu.id + "-mkt-" + Date.now().toString(36);
+      await FB.gravarServidor(codigo, "acoes", id,
+        Object.assign({ tipo: tipo, jogadorId: eu.id }, dados || {}), "criadaEm");
+      return true;
+    } finally { _pedindo = false; }
+  }
+
   /* ESTA FUNÇÃO TEM DE LANÇAR, e não voltar calada. Ela voltava, e as duas
      chamadas seguiam adiante como se a gravação tivesse acontecido:
 
@@ -168,35 +210,14 @@
     var f = frag(cod); if (!f) return;
     STATE.mercadoPainel = null;
 
-    var dono = null;
-    if (painel.tipo === "repassada") {
-      var atual = balaio();
-      /* GUARDA DA CORRIDA. O balaio mora no documento da sala e some da tela
-         de todos assim que alguém leva — mas entre dois cliques no mesmo
-         instante cabe uma janela antes do snapshot chegar. Se a peça já não
-         está lá, o clique não faz nada: ninguém paga por ar, ninguém perde a
-         ação, e a pessoa escolhe outra. */
-      if (!atual.some(function (x) { return x.frag === cod; })) {
-        return avisa("Essa já foi levada. Escolha outra.");
-      }
-      var resto = atual.filter(function (x) {
-        if (x.frag === cod && dono === null) { dono = x.dono; return false; }
-        return true;
-      });
-      await salvarBalaio(resto);
+    /* A guarda local da corrida saiu: quem decide se a peça ainda está no
+       balaio é o Mestre, com o estado do servidor na mão. Aqui só avisamos
+       cedo o caso óbvio, para o clique não parecer engolido. */
+    if (painel.tipo === "repassada" && !balaio().some(function (x) { return x.frag === cod; })) {
+      return avisa("Essa já foi levada. Escolha outra.");
     }
-    var FB = await esperarFB();
-    await FB.acrescentarPista(STATE.eu.codigo, STATE.eu.id, {
-      id: "mercado-" + cod, hora: f.h || "—", txt: f.d,
-      adquirida: true, origem: "mercado", frag: cod
-    });
-    await salvarJogador({ moedas: eu.moedas - custo, acoesMercado: acoesUsadas() + 1 });
-    /* O crédito do consignante entra aqui, no aparelho de quem comprou: é o
-       único momento em que se sabe que a peça saiu. */
-    if (dono) {
-      var vendedor = (STATE.jogadores || []).find(function (j) { return j.id === dono; });
-      if (vendedor) await FB.atualizarJogador(STATE.eu.codigo, dono, { moedas: (Number(vendedor.moedas) || 0) + custo });
-      await registrarNegociacao(cod, dono, STATE.eu.id);
+    if (await pedir("mercadoComprar", { frag: cod, origem: painel.tipo === "repassada" ? "balaio" : "nova" })) {
+      avisa("Pedido enviado à mesa.");
     }
     render();
   };
@@ -210,10 +231,8 @@
   };
   global.mercadoConfirmaConsignar = async function (cod) {
     STATE.mercadoPainel = null;
-    var eu = STATE.eu; if (!eu) return;
-    await salvarBalaio(balaio().concat([{ frag: cod, dono: eu.id }]));
-    var minhas = minhasPistas().filter(function (p) { return p.frag !== cod; });
-    await salvarJogador({ pistas: minhas, acoesMercado: acoesUsadas() + 1 });
+    if (!(global.STATE && STATE.eu)) return;
+    await pedir("mercadoConsignar", { frag: cod });
     render();
   };
 
@@ -233,12 +252,127 @@
     var eu = meuEstado(); if (!eu) return;
     var c = campos().find(function (x) { return x.id === campoId; }); if (!c) return;
     var certo = valor === c.resposta;
-    var t = Object.assign({}, travados());
-    t[campoId] = { resposta: valor, ok: certo };
     /* Acertar é de graça: a moeda volta. Errar custa 3 E prende você à
-       resposta errada, que entra assim na decisão final. */
-    await salvarJogador({ travados: t, moedas: eu.moedas - (certo ? 0 : preco("arriscar")), acoesMercado: acoesUsadas() + 1 });
+       resposta errada, que entra assim na decisão final. Quem cobra é o
+       Mestre — o acerto vai junto para ele não precisar do gabarito duas
+       vezes, e ele reconfere antes de aplicar. */
+    await pedir("mercadoArriscar", { campo: campoId, resposta: valor, ok: certo });
     render();
+  };
+
+
+  /* ── O MESTRE APLICA ──────────────────────────────────────────────────
+     Roda no aparelho de quem abriu a mesa, disparado pelo mesmo ouvinte de
+     `acoes` que a encenação já usa. Aqui é onde a regra é REGRA: validar no
+     servidor, com o estado que chegou por snapshot, e não no aparelho de
+     quem pediu.
+
+     Ordem por `criadaEm` é o que resolve a corrida do balaio: dois pedidos
+     pela mesma peça chegam ordenados, o primeiro leva e o segundo encontra
+     o balaio já sem ela. Ninguém paga por ar.
+
+     Toda ação processada é marcada — `processada` e `resultado` —, senão o
+     próximo snapshot a aplicaria de novo. */
+  var _mktProcessando = false;
+  async function processarMercadoMestre() {
+    if (_mktProcessando) return;
+    if (!global.souMestreDaMesa || !souMestreDaMesa()) return;
+    var doc = (global.STATE && STATE.doc) || null;
+    if (!doc || doc.pausada || doc.fase !== "mercado") return;
+    var codigo = codigoSala(); if (!codigo) return;
+
+    var fila = (STATE.v5.acoes || [])
+      .filter(function (a) { return a && !a.processada && /^mercado/.test(a.tipo || ""); })
+      .sort(function (x, y) { return ms(x.criadaEm) - ms(y.criadaEm); });
+    if (!fila.length) return;
+
+    _mktProcessando = true;
+    try {
+      var FB = await esperarFB();
+      for (var i = 0; i < fila.length; i++) {
+        var a = fila[i], r = "recusada";
+        try { r = await aplicar(FB, codigo, a); }
+        catch (e) { console.error("mercado: aplicar " + a.tipo, e); r = "erro"; }
+        await FB.gravar(codigo, "acoes", a.id, { processada: true, resultado: r, processadaMs: Date.now() });
+      }
+    } finally { _mktProcessando = false; }
+  }
+  function ms(v) { return v && v.toMillis ? v.toMillis() : (Number(v) || 0); }
+  function jogadorDe(id) { return (STATE.jogadores || []).find(function (j) { return j.id === id; }) || null; }
+
+  async function aplicar(FB, codigo, a) {
+    var eu = jogadorDe(a.jogadorId); if (!eu) return "sem-jogador";
+    var usadas = Math.max(0, Number(eu.acoesMercado) || 0);
+    var moeda = Math.max(0, Math.trunc(Number(eu.moedas) || 0));
+
+    if (a.tipo === "mercadoEncerrar") {
+      await FB.atualizarJogador(codigo, eu.id, { mercadoPronto: true });
+      return "ok";
+    }
+    /* o teto vale para tudo que não é encerrar */
+    if (usadas >= tetoAcoes()) return "sem-acao";
+
+    if (a.tipo === "mercadoComprar") {
+      var f = frag(a.frag); if (!f) return "sem-fragmento";
+      var custo = preco(a.origem === "balaio" ? "repassada" : "nova");
+      if (moeda < custo) return "sem-moeda";
+      var dono = null;
+      if (a.origem === "balaio") {
+        var atual = balaio();
+        if (!atual.some(function (x) { return x.frag === a.frag; })) return "ja-levada";
+        var resto = atual.filter(function (x) {
+          if (x.frag === a.frag && dono === null) { dono = x.dono; return false; }
+          return true;
+        });
+        await salvarBalaio(resto);
+      }
+      await FB.acrescentarPista(codigo, eu.id, {
+        id: "mercado-" + a.frag, hora: f.h || "—", txt: f.d,
+        adquirida: true, origem: "mercado", frag: a.frag
+      });
+      await FB.atualizarJogador(codigo, eu.id, { moedas: moeda - custo, acoesMercado: usadas + 1 });
+      if (dono && dono !== eu.id) {
+        var v = jogadorDe(dono);
+        if (v) await FB.atualizarJogador(codigo, dono, { moedas: (Number(v.moedas) || 0) + custo });
+        await registrarNegociacao(a.frag, dono, eu.id);
+      }
+      return "ok";
+    }
+
+    if (a.tipo === "mercadoConsignar") {
+      var minhas = (eu.pistas || []);
+      if (!minhas.some(function (p) { return p.frag === a.frag; })) return "nao-tem";
+      await salvarBalaio(balaio().concat([{ frag: a.frag, dono: eu.id }]));
+      await FB.atualizarJogador(codigo, eu.id, {
+        pistas: minhas.filter(function (p) { return p.frag !== a.frag; }),
+        acoesMercado: usadas + 1
+      });
+      return "ok";
+    }
+
+    if (a.tipo === "mercadoArriscar") {
+      var c = campos().find(function (x) { return x.id === a.campo; }); if (!c) return "sem-campo";
+      /* o acerto é reconferido aqui: o que veio do aparelho é palpite, não
+         gabarito */
+      var certo = a.resposta === c.resposta;
+      var custo2 = certo ? 0 : preco("arriscar");
+      if (moeda < custo2) return "sem-moeda";
+      var t = Object.assign({}, (eu.travados || {}));
+      t[a.campo] = { resposta: a.resposta, ok: certo };
+      await FB.atualizarJogador(codigo, eu.id, { travados: t, moedas: moeda - custo2, acoesMercado: usadas + 1 });
+      return "ok";
+    }
+    return "tipo-desconhecido";
+  }
+
+  /* O ouvinte de `acoes` do Mestre já chama processarAcoesMestre a cada
+     snapshot. Envelopamos para o mercado pegar carona no mesmo gatilho. */
+  var procBase = global.processarAcoesMestre;
+  global.processarAcoesMestre = async function () {
+    if (typeof procBase === "function") {
+      try { await procBase.apply(this, arguments); } catch (e) { console.error("acoes base", e); }
+    }
+    try { await processarMercadoMestre(); } catch (e) { console.error("acoes mercado", e); }
   };
 
   /* ── Tela ───────────────────────────────────────────────────────────── */
@@ -388,7 +522,7 @@
     return (Number(j && j.acoesMercado) || 0) >= tetoAcoes();
   }
   global.mercadoEncerrar = async function () {
-    await salvarJogador({ mercadoPronto: true });
+    await pedir("mercadoEncerrar", {});
     render();
   };
 

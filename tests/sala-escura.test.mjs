@@ -264,3 +264,54 @@ test("nada que existe só para testar é carregado pela casca do jogo", () => {
     );
   }
 });
+
+test("o mercado não grava direto no documento do jogador nem da sala", () => {
+  /* firestore.rules · ownPlayerUpdate deixa o jogador mexer só em pronto,
+     forma, atualizadoEmMs e pistas — e hasOnly reprova a escrita inteira se
+     UMA chave estiver fora. Em 02/09/2026 as cinco escritas do mercado eram
+     todas negadas, e o balaio pior ainda: mora no documento da SALA, que só
+     o Mestre atualiza. Na tela funcionava; no servidor não acontecia nada, e
+     o jogador levava o fragmento sem pagar.
+
+     Agora o jogador CRIA um pedido em `acoes` e o Mestre aplica. Este teste
+     guarda a separação: fora de aplicar(), que é o lado do Mestre, não pode
+     sobrar escrita no documento do jogador nem no da sala. */
+  const RAIZ_REPO = new URL("../", import.meta.url);
+  const merc = readFileSync(new URL("v1/js/mercado-casa-da-costa.js", RAIZ_REPO), "utf8");
+
+  const iAplicar = merc.indexOf("async function aplicar(");
+  assert.ok(iAplicar > 0, "o processador do Mestre sumiu do mercado");
+  const fim = merc.indexOf('return "tipo-desconhecido"');
+  assert.ok(fim > iAplicar, "não achei o fim de aplicar()");
+  /* fora do lado do jogador vai também o CORPO de salvarBalaio: ele grava no
+     documento da sala, mas a definição mora fora de aplicar() e só é chamada
+     de dentro dele. O que interessa é quem CHAMA. */
+  const iSalvar = merc.indexOf("async function salvarBalaio");
+  const fSalvar = merc.indexOf("\n  }", iSalvar) + 4;
+  const semSalvar = merc.slice(0, iSalvar) + merc.slice(fSalvar);
+  const desloca = merc.length - semSalvar.length;
+  const ladoJogador =
+    semSalvar.slice(0, iAplicar - desloca) + semSalvar.slice(fim - desloca);
+
+  const regras = readFileSync(new URL("firestore.rules", RAIZ_REPO), "utf8");
+  const permitidas = regras
+    .match(/function ownPlayerUpdate[\s\S]*?hasOnly\(\[([^\]]+)\]\)/)[1]
+    .split(",").map((x) => x.trim().replace(/['"]/g, ""));
+
+  for (const m of ladoJogador.matchAll(/atualizarJogador\([^,]+,[^,]+,\s*\{([^}]*)\}/g)) {
+    const chaves = [...m[1].matchAll(/(\w+)\s*:/g)].map((x) => x[1]);
+    const fora = chaves.filter((c) => !permitidas.includes(c));
+    assert.deepEqual(fora, [], `o jogador voltou a gravar ${fora} no próprio documento`);
+  }
+  assert.equal(
+    [...ladoJogador.matchAll(/atualizarMesa\([^)]*\{/g)].length, 0,
+    "o jogador voltou a gravar no documento da sala — só o Mestre pode"
+  );
+  assert.equal(
+    [...ladoJogador.matchAll(/await salvarBalaio\(/g)].length, 0,
+    "o jogador voltou a mexer no balaio; ele mora no documento da sala"
+  );
+  /* e o canal tem de existir dos dois lados */
+  assert.match(merc, /gravarServidor\([^)]*"acoes"/, "o pedido em acoes sumiu");
+  assert.match(merc, /processarAcoesMestre/, "o mercado deixou de pegar carona no ouvinte do Mestre");
+});
