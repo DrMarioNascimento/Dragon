@@ -12,7 +12,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 
 const RAIZ = new URL("../v1/", import.meta.url);
 const ler = (n) => readFileSync(new URL(n, RAIZ), "utf8");
@@ -334,4 +334,43 @@ test("o laboratório de bots não fica de pé no caminho publicado", () => {
   const pagina = readFileSync(new URL("ferramentas/laboratorio/index.html", RAIZ), "utf8");
   assert.ok(!/firebasejs/.test(pagina),
     "o laboratório voltou a carregar o SDK do Firebase");
+});
+
+test("a conferência do build não exige arquivo que ninguém carrega", () => {
+  /* POR QUE ESTE TESTE EXISTE.
+
+     `noite.js` era o gêmeo velho do `noite-auto.js` — os dois definiam
+     `window.MosaicoNoite={fecharModulo}`, com listas de fragmentos
+     diferentes — e o `room-shell.js` só carrega o segundo, nos dois caminhos.
+     Ele sobreviveu à limpeza do cânone por um motivo torto: a lista A_MAO do
+     publicar-pages.mjs o EXIGIA no build, e arquivo exigido parece arquivo
+     usado. A conferência que existia para evitar página em branco virou a
+     razão de um órfão continuar de pé, carregando cânone velho.
+
+     Então a lista tem duas obrigações agora: o arquivo tem de existir na
+     fonte, e alguém tem de carregá-lo. */
+  const RAIZ = new URL("../", import.meta.url);
+  const publicar = readFileSync(new URL("mosaico-web/scripts/publicar-pages.mjs", RAIZ), "utf8");
+  const bloco = publicar.match(/const A_MAO = \[([\s\S]*?)\]/);
+  assert.ok(bloco, "não achei a lista A_MAO em publicar-pages.mjs");
+  const lista = [...bloco[1].matchAll(/"([^"]+)"/g)].map((m) => m[1]);
+  assert.ok(lista.length >= 5, "a lista A_MAO encolheu demais");
+
+  const PUB = new URL("mosaico-web/public/", RAIZ);
+  const fonte = new Map();
+  for (const nome of lista) {
+    const arq = new URL(nome, PUB);
+    assert.ok(existsSync(arq), `A_MAO exige ${nome}, que não existe em public/`);
+    fonte.set(nome, readFileSync(arq, "utf8"));
+  }
+
+  /* a casca é a porta: ela não precisa ser citada por ninguém */
+  const CASCA = "noite-shell.html";
+  for (const nome of lista) {
+    if (nome === CASCA) continue;
+    const citado = [...fonte.entries()].some(([n, t]) => n !== nome && t.includes(nome));
+    assert.ok(citado,
+      `A_MAO exige ${nome} no build, mas nenhum arquivo à mão o carrega — ` +
+      "ou ele voltou a ser órfão, ou quem o carregava sumiu");
+  }
 });

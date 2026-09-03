@@ -21,6 +21,13 @@
  * é que agora saem da fonte, e a limpeza não os alcança. A conferência no fim
  * deste arquivo é o alarme para o dia em que alguém mover um de volta.
  *
+ * Restaram CINCO mais a casca. `noite.js` era o gêmeo velho do `noite-auto.js`
+ * — os dois definiam `window.MosaicoNoite={fecharModulo}` e traziam listas de
+ * fragmentos diferentes — e o `room-shell.js` só carrega o `noite-auto.js`,
+ * nos dois caminhos. Sobreviveu à limpeza do cânone porque a conferência daqui
+ * o exigia no build, e um arquivo exigido parece um arquivo usado. Apagado em
+ * 02/09/2026.
+ *
  * A PÁGINA que carrega os seis — noite-shell.html — mora em public/ pelo mesmo
  * motivo, e é ela que vira index.html, 404.html e _shell.html no fim. Salvar
  * um arquivo do apagamento não adianta se a página que o carrega é
@@ -102,7 +109,7 @@ writeFileSync(join(V2, ".nojekyll"), "");
    porque <script> que dá 404 é descartado em silêncio. A publicação falha
    aqui, antes de alguém descobrir isso numa mesa. */
 passo("confere os arquivos escritos à mão");
-const A_MAO = ["noite-shell.html", "room-shell.js", "noite-auto.js", "noite.js",
+const A_MAO = ["noite-shell.html", "room-shell.js", "noite-auto.js",
                "master-sala.js", "noite.css", "room.css"];
 const faltando = A_MAO.filter((nome) => !existsSync(join(V2, nome)));
 if (faltando.length) {
