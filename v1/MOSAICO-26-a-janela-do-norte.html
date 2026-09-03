@@ -1105,7 +1105,18 @@ function tolerancia(){
      E abrir o rumo também não junta as plataformas: cada aparelho continua
      coerente consigo mesmo e trava apontando ao lado do outro. Isso é outro
      problema, e quem o resolve é a mediana dos rumos de travamento. */
-  return { az: clamp(g.hw/PPD*0.60+15.0, 17.0, 26.0)*CFG.FOLGA,
+  /* APONTAR ALTO CUSTA RUMO, e é geometria, não indulgência: a 39° acima do
+     horizonte — a última parada — um grau de rumo mede só cos(39°)=0,78° de
+     separação real no céu. Exigir os mesmos graus lá em cima é exigir mais
+     precisão do que embaixo, justo onde a bússola tem menos a oferecer. A
+     folga do rumo abre na mesma proporção; a da ALTURA, que vem da gravidade,
+     não muda — é ela que continua fazendo as seis etapas.
+
+     Veio d'A Noite em 03/09/2026, onde já estava. Não é perfil por
+     plataforma: vale igual em qualquer aparelho, e é exatamente por isso que
+     atravessou enquanto os perfis por plataforma de lá foram removidos. */
+  var alto=1/Math.max(0.55,Math.cos(clamp(view.elev,-60,60)*D2R));
+  return { az: clamp(g.hw/PPD*0.60+15.0, 17.0, 26.0)*CFG.FOLGA*alto,
            el: clamp(g.hh/PPD*0.30+2.2,   2.8,  4.2)*CFG.FOLGA };
 }
 

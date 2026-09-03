@@ -781,9 +781,13 @@ var spdAng=0, rawAnt=null;
    bússola, em onOrient. Ver a nota grande lá.                          */
 var IPHONE=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
 var iOSInstavel=false, iosHead=null;
-function folgaMao(){ return CFG.FOLGA*(IPHONE?(iOSInstavel?1.9:1.5):1); }
-function holdAlvo(){ return IPHONE?900:CFG.HOLD_MS; }
-function drenoMao(){ return IPHONE?0.28:CFG.DRENO; }
+/* Os três perfis por plataforma que moravam aqui — folga 1,5×/1,9×, hold de
+   900 ms contra 1500, dreno 0,28 contra 0,55 — saíram em 03/09/2026. Eram a
+   forma do Carro-Forte, onde produziram uma lavada, e a Casa decidiu o
+   contrário em 02/09: abrir o rumo para todos e não compensar por aparelho.
+   O que sobra de iOS neste arquivo é tratamento de SINAL, não de dificuldade:
+   `iOSInstavel` pesa o alisamento da agulha e o aprendizado do offset, que é
+   sobre a qualidade da leitura, não sobre o quanto o alvo perdoa. */
 var passo=0, distAlvo=CFG.PASSOS[0], distView=CFG.PASSOS[0], passoAnim=0;
 var beamOn=true, beamPulse=0, lastPulse=-9e9;
 /* surto: o banco de nevoa que fecha a cada passo dado (1 -> 0 em ~2,2 s) */
@@ -1207,8 +1211,18 @@ function tolerancia(){
      folga do rumo abre na mesma proporção; a da ALTURA, que vem da
      gravidade, não muda — é ela que continua fazendo as seis etapas.   */
   var alto=1/Math.max(0.55,Math.cos(clamp(view.elev,-60,60)*D2R));
-  return { az: clamp(g.hw/PPD*0.60+8.0, 9.0, 14.0)*folgaMao()*alto,
-           el: clamp(g.hh/PPD*0.30+2.2, 2.8,  4.2)*folgaMao() };
+  /* O RUMO abriu para TODOS (03/09/2026), alinhando A Noite com a Mesa. Esta
+     cópia ainda estreitava a faixa (9–14°) e devolvia a folga só ao iPhone,
+     por multiplicador. É a forma do Carro-Forte, e ela foi descartada para a
+     Casa em 02/09 pelo motivo escrito acima: se o magnetômetro erra de 5 a
+     20°, 9° no primeiro passo é mais apertado que o erro do próprio sensor —
+     em QUALQUER aparelho. Compensar por plataforma deixava o Android desta
+     experiência com 12,6° onde a mesma pessoa, na Mesa, tem 23,8°.
+
+     A escada de ALTURA não se mexe, e é ela que faz o jogo: vem da gravidade,
+     erra menos de 1° e é igual em todo telefone. */
+  return { az: clamp(g.hw/PPD*0.60+15.0, 17.0, 26.0)*CFG.FOLGA*alto,
+           el: clamp(g.hh/PPD*0.30+2.2,   2.8,  4.2)*CFG.FOLGA };
 }
 
 /* ==========================================================================
@@ -1975,7 +1989,7 @@ function janela(tempo, clareza, prox){
 
   /* --- anel de progresso do "segurar" --- */
   if(holdAcc>0 && !locked){
-    var p=clamp(holdAcc/holdAlvo(),0,1);
+    var p=clamp(holdAcc/CFG.HOLD_MS,0,1);
     sc.strokeStyle="rgba(255,214,160,0.85)";
     sc.lineWidth=2.4; sc.lineCap="round";
     var per=(hw*4+hh*4), run=per*p;
@@ -2280,7 +2294,12 @@ function loop(){
   rawAnt=raw.bearing;
   spdAng+=(vAng-spdAng)*(1-Math.pow(0.02,dt));
   var varrendo=sstep(8,45,spdAng);                    /* 0 parado · 1 varrendo */
-  var k=1-Math.pow(lerp(IPHONE?0.42:0.18,0.0025,varrendo),dt);
+  /* Era lerp(IPHONE?0.42:0.18, …): o último sobrevivente do pacote de 27/08
+     (f2653d8), que alisava o dobro no iPhone para matar o tremor da agulha.
+     No dia seguinte o onOrient separou atitude de bússola (ece3a3e) e tirou o
+     tremor na origem — o alisamento em dobro passou a pagar lag por um
+     problema já resolvido. Volta ao valor único da Mesa. */
+  var k=1-Math.pow(lerp(0.18,0.0025,varrendo),dt);
   view.bearing=wrap360(view.bearing+wrap180(raw.bearing-view.bearing)*k);
   view.elev+=(raw.elev-view.elev)*k;
   view.roll+=(wrap180(raw.roll-view.roll))*k*0.85;
@@ -2356,9 +2375,9 @@ function loop(){
   if(!jogando){ return; }
   if(!locked){
     if(al.ok){
-      holdAcc=Math.min(holdAlvo(), holdAcc+dt*1000);
+      holdAcc=Math.min(CFG.HOLD_MS, holdAcc+dt*1000);
       elHold.classList.add("on");
-      var p=clamp(holdAcc/holdAlvo(),0,1);
+      var p=clamp(holdAcc/CFG.HOLD_MS,0,1);
       elHoldF.style.width=(p*100)+"%";
       if(passoAnim<0.2){
         setStatus(passo>=CFG.PASSOS.length-1?"Você está debaixo dela.":"Segure o rumo.",true);
@@ -2370,8 +2389,8 @@ function loop(){
       /* escoa em vez de zerar: perder o rumo por meio segundo custa meio
          segundo de progresso, não a subida inteira.                     */
       if(holdAcc>0){
-        holdAcc=Math.max(0, holdAcc-dt*1000*drenoMao());
-        elHoldF.style.width=(holdAcc/holdAlvo()*100)+"%";
+        holdAcc=Math.max(0, holdAcc-dt*1000*CFG.DRENO);
+        elHoldF.style.width=(holdAcc/CFG.HOLD_MS*100)+"%";
         if(holdAcc<=0) elHold.classList.remove("on");
       }
       /* enquanto o banco está fechado, o jogo cala a boca: nada de "só névoa
