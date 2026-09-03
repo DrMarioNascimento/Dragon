@@ -8,7 +8,8 @@
     "test": "node --test tests/mosaico-v5.test.mjs tests/caso-sincronizado.test.mjs tests/qr.test.mjs tests/carimbo-cache.test.mjs tests/v2-publicado.test.mjs tests/solo-opcoes.test.mjs tests/noite-integridade.test.mjs tests/sala-escura.test.mjs",
     "test:regras": "firebase emulators:exec --only firestore \"node --test tests/regras.test.mjs\"",
     "test:tudo": "npm test && npm run test:regras",
-    "economia": "node ferramentas/economia-mercado.mjs"
+    "economia": "node ferramentas/economia-mercado.mjs",
+    "duracao": "node ferramentas/duracao-sensorial.mjs"
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^5.0.2",
