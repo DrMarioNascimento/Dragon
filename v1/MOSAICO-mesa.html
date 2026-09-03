@@ -1797,6 +1797,7 @@ function cabecalhoRodada(fase, classe){
 }
 var _audioNivel=null, _nivelSonoroAnterior=null, _vozesNivel={}, _podioAudioChave="";
 var _encerramentoAudioChave="", _fonteEncerramento=null, _timerEncerramento=null;
+var _aberturaAudioChave="", _fonteAbertura=null, _timerAbertura=null;
 /* Só a abertura tem narração (02/09/2026). Os outros doze áudios foram
    apagados a pedido do Mario. As chaves ausentes são inofensivas: quem lê
    este mapa já guarda com `if(!ARQUIVOS_VOZ_NIVEL[chave])return`, e
@@ -1810,6 +1811,9 @@ var ARQUIVOS_VOZ_NIVEL={
    do próprio mapa: sem narração de encerramento, a espera é zero e a fase
    passa direto. Devolver o áudio ao mapa devolve a espera junto. */
 var DURACAO_ENCERRAMENTO_MS=ARQUIVOS_VOZ_NIVEL.encerramento?124030:0;
+/* Mesma regra para a abertura: 81,6 s medidos no arquivo, e zero se ele sair
+   do mapa — aí a encenação abre na hora, sem espera em silêncio. */
+var DURACAO_ABERTURA_MS=ARQUIVOS_VOZ_NIVEL.abertura?81650:0;
 function carregarVozNivel(chave){
   if(!_audioNivel||!ARQUIVOS_VOZ_NIVEL[chave])return Promise.resolve(null);
   if(_vozesNivel[chave])return _vozesNivel[chave];
@@ -1851,7 +1855,11 @@ function tocarVozDeNivel(chave,atraso,aoTerminar){
     fonte.start(_audioNivel.currentTime+Math.max(0,Number(atraso)||0));
   });
 }
-function tocarAberturaComAmbiente(aoTerminar){
+/* O `deslocamentoMs` existe para o Mestre que recarrega a página no meio da
+   narração: a voz retoma no ponto em que a mesa estava, em vez de recomeçar os
+   81 s do zero na frente de doze pessoas em pé. Quem sabe o ponto é o relógio
+   do documento da mesa, não esta aba — ver sincronizarAudioAbertura(). */
+function tocarAberturaComAmbiente(aoTerminar,deslocamentoMs){
   if(!souMestreDaMesa()||partidaPausada()){
     if(typeof aoTerminar==="function")aoTerminar();
     return;
@@ -1893,9 +1901,11 @@ function tocarAberturaComAmbiente(aoTerminar){
       if(typeof aoTerminar==="function")aoTerminar();
     };
     var inicio=_audioNivel.currentTime+.08;
+    var salto=Math.max(0,Math.min(abertura.buffer.duration-.05,(Number(deslocamentoMs)||0)/1000));
+    _fonteAbertura=abertura;
     if(trovao)trovao.start(inicio);
     if(chuva)chuva.start(inicio);
-    abertura.start(inicio);
+    abertura.start(inicio,salto);
   });
 }
 function introducaoEncenacaoPendente(){
@@ -1908,6 +1918,54 @@ function liberarTelaEncenacao(){
   return esperarFB().then(function(FB){
     return FB.atualizarMesa(STATE.mesa.codigo,{encenacaoIntroducaoConcluida:true});
   }).catch(function(e){console.error("liberar encenação",e);});
+}
+/* ── A ABERTURA NÃO PODE SEGURAR A MESA ──────────────────────────────────
+   Até 03/09/2026 quem destravava a encenação era o `onended` da narração, e
+   ele era o ÚNICO caminho. Isso travava a mesa inteira num caso comum: o
+   Mestre recarrega a página durante a abertura. `_nivelSonoroAnterior` é
+   variável de aba, volta a null, a primeira passada por verificarTrocaDeNivel
+   só semeia o valor e sai — a narração não toca de novo, o `onended` nunca
+   dispara, `encenacaoIntroducaoConcluida` fica false no documento para sempre
+   e todo mundo olha um AGUARDE... que não sai. Não havia botão do Mestre nem
+   segundo caminho: só as linhas 1909 e 3776 escrevem esse campo.
+
+   O conserto é o mesmo que o encerramento já usava neste arquivo: o relógio
+   mora no documento da mesa (`aberturaIniciadaMs`), não na aba. Daí saem as
+   duas coisas — de onde retomar a voz, e um temporizador que conclui a
+   abertura mesmo que o áudio não carregue, não tenha permissão ou nunca
+   termine. Clima não pode ser o que trava doze pessoas em pé.
+
+   Veio da branch `correcoes-integridade`, que resolvia isto e morreu com o
+   resto: o mecanismo dela era uma sequência de DUAS vozes mais uma tempestade
+   por baixo, e os três arquivos foram apagados a pedido do Mario em 02/09. A
+   garantia sobrevive à decisão de áudio porque não depende dela. */
+function aberturaPendente(){
+  return introducaoEncenacaoPendente();
+}
+function pararAudioAbertura(){
+  if(_timerAbertura)clearTimeout(_timerAbertura);_timerAbertura=null;
+  if(_fonteAbertura){try{_fonteAbertura.stop();}catch(e){}_fonteAbertura=null;}
+}
+function concluirAbertura(){
+  if(!souMestreDaMesa()||!aberturaPendente())return;
+  pararAudioAbertura();
+  liberarTelaEncenacao();
+  emitirSomDeNivel();
+  tocarVozDeNivel("encenacao",4.85);
+}
+function sincronizarAudioAbertura(){
+  if(!souMestreDaMesa()||!aberturaPendente()||partidaPausada())return;
+  /* Sala aberta antes deste conserto, sem relógio: abrir na hora é melhor do
+     que esperar uma voz que ninguém sabe onde está. */
+  var inicio=Number(STATE.doc.aberturaIniciadaMs)||0;
+  if(!inicio){concluirAbertura();return;}
+  var chave=(STATE.mesa&&STATE.mesa.codigo||"")+":"+inicio;
+  if(_aberturaAudioChave===chave)return;
+  pararAudioAbertura();_aberturaAudioChave=chave;
+  var decorrido=Math.max(0,Date.now()-inicio), restante=Math.max(0,DURACAO_ABERTURA_MS-decorrido);
+  if(!restante){concluirAbertura();return;}
+  tocarAberturaComAmbiente(concluirAbertura,decorrido);
+  _timerAbertura=setTimeout(concluirAbertura,restante+150);
 }
 function vozDaFase(fase){
   if(fase==="constelacao")return tarefaInteriorAtual()==="sala-escura"?"salaEscura":"vidro";
@@ -1981,12 +2039,11 @@ function verificarTrocaDeNivel(fase){
   if(_nivelSonoroAnterior===null){_nivelSonoroAnterior=atual;return;}
   if(atual!==_nivelSonoroAnterior){
     _nivelSonoroAnterior=atual;
+    /* A abertura não toca mais aqui. Quem a conduz é sincronizarAudioAbertura(),
+       chamado a cada render: só assim ela sobrevive a um recarregar do Mestre,
+       porque troca de fase acontece uma vez e render acontece sempre. A sirene
+       e a voz da fase vêm depois da narração, em concluirAbertura(). */
     if(fase==="encenacao"){
-      tocarAberturaComAmbiente(function(){
-        liberarTelaEncenacao();
-        emitirSomDeNivel();
-        tocarVozDeNivel("encenacao",4.85);
-      });
       return;
     }
     emitirSomDeNivel();
@@ -2041,7 +2098,15 @@ function controlesMestreMovel(){
     acaoNecessaria=todos;
     botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();iniciarEncenacao()" '+(todos?'':'disabled')+'>Come&ccedil;ar</button>';
   }else if(fase==="encenacao"){
-    botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();pularVez()">Pular a apresenta&ccedil;&atilde;o atual</button>';
+    /* Enquanto a casa fala não há apresentação para pular — há narração. O
+       temporizador da abertura já garante que ninguém fica preso, mas quem
+       conduz precisa poder seguir sem esperar os 81 s: mesa que já ouviu,
+       ensaio, sala barulhenta. Veio da branch correcoes-integridade, que
+       tinha o botão e morreu com o resto do mecanismo dela. */
+    if(introducaoEncenacaoPendente())
+      botoes+='<button class="btn btn-frio" onclick="alternarMenuMestre();concluirAbertura()">Pular a abertura</button>';
+    else
+      botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();pularVez()">Pular a apresenta&ccedil;&atilde;o atual</button>';
   }else if(fase==="votacao"){
     statusOuAcao(STATE.votos.length,js.length,"Vota&ccedil;&atilde;o","Abrir A Janela do Norte","abrirInclinacao");
   }else if(fase==="inclinacao"){
@@ -2344,6 +2409,8 @@ function render(forcar){
   verificarTrocaDeNivel(faseAgora);
   if(encerramentoPendente())sincronizarAudioEncerramento();
   else if(_fonteEncerramento||_timerEncerramento)pararAudioEncerramento();
+  if(aberturaPendente())sincronizarAudioAbertura();
+  else if(_fonteAbertura||_timerAbertura)pararAudioAbertura();
   var encenacaoPassiva=false;
   if(STATE.eu&&STATE.tela==="encenacao"&&faseAgora==="encenacao"){
     var ordemEncenacao=ordenados(STATE.jogadores), atorEncenacao=ordemEncenacao[(STATE.doc&&STATE.doc.vez)||0];
@@ -3773,7 +3840,10 @@ function iniciarContagem(){
 
 async function iniciarEncenacao(){
   var FB=await esperarFB();
-  await FB.atualizarMesa(STATE.mesa.codigo,{fase:"encenacao",vez:0,encenacaoIntroducaoConcluida:false});
+  /* O relógio entra na MESMA gravação do gate: ou a mesa tem os dois campos,
+     ou não tem nenhum. Um snapshot com o gate fechado e sem relógio seria
+     exatamente a trava que este conserto existe para tirar. */
+  await FB.atualizarMesa(STATE.mesa.codigo,{fase:"encenacao",vez:0,encenacaoIntroducaoConcluida:false,aberturaIniciadaMs:Date.now()});
 }
 
 /* Ao concluir a vez, a casa mostra mais uma linha no painel. */
