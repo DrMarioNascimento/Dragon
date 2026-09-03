@@ -1,6 +1,6 @@
 /* MOSAICO · layout compacto seguro e não invasivo */
 (function () {
-  if (!document.querySelector('link[data-layout-compacto]')) { const css=document.createElement('link');css.rel='stylesheet';css.href='layout-compacto.css?v=20260901-toque2';css.dataset.layoutCompacto='1';document.head.appendChild(css) }
+  if (!document.querySelector('link[data-layout-compacto]')) { const css=document.createElement('link');css.rel='stylesheet';css.href='layout-compacto.css?v=20260901-toque3';css.dataset.layoutCompacto='1';document.head.appendChild(css) }
   const brand=document.querySelector('.brand'),topline=document.querySelector('.topline'),hud=document.querySelector('.hud'),turn=document.querySelector('.turnline'),dock=document.querySelector('.action-dock');if(!brand||!topline||!hud||!turn||!dock)return;
   brand.classList.add('compact-brand');const brandB=brand.querySelector('b'),brandSmall=brand.querySelector('small');if(brandB)brandB.textContent='MOSAICO · A MANHÃ DO CARRO-FORTE · A NOITE';if(brandSmall)brandSmall.hidden=true;topline.classList.add('compact-topline');const info=hud.querySelector('#infoBtn');if(info)topline.appendChild(info);hud.classList.add('compact-source-hidden');turn.classList.add('compact-source-hidden');
   if(dock.querySelector('.action-status'))return;
