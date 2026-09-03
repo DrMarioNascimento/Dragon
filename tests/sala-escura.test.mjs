@@ -232,3 +232,35 @@ test("nenhum código do banco chega à tela", () => {
     "o fragmento voltou a ser rotulado pelo código"
   );
 });
+
+test("nada que existe só para testar é carregado pela casca do jogo", () => {
+  /* Regra do Mario, 02/09/2026. Ela nasceu de um caso concreto: até esse dia
+     `casa-solo-bots.js` — sete bots de playtest com evidências inventadas —
+     era carregado por noite-shell.html, PUBLICADO, atrás só de um ?soloLab=1.
+     O portão funcionava, então o risco era pequeno; o problema é o padrão.
+     Artefato de bancada embarcado no jogo é o mesmo padrão que fez bot virar
+     jogador de mentira e que faz o teste esconder o caminho publicado.
+
+     As bancadas moram em ferramentas/ e ninguém as carrega: elas se abrem no
+     Node ou se injetam pelo console. */
+  const RAIZ_REPO = new URL("../", import.meta.url);
+  const lerRepo = (n) => readFileSync(new URL(n, RAIZ_REPO), "utf8");
+  const cascas = [
+    "v1/MOSAICO-mesa.html",
+    "mosaico-web/public/noite-shell.html",
+    "v2/index.html",
+    "v2/404.html",
+    "v2/_shell.html",
+  ];
+  for (const casca of cascas) {
+    const txt = lerRepo(casca);
+    assert.ok(
+      !/ferramentas\//.test(txt),
+      `${casca} carrega algo de ferramentas/, que é bancada`
+    );
+    assert.ok(
+      !/casa-solo-bots|soloLab/.test(txt),
+      `${casca} voltou a embarcar os bots de playtest`
+    );
+  }
+});

@@ -1,5 +1,33 @@
-/* MOSAICO · A Casa da Costa · Laboratório Solo
-   Bots locais de playtest. Não acessam Firebase nem verdade canônica. */
+/* MOSAICO — BOTS DE MESA (bancada)
+ * ==========================================================================
+ * Sete bots de playtest: nomes, perfis e evidências simuladas, num painel
+ * flutuante. Servem para SENTIR uma mesa cheia — densidade de tela, ritmo de
+ * alguém mudando de ideia. Não acessam Firebase nem a verdade canônica, não
+ * gastam moeda e não ocupam fase: são teatro, não simulação.
+ *
+ * COMO CARREGAR, desde 02/09/2026:
+ * abra o jogo, abra o console do navegador e cole:
+ *
+ *   var s=document.createElement("script");
+ *   s.src="/Dragon/ferramentas/bots-de-mesa.js";
+ *   document.body.appendChild(s);
+ *
+ * e recarregue com ?soloLab=1 na URL.
+ *
+ * POR QUE NÃO ESTÁ MAIS NA CASCA DO JOGO
+ *
+ * Ele era carregado por noite-shell.html — publicado, no ar, atrás só de um
+ * ?soloLab=1. A regra que ficou: NADA QUE EXISTE SÓ PARA TESTAR É CARREGADO
+ * PELA CASCA DO JOGO. Não é o risco desta vez (o portão funcionava): é que
+ * artefato de bancada embarcado é exatamente o padrão que já custou caro —
+ * bot que vira jogador de mentira, teste que esconde o caminho publicado.
+ *
+ * E há um limite que este arquivo não vence, por desenho: como as evidências
+ * são inventadas e não saem do banco, ele não prova economia nem tempo. Para
+ * NÚMERO existe ferramentas/economia-mercado.mjs e
+ * ferramentas/duracao-sensorial.mjs, que rodam o código real. Este aqui é só
+ * para o feel.
+ * ========================================================================*/
 (function(){'use strict';const q=new URLSearchParams(location.search);if(q.get('soloLab')!=='1')return;
 const NAMES=['Helena','Augusto','Lia','Rafael','Beatriz','Caio','Nina'];const PROFILES=['analítico','cauteloso','intuitivo','impulsivo','documental','explorador','revisionista'];const start=Date.now();
 const bots=NAMES.map((nome,i)=>({id:'bot'+(i+1),nome,perfil:PROFILES[i],evidencias:[],hipotese:'em aberto',mudancas:0,tempo:0}));
