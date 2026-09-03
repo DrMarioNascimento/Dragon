@@ -436,3 +436,49 @@ test("sem caso não há partida: a Mesa tranca em vez de jogar o que sobrou", ()
     assert.ok(MESA.includes(vazio), "voltou conteúdo de caso para " + vazio);
   }
 });
+
+test("a fila de atividades d'A Noite mora na sala, não no aparelho", () => {
+  /* Até 03/09/2026 `modsFeitos` era localStorage e `noite-auto.js` não tinha
+     UMA linha sobre a sala: o online d'A Noite era um saguão que sincronizava
+     o "todos prontos" e depois soltava N jogos locais. "Concluída pela mesa"
+     queria dizer "concluída neste telefone", e o terço do dossiê abria para
+     uma pessoa só — o gesto coletivo virava clique de um. */
+  const RAIZ_N = new URL("../", import.meta.url);
+  const NOITE = readFileSync(new URL("mosaico-web/public/noite-auto.js", RAIZ_N), "utf8");
+
+  assert.match(NOITE, /window\.MosaicoSala/,
+    "A Noite voltou a ignorar a sala que o room-shell entrega");
+  assert.match(NOITE, /if\(ONLINE\)modsFeitos=\[\];/,
+    "com mesa, a fila não pode vir do localStorage: o aparelho acharia que a " +
+    "mesa já passou por atividades que ela não fez");
+
+  /* quem vira a página é um só: as regras negam o resto, e é bom que neguem
+     — duas pessoas terminando junto escreveriam por cima uma da outra */
+  assert.match(NOITE, /if\(!souMestre\(\)\|\|ritmoDaSala\(\)==="conduzido"\)return;/,
+    "o avanço automático deixou de exigir o Mestre, ou passou a ignorar o ritmo");
+  assert.match(NOITE, /async function liberar\(id\)\{\s*if\(!souMestre\(\)/,
+    "liberar() deixou de conferir se quem chama é o Mestre");
+});
+
+test("toda atividade d'A Noite tem nome que a regra do Firestore aceita", () => {
+  /* O carimbo de conclusão é um documento em `tarefas`, e `validTarefa()`
+     confere o nome contra uma lista. `escuro` — O Mapa do Escuro — não estava
+     nela: a fila teria travado naquela atividade, e o sintoma seria uma
+     permissão negada no console de uma pessoa só, no meio da noite. */
+  const RAIZ_R = new URL("../", import.meta.url);
+  const NOITE = readFileSync(new URL("mosaico-web/public/noite-auto.js", RAIZ_R), "utf8");
+  const REGRAS = readFileSync(new URL("firestore.rules", RAIZ_R), "utf8");
+
+  const bloco = NOITE.match(/const MODULOS=\{([^}]*)\}/);
+  assert.ok(bloco, "não achei a tabela MODULOS em noite-auto.js");
+  const ids = [...new Set([...bloco[1].matchAll(/"([a-z]+)"/g)].map(m => m[1]))];
+  assert.ok(ids.length >= 4, "MODULOS encolheu: " + ids.join(", "));
+
+  const lista = REGRAS.match(/function validTarefa\(\)[^\]]*\]/);
+  assert.ok(lista, "não achei validTarefa em firestore.rules");
+  for (const id of ids) {
+    assert.ok(lista[0].includes("'" + id + "'"),
+      `a atividade ${id} existe em MODULOS mas validTarefa() a recusa — ` +
+      "o carimbo de conclusão seria negado e a fila travaria nela");
+  }
+});

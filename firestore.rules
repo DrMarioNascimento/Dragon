@@ -27,7 +27,7 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['rascunho','rascunhoMs'])
         && (nucleoPortador(v,id) || nucleoV3(v,id));
     }
-    function validTarefa() { return request.resource.data.tarefa in ['inclinacao','janela','vidro','sala','salaescura','cor','mosaico','encaixe','cooperacao','palimpsesto','espelho','planta','mercado','oleo']; }
+    function validTarefa() { return request.resource.data.tarefa in ['inclinacao','janela','vidro','sala','salaescura','escuro','cor','mosaico','encaixe','cooperacao','palimpsesto','espelho','planta','mercado','oleo']; }
     function actorAdvance(v,id) {
       return signedIn() && active(v,id) && participant(v,id)
         && resource.data.fase == 'encenacao'

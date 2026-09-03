@@ -260,6 +260,39 @@ test("tarefa da Sala às Escuras é aceita no próprio UID", async () => {
   ));
 });
 
+/* ── A fila de atividades d'A Noite (03/09/2026) ─────────────────────────
+   A fila era localStorage: cada telefone tinha a sua, e "Concluída pela
+   mesa" queria dizer "concluída neste aparelho". Agora ela mora no
+   documento da sala, e o caminho tem duas metades que as regras precisam
+   sustentar: cada pessoa carimba em "tarefas" a atividade que terminou, e
+   SÓ o Mestre escreve "modsFeitos" no documento da sala. Se a segunda
+   metade afrouxar, duas pessoas terminando ao mesmo tempo escrevem por
+   cima uma da outra. */
+
+test("as quatro atividades d'A Noite são nomes que a regra conhece", async () => {
+  /* janela, sala, vidro e escuro são os ids de MODULOS em noite-auto.js.
+     "escuro" — O Mapa do Escuro — não estava na lista até hoje: o carimbo
+     daquela atividade seria negado, e a fila travaria nela. */
+  for (const atividade of ["janela", "sala", "vidro", "escuro"]) {
+    await assertSucceeds(setDoc(
+      doc(como(ANA), "mosaico", SALA, "tarefas", ANA + "_" + atividade),
+      { tarefa: atividade, jogadorId: ANA, concluidoEm: Date.now() }
+    ));
+  }
+});
+
+test("quem não é Mestre não vira a fila de atividades", async () => {
+  await assertFails(updateDoc(doc(como(ANA), "mosaico", SALA), {
+    modsFeitos: ["janela"], atualizadoEmMs: Date.now(),
+  }));
+});
+
+test("o Mestre vira a fila de atividades", async () => {
+  await assertSucceeds(updateDoc(doc(como(MESTRE), "mosaico", SALA), {
+    modsFeitos: ["janela"], atualizadoEmMs: Date.now(),
+  }));
+});
+
 test("tarefa inventada é recusada", async () => {
   await assertFails(setDoc(
     doc(como(ANA), "mosaico", SALA, "tarefas", ANA + "_hack"),
