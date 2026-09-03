@@ -910,9 +910,36 @@ function eulerParaVista(a,b,g){
 }
 
 var temAbsoluto=false;
+/* ── iPhone: A BÚSSOLA VALE COMO NORTE, NUNCA COMO ALPHA ─────────────────
+   Até 03/09/2026 esta função fazia `alpha=360-webkitCompassHeading` e mandava
+   isso pela matriz de Euler. Só se sustenta com o aparelho quase deitado: a
+   janela alvo sobe até 39° acima do horizonte, ali beta chega perto de 90°,
+   que é justamente onde alpha e gamma entram em travamento de cardan. O PAR
+   reportado salta junto e continua correto; a bússola compensada não salta; e
+   a mistura dos dois faz o rumo oscilar dezenas de graus com o aparelho
+   PARADO na mão. Era o que acontecia toda vez que se levantava o braço para
+   mirar a janela — e é a causa do "o iOS não mantém o ponto" do playtest.
+
+   Agora são duas coisas separadas:
+     · a ATITUDE (alpha/beta/gamma como o sistema os reporta) dá o rumo
+       relativo. Vem do giroscópio: é lisa, e o eixo que interessa — para onde
+       as costas do aparelho olham — não degenera em ângulo nenhum.
+     · a BÚSSOLA dá o norte, e o que ela corrige é um OFFSET, que anda devagar
+       de propósito: a deriva do giroscópio é de graus por MINUTO, enquanto a
+       agulha treme a cada quadro.
+   O offset só é aprendido com o aparelho inclinado PARA TRÁS — a postura de
+   quem mira uma janela no segundo andar, e a única em que esta tarefa é
+   jogada. Um lado só, uma convenção só. Enquanto ele não engata, o rumo sai
+   exatamente como saía antes: nada regride para quem segura o telefone de
+   outro jeito. Depois de engatar, tremer a mão para cima deixa de mexer no
+   rumo.
+
+   Veio d'A Noite (ece3a3e, 28/08), onde já roda. É tratamento de SINAL: não
+   mexe em tolerância nem compensa aparelho, e por isso atravessou junto com o
+   `alto` enquanto os perfis por plataforma de lá eram removidos. */
+var bussOff=null, tOrient=0, rumoSuave=null, iosHead=null, iOSInstavel=false;
 function onOrient(e){
   if(e.alpha===null||e.beta===null||e.gamma===null) return;
-  var alpha=e.alpha;
   var iOS=(typeof e.webkitCompassHeading==="number" && !isNaN(e.webkitCompassHeading));
   var abs=iOS || e.absolute===true || e.type==="deviceorientationabsolute";
 
@@ -923,26 +950,71 @@ function onOrient(e){
      e descartada.                                                       */
   if(abs) temAbsoluto=true; else if(temAbsoluto) return;
 
-  if(iOS){
-    alpha=360-e.webkitCompassHeading;  src="bússola (iOS)";
-    /* o iOS avisa quando nao confia na propria bussola */
-    if(typeof e.webkitCompassAccuracy==="number" &&
-       (e.webkitCompassAccuracy<0 || e.webkitCompassAccuracy>25)) src="bússola instável";
-  } else if(abs){
-    src="bússola (absoluta)";
-  } else if(src==="nenhuma"||src==="sem sensor"){
-    src="relativa — calibre o norte";
-  }
-  var v=eulerParaVista(alpha,e.beta,e.gamma);
-  /* A declinação da mesa entra SÓ aqui, e só para quem lê norte verdadeiro.
-     O iPhone reporta rumo em relação ao norte geográfico; o Android, ao
-     magnético. Somando a declinação no iPhone, os dois passam a falar a mesma
-     referência e param apontando para o mesmo lado do mundo real — que é o
-     que a brincadeira pede. Aplicar nos dois deslocaria a mesa inteira junto
-     e não juntaria ninguém. Entra neste ponto, com o northOffset manual,
-     porque daqui para a frente o jogo lê `raw.bearing` e mais nada. */
-  raw.bearing=wrap360(v.bearing+northOffset+(iOS?DECL_MESA:0));
+  var v=eulerParaVista(e.alpha,e.beta,e.gamma);
   raw.elev=v.elev; raw.roll=v.roll;
+
+  if(iOS){
+    iOSInstavel=typeof e.webkitCompassAccuracy==="number" &&
+      (e.webkitCompassAccuracy<0 || e.webkitCompassAccuracy>25);
+    src=iOSInstavel?"bússola instável":"bússola (iOS)";
+    var agora=performance.now();
+    var dt=tOrient?Math.min(0.25,(agora-tOrient)/1000):0.016;
+    tOrient=agora;
+    /* O rumo que a bússola afirma, pelo caminho de sempre — e com o mesmo
+       alisamento de sempre. Ele continua servindo a dois fins: é o que vale
+       enquanto o offset não engatou, e é a fonte limpa de onde o offset
+       aprende. Alisar antes importa: sem isto o offset aprenderia o tremor. */
+    var mundoCru=eulerParaVista(360-e.webkitCompassHeading,e.beta,e.gamma).bearing;
+    if(iosHead==null) iosHead=mundoCru;
+    else iosHead=wrap360(iosHead+wrap180(mundoCru-iosHead)*(iOSInstavel?0.14:0.26));
+    var mundo=iosHead;
+    /* Quanto o topo do aparelho ainda tem de horizontal. É essa projeção que
+       a bússola compensada mede; perto de zero — aparelho de pé — ela não
+       tem o que medir e o valor é ruído. E o sinal importa: a mira desta
+       tarefa acontece toda com o aparelho INCLINADO PARA TRÁS (a janela fica
+       acima do horizonte), então só desse lado o offset é aprendido. Um lado
+       só, uma convenção só, seja ela qual for do lado da Apple.        */
+    var cB=Math.cos(e.beta*D2R);
+    var peso=cB<-0.10 ? Math.min(1,(Math.abs(cB)-0.10)/0.35) : 0;
+    if(iOSInstavel) peso*=0.35;
+    if(peso>0){
+      var alvoOff=wrap180(mundo-v.bearing);
+      /* engata só numa amostra decente — o engate congela um valor, e um
+         valor ruim ficaria de herança. A troca em si é contínua: no
+         instante do engate, atitude+offset dá exatamente o mesmo rumo. */
+      if(bussOff===null){ if(peso>=0.35) bussOff=alvoOff; }
+      else {
+        var erro=wrap180(alvoOff-bussOff);
+        /* 40° num quadro é a agulha pulando, não o mundo girando */
+        if(Math.abs(erro)>40) peso*=0.15;
+        bussOff=wrap180(bussOff+erro*(1-Math.pow(0.80,dt*peso)));
+      }
+    }
+    /* Antes de engatar, nada muda em relação ao que já existia. Depois de
+       engatar, o rumo passa a vir da ATITUDE — lisa, sem degenerescência no
+       eixo que interessa — e a bússola só mantém o norte no lugar.     */
+    var fundido = (bussOff===null) ? mundo : wrap360(v.bearing+bussOff);
+    /* Um alisamento leve na SAÍDA, e não só na bússola. Ele não é cosmético:
+       o filtro adaptativo do laço mede a velocidade angular a partir daqui,
+       e alimentá-lo com o degrau de cada evento fazia-o ler tremor como
+       varredura — e afrouxar justamente quando devia apertar.          */
+    if(rumoSuave===null) rumoSuave=fundido;
+    else rumoSuave=wrap360(rumoSuave+wrap180(fundido-rumoSuave)*0.26);
+    /* A declinação da mesa entra SÓ aqui, e só para quem lê norte verdadeiro.
+       O iPhone reporta rumo em relação ao norte geográfico; o Android, ao
+       magnético. Somando a declinação no iPhone, os dois passam a falar a
+       mesma referência e param apontando para o mesmo lado do mundo real —
+       que é o que a brincadeira pede. Aplicar nos dois deslocaria a mesa
+       inteira junto e não juntaria ninguém. Isto é da Mesa e não existe n'A
+       Noite: ao trazer o offset de lá, ela tinha de continuar entrando, e
+       entra depois do alisamento porque daqui para a frente o jogo lê
+       `raw.bearing` e mais nada. */
+    raw.bearing=wrap360(rumoSuave+northOffset+DECL_MESA);
+  } else {
+    if(abs) src="bússola (absoluta)";
+    else if(src==="nenhuma"||src==="sem sensor") src="relativa — calibre o norte";
+    raw.bearing=wrap360(v.bearing+northOffset);
+  }
   if(!started){ started=true; }
 }
 
