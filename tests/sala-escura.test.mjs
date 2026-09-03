@@ -374,3 +374,65 @@ test("a conferência do build não exige arquivo que ninguém carrega", () => {
       "ou ele voltou a ser órfão, ou quem o carregava sumiu");
   }
 });
+
+test("a Mesa não guarda uma reserva do caso dentro do HTML", () => {
+  /* Havia 16 KB de JSON numa linha só, com o caso ANTIGO inteiro: o herdeiro
+     que abre o cofre, a marca na trava, o objeto metálico. Dois comentários o
+     defendiam, e os dois eram falsos — que era idêntico ao JSON (16 KB contra
+     49 KB, quinze chaves a menos) e que a auditoria de publicação comparava os
+     dois (ela declara o contrário e não conferia nada).
+
+     O perigo não era o peso. Era o caminho de falha: quando o fetch do caso
+     caía, o jogo avisava e SEGUIA JOGÁVEL com a reserva. A mesa jogaria a
+     noite toda sem desconfiar — elenco na tela, pistas chegando, só a verdade
+     era outra. */
+  const RAIZ_REPO2 = new URL("../", import.meta.url);
+  const MESA = readFileSync(new URL("v1/MOSAICO-mesa.html", RAIZ_REPO2), "utf8");
+
+  assert.ok(!/CASO_FALLBACK_COMPLETO/.test(MESA),
+    "a reserva embutida do caso voltou ao HTML da Mesa");
+
+  /* frases do caso antigo. Só o comentário que explica a remoção pode citá-las,
+     e ele vive dentro de /* ... *​/ — por isso a checagem ignora comentários. */
+  const semComentarios = MESA
+    .replace(/\/\*[\s\S]*?\*\//g, " ")
+    .replace(/^\s*\/\/.*$/gm, " ");
+  for (const re of [
+    /marca recente na trava/i,
+    /marca de dedo na trava/i,
+    /pequeno objeto met[áa]lico/i,
+    /abriu-o-cofre/,
+    /recuperar-documento/,
+    /a busca convergiu para o cofre/i,
+  ]) {
+    assert.ok(!re.test(semComentarios), "o cânone antigo voltou à Mesa: " + re);
+  }
+});
+
+test("sem caso não há partida: a Mesa tranca em vez de jogar o que sobrou", () => {
+  /* A trava não pode morar dentro de aplicarCaso. Duas camadas trocam aquela
+     função depois — banco-casa-da-costa.js a embrulha e casa-da-costa-v2.js a
+     SUBSTITUI inteira —, então o corpo do HTML não roda no jogo publicado. O
+     único ponto que sobrevive a qualquer camada é o .then do fetch. */
+  const RAIZ_REPO3 = new URL("../", import.meta.url);
+  const MESA = readFileSync(new URL("v1/MOSAICO-mesa.html", RAIZ_REPO3), "utf8");
+
+  assert.match(MESA, /var CASO_PRONTO=false, CASO_FALHOU=null;/,
+    "a Mesa perdeu a trava do caso");
+  assert.match(MESA, /aplicarCaso\(c\); CASO_PRONTO=true;/,
+    "a marca de caso pronto saiu do .then do fetch, que é o único ponto que as camadas não substituem");
+  assert.match(MESA, /if\(!CASO_PRONTO\)\{/,
+    "render() deixou de trancar quando o caso não chegou");
+  /* o portão fica POR CIMA do #app: se ele continuar de pé, a mesa vê um
+     COMEÇAR e o aviso fica escondido atrás */
+  assert.match(MESA, /getElementById\("portao"\)/,
+    "a tela de falha deixou de tirar o portão da frente");
+
+  /* e o esqueleto tem de continuar vazio: é ele que sobra quando o JSON falha */
+  for (const vazio of [
+    "var PERSONAGENS = [];", "var ROTEIRO = {};", "var PUBLICAS=[];",
+    "var PISTA_PRIVADA={};", "var HISTORIA=[];",
+  ]) {
+    assert.ok(MESA.includes(vazio), "voltou conteúdo de caso para " + vazio);
+  }
+});
