@@ -315,3 +315,23 @@ test("o mercado não grava direto no documento do jogador nem da sala", () => {
   assert.match(merc, /gravarServidor\([^)]*"acoes"/, "o pedido em acoes sumiu");
   assert.match(merc, /processarAcoesMestre/, "o mercado deixou de pegar carona no ouvinte do Mestre");
 });
+
+test("o laboratório de bots não fica de pé no caminho publicado", () => {
+  /* Ele entra numa sala DE VERDADE, com a config d'A Noite pronta no campo.
+     O Pages serve a raiz do repositório, então esta pasta ficaria acessível ao
+     lado do jogo, e um código de sala bastaria para encher a mesa dos outros.
+     A config não é tranca: ela já é pública em room-shell.js. A tranca é o
+     lugar — bancada roda na máquina de quem testa. */
+  const RAIZ = new URL("../", import.meta.url);
+  const bots = readFileSync(new URL("ferramentas/laboratorio/bots.js", RAIZ), "utf8");
+  assert.match(bots, /function daMaquina/,
+    "o laboratório perdeu a guarda de localhost");
+  assert.match(bots, /if \(!daMaquina\(\)\)/,
+    "a guarda existe mas UI.entrar não a consulta");
+
+  /* e ele não carrega o SDK do Firebase: um initializeApp por bot travava o
+     terceiro, e a página inteira passou a falar REST */
+  const pagina = readFileSync(new URL("ferramentas/laboratorio/index.html", RAIZ), "utf8");
+  assert.ok(!/firebasejs/.test(pagina),
+    "o laboratório voltou a carregar o SDK do Firebase");
+});
