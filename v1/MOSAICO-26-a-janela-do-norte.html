@@ -107,7 +107,6 @@
     text-shadow:0 1px 2px #000;
     backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
   }
-  button:active{background:#18242f;}
   button.acc{border-color:#b87433;color:var(--t-warms);}
 
   /* ---------------- painel do mestre ---------------- */
@@ -315,6 +314,11 @@
     font-weight:600;text-decoration:underline;text-underline-offset:6px;padding:12px}
 
 </style>
+
+<!-- O volume dos botoes mora num arquivo so, lido por esta pagina e pelas
+     outras tres. Entra DEPOIS do <style> de proposito: em empate de
+     especificidade, quem vem por ultimo vence, e o padrao tem de vencer. -->
+<link rel="stylesheet" href="css/profundidade.css?v=20260902-profundidade">
 </head>
 <body>
 <canvas id="c"></canvas>
@@ -380,7 +384,7 @@
   <div id="kicker">A noite da tempestade</div>
   <div id="title">A Casa<br><b>da Costa</b></div>
   <div id="sub">A janela do segundo andar</div>
-  <p>A tempestade não esperou ninguém. Às 21h03 a luz da casa oscilou. Não foi queda. Foi aviso.</p>
+  <p>A tempestade não esperou ninguém. Às 21h29 a casa apagou por dois minutos e dois segundos. Não foi queda. Foi janela.</p>
   <p>A janela acesa fica sempre no <b>mesmo rumo real do mundo</b>. Todos viram o corpo para o mesmo lado.</p>
   <button class="go" id="b-start">Descer do carro</button>
   <button class="alt" id="b-sim">Estou no computador</button>
@@ -443,15 +447,24 @@ var CFG = {
   CASA_H: 9.0        /* altura da platibanda */
 };
 
-/* o que a janela devolve a cada chegada — curto de propósito */
+/* o que a janela devolve a cada chegada — curto de propósito.
+
+   02/09/2026: esta lista inteira era do cânone antigo — o cofre arrombado, a
+   marca na trava, a névoa convidada — e nenhuma linha dela existia mais no
+   caso. Não era "um fragmento errado": era a linha do tempo velha por
+   completo, com horas que nem batiam com a janela desta atividade.
+
+   Agora sai do banco (casos/casa-da-costa.json) e desce até o que a Janela
+   do Norte prova, que é POSIÇÃO: o corpo que atravessa por dentro. Ao mexer,
+   confira o id do fragmento no banco antes de reescrever a frase.        */
 var FRAGMENTOS = [
-  { hora:"21:03", txt:"A luz da casa oscilou pela primeira vez. Não foi queda. Foi aviso." },
-  { hora:"21:07", txt:"A porta estava entreaberta. A cortina balançava. E a janela estava trancada." },
-  { hora:"21:12", txt:"O cofre, fechado como deveria. Mas a marca de dedo na trava era recente." },
-  { hora:"21:14", txt:"Um som no andar de cima. Não era passo. Não era objeto. Era algo entre os dois." },
-  { hora:"21:17", txt:"O corredor escureceu por um segundo. Uma sombra passou rápido demais." },
-  { hora:"21:20", txt:"A névoa entrou pela fresta da porta como se tivesse sido convidada." },
-  { hora:"21:23", txt:"A linha da verdade estava traçada. Não por alguém — pelos detalhes." }
+  { hora:"21:02", txt:"Alguém já estava no vão do sótão quando o primeiro carro parou." },              /* F22 */
+  { hora:"21:19", txt:"As chegadas em fila: 21h02, 21h05, 21h08, 21h11, 21h14, 21h19. Seis, e nenhuma antes." }, /* F21 */
+  { hora:"21:21", txt:"O quarto degrau rangeu sob peso. O terceiro não. O grupo inteiro estava na sala." },      /* F23 F04 */
+  { hora:"21:24", txt:"Cozinha e corredor sem poeira. O resto da casa tem cinco meses fechados." },     /* F02 */
+  { hora:"21:27", txt:"Uma colher no piso do corredor. Não estava ali às 21h19." },                      /* F05 F24 */
+  { hora:"21:29", txt:"A luz cai. Dois minutos e dois segundos de escuro, e uma respiração perto demais." }, /* F25 F06 */
+  { hora:"21:52", txt:"Um corpo atravessa entre o observador e a janela. Por dentro." }                  /* F07 */
 ];
 
 /* uma frase por passo dado */
@@ -465,20 +478,39 @@ var PASSO_TXT = [
 ];
 
 /* ==========================================================================
-   ENTRADA PELA URL  —  ?embed=1&s=SEMENTE&run=IDENTIFICADOR[&dev=1]
+   ENTRADA PELA URL  —  ?embed=1&s=SEMENTE&run=ID[&folga=N][&decl=N][&dev=1]
    s   : semente fixa da tarefa. Presente, o relógio para de mandar — todo
          jogador com a mesma semente monta exatamente o mesmo cenário.
    run : identifica esta execução. Volta em toda mensagem enviada à Mesa e
          filtra os comandos recebidos dela. Ausente, a tarefa segue
          funcionando sozinha, como sempre funcionou.
+   folga: multiplicador de tolerância decidido pela MESA, não pelo aparelho.
+         Ver o bloco "a folga é da mesa" mais abaixo.
+   decl: declinação magnética combinada da mesa, em graus. Aplicada SÓ nos
+         aparelhos cujo rumo vem do norte VERDADEIRO — na prática, iPhone.
+         O Android entrega norte magnético e já é a referência; somar nele
+         deslocaria os dois juntos e não juntaria ninguém.
+
+         Por que um número digitado e não uma medida: um aparelho trava quando
+         A LEITURA DELE bate com o alvo, então todos travam lendo o mesmo
+         número. A discordância existe na direção física, e nenhuma bússola a
+         enxerga de dentro de si mesma. Não há como o grupo se auto-calibrar
+         a partir dos próprios sensores; é preciso saber onde o grupo está.
+
+         E não precisa estar certo: precisa estar combinado. Errar junto não
+         atrapalha a brincadeira — divergir, sim.
    dev : só teste. Nunca é ligado por conta própria em lugar nenhum.
    ========================================================================== */
-var EMBED=false, SEMENTE_URL="", RUN_ID="", DEV=false;
+var EMBED=false, SEMENTE_URL="", RUN_ID="", DEV=false, FOLGA_URL=null, DECL_MESA=0;
 try{
   var _q=new URLSearchParams(location.search);
   EMBED       = _q.get("embed")==="1";
   SEMENTE_URL = (_q.get("s")||"").trim().toUpperCase();
   RUN_ID      = (_q.get("run")||"").trim();
+  var _f=parseFloat(_q.get("folga"));
+  if(isFinite(_f)&&_f>=0.5&&_f<=2.5) FOLGA_URL=_f;
+  var _d=parseFloat(_q.get("decl"));
+  if(isFinite(_d)&&_d>=-90&&_d<=90) DECL_MESA=_d;
   /* ?dev=1 — modo de teste. O botao de computador nao existe para o jogador:
      a tarefa e exclusiva de celular. Ele so aparece com dev=1, para nos
      conseguirmos testar sem sensor. O caminho por toque continua existindo
@@ -515,6 +547,9 @@ function enviarStatus(status, modo){
   if(modo) modoEntrada=modo;
   if(ultimoStatus===status) return;
   ultimoStatus=status;
+  /* Agora sai de verdade: a Mesa carimba a chegada do "ativo" no servidor,
+     e e dali que a duracao da atividade comeca a contar. */
+  TarefaSensor.status(status, ctxMesa());
 }
 function iniciarCronometroOficial(){
   if(inicioTarefa!==null) return;
@@ -818,11 +853,14 @@ function buildWorld(seedStr){
 
   locked=false; holdAcc=0; revealed=0; surto=0;
   rodadaVista=roundCode();
+  /* buildWorld roda no init e a cada virada de rodada. Os dois campos abaixo
+     moram no painel do mestre, que no modo integrado não existe — daí a
+     guarda. O código da rodada fica no HUD e continua sempre presente. */
   var seedInput=document.getElementById("seed");
-  if(seedInput.value!==seedStr) seedInput.value=seedStr;
+  if(seedInput && seedInput.value!==seedStr) seedInput.value=seedStr;
   document.getElementById("round-code").textContent=shortCode(seedStr);
-  document.getElementById("m-target").textContent=
-    target.bearing.toFixed(1)+"° "+cardinal(target.bearing);
+  var mt=document.getElementById("m-target");
+  if(mt) mt.textContent=target.bearing.toFixed(1)+"° "+cardinal(target.bearing);
   marcaPassos();
   pintaRodada();
 }
@@ -896,7 +934,14 @@ function onOrient(e){
     src="relativa — calibre o norte";
   }
   var v=eulerParaVista(alpha,e.beta,e.gamma);
-  raw.bearing=wrap360(v.bearing+northOffset);
+  /* A declinação da mesa entra SÓ aqui, e só para quem lê norte verdadeiro.
+     O iPhone reporta rumo em relação ao norte geográfico; o Android, ao
+     magnético. Somando a declinação no iPhone, os dois passam a falar a mesma
+     referência e param apontando para o mesmo lado do mundo real — que é o
+     que a brincadeira pede. Aplicar nos dois deslocaria a mesa inteira junto
+     e não juntaria ninguém. Entra neste ponto, com o northOffset manual,
+     porque daqui para a frente o jogo lê `raw.bearing` e mais nada. */
+  raw.bearing=wrap360(v.bearing+northOffset+(iOS?DECL_MESA:0));
   raw.elev=v.elev; raw.roll=v.roll;
   if(!started){ started=true; }
 }
@@ -1044,8 +1089,24 @@ function tolerancia(){
      Cada aparelho é coerente consigo mesmo, então todos travam com a mesma
      facilidade. O grupo fica espalhado uns 20° no mundo real — e 20° no
      escuro continua lendo como todo mundo olhando para o mesmo lado.  */
-  return { az: clamp(g.hw/PPD*0.60+8.0, 9.0, 14.0)*CFG.FOLGA,
-           el: clamp(g.hh/PPD*0.30+2.2, 2.8,  4.2)*CFG.FOLGA };
+  /* O RUMO abriu (02/09/2026). O motivo está no parágrafo acima e o número
+     não o acompanhava: se o magnetômetro "erra de 5 a 20°", uma faixa de 9°
+     no primeiro passo é apertada abaixo do erro do próprio sensor. No iPhone,
+     onde o rumo vem da bússola crua — e piora conforme o aparelho inclina,
+     que é justamente o que a escada de altura pede —, o ponto não parava de
+     escapar. Playtest do Mario: "o android fixa o ponto muito mais fácil, o
+     iOS não mantém o ponto".
+
+     Abrir o rumo NÃO deixa o jogo mais fácil, porque o jogo não mora aqui:
+     as sete etapas são uma escada de ALTURA (4° · 9° · 14° · 20° · 26° · 32°
+     · 39°), lida pela gravidade, que erra menos de 1° e é igual em qualquer
+     telefone. É lá que a mão firme importa, e lá nada mudou.
+
+     E abrir o rumo também não junta as plataformas: cada aparelho continua
+     coerente consigo mesmo e trava apontando ao lado do outro. Isso é outro
+     problema, e quem o resolve é a mediana dos rumos de travamento. */
+  return { az: clamp(g.hw/PPD*0.60+15.0, 17.0, 26.0)*CFG.FOLGA,
+           el: clamp(g.hh/PPD*0.30+2.2,   2.8,  4.2)*CFG.FOLGA };
 }
 
 /* ==========================================================================
@@ -2395,26 +2456,41 @@ document.getElementById("b-beam").addEventListener("click",function(e){
   beamPulse=1.1;
   try{ navigator.vibrate && navigator.vibrate(6); }catch(err){}
 });
-document.getElementById("b-master").addEventListener("click",function(){
+document.getElementById("b-master")&&document.getElementById("b-master").addEventListener("click",function(){
   mAberto=!mAberto; document.getElementById("master").classList.toggle("on",mAberto);
 });
 /* calibragem de campo: dá para achar o ponto certo no lugar do jogo, sem
    reeditar o arquivo. Some junto com a rodada — não é estado salvo.    */
 var FOLGAS=[{n:"apertado",v:0.75},{n:"normal",v:1},{n:"largo",v:1.4},{n:"muito largo",v:1.9}];
 var iFolga=1;
+/* Null-safe de propósito: no modo integrado estes controles saem do DOM, e
+   `init()` chama pintaFolga() DEPOIS da remoção. Sem a guarda, um
+   getElementById nulo mata o init inteiro — a página abre, a abertura roda,
+   e o que some é o jogo, sem erro visível. */
 function pintaFolga(){
   var f=FOLGAS[iFolga];
-  CFG.FOLGA=f.v;
-  document.getElementById("folga").textContent="Folga do rumo: "+f.n;
+  if(FOLGA_URL===null) CFG.FOLGA=f.v;   /* a folga da sala vence a local */
+  var el=document.getElementById("folga");
+  if(!el) return;
+  /* Com folga vinda da sala o botão vira mostrador: dizer "normal" enquanto a
+     tolerância real é outra é pior que não dizer nada — quem estiver
+     conferindo no campo leria um número que não é o que o jogo usa. */
+  el.textContent = FOLGA_URL===null
+    ? "Folga do rumo: "+f.n
+    : "Folga do rumo: "+String(FOLGA_URL).replace(".",",")+"× (da mesa)";
 }
-document.getElementById("folga").addEventListener("click",function(){
+function aoTocar(id,fn){
+  var el=document.getElementById(id);
+  if(el) el.addEventListener("click",fn);
+}
+aoTocar("folga",function(){
   iFolga=(iFolga+1)%FOLGAS.length; pintaFolga();
 });
-document.getElementById("cal").addEventListener("click",function(){
+aoTocar("cal",function(){
   northOffset=wrap360(northOffset-raw.bearing);
   raw.bearing=0; view.bearing=0; src="calibrada à mão";
 });
-document.getElementById("seed").addEventListener("change",function(){
+document.getElementById("seed")&&document.getElementById("seed").addEventListener("change",function(){
   var v=this.value.trim().toUpperCase();
   if(!v) v=defaultSeed();
   /* digitar exatamente o codigo da rodada corrente nao e "fixar a semente":
@@ -2464,6 +2540,26 @@ if(EMBED) document.body.classList.add("embed");
 if(!DEV){
   var _bt=document.getElementById("b-sim")||document.getElementById("alt");
   if(_bt && _bt.parentNode) _bt.parentNode.removeChild(_bt);
+}
+
+/* ---- a folga é da mesa, não do aparelho --------------------------------
+   O botão "Mestre" mora no HUD do jogo, e o modo integrado não o escondia:
+   dentro da Mesa, QUALQUER jogador abria o painel e punha a "Folga do rumo"
+   em "muito largo" — 1,9× a tolerância inteira — ou tocava em "Calibrar
+   norte" e redefinia o próprio zero. Enquanto a atividade só dizia "pronto",
+   isso era desigualdade silenciosa. No instante em que o tempo da atividade
+   passa a valer ponto na tabela geral, vira comprar colocação com dois
+   toques.
+
+   A partida é a mesma para todos na sala: a folga desce pela URL junto com a
+   semente, e os controles saem do DOM. Com ?dev=1 eles voltam, para teste —
+   é a mesma convenção do botão de computador logo acima.                  */
+if(FOLGA_URL!==null) CFG.FOLGA=FOLGA_URL;
+if(EMBED && !DEV){
+  ["b-master","master"].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el && el.parentNode) el.parentNode.removeChild(el);
+  });
 }
 
 

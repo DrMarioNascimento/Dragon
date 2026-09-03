@@ -12,7 +12,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 import assert from "node:assert/strict";
-import { MEDIA, AUDIO, MIDIA_USADA, SONS_USADOS, midia, som } from "../src/lib/mosaico/assets.ts";
+import { MEDIA, MIDIA_USADA, midia } from "../src/lib/mosaico/assets.ts";
 
 const WEB = join(dirname(fileURLToPath(import.meta.url)), "..");
 const PUBLICO = join(WEB, "public");
@@ -21,9 +21,7 @@ test("a base de mídia carrega a pasta, não só a raiz do app", () => {
   /* O bug: `const MEDIA = import.meta.env.BASE_URL` — base certa, pasta
      esquecida. O endereço vira /Dragon/v2/foto-agenda.jpg. */
   assert.ok(MEDIA.endsWith("media/"), `MEDIA = ${MEDIA}`);
-  assert.ok(AUDIO.endsWith("audio/"), `AUDIO = ${AUDIO}`);
   assert.equal(midia("foto-agenda.jpg"), MEDIA + "foto-agenda.jpg");
-  assert.equal(som("abertura.mp3"), AUDIO + "abertura.mp3");
 });
 
 test("toda mídia nomeada pelo jogo está em public/media", () => {
@@ -35,14 +33,9 @@ test("toda mídia nomeada pelo jogo está em public/media", () => {
   }
 });
 
-test("todo som nomeado pelo jogo está em public/audio", () => {
-  for (const nome of SONS_USADOS) {
-    assert.ok(
-      existsSync(join(PUBLICO, "audio", nome)),
-      `public/audio/${nome} não existe, mas o jogo pede`,
-    );
-  }
-});
+/* O teste dos sons saiu junto com os arquivos (02/09/2026). O projeto não
+   tem mais áudio: o destravamento do iOS usa um WAV silencioso embutido em
+   sound.ts, que não pode faltar do servidor porque não vem do servidor. */
 
 test("nenhum arquivo de mídia órfão em public/", () => {
   /* O outro lado: arquivo que ninguém mais usa continua sendo publicado e
@@ -72,9 +65,9 @@ test("nenhum código do jogo monta caminho de mídia por conta própria", () => 
   for (const caminho of fontes) {
     if (caminho.endsWith(join("mosaico", "assets.ts"))) continue;
     const texto = readFileSync(caminho, "utf8");
-    /* `${MEDIA}nome.jpg` e `${AUDIO}nome.mp3` são o caminho certo. */
-    const limpo = texto.replace(/\$\{(?:MEDIA|AUDIO|MODULOS)\}/g, "");
+    /* `${MEDIA}nome.jpg` é o caminho certo. */
+    const limpo = texto.replace(/\$\{(?:MEDIA|MODULOS)\}/g, "");
     if (proibido.test(limpo)) culpados.push(caminho.slice(WEB.length + 1));
   }
-  assert.deepEqual(culpados, [], "importe MEDIA/AUDIO de lib/mosaico/assets");
+  assert.deepEqual(culpados, [], "importe MEDIA/MODULOS de lib/mosaico/assets");
 });

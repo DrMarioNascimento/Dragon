@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EscuroRouteImport } from './routes/escuro'
 import { Route as NoiteRouteImport } from './routes/noite'
-import { Route as PlayRouteImport } from './routes/play'
 import { Route as NoiteIndexRouteImport } from './routes/noite.index'
 import { Route as NoiteSlugRouteImport } from './routes/noite.$slug'
 
@@ -31,11 +30,6 @@ const NoiteRoute = NoiteRouteImport.update({
   path: '/noite',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PlayRoute = PlayRouteImport.update({
-  id: '/play',
-  path: '/play',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const NoiteIndexRoute = NoiteIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -51,14 +45,12 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/escuro': typeof EscuroRoute
   '/noite': typeof NoiteRouteWithChildren
-  '/play': typeof PlayRoute
   '/noite/$slug': typeof NoiteSlugRoute
   '/noite/': typeof NoiteIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/escuro': typeof EscuroRoute
-  '/play': typeof PlayRoute
   '/noite/$slug': typeof NoiteSlugRoute
   '/noite': typeof NoiteIndexRoute
 }
@@ -67,30 +59,21 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/escuro': typeof EscuroRoute
   '/noite': typeof NoiteRouteWithChildren
-  '/play': typeof PlayRoute
   '/noite/$slug': typeof NoiteSlugRoute
   '/noite/': typeof NoiteIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/escuro' | '/noite' | '/play' | '/noite/$slug' | '/noite/'
+  fullPaths: '/' | '/escuro' | '/noite' | '/noite/$slug' | '/noite/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/escuro' | '/play' | '/noite/$slug' | '/noite'
-  id:
-    | '__root__'
-    | '/'
-    | '/escuro'
-    | '/noite'
-    | '/play'
-    | '/noite/$slug'
-    | '/noite/'
+  to: '/' | '/escuro' | '/noite/$slug' | '/noite'
+  id: '__root__' | '/' | '/escuro' | '/noite' | '/noite/$slug' | '/noite/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   EscuroRoute: typeof EscuroRoute
   NoiteRoute: typeof NoiteRouteWithChildren
-  PlayRoute: typeof PlayRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -114,13 +97,6 @@ declare module '@tanstack/react-router' {
       path: '/noite'
       fullPath: '/noite'
       preLoaderRoute: typeof NoiteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/play': {
-      id: '/play'
-      path: '/play'
-      fullPath: '/play'
-      preLoaderRoute: typeof PlayRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/noite/': {
@@ -156,7 +132,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   EscuroRoute: EscuroRoute,
   NoiteRoute: NoiteRouteWithChildren,
-  PlayRoute: PlayRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

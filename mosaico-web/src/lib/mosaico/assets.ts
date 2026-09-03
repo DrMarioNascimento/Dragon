@@ -19,17 +19,11 @@ const BASE: string =
   (import.meta as { env?: { BASE_URL?: string } }).env?.BASE_URL ?? "/";
 
 export const MEDIA = `${BASE}media/`;
-export const AUDIO = `${BASE}audio/`;
 export const MODULOS = `${BASE}modulos/`;
 
 /** Fotos e tarjas do Encaixe, o vídeo de abertura, os fundos. */
 export function midia(nome: string) {
   return MEDIA + nome;
-}
-
-/** Os sons da noite. */
-export function som(nome: string) {
-  return AUDIO + nome;
 }
 
 /** Todo arquivo de mídia que o jogo nomeia. A lista existe para o teste
@@ -51,10 +45,8 @@ export const MIDIA_USADA = [
   "tarja-noite.jpg",
 ] as const;
 
-/** Todo som que o jogo nomeia. */
-export const SONS_USADOS = [
-  "abertura.mp3",
-  "encerramento.mp3",
-  "tempestade-loop.mp3",
-  "tempestade-rajada.mp3",
-] as const;
+
+/* NÃO há lista de sons: o projeto ficou sem arquivos de áudio em
+   02/09/2026. O único som que restava era o destravamento do iOS, que passou
+   a usar um WAV silencioso embutido em sound.ts — sem arquivo, sem lista e
+   sem teste que possa apodrecer. */

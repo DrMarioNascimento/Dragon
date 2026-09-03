@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MOSAICO · Laboratório de bots</title>
+<!--
+  BANCADA. Esta página NÃO é o jogo e nunca é carregada por ele.
+  Ela entra numa mesa como N jogadores, pelas mesmas portas que um telefone
+  usa, e é dirigida de fora. O jogo não tem uma linha de "se for bot".
+
+  Use no notebook enquanto joga no celular. Ela SÓ roda em localhost ou em
+  arquivo local: o Pages serve a raiz do repositório, e servida pela internet
+  esta página seria uma porta para encher a mesa dos outros de bots.
+-->
+<style>
+  :root{--breu:#05070c;--painel:#0c121a;--linha:#1b2634;--texto:#e6ecf2;
+        --dim:#6d7f90;--ambar:#e8a44c;--frio:#7fd4ff;--verde:#7fd8a8}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--breu);color:var(--texto);
+       font:15px/1.5 Inter,system-ui,sans-serif;padding:22px}
+  h1{font:600 26px Georgia,serif;margin:0 0 4px}
+  p.sub{color:var(--dim);margin:0 0 22px;max-width:64ch}
+  fieldset{border:1px solid var(--linha);border-radius:10px;background:var(--painel);
+           padding:14px 16px;margin:0 0 16px}
+  legend{color:var(--ambar);font:700 11px Inter,sans-serif;letter-spacing:.14em;
+         text-transform:uppercase;padding:0 6px}
+  label{display:block;font:600 11px Inter,sans-serif;letter-spacing:.1em;
+        text-transform:uppercase;color:var(--dim);margin:10px 0 5px}
+  input,select,textarea{width:100%;padding:9px 11px;border:1px solid var(--linha);
+        border-radius:7px;background:#0a0f16;color:var(--texto);font:14px Inter,monospace}
+  textarea{font:12px/1.45 ui-monospace,monospace;min-height:96px}
+  .linha{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+  .acoes{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+  button{min-height:44px;padding:10px 18px;border:1px solid rgba(127,212,255,.45);
+         border-radius:10px;background:rgba(127,212,255,.06);color:var(--frio);
+         font:700 12px Inter,sans-serif;letter-spacing:.12em;text-transform:uppercase;
+         cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.09),
+         0 3px 0 #143749,0 4px 0 1px #091c26,0 7px 10px rgba(0,0,0,.42)}
+  button:active:not(:disabled){transform:translateY(2px);
+         box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 1px 0 #143749,0 2px 0 1px #091c26}
+  button:disabled{opacity:.35;cursor:default;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+  button.perigo{border-color:rgba(224,103,79,.45);color:#e0674f;
+         box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 3px 0 #4a1e14,0 4px 0 1px #240e08}
+  .cx{display:flex;align-items:center;gap:8px;margin-top:12px}
+  .cx input{width:auto}
+  .cx span{font-size:13px;color:var(--dim);text-transform:none;letter-spacing:0}
+  #sala{color:var(--verde);font:700 12px ui-monospace,monospace;margin:0 0 10px}
+  .bot{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:9px 11px;
+       border:1px solid var(--linha);border-radius:8px;background:#0a0f16;margin-bottom:7px}
+  .bot b{font-size:14px}
+  .est{color:var(--ambar);font:700 11px ui-monospace,monospace;text-align:right}
+  .num{grid-column:1/-1;color:var(--dim);font:11px ui-monospace,monospace}
+  .muted{color:var(--dim)}
+  #log{white-space:pre-wrap;font:11px/1.5 ui-monospace,monospace;color:var(--dim);
+       max-height:230px;overflow:auto;margin:0}
+</style>
+</head>
+<body>
+
+<h1>Laboratório de bots</h1>
+<p class="sub">Os bots entram na mesa como jogadores de verdade — documento em
+<code>jogadores</code>, com moeda e ações — e são dirigidos daqui. O jogo não
+sabe que eles existem: não há uma linha de <em>se for bot</em> em
+<code>v1/</code> nem em <code>v2/</code>. Cada um tem a própria sessão anônima,
+porque as regras exigem <code>jogadorId == request.auth.uid</code>.<br>
+<b>Só roda na sua máquina</b> — localhost ou arquivo local.</p>
+
+<fieldset>
+  <legend>Mesa</legend>
+  <div class="linha">
+    <div><label for="codigo">Código da sala</label><input id="codigo" maxlength="6" placeholder="ABC123" autocomplete="off"></div>
+    <div><label for="colecao">Jogo</label>
+      <select id="colecao">
+        <option value="noite">A Noite · coleção noite</option>
+        <option value="mosaico">A Mesa · coleção mosaico</option>
+      </select></div>
+    <div><label for="quantos">Quantos bots</label><input id="quantos" type="number" min="1" max="11" value="3"></div>
+    <div><label for="moedas">Moedas iniciais</label><input id="moedas" type="number" min="0" value="12"></div>
+  </div>
+  <div class="cx"><input type="checkbox" id="emulador"><span>usar o emulador local (127.0.0.1) em vez do projeto real</span></div>
+  <div class="acoes">
+    <button id="entrar" onclick="LabBots.entrar()">Entrar na mesa</button>
+    <button class="perigo" onclick="LabBots.sair()">Desligar</button>
+  </div>
+</fieldset>
+
+<fieldset>
+  <legend>Config do Firebase</legend>
+  <p class="muted" style="margin:6px 0 0;font-size:13px">Vem pronta para
+  <b>A Noite</b> (a mesma que está em <code>room-shell.js</code>). Para A Mesa,
+  cole a config do projeto <code>mosaico-game</code> — ela não mora neste
+  repositório.</p>
+  <label for="cfg">firebaseConfig</label>
+  <textarea id="cfg" spellcheck="false">{
+  "apiKey": "AIzaSyA160bkgHBrYBwvIxlENax-aAyLWPMaOU4",
+  "authDomain": "mosaico-noite.firebaseapp.com",
+  "projectId": "mosaico-noite"
+}</textarea>
+</fieldset>
+
+<fieldset>
+  <legend>A mesa agora</legend>
+  <p id="sala">sem sala</p>
+  <div id="mesa"></div>
+</fieldset>
+
+<fieldset>
+  <legend>O que aconteceu</legend>
+  <pre id="log"></pre>
+</fieldset>
+
+<!-- sem SDK do Firebase: os bots falam REST, e a sala também é lida assim.
+     Ver o cabeçalho de bots.js — um initializeApp por bot travava o terceiro. -->
+<script src="rest.js"></script>
+<script src="bots.js"></script>
+</body>
+</html>

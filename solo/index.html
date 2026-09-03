@@ -9,11 +9,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="solo-auto.css?v=20260830-cloud">
+<link rel="stylesheet" href="solo-auto.css?v=20260902-banco">
 </head>
 <body>
 <main id="app"></main>
-<script type="module" src="../firebase-user.js?v=20260830-cloud"
+<script type="module" src="../firebase-user.js?v=20260902-banco"
         data-experience="casa-da-costa-solo"
         data-storage-keys="mosaico_casa_ultima_partida_solo,mosaico_solo_costa_cloud"></script>
 <script>
@@ -22,10 +22,10 @@
     if(window.__mosaicoSoloIniciado)return;
     window.__mosaicoSoloIniciado=true;
     var jogo=document.createElement('script');
-    jogo.src='solo-auto.js?v=20260830-cloud';
+    jogo.src='solo-auto.js?v=20260902-banco';
     jogo.onload=function(){
       var ponte=document.createElement('script');
-      ponte.src='solo-cloud-state.js?v=20260830-cloud';
+      ponte.src='solo-cloud-state.js?v=20260902-banco';
       document.body.appendChild(ponte);
     };
     document.body.appendChild(jogo);

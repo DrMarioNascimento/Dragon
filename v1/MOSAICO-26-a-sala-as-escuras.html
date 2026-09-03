@@ -103,7 +103,6 @@
     font-family:var(--sans);font-size:clamp(14px,3.6vw,16px);font-weight:700;
     letter-spacing:.12em;text-transform:uppercase;text-shadow:0 1px 2px #000;
     backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
-  button:active{background:#16212c}
   button.acc{border-color:#b87433;color:var(--ambar-s)}
 
   /* ---------------- painel do mestre ---------------- */
@@ -276,6 +275,11 @@
     font-weight:600;text-decoration:underline;text-underline-offset:6px;padding:12px}
 
 </style>
+
+<!-- O volume dos botoes mora num arquivo so, lido por esta pagina e pelas
+     outras tres. Entra DEPOIS do <style> de proposito: em empate de
+     especificidade, quem vem por ultimo vence, e o padrao tem de vencer. -->
+<link rel="stylesheet" href="css/profundidade.css?v=20260902-profundidade">
 </head>
 <body>
 <canvas id="c"></canvas>
@@ -328,9 +332,9 @@
   <div id="kicker">A noite da tempestade — dentro da casa</div>
   <div id="titulo">A Sala<br><b>às Escuras</b></div>
   <div id="sub">Oito coisas, e uma frase para cada</div>
-  <p>A luz oscilou às 21h03 e depois a sala mergulhou no escuro. Você entrou pela porta entreaberta. A sala inteira cabe numa lanterna fraca.</p>
+  <p>Às 21h29 a casa apagou, e a sala ficou dois minutos e dois segundos no escuro. Você entrou pela porta entreaberta. A sala inteira cabe numa lanterna fraca.</p>
   <p>A cada vez, uma <b>frase</b> aparece no alto. Ela não diz onde está — diz <b>o que é</b>. Decifre e procure.</p>
-  <p class="small"><b>Ache os oito antes dos outros. Não conte o que descobriu.</b> O farol da costa passa a cada nove segundos e mostra a sala inteira por um instante — use a passagem dele.</p>
+  <p class="small"><b>Ache os nove antes dos outros. Não conte o que descobriu.</b> O farol da costa passa a cada nove segundos e mostra a sala inteira por um instante — use a passagem dele.</p>
   <p class="small" id="hist-nota">Os objetos preservam registros de momentos anteriores da noite.</p>
   <button class="go" id="b-entrar">Entrar na sala</button>
   <button class="alt" id="b-sim">Estou no computador</button>
@@ -385,48 +389,74 @@ var CFG = {
    chao  = true: fica no piso, afastado da parede
    ========================================================================== */
 var OBJETOS = [
-  { id:"quadro", enigma:"Emoldura uma paisagem que nunca muda de estação, mas pode esconder algo.", nome:"O quadro torto", tipo:"Parede", hora:"21:05",
+  /* A ORDEM DESTE ARRAY É A ORDEM DOS ENIGMAS, e ela é CRONOLÓGICA — ver o
+     comentário em montaSala. Duas regras ao mexer aqui:
+       1. as horas têm de subir de cima para baixo;
+       2. um objeto com `escondeAtras` vem DEPOIS da sua capa, senão a sala
+          pede para achar o cofre antes do quadro que o cobre.
+
+     As horas são do banco (casos/casa-da-costa.json), não inventadas: o
+     relógio de corda trava às 21h29 por causa mecânica (F26), o apagão dura
+     de 21h29 a 21h31 (F25), e a secretária reinicia com o retorno da energia
+     e diz um nome fora dos seis (F27, F08). A sala inteira acontece dentro
+     dos 122 segundos, e termina ouvindo o nome.                          */
+
+  { id:"quadro", enigma:"Emoldura uma paisagem que nunca muda de estação, mas pode esconder algo.", nome:"O quadro torto", tipo:"Parede", hora:"21:21",
     alt:1.62, larg:0.86, altura:0.66, chao:false,
     txt:"Uma marinha escura, com um farol que não ilumina nada. O quadro está torto para a direita — e o retângulo limpo na parede, atrás dele, é maior do que a moldura.",
     obs:"Um quadro não deixa marca maior que ele mesmo. Este cobre alguma coisa. A moldura gira." },
 
-  { id:"luminaria", enigma:"É a primeira coisa que se procura no escuro.", nome:"O abajur de pé", tipo:"Canto", hora:"21:06",
-    alt:0, larg:0.46, altura:1.62, chao:true,
-    txt:"Cúpula de tecido cor de creme, haste de latão, três pés. Ainda morno. O interruptor está na posição de ligado.",
-    obs:"Estava aceso quando a luz oscilou. Ninguém desligou — a casa desligou." },
-
-  { id:"vaso", enigma:"Toda semente que cai em solo fértil cresce.", nome:"O vaso de plantas", tipo:"Chão", hora:"21:09",
+  { id:"vaso", enigma:"Toda semente que cai em solo fértil cresce.", nome:"O vaso de plantas", tipo:"Chão", hora:"21:24",
     alt:0, larg:0.42, altura:0.78, chao:true,
     txt:"Cerâmica vidrada, uma trinca fina da borda até o meio. A terra está úmida de um lado só, e há duas folhas caídas ao pé — cortadas, não secas.",
     obs:"O vaso foi arrastado. A marca no assoalho ainda tem terra dentro." },
 
-  { id:"escrivaninha", enigma:"Tem pernas que não andam e uma gaveta que fala.", nome:"A escrivaninha", tipo:"Chão", hora:"21:11",
+  { id:"escrivaninha", enigma:"Tem pernas que não andam e uma gaveta que fala.", nome:"A escrivaninha", tipo:"Chão", hora:"21:26",
     alt:0, larg:1.18, altura:0.79, chao:true,
-    txt:"A gaveta de cima está aberta um palmo. Papéis empilhados com esmero, e um deles fora do lugar, atravessado. O tinteiro está tampado.",
-    obs:"Quem mexeu aqui teve tempo de empilhar de novo. Mas não de conferir." },
+    txt:"A gaveta de cima está aberta um palmo. Papéis empilhados com esmero, e um deles fora do lugar, atravessado. O tinteiro está tampado. A gaveta é funda — vai muito além dos papéis.",
+    obs:"Quem mexeu aqui teve tempo de empilhar de novo. Mas não de conferir. E a gaveta não acaba onde os papéis acabam." },
 
-  { id:"relogio", enigma:"Anda a vida inteira e nunca sai do lugar.", nome:"O relógio de parede", tipo:"Parede", hora:"21:14",
-    /* era 1,94 m de altura e 0,38 m de largura: o único objeto que obrigava
-       a LEVANTAR o telefone e ainda o menor alvo dos oito. Desceu para a
-       altura de um relógio de sala e ganhou corpo.                     */
-    alt:1.82, larg:0.52, altura:0.80, chao:false,
-    txt:"Caixa de madeira escura, mostrador amarelado, pêndulo parado. Os ponteiros marcam 21h14 — onze minutos depois da primeira oscilação.",
-    obs:"Um relógio de corda não para com a luz. Este parou porque foi encostado." },
-
-  { id:"espelho", enigma:"Só diz a verdade — e ainda assim ao contrário.", nome:"O espelho oval", tipo:"Parede", hora:"21:16",
+  { id:"espelho", enigma:"Só diz a verdade — e ainda assim ao contrário.", nome:"O espelho oval", tipo:"Parede", hora:"21:27",
     alt:1.70, larg:0.52, altura:0.74, chao:false,
     txt:"Moldura de madeira clara, vidro com a prata comendo as bordas. Ele devolve a sua lanterna na cara, e por um segundo você não vê mais nada.",
     obs:"Deste ponto, o espelho mostra a porta. Quem estava aqui viu quem entrou." },
 
-  { id:"janela", enigma:"Está fechada, e mesmo assim a tempestade entra por ela.", nome:"A janela do mar", tipo:"Parede", hora:"21:18",
+  { id:"janela", enigma:"Está fechada, e mesmo assim a tempestade entra por ela.", nome:"A janela do mar", tipo:"Parede", hora:"21:28",
     alt:1.50, larg:1.05, altura:1.30, chao:false,
     txt:"A chuva desce por fora em fios. O trinco está fechado por dentro, como devia. Mas o peitoril está molhado — e a água entrou de dentro para fora.",
     obs:"Esta janela foi aberta e fechada durante a tempestade." },
 
-  { id:"cofre", enigma:"Economize para a realização de um sonho.", nome:"O cofre", tipo:"Parede", hora:"21:23",
-    alt:1.28, larg:0.50, altura:0.44, chao:false, final:true,
-    txt:"Embutido no reboco, atrás da marinha. Aço verde-escuro, disco de latão, dobradiças à vista. Fechado, como devia estar. A marca de dedo na trava é recente — e pequena demais para ser de um homem.",
-    obs:"A linha da verdade estava traçada. Não por alguém — pelos detalhes." }
+  { id:"relogio", enigma:"Anda a vida inteira e nunca sai do lugar.", nome:"O relógio de parede", tipo:"Parede", hora:"21:29",
+    /* era 1,94 m de altura e 0,38 m de largura: o único objeto que obrigava
+       a LEVANTAR o telefone e ainda o menor alvo da sala. Desceu para a
+       altura de um relógio de sala e ganhou corpo.                     */
+    alt:1.82, larg:0.52, altura:0.80, chao:false,
+    txt:"Caixa de madeira escura, mostrador amarelado, pêndulo parado. Os ponteiros marcam 21h29 — o segundo exato em que a casa apagou.",
+    obs:"Um relógio de corda não depende da rede. Este parou porque foi encostado." },
+
+  { id:"luminaria", enigma:"É a primeira coisa que se procura no escuro.", nome:"O abajur de pé", tipo:"Canto", hora:"21:29",
+    alt:0, larg:0.46, altura:1.62, chao:true,
+    txt:"Cúpula de tecido cor de creme, haste de latão, três pés. Ainda morno. O interruptor está na posição de ligado.",
+    obs:"Estava aceso quando a casa apagou. Ninguém desligou — a casa desligou." },
+
+  { id:"cofre", enigma:"Economize para a realização de um sonho.", nome:"O cofre", tipo:"Parede", hora:"21:30",
+    alt:1.28, larg:0.50, altura:0.44, chao:false,
+    escondeAtras:"quadro",
+    aviso:"O quadro está no chão. Tem um cofre no reboco.",
+    txt:"Embutido no reboco, atrás da marinha. Aço verde-escuro, disco de latão, dobradiças à vista. A porta está apenas encostada. Dentro, o envelope do inventário segue lacrado, e tudo o mais está no lugar.",
+    obs:"Estava aberto e nada foi levado. Quem abriu não veio buscar." },
+
+  /* A GAVETA QUE FALA. O enigma da escrivaninha prometia isso desde o começo
+     e nunca pagava — a gaveta era só descrição. Agora ela é a segunda capa da
+     sala, e o que está no fundo dela é o fecho: a secretária reinicia com o
+     retorno da energia (F27) e reproduz um nome fora dos seis (F08), às
+     21h31 — o último segundo dos 122 desta atividade.                     */
+  { id:"secretaria", enigma:"Não tem boca e repete o que ouviu.", nome:"A secretária eletrônica", tipo:"Gaveta", hora:"21:31",
+    alt:0.66, larg:0.30, altura:0.11, chao:false, herdaAlt:false, final:true,
+    escondeAtras:"escrivaninha",
+    aviso:"A gaveta é funda. Tem um aparelho no fundo dela.",
+    txt:"No fundo da gaveta, ligada na tomada de rodapé. A luz vermelha volta a piscar quando a energia retorna, a fita rebobina sozinha e toca uma gravação antiga: alguém avisa que chega tarde, e diz um nome.",
+    obs:"O nome não é de nenhum dos seis." }
 ];
 
 /* ==========================================================================
@@ -480,6 +510,9 @@ function enviarStatus(status, modo){
   if(modo) modoEntrada=modo;
   if(ultimoStatus===status) return;
   ultimoStatus=status;
+  /* Agora sai de verdade: a Mesa carimba a chegada do "ativo" no servidor,
+     e e dali que a duracao da atividade comeca a contar. */
+  TarefaSensor.status(status, ctxMesa());
 }
 function iniciarCronometroOficial(){
   if(inicioTarefa!==null) return;
@@ -658,25 +691,38 @@ function montaSala(seedStr){
   SEED=seedStr;
   var rnd=rngFrom(hashStr(seedStr));
 
-  /* os oito rumos: um por setor de 45°, embaralhados, com um empurrãozinho
+  /* os rumos: um por setor de 45°, embaralhados, com um empurrãozinho
      dentro do setor. Assim nunca há dois objetos colados — a sala fica
      legível e o grupo consegue dizer "o cofre está a nordeste".        */
   var setores=[0,1,2,3,4,5,6,7];
   for(var i=setores.length-1;i>0;i--){
     var j=(rnd()*(i+1))|0, t=setores[i]; setores[i]=setores[j]; setores[j]=t;
   }
-  for(i=0;i<OBJETOS.length;i++){
-    var o=OBJETOS[i];
+  /* SÓ O QUE SE PROCURA GANHA SETOR. Os escondidos herdam o rumo da capa
+     logo abaixo, então gastar um setor com eles desperdiçava direção — e,
+     com o nono objeto, `setores[8]` seria undefined e o rumo viraria NaN. */
+  var aoRedor=OBJETOS.filter(function(o){ return !o.escondeAtras; });
+  for(i=0;i<OBJETOS.length;i++){ OBJETOS[i].visto=false; OBJETOS[i].abre=0; OBJETOS[i].anunciado=false; }
+  for(i=0;i<aoRedor.length;i++){
+    var o=aoRedor[i];
     o.bearing = wrap360(setores[i]*45 + (rnd()-0.5)*17);
-    o.visto=false; o.abre=0;
     posiciona(o);
   }
-  /* O COFRE FICA ATRÁS DO QUADRO — é por isso que o retângulo limpo na
-     parede é maior que a moldura. Mesmo rumo, mesma altura; só existe
-     depois que o quadro for lido, e aí a moldura gira na dobradiça. */
-  var qd=acha_id("quadro"), cf=acha_id("cofre");
-  cf.bearing=qd.bearing; cf.alt=qd.alt;
-  cf.oculto=true;
+  /* CADA ESCONDIDO FICA ATRÁS DA SUA CAPA, no mesmo rumo: o cofre atrás do
+     quadro — é por isso que o retângulo limpo na parede é maior que a
+     moldura — e a secretária no fundo da gaveta da escrivaninha. Só existem
+     depois que a capa for lida.
+     A altura é herdada quando os dois ocupam o mesmo ponto da parede, e NÃO
+     quando o escondido tem lugar próprio dentro do móvel (a gaveta fica bem
+     abaixo do tampo). Por isso `herdaAlt`. */
+  var pares=OBJETOS.filter(function(o){ return !!o.escondeAtras; });
+  for(i=0;i<pares.length;i++){
+    var h=pares[i], cv=acha_id(h.escondeAtras);
+    h.bearing=cv.bearing;
+    if(h.herdaAlt!==false && !cv.chao) h.alt=cv.alt;
+    h.oculto=true;
+    posiciona(h);
+  }
 
   /* a pessoa não fica exatamente no meio da sala */
   olho=[ (rnd()-0.5)*0.7, (rnd()-0.5)*0.5, CFG.OLHO ];
@@ -688,16 +734,22 @@ function montaSala(seedStr){
      coincidentes. Com d igual, a ordenação por profundidade empatava e o
      cofre podia ser pintado por cima da moldura, matando a revelação da
      dobradiça.                                                          */
-  qd.d*=0.955;  cf.d*=0.995;      /* a moldura na frente, o cofre no reboco */
-  posicionaEm(qd); posicionaEm(cf);
+  for(i=0;i<pares.length;i++){
+    var hh=pares[i], cc=acha_id(hh.escondeAtras);
+    cc.d*=0.955;              /* a capa vem para a frente */
+    hh.d=cc.d*1.042;          /* e o escondido fica atrás dela */
+    posicionaEm(cc); posicionaEm(hh);
+  }
   /* pose de origem do quadro, para a descida ao chao poder interpolar */
+  var qd=acha_id("quadro");
   qdRumo0=qd.bearing; qdDist0=qd.d; qdAlt0=qd.alt;
 
   /* A ORDEM DOS ENIGMAS É CRONOLÓGICA, não sorteada.
      Antes eu embaralhava — e isso embaralhava a linha do tempo do caso:
      o jogador podia ler 21h18 antes de 21h06 e a história não fechava.
-     A sequência segue os horários: 21:05 · 21:06 · 21:09 · 21:11 · 21:14
-     · 21:16 · 21:18 · 21:23, com o cofre sempre em oitavo.
+     A sequência segue os horários declarados no array OBJETOS, que sobe de
+     21h21 a 21h31 — os 122 segundos do apagão. Os dois escondidos vêm por
+     último, cada um depois da sua capa, e o nome fecha a sala.
      O sorteio continua mandando na POSIÇÃO de cada objeto na sala — o que
      varia por rodada é onde procurar, não em que ordem.               */
   ordem=OBJETOS.slice(); iAlvo=0;
@@ -1189,7 +1241,7 @@ function dRelogio(o){
     sc.lineTo(Math.cos(a)*(g?r*0.60:r*0.66), Math.sin(a)*(g?r*0.60:r*0.66));
     sc.stroke();
   }
-  /* 21h14 — ponteiros */
+  /* 21h29 — ponteiros, o segundo em que a casa apagou */
   function ponteiro(ang,comp,esp){
     sc.save(); sc.rotate(PI/2-ang);
     sc.strokeStyle="#2a1c10"; sc.lineWidth=esp;
@@ -1641,7 +1693,7 @@ function tolerancia(o){
      é a mão tremendo, não a mira.                                       */
   var meia = Math.atan2(o.larg*0.5, o.d)/D2R;
   var meiaV= Math.atan2(o.altura*0.5, o.d)/D2R;
-  /* o termo do tamanho pesava demais: o relógio, o menor dos oito, ficava
+  /* o termo do tamanho pesava demais: o relógio, o menor da sala, ficava
      com ±9,7° enquanto o quadro tinha ±14° — 45% mais difícil sem que
      nada no jogo avisasse. Coeficiente menor e piso mais alto achatam
      essa diferença sem tornar nenhum deles trivial.                   */
@@ -1688,7 +1740,7 @@ function alinhamento(){
 /* a frase que está valendo, e o contador */
 function pintaEnigma(anima){
   var el=document.getElementById("enigma"), a=alvo();
-  var txt = a ? "“"+a.enigma+"”" : "Oito de oito. A sala já disse tudo.";
+  var txt = a ? "“"+a.enigma+"”" : "Nove de nove. A sala já disse o nome.";
   function poe(){
     el.textContent=txt;
     document.getElementById("conta").textContent=
@@ -1808,10 +1860,17 @@ function loop(){
   sc.setTransform(DPR,0,0,DPR,0,0);
   sc.fillStyle="#04060a"; sc.fillRect(0,0,W,H);
   sala();
-  /* a moldura gira na dobradiça assim que o quadro é lido */
-  var qd=acha_id("quadro"), cf=acha_id("cofre");
+  /* todo escondido aparece assim que a sua capa é lida */
+  for(var pi=0;pi<OBJETOS.length;pi++){
+    var ho=OBJETOS[pi];
+    if(ho.escondeAtras && acha_id(ho.escondeAtras).visto) ho.oculto=false;
+  }
+  /* SÓ O QUADRO DESCE. A gaveta já está aberta um palmo no texto do móvel:
+     quem leu a escrivaninha olhou dentro dela, e o aparelho simplesmente
+     está ali. Animar uma gaveta pediria um segundo movimento próprio, e o
+     movimento aqui existe para explicar o quadro, não para enfeitar. */
+  var qd=acha_id("quadro");
   if(qd.visto){
-    cf.oculto=false;
     qd.abre=Math.min(1,qd.abre+dt*0.85);
     /* O QUADRO DESCE PARA O CHÃO.
        Antes ele girava numa dobradiça, como porta de cofre de filme. Mas
@@ -1865,7 +1924,7 @@ function loop(){
     }
     if(achados>=OBJETOS.length){
       setStatus("A sala não tem mais nada a dizer.");
-      elDica.textContent="a linha da verdade está traçada";
+      elDica.textContent="a fita já disse o nome";
     } else if(al.dRo>CFG.TOL_ROLL && quente>0.5){
       setStatus("Endireite o aparelho.",true); elDica.textContent="a sala precisa estar em pé";
     } else if(al.dentro){
@@ -1884,7 +1943,7 @@ function loop(){
     } else {
       setStatus(farol>0.25?"O farol passou. Guarde o que viu.":"Só parede deste lado.");
       elDica.textContent = achados===0
-        ? "gire o corpo devagar — são oito coisas ao redor"
+        ? "gire o corpo devagar — são sete coisas ao redor, e duas escondidas nelas"
         : "o farol passa a cada nove segundos e mostra a sala";
     }
   }
@@ -1945,16 +2004,24 @@ document.getElementById("semente").addEventListener("change",function(){
 });
 document.getElementById("k-fechar").addEventListener("click",function(){
   fechaCarta();
-  var qd=acha_id("quadro");
-  if(qd.visto && qd.abre<0.2 && achados<OBJETOS.length){
-    setStatus("O quadro está no chão. Tem um cofre no reboco.",true);
-    elDica.textContent="guarde o rumo — a última frase vai trazer você de volta aqui";
-    try{ navigator.vibrate && navigator.vibrate([18,70,30]); }catch(e){}
-    return;
+  /* Uma capa acabou de ser lida e o que ela guardava ainda não foi achado:
+     avisa uma vez só. `anunciado` é o que impede o aviso de voltar toda vez
+     que a pessoa fecha uma carta qualquer depois. */
+  for(var ai=0;ai<OBJETOS.length;ai++){
+    var hd=OBJETOS[ai];
+    if(!hd.escondeAtras || hd.visto || hd.anunciado) continue;
+    if(!acha_id(hd.escondeAtras).visto) continue;
+    hd.anunciado=true;
+    if(achados<OBJETOS.length){
+      setStatus(hd.aviso,true);
+      elDica.textContent="guarde o rumo — a última frase vai trazer você de volta aqui";
+      try{ navigator.vibrate && navigator.vibrate([18,70,30]); }catch(e){}
+      return;
+    }
   }
   if(achados>=OBJETOS.length){
-    setStatus("Oito de oito. O cofre estava certo — a sala é que não.",true);
-    elDica.textContent="não por alguém. pelos detalhes.";
+    setStatus("Nove de nove. Nada foi levado — e mesmo assim havia mais alguém.",true);
+    elDica.textContent="e o nome não é de nenhum dos seis.";
   }
 });
 

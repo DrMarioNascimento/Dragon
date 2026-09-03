@@ -272,7 +272,6 @@
     text-shadow:0 1px 2px #000;
     transition:background .3s ease,box-shadow .3s ease;
   }
-  .btn:active{background:rgba(127,212,255,.2);box-shadow:0 0 30px rgba(127,212,255,.25)}
   #alt{
     margin-top:16px;font-size:clamp(14px,3.4vw,15px);letter-spacing:.1em;
     color:var(--t-max);font-weight:600;flex:0 0 auto;
@@ -388,6 +387,11 @@
     font-weight:600;text-decoration:underline;text-underline-offset:6px;padding:12px}
 
 </style>
+
+<!-- O volume dos botoes mora num arquivo so, lido por esta pagina e pelas
+     outras tres. Entra DEPOIS do <style> de proposito: em empate de
+     especificidade, quem vem por ultimo vence, e o padrao tem de vencer. -->
+<link rel="stylesheet" href="css/profundidade.css?v=20260902-profundidade">
 </head>
 <body>
 <canvas id="c"></canvas>
@@ -435,7 +439,7 @@
 </div>
 
 <div id="final">
-  <div id="final-frase">Às 21h23, a linha da verdade estava traçada.<br>Não por alguém. Mas pelos detalhes.</div>
+  <div id="final-frase">Às 22h40, sete xícaras secavam na pia.<br>Seis pessoas beberam chá naquela noite.</div>
   <button class="btn" id="btn-again">Recomeçar</button>
 </div>
 
@@ -472,14 +476,23 @@ var HOLD_MS = 1500;
 var DESCANSO_A_CADA = 3;       /* ergonomia: pausa a cada N fragmentos */
 
 /* ================= FRAGMENTOS =================
-   texto do Capitulo 2 - A Linha da Verdade                      */
+   02/09/2026: esta lista era do cânone antigo, a mesma que estava na Janela
+   do Norte — o cofre arrombado, a névoa convidada. Nenhuma linha dela existia
+   mais no caso.
+
+   O Vidro Embaçado é a atividade de NÚMERO e REGISTRO: medida, contagem,
+   documento, e informação cuja leitura muda quando relacionada a outra. Por
+   isso os fragmentos daqui são o hidrômetro, o boiler, a despensa e as
+   xícaras — coisas que se contam —, e não sombras no corredor.
+
+   Saem do banco (casos/casa-da-costa.json). Ao mexer, confira o id.       */
 var FRAGMENTOS = [
-  { hora:"21:03", txt:"A luz da Casa da Costa oscilou pela primeira vez. Não foi queda. Foi aviso." },
-  { hora:"21:07", txt:"A porta da sala estava entreaberta. A cortina balançava. E a janela estava trancada." },
-  { hora:"21:12", txt:"O cofre estava fechado, como deveria estar. Mas a marca de dedo na trava era recente." },
-  { hora:"21:14", txt:"Um som veio do andar de cima. Não era passo. Não era objeto. Era algo entre os dois." },
-  { hora:"21:17", txt:"O corredor ficou meio escuro por um segundo. Uma sombra passou rápido demais." },
-  { hora:"21:20", txt:"A névoa entrou pela fresta da porta como se tivesse sido convidada." }
+  { hora:"19:40", txt:"O aviso chega às 19h40. Às 20h05 a movimentação já é perceptível de dentro da casa." },  /* F29 */
+  { hora:"21:24", txt:"Cozinha e corredor sem poeira. Os outros cômodos são compatíveis com cinco meses fechados." }, /* F02 */
+  { hora:"22:10", txt:"Conferência das 22h10: o envelope do inventário segue lacrado, e nada foi levado do cofre." }, /* F31 F32 */
+  { hora:"22:40", txt:"Sete xícaras limpas secando na pia. Seis pessoas do grupo beberam chá naquela noite." },  /* F01 */
+  { hora:"—",     txt:"O hidrômetro registra consumo diário contínuo nos cinco meses em que a casa esteve vazia." }, /* F13 */
+  { hora:"—",     txt:"O boiler foi acionado em dias diferentes das visitas semanais do Morador." }              /* F14 */
 ];
 
 /* ================= MODO EMBUTIDO =================
@@ -551,6 +564,9 @@ function enviarStatus(status, modo){
   if(modo) modoEntrada=modo;
   if(ultimoStatus===status) return;
   ultimoStatus=status;
+  /* Agora sai de verdade: a Mesa carimba a chegada do "ativo" no servidor,
+     e e dali que a duracao da atividade comeca a contar. */
+  TarefaSensor.status(status, ctxMesa());
 }
 function iniciarCronometroOficial(){
   if(inicioTarefa!==null) return;

@@ -24,7 +24,7 @@ import {
   assignNucleos,
   nextPhase,
   type NoiteFormato,
-} from "./v3";
+} from "./noite-fases";
 
 export type PartyMode = "idle" | "firebase" | "local";
 
