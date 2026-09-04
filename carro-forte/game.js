@@ -507,9 +507,17 @@ function renderScore(){
    é inerte depois de terminada, e sem esta bandeira o clique ficaria esperando
    um evento que não viria mais. */
 let aberturaPedida=false;
+/* A pergunta da mesa é UMA. Quem sorteia é o Mestre e grava na sala; os outros
+   recebem. Sem sala, `escolher` devolve o sorteio local intacto — é o caminho
+   do ensaio e do aparelho solto, que continua sendo a maioria das partidas.
+   Ver pauta-da-mesa.js: o defeito era dois celulares abrindo perguntas
+   diferentes, cada um achando que jogava com o outro. */
 function abrirPauta(){
  state.players=+$('playerCount').value;state.pace=$('pace').value;state.duration=$('duration').value;
- selectGame(proximaPartida());
+ const local=()=>proximaPartida();
+ if(!window.MosaicoPauta)return selectGame(local());
+ window.MosaicoPauta.escolher(local).then(selectGame)
+  .catch(e=>{console.error('MOSAICO: pauta falhou; sorteio local.',e);selectGame(local())});
 }
 window.addEventListener('mosaico-opening-finished',()=>{if(aberturaPedida)abrirPauta()},{once:true});
 $('chooseGame').onclick=()=>{
@@ -552,7 +560,14 @@ $('nextReveal').onclick=()=>{
  if(state.reveal>=state.revealMax){renderScore();go('score')}
  else{state.reveal++;renderReveal()}
 };
-$('playAgain').onclick=()=>selectGame(proximaPartida());
+/* Na rodada nova o convidado espera a pergunta MUDAR: sem passar a que acabou,
+   ele receberia de volta a mesma e jogaria duas vezes o mesmo caso. */
+$('playAgain').onclick=()=>{
+ const anterior=state.game, local=()=>proximaPartida();
+ if(!window.MosaicoPauta)return selectGame(local());
+ window.MosaicoPauta.escolher(local,anterior).then(selectGame)
+  .catch(e=>{console.error('MOSAICO: pauta falhou; sorteio local.',e);selectGame(local())});
+};
 $('resetBtn').onclick=()=>{if(confirm('Reiniciar a Mesa e voltar à escolha inicial?'))location.reload()};
 $('infoBtn').onclick=()=>$('drawer').classList.add('on');
 $('drawerClose').onclick=()=>$('drawer').classList.remove('on');

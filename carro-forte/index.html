@@ -153,6 +153,7 @@
         s.onload=()=>depois?.();
         document.body.appendChild(s);
       };
+      carregar('pauta-da-mesa.js?v=20260903-pauta1',()=>{
       carregar('fragmentos.js?v=20260901-colheita1',()=>{
         carregar('opening-flow.js?v=20260901-abertura1',()=>{
           carregar('game.js?v=20260901-colheita1',()=>{
@@ -160,6 +161,7 @@
             carregar('iphone-guard.js?v=20260901-rodizio1');
           });
         });
+      });
       });
     },{once:true});
   </script>
