@@ -18,12 +18,12 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
-const FONTE = readFileSync(join(RAIZ, "a-marca-partida.html"), "utf8");
+const FONTE = readFileSync(join(RAIZ, "laboratorio-ra/a-marca-partida.html"), "utf8");
 
 function motor() {
   const pega = (re, nome) => {
     const m = FONTE.match(re);
-    assert.ok(m, `${nome} sumiu de a-marca-partida.html`);
+    assert.ok(m, `${nome} sumiu de laboratorio-ra/a-marca-partida.html`);
     return m[0];
   };
   const corpo = [
