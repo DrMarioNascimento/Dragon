@@ -109,5 +109,95 @@
   }, 500);
   publicarPergunta();
 
-  window.MosaicoTelao = { publicar, publicarPergunta };
+
+  /* ── A ABERTURA TOCA NUM APARELHO SÓ ─────────────────────────────────────
+     Regra do Mario (03/09/2026): com telão passa no telão; sem telão, no
+     aparelho do Mestre. Uma sala, um som.
+
+     Por algumas horas isto tocou em TODOS os telefones, o que era o conserto
+     errado de um defeito real (antes só o Mestre via, e o convidado começava
+     a reunião sem a casa ter falado). Oito aparelhos narrando com atrasos
+     diferentes é pior que um.
+
+     O telão já sabia receber: ele carimba `opening.status='ready'` quando
+     alguém arma o áudio por lá, escuta `command:'start'` com um token, e
+     devolve 'playing' e 'finished'. Faltava quem mandasse. */
+  const overlay = () => {
+    let d = document.getElementById('cfEspera');
+    if (d) return d;
+    d = document.createElement('div');
+    d.id = 'cfEspera';
+    d.style.cssText =
+      'position:fixed;inset:0;z-index:100025;background:#02070bf5;color:#eef5f2;' +
+      'font-family:Inter,system-ui,sans-serif;display:grid;place-items:center;padding:22px;text-align:center';
+    document.body.appendChild(d);
+    return d;
+  };
+  const dizer = (titulo, texto) => {
+    overlay().innerHTML =
+      '<div style="max-width:520px"><h2 style="font:600 30px Georgia,serif;color:#efc878;margin:0 0 10px">' +
+      titulo + '</h2><p style="color:#aab9c1;line-height:1.5">' + texto + '</p></div>';
+  };
+  const fecharEspera = () => document.getElementById('cfEspera')?.remove();
+
+  /* Um telão que ficou aberto ontem não pode sequestrar a abertura de hoje:
+     vale só se ele bateu o coração há pouco. telao.html carimba de 5 em 5 s. */
+  function telaoVivo(d) {
+    const o = d?.opening || {};
+    return o.status === 'ready' && Date.now() - Number(o.displaySeenMs || 0) < 15000;
+  }
+
+  async function abertura(seguir) {
+    const code = codigoDaSala();
+    let feito = false;
+    const entrar = () => { if (feito) return; feito = true; fecharEspera(); seguir(); };
+
+    /* Sem sala — ensaio, solo-lab — é o próprio aparelho, sem combinar nada. */
+    if (!code) { tocarAqui(entrar); return; }
+
+    const { db, doc, updateDoc } = await firebase().catch(() => ({}));
+    if (!db) { tocarAqui(entrar); return; }
+    const fs2 = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js');
+    const ref = doc(db, 'noite', code);
+
+    if (!souMestre()) {
+      dizer('A casa está falando',
+        'A abertura está tocando na tela da mesa. Ouça daí — a sua entra sozinha quando ela terminar.');
+      const un = fs2.onSnapshot(ref, (s) => {
+        if (s.exists() && s.data()?.abertura?.concluida) { un(); entrar(); }
+      }, () => entrar());
+      setTimeout(() => { un(); entrar(); }, 150000);
+      return;
+    }
+
+    const concluir = () =>
+      updateDoc(ref, { 'abertura.concluida': true, 'abertura.concluidaMs': Date.now() })
+        .catch((e) => console.error('MOSAICO: não avisei que a abertura acabou.', e))
+        .finally(entrar);
+
+    const snap = await fs2.getDoc(ref).catch(() => null);
+    if (snap && telaoVivo(snap.data())) {
+      const token = Date.now();
+      dizer('A abertura está no telão',
+        'A casa fala na tela grande. Os celulares ficam quietos até ela terminar.');
+      await updateDoc(ref, { 'opening.command': 'start', 'opening.token': token, 'opening.error': '' })
+        .catch((e) => console.error('MOSAICO: não consegui acionar o telão.', e));
+      const un = fs2.onSnapshot(ref, (s) => {
+        const o = s.exists() ? s.data()?.opening || {} : {};
+        if (o.status === 'finished' || o.error) { un(); concluir(); }
+      }, () => concluir());
+      /* Teto: telão que não responde não pode segurar a reunião. */
+      setTimeout(() => { un(); concluir(); }, 150000);
+      return;
+    }
+    tocarAqui(concluir);
+  }
+
+  function tocarAqui(depois) {
+    if (!window.MosaicoOpening?.show) { depois(); return; }
+    window.addEventListener('mosaico-opening-finished', depois, { once: true });
+    window.MosaicoOpening.show();
+  }
+
+  window.MosaicoTelao = { publicar, publicarPergunta, abertura };
 })();

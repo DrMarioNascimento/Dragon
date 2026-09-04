@@ -140,20 +140,57 @@ function listen(){
   unsubRoom=ref.onSnapshot(s=>{roomData=s.exists?s.data():null;if(!roomData){renderMenu();return;}if(roomData.fase!=='sala'){launchOnline();return;}if(localScreen==='preparation')renderPreparation();});
   unsubPlayers=ref.collection('jogadores').orderBy('entrouMs').onSnapshot(s=>{players=s.docs.map(d=>({id:d.id,...d.data()}));ownPlayer=myPlayer();if(localScreen==='preparation')renderPreparation();});
 }
-/* A ABERTURA É OBRIGATÓRIA, e vem antes do jogo (03/09/2026). A Noite da Casa
-   não tinha nenhuma: o dossiê simplesmente aparecia. Roda em CADA aparelho,
-   com o som de cada um, e é a mesma narração da Mesa — mesmo caso, mesma voz.
+/* A ABERTURA É OBRIGATÓRIA, e toca num APARELHO SÓ (03/09/2026).
+   A Noite da Casa não tinha abertura nenhuma: o dossiê simplesmente aparecia.
+   Ganhou uma, e por algumas horas ela tocava em TODOS os telefones — o que
+   numa sala vira eco de oito aparelhos defasados, cada um com o próprio
+   atraso de rede e de toque.
 
-   `abertura-casa.js` mora na RAIZ, não aqui: tudo em v2/ é apagado e
-   recopiado a cada publicação, e só mosaico-web/public/ sobrevive. Daqui o
-   caminho é ../, que de /Dragon/v2/ cai em /Dragon/.
+   A regra do Mario: com telão passa no telão; sem telão, no aparelho do
+   Mestre; no Solo, no próprio. O pressuposto é uma sala e um som, não um som
+   por pessoa. A Noite da Casa é sem-telão por decisão escrita (modo fixo em
+   três lugares), então aqui é sempre o Mestre.
 
-   Se ela não carregar, o jogo entra assim mesmo — clima nunca segura a mesa. */
+   Quem não é o Mestre não fica sem nada: espera, vendo que a casa está
+   falando, e entra quando a sala avisa que acabou. É o mesmo desenho do
+   AGUARDE da Mesa. Sem isso o convidado começaria a jogar por cima da
+   narração alheia.
+
+   `abertura-casa.js` mora na RAIZ: tudo em v2/ é apagado e recopiado a cada
+   publicação, e só mosaico-web/public/ sobrevive. De /Dragon/v2/, ../ cai em
+   /Dragon/. Se ela não carregar, o jogo entra assim mesmo — clima nunca
+   segura a mesa. */
+function aguardarAbertura(seguir){
+  /* Pelo `base` da própria casca: classe inventada aqui sairia sem estilo
+     nenhum, porque room.css não conhece nome que não passou por ele. */
+  base('A CASA DA COSTA','A casa está falando',
+    '<p class="lead">A abertura está tocando no aparelho de quem abriu a mesa. '+
+    'Ouça daí — a sua tela entra sozinha quando ela terminar.</p>');
+  let pronto=false;
+  const entra=()=>{if(pronto)return;pronto=true;seguir()};
+  /* Duas saídas, e as duas precisam existir: a sala avisando que acabou, e um
+     teto de tempo. Um convidado preso porque o Mestre fechou a aba no meio da
+     narração é o mesmo travamento que a Mesa levou meses para descobrir. */
+  const un=db.collection('noite').doc(roomCode).onSnapshot(s=>{
+    const d=s.exists?s.data():null;
+    if(d&&d.abertura&&d.abertura.concluida){un();entra()}
+  },e=>{console.error('MOSAICO: perdi a sala durante a abertura.',e);entra()});
+  setTimeout(()=>{un&&un();entra()},150000);
+}
+function marcarAberturaConcluida(){
+  if(!roomCode)return Promise.resolve();
+  return db.collection('noite').doc(roomCode)
+    .update({'abertura.concluida':true,'abertura.concluidaMs':Date.now()})
+    .catch(e=>console.error('MOSAICO: não consegui avisar que a abertura acabou.',e));
+}
 function comAbertura(seguir){
+  const sala=window.MosaicoSala;
+  const conduzo=!sala||!sala.online||sala.role==='master';
+  if(!conduzo){aguardarAbertura(seguir);return}
   const a=document.createElement('script');
-  a.src='../abertura-casa.js?v=20260903-abertura1';
-  a.onload=()=>window.MosaicoAberturaCasa.mostrar(seguir);
-  a.onerror=()=>{console.error('MOSAICO: abertura não carregou.');seguir()};
+  a.src='../abertura-casa.js?v=20260903-abertura2';
+  a.onload=()=>window.MosaicoAberturaCasa.mostrar(()=>{marcarAberturaConcluida();seguir()});
+  a.onerror=()=>{console.error('MOSAICO: abertura não carregou.');marcarAberturaConcluida();seguir()};
   document.head.appendChild(a);
 }
 function launchOnline(){

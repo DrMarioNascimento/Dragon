@@ -633,13 +633,26 @@ function releaseAfterOpening() {
 window.addEventListener('mosaico-opening-finished', releaseAfterOpening);
 enterBtn.onclick = () => {
   state.players = +playerCount.value;
-  /* A ABERTURA É DE TODOS.
+  /* A ABERTURA É OBRIGATÓRIA E TOCA NUM APARELHO SÓ.
      Até 03/09/2026 isto era `if (isMaster && …)`: quem entrava pelo QR ia
      direto para a pergunta e nunca via a abertura — a reunião começava para o
      convidado sem que a casa tivesse falado. Era o "pulava a abertura" do
      playtest, e não era falha de áudio: era o portão.
-     A abertura roda em CADA aparelho, com o som de cada um, porque é ela que
-     entrega o caso. Pular continua sendo escolha de quem assiste, no botão. */
+     O primeiro conserto foi tocar em TODOS, e estava errado do outro lado:
+     oito telefones narrando com atrasos diferentes na mesma sala. A regra é
+     uma sala, um som — com telão vai para a tela grande, sem telão para o
+     aparelho do Mestre, e os outros esperam vendo que a casa está falando. */
+  /* Quem decide ONDE a abertura toca é o telao-publica.js: com telão vai para
+     a tela grande e os celulares esperam; sem telão toca no aparelho do
+     Mestre e os convidados esperam; sem sala, toca aqui mesmo. Ele chama de
+     volta uma vez em qualquer um dos caminhos, inclusive nos que dão errado. */
+  /* Por `releaseAfterOpening`, não direto: no caminho local a abertura também
+     dispara `mosaico-opening-finished`, e as duas chamadas sorteariam a
+     pergunta duas vezes. O guarda `openingReleased` funila as duas. */
+  if (window.MosaicoTelao?.abertura) {
+    window.MosaicoTelao.abertura(releaseAfterOpening);
+    return;
+  }
   if (window.MosaicoOpening?.show) {
     window.MosaicoOpening.show();
     return;
