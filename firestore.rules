@@ -73,6 +73,23 @@ service cloud.firestore {
       match /negociacoes/{id} { allow read: if inside(versao,roomId); allow create: if active(versao,roomId) && participant(versao,roomId); allow update, delete: if false; }
       match /deducoes/{id} { allow read: if master(versao,roomId) || id == request.auth.uid; allow create: if active(versao,roomId) && id == request.auth.uid && request.resource.data.id == request.auth.uid && (!request.resource.data.keys().hasAny(['partidaId']) || validPartida(request.resource.data.partidaId)); allow update, delete: if false; }
       match /placar/{id} { allow read: if inside(versao,roomId); allow create, update: if master(versao,roomId); allow delete: if false; }
+      /* O TELÃO NÃO É JOGADOR E NÃO É MESTRE.
+         Ele entra anônimo na mesma sala e só mostra. Até 04/09/2026 ele
+         carimbava a própria presença no DOCUMENTO da sala — `opening.status` e
+         `opening.displaySeenMs` — e o `allow update` de lá exige `master()`.
+         Toda batida de coração voltava negada, e o efeito era invisível: o
+         Mestre nunca enxergava telão vivo e a abertura caía sempre no celular
+         dele, mesmo com a tela grande ligada na frente da mesa.
+         A presença passa a morar aqui, onde cada aparelho escreve apenas o
+         próprio documento — o mesmo arranjo que `acoes` já usa. Quem manda
+         continua sendo o Mestre: o comando da abertura é escrito por ele no
+         documento da sala, e o telão só responde. */
+      match /telao/{id} {
+        allow read: if signedIn() && active(versao,roomId);
+        allow create, update: if signedIn() && active(versao,roomId) && id == request.auth.uid
+          && request.resource.data.vistoEmMs is int;
+        allow delete: if false;
+      }
       match /{otherCollection}/{document=**} { allow read, write: if false; }
     }
   }

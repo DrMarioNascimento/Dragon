@@ -155,10 +155,29 @@
   const fecharEspera = () => document.getElementById('cfEspera')?.remove();
 
   /* Um telão que ficou aberto ontem não pode sequestrar a abertura de hoje:
-     vale só se ele bateu o coração há pouco. telao.html carimba de 5 em 5 s. */
-  function telaoVivo(d) {
-    const o = d?.opening || {};
-    return o.status === 'ready' && Date.now() - Number(o.displaySeenMs || 0) < 15000;
+     vale só se ele bateu o coração há pouco. telao.html carimba de 5 em 5 s.
+
+     A PRESENÇA MUDOU DE LUGAR em 04/09/2026. Ela era lida do documento da
+     sala, em `opening.displaySeenMs` — que o telão nunca conseguiu escrever,
+     porque a regra de update daquele documento exige ser o Mestre e o telão é
+     anônimo. Resultado: `telaoVivo` devolvia false SEMPRE, e a abertura caía
+     no celular mesmo com a tela grande ligada. Agora cada telão tem o próprio
+     documento em `<sala>/telao/<uid>`, que ele pode escrever. */
+  const VIVO_MS = 15000;
+  function estaVivo(o) {
+    return o?.status === 'ready' && Date.now() - Number(o.vistoEmMs || 0) < VIVO_MS;
+  }
+  function algumTelaoVivo(docs) {
+    return docs.some((d) => estaVivo(d.data() || {}));
+  }
+  async function telaoVivo(db, fs2, code) {
+    try {
+      const snap = await fs2.getDocs(fs2.collection(db, 'noite', code, 'telao'));
+      return algumTelaoVivo(snap.docs);
+    } catch (e) {
+      console.error('MOSAICO: não consegui conferir se há telão na sala.', e);
+      return false;
+    }
   }
 
   async function abertura(seguir) {
@@ -189,16 +208,26 @@
         .catch((e) => console.error('MOSAICO: não avisei que a abertura acabou.', e))
         .finally(entrar);
 
-    const snap = await fs2.getDoc(ref).catch(() => null);
-    if (snap && telaoVivo(snap.data())) {
+    if (await telaoVivo(db, fs2, code)) {
       const token = Date.now();
       dizer('A abertura está no telão',
         'A casa fala na tela grande. Os celulares ficam quietos até ela terminar.');
       await updateDoc(ref, { 'opening.command': 'start', 'opening.token': token, 'opening.error': '' })
         .catch((e) => console.error('MOSAICO: não consegui acionar o telão.', e));
-      const un = fs2.onSnapshot(ref, (s) => {
-        const o = s.exists() ? s.data()?.opening || {} : {};
-        if (o.status === 'finished' || o.error) { un(); concluir(); }
+      /* Quem responde é o documento do telão, não o da sala: é lá que ele
+         pode escrever. Um erro dele também encerra a espera — telão que não
+         consegue tocar não pode segurar oito pessoas.
+
+         E a resposta é conferida CONTRA O TOKEN desta abertura. O primeiro
+         quadro de um onSnapshot traz o que já estava gravado: um telão que
+         terminou a abertura da partida passada ainda diz 'finished', e sem o
+         token isso encerraria a abertura de hoje antes do primeiro segundo. */
+      const un = fs2.onSnapshot(fs2.collection(db, 'noite', code, 'telao'), (s) => {
+        const estados = s.docs.map((d) => d.data() || {});
+        const respondeu = estados.some(
+          (o) => Number(o.finishedToken) === token || (o.error && Number(o.failedToken) === token),
+        );
+        if (respondeu) { un(); concluir(); }
       }, () => concluir());
       /* Teto: telão que não responde não pode segurar a reunião. */
       setTimeout(() => { un(); concluir(); }, 150000);

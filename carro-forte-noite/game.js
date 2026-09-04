@@ -15,7 +15,7 @@
         carregar('touch-router.js?v=20260901-toque1', () => {
           /* Depois do núcleo, porque lê QUESTIONS e a sala. É acessório: se
              falhar, o console avisa e a partida segue sem telão. */
-          carregar('telao-publica.js?v=20260903-telao1');
+          carregar('telao-publica.js?v=20260904-telao1');
         });
       });
     });

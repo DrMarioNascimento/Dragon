@@ -147,7 +147,37 @@ const TERCO_ROT=['PRIMEIRO TERÇO','SEGUNDO TERÇO','TERÇO FINAL'];
 const state={screen:'intro',game:null,semente:0,players:6,pace:'pressure',duration:'padrao',
  dossie:[],tercos:[[],[],[]],aberto:1,marcados:new Set(),lotes:{},colhidos:new Set(),
  relacoes:new Set(),hipoteseProv:'',hipoteseFinal:'',
- sensorDone:new Set(),final:{},reveal:0,start:Date.now()};
+ sensorDone:new Set(),sensorAberto:null,prazo:0,janela:null,final:{},reveal:0,start:Date.now()};
+
+/* ── O TEMPO DA ATIVIDADE ────────────────────────────────────────────────
+   Este campo existia como "Ritmo · 30 s / 60 s" e não fazia nada: ia para a
+   URL da atividade em &ritmo= e nenhuma das três páginas lia. Agora ele é o
+   que de fato mede a atividade — e o número mudou.
+
+   30 s não sobrevive à Janela do Norte: só a permissão de bússola do iPhone
+   custa cerca de 20 s, e a pessoa perderia a atividade antes de a agulha
+   girar. Os patamares são 60 s e 120 s, e vivem aqui, numa tabela só, porque
+   playtest vai mexer neles. */
+const TEMPOS={pressure:60,calm:120};
+const tempoAtividadeMs=()=>(TEMPOS[state.pace]||TEMPOS.calm)*1000;
+
+/* Quem é quem nesta sala. Sem código de sala não há Mestre nem convidado: é o
+   ensaio e o aparelho solto, onde o sistema abre tudo sozinho. */
+const salaCodigo=()=>window.MOSAICO_ROOM?.code||'';
+const souMestreDaSala=()=>!salaCodigo()||window.MOSAICO_ROOM?.role==='master';
+const ritmoConduzido=()=>!!salaCodigo()&&window.MOSAICO_ROOM?.room?.ritmo==='conduzido';
+
+/* As opções da mesa são do Mestre. Chegam pela sala junto com a pergunta;
+   quando não há sala, valem os campos da tela deste aparelho. */
+function aplicarOpcoes(o){
+ if(!o)return;
+ if(o.players)state.players=+o.players||state.players;
+ if(TEMPOS[o.pace])state.pace=o.pace;
+ if(DURACOES[o.duration])state.duration=o.duration;
+}
+function opcoesDaTela(){
+ return {players:+$('playerCount').value,pace:$('pace').value,duration:$('duration').value};
+}
 
 const $=id=>document.getElementById(id);
 const screens=[...document.querySelectorAll('.screen')];
@@ -264,6 +294,12 @@ function fechadas(){return (lerRodizio().fechadas||[]).filter(id=>PARTIDAS[id])}
 /* ── Telas ─────────────────────────────────────────────────────────────── */
 function selectGame(id){
  state.game=id;state.semente=(Math.random()*0xffffffff)>>>0;state.hipoteseProv='';state.hipoteseFinal='';state.final={};state.reveal=0;state.sensorDone.clear();state.colhidos.clear();state.lotes=montarLotes();
+ /* A rodada nova apaga a fila da anterior: relógio parado, nenhuma atividade
+    aberta e o alerta do Mestre desligado. Sem isto o cronômetro da última
+    atividade da partida passada continuaria correndo por cima da nova. */
+ pararRelogioSensor();state.sensorAberto=null;state.prazo=0;fecharJanelaAtividade();
+ window.DragonSala?.acao(null);
+ $('chooseGame').disabled=false;
  const g=PARTIDAS[id],cfg=DURACOES[state.duration];
  window.MosaicoPauta?.publicarPergunta(g);
  $('gameNature').textContent=g.nature;
@@ -292,25 +328,48 @@ function selectGame(id){
    marcada na partida seguinte e no aparelho que já tinha jogado: a atividade
    aparecia pronta sem ninguém ter feito nada, que é exatamente o furo que a
    fila fecha. Agora vale por partida, e `selectGame` zera. */
+/* NÃO EXISTE MAIS BOTÃO DE PULAR (04/09/2026).
+   Havia um "Pular · perde N" ao lado de "Abrir atividade", com um confirm()
+   por cima. Ele fazia duas coisas erradas ao mesmo tempo: dava ao JOGADOR o
+   poder de encerrar uma atividade que é da mesa inteira, e ficava a um dedo de
+   distância do botão que abre — Mario encostou nele sem querer e perdeu a
+   atividade antes de ver a primeira tela.
+
+   O que encerra a atividade agora é o RELÓGIO, igual para todos: a mesa tem o
+   tempo declarado pelo Mestre, e quem não alcançou os fragmentos dentro dele
+   fica sem eles. Perder é consequência do tempo, não uma opção de menu.
+
+   E quem ABRE não é o jogador. No ritmo automático quem abre é o sistema,
+   assim que a anterior fecha; no ritmo conduzido é o Mestre, pelo painel da
+   Sala — e até ele tocar, o botão SALA fica piscando. */
+function esperaTexto(){
+ if(ritmoConduzido())return souMestreDaSala()
+  ? 'A mesa está pronta. Abra esta atividade pelo painel da SALA — o botão está piscando.'
+  : 'Aguardando o Mestre abrir esta atividade para a mesa.';
+ return souMestreDaSala()?'Abrindo a atividade para a mesa…':'Aguardando a mesa abrir esta atividade.';
+}
 function renderSensors(){
  const g=PARTIDAS[state.game],host=$('sensoryCards'),ordem=g.activities;
  const atual=ordem.findIndex(id=>!state.sensorDone.has(id));
  host.innerHTML=ordem.map((id,i)=>{
   const s=SENSORS[id],feita=state.sensorDone.has(id),ativa=i===atual;
+  const aberta=ativa&&state.sensorAberto===id;
   const lote=state.lotes[id]||[],pegos=lote.filter(c=>state.colhidos.has(c));
   const rot=feita?`${i+1} · ${pegos.length} DE ${lote.length} FRAGMENTOS`:ativa?`${i+1} DE ${ordem.length} · AGORA`:`${i+1} DE ${ordem.length} · AGUARDA A ANTERIOR`;
-  /* O que está em jogo fica escrito antes, não depois. Marcar sem abrir é uma
-     escolha legítima — e custa o lote inteiro. */
+  /* O que está em jogo fica escrito antes, não depois. */
   const aposta=feita
    ? `<p class="lote">${pegos.length?`Trouxe ${pegos.join(', ')}.`:'Nada foi descoberto aqui.'}${pegos.length<lote.length?` ${lote.length-pegos.length} ficaram no escuro.`:''}</p>`
    : `<p class="lote">${lote.length} fragmentos do dossiê dependem desta atividade.</p>`;
-  return `<article class="sensor-card depth-card blue ${feita?'feita':ativa?'atual':'travada'}" data-sensor="${id}"><small>${rot}</small><h3>${s.title}</h3><p>${s.desc}</p>${aposta}${ativa?`<div class="sensor-actions"><a class="btn primary depth" href="${s.href}?partida=${state.game}&ritmo=${state.pace}&itens=${lote.join(",")}">Abrir atividade</a><button class="btn ghost depth mark-sensor" type="button">Pular · perde ${lote.length}</button></div>`:''}</article>`;
+  const corpo=!ativa?''
+   :aberta
+    ? `<div class="sensor-clock"><span>TEMPO DA MESA</span><b id="sensorClock">--:--</b></div><div class="sensor-actions"><button class="btn primary depth abrir-sensor" type="button">Abrir atividade</button></div><p class="lote aviso">Quando o tempo acabar, a atividade fecha sozinha — com o que você tiver alcançado até lá.</p>`
+    : `<p class="lote aguardando">${esperaTexto()}</p>`;
+  return `<article class="sensor-card depth-card blue ${feita?'feita':aberta?'atual':ativa?'esperando':'travada'}" data-sensor="${id}"><small>${rot}</small><h3>${s.title}</h3><p>${s.desc}</p>${aposta}${corpo}</article>`;
  }).join('');
- host.querySelectorAll('.mark-sensor').forEach(btn=>btn.onclick=()=>{
-  const id=btn.closest('[data-sensor]').dataset.sensor,lote=state.lotes[id]||[];
-  if(lote.length&&!confirm(`Pular esta atividade custa ${lote.length} fragmentos, que não entram no dossiê por nenhuma outra porta. Seguir assim?`))return;
-  concluirSensor(id);
+ host.querySelectorAll('.abrir-sensor').forEach(btn=>btn.onclick=()=>{
+  abrirJanelaAtividade(btn.closest('[data-sensor]').dataset.sensor);
  });
+ pintarRelogioSensor();
  const n=state.sensorDone.size,faltam=ordem.length-n;
  const total=sensoriais().length,ganhos=state.colhidos.size;
  $('sensorDone').textContent=`${ganhos} de ${total} fragmentos descobertos`;
@@ -334,18 +393,127 @@ function atividadeDaVez(){
  const ordem=PARTIDAS[state.game].activities;
  return ordem.find(id=>!state.sensorDone.has(id))||null;
 }
+/* ── O RELÓGIO DA ATIVIDADE ──────────────────────────────────────────────
+   Ele mora aqui, e não só na aba da atividade, por dois motivos. O primeiro é
+   que a aba pode ser fechada, e a mesa não pode ficar esperando um aparelho
+   que ninguém está olhando. O segundo é que o prazo é COMBINADO: quando há
+   sala, o instante do fim é gravado nela e todos contam para o mesmo segundo,
+   em vez de cada telefone medir o próprio. */
+let relogioSensor=null;
+function pararRelogioSensor(){clearInterval(relogioSensor);relogioSensor=null}
+function pintarRelogioSensor(){
+ const el=$('sensorClock');
+ if(!el||!state.prazo)return;
+ const r=Math.max(0,Math.ceil((state.prazo-Date.now())/1000));
+ el.textContent=`${String(Math.floor(r/60)).padStart(2,'0')}:${String(r%60).padStart(2,'0')}`;
+ el.classList.toggle('urgente',r<=10);
+}
+function iniciarAtividade(id,fimMs){
+ if(!id||state.sensorDone.has(id)||id!==atividadeDaVez())return;
+ state.sensorAberto=id;state.prazo=Number(fimMs)||Date.now()+tempoAtividadeMs();
+ pararRelogioSensor();
+ relogioSensor=setInterval(()=>{
+  if(!state.sensorAberto)return pararRelogioSensor();
+  if(Date.now()>=state.prazo)encerrarPorTempo(state.sensorAberto);
+  else pintarRelogioSensor();
+ },250);
+ if(state.screen==='sensory')renderSensors();
+ atualizarAcaoMestre();
+}
+/* A janela tem nome: a segunda atividade reaproveita a aba da primeira em vez
+   de deixar três abas abertas na mesa. E ela é aberta por script, de dentro do
+   toque, porque é isso que dá à Mesa o direito de FECHÁ-LA quando o tempo
+   acabar — com <a target="_blank"> a aba fica órfã e a pessoa some do jogo. */
+function abrirJanelaAtividade(id){
+ const s=SENSORS[id],lote=state.lotes[id]||[];
+ const url=`${s.href}?partida=${state.game}&itens=${lote.join(',')}&fim=${state.prazo||0}`;
+ let j=null;
+ try{j=window.open(url,'mosaico-atividade')}catch(e){j=null}
+ if(!j){alert('O navegador bloqueou a janela da atividade. Libere as janelas para esta página e toque de novo.');return}
+ state.janela=j;
+ try{j.focus()}catch(e){}
+}
+function fecharJanelaAtividade(){
+ try{if(state.janela&&!state.janela.closed)state.janela.close()}catch(e){}
+ state.janela=null;
+}
+function encerrarPorTempo(id){
+ pararRelogioSensor();
+ /* Avisa a aba antes de fechá-la: se o navegador recusar o close (aba que a
+    pessoa moveu para outra janela, por exemplo), ela pelo menos para de
+    aceitar gestos e mostra a volta para a Mesa em vez de continuar valendo. */
+ try{new BroadcastChannel('mosaico-carro-forte').postMessage({fonte:'mosaico-carro-forte',tipo:'sensor-encerrado',sensor:id,partida:state.game})}catch(e){}
+ try{state.janela&&!state.janela.closed&&state.janela.postMessage({fonte:'mosaico-carro-forte',tipo:'sensor-encerrado',sensor:id,partida:state.game},location.origin)}catch(e){}
+ setTimeout(fecharJanelaAtividade,1200);
+ concluirSensor(id);
+}
 function concluirSensor(sensor){
  if(!sensor||sensor!==atividadeDaVez())return;
+ pararRelogioSensor();
  state.sensorDone.add(sensor);
+ state.sensorAberto=null;state.prazo=0;
  if(state.screen==='sensory')renderSensors();
+ proximaAtividade();
+}
+/* ── QUEM ABRE A PRÓXIMA ─────────────────────────────────────────────────
+   Nunca o jogador. No ritmo automático, o aparelho que manda na sala abre
+   assim que a anterior fecha; no conduzido, ele espera o Mestre. O convidado
+   nunca abre nada por conta própria: ele recebe o instante de fim pela sala,
+   que é o que faz o tempo ser o mesmo para a mesa inteira. */
+function proximaAtividade(){
+ const id=atividadeDaVez();
+ atualizarAcaoMestre();
+ if(!id||state.sensorAberto)return;
+ if(!souMestreDaSala())return;
+ if(ritmoConduzido())return;
+ liberarAtividade(id);
+}
+function liberarAtividade(id){
+ if(!id||state.sensorAberto||!souMestreDaSala())return;
+ const fim=Date.now()+tempoAtividadeMs();
+ window.MosaicoPauta?.abrirAtividade?.(id,fim,state.game);
+ iniciarAtividade(id,fim);
+}
+/* O botão da SALA pisca quando a mesa parou esperando uma decisão do Mestre —
+   a mesma forma que a Mesa da Casa usa em .btn-menu-mestre.acao-necessaria. */
+function atualizarAcaoMestre(){
+ const sala=window.DragonSala;
+ if(!sala)return;
+ const id=atividadeDaVez();
+ const precisa=!!id&&state.screen==='sensory'&&!state.sensorAberto&&ritmoConduzido()&&souMestreDaSala();
+ sala.acao(precisa?{
+  rotulo:`Abrir: ${SENSORS[id].title}`,
+  texto:`A mesa está esperando esta atividade. A partir do momento em que você abrir, todos têm ${Math.round(tempoAtividadeMs()/1000)} segundos — quem não alcançar os fragmentos fica sem eles.`,
+  aoTocar:()=>liberarAtividade(id)
+ }:null);
+}
+/* O prazo desce pela sala, e é por ele que os aparelhos param juntos. */
+let ouvindoAtividade=false;
+function ligarSincroniaAtividade(){
+ if(ouvindoAtividade||!window.MosaicoPauta?.ouvirAtividade)return;
+ ouvindoAtividade=true;
+ window.MosaicoPauta.ouvirAtividade(a=>{
+  if(!a||!a.sensor||a.partida!==state.game)return;
+  if(state.sensorDone.has(a.sensor)||state.sensorAberto===a.sensor)return;
+  iniciarAtividade(a.sensor,a.fimMs);
+ });
 }
 function receberAviso(dado){
- if(!dado||dado.fonte!=='mosaico-carro-forte'||dado.tipo!=='sensor-concluido')return;
+ if(!dado||dado.fonte!=='mosaico-carro-forte')return;
  if(dado.partida!==state.game)return;
  /* A colheita é filtrada pelo lote que a Mesa entregou àquela atividade: a
-    página só devolve o que recebeu, e um aviso forjado não injeta fragmento. */
- if(Array.isArray(dado.colheita))
-  dado.colheita.filter(x=>(state.lotes[dado.sensor]||[]).includes(x)).forEach(x=>state.colhidos.add(x));
+    página só devolve o que recebeu, e um aviso forjado não injeta fragmento.
+    E ela chega FRAGMENTO A FRAGMENTO, não só no fim — sem isso, uma atividade
+    encerrada pelo relógio chegaria vazia à Mesa mesmo com a pessoa tendo
+    alcançado três de quatro, porque o único aviso vinha do botão de concluir
+    que agora não existe mais. */
+ const noLote=x=>(state.lotes[dado.sensor]||[]).includes(x);
+ if(dado.tipo==='sensor-fragmento'){
+  if(dado.sensor===state.sensorAberto&&noLote(dado.codigo))state.colhidos.add(dado.codigo);
+  return;
+ }
+ if(dado.tipo!=='sensor-concluido')return;
+ if(Array.isArray(dado.colheita))dado.colheita.filter(noLote).forEach(x=>state.colhidos.add(x));
  concluirSensor(dado.sensor);
 }
 try{new BroadcastChannel('mosaico-carro-forte').onmessage=e=>receberAviso(e.data)}catch(e){}
@@ -514,16 +682,33 @@ let aberturaPedida=false;
    do ensaio e do aparelho solto, que continua sendo a maioria das partidas.
    Ver pauta-da-mesa.js: o defeito era dois celulares abrindo perguntas
    diferentes, cada um achando que jogava com o outro. */
-function abrirPauta(){
- state.players=+$('playerCount').value;state.pace=$('pace').value;state.duration=$('duration').value;
+function abrirPauta(anterior){
+ const meu=opcoesDaTela();
  const local=()=>proximaPartida();
- if(!window.MosaicoPauta)return selectGame(local());
- window.MosaicoPauta.escolher(local).then(selectGame)
-  .catch(e=>{console.error('MOSAICO: pauta falhou; sorteio local.',e);selectGame(local())});
+ const seguir=r=>{aplicarOpcoes(r?.opcoes||meu);selectGame(r?.pergunta||local())};
+ if(!window.MosaicoPauta){aplicarOpcoes(meu);return selectGame(local())}
+ window.MosaicoPauta.escolher(local,anterior||null,meu).then(seguir)
+  .catch(e=>{console.error('MOSAICO: pauta falhou; sorteio local.',e);aplicarOpcoes(meu);selectGame(local())});
 }
-window.addEventListener('mosaico-opening-finished',()=>{if(aberturaPedida)abrirPauta()},{once:true});
+/* A ABERTURA TOCA NUM APARELHO SÓ. Quem decide onde é o pauta-da-mesa.js: com
+   telão vivo na sala, a narração vai para a tela grande e os celulares esperam;
+   sem telão, ela toca só no aparelho do Mestre. Antes ela tocava aqui, sempre,
+   em cada aparelho que abrisse a Mesa — inclusive nos dos convidados.
+
+   O ouvinte global de 'mosaico-opening-finished' SAIU junto: quem espera o fim
+   agora é o tocarAqui() de lá, que também escuta uma vez. Com os dois, a pauta
+   era sorteada duas vezes seguidas. */
 $('chooseGame').onclick=()=>{
- if(window.MosaicoOpening&&!aberturaPedida){aberturaPedida=true;window.MosaicoOpening.show();return}
+ /* O botão sai de cena enquanto a abertura e a pauta estão em curso. Sem isto
+    o segundo toque — e ele acontece, porque a abertura demora um pedido de
+    rede para aparecer — dispara um sorteio paralelo por cima do primeiro: a
+    mesa via a pergunta trocar sozinha depois da narração. selectGame devolve
+    o botão. */
+ $('chooseGame').disabled=true;
+ if(aberturaPedida)return abrirPauta();
+ aberturaPedida=true;
+ if(window.MosaicoPauta?.abertura)return window.MosaicoPauta.abertura(()=>abrirPauta());
+ if(window.MosaicoOpening){window.addEventListener('mosaico-opening-finished',()=>abrirPauta(),{once:true});window.MosaicoOpening.show();return}
  abrirPauta();
 };
 
@@ -538,11 +723,29 @@ $('chooseGame').onclick=()=>{
  const flutuante=document.getElementById('dragonSalaBtn'),hud=$('hudSala');
  if(!flutuante)return;
  hud.hidden=false;
+ /* O espelho carrega o alerta junto: firebase-room.js pinta acao-necessaria em
+    tudo que tiver este atributo, e aqui o flutuante está escondido pelo CSS —
+    se o alerta ficasse só nele, ninguém veria o botão piscar. */
+ hud.setAttribute('data-dragon-sala-espelho','');
  hud.onclick=()=>flutuante.click();
 })();
+/* AS OPÇÕES SÃO DO MESTRE. Quem entra pelo QR não escolhe o tempo da atividade
+   nem o tamanho do dossiê: recebe os dois pela sala, junto com a pergunta. */
+(function(){
+ if(souMestreDaSala())return;
+ $('mesaOptions').hidden=true;
+ const nota=$('mesaOptionsNote');
+ nota.hidden=false;
+ $('mesaOptionsText').textContent='O Mestre já definiu o ritmo e a duração desta mesa. Toque em começar para entrar.';
+})();
 document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>go(b.dataset.back));
-$('startGame').onclick=()=>{renderSensors();go('sensory')};
-$('toEvidence').onclick=()=>{montarDossie();renderDossie();go('evidence')};
+$('startGame').onclick=()=>{renderSensors();go('sensory');ligarSincroniaAtividade();proximaAtividade()};
+$('toEvidence').onclick=()=>{
+ /* Sai da fila: relógio parado, aba fechada e o botão do Mestre sem alerta —
+    ele já não tem nada para deliberar aqui. */
+ pararRelogioSensor();fecharJanelaAtividade();window.DragonSala?.acao(null);
+ montarDossie();renderDossie();go('evidence');
+};
 $('nextWave').onclick=()=>{if(state.aberto<3){state.aberto++;renderDossie()}};
 $('toHypothesis').onclick=()=>{renderHypothesis();go('hypothesis')};
 $('hypothesisForm').onsubmit=e=>{
@@ -564,12 +767,7 @@ $('nextReveal').onclick=()=>{
 };
 /* Na rodada nova o convidado espera a pergunta MUDAR: sem passar a que acabou,
    ele receberia de volta a mesma e jogaria duas vezes o mesmo caso. */
-$('playAgain').onclick=()=>{
- const anterior=state.game, local=()=>proximaPartida();
- if(!window.MosaicoPauta)return selectGame(local());
- window.MosaicoPauta.escolher(local,anterior).then(selectGame)
-  .catch(e=>{console.error('MOSAICO: pauta falhou; sorteio local.',e);selectGame(local())});
-};
+$('playAgain').onclick=()=>abrirPauta(state.game);
 $('resetBtn').onclick=()=>{if(confirm('Reiniciar a Mesa e voltar à escolha inicial?'))location.reload()};
 $('infoBtn').onclick=()=>$('drawer').classList.add('on');
 $('drawerClose').onclick=()=>$('drawer').classList.remove('on');

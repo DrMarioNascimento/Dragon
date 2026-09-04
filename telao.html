@@ -39,6 +39,9 @@ body{margin:0;width:100%;min-height:100%;background:transparent;color:var(--ink)
 .waiting-card{padding:2vw 3vw;background:#061018df;border:1px solid #3c5d70;border-radius:1vw}
 .waiting h1{margin:0;font:700 clamp(55px,8vw,120px) Georgia,serif;color:var(--ouro)}
 .waiting p{font-size:clamp(20px,2vw,34px);color:#d2dde2}
+/* O código na tela grande é o que faz o Mestre reconhecer ESTE telão como o
+   da sala dele. Sem ele, "conectado" é uma palavra sem endereço. */
+.wait-code{font:800 clamp(30px,5vw,64px) monospace;letter-spacing:.14em;color:#bdeeff}
 .ready-btn{min-height:58px;border:0;border-radius:10px;padding:12px 22px;
   background:linear-gradient(#ffc266,#dd8b2e);color:#1b1005;font-weight:900;
   font-size:clamp(16px,1.5vw,24px);cursor:pointer}
@@ -78,6 +81,7 @@ body{margin:0;width:100%;min-height:100%;background:transparent;color:var(--ink)
   <div class="waiting-card">
     <h1>MOSAICO</h1>
     <p id="waitMsg">📺 Conectando o Telão…</p>
+    <p id="waitCode" class="wait-code"></p>
     <button id="readyBtn" class="ready-btn" style="display:none">🔊 Entendi · ativar som</button>
   </div>
 </div>
@@ -96,7 +100,7 @@ body{margin:0;width:100%;min-height:100%;background:transparent;color:var(--ink)
 <script type="module">
 import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
 import{getAuth,signInAnonymously}from'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
-import{getFirestore,doc,updateDoc,onSnapshot,collection}from'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+import{getFirestore,doc,setDoc,onSnapshot,collection}from'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
 
 /* A TABELA. Acrescentar mesa é acrescentar linha.
    `colecao` e `fb` andam juntos: as salas da Mesa moram no projeto
@@ -132,24 +136,39 @@ else{
   const app=initializeApp(jogo.fb,'dragon-telao-'+Date.now());
   const auth=getAuth(app),db=getFirestore(app);
   const roomRef=doc(db,jogo.colecao,code);
-  let room=null,players=[],armed=false,lastToken=0,activeToken=0,heartbeat=null;
+  let room=null,players=[],armed=false,lastToken=0,activeToken=0,heartbeat=null,eu='';
+  waitCode.textContent=code;
 
-  async function patchOpening(data){
-    const patch={'opening.displaySeenMs':Date.now()};
-    for(const[k,v]of Object.entries(data))patch['opening.'+k]=v;
-    await updateDoc(roomRef,patch);
+  /* A PRESENÇA DO TELÃO MUDOU DE LUGAR (04/09/2026), e não por gosto.
+     Ela era carimbada no DOCUMENTO da sala — 'opening.status',
+     'opening.displaySeenMs' —, e a regra de update daquele documento exige ser
+     o Mestre. O telão é anônimo: TODA batida voltava negada. O Mestre então
+     nunca via telão vivo, e a abertura caía sempre no celular dele, com a tela
+     grande ligada na frente da mesa sem receber nada.
+     Agora cada telão escreve o próprio documento em '<sala>/telao/<uid>', que
+     é o mesmo arranjo de 'acoes': cada aparelho só escreve o que é seu. O
+     comando continua vindo do Mestre, no documento da sala. */
+  const meuRef=()=>doc(db,jogo.colecao,code,'telao',eu);
+  async function presenca(data){
+    if(!eu)return;
+    await setDoc(meuRef(),{vistoEmMs:Date.now(),...data},{merge:true});
   }
   /* A batida de coração é o que separa "há um telão agora" de "houve um telão
      algum dia": quem manda a abertura confere a idade dela antes de mandar. */
-  function beat(){clearInterval(heartbeat);heartbeat=setInterval(()=>patchOpening({displaySeenMs:Date.now()}).catch(()=>{}),5000)}
+  function beat(){clearInterval(heartbeat);heartbeat=setInterval(()=>presenca({}).catch(()=>{}),5000)}
 
   async function connect(){
     try{
-      await signInAnonymously(auth);
+      const cred=await signInAnonymously(auth);
+      eu=cred.user.uid;
+      await presenca({status:'conectado'});
       waitMsg.textContent='📺 Telão conectado. Ative o áudio para continuar.';
       readyBtn.style.display='inline-block';
       beat();
-    }catch(e){waitMsg.textContent='Não foi possível autenticar o Telão. Reabra o QR.'}
+    }catch(e){
+      console.error('telão',e);
+      waitMsg.textContent='Não foi possível registrar o Telão nesta sala. Confira o código e reabra o QR.';
+    }
   }
   readyBtn.onclick=async()=>{
     /* Tocar e parar dentro do gesto é o que arma o áudio: navegador nenhum
@@ -157,22 +176,22 @@ else{
     try{audio.muted=true;await audio.play();audio.pause();audio.currentTime=0;audio.muted=false}catch{}
     armed=true;readyBtn.style.display='none';
     waitMsg.textContent='📺 Telão conectado ✓ · áudio preparado. Aguardando a mesa.';
-    try{await patchOpening({status:'ready',command:'idle',error:''})}
+    try{await presenca({status:'ready',error:''})}
     catch(e){armed=false;readyBtn.style.display='inline-block';waitMsg.textContent='Não foi possível registrar o Telão na sala.'}
   };
   async function startOpening(token){
-    if(!armed){await patchOpening({status:'error',error:'audio-not-armed',failedToken:token});return}
+    if(!armed){await presenca({status:'error',error:'audio-not-armed',failedToken:token});return}
     activeToken=token;stage.classList.add('on');audio.currentTime=0;
-    try{await audio.play();await patchOpening({status:'playing',command:'playing',token,error:''})}
+    try{await audio.play();await presenca({status:'playing',token,error:''})}
     catch{
       stage.classList.remove('on');readyBtn.style.display='inline-block';
       waitMsg.textContent='🔊 Toque novamente para preparar o áudio.';armed=false;
-      await patchOpening({status:'error',command:'idle',error:'audio-play-failed',failedToken:token});
+      await presenca({status:'error',error:'audio-play-failed',failedToken:token});
     }
   }
   async function finishOpening(){
     audio.pause();stage.classList.remove('on');
-    await patchOpening({status:'finished',command:'idle',finishedToken:activeToken,error:''});
+    await presenca({status:'finished',finishedToken:activeToken,error:''});
     render();
   }
   openPause.onclick=async()=>{

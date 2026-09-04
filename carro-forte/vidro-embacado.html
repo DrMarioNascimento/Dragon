@@ -1,15 +1,19 @@
 <!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#050b12"><title>O Vidro Embaçado — Carro-Forte</title>
-<link rel="stylesheet" href="atividade.css?v=20260903-auditoria"></head>
+<link rel="stylesheet" href="atividade.css?v=20260904-tempo1"></head>
 <body>
 <header><span id="kicker">MOSAICO</span><h1>O Vidro Embaçado</h1><p>Cada faixa do vidro esconde um registro. Passe o dedo — ou o ponteiro — sobre a faixa até ela abrir. O que continuar embaçado não vai para o dossiê.</p></header>
 <main>
   <div id="glass" class="glass" aria-label="Vidro embaçado"></div>
   <div class="placar"><b id="conta">0 de 0</b><span>fragmentos limpos</span></div>
   <div id="lista" class="lista"></div>
-  <button id="finish" class="primary">Concluir</button>
+  <!-- Nasce escondido. Ele não é mais "concluir" — a atividade acaba pelo
+       relógio da mesa, e este botão só reaparece no fim, como a volta. Ver
+       atividade.js: o antigo Concluir ficava a um dedo de "Abrir atividade" e
+       encerrava tudo antes de a pessoa ver a primeira tela. -->
+  <button id="finish" class="primary" hidden>← Voltar à Mesa</button>
 </main>
 <script src="fragmentos.js?v=20260901-colheita1"></script>
-<script src="atividade.js?v=20260901-colheita1"></script>
+<script src="atividade.js?v=20260904-tempo1"></script>
 <script>
 /* Antes: os quatro fatos entravam no DOM no carregamento, cobertos por uma
    camada embaçada, e dois cliques num botão "limpar" abriam tudo de uma vez.

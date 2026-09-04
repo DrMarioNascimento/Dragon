@@ -24,6 +24,7 @@ const auth=getAuth(app),db=getFirestore(app);
 const ALPH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const FORMAS={m:{emoji:'👨',label:'Bem-vindo'},f:{emoji:'👩',label:'Bem-vinda'},n:{emoji:'👥',label:'Tanto faz'}};
 let role='',code='',players=[],room=null,unsubRoom=null,unsubPlayers=null,pendingUser=null;
+let unsubTelas=null,telas=[],acaoMestre=null;
 let modo=PROJECT==='mesa'?'com-telao':'sem-telao',ritmo='automatico',salaAberta=false,gameReleased=false,intencao='sala';
 const q=new URLSearchParams(location.search).get('sala');
 
@@ -48,6 +49,21 @@ function qr(c){const url=joinUrl(c);if(window.MosaicoQR)return window.MosaicoQR.
 
 function css(){const st=document.createElement('style');st.textContent=`
 #dragonRoomGate{position:fixed;inset:0;z-index:99999;background:radial-gradient(900px 600px at 50% -10%,#16242a 0,transparent 55%),#061014;color:#f0eadc;font-family:Inter,system-ui,sans-serif;overflow:auto}.dr-shell{width:min(620px,calc(100% - 28px));margin:auto;padding:max(24px,env(safe-area-inset-top)) 0 max(36px,env(safe-area-inset-bottom))}.dr-brand{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:#e8a94a;font-weight:800}.dr-card{margin-top:18px;padding:20px;border:1px solid #31404a;border-radius:14px;background:linear-gradient(160deg,#121c22,#080e12);box-shadow:inset 0 1px rgba(255,255,255,.06),0 7px 0 #020507,0 22px 45px rgba(0,0,0,.45)}.dr-card h1,.dr-card h2{font-family:Georgia,serif;margin:.25rem 0 .6rem}.dr-card h1{font-size:clamp(38px,10vw,62px);line-height:.95}.dr-card p{color:#afbdc5;line-height:1.5}.dr-btn{width:100%;min-height:52px;margin-top:10px;border:0;border-radius:10px;padding:12px 14px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;background:linear-gradient(#ffc266,#dd8b2e);color:#1b1005;box-shadow:inset 0 1px #ffe2b4,0 5px 0 #6a3712}.dr-btn.secondary{background:linear-gradient(#24343d,#142128);color:#dce8ed;box-shadow:inset 0 1px rgba(255,255,255,.08),0 5px 0 #030709;border:1px solid #334750}.dr-btn.danger{background:linear-gradient(#7d2d2a,#4b1715);color:#fff3ef;box-shadow:inset 0 1px rgba(255,255,255,.08),0 5px 0 #1b0706}.dr-input{width:100%;min-height:50px;margin-top:10px;border-radius:9px;border:1px solid #3a4c56;background:#071014;color:#fff;padding:12px;font-size:17px}.dr-code{font:800 clamp(40px,12vw,70px)/1 monospace;letter-spacing:.13em;color:#ffc46b;text-align:center;margin:12px 0}.dr-qr{width:min(300px,80vw);margin:14px auto;background:white;padding:10px;border-radius:12px}.dr-qr svg{display:block;width:100%;height:auto}.dr-list{display:grid;gap:8px;margin-top:14px}.dr-player{padding:10px 12px;border:1px solid #2d3b43;border-radius:9px;background:#0a1318;display:flex;justify-content:space-between;gap:10px}.dr-note{font-size:13px;color:#82959f}.dr-error{margin-top:12px;padding:10px;border-left:3px solid #e56b52;background:#28110e;color:#ffd4ca}.room-qr-fallback{color:#111;font:800 36px monospace;text-align:center;padding:40px 5px}.dr-formas{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}.dr-forma{position:relative;min-height:100px;border:1px solid #344750;border-radius:11px;background:#0a1419;color:#dce8ed;padding:10px 5px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;cursor:pointer;box-shadow:0 4px 0 #020507}.dr-forma input{position:absolute;opacity:0}.dr-forma:has(input:checked){border-color:#e8a94a;background:#25190e;color:#ffc46b}.dr-forma .em{font-size:28px}.dr-forma .lb{font-family:Georgia,serif;font-size:16px;text-align:center}.dr-ident{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#e8a94a;font-weight:800;margin-top:15px}.dr-choice{width:100%;margin-top:9px;padding:14px;border:1px solid #344750;border-radius:10px;background:#0a1419;color:#dce8ed;text-align:left;cursor:pointer}.dr-choice.on{border-color:#e8a94a;background:#25190e;color:#ffc46b}.dr-choice b,.dr-choice span{display:block}.dr-choice span{margin-top:5px;color:#9eafb8;font-size:13px}.dr-master-info{padding:14px;border-left:3px solid #e8a94a;background:#0a1318;border-radius:8px}.dr-master-info p{margin:.45rem 0}
+/* O ALERTA DO MESTRE. Copiado em espírito da Mesa da Casa (v1/MOSAICO-mesa.html,
+   .btn-menu-mestre.acao-necessaria): quando a partida para esperando uma decisão
+   dele, o botão da Sala pisca em vermelho — em vez de a mesa ficar olhando para
+   uma tela parada sem saber de quem é a vez de agir.
+   Vale para o botão flutuante e para qualquer espelho que a página instalar com
+   data-dragon-sala-espelho: na Mesa do Carro-Forte o flutuante está escondido e
+   quem aparece é o SALA do cabeçalho. */
+#dragonSalaBtn.acao-necessaria,[data-dragon-sala-espelho].acao-necessaria{border-color:#e0674f;color:#ff9b8b;animation:dragonAlerta 1.05s ease-in-out infinite}
+@keyframes dragonAlerta{0%,100%{box-shadow:0 0 0 0 rgba(224,103,79,.25)}50%{box-shadow:0 0 0 5px rgba(224,103,79,.18),0 0 24px rgba(224,103,79,.8)}}
+@media(prefers-reduced-motion:reduce){#dragonSalaBtn.acao-necessaria,[data-dragon-sala-espelho].acao-necessaria{animation:none}}
+.dr-acao{margin-top:14px;padding:13px;border:1px solid #e0674f;border-radius:11px;background:#26100c}
+.dr-acao b{display:block;color:#ff9b8b;font:800 11px Inter,system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase}
+.dr-acao p{margin:.45rem 0 .65rem;color:#e8cec7;font-size:14px;line-height:1.45}
+.dr-telao-status{margin-top:12px;padding:12px;border-left:3px solid #4d6774;background:#0a1318;border-radius:8px;color:#bdeeff;font-weight:700}
+.dr-telao-status.on{border-left-color:#70d6a0;color:#8ce4b0}
 #dragonSalaBtn{position:fixed;z-index:100002;right:max(14px,env(safe-area-inset-right));bottom:max(14px,env(safe-area-inset-bottom));min-width:140px;height:48px;border:1px solid #4d6774;border-radius:10px;background:#071014;color:#bdeeff;font:800 12px Inter,system-ui,sans-serif;letter-spacing:.16em;text-transform:uppercase;box-shadow:0 6px 22px rgba(0,0,0,.5);cursor:pointer}#dragonSalaPanel{position:fixed;z-index:100003;inset:0;background:rgba(0,0,0,.72);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:24px 14px}#dragonSalaPanel .dr-sala-card{width:min(620px,100%);margin:auto;background:#071014;border:1px solid #334750;border-radius:14px;padding:18px;color:#e6edf2;box-shadow:0 22px 60px rgba(0,0,0,.58);font-family:Inter,system-ui,sans-serif}.dr-sala-head{display:flex;justify-content:space-between;gap:12px;align-items:center}.dr-sala-head h2{font:600 34px Georgia,serif;margin:0}.dr-close{border:1px solid #344750;background:#101b21;color:#e6edf2;border-radius:8px;padding:10px 14px;cursor:pointer;font-weight:800}.dr-sala-section{margin-top:14px;padding-top:14px;border-top:1px solid #26343c}.dr-sala-section summary{cursor:pointer;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#afc8d5}.dr-sala-code{font:800 38px monospace;letter-spacing:.15em;text-align:center;color:#ffc46b;margin:12px 0}.dr-sala-qr{width:min(250px,75vw);margin:auto;background:#fff;padding:10px;border-radius:10px}.dr-sala-qr svg{display:block;width:100%;height:auto}.dr-sala-actions{display:grid;gap:8px;margin-top:12px}
 `;document.head.appendChild(st)}
 function gate(){let el=document.getElementById('dragonRoomGate');if(!el){el=document.createElement('div');el.id='dragonRoomGate';document.body.appendChild(el)}return el}
@@ -55,17 +71,35 @@ function formas(selected='m'){return `<div class="dr-formas">${Object.entries(FO
 function formaAtual(){return document.querySelector('input[name="drForma"]:checked')?.value||'m'}
 
 function menu(error=''){
-  gate().innerHTML=`<div class="dr-shell"><div class="dr-brand">DRAGON GAMES · ${esc(TITLE)}</div><div class="dr-card"><h1>${esc(TITLE)}</h1><p>O Mestre abre a mesa. Os jogadores entram pelo QR ou pelo código.</p>${error?`<div class="dr-error">${esc(error)}</div>`:''}<button class="dr-btn" id="drOpen">Abrir uma mesa</button><button class="dr-btn secondary" id="drJoin">Entrar em uma mesa</button><button class="dr-btn secondary" id="drSolo">Ensaiar neste aparelho</button></div></div>`;
+  gate().innerHTML=`<div class="dr-shell"><div class="dr-brand">DRAGON GAMES · ${esc(TITLE)}</div><div class="dr-card"><h1>${esc(TITLE)}</h1><p>O Mestre abre a mesa. Os jogadores entram pelo QR ou pelo código.</p>${error?`<div class="dr-error">${esc(error)}</div>`:''}<button class="dr-btn" id="drOpen">Abrir uma mesa</button><button class="dr-btn secondary" id="drJoin">Entrar em uma mesa</button><button class="dr-btn secondary" id="drSolo">Ensaiar neste aparelho</button>${TELAO?'<button class="dr-btn secondary" id="drTelao">📺 Entrar como telão</button>':''}</div></div>`;
   /* Sem a seta, o clique entra como primeiro argumento — e o primeiro
      argumento de renderMasterGate é a mensagem de erro. A tela abria
      acusando '[object PointerEvent]' antes de qualquer coisa dar errado. */
   document.getElementById('drOpen').onclick=()=>{intencao='sala';renderMasterGate()};
   document.getElementById('drJoin').onclick=()=>formEntrar('');
+  /* O TELÃO PRECISA DE UMA PORTA DE ENTRADA, e não de um endereço decorado.
+     Até 04/09/2026 a única forma de abrir a tela grande era achar o link dentro
+     do painel do Mestre, DEPOIS de a partida já ter começado — ou seja, o telão
+     só existia para quem já sabia que ele existia. Quem chega com o notebook
+     debaixo do braço agora entra por aqui, com o código, como qualquer um. */
+  document.getElementById('drTelao')?.addEventListener('click',()=>formTelao(''));
   /* Ensaiar era a porta dos fundos: entrava direto no jogo, sem conta e sem
      conferência nenhuma. Passa pela mesma validação do Google e pela mesma
      lista de mestres — o que ele dispensa é a SALA, não a autorização. Nenhum
      documento é criado no Firestore, e sem sala não há botão Sala. */
   document.getElementById('drSolo').onclick=()=>{intencao='ensaio';renderMasterGate()};
+}
+/* A tela grande não escolhe nome nem forma: só precisa saber de que sala é.
+   Daqui ela vai para telao.html, que entra anônima e passa a se anunciar. */
+function formTelao(err=''){
+  gate().innerHTML=`<div class="dr-shell"><div class="dr-brand">${esc(TITLE)} · TELÃO</div><div class="dr-card"><h2>Abrir a tela grande</h2><p>Digite o código que está no aparelho do Mestre. Esta tela só mostra — ninguém joga por ela.</p><input class="dr-input" id="drTelaoCode" maxlength="6" placeholder="CÓDIGO" value="${esc(q||'')}" autocapitalize="characters">${err?`<div class="dr-error">${esc(err)}</div>`:''}<button class="dr-btn" id="drTelaoGo">📺 Abrir o telão</button><button class="dr-btn secondary" id="drTelaoBack">Voltar</button></div></div>`;
+  document.getElementById('drTelaoBack').onclick=()=>menu();
+  document.getElementById('drTelaoGo').onclick=()=>{
+    const c=(document.getElementById('drTelaoCode').value||'').trim().toUpperCase();
+    if(c.length!==6)return formTelao('O código tem seis caracteres.');
+    location.href=telaoUrl(c);
+  };
+  setTimeout(()=>document.getElementById('drTelaoCode')?.focus(),20);
 }
 function renderMasterGate(error=''){
   const ensaio=intencao==='ensaio';
@@ -189,8 +223,51 @@ async function criarSalaBase(){
     code=gerar();for(let i=0;i<8;i++){if(!(await getDoc(roomRef(code))).exists())break;code=gerar()}
     await setDoc(roomRef(code),{ativa:true,fase:'sala',mestreUid:u.uid,criadaEm:serverTimestamp(),criadaEmMs:Date.now(),modo,ritmo,caseId:CASE_ID});
     role='master';room={ativa:true,fase:'sala',mestreUid:u.uid,modo,ritmo,caseId:CASE_ID};
-    formEntrar('',true);
+    /* Escolher "com telão" e cair direto no formulário de nome era prometer uma
+       tela grande e nunca perguntar por ela: o endereço do telão ficava
+       escondido num acordeão do painel, alcançável só depois que a partida
+       começasse. Agora a sala nasce e a pergunta seguinte é a tela — com o QR
+       na frente e a confirmação de que ela chegou. */
+    if(modo==='com-telao'&&TELAO)passoTelao();
+    else formEntrar('',true);
   }catch(e){renderMasterGate('Não foi possível criar a mesa. '+(e?.message||e))}
+}
+/* O TELÃO SE IDENTIFICA SOZINHO.
+   Ele entra na mesma sala e carimba a própria presença em <sala>/telao/<uid> —
+   um documento por aparelho, que é o único lugar onde as regras deixam um
+   anônimo escrever. O Mestre não confirma nada no lugar dele: quem diz que a
+   tela chegou é a tela. */
+const TELAO_VIVO_MS=15000;
+function telaoPronto(){return telas.some(t=>t.status==='ready'&&Date.now()-Number(t.vistoEmMs||0)<TELAO_VIVO_MS)}
+function telaoPresente(){return telas.some(t=>Date.now()-Number(t.vistoEmMs||0)<TELAO_VIVO_MS)}
+function ouvirTelas(){
+  unsubTelas?.();
+  unsubTelas=onSnapshot(collection(db,ROOT,code,'telao'),s=>{
+    telas=s.docs.map(d=>d.data()||{});pintarTelao();
+  },e=>console.error('MOSAICO: perdi o telão de vista.',e));
+  /* A presença expira pelo relógio, não por evento: sem esta batida, um telão
+     que fechou a aba continuaria "identificado" na tela do Mestre para sempre. */
+  clearInterval(pintarTelao.relogio);
+  pintarTelao.relogio=setInterval(pintarTelao,3000);
+}
+function pintarTelao(){
+  const alvo=document.getElementById('drTelaoEstado')||document.getElementById('drSalaTelaoEstado');
+  if(!alvo)return;
+  const pronto=telaoPronto(),presente=telaoPresente();
+  alvo.classList.toggle('on',pronto);
+  alvo.textContent=pronto
+    ?'📺 Telão identificado ✓ · som preparado. A abertura vai rodar nele.'
+    :presente
+      ?'📺 Telão conectado · falta tocar em "ativar som" na tela grande.'
+      :'Aguardando o telão… deixe esta tela aberta enquanto abre a outra.';
+  const b=document.getElementById('drTelaoNext');
+  if(b)b.textContent=pronto?'Entrar na mesa':'Continuar sem telão';
+}
+function passoTelao(){
+  const url=telaoUrl(code);
+  gate().innerHTML=`<div class="dr-shell"><div class="dr-brand">${esc(TITLE)} · ÁREA DO MESTRE</div><div class="dr-card"><h2>Abra o telão</h2><p>Na TV, no projetor ou no notebook, abra este endereço — ou aponte a câmera para o QR. A tela grande entra sozinha nesta sala e se anuncia aqui.</p><div class="dr-code">${esc(code)}</div><div class="dr-qr">${qrDe(url,'QR para abrir o telão')}</div><div class="dr-sala-code" style="font-size:13px;word-break:break-all">${esc(url)}</div><div class="dr-telao-status" id="drTelaoEstado">Aguardando o telão…</div><p class="dr-note">Com telão, a abertura narrada roda só nele. Sem telão, ela roda só neste aparelho — nunca nos dois, e nunca nos celulares dos jogadores.</p><button class="dr-btn" id="drTelaoNext">Continuar sem telão</button></div></div>`;
+  pintarTelao();ouvirTelas();
+  document.getElementById('drTelaoNext').onclick=()=>formEntrar('',true);
 }
 function formEntrar(err='',asMaster=false){
   /* O campo do nome vinha preenchido com o displayName da conta Google, então o
@@ -248,9 +325,25 @@ function renderLobby(){
 }
 function liberar(detail){
   gameReleased=true;document.getElementById('dragonRoomGate')?.remove();window.MOSAICO_ROOM=detail;
-  if(role==='master')instalarSalaPersistente();
+  if(role==='master'){instalarSalaPersistente();if(code)ouvirTelas();}
   window.dispatchEvent(new CustomEvent(READY_EVENT,{detail}));
 }
+/* O PONTO DE EXTENSÃO DA AÇÃO DO MESTRE.
+   Quem sabe que a mesa parou esperando uma decisão é o jogo, não esta folha —
+   e quem tem o botão onde o Mestre olha é esta folha. DragonSala.acao costura
+   os dois: o jogo declara o que precisa ser deliberado, o painel ganha a seção
+   em destaque e o botão da Sala passa a piscar. acao(null) desliga. */
+function alertaSala(){
+  const ligado=!!acaoMestre&&role==='master';
+  document.getElementById('dragonSalaBtn')?.classList.toggle('acao-necessaria',ligado);
+  document.querySelectorAll('[data-dragon-sala-espelho]').forEach(el=>el.classList.toggle('acao-necessaria',ligado));
+}
+window.DragonSala={
+  acao(cfg){acaoMestre=cfg&&cfg.rotulo?cfg:null;alertaSala();atualizarSalaPersistente();},
+  telaoPronto,
+  get codigo(){return code},
+  get papel(){return role},
+};
 function instalarSalaPersistente(){
   if(document.getElementById('dragonSalaBtn'))return;
   const b=document.createElement('button');b.id='dragonSalaBtn';b.type='button';b.textContent='Sala';b.onclick=()=>{salaAberta=!salaAberta;atualizarSalaPersistente()};document.body.appendChild(b);atualizarSalaPersistente();
@@ -260,8 +353,17 @@ function atualizarSalaPersistente(){
   let p=document.getElementById('dragonSalaPanel');
   if(!salaAberta){p?.remove();return;}
   if(!p){p=document.createElement('div');p.id='dragonSalaPanel';document.body.appendChild(p)}
-  p.innerHTML=`<div class="dr-sala-card"><div class="dr-sala-head"><div><div class="dr-brand">MESTRE · ${esc(TITLE)}</div><h2>Sala</h2><p class="dr-note">${room?.ritmo==='conduzido'?'Ritmo conduzido pelo Mestre':'Ritmo automático'}</p></div><button class="dr-close" id="drSalaClose">Fechar</button></div><details class="dr-sala-section" open><summary>Código e QR da sala</summary><div class="dr-sala-code">${esc(code)}</div><div class="dr-sala-qr">${qr(code)}</div></details>${TELAO?`<details class="dr-sala-section"><summary>📺 Telão</summary><p class="dr-note">Abra este endereço na TV, no projetor ou no notebook. Ele entra na mesma sala e só mostra — ninguém opera nada por lá.</p><div class="dr-sala-code" style="font-size:13px;word-break:break-all">${esc(telaoUrl(code))}</div><div class="dr-sala-qr">${qrDe(telaoUrl(code),"QR para abrir o telão")}</div></details>`:""}<details class="dr-sala-section"><summary>Participantes · ${players.length}</summary><div class="dr-list">${players.map(x=>`<div class="dr-player"><span>${esc(x.nome||'Jogador')}</span><b>${x.mestre?'Mestre':'Jogador'}</b></div>`).join('')}</div></details><details class="dr-sala-section"><summary>Encerrar sala</summary><div class="dr-sala-actions"><button class="dr-btn danger" id="drEndRoom">Encerrar sala</button></div></details></div>`;
+  /* A ação do Mestre entra ANTES do código e do QR, e aberta. Ela é o motivo
+     de o botão estar piscando: quem abre o painel por causa do alerta tem de
+     encontrar o que fazer no primeiro olhar, não dentro do terceiro acordeão. */
+  const bloco=acaoMestre?`<div class="dr-acao"><b>Ação do Mestre necessária</b><p>${esc(acaoMestre.texto||'')}</p><button class="dr-btn" id="drAcaoMestre">${esc(acaoMestre.rotulo)}</button></div>`:'';
+  p.innerHTML=`<div class="dr-sala-card"><div class="dr-sala-head"><div><div class="dr-brand">MESTRE · ${esc(TITLE)}</div><h2>Sala</h2><p class="dr-note">${room?.ritmo==='conduzido'?'Ritmo conduzido pelo Mestre':'Ritmo automático'}</p></div><button class="dr-close" id="drSalaClose">Fechar</button></div>${bloco}<details class="dr-sala-section" open><summary>Código e QR da sala</summary><div class="dr-sala-code">${esc(code)}</div><div class="dr-sala-qr">${qr(code)}</div></details>${TELAO?`<details class="dr-sala-section"><summary>📺 Telão</summary><p class="dr-note">Abra este endereço na TV, no projetor ou no notebook. Ele entra na mesma sala e só mostra — ninguém opera nada por lá.</p><div class="dr-telao-status" id="drSalaTelaoEstado">Aguardando o telão…</div><div class="dr-sala-code" style="font-size:13px;word-break:break-all">${esc(telaoUrl(code))}</div><div class="dr-sala-qr">${qrDe(telaoUrl(code),"QR para abrir o telão")}</div></details>`:""}<details class="dr-sala-section"><summary>Participantes · ${players.length}</summary><div class="dr-list">${players.map(x=>`<div class="dr-player"><span>${esc(x.nome||'Jogador')}</span><b>${x.mestre?'Mestre':'Jogador'}</b></div>`).join('')}</div></details><details class="dr-sala-section"><summary>Encerrar sala</summary><div class="dr-sala-actions"><button class="dr-btn danger" id="drEndRoom">Encerrar sala</button></div></details></div>`;
+  pintarTelao();
   document.getElementById('drSalaClose').onclick=()=>{salaAberta=false;atualizarSalaPersistente()};
+  /* Fecha o painel junto: o Mestre tocou porque queria voltar para a mesa, e
+     deixar o painel aberto por cima do jogo esconde o que ele acabou de soltar. */
+  const acao=document.getElementById('drAcaoMestre');
+  if(acao)acao.onclick=()=>{const f=acaoMestre?.aoTocar;salaAberta=false;atualizarSalaPersistente();f?.()};
   document.getElementById('drEndRoom').onclick=encerrarSala;
 }
 async function encerrarSala(){

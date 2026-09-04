@@ -47,6 +47,26 @@ header p{color:var(--muted);font-size:13.5px;line-height:1.5;margin:0}
 .placar b{font:800 15px var(--mono);color:var(--gold2)}
 .placar span{font:600 11px var(--mono);color:var(--muted)}
 
+/* O relógio da mesa. Ele fica logo abaixo do cabeçalho, antes do gesto, porque
+   é a informação que muda o que a pessoa faz: com 12 s no visor, ninguém varre
+   o corredor devagar. */
+.cronometro{display:flex;align-items:baseline;justify-content:space-between;gap:10px;
+ padding:9px 12px;margin-bottom:11px;border:1px solid var(--edge);border-left:4px solid var(--blue);
+ border-radius:9px;background:linear-gradient(165deg,#132330,#0a141d)}
+.cronometro span{font:700 9px var(--mono);letter-spacing:.16em;color:var(--muted)}
+.cronometro b{font:800 25px var(--mono);color:var(--gold2)}
+.cronometro b.urgente{color:#ff9b8b}
+
+/* O fim da atividade, e a volta. Antes daqui a página apenas desabilitava o
+   botão e escrevia "volte para a Mesa" — sem link, sem porta, sem nada. */
+.fim{padding:14px;margin-top:12px;border:1px solid var(--edge);border-left:4px solid var(--green);
+ border-radius:11px;background:linear-gradient(165deg,#122a22,#0a1a15);display:grid;gap:6px}
+.fim b{font:600 24px var(--display);color:var(--green)}
+.fim span{font-size:13.5px;line-height:1.5;color:#c6d6cd}
+.fim p{margin:0;font-size:12.5px;line-height:1.45;color:var(--gold2)}
+.fim p:empty{display:none}
+.fim button{margin-top:6px}
+
 .lista{display:grid;gap:6px;margin-bottom:12px}
 .achado{padding:8px 10px;border-radius:7px;border:1px solid #75664e;border-left:4px solid #9a7842;background:linear-gradient(160deg,#e7dfca,#b9aa8d);color:#211d17}
 .achado b{display:block;font:700 9px var(--mono);color:#6a5a3c}

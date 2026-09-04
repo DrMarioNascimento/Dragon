@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
   <meta name="theme-color" content="#050b12" />
   <title>MOSAICO — A Mesa · A Manhã do Carro-Forte</title>
-  <link rel="stylesheet" href="styles.css?v=20260831-v4-noite" />
+  <link rel="stylesheet" href="styles.css?v=20260904-telao1" />
   <link rel="stylesheet" href="../carro-forte-terminal.css?v=20260901-linha-inteira" />
   <link rel="stylesheet" href="iphone-guard.css?v=20260831-v4-noite" />
 </head>
@@ -40,9 +40,18 @@
         <div class="principle depth-card green"><small>REGRA DA MESA</small><strong>A realidade é uma só.</strong><span>A pergunta muda o que cada fragmento vale. Não muda o que aconteceu.</span></div>
       </div>
       <div class="intro-actions">
-        <label class="field depth-card">Investigadores<select id="playerCount"><option>2</option><option>3</option><option>4</option><option>5</option><option selected>6</option><option>7</option><option>8</option></select></label>
-        <label class="field depth-card">Ritmo<select id="pace"><option value="pressure">Sob pressão · 30 s</option><option value="calm">Calma · 60 s</option></select></label>
-        <label class="field depth-card">Duração<select id="duration"><option value="curta">Curta · 13 fragmentos</option><option value="padrao" selected>Padrão · 18 fragmentos</option><option value="longa">Longa · 24 fragmentos</option></select></label>
+        <!-- QUEM ABRE A MESA É QUEM A CONFIGURA. Estes três campos ficavam em
+             todos os aparelhos, e cada jogador escolhia o ritmo e a duração da
+             própria cópia — três pessoas na mesma sala com dossiês de tamanhos
+             diferentes, cada uma achando que jogava a mesma partida. Agora eles
+             só existem para o Mestre; quem entra pelo QR recebe a decisão dele
+             junto com a pergunta. game.js esconde o bloco para o convidado. -->
+        <div class="mestre-fields" id="mesaOptions">
+          <label class="field depth-card">Investigadores<select id="playerCount"><option>2</option><option>3</option><option>4</option><option>5</option><option selected>6</option><option>7</option><option>8</option></select></label>
+          <label class="field depth-card">Tempo de cada atividade<select id="pace"><option value="pressure">Sob pressão · 60 s</option><option value="calm">Calma · 120 s</option></select></label>
+          <label class="field depth-card">Duração<select id="duration"><option value="curta">Curta · 13 fragmentos</option><option value="padrao" selected>Padrão · 18 fragmentos</option><option value="longa">Longa · 24 fragmentos</option></select></label>
+        </div>
+        <div class="field depth-card" id="mesaOptionsNote" hidden><small>ESTA MESA</small><b id="mesaOptionsText">O Mestre define o ritmo e a duração.</b></div>
         <button class="btn primary depth" id="chooseGame" type="button">Começar a investigação <span>→</span></button>
       </div>
       <aside class="street-card">
@@ -132,7 +141,7 @@
 
   <script src="../v1/js/qr.js"></script>
   <script src="../carro-forte-terminal.js?v=20260901-linha-inteira"></script>
-  <script type="module" src="../firebase-room.js?v=20260901-login-uma-viagem"
+  <script type="module" src="../firebase-room.js?v=20260904-telao1"
           data-project="mesa"
           data-root="mosaico"
           data-case="carro-forte"
@@ -154,11 +163,10 @@
         s.onload=()=>depois?.();
         document.body.appendChild(s);
       };
-      carregar('pauta-da-mesa.js?v=20260903-pauta1',()=>{
+      carregar('pauta-da-mesa.js?v=20260904-telao1',()=>{
       carregar('fragmentos.js?v=20260901-colheita1',()=>{
         carregar('opening-flow.js?v=20260901-abertura1',()=>{
-          carregar('game.js?v=20260901-colheita1',()=>{
-            document.addEventListener('click',e=>{const a=e.target.closest('.sensor-actions a');if(a)a.target='_blank'});
+          carregar('game.js?v=20260904-telao1',()=>{
             carregar('iphone-guard.js?v=20260901-rodizio1');
           });
         });
