@@ -163,6 +163,7 @@ function empurra(px, py, pz, nx, ny, nz, u, v) {
   return atual.base++;
 }
 function quad(a, b, c, d) { atual.IDX.push(a, b, c, a, c, d); }
+function tri(a, b, c) { atual.IDX.push(a, b, c); }
 
 /* CAIXA CHANFRADA, POR CONSTRUÇÃO E NÃO POR PROXIMIDADE.
    A primeira versão desenhava as seis faces encolhidas e depois tentava achar,
@@ -184,7 +185,10 @@ const FACES = [
   { n: [0, 0, 1], e: ["y", "x"], s: [1, -1] },
   { n: [0, 0, -1], e: ["y", "x"], s: [1, 1] },
 ];
-function caixa(cx, cy, cz, sx, sy, sz, ch, escalaUV, eixoU = "x", eixoV = "y") {
+/* `giro` gira a caixa em torno de Y, em graus. Sem ele, montar uma armação de
+   três braços dava três barras paralelas — na tela, uma pilha de palitos. Peça
+   que aponta para uma direção precisa poder apontar. */
+function caixa(cx, cy, cz, sx, sy, sz, ch, escalaUV, eixoU = "x", eixoV = "y", giro = 0) {
   const h = { x: sx / 2, y: sy / 2, z: sz / 2 };
   const c = Math.min(ch, Math.min(sx, sy, sz) / 2.5);
   const eixos = ["x", "y", "z"];
@@ -202,9 +206,12 @@ function caixa(cx, cy, cz, sx, sy, sz, ch, escalaUV, eixoU = "x", eixoV = "y") {
     const o = { x: p[0], y: p[1], z: p[2] };
     return [o[eixoU] * escalaUV, o[eixoV] * escalaUV];
   };
+  const g = giro * Math.PI / 180, cg = Math.cos(g), sg = Math.sin(g);
+  const gira = (v) => giro ? [v[0] * cg + v[2] * sg, v[1], -v[0] * sg + v[2] * cg] : v;
   const põe = (p, n) => {
     const uv = uvDe(p);
-    return empurra(cx + p[0], cy + p[1], cz + p[2], n[0], n[1], n[2], uv[0], uv[1]);
+    const q = gira(p), m = gira(n);
+    return empurra(cx + q[0], cy + q[1], cz + q[2], m[0], m[1], m[2], uv[0], uv[1]);
   };
 
   /* as seis faces, cada uma com os quatro cantos recuados */
@@ -347,6 +354,92 @@ peca("Metal", 3, [0,0,0], () => {
   }
 });
 
+const D2R = Math.PI / 180;
+
+/* ── SÓLIDOS DE REVOLUÇÃO ────────────────────────────────────────────────────
+   Um instrumento é feito destes; um móvel, de caixas. Foi por isso que o
+   sextante deu menos trabalho que a escrivaninha — arco e cilindro SÃO a forma
+   certa, enquanto caixa é sempre uma aproximação de marcenaria.
+
+   O eixo é Y por padrão; "z" o deita para frente, "x" para o lado. E `giro`
+   gira em torno de Y depois disso — é assim que a luneta fica paralela a um
+   braço da armação em vez de apontar para um eixo do mundo. Peça que precisa
+   apontar para uma direção precisa poder apontar; o mesmo que faltava à caixa. */
+function cilindro(cx, cy, cz, raio, altura, lados, escalaUV, eixo = "y", giro = 0) {
+  const meia = altura / 2;
+  const g = giro * D2R, cg = Math.cos(g), sg = Math.sin(g);
+  const troca = (x, y, z) => eixo === "z" ? [x, z, y] : eixo === "x" ? [y, x, z] : [x, y, z];
+  const gira = (v) => giro ? [v[0] * cg + v[2] * sg, v[1], -v[0] * sg + v[2] * cg] : v;
+  const põe = (x, y, z, nx, ny, nz, u, v) => {
+    const p = gira(troca(x, y, z));
+    const n = gira(troca(nx, ny, nz));
+    const L = Math.hypot(n[0], n[1], n[2]) || 1;
+    return empurra(cx + p[0], cy + p[1], cz + p[2], n[0] / L, n[1] / L, n[2] / L, u, v);
+  };
+  const tampa = (sinal) => {
+    const centro = põe(0, sinal * meia, 0, 0, sinal, 0, 0.5, 0.5);
+    const anel = [];
+    for (let i = 0; i < lados; i++) {
+      const a = (i / lados) * Math.PI * 2;
+      anel.push(põe(Math.cos(a) * raio, sinal * meia, Math.sin(a) * raio, 0, sinal, 0,
+        0.5 + Math.cos(a) * 0.5, 0.5 + Math.sin(a) * 0.5));
+    }
+    for (let i = 0; i < lados; i++) {
+      const a = anel[i], b = anel[(i + 1) % lados];
+      if (sinal > 0) tri(centro, a, b); else tri(centro, b, a);
+    }
+  };
+  const parede = [];
+  for (let i = 0; i <= lados; i++) {
+    const a = (i / lados) * Math.PI * 2;
+    const x = Math.cos(a), z = Math.sin(a);
+    const u = (i / lados) * escalaUV;
+    parede.push([
+      põe(x * raio, meia, z * raio, x, 0, z, u, 0),
+      põe(x * raio, -meia, z * raio, x, 0, z, u, escalaUV * altura / (raio * 6.28)),
+    ]);
+  }
+  for (let i = 0; i < lados; i++) {
+    const A = parede[i], B = parede[i + 1];
+    quad(A[0], B[0], B[1], A[1]);
+  }
+  tampa(1); tampa(-1);
+}
+
+/* Arco de seção retangular, no plano HORIZONTAL (XZ), com a espessura em Y —
+   que é como um sextante deitado sobre uma mesa fica. A primeira versão vivia
+   em XY e eu tentei corrigir trocando argumentos na chamada: saiu invisível.
+   O plano certo pertence à função, não a quem a chama.
+   `de` e `ate` em graus, do eixo +X, anti-horário visto de cima. */
+function arco(cx, cy, cz, raioInt, raioExt, espessura, de, ate, passos, escalaUV) {
+  const h = espessura / 2;
+  const pt = (r, ang, y) => [cx + Math.cos(ang) * r, cy + y, cz + Math.sin(ang) * r];
+  const A = de * D2R, B = ate * D2R;
+  let ant = null;
+  for (let i = 0; i <= passos; i++) {
+    const t = i / passos, ang = A + (B - A) * t;
+    const co = Math.cos(ang), si = Math.sin(ang);
+    const u = t * escalaUV;
+    const atualCantos = {
+      ie: empurra(...pt(raioInt, ang, h), -co, 0, -si, u, 0),
+      ee: empurra(...pt(raioExt, ang, h), co, 0, si, u, 1),
+      it: empurra(...pt(raioInt, ang, -h), -co, 0, -si, u, 0),
+      et: empurra(...pt(raioExt, ang, -h), co, 0, si, u, 1),
+      fe: empurra(...pt(raioInt, ang, h), 0, 1, 0, u, 0),
+      fx: empurra(...pt(raioExt, ang, h), 0, 1, 0, u, 1),
+      te: empurra(...pt(raioInt, ang, -h), 0, -1, 0, u, 0),
+      tx: empurra(...pt(raioExt, ang, -h), 0, -1, 0, u, 1),
+    };
+    if (ant) {
+      quad(ant.fe, ant.fx, atualCantos.fx, atualCantos.fe);   /* face da frente */
+      quad(atualCantos.te, atualCantos.tx, ant.tx, ant.te);   /* face de trás */
+      quad(ant.ee, atualCantos.ee, atualCantos.et, ant.et);   /* borda externa */
+      quad(atualCantos.ie, ant.ie, ant.it, atualCantos.it);   /* borda interna */
+    }
+    ant = atualCantos;
+  }
+}
+
 /* ── O PAPEL ─────────────────────────────────────────────────────────────────
    Uma chapa fina dentro da gaveta, com DUAS caras: a frente é um registro
    comum de escritório, o verso é a pista. Virar é o gesto que entrega — o
@@ -397,6 +490,13 @@ function escreveHora(r, txt, x, y, alt, c, esp) {
     x += u * 0.95;
   }
 }
+/* OS GRAUS DA ESCADA, escritos degrau a degrau. A primeira ideia era circular
+   só o 26 e deixar os outros em branco: quem lesse a frase saberia contar até
+   o quinto, e quem não lesse ficaria olhando para uma escada muda. Com os sete
+   números escritos, a escada informa sozinha e a frase escolhe qual deles —
+   que é o que uma pista deve fazer. */
+const DEGRAUS = [4, 9, 14, 20, 26, 32, 39];
+
 function papelTextura() {
   /* uma folha só, dividida ao meio: metade esquerda é a frente, metade direita
      é o verso. Duas imagens seriam dois downloads pela mesma coisa. */
@@ -404,39 +504,44 @@ function papelTextura() {
   const r = raster(W, H, [214, 203, 178]);
   const tinta = [46, 38, 30], desbotada = [120, 104, 84], vermelho = [122, 44, 34];
   const meio = W / 2;
-
-  /* ── FRENTE: um registro de escritório, tedioso de propósito ── */
-  r.linha(18, 26, meio - 18, 26, tinta, 1, 0.7);
-  for (let i = 0; i < 11; i++) {
-    const y = 52 + i * 27;
-    r.linha(18, y, meio - 18, y, desbotada, 0, 0.55);
-    /* rabiscos de valores, sem dizer nada */
-    const n = 3 + ((i * 7) % 5);
-    for (let k = 0; k < n; k++) {
-      const x = meio - 40 - k * 15;
-      r.linha(x, y - 9, x + 8, y - 9, tinta, 0, 0.5);
+  const circulo = (cx, cy, raio, c, esp, a) => {
+    let px = cx + raio, py = cy;
+    for (let i = 1; i <= 16; i++) {
+      const t = (i / 16) * Math.PI * 2;
+      const x = cx + Math.cos(t) * raio, y = cy + Math.sin(t) * raio;
+      r.linha(px, py, x, y, c, esp, a); px = x; py = y;
     }
-  }
-  r.linha(18, 26, 18, 350, desbotada, 0, 0.5);
-  r.linha(meio - 18, 26, meio - 18, 350, desbotada, 0, 0.5);
+  };
 
-  /* ── VERSO: a pista. Desenho de mão, não formulário ── */
-  const ox = meio + 26;
-  /* a janela, com as barras */
-  r.retan(ox + 60, 84, 118, 150, tinta, 1, 0.92);
-  r.linha(ox + 119, 84, ox + 119, 234, tinta, 1, 0.85);
-  r.linha(ox + 60, 159, ox + 178, 159, tinta, 1, 0.85);
-  /* o peitoril, mais grosso */
-  r.linha(ox + 48, 240, ox + 190, 240, tinta, 2, 0.9);
-  /* a seta: alguma coisa veio de DENTRO para fora */
-  r.linha(ox + 119, 210, ox + 119, 132, vermelho, 1, 0.9);
-  r.linha(ox + 119, 132, ox + 108, 148, vermelho, 1, 0.9);
-  r.linha(ox + 119, 132, ox + 130, 148, vermelho, 1, 0.9);
-  /* a hora, escrita à mão ao lado */
-  escreveHora(r, "21:29", ox + 46, 262, 46, tinta, 1);
-  /* uma palavra riscada — havia outra coisa escrita aqui antes */
-  r.linha(ox + 34, 60, ox + 150, 60, desbotada, 2, 0.5);
-  r.linha(ox + 40, 54, ox + 146, 66, tinta, 1, 0.55);
+  /* ── FRENTE: a hora, anotada à mão, e a janela por onde alguma coisa saiu ── */
+  r.linha(18, 26, meio - 18, 26, tinta, 1, 0.7);
+  escreveHora(r, "21:29", 44, 54, 54, tinta, 1);
+  r.retan(56, 150, 118, 132, tinta, 1, 0.92);
+  r.linha(115, 150, 115, 282, tinta, 1, 0.85);
+  r.linha(56, 216, 174, 216, tinta, 1, 0.85);
+  r.linha(44, 288, 186, 288, tinta, 2, 0.9);           /* o peitoril */
+  r.linha(115, 262, 115, 190, vermelho, 1, 0.9);       /* saiu de dentro */
+  r.linha(115, 190, 104, 206, vermelho, 1, 0.9);
+  r.linha(115, 190, 126, 206, vermelho, 1, 0.9);
+  r.linha(34, 126, 150, 126, desbotada, 2, 0.5);       /* uma palavra riscada */
+  r.linha(40, 120, 146, 132, tinta, 1, 0.55);
+
+  /* ── VERSO: a escada, de lado, com o grau de cada degrau ── */
+  const ox = meio;
+  const yBase = 336, passo = 41, x1 = ox + 46, x2 = ox + 104;
+  r.linha(x1, yBase, x1 - 6, 44, tinta, 1, 0.9);       /* as duas longarinas, */
+  r.linha(x2, yBase, x2 + 6, 44, tinta, 1, 0.9);       /* abrindo de leve */
+  r.linha(x1 - 8, yBase + 6, x1 + 4, yBase + 6, tinta, 1, 0.8);   /* os pés */
+  r.linha(x2 - 4, yBase + 6, x2 + 8, yBase + 6, tinta, 1, 0.8);
+  for (let i = 0; i < DEGRAUS.length; i++) {
+    const y = yBase - 18 - i * passo;
+    const t = (yBase - y) / (yBase - 44);
+    const a = x1 - 6 * t, b = x2 + 6 * t;
+    r.linha(a, y, b, y, tinta, 1, 0.9);
+    escreveHora(r, String(DEGRAUS[i]), b + 16, y - 15, 30, tinta, 1);
+    const largura = String(DEGRAUS[i]).length * 30 * 0.475;
+    circulo(b + 22 + largura, y - 11, 3.5, tinta, 0, 0.9);        /* o grauzinho */
+  }
   /* dobra do papel, no meio de cada metade */
   r.linha(meio, 0, meio, H, [190, 178, 152], 1, 0.6);
 
@@ -495,6 +600,93 @@ peca("Papel", 4, PAPEL_POS, () => {
   folha(p[0], p[1] - PAPEL_E / 2, p[2], PAPEL_L, PAPEL_P, 0.5, 1.0, -1);
 });
 
+/* ── O SEXTANTE ──────────────────────────────────────────────────────────────
+   Em cima do tampo, à esquerda. Um sextante de verdade tem armação vazada de
+   fundição; aqui é a forma de TRÊS BRAÇOS com dois vazios, que é feitio
+   histórico e não simplificação envergonhada — a renda vitoriana é o que arco
+   e cilindro não alcançam, e a essa distância se lê silhueta.
+
+   O braço do índice é peça própria: ele gira em torno do centro do limbo, e é
+   o gesto de usar o instrumento. Fica parado aqui; quem o move é a janela.
+
+   E o arco carrega a GRAVAÇÃO. Instrumento de época era gravado — nome do
+   fabricante, número, dedicatória. A frase que diz como usá-lo mora no latão,
+   e só aparece para quem chega perto e gira a peça. É a pista que a RA existe
+   para entregar. */
+const SEXT_R = 0.105;                    /* raio externo do limbo */
+const SEXT_PE = 0.011;                   /* altura dos pés */
+const SEXT_ESP = 0.008;                  /* espessura do quadro */
+const SEXT_POS = [-0.30, A, -0.02];      /* o pivô, no tampo */
+/* ONDE O BRAÇO FICOU, e de propósito NÃO no 26. O instrumento largado na mesa
+   com a resposta já discada entregaria de graça o que a escada e a frase
+   existem para fazer alguém descobrir. Fica num ângulo qualquer, como quem
+   guardou sem zerar. */
+const SEXT_ANG = 12;
+const SEXT_Y = A + SEXT_PE + SEXT_ESP / 2;   /* plano do quadro */
+
+/* TUDO POR POLAR, a partir do pivô. A primeira montagem media cada peça por
+   conta própria e o resultado foi uma pilha de palitos: barras que não se
+   encontravam, luneta boiando a três centímetros da armação, punho enterrado
+   no tampo. Instrumento é uma coisa só — um sistema de coordenadas, não uma
+   lista de posições. */
+const sexX = (r, g) => SEXT_POS[0] + Math.cos(g * D2R) * r;
+const sexZ = (r, g) => SEXT_POS[2] + Math.sin(g * D2R) * r;
+
+peca("Sextante", 3, SEXT_POS, () => {
+  /* o limbo: o setor de 60° que dá nome ao bicho */
+  arco(SEXT_POS[0], SEXT_Y, SEXT_POS[2], SEXT_R - 0.016, SEXT_R, SEXT_ESP, -30, 30, 36, 1);
+
+  /* a graduação, rasa na face de cima do limbo. É o que faz um arco de latão
+     virar escala — sem os traços, é uma alça. */
+  for (let g = -30; g <= 30; g += 10) {
+    caixa(sexX(SEXT_R - 0.008, g), SEXT_Y + SEXT_ESP / 2, sexZ(SEXT_R - 0.008, g),
+      0.013, 0.0014, 0.0016, 0.0004, 40, "x", "z", -g);
+  }
+
+  /* a armação: três braços do pivô ao limbo, cada um girado para o seu ângulo */
+  const comp = SEXT_R - 0.018;
+  for (const g of [-30, 0, 30]) {
+    caixa(sexX(0.006 + comp / 2, g), SEXT_Y, sexZ(0.006 + comp / 2, g),
+      comp, SEXT_ESP, 0.012, 0.002, 24, "x", "z", -g);
+  }
+  /* a travessa, no comprimento exato do setor onde ela cruza. Antes era mais
+     longa que o vão e saía pelos dois lados. */
+  const rt = 0.055, meia = rt * Math.tan(30 * D2R);
+  caixa(sexX(rt, 0), SEXT_Y, sexZ(rt, 0), 0.011, SEXT_ESP, meia * 2 + 0.012, 0.002, 24, "x", "z", 0);
+
+  /* o pivô, onde o braço do índice gira */
+  cilindro(SEXT_POS[0], SEXT_Y + 0.011, SEXT_POS[2], 0.013, 0.012, 20, 1);
+
+  /* O CAMINHO DA LUZ, que é o que ordena o resto: espelho do índice no pivô,
+     espelho do horizonte adiante no braço de 30°, luneta atrás dos dois e
+     alinhada com eles. Enfileirados no mesmo raio, e por isso se leem. */
+  const RH = 0.076, RL = 0.031;
+  cilindro(sexX(RH, 30), SEXT_Y + 0.012, sexZ(RH, 30), 0.004, 0.016, 12, 1);
+  caixa(sexX(RH, 30), SEXT_Y + 0.032, sexZ(RH, 30), 0.004, 0.026, 0.021, 0.001, 30, "z", "y", -30);
+  cilindro(sexX(RL, 30), SEXT_Y + 0.016, sexZ(RL, 30), 0.005, 0.024, 12, 1);
+  cilindro(sexX(RL, 30), SEXT_Y + 0.032, sexZ(RL, 30), 0.0065, 0.062, 18, 2, "x", -30);
+
+  /* OS PÉS. Um sextante pousa sobre três pinos na face do quadro — é assim que
+     ele fica numa mesa sem deitar sobre os espelhos. O punho da versão
+     anterior atravessava o tampo. */
+  for (const [g, r] of [[0, 0], [-27, 0.094], [27, 0.094]]) {
+    cilindro(sexX(r, g), A + SEXT_PE / 2, sexZ(r, g), 0.008, SEXT_PE, 12, 1);
+  }
+});
+
+/* O BRAÇO DO ÍNDICE, peça própria porque ele é o que se move. Nasce no ângulo
+   em que ficou; quem o disca é a janela. O espelho do índice vem com ele: é
+   por girar o espelho que o instrumento mede. */
+peca("Braco", 3, SEXT_POS, () => {
+  const g = SEXT_ANG - 30, comp = SEXT_R - 0.004;
+  caixa(sexX(comp / 2, g), SEXT_Y + 0.008, sexZ(comp / 2, g),
+    comp, 0.006, 0.011, 0.002, 24, "x", "z", -g);
+  /* o tambor micrométrico, na ponta que corre sobre o limbo */
+  cilindro(sexX(SEXT_R - 0.010, g), SEXT_Y + 0.013, sexZ(SEXT_R - 0.010, g), 0.010, 0.016, 16, 1);
+  /* o espelho do índice, de pé sobre o pivô, virado para o do horizonte */
+  caixa(SEXT_POS[0], SEXT_Y + 0.032, SEXT_POS[2], 0.004, 0.026, 0.023, 0.001, 30, "z", "y", -g);
+});
+
 /* ── EMISSÃO ─────────────────────────────────────────────────────────────────
    Uma malha e um nó por peça. A gaveta e o papel ganham animação; o resto é
    cenário. */
@@ -509,7 +701,12 @@ const MAT = [
   { nome: "Tampo", tex: 0, rough: 0.42, metal: 0 },
   { nome: "Madeira", tex: 1, rough: 0.60, metal: 0 },
   { nome: "Gavetas", tex: 2, rough: 0.48, metal: 0 },
-  { nome: "Metal", tex: 3, rough: 0.26, metal: 0.85 },
+  /* LATÃO ACETINADO, e não espelhado. Com rugosidade 0.26 a luneta — um
+     cilindro liso e horizontal — devolvia o estúdio inteiro e saía cromada no
+     meio de uma armação dourada. Superfície curva reflete muito mais ambiente
+     que superfície plana, então o número que servia às puxadeiras não servia
+     ao instrumento. */
+  { nome: "Metal", tex: 3, rough: 0.42, metal: 0.55 },
   { nome: "Papel", tex: 4, rough: 0.94, metal: 0 },
 ];
 
