@@ -80,11 +80,47 @@ async function sync(force){
 }
 function startSync(){clearInterval(syncTimer);syncTimer=setInterval(()=>sync(false),900);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")sync(true)});window.addEventListener("pagehide",()=>sync(true));}
 async function entrarGoogle(){
-  const status=document.querySelector("#mosaico-login .ml-status"),provider=new GoogleAuthProvider();provider.setCustomParameters({prompt:"select_account"});if(status)status.textContent="Abrindo o Google…";
+  /* Sem `prompt:"select_account"`: ele obrigava a escolher a conta mesmo com
+     sessão viva no Google, e era o que fazia parecer que o login não colava.
+     Quem já entrou uma vez volta direto. */
+  const status=document.querySelector("#mosaico-login .ml-status"),provider=new GoogleAuthProvider();if(status)status.textContent="Abrindo o Google…";
   try{await signInWithPopup(auth,provider)}catch(e){const code=e&&e.code||"";if(code==="auth/popup-blocked"||code==="auth/operation-not-supported-in-this-environment"){if(status)status.textContent="Redirecionando para o Google…";await signInWithRedirect(auth,provider);return}if(status)status.textContent=(code==="auth/unauthorized-domain"?"Este domínio ainda não está autorizado no Firebase.":code==="auth/operation-not-allowed"?"Ative o provedor Google no projeto mosaico-noite.":"Não foi possível entrar com Google.")}}
 async function sair(){try{await sync(true)}catch(e){}clearInterval(syncTimer);try{await signOut(auth)}catch(e){}location.reload();}
 async function ready(user){currentUser=user;await restore(user);hideGate();accountChip(user);startSync();window.MosaicoUserCloud={user,entrarGoogle,sair,sincronizarAgora:()=>sync(true),get firestoreOk(){return firestoreOk}};window.dispatchEvent(new CustomEvent("mosaico-cloud-ready",{detail:{user,firestoreOk,experience}}));}
 css();gate("Verificando sua conta…");
 try{await getRedirectResult(auth)}catch(e){}
+/* O SOLO NÃO PEDE MAIS LOGIN PARA COMEÇAR (03/09/2026).
+   Isto era um portão: sem conta Google, a tela de entrada ficava para sempre e
+   o jogo nunca carregava. Num modo de UMA pessoa, a conta serve para levar o
+   progresso a outro aparelho — é conveniência, não requisito, e não deveria
+   estar entre a pessoa e o jogo.
+
+   Sem conta, o jogo entra em modo local: o progresso fica no aparelho, e o
+   convite para entrar com Google vira um selo discreto no canto em vez de uma
+   parede. Quem entrar depois recupera o que estava na nuvem pelo `restore`.
+
+   Nada disso afrouxa a privacidade: sem conta não há leitura nem escrita no
+   Firestore, e as regras de `usuarios/{uid}` continuam exigindo que o uid do
+   pedido seja o dono. O que mudou é só quem é obrigado a se identificar para
+   jogar sozinho. */
+function convite(){
+  css();
+  let c=document.getElementById("mosaico-account");
+  if(!c){c=document.createElement("div");c.id="mosaico-account";document.body.appendChild(c)}
+  c.classList.remove("warn");
+  c.title="Entrar com Google leva seu progresso para outros aparelhos";
+  c.innerHTML='<span>progresso neste aparelho</span><button>Entrar</button>';
+  c.querySelector("button").onclick=entrarGoogle;
+}
+function prontoLocal(){
+  currentUser=null;hideGate();convite();
+  window.MosaicoUserCloud={user:null,entrarGoogle,sair,sincronizarAgora:()=>{},get firestoreOk(){return false}};
+  window.dispatchEvent(new CustomEvent("mosaico-cloud-ready",{detail:{user:null,firestoreOk:false,experience}}));
+}
 let handled=false;
-onAuthStateChanged(auth,user=>{if(handled&&user===currentUser)return;if(user){handled=true;ready(user)}else{currentUser=null;gate("")}});
+onAuthStateChanged(auth,user=>{
+  if(handled&&user===currentUser)return;
+  if(user){handled=true;ready(user)}
+  else if(!handled){handled=true;prontoLocal()}
+  else{currentUser=null;convite()}
+});

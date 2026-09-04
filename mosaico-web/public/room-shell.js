@@ -48,8 +48,17 @@ function renderMasterGate(msg=''){
 }
 async function loginGoogle(){
   try{
-    const provider=new firebase.auth.GoogleAuthProvider();provider.setCustomParameters({prompt:'select_account'});
-    const cred=await auth.signInWithPopup(provider);pendingUser=cred.user;
+    /* Uma vez, e só uma. `prompt:'select_account'` ordenava ao Google mostrar
+       o seletor mesmo com sessão viva, e ninguém olhava para a conta que já
+       estava aqui — o Firebase guarda em browserLocalPersistence por padrão.
+       Agora só há popup quando não há conta, ou quando a que existe é anônima.
+       Ver firebase-room.js. A conferência contra config/mestres continua. */
+    const atual=auth.currentUser;
+    if(atual&&!atual.isAnonymous&&atual.email){pendingUser=atual;}
+    else{
+      const provider=new firebase.auth.GoogleAuthProvider();
+      const cred=await auth.signInWithPopup(provider);pendingUser=cred.user;
+    }
     const cfg=await db.collection('config').doc('mestres').get();
     const permitidos=cfg.exists&&Array.isArray(cfg.data().emails)?cfg.data().emails:[];
     if(!permitidos.includes((pendingUser.email||'').trim())){

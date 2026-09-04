@@ -4534,8 +4534,12 @@ async function autenticarGoogle(){
   await autenticar();
   var u = auth.currentUser;
   if(ehGoogle(u)){ _uid = u.uid; return _uid; }
+  /* Sem `prompt:"select_account"` desde 03/09/2026: ele ordenava ao Google
+     mostrar o seletor mesmo com sessão viva, e era o que fazia o Mestre
+     escolher a conta a cada partida. A checagem de `ehGoogle(u)` logo acima já
+     reaproveita a sessão; o que faltava era não atrapalhar o Google quando ele
+     mesmo consegue resolver sozinho. */
   var provider = new GoogleAuthProvider();
-  provider.setCustomParameters({ prompt: "select_account" });
   try{
     if(u && u.isAnonymous){
       try{

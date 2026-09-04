@@ -158,9 +158,27 @@ function mensagemLogin(e){
    volta. Mandar alguém para lá é tirá-lo da página para trazê-lo de volta com
    um erro. Quando o popup não abre, o caminho é liberar o popup — e a mensagem
    diz isso. */
+/* UMA VEZ, E SÓ UMA (03/09/2026).
+   Duas coisas faziam o Mestre entrar com Google a cada partida.
+
+   A primeira era `prompt:'select_account'`, que ORDENA ao Google mostrar o
+   seletor de contas mesmo quando já há sessão — de "escolha uma conta" não se
+   escapa nem estando logado. Sem ele, quem já entrou uma vez volta direto.
+
+   A segunda era não olhar para quem já está aqui. O Firebase guarda a sessão
+   em browserLocalPersistence por padrão, então `auth.currentUser` costuma
+   trazer a conta da última vez; abrir o popup por cima disso é pedir de novo o
+   que já se tem. Agora só há popup quando não há conta, ou quando a que existe
+   é anônima — a do convidado, que não serve para abrir mesa.
+
+   O que NÃO mudou: a conta continua sendo conferida contra config/mestres, e a
+   regra do Firestore continua exigindo isso no servidor. Entrar ficou mais
+   fácil; abrir mesa sem autorização, não. */
 async function loginMestre(){
   try{
-    const provider=new GoogleAuthProvider();provider.setCustomParameters({prompt:'select_account'});
+    const atual=auth.currentUser;
+    if(atual && !atual.isAnonymous && atual.email){ await abrirComoMestre(atual); return; }
+    const provider=new GoogleAuthProvider();
     const {user}=await signInWithPopup(auth,provider);
     await abrirComoMestre(user);
   }catch(e){renderMasterGate(mensagemLogin(e))}
