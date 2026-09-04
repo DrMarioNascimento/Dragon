@@ -129,7 +129,11 @@ test("os campos da mesa somem para quem entra pelo QR", () => {
 });
 
 test("a decisão do Mestre desce pela sala junto com a pergunta", () => {
-  assert.match(PAUTA, /'partida\.opcoes': opcoes \|\| null/, "as opções da mesa não sobem para a sala");
+  assert.match(PAUTA, /'partida\.opcoes': combinado/, "as opções da mesa não sobem para a sala");
+  /* O telão viaja junto com elas: é ele que decide se o fecho é da tela grande
+     ou de cada celular, e dois aparelhos com respostas diferentes fariam
+     metade da mesa olhar para cima enquanto a outra metade narra no colo. */
+  assert.match(PAUTA, /telao: usouTelao/, "a sala não diz se esta partida tem telão");
   assert.match(GAME, /function aplicarOpcoes\(/, "o aparelho não aplica as opções que recebeu");
 });
 
@@ -221,4 +225,127 @@ test("o telão vivo é medido pela batida recente, não por ter existido um dia"
       `${nome} não olha a idade da presença do telão — um telão de ontem sequestra a abertura de hoje`,
     );
   }
+});
+
+/* ── O FECHO: O QUE É PRIVADO CONTINUA PRIVADO ────────────────────────────
+ *
+ * Regra do Mario, 04/09/2026, em três partes:
+ *   · o placar parcial não aparece para ninguém, nem para o Mestre, porque ele
+ *     também é jogador;
+ *   · com telão, a revelação e o pódio são sempre e só da tela grande;
+ *   · o que é privado é sempre privado.
+ *
+ * O defeito que motivou tudo: o telão anunciava `{nome:'A mesa', pontos:…}` —
+ * a nota do aparelho do Mestre vestida de coletiva. Numa sala de seis, seis
+ * pessoas liam como se fosse o resultado da mesa.
+ */
+
+test("a nota de cada um sobe pelo relé, que é o que a regra permite", () => {
+  assert.match(PAUTA, /tipo: 'placar'/, "ninguém entrega nota nenhuma");
+  assert.match(
+    PAUTA,
+    /jogadorId: uid/,
+    "o pedido não se identifica — a regra de acoes exige jogadorId == request.auth.uid e recusaria",
+  );
+  assert.match(PAUTA, /atendido: true/, "o Mestre não carimba a nota arquivada, e ela entraria duas vezes");
+});
+
+test("nenhum placar parcial sai, nem para o Mestre", () => {
+  /* O fecho só começa sozinho com a mesa inteira dentro. A saída para quem
+     abandonou a sala é um botão do Mestre, e ele anuncia QUANTOS faltam —
+     contagem não é placar parcial, ponto de ninguém aparece ali. */
+  assert.match(
+    GAME,
+    /if\(total&&entregues>=total\)return iniciarFecho\(\);/,
+    "o fecho começa antes de a mesa inteira entregar — e aí existe placar parcial",
+  );
+  assert.match(
+    GAME,
+    /rotulo:`Fechar a mesa com \$\{entregues\} de \$\{total\|\|entregues\}`/,
+    "sumiu a saída do Mestre — quem sai da sala sem entregar trava a mesa para sempre",
+  );
+  assert.ok(
+    !/pontos.*\$\{/.test(GAME.match(/function conduzirFecho\([\s\S]*?\n\}/)?.[0] || ""),
+    "o aviso ao Mestre passou a mostrar pontos de alguém antes do pódio",
+  );
+  assert.ok(
+    !/'A mesa'/.test(semComentarios(PAUTA)),
+    "voltou o placar de uma linha só, com a nota de um aparelho chamada de 'A mesa'",
+  );
+  assert.ok(
+    !/publicState\.placar/.test(semComentarios(PAUTA)) ||
+      /'publicState\.placar': \[\]/.test(PAUTA),
+    "a Mesa voltou a publicar placar em publicState — o pódio agora mora no fecho",
+  );
+});
+
+/* O passo "hipóteses que caem" se calcula a partir do dossiê de quem lê: cada
+   pessoa tem o seu. Na tela grande ele seria coletivo e não é. */
+test("o passo que depende do dossiê de cada um não sobe para o telão", () => {
+  assert.match(GAME, /function passosDaRevelacao\(incluirCaidas\)/, "os passos não foram separados");
+  assert.match(
+    GAME,
+    /return incluirCaidas\?steps:steps\.filter\(x=>x\.k!=='HIPÓTESES QUE CAEM'\)/,
+    "o filtro sumiu — o dossiê de um aparelho iria para a tela grande",
+  );
+  assert.match(
+    GAME,
+    /state\.passos=passosDaRevelacao\(false\)/,
+    "o Mestre publica a revelação com o passo privado dentro",
+  );
+  assert.match(GAME, /passosDaRevelacao\(true\)/, "o celular perdeu o passo que é dele");
+});
+
+test("com telão o celular não repete a revelação nem o pódio", () => {
+  assert.match(GAME, /function esperarTelao\(/, "não há tela de espera para quem joga com telão");
+  assert.match(GAME, /Olhe para a tela grande/, "o celular não manda olhar para cima");
+  assert.match(
+    GAME,
+    /const temPodio=!state\.telao&&state\.placar\.length>1;/,
+    "o pódio voltou a aparecer no celular mesmo com telão",
+  );
+});
+
+/* Sem telão a revelação continua sendo de cada um, no ritmo de cada um — é o
+   que sempre foi, e o fecho não pode ter tomado isso. */
+test("sem telão a revelação continua em todos os jogadores", () => {
+  assert.match(
+    GAME,
+    /if\(state\.telao\)esperarTelao\(\);else renderReveal\(\);/,
+    "sem telão o aparelho deixou de fazer a própria revelação",
+  );
+  assert.match(
+    GAME,
+    /if\(!state\.telao\)\{if\(state\.screen==='score'\)renderScore\(\);return\}/,
+    "sem telão o aparelho passou a obedecer as fases da tela grande",
+  );
+});
+
+/* A tela grande desenha o fecho — e só o fecho. Roda a função de verdade,
+   arrancada do telao.html, contra um pódio inventado. */
+test("o telão desenha o pódio, e nada que seja de uma pessoa só", () => {
+  const corpo = TELAO.match(/function renderFecho\(f,pub\)\{[\s\S]*?\n  \}/);
+  assert.ok(corpo, "renderFecho sumiu do telão");
+  const alvo = { className: "", innerHTML: "" };
+  const esc = (s) => String(s ?? "").replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+  const renderFecho = new Function("root", "esc", `${corpo[0]}; return renderFecho;`)(alvo, esc);
+
+  renderFecho(
+    { fase: "podio", placar: [{ nome: "Ana", pontos: 81 }, { nome: "Bia", pontos: 52 }] },
+    { resposta: "Não houve roubo naquela manhã." },
+  );
+  assert.match(alvo.innerHTML, /Ana/, "o pódio não desenha quem ficou em primeiro");
+  assert.match(alvo.innerHTML, /81/, "o pódio não desenha os pontos");
+  assert.match(alvo.innerHTML, /Não houve roubo/, "a resolução não sobe com o pódio");
+
+  /* Um nome é escrito por quem entra na sala: se ele passar cru, quem digitar
+     uma tag escreve na tela grande da mesa inteira. */
+  alvo.innerHTML = "";
+  renderFecho({ fase: "podio", placar: [{ nome: "<img src=x onerror=alert(1)>", pontos: 9 }] }, {});
+  assert.ok(!/<img/.test(alvo.innerHTML), "o nome do jogador entra cru na tela grande");
+
+  alvo.innerHTML = "";
+  renderFecho({ fase: "revelacao", passo: 0, passos: [{ k: "O QUE PARECIA", h: "h", p: "p" }] }, {});
+  assert.match(alvo.innerHTML, /O QUE PARECIA/, "a revelação não desenha o passo");
+  assert.match(alvo.innerHTML, /1 de 1/, "a revelação não diz onde está");
 });

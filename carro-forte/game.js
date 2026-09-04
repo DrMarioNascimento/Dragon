@@ -147,7 +147,8 @@ const TERCO_ROT=['PRIMEIRO TERÇO','SEGUNDO TERÇO','TERÇO FINAL'];
 const state={screen:'intro',game:null,semente:0,players:6,pace:'pressure',duration:'padrao',
  dossie:[],tercos:[[],[],[]],aberto:1,marcados:new Set(),lotes:{},colhidos:new Set(),
  relacoes:new Set(),hipoteseProv:'',hipoteseFinal:'',
- sensorDone:new Set(),sensorAberto:null,prazo:0,janela:null,final:{},reveal:0,start:Date.now()};
+ sensorDone:new Set(),sensorAberto:null,prazo:0,janela:null,final:{},reveal:0,start:Date.now(),
+ telao:false,entregue:false,placar:[],passos:[],passoFecho:0,podioMostrado:false,fechoComecou:false};
 
 /* ── O TEMPO DA ATIVIDADE ────────────────────────────────────────────────
    Este campo existia como "Ritmo · 30 s / 60 s" e não fazia nada: ia para a
@@ -174,6 +175,12 @@ function aplicarOpcoes(o){
  if(o.players)state.players=+o.players||state.players;
  if(TEMPOS[o.pace])state.pace=o.pace;
  if(DURACOES[o.duration])state.duration=o.duration;
+ /* Se havia telão vivo quando a abertura tocou, há telão nesta partida — e é
+    isso que decide onde o fecho acontece. Vem da sala junto com a pergunta, e
+    não de cada aparelho perguntar por conta própria: dois aparelhos com
+    respostas diferentes fariam metade da mesa olhar para a tela grande
+    enquanto a outra metade narra sozinha no colo. */
+ state.telao=!!o.telao;
 }
 function opcoesDaTela(){
  return {players:+$('playerCount').value,pace:$('pace').value,duration:$('duration').value};
@@ -300,6 +307,11 @@ function selectGame(id){
  pararRelogioSensor();state.sensorAberto=null;state.prazo=0;fecharJanelaAtividade();
  window.DragonSala?.acao(null);
  $('chooseGame').disabled=false;
+ /* O fecho da rodada passada não atravessa para a nova: sem zerar, o Mestre
+    entraria já achando que a revelação está no ar e ninguém entregaria nota. */
+ clearTimeout(relogioFecho);
+ state.entregue=false;state.placar=[];state.passos=[];state.passoFecho=0;state.podioMostrado=false;state.fechoComecou=false;
+ ligarFecho();
  const g=PARTIDAS[id],cfg=DURACOES[state.duration];
  window.MosaicoPauta?.publicarPergunta(g);
  $('gameNature').textContent=g.nature;
@@ -633,7 +645,14 @@ function pontuar(){
   relFeitas:feitas.length,relDisp:disp.length};
 }
 
-function renderReveal(){
+/* A REVELAÇÃO TEM DUAS METADES, e só uma pode subir para a tela grande.
+   Os passos canônicos — o que parecia, as relações, a inferência, o princípio —
+   são os mesmos para a mesa inteira. O passo "HIPÓTESES QUE CAEM" não é: ele
+   se calcula a partir do dossiê DESTE aparelho, e cada pessoa tem o seu. Pôr
+   isso no telão seria anunciar como coletivo o que é de um — o mesmo defeito
+   do placar que dizia "A mesa" e mostrava a nota do Mestre. Ele fica no
+   celular, junto com o detalhe dos pontos. */
+function passosDaRevelacao(incluirCaidas){
  const g=PARTIDAS[state.game],tem=mao();
  const caidas=HIPOTESES.filter(h=>!h.canonica&&h.enfraquece.some(c=>tem.has(c))).slice(0,3);
  const steps=[
@@ -644,16 +663,38 @@ function renderReveal(){
   {k:'INFERÊNCIA CANÔNICA',h:g.answer,p:'A realidade é a mesma em todas as partidas. Esta pergunta apenas exige outro corte dela.'},
   {k:'PRINCÍPIO',h:'A verdade devolve o dinheiro; a mentira fica com ele.',p:'No MOSAICO, um fato verdadeiro pode estar associado à interpretação errada.'}
  ];
+ return incluirCaidas?steps:steps.filter(x=>x.k!=='HIPÓTESES QUE CAEM');
+}
+function renderReveal(){
+ const steps=passosDaRevelacao(true);
  state.revealMax=steps.length-1;
  const s=steps[Math.min(state.reveal,state.revealMax)];
  $('revealStage').innerHTML=`<div class="reveal-card depth-card"><span class="eyebrow">${s.k}</span><h2>${s.h}</h2><p>${s.p}</p></div>`;
+ $('nextReveal').hidden=false;
  $('nextReveal').innerHTML=state.reveal>=state.revealMax?'Ver o relatório <span>→</span>':'Continuar revelação <span>→</span>';
+}
+
+/* ── COM TELÃO, O CELULAR CALA ────────────────────────────────────────────
+   Regra do Mario: revelação e pódio são sempre e só da tela grande. Aqui o
+   aparelho não repete nada do que está lá em cima — nem a própria nota, que
+   é justamente o que ninguém pode ver antes da hora. */
+function esperarTelao(recado){
+ $('revealStage').innerHTML=`<div class="reveal-card depth-card"><span class="eyebrow">A MESA FECHOU</span><h2>Olhe para a tela grande.</h2><p>${recado||'A revelação e o pódio acontecem lá. Este aparelho volta a falar quando o relatório de cada um abrir.'}</p></div>`;
+ $('nextReveal').hidden=true;
 }
 
 function renderScore(){
  const g=PARTIDAS[state.game],s=pontuar(),hFinal=HIPOTESES.find(h=>h.id===state.hipoteseFinal);
  marcarFechada(state.game);
- window.MosaicoPauta?.publicarFim(g,s);
+ window.MosaicoPauta?.publicarFim(g);
+ /* COM TELÃO O PÓDIO NÃO SE REPETE AQUI: ele já foi na tela grande, e este
+    aparelho mostra só o que é desta pessoa. Sem telão, é aqui que ele mora —
+    e só aparece quando a mesa inteira entregou, nunca parcial. */
+ const podio=$('podio');
+ const temPodio=!state.telao&&state.placar.length>1;
+ podio.hidden=!temPodio;
+ if(temPodio)podio.innerHTML='<small>PÓDIO DA MESA</small>'+state.placar.map((x,i)=>
+  `<div class="podio-linha${i===0?' primeiro':''}"><b>${i+1}º</b><span>${x.nome||'Investigador'}</span><i>${x.pontos}</i></div>`).join('');
  $('scoreTitle').textContent=g.title;
  $('totalScore').textContent=s.total;
  const rows=[['Campos da pergunta',s.campos,45],['Hipótese sustentada',s.hipotese,15],['Relações costuradas',s.relacoes,20],['Leitura do dossiê',s.leitura,10],['Atividades sensoriais',s.sensorial,10],['Revisão de hipótese',s.revisao,5]];
@@ -668,6 +709,105 @@ function renderScore(){
     e o que falta fica visível sem revelar qual vem a seguir. */
  const feitas=fechadas(),total=Object.keys(PARTIDAS).length;
  $('colecao').innerHTML=`<small>PERGUNTAS DESTA MESA</small><b>${feitas.length} de ${total} fechadas</b><div class="colecao-marcas">${Object.keys(PARTIDAS).map(id=>`<span class="marca ${feitas.includes(id)?'on':''}">${feitas.includes(id)?PARTIDAS[id].nature:'?'}</span>`).join('')}</div><p>${feitas.length>=total?'A mesa fechou as seis. O rodízio recomeça em outra ordem, com outro dossiê.':'A próxima pergunta é sorteada pelo sistema — e nenhuma se repete antes que as seis tenham caído.'}</p>`;
+}
+
+/* ── O FECHO DA MESA ──────────────────────────────────────────────────────
+   Até 04/09/2026 não existia placar nenhum além do de cada aparelho: a nota
+   nascia e morria no telefone de quem a fez, e o telão anunciava a do Mestre
+   com o nome "A mesa". Agora cada um ENTREGA a sua, o Mestre arbitra, e o
+   pódio só existe quando a mesa inteira entregou.
+
+   NADA PARCIAL APARECE, para ninguém — nem para o Mestre, que também está
+   jogando. Entre a entrega e o pódio não há tela de "3 de 6 já fecharam" com
+   pontos: o que se sabe é quantos faltam, nunca quanto alguém fez. */
+let relogioFecho=null,fechoLigado=false;
+const PASSO_MS=9000, PODIO_MS=12000;
+
+function entregarAMesa(){
+ if(state.entregue)return;
+ state.entregue=true;
+ window.MosaicoPauta?.entregarNota?.(pontuar().total,state.game);
+}
+function ligarFecho(){
+ if(fechoLigado||!window.MosaicoPauta?.ouvirFecho)return;
+ fechoLigado=true;
+ window.MosaicoPauta.ouvirFecho(receberFecho);
+ window.MosaicoPauta.arbitrarPlacar?.(conduzirFecho);
+}
+/* Só o Mestre chega aqui, e a cada nota que entra.
+
+   ENQUANTO FALTA GENTE ELE NÃO FECHA — mas também não pode ficar refém de
+   quem fechou a aba e foi embora: sem esta saída, uma pessoa que sai da sala
+   sem entregar deixa a mesa inteira parada para sempre, com a tela grande na
+   pergunta e ninguém sabendo o que esperar. O Mestre ganha o botão, e ele diz
+   QUANTOS faltam — nunca quanto alguém fez. Contagem não é placar parcial. */
+function conduzirFecho(lista,entregues,total){
+ if(state.fechoComecou)return;
+ state.placar=lista;
+ if(total&&entregues>=total)return iniciarFecho();
+ if(!entregues)return;
+ window.DragonSala?.acao({
+  rotulo:`Fechar a mesa com ${entregues} de ${total||entregues}`,
+  texto:'Ainda falta alguém entregar a decisão. Se essa pessoa saiu da sala, feche agora — quem não entregou fica de fora do pódio.',
+  aoTocar:iniciarFecho
+ });
+}
+function iniciarFecho(){
+ if(state.fechoComecou)return;
+ state.fechoComecou=true;
+ window.DragonSala?.acao(null);
+ if(!state.telao)return void window.MosaicoPauta.publicarFecho({fase:'podio',placar:state.placar});
+ state.passos=passosDaRevelacao(false);state.passoFecho=0;
+ window.MosaicoPauta.publicarFecho({fase:'revelacao',passo:0,passos:state.passos});
+ agendarFecho();
+}
+/* No ritmo automático a tela grande anda sozinha; no conduzido quem anda é o
+   Mestre, pelo mesmo botão SALA que já pisca nas atividades. */
+function agendarFecho(){
+ clearTimeout(relogioFecho);
+ if(ritmoConduzido()){acaoDoFecho();return}
+ relogioFecho=setTimeout(avancarFecho,state.podioMostrado?PODIO_MS:PASSO_MS);
+}
+function avancarFecho(){
+ if(state.passoFecho<state.passos.length-1){
+  state.passoFecho++;
+  window.MosaicoPauta.publicarFecho({fase:'revelacao',passo:state.passoFecho,passos:state.passos});
+  return agendarFecho();
+ }
+ if(!state.podioMostrado){
+  state.podioMostrado=true;
+  window.MosaicoPauta.publicarFecho({fase:'podio',placar:state.placar});
+  return agendarFecho();
+ }
+ clearTimeout(relogioFecho);
+ window.MosaicoPauta.publicarFecho({fase:'detalhe'});
+ window.DragonSala?.acao(null);
+}
+function acaoDoFecho(){
+ const ultimo=state.passoFecho>=state.passos.length-1;
+ window.DragonSala?.acao({
+  rotulo:state.podioMostrado?'Abrir o relatório de cada um':ultimo?'Revelar o pódio':'Continuar a revelação',
+  texto:state.podioMostrado
+   ?'O pódio já está na tela grande. Isto solta a composição de pontos no aparelho de cada um.'
+   :'A tela grande está esperando você virar a página.',
+  aoTocar:avancarFecho
+ });
+}
+/* O que cada aparelho faz com o que a mesa publicou. Sem telão ele ignora as
+   fases de narração — a revelação é dele, no ritmo dele — e só guarda o pódio
+   para o relatório. */
+function receberFecho(f){
+ if(!f||!f.fase)return;
+ if(Array.isArray(f.placar))state.placar=f.placar;
+ if(!state.telao){if(state.screen==='score')renderScore();return}
+ /* Quem ainda não entregou a decisão não é arrastado para fora dela. */
+ if(!state.entregue)return;
+ if(f.fase==='revelacao'||f.fase==='podio'){
+  esperarTelao(f.fase==='podio'?'O pódio está na tela grande. Em seguida este aparelho abre a sua composição de pontos.':null);
+  if(state.screen!=='reveal')go('reveal');
+  return;
+ }
+ if(f.fase==='detalhe'&&state.screen!=='score'){renderScore();go('score')}
 }
 
 /* ── Ligações ──────────────────────────────────────────────────────────── */
@@ -759,7 +899,10 @@ $('finalForm').onsubmit=e=>{
  const dados=Object.fromEntries(new FormData(e.currentTarget));
  state.hipoteseFinal=(dados.__hip||'').split(' · ')[0];
  delete dados.__hip;
- state.final=dados;state.reveal=0;renderReveal();go('reveal');
+ state.final=dados;state.reveal=0;
+ entregarAMesa();
+ if(state.telao)esperarTelao();else renderReveal();
+ go('reveal');
 };
 $('nextReveal').onclick=()=>{
  if(state.reveal>=state.revealMax){renderScore();go('score')}

@@ -61,7 +61,10 @@
       appmod.initializeApp(CFG, 'dragon-pauta');
     const auth = authmod.getAuth(app);
     if (!auth.currentUser) await authmod.signInAnonymously(auth);
-    api = { fs, db: fs.getFirestore(app) };
+    /* A conta entra no api porque a nota que cada aparelho entrega precisa
+       dizer de quem é: a regra de `acoes` exige jogadorId == request.auth.uid,
+       e sem o uid o pedido é recusado. */
+    api = { fs, db: fs.getFirestore(app), auth };
     return api;
   }
 
@@ -91,18 +94,22 @@
 
     if (souMestre()) {
       const id = sortear();
+      const combinado = { ...(opcoes || {}), telao: usouTelao };
       try {
         await fs.updateDoc(ref, {
           'partida.pergunta': id,
           'partida.abertaEmMs': Date.now(),
-          'partida.opcoes': opcoes || null,
+          'partida.opcoes': combinado,
+          /* O fecho da rodada passada não pode sobreviver à nova: sem zerar,
+             o telão abriria a partida seguinte com o pódio da anterior. */
+          'partida.fecho': null,
         });
       } catch (e) {
         /* A mesa continua jogando com a pergunta sorteada; quem perde é a
            sincronia, não a partida de quem está com o aparelho na mão. */
         console.error('MOSAICO: não consegui gravar a pauta na sala.', e);
       }
-      return { pergunta: id, opcoes: opcoes || null };
+      return { pergunta: id, opcoes: combinado };
     }
 
     /* Convidado. Numa rodada nova ele precisa esperar a pergunta MUDAR, senão
@@ -147,6 +154,14 @@
      no próprio documento. */
   const VIVO_MS = 15000;
   const TETO_MS = 150000;
+
+  /* Se a abertura foi para a tela grande, a tela grande existe — e isso decide
+     o fecho inteiro: revelação e pódio só no telão, ou revelação em todos os
+     celulares. O Mestre já paga essa consulta uma vez, na abertura; guardá-la
+     evita perguntar de novo e, sobretudo, evita que os aparelhos discordem no
+     meio da partida se alguém desligar a TV. A resposta desce em
+     `partida.opcoes.telao`, junto com o resto do que o Mestre decidiu. */
+  let usouTelao = false;
 
   function espera(titulo, texto) {
     let d = document.getElementById('cfEsperaMesa');
@@ -214,7 +229,8 @@
         .catch((e) => console.error('MOSAICO: não avisei que a abertura acabou.', e))
         .finally(entrar);
 
-    if (await telaoVivo(fs, db, code)) {
+    usouTelao = await telaoVivo(fs, db, code);
+    if (usouTelao) {
       const token = Date.now();
       espera('A abertura está no telão',
         'A casa fala na tela grande. Os celulares ficam quietos até ela terminar.');
@@ -275,6 +291,128 @@
     }
   }
 
+  /* ── O PLACAR COLETIVO, QUE NÃO EXISTIA ──────────────────────────────────
+     A Mesa roda uma cópia por aparelho: cada um calculava a própria nota e ela
+     morria ali. O telão anunciava `{nome:'A mesa', pontos:…}` — que eram os
+     pontos de UM aparelho, o do Mestre, vestidos de coletivos. Numa sala de
+     seis pessoas isso é a mentira grande na tela grande que o cabeçalho do
+     telao.html manda não fazer.
+
+     Agora cada aparelho ENTREGA a própria nota em `acoes`, que é o que as
+     regras do Firestore deixam um convidado criar (`jogadorId == uid`), e o
+     Mestre arbitra: lê por ordem de chegada, arquiva em `partida.placar` e
+     carimba `atendido` — que só ele pode escrever, então uma nota não se
+     autoarquiva nem entra duas vezes. É o mesmo relé que A Noite usa em
+     `atenderPedidos`.
+
+     NENHUM PLACAR PARCIAL SAI DAQUI. As notas ficam guardadas e só viram
+     pódio quando a mesa inteira entregou — nem o Mestre vê antes, porque o
+     Mestre também está jogando. */
+  async function entregarNota(nome, pontos, partida) {
+    const code = codigo();
+    if (!code) return false;
+    try {
+      const { fs, db } = await firebase();
+      const uid = await meuUid();
+      await fs.addDoc(fs.collection(db, COLECAO, code, 'acoes'), {
+        jogadorId: uid, tipo: 'placar', nome: String(nome || 'Investigador').slice(0, 24),
+        pontos: Number(pontos) || 0, partida: partida || null,
+        pedidoEmMs: Date.now(), atendido: false,
+      });
+      return true;
+    } catch (e) {
+      console.error('MOSAICO: a nota não subiu para a mesa.', e);
+      return false;
+    }
+  }
+  async function meuUid() {
+    const { auth } = await firebase();
+    return auth?.currentUser?.uid || '';
+  }
+
+  /* Quantos são "todos": quem está na lista de jogadores da sala. O telão não
+     conta — ele não tem documento em `jogadores`. */
+  async function quantosNaMesa() {
+    const code = codigo();
+    if (!code) return 0;
+    try {
+      const { fs, db } = await firebase();
+      const s = await fs.getDocs(fs.collection(db, COLECAO, code, 'jogadores'));
+      return s.size;
+    } catch (e) {
+      console.error('MOSAICO: não consegui contar quem está na mesa.', e);
+      return 0;
+    }
+  }
+
+  let unsubNotas = null;
+  async function arbitrarPlacar(aoFechar) {
+    const code = codigo();
+    if (!code || !souMestre() || unsubNotas) return;
+    const { fs, db } = await firebase();
+    const ref = fs.doc(db, COLECAO, code);
+    let ocupado = false;
+    unsubNotas = fs.onSnapshot(
+      fs.query(fs.collection(db, COLECAO, code, 'acoes'), fs.orderBy('pedidoEmMs')),
+      async (snap) => {
+        if (ocupado) return;
+        const fila = snap.docs.filter((d) => {
+          const a = d.data() || {};
+          return a.tipo === 'placar' && !a.atendido;
+        });
+        if (!fila.length) return;
+        ocupado = true;
+        try {
+          const atual = await fs.getDoc(ref);
+          const placar = { ...((atual.exists() && atual.data()?.partida?.placar) || {}) };
+          for (const d of fila) {
+            const a = d.data() || {};
+            if (!placar[a.jogadorId]) placar[a.jogadorId] = { nome: a.nome, pontos: a.pontos };
+            await fs.updateDoc(d.ref, { atendido: true, atendidoEmMs: Date.now() });
+          }
+          await fs.updateDoc(ref, { 'partida.placar': placar });
+          const total = await quantosNaMesa();
+          aoFechar(
+            Object.values(placar).sort((x, y) => y.pontos - x.pontos),
+            Object.keys(placar).length,
+            total,
+          );
+        } catch (e) {
+          console.error('MOSAICO: falhei ao arquivar uma nota.', e);
+        } finally {
+          ocupado = false;
+        }
+      },
+      (e) => console.error('MOSAICO: perdi a fila de notas.', e),
+    );
+  }
+
+  /* ── O FECHO ────────────────────────────────────────────────────────────
+     Um objeto só, escrito pelo Mestre e lido por todos:
+       {fase:'revelacao', passo:n, passos:[…]}  → a tela grande narra
+       {fase:'podio', placar:[…]}               → a tela grande ordena
+       {fase:'detalhe'}                         → os celulares abrem a própria
+                                                   composição de pontos
+     Ele existe apenas quando há telão. Sem telão o Mestre não escreve nada e
+     cada celular faz a revelação no próprio ritmo, como sempre fez. */
+  function publicarFecho(fecho) {
+    return publicar({ 'partida.fecho': { ...fecho, emMs: Date.now() } });
+  }
+  let unsubFecho = null;
+  async function ouvirFecho(aoMudar) {
+    const code = codigo();
+    if (!code || unsubFecho) return;
+    try {
+      const { fs, db } = await firebase();
+      unsubFecho = fs.onSnapshot(fs.doc(db, COLECAO, code), (s) => {
+        const f = s.exists() ? s.data()?.partida?.fecho : null;
+        if (f && f.fase) aoMudar(f);
+      }, (e) => console.error('MOSAICO: perdi o fecho de vista.', e));
+    } catch (e) {
+      console.error('MOSAICO: não consegui ouvir o fecho.', e);
+    }
+  }
+
   /* O que a mesa mostra na tela grande. Só o Mestre grava — as regras do
      Firestore não deixam outro, e aqui ele é o único que joga de qualquer
      forma: esta Mesa roda num aparelho só.
@@ -304,17 +442,21 @@
       'publicState.placar': [],
     });
   }
-  function publicarFim(g, s) {
+  /* A RESOLUÇÃO SOBE; A NOTA, NÃO.
+     Aqui morava `[{nome:'A mesa', pontos: s.total}]` — os pontos do aparelho
+     do Mestre anunciados como se fossem da mesa. Quem publica pódio agora é o
+     fecho, com o placar que a mesa inteira entregou. */
+  function publicarFim(g) {
     if (!g) return;
     publicar({
       'publicState.resposta': g.answer || '',
-      'publicState.placar': [{ nome: 'A mesa', pontos: s?.total ?? 0 }],
       'publicState.encerradaEmMs': Date.now(),
     });
   }
 
   window.MosaicoPauta = {
     escolher, abertura, abrirAtividade, ouvirAtividade,
+    entregarNota, arbitrarPlacar, publicarFecho, ouvirFecho, quantosNaMesa,
     souMestre, temSala: () => !!codigo(), publicarPergunta, publicarFim,
   };
 })();
