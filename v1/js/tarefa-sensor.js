@@ -87,10 +87,19 @@
 
   /* Conteúdo narrativo específico do caso fica separado da engenharia dos
      sensores. Assim futuras correções de iOS não reabrem a realidade canônica. */
+  /* O caminho sai do endereço DESTE arquivo, não do documento. Para a Mesa dá
+     exatamente a mesma URL — o script mora em v1/js/ e o documento em v1/ —,
+     então nada muda hoje. Mas relativo ao documento é o que impede A Noite de
+     reaproveitar esta folha: de `v2/modulos/` viraria
+     `/Dragon/v2/modulos/js/sensor-…`, um 404 silencioso, e o módulo passaria a
+     contar o cânone antigo sem ninguém perceber. Devolver a extração perdida
+     começa por aqui. */
+  var AQUI = (document.currentScript && document.currentScript.src) ||
+    (function(){ var t=document.querySelector('script[src*="tarefa-sensor.js"]'); return t?t.src:location.href })();
   setTimeout(function(){
     if(document.querySelector('script[data-sensor-casa-costa-v2]'))return;
     var s=document.createElement('script');
-    s.src='js/sensor-casa-da-costa-v2.js?v=20260902-profundidade';
+    s.src=new URL('sensor-casa-da-costa-v2.js?v=20260902-profundidade', AQUI).href;
     s.dataset.sensorCasaCostaV2='1';
     document.head.appendChild(s);
   },0);
