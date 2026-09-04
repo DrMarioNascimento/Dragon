@@ -1865,19 +1865,25 @@ function tocarAberturaComAmbiente(aoTerminar,deslocamentoMs){
     return;
   }
   habilitarAudioNivel();
-  if(!_audioNivel||_audioNivel.state!=="running"){
-    if(typeof aoTerminar==="function")aoTerminar();
-    return;
-  }
+  /* ISTO PULAVA A ABERTURA, e era o defeito relatado no playtest.
+     `habilitarAudioNivel()` chama `resume()`, que é ASSÍNCRONO: no quadro
+     seguinte o contexto ainda está "suspended", e a linha abaixo lia isso como
+     "não dá para tocar" e CONCLUÍA a abertura. A casa nunca falava, e ninguém
+     entendia por quê — não havia erro, só silêncio e a tela passando.
+     Agora devolve `false` em vez de concluir: quem chamou tenta de novo no
+     próximo render, e o contexto entra em "running" assim que o resume
+     termina. Quem garante que a mesa não fica presa é o temporizador de
+     sincronizarAudioAbertura, não esta desistência. */
+  if(!_audioNivel||_audioNivel.state!=="running")return false;
   Promise.all([
     carregarVozNivel("tempestade"),
     carregarVozNivel("abertura"),
     carregarVozNivel("chuva")
   ]).then(function(buffers){
-    if(!_audioNivel||_audioNivel.state!=="running"){
-      if(typeof aoTerminar==="function")aoTerminar();
-      return;
-    }
+    /* Mesma regra aqui: o contexto pode ter caído entre o pedido e a chegada
+       dos buffers. Soltar a chave devolve a abertura para a próxima passada
+       em vez de dá-la por vista. */
+    if(!_audioNivel||_audioNivel.state!=="running"){_aberturaAudioChave="";return;}
     function prepararFonte(buffer,volume,repetir){
       if(!buffer)return null;
       var fonte=_audioNivel.createBufferSource(), ganho=_audioNivel.createGain();
@@ -1964,7 +1970,12 @@ function sincronizarAudioAbertura(){
   pararAudioAbertura();_aberturaAudioChave=chave;
   var decorrido=Math.max(0,Date.now()-inicio), restante=Math.max(0,DURACAO_ABERTURA_MS-decorrido);
   if(!restante){concluirAbertura();return;}
-  tocarAberturaComAmbiente(concluirAbertura,decorrido);
+  /* Se o áudio ainda não pôde começar — contexto retomando, buffer a caminho —
+     a chave é solta para que o próximo render tente de novo. O temporizador
+     entra de qualquer forma: ele é a garantia contra travar, não a desistência
+     do som. Sem soltar a chave, uma única tentativa cedo demais silenciava a
+     abertura inteira. */
+  if(tocarAberturaComAmbiente(concluirAbertura,decorrido)===false)_aberturaAudioChave="";
   _timerAbertura=setTimeout(concluirAbertura,restante+150);
 }
 function vozDaFase(fase){

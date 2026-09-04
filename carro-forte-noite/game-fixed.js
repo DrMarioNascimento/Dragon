@@ -633,10 +633,14 @@ function releaseAfterOpening() {
 window.addEventListener('mosaico-opening-finished', releaseAfterOpening);
 enterBtn.onclick = () => {
   state.players = +playerCount.value;
-  const isMaster =
-    window.MOSAICO_ROOM?.role === 'master' ||
-    new URLSearchParams(location.search).get('soloLab') === '1';
-  if (isMaster && window.MosaicoOpening?.show) {
+  /* A ABERTURA É DE TODOS.
+     Até 03/09/2026 isto era `if (isMaster && …)`: quem entrava pelo QR ia
+     direto para a pergunta e nunca via a abertura — a reunião começava para o
+     convidado sem que a casa tivesse falado. Era o "pulava a abertura" do
+     playtest, e não era falha de áudio: era o portão.
+     A abertura roda em CADA aparelho, com o som de cada um, porque é ela que
+     entrega o caso. Pular continua sendo escolha de quem assiste, no botão. */
+  if (window.MosaicoOpening?.show) {
     window.MosaicoOpening.show();
     return;
   }
