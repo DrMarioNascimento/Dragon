@@ -265,6 +265,7 @@ function fechadas(){return (lerRodizio().fechadas||[]).filter(id=>PARTIDAS[id])}
 function selectGame(id){
  state.game=id;state.semente=(Math.random()*0xffffffff)>>>0;state.hipoteseProv='';state.hipoteseFinal='';state.final={};state.reveal=0;state.sensorDone.clear();state.colhidos.clear();state.lotes=montarLotes();
  const g=PARTIDAS[id],cfg=DURACOES[state.duration];
+ window.MosaicoPauta?.publicarPergunta(g);
  $('gameNature').textContent=g.nature;
  $('gameTitle').textContent=g.title;
  $('gameQuestion').textContent=g.question;
@@ -484,6 +485,7 @@ function renderReveal(){
 function renderScore(){
  const g=PARTIDAS[state.game],s=pontuar(),hFinal=HIPOTESES.find(h=>h.id===state.hipoteseFinal);
  marcarFechada(state.game);
+ window.MosaicoPauta?.publicarFim(g,s);
  $('scoreTitle').textContent=g.title;
  $('totalScore').textContent=s.total;
  const rows=[['Campos da pergunta',s.campos,45],['Hipótese sustentada',s.hipotese,15],['Relações costuradas',s.relacoes,20],['Leitura do dossiê',s.leitura,10],['Atividades sensoriais',s.sensorial,10],['Revisão de hipótese',s.revisao,5]];

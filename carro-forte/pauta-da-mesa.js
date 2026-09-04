@@ -116,5 +116,43 @@
     });
   }
 
-  window.MosaicoPauta = { escolher, souMestre, temSala: () => !!codigo() };
+  /* O que a mesa mostra na tela grande. Só o Mestre grava — as regras do
+     Firestore não deixam outro, e aqui ele é o único que joga de qualquer
+     forma: esta Mesa roda num aparelho só.
+
+     Publica o que é da MESA e nada do que é de quem está com o aparelho na
+     mão: a pergunta, e no fim a resolução com o relatório. A tela grande não
+     recebe o dossiê de ninguém nem o que ainda está sendo decidido. */
+  async function publicar(patch) {
+    const code = codigo();
+    if (!code || !souMestre()) return;
+    try {
+      const { fs, db } = await firebase();
+      await fs.updateDoc(fs.doc(db, COLECAO, code), patch);
+    } catch (e) {
+      console.error('MOSAICO: não consegui publicar para o telão.', e);
+    }
+  }
+  function publicarPergunta(g) {
+    if (!g) return;
+    publicar({
+      'publicState.questionTitle': [g.title, g.nature].filter(Boolean).join(' · '),
+      'publicState.questionText': g.question || '',
+      'publicState.atualizadoEmMs': Date.now(),
+      /* Zera o fim da partida anterior: sem isto a resolução e o placar da
+         rodada passada ficariam na tela grande durante a rodada nova. */
+      'publicState.resposta': '',
+      'publicState.placar': [],
+    });
+  }
+  function publicarFim(g, s) {
+    if (!g) return;
+    publicar({
+      'publicState.resposta': g.answer || '',
+      'publicState.placar': [{ nome: 'A mesa', pontos: s?.total ?? 0 }],
+      'publicState.encerradaEmMs': Date.now(),
+    });
+  }
+
+  window.MosaicoPauta = { escolher, souMestre, temSala: () => !!codigo(), publicarPergunta, publicarFim };
 })();
