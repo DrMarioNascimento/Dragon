@@ -13,9 +13,20 @@ test("o card 03 abre o laboratório protegido", async () => {
 
   assert.match(home, /id="laboratorio-ra"/);
   assert.match(home, /id="ra-access-form"/);
-  assert.match(home, /type="password"/);
   assert.doesNotMatch(home, /03 · em breve/i);
-  assert.match(guard, /crypto\.subtle\.digest\("SHA-256"/);
+
+  /* A porta era uma senha — sha256 de uma constante escrita no próprio guard.
+     Virou o mesmo par que autoriza abrir mesa: conta Google mais a lista
+     `config/mestres`, que mora no Firestore e é lida do servidor. A diferença
+     que importa não é a tela: a senha estava no código-fonte, a lista não.
+
+     Estas asserções são pelo NEGATIVO de propósito. Uma senha é o caminho
+     fácil de voltar quando alguém quiser "só destravar rápido", e voltaria
+     junto o hash legível por quem abrisse o arquivo. */
+  assert.doesNotMatch(home, /type="password"/, "o campo de senha voltou ao card");
+  assert.doesNotMatch(guard, /SHA-256/, "a senha em sha256 voltou ao guard");
+  assert.match(guard, /GoogleAuthProvider/, "o guard não valida mais por conta Google");
+  assert.match(guard, /config["'],\s*["']mestres/, "o guard não confere mais a lista config/mestres");
   assert.match(guard, /sessionStorage/);
 });
 
