@@ -50,6 +50,15 @@
   }
 
   let api = null;
+  /* REAPROVEITA O APP DA SALA, e isto não é economia — é correção.
+     Este arquivo criava o próprio app (`dragon-telao-publica`) e fazia o
+     próprio `signInAnonymously`. Anônimo em app separado é OUTRO uid, e as
+     regras do Firestore só deixam gravar no documento da sala quem for o
+     Mestre: `room.mestreUid == request.auth.uid`. Com uid diferente, toda
+     gravação para o telão voltava negada — em silêncio, porque o catch só
+     escreve no console e o jogo segue.
+     `firebase-room.js` já criou `dragon-noite` e já autenticou quem entrou.
+     É desse app, e desse uid, que este arquivo precisa falar. */
   async function firebase() {
     if (api) return api;
     const [appmod, authmod, fs] = await Promise.all([
@@ -57,13 +66,18 @@
       import('https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js'),
       import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js'),
     ]);
-    const nome = 'dragon-telao-publica';
     const app =
-      appmod.getApps().find((a) => a.name === nome) || appmod.initializeApp(CFG, nome);
+      appmod.getApps().find((a) => a.name === 'dragon-noite') ||
+      appmod.getApps().find((a) => a.name === 'dragon-telao-publica') ||
+      appmod.initializeApp(CFG, 'dragon-telao-publica');
     const auth = authmod.getAuth(app);
     if (!auth.currentUser) await authmod.signInAnonymously(auth);
-    api = { db: fs.getFirestore(app), doc: fs.doc, updateDoc: fs.updateDoc };
+    api = { db: fs.getFirestore(app), doc: fs.doc, updateDoc: fs.updateDoc, auth };
     return api;
+  }
+  async function meuUid() {
+    const { auth } = await firebase();
+    return auth.currentUser?.uid || '';
   }
 
   /* Uma gravação falhada não pode derrubar o jogo de quem está com o telefone
@@ -199,5 +213,215 @@
     window.MosaicoOpening.show();
   }
 
-  window.MosaicoTelao = { publicar, publicarPergunta, abertura };
+
+  /* ── UM BARALHO SÓ, UMA MESA SÓ ──────────────────────────────────────────
+     Até aqui cada telefone embaralhava o próprio baralho com Math.random() e
+     tirava a própria mão. Duas consequências que ninguém via jogando: as mãos
+     eram DIFERENTES entre as pessoas, e o mesmo fragmento podia estar em dois
+     dossiês ao mesmo tempo. Um placar comparando essas partidas comparava
+     cartas diferentes.
+
+     Agora o Mestre reparte UMA vez e publica em `mesa`: quem está na sala
+     recebe a própria mão de lá, e o resto do baralho é a pilha comum.
+
+     Quem não é o Mestre não grava nada — as regras do Firestore só deixam o
+     dono da sala escrever no documento dela, e foi por ignorar isso que a
+     publicação do telão nasceu quebrada hoje de manhã.
+
+     Sem sala — ensaio, solo-lab —, devolve null e quem chamou reparte local,
+     exatamente como era. */
+  async function distribuir(todosIds, naMao) {
+    const code = codigoDaSala();
+    if (!code) return null;
+    let db, doc, updateDoc, fs2, uid;
+    try {
+      ({ db, doc, updateDoc } = await firebase());
+      fs2 = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js');
+      uid = await meuUid();
+      if (!uid) return null;
+    } catch (e) {
+      console.error('MOSAICO: sem Firebase para repartir a mesa.', e);
+      return null;
+    }
+    const ref = doc(db, 'noite', code);
+
+    const montar = (m, nomes) => ({
+      mao: (m.maos && m.maos[uid]) || [],
+      pool: m.pool || [],
+      jogadores: Object.keys(m.maos || {})
+        .filter((u) => u !== uid)
+        .map((u) => ({ uid: u, nome: nomes[u] || 'Investigador', naMao: (m.maos[u] || []).length })),
+    });
+
+    async function nomesDaSala() {
+      const snap = await fs2.getDocs(fs2.collection(db, 'noite', code, 'jogadores'));
+      const nomes = {};
+      snap.docs.forEach((d) => (nomes[d.id] = (d.data() || {}).nome || 'Investigador'));
+      return nomes;
+    }
+
+    if (souMestre()) {
+      const nomes = await nomesDaSala();
+      const naSala = Object.keys(nomes);
+      /* Se a sala ainda não registrou ninguém, não há o que repartir: cai no
+         local em vez de publicar uma mesa vazia que os outros esperariam. */
+      if (!naSala.length) return null;
+      const baralho = todosIds.slice();
+      for (let i = baralho.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [baralho[i], baralho[j]] = [baralho[j], baralho[i]];
+      }
+      const maos = {};
+      naSala.forEach((u) => (maos[u] = baralho.splice(0, naMao)));
+      const mesa = { maos, pool: baralho, distribuidoEmMs: Date.now() };
+      try {
+        await updateDoc(ref, { mesa });
+      } catch (e) {
+        console.error('MOSAICO: não consegui publicar a mesa repartida.', e);
+        return null;
+      }
+      return montar(mesa, nomes);
+    }
+
+    /* Convidado: espera a repartição do Mestre. Com teto — mesa que não chega
+       não pode deixar alguém olhando para uma tela parada; cai no local. */
+    const nomes = await nomesDaSala().catch(() => ({}));
+    return new Promise((resolve) => {
+      let pronto = false;
+      const acabou = (v) => { if (pronto) return; pronto = true; resolve(v); };
+      const un = fs2.onSnapshot(ref, (snap) => {
+        const m = (snap.exists() && snap.data()?.mesa) || null;
+        if (m && m.maos && m.maos[uid]) { un(); acabou(montar(m, nomes)); }
+      }, (e) => { console.error('MOSAICO: perdi a sala ao esperar a mesa.', e); acabou(null); });
+      setTimeout(() => { un(); acabou(null); }, 30000);
+    });
+  }
+
+
+  /* ── O QUE UM JOGADOR PEDE, O MESTRE APLICA ──────────────────────────────
+     As regras do Firestore não deixam um convidado escrever no documento da
+     sala; deixam ele CRIAR em `acoes` um pedido com o próprio uid. É o mesmo
+     arranjo que a Casa adotou no mercado (f0d84a5): pedir ao Mestre em vez de
+     gravar direto.
+
+     Sem isso a captura não tem como existir de verdade — ela move um fragmento
+     do dossiê de outra pessoa para o seu, e ninguém além do Mestre pode mexer
+     nos dois lados.
+
+     Todo caminho daqui tem queda macia: se o pedido não sobe, ou se a mesa não
+     responde, quem chamou continua com o estado local que já tinha. Um jogo
+     que trava é pior que um jogo dessincronizado. */
+  let unsubMesa = null, unsubAcoes = null;
+
+  async function ouvirMesa(aoMudar) {
+    const code = codigoDaSala();
+    if (!code || unsubMesa) return;
+    try {
+      const { db, doc } = await firebase();
+      const fs2 = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js');
+      const uid = await meuUid();
+      unsubMesa = fs2.onSnapshot(doc(db, 'noite', code), (snap) => {
+        const m = (snap.exists() && snap.data()?.mesa) || null;
+        if (m && m.maos) aoMudar(m, uid);
+      }, (e) => console.error('MOSAICO: perdi a mesa de vista.', e));
+      if (souMestre()) atenderPedidos();
+    } catch (e) {
+      console.error('MOSAICO: não consegui ouvir a mesa.', e);
+    }
+  }
+
+  async function pedir(tipo, dados) {
+    const code = codigoDaSala();
+    if (!code) return false;
+    try {
+      const { db } = await firebase();
+      const fs2 = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js');
+      const uid = await meuUid();
+      await fs2.addDoc(fs2.collection(db, 'noite', code, 'acoes'), {
+        jogadorId: uid, tipo, ...dados, pedidoEmMs: Date.now(), atendido: false,
+      });
+      return true;
+    } catch (e) {
+      console.error('MOSAICO: o pedido não subiu.', e);
+      return false;
+    }
+  }
+
+  /* O Mestre é o único árbitro. Ele lê os pedidos por ordem de chegada, aplica
+     sobre a mesa e carimba `atendido` — que só ele pode escrever, então um
+     pedido não se auto-atende nem é aplicado duas vezes. */
+  async function atenderPedidos() {
+    const code = codigoDaSala();
+    if (!code || unsubAcoes) return;
+    const { db, doc, updateDoc } = await firebase();
+    const fs2 = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js');
+    const ref = doc(db, 'noite', code);
+    let ocupado = false;
+    unsubAcoes = fs2.onSnapshot(
+      fs2.query(fs2.collection(db, 'noite', code, 'acoes'), fs2.orderBy('pedidoEmMs')),
+      async (snap) => {
+        if (ocupado) return;
+        const fila = snap.docs.filter((d) => !(d.data() || {}).atendido);
+        if (!fila.length) return;
+        ocupado = true;
+        try {
+          for (const d of fila) {
+            const a = d.data() || {};
+            const atual = await fs2.getDoc(ref);
+            const mesa = (atual.exists() && atual.data()?.mesa) || null;
+            if (!mesa || !mesa.maos) break;
+            const aplicado = aplicar(mesa, a);
+            if (aplicado) await updateDoc(ref, { mesa });
+            await updateDoc(d.ref, { atendido: true, atendidoEmMs: Date.now() });
+          }
+        } catch (e) {
+          console.error('MOSAICO: falhei ao atender um pedido.', e);
+        } finally {
+          ocupado = false;
+        }
+      },
+      (e) => console.error('MOSAICO: perdi a fila de pedidos.', e),
+    );
+  }
+
+  /* Muda a mesa NO LUGAR e diz se mudou. Cada regra confere de novo o que o
+     aparelho de quem pediu já tinha conferido: o pedido chega pela rede e
+     pode chegar tarde — a pilha esvaziou, a mão do alvo mudou. Quem arbitra
+     não confia no que foi pedido, confere no que a mesa tem agora. */
+  function aplicar(mesa, a) {
+    const minha = mesa.maos[a.jogadorId];
+    if (!minha) return false;
+    if (a.tipo === 'comprar') {
+      if (!mesa.pool || !mesa.pool.length) return false;
+      /* A pilha agora é de todos, e duas pessoas podem escolher a mesma peça
+         no mesmo segundo. Quem chega depois não fica sem compra: leva a do
+         topo. Recusar seria cobrar a moeda e não entregar nada. */
+      let i = a.fragmento ? mesa.pool.indexOf(a.fragmento) : 0;
+      if (i < 0) i = 0;
+      minha.push(mesa.pool.splice(i, 1)[0]);
+      return true;
+    }
+    if (a.tipo === 'capturar') {
+      const alvo = mesa.maos[a.alvo];
+      if (!alvo || !alvo.length) return false;
+      const i = Math.floor(Math.random() * alvo.length);
+      minha.push(alvo.splice(i, 1)[0]);
+      return true;
+    }
+    if (a.tipo === 'fechar') {
+      mesa.fechados = mesa.fechados || {};
+      if (mesa.fechados[a.campo]) return false;
+      mesa.fechados[a.campo] = a.nome || 'Investigador';
+      return true;
+    }
+    return false;
+  }
+
+  function pararDeOuvir() {
+    if (unsubMesa) { unsubMesa(); unsubMesa = null; }
+    if (unsubAcoes) { unsubAcoes(); unsubAcoes = null; }
+  }
+  window.addEventListener('beforeunload', pararDeOuvir);
+
+  window.MosaicoTelao = { publicar, publicarPergunta, abertura, distribuir, ouvirMesa, pedir };
 })();

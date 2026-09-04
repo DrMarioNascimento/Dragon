@@ -371,23 +371,67 @@ function render() {
     )
     .join('');
 }
+/* Os nomes de quem está na mesa, colhidos uma vez na repartição. O documento
+   da mesa guarda só as mãos por uid — nome ali dentro seria a mesma verdade em
+   dois lugares, e um deles ficaria velho. */
+const NOMES = {};
+/* A mesa manda, o estado local espelha. Chamado a cada mudança do documento:
+   minha compra, a captura que alguém fez em mim, o campo que outro fechou. */
+function aplicarMesa(mesa, uid) {
+  const maos = mesa.maos || {};
+  state.hand = (maos[uid] || []).map(byId).filter(Boolean);
+  state.pool = mesa.pool || [];
+  /* Do dossiê alheio guardo só o TAMANHO. Trazer os ids para cá seria pôr a
+     mão de todo mundo dentro de cada telefone — e a captura é cega de
+     propósito: leva um fragmento sorteado, não um escolhido. */
+  state.opponents = Object.keys(maos)
+    .filter((u) => u !== uid)
+    .map((u) => ({ uid: u, name: NOMES[u] || 'Investigador', hand: new Array((maos[u] || []).length).fill(null) }));
+  state.players = state.opponents.length + 1;
+  state.locked.clear();
+  state.lockedBy.clear();
+  Object.entries(mesa.fechados || {}).forEach(([i, nome]) => {
+    state.locked.add(+i);
+    state.lockedBy.set(+i, nome);
+  });
+  render();
+}
 function setup() {
   const q = QUESTIONS[state.question],
     deck = shuffle(FRAGMENTS.map((f) => f.id));
   state.coins = 12;
   state.score = 100;
   state.creditUsed = 0;
+  /* Zerado a cada partida: `playAgain` chama setup de novo, e uma segunda
+     rodada sem sala herdaria o `true` da primeira — passaria a pedir a uma
+     mesa que não existe mais, e as ações sumiriam sem erro. */
+  state.naMesa = false;
   state.turn = 0;
   state.log.length = 0;
   state.locked.clear();
   state.lockedBy.clear();
   state.burned.clear();
+  /* A repartição LOCAL fica como estava, e é o que vale sem sala: ensaio,
+     solo-lab, aparelho solto. Havendo sala, ela é substituída logo abaixo
+     pela repartição da mesa — um baralho só, mãos que não se repetem, e os
+     nomes de quem está de verdade em vez de `Arquivo 02`. */
   state.hand = deck.splice(0, 3).map(byId);
   state.opponents = Array.from({ length: state.players - 1 }, (_, i) => ({
     name: `Arquivo ${String(i + 2).padStart(2, '0')}`,
     hand: [],
   }));
   state.pool = deck;
+  window.MosaicoTelao?.distribuir(FRAGMENTS.map((f) => f.id), 3)
+    .then((m) => {
+      if (!m) return;
+      state.naMesa = true;
+      m.jogadores.forEach((j) => (NOMES[j.uid] = j.nome));
+      /* Não aplico o retorno de `distribuir`: quem entrega o estado é sempre
+         `ouvirMesa`, inclusive na primeira vez. Ter dois caminhos para a mesma
+         coisa é ter dois lugares onde ela pode ficar diferente. */
+      window.MosaicoTelao.ouvirMesa(aplicarMesa);
+    })
+    .catch((e) => console.error('MOSAICO: mesa repartida falhou; segue a local.', e));
   gameNature.textContent = q.nature;
   gameTitle.textContent = q.title;
   questionBanner.textContent = q.question;
@@ -419,10 +463,18 @@ function buy() {
         const id = b.dataset.buy,
           p = state.pool.indexOf(id);
         if (p < 0) return;
-        state.pool.splice(p, 1);
-        state.hand.push(byId(id));
         state.coins -= 4;
-        nota(actorName() + ': comprou ' + byId(id).title + '.');
+        if (state.naMesa) {
+          /* A pilha é uma só. Tirar daqui e esperar a mesa concordar deixaria
+             duas versões dela vivas por um instante — e é nesse instante que
+             duas pessoas compram a mesma peça. */
+          window.MosaicoTelao.pedir('comprar', { fragmento: id });
+          nota(actorName() + ': comprou da pilha.');
+        } else {
+          state.pool.splice(p, 1);
+          state.hand.push(byId(id));
+          nota(actorName() + ': comprou ' + byId(id).title + '.');
+        }
         render();
         close();
         next();
@@ -453,11 +505,21 @@ function capture() {
       (b.onclick = () => {
         const o = state.opponents[+b.dataset.cap - 2];
         if (!o?.hand.length) return;
-        const id = o.hand[Math.floor(Math.random() * o.hand.length)];
-        o.hand.splice(o.hand.indexOf(id), 1);
-        state.hand.push(byId(id));
         state.coins -= 2;
-        nota(actorName() + ': capturou ' + byId(id).title + ' de ' + o.name + '.');
+        if (state.naMesa) {
+          /* Havendo mesa, quem move o fragmento é o Mestre: tirar do dossiê de
+             outra pessoa e pôr no meu são dois lados, e nenhum aparelho pode
+             escrever no do vizinho. O sorteio de QUAL fragmento também é dele
+             — feito aqui, seria escolher olhando uma mão que este telefone nem
+             conhece. A tela repinta quando a mesa responder. */
+          window.MosaicoTelao.pedir('capturar', { alvo: o.uid });
+          nota(actorName() + ': pediu captura no dossiê de ' + o.name + '.');
+        } else {
+          const id = o.hand[Math.floor(Math.random() * o.hand.length)];
+          o.hand.splice(o.hand.indexOf(id), 1);
+          state.hand.push(byId(id));
+          nota(actorName() + ': capturou ' + byId(id).title + ' de ' + o.name + '.');
+        }
         render();
         close();
         next();
@@ -497,6 +559,11 @@ function riskField(i) {
           state.locked.add(i);
           state.lockedBy.set(i, actorName());
           state.coins += 3;
+          /* "Se acertar, ele fecha para todos" — a tela dizia isso desde
+             agosto e fechava só neste aparelho. Agora o campo sobe para a
+             mesa e desce para os outros dossiês. O local segue marcado na
+             hora: quem acertou não deve esperar a rede para ver. */
+          if (state.naMesa) window.MosaicoTelao.pedir('fechar', { campo: i, nome: actorName() });
           window.dispatchEvent(
             new CustomEvent('mosaico-public-field-closed', {
               detail: {
