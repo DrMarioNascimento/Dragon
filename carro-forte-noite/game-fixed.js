@@ -375,6 +375,97 @@ function render() {
    da mesa guarda só as mãos por uid — nome ali dentro seria a mesma verdade em
    dois lugares, e um deles ficaria velho. */
 const NOMES = {};
+
+/* ── O FECHO ───────────────────────────────────────────────────────────────
+   Até 03/09/2026 a reunião não acabava: fechava-se o último campo e o turno
+   seguia girando, o cronômetro rodando, o `risk()` só voltando vazio. Não era
+   caso de borda — era o destino de toda partida.
+
+   A PONTUAÇÃO ABAIXO É PROVISÓRIA e foi montada com o que a economia do jogo
+   já produz, não inventada por cima dela: quem fecha campo faz a mesa andar,
+   quem erra queima a própria chance, e moeda que sobra é risco que não foi
+   preciso correr. Os números são o palpite mais defensável que consegui, não
+   uma decisão de desenho — essa é do Mario. Estão todos aqui, num lugar só,
+   de propósito: trocar a tabela é trocar estas quatro linhas. */
+const PONTOS = {
+  campoFechado: 25, /* o que move a dedução da mesa inteira */
+  campoQueimado: -10, /* errar custa, mas não afunda */
+  moedaQueSobra: 2, /* eficiência: não precisou comprar para chegar lá */
+  fragmentoNaMao: 1, /* leitura acumulada, vale pouco de propósito */
+};
+function pontuar() {
+  const eu = actorName(1);
+  const fechados = [...state.lockedBy.values()].filter((n) => n === eu).length;
+  const linhas = [
+    ['Campos que você fechou', fechados, fechados * PONTOS.campoFechado],
+    ['Campos que você queimou', state.burned.size, state.burned.size * PONTOS.campoQueimado],
+    ['Moedas que sobraram', state.coins, state.coins * PONTOS.moedaQueSobra],
+    ['Fragmentos no dossiê', state.hand.length, state.hand.length * PONTOS.fragmentoNaMao],
+  ];
+  return { linhas, total: linhas.reduce((s, l) => s + l[2], 0), fechados };
+}
+
+let fimDado = false;
+/* Chamado dos dois lados: de quem acabou de fechar o último campo, e de quem
+   soube pela mesa que outro fechou. O guarda existe porque as duas coisas
+   acontecem no mesmo aparelho quando quem fecha é você. */
+function conferirFim() {
+  if (fimDado || !state.question) return;
+  const q = QUESTIONS[state.question];
+  if (state.locked.size < q.fields.length) return;
+  fimDado = true;
+  clearInterval(state.timer);
+  const p = pontuar();
+  if (state.naMesa) window.MosaicoTelao.pedir('placar', { pontos: p.total, nome: actorName(1) });
+  mostrarFim(p, q);
+}
+function mostrarFim(p, q) {
+  const tabela = p.linhas
+    .map(
+      (l) =>
+        `<div style="display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid #ffffff14">
+           <span>${l[0]}<small style="color:#8fa4ad"> · ${l[1]}</small></span><b>${l[2] > 0 ? '+' : ''}${l[2]}</b></div>`,
+    )
+    .join('');
+  modal(
+    'FIM DA REUNIÃO',
+    'O dossiê está fechado',
+    /* Não existe um `q.answer` em prosa — a resolução DESTA pergunta são os
+       campos com o valor certo, que é o que a mesa passou a noite fechando.
+       Mostrar campo a campo, com quem fechou cada um, é o relatório. */
+    `<p><b>${q.question}</b></p>` +
+      `<div style="margin:12px 0">${q.fields
+        .map(
+          (f, i) =>
+            `<div style="display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid #ffffff10">
+               <span>${f}<br><small style="color:#8fa4ad">${state.lockedBy.get(i) || '—'}</small></span>
+               <b style="text-align:right">${q.answers[i]}</b></div>`,
+        )
+        .join('')}</div>` +
+      `<div style="margin:14px 0">${tabela}</div>` +
+      `<div style="display:flex;justify-content:space-between;font-size:19px"><b>Sua pontuação</b><b>${p.total}</b></div>` +
+      `<p class="muted" id="fimPlacar" style="margin-top:12px">${state.naMesa ? 'Aguardando o fechamento dos outros dossiês…' : ''}</p>`,
+  );
+}
+/* O placar da mesa chega pelo documento, e só quando todo mundo fechou: quem
+   termina primeiro não pode ver a nota de quem ainda está jogando — é a regra
+   do "sem ranking ao vivo", que vale até o último dossiê fechar. */
+function pintarPlacar(placar) {
+  const alvo = document.getElementById('fimPlacar');
+  if (!alvo || !placar) return;
+  const gente = Object.entries(placar);
+  if (gente.length < state.opponents.length + 1) return;
+  const ordem = gente.sort((a, b) => (b[1].pontos || 0) - (a[1].pontos || 0));
+  alvo.innerHTML =
+    '<b style="display:block;margin-bottom:6px">Placar da mesa</b>' +
+    ordem
+      .map(
+        ([, v], i) =>
+          `<div style="display:flex;justify-content:space-between;padding:5px 0">
+             <span>${i + 1}º · ${v.nome || 'Investigador'}</span><b>${v.pontos || 0}</b></div>`,
+      )
+      .join('');
+}
 /* A mesa manda, o estado local espelha. Chamado a cada mudança do documento:
    minha compra, a captura que alguém fez em mim, o campo que outro fechou. */
 function aplicarMesa(mesa, uid) {
@@ -395,6 +486,8 @@ function aplicarMesa(mesa, uid) {
     state.lockedBy.set(+i, nome);
   });
   render();
+  conferirFim();
+  pintarPlacar(mesa.placar);
 }
 function setup() {
   const q = QUESTIONS[state.question],
@@ -406,6 +499,9 @@ function setup() {
      rodada sem sala herdaria o `true` da primeira — passaria a pedir a uma
      mesa que não existe mais, e as ações sumiriam sem erro. */
   state.naMesa = false;
+  /* Zerado junto: sem isto a segunda partida nasceria já encerrada, e o fecho
+     nunca mais apareceria na mesma sessão. */
+  fimDado = false;
   state.turn = 0;
   state.log.length = 0;
   state.locked.clear();
@@ -578,7 +674,11 @@ function riskField(i) {
         nota(actorName() + (v === q.answers[i] ? ': fechou ' : ': errou ') + q.fields[i] + '.');
         render();
         close();
-        next();
+        /* Sem mesa, quem percebe o fim é este aparelho — não há documento para
+           avisar. Com mesa, `aplicarMesa` também chama, e o guarda `fimDado`
+           impede a segunda. */
+        conferirFim();
+        if (!fimDado) next();
       }),
   );
 }

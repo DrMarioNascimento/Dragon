@@ -371,7 +371,23 @@
             const mesa = (atual.exists() && atual.data()?.mesa) || null;
             if (!mesa || !mesa.maos) break;
             const aplicado = aplicar(mesa, a);
-            if (aplicado) await updateDoc(ref, { mesa });
+            if (aplicado) {
+              await updateDoc(ref, { mesa });
+              /* O telão só sabe ler `publicState`. Quando o último dossiê
+                 fecha, o placar deixa de ser dado interno e vira o que a sala
+                 inteira está olhando — é o único momento em que nota vai para
+                 a tela grande, porque ranking ao vivo muda como se joga. */
+              const todos = Object.keys(mesa.maos || {}).length;
+              const notas = Object.entries(mesa.placar || {});
+              if (todos && notas.length >= todos) {
+                await updateDoc(ref, {
+                  'publicState.placar': notas
+                    .map(([, v]) => ({ nome: v.nome, pontos: v.pontos }))
+                    .sort((x, y) => y.pontos - x.pontos),
+                  'publicState.encerradaEmMs': Date.now(),
+                }).catch((e) => console.error('MOSAICO: placar não subiu ao telão.', e));
+              }
+            }
             await updateDoc(d.ref, { atendido: true, atendidoEmMs: Date.now() });
           }
         } catch (e) {
@@ -406,6 +422,15 @@
       if (!alvo || !alvo.length) return false;
       const i = Math.floor(Math.random() * alvo.length);
       minha.push(alvo.splice(i, 1)[0]);
+      return true;
+    }
+    if (a.tipo === 'placar') {
+      /* Cada um manda a própria nota quando fecha o dossiê. O Mestre só
+         arquiva: recalcular aqui exigiria a mão e os campos queimados de
+         todo mundo, que são justamente o que não sobe para a mesa. */
+      mesa.placar = mesa.placar || {};
+      if (mesa.placar[a.jogadorId]) return false;
+      mesa.placar[a.jogadorId] = { pontos: Number(a.pontos) || 0, nome: a.nome || 'Investigador' };
       return true;
     }
     if (a.tipo === 'fechar') {
