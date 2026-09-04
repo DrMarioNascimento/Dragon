@@ -321,10 +321,19 @@ test("sem telão a revelação continua em todos os jogadores", () => {
     /if\(state\.telao\)esperarTelao\(\);else renderReveal\(\);/,
     "sem telão o aparelho deixou de fazer a própria revelação",
   );
+  /* Sem telão o Mestre nem publica revelação: vai direto ao pódio. A própria
+     existência de uma revelação em fases é o sinal de que há tela grande — e é
+     por isso que o convidado acerta mesmo se a TV foi ligada no meio da
+     partida, depois de `state.telao` já ter sido decidido na abertura. */
   assert.match(
     GAME,
-    /if\(!state\.telao\)\{if\(state\.screen==='score'\)renderScore\(\);return\}/,
-    "sem telão o aparelho passou a obedecer as fases da tela grande",
+    /const naTelaGrande=f\.fase==='revelacao'\|\|\(state\.telao&&f\.fase==='podio'\);/,
+    "o aparelho voltou a decidir sozinho onde o fecho acontece",
+  );
+  assert.match(
+    GAME,
+    /if\(f\.fase==='podio'\)\{if\(state\.screen==='score'\)renderScore\(\);return\}/,
+    "sem telão o pódio deixou de chegar ao relatório do celular",
   );
 });
 
@@ -374,13 +383,17 @@ test("toda fase da partida tem prazo, e ele mora num lugar só", () => {
 });
 
 test("o prazo da fase é da mesa, não do aparelho", () => {
-  assert.match(PAUTA, /'partida\.fase': \{ nome/, "a fase aberta não sobe para a sala");
+  assert.match(PAUTA, /'partida\.fase': \{\s*\n\s*nome, rotulo/, "a fase aberta não sobe para a sala");
   assert.match(GAME, /function abrirFase\(nome\)/, "ninguém abre fase");
   assert.match(
     GAME,
-    /if\(salaCodigo\(\)&&souMestreDaSala\(\)\)window\.MosaicoPauta\?\.abrirFase/,
+    /if\(salaCodigo\(\)&&souMestreDaSala\(\)\)window\.MosaicoPauta\?\.abrirFase\?\.\(nome,fim,state\.game,/,
     "o convidado voltou a publicar a própria fase, e a mesa desanda",
   );
+  /* O telão serve todas as mesas e não conhece as fases de nenhuma: o rótulo
+     viaja com a fase, senão a tela grande escreveria 'evidence' em inglês. */
+  assert.match(PAUTA, /rotulo: rotulo \|\| nome/, "a fase sobe sem rótulo para a tela grande");
+  assert.match(TELAO, /function faseHtml\(f\)/, "a tela grande não desenha a fase nem o que falta dela");
 });
 
 /* Quem chegou tarde não é salvo por isso. */
@@ -425,5 +438,19 @@ test("o ponto sensorial mede o que foi alcançado, não quantas atividades acaba
     GAME,
     /const sensorial=doSensor\?Math\.round\(state\.colhidos\.size\/doSensor\*10\):0;/,
     "o ponto sensorial deixou de medir a colheita",
+  );
+});
+
+/* A resolução era publicada dentro de renderScore(), que só roda quando o
+   fecho chega em 'detalhe' — DEPOIS do pódio. O telão desenhava o pódio com o
+   título vazio: um <h1> em branco na tela grande, na frente da mesa inteira,
+   exatamente no instante em que todos estão olhando para lá. */
+test("a resolução chega ao telão antes do pódio, não depois", () => {
+  const fecho = GAME.match(/function iniciarFecho\(\)\{[\s\S]*?\n\}/)?.[0] || "";
+  assert.match(fecho, /publicarFim\(PARTIDAS\[state\.game\]\)/, "a resolução não sobe quando o fecho começa");
+  const score = GAME.match(/function renderScore\(\)\{[\s\S]*?\n\}/)?.[0] || "";
+  assert.ok(
+    !/publicarFim/.test(score),
+    "a resolução voltou a subir só no relatório, tarde demais para o pódio",
   );
 });

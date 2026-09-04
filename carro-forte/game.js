@@ -555,7 +555,10 @@ function abrirFase(nome){
  if(!nome)return;
  const prazo=fasePrazoMs(nome);
  const fim=prazo?Date.now()+prazo:0;
- if(salaCodigo()&&souMestreDaSala())window.MosaicoPauta?.abrirFase?.(nome,fim,state.game);
+ /* O rótulo viaja junto porque quem desenha a tela grande não conhece as
+    fases deste jogo — o telão serve todas as mesas e o que muda entre elas é
+    uma tabela, não um arquivo. */
+ if(salaCodigo()&&souMestreDaSala())window.MosaicoPauta?.abrirFase?.(nome,fim,state.game,FASES[nome]||nome.toUpperCase());
  aplicarFase({nome,fimMs:fim});
 }
 function aplicarFase(f){
@@ -832,7 +835,6 @@ function esperarTelao(recado){
 function renderScore(){
  const g=PARTIDAS[state.game],s=pontuar(),hFinal=HIPOTESES.find(h=>h.id===state.hipoteseFinal);
  marcarFechada(state.game);
- window.MosaicoPauta?.publicarFim(g);
  /* COM TELÃO O PÓDIO NÃO SE REPETE AQUI: ele já foi na tela grande, e este
     aparelho mostra só o que é desta pessoa. Sem telão, é aqui que ele mora —
     e só aparece quando a mesa inteira entregou, nunca parcial. */
@@ -911,6 +913,19 @@ function iniciarFecho(){
  if(state.fechoComecou)return;
  state.fechoComecou=true;
  window.DragonSala?.acao(null);
+ /* A TV PODE TER SIDO LIGADA DEPOIS. `state.telao` foi decidido lá atrás, na
+    abertura, e ficaria mentindo pelo resto da partida: alguém liga o telão no
+    meio e o fecho ainda cairia nos celulares, com a tela grande parada na
+    pergunta. O Mestre é quem escuta a presença do telão ao vivo, então ele
+    confere de novo na hora que importa. O contrário — telão que morreu — não
+    precisa de conserto: o teto do fecho já solta a mesa. */
+ if(window.DragonSala?.telaoPronto?.())state.telao=true;
+ /* A RESOLUÇÃO SOBE AQUI, e não no relatório. Ela era publicada em
+    renderScore(), que só roda quando o fecho chega em 'detalhe' — DEPOIS do
+    pódio. O telão desenhava o pódio com o título da resolução vazio: um <h1>
+    em branco na tela grande, na frente da mesa inteira, no momento em que
+    todos estão olhando para lá. */
+ window.MosaicoPauta?.publicarFim(PARTIDAS[state.game]);
  if(!state.telao)return void window.MosaicoPauta.publicarFecho({fase:'podio',placar:state.placar});
  state.passos=passosDaRevelacao(false);state.passoFecho=0;
  window.MosaicoPauta.publicarFecho({fase:'revelacao',passo:0,passos:state.passos});
@@ -954,15 +969,21 @@ function acaoDoFecho(){
 function receberFecho(f){
  if(!f||!f.fase)return;
  if(Array.isArray(f.placar))state.placar=f.placar;
- if(!state.telao){if(state.screen==='score')renderScore();return}
- /* Quem ainda não entregou a decisão não é arrastado para fora dela. */
- if(!state.entregue)return;
- if(f.fase==='revelacao'||f.fase==='podio'){
+ /* QUEM MANDA É O QUE O MESTRE PUBLICOU, não o que este aparelho achou lá na
+    abertura. Uma revelação em fases só é publicada quando há telão — sem ele o
+    Mestre vai direto ao pódio —, então a própria existência dela é o sinal, e
+    o convidado acerta mesmo que a TV tenha sido ligada depois. */
+ const naTelaGrande=f.fase==='revelacao'||(state.telao&&f.fase==='podio');
+ if(naTelaGrande){
+  /* Quem ainda não entregou a decisão não é arrastado para fora dela. */
+  if(!state.entregue)return;
+  if(f.fase==='revelacao')state.telao=true;
   esperarTelao(f.fase==='podio'?'O pódio está na tela grande. Em seguida este aparelho abre a sua composição de pontos.':null);
   if(state.screen!=='reveal')go('reveal');
   return;
  }
- if(f.fase==='detalhe'&&state.screen!=='score'){renderScore();go('score')}
+ if(f.fase==='podio'){if(state.screen==='score')renderScore();return}
+ if(f.fase==='detalhe'&&state.entregue&&state.screen!=='score'){renderScore();go('score')}
 }
 
 /* ── Ligações ──────────────────────────────────────────────────────────── */

@@ -286,13 +286,16 @@
      comentário, com uma pessoa no dossiê enquanto a outra ainda lê a pauta.
 
      Quem abre é o Mestre, e o instante do fim desce daqui. */
-  async function abrirFase(nome, fimMs, partida) {
+  async function abrirFase(nome, fimMs, partida, rotulo) {
     const code = codigo();
     if (!code || !souMestre()) return;
     try {
       const { fs, db } = await firebase();
       await fs.updateDoc(fs.doc(db, COLECAO, code), {
-        'partida.fase': { nome, partida: partida || null, abertaEmMs: Date.now(), fimMs: fimMs || 0 },
+        'partida.fase': {
+          nome, rotulo: rotulo || nome, partida: partida || null,
+          abertaEmMs: Date.now(), fimMs: fimMs || 0,
+        },
       });
     } catch (e) {
       console.error('MOSAICO: não consegui abrir a fase para a mesa.', e);

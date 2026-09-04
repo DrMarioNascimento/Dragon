@@ -77,6 +77,15 @@ body{margin:0;width:100%;min-height:100%;background:transparent;color:var(--ink)
    do Mario, 04/09/2026. O que NÃO vem para cá é tudo que é de uma pessoa: o
    dossiê, a composição de pontos, o passo "hipóteses que caem" (que se calcula
    a partir do dossiê de quem lê). O que é privado continua privado. */
+/* A FASE E O QUE FALTA DELA. Da pauta à decisão a tela grande ficava parada
+   na pergunta enquanto a mesa inteira corria contra um relógio que só existia
+   nos celulares — e o relógio é justamente o que a mesa precisa ver de longe. */
+.fase{display:grid;grid-template-columns:1fr auto;gap:2vw;align-items:center;
+  border:1px solid #3d5e70;background:#0a171fe8;padding:1.2vw 1.6vw;border-radius:1vw}
+.fase small{display:block;font:700 clamp(10px,1vw,15px) monospace;letter-spacing:.22em;color:var(--muted)}
+.fase b{font:700 clamp(24px,3vw,52px) Georgia,serif;color:var(--ink)}
+.fase strong{font:800 clamp(34px,5vw,84px)/1 monospace;color:var(--ouro)}
+.fase strong.urgente{color:#ff9b8b}
 .fecho{min-height:100vh;display:grid;place-items:center;padding:6vh 5vw;text-align:center}
 .fecho-card{width:min(1200px,94vw);padding:3vw;border:1px solid #3d5e70;background:#0a171fee;border-radius:1vw}
 .fecho-passo{font:700 clamp(12px,1.4vw,20px) monospace;letter-spacing:.22em;color:var(--ouro)}
@@ -264,13 +273,30 @@ else{
          ${pub.turnName?`<div class="turn"><small>VEZ</small><b>${esc(pub.turnName)}</b><strong>${esc(pub.timer||'00:00')}</strong></div>`:''}
        </section>
        <section class="question"><small>${esc(pub.questionTitle||'PERGUNTA')}</small><h1>${esc(pub.questionText)}</h1></section>
+       ${faseHtml(room?.partida?.fase)}
        ${pub.resposta?`<section class="question"><small>RESOLUÇÃO</small><h1>${esc(pub.resposta)}</h1></section>`:''}
        ${fs.length?`<section class="fields">${fs.map(f=>`<article class="field"><b>${esc(f.label)}</b><span>${f.closed?'FECHADO · '+esc(f.closedBy||'—'):'EM ABERTO'}</span></article>`).join('')}</section>`:''}
        ${pub.placar&&pub.placar.length?`<section class="players"><h2>Placar</h2><div class="grid">${pub.placar.map((x,i)=>`<article class="player${i===0?' podio':''}"><b>${i+1}º · ${esc(x.nome||'Investigador')}</b><span>${esc(x.pontos)} pontos</span></article>`).join('')}</div></section>`:''}
        <section class="players"><h2>Na mesa</h2><div class="grid">${ps.map(x=>`<article class="player"><b>${esc(x.name||x.nome||'Jogador')}</b><span>${x.fragments??x.fragmentos??null?esc(x.fragments??x.fragmentos)+' fragmentos · ':''}${esc(x.state||'presente')}</span></article>`).join('')}</div></section>`;
   }
 
-  onSnapshot(roomRef,s=>{room=s.exists()?s.data():null;if(room){consume(room);render()}},
+  /* O relógio da fase é desenhado aqui e atualizado de segundo em segundo sem
+     redesenhar a tela toda: o snapshot só chega quando a sala muda, e a mesa
+     não pode ficar olhando um número parado. */
+  function faseHtml(f){
+    if(!f||!f.nome||!f.fimMs)return '';
+    return `<section class="fase"><div><small>FASE</small><b>${esc(f.rotulo||f.nome)}</b></div><strong id="faseRelogio">--:--</strong></section>`;
+  }
+  function pintarFase(){
+    const el=document.getElementById('faseRelogio'),f=room?.partida?.fase;
+    if(!el||!f?.fimMs)return;
+    const r=Math.max(0,Math.ceil((f.fimMs-Date.now())/1000));
+    el.textContent=`${String(Math.floor(r/60)).padStart(2,'0')}:${String(r%60).padStart(2,'0')}`;
+    el.classList.toggle('urgente',r<=10);
+  }
+  setInterval(pintarFase,1000);
+
+  onSnapshot(roomRef,s=>{room=s.exists()?s.data():null;if(room){consume(room);render();pintarFase()}},
     e=>{waitMsg.textContent='Perdi a sala de vista. Reabra o QR.';console.error(e)});
   onSnapshot(collection(db,jogo.colecao,code,'jogadores'),s=>{
     players=s.docs.map(d=>d.data()).map(x=>({name:x.nome,state:'presente'}));render();
