@@ -18,9 +18,20 @@
         data-storage-keys="mosaico_casa_ultima_partida_solo,mosaico_solo_costa_cloud"></script>
 <script>
 (function(){
+  /* A abertura vem ANTES do jogo carregar, não depois: se carregasse junto, a
+     primeira tela do Solo apareceria por baixo dela e o jogador já teria lido
+     a pergunta quando a casa começasse a falar. Se o arquivo da abertura não
+     chegar, `onerror` segue direto — o Solo nunca fica preso esperando. */
   function iniciar(){
     if(window.__mosaicoSoloIniciado)return;
     window.__mosaicoSoloIniciado=true;
+    var ab=document.createElement('script');
+    ab.src='../abertura-casa.js?v=20260903-abertura1';
+    ab.onload=function(){window.MosaicoAberturaCasa.mostrar(carregarJogo)};
+    ab.onerror=function(){console.error('MOSAICO: abertura não carregou.');carregarJogo()};
+    document.head.appendChild(ab);
+  }
+  function carregarJogo(){
     var jogo=document.createElement('script');
     jogo.src='solo-auto.js?v=20260902-banco';
     jogo.onload=function(){

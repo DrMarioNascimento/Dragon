@@ -140,13 +140,29 @@ function listen(){
   unsubRoom=ref.onSnapshot(s=>{roomData=s.exists?s.data():null;if(!roomData){renderMenu();return;}if(roomData.fase!=='sala'){launchOnline();return;}if(localScreen==='preparation')renderPreparation();});
   unsubPlayers=ref.collection('jogadores').orderBy('entrouMs').onSnapshot(s=>{players=s.docs.map(d=>({id:d.id,...d.data()}));ownPlayer=myPlayer();if(localScreen==='preparation')renderPreparation();});
 }
+/* A ABERTURA É OBRIGATÓRIA, e vem antes do jogo (03/09/2026). A Noite da Casa
+   não tinha nenhuma: o dossiê simplesmente aparecia. Roda em CADA aparelho,
+   com o som de cada um, e é a mesma narração da Mesa — mesmo caso, mesma voz.
+
+   `abertura-casa.js` mora na RAIZ, não aqui: tudo em v2/ é apagado e
+   recopiado a cada publicação, e só mosaico-web/public/ sobrevive. Daqui o
+   caminho é ../, que de /Dragon/v2/ cai em /Dragon/.
+
+   Se ela não carregar, o jogo entra assim mesmo — clima nunca segura a mesa. */
+function comAbertura(seguir){
+  const a=document.createElement('script');
+  a.src='../abertura-casa.js?v=20260903-abertura1';
+  a.onload=()=>window.MosaicoAberturaCasa.mostrar(seguir);
+  a.onerror=()=>{console.error('MOSAICO: abertura não carregou.');seguir()};
+  document.head.appendChild(a);
+}
 function launchOnline(){
   if(window.__MOSAICO_NOITE_LAUNCHED)return;window.__MOSAICO_NOITE_LAUNCHED=true;
   window.MosaicoSala={online:true,role,roomCode,roomData,players,auth,db};const id=roomData.partidaId||'sete',idx=ORDEM.indexOf(id);
   try{localStorage.setItem(ROT,ORDEM[(idx-1+ORDEM.length)%ORDEM.length]);localStorage.removeItem('mosaico_noite_costa_auto');}catch(e){}
-  root.innerHTML='';const s=document.createElement('script');s.src='noite-auto.js?v=20260902-tecnica';document.body.appendChild(s);
+  root.innerHTML='';comAbertura(()=>{const s=document.createElement('script');s.src='noite-auto.js?v=20260902-tecnica';document.body.appendChild(s)});
 }
-function launchLocal(){window.__MOSAICO_NOITE_LAUNCHED=true;root.innerHTML='';const s=document.createElement('script');s.src='noite-auto.js?v=20260902-tecnica';document.body.appendChild(s);}
+function launchLocal(){window.__MOSAICO_NOITE_LAUNCHED=true;root.innerHTML='';comAbertura(()=>{const s=document.createElement('script');s.src='noite-auto.js?v=20260902-tecnica';document.body.appendChild(s)});}
 window.addEventListener('beforeunload',()=>{if(unsubRoom)unsubRoom();if(unsubPlayers)unsubPlayers();});
 init();
 })();
