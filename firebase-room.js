@@ -14,6 +14,7 @@ const ROOT=script?.dataset.root||(PROJECT==='noite'?'noite':'mosaico');
 const CASE_ID=script?.dataset.case||'caso';
 const TITLE=script?.dataset.title||'MOSAICO';
 const READY_EVENT=script?.dataset.readyEvent||'mosaico-room-ready';
+const TELAO=script?.dataset.telao||'';
 const SENHA_HASH='2ff22e27b070d318da49f2ba1062cfef81e85e7cb826a5e761cbdb5f07c62472';
 const MESTRE_LOCAL=`dragon_${PROJECT}_mestre`;
 const CONFIGS={
@@ -33,6 +34,18 @@ function gerar(){let s='';for(let i=0;i<6;i++)s+=ALPH[Math.floor(Math.random()*A
 function roomRef(c){return doc(db,ROOT,c)}
 function playerRef(c,uid){return doc(db,ROOT,c,'jogadores',uid)}
 function joinUrl(c){const u=new URL(location.href);u.search='';u.searchParams.set('sala',c);return u.toString();}
+/* O telão é uma página irmã que entra pela MESMA sala e só lê. Ela existe
+   apenas onde o HTML declara `data-telao`; sem isso a seção nem aparece, e é
+   assim que "não implantar telão onde não há vestígio" fica sendo uma
+   propriedade do arquivo, não uma lembrança de quem mexe. */
+function telaoUrl(c){
+  if(!TELAO)return'';
+  const u=new URL(TELAO,location.href);u.searchParams.set('sala',c);return u.toString();
+}
+function qrDe(url,rotulo){
+  if(window.MosaicoQR)return window.MosaicoQR.svg(url,{nivel:'M',margem:4,rotulo});
+  return `<div class="room-qr-fallback">${esc(url)}</div>`;
+}
 function qr(c){const url=joinUrl(c);if(window.MosaicoQR)return window.MosaicoQR.svg(url,{nivel:'M',margem:4,rotulo:'QR para entrar na sala'});return `<div class="room-qr-fallback">${esc(c)}</div>`;}
 async function sha256hex(txt){const buf=new TextEncoder().encode(txt);const h=await crypto.subtle.digest('SHA-256',buf);return Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,'0')).join('');}
 function senhaLiberada(){try{return sessionStorage.getItem(MESTRE_LOCAL)==='1'}catch(e){return false}}
@@ -232,7 +245,7 @@ function atualizarSalaPersistente(){
   let p=document.getElementById('dragonSalaPanel');
   if(!salaAberta){p?.remove();return;}
   if(!p){p=document.createElement('div');p.id='dragonSalaPanel';document.body.appendChild(p)}
-  p.innerHTML=`<div class="dr-sala-card"><div class="dr-sala-head"><div><div class="dr-brand">MESTRE · ${esc(TITLE)}</div><h2>Sala</h2><p class="dr-note">${room?.ritmo==='conduzido'?'Ritmo conduzido pelo Mestre':'Ritmo automático'}</p></div><button class="dr-close" id="drSalaClose">Fechar</button></div><details class="dr-sala-section" open><summary>Código e QR da sala</summary><div class="dr-sala-code">${esc(code)}</div><div class="dr-sala-qr">${qr(code)}</div></details><details class="dr-sala-section"><summary>Participantes · ${players.length}</summary><div class="dr-list">${players.map(x=>`<div class="dr-player"><span>${esc(x.nome||'Jogador')}</span><b>${x.mestre?'Mestre':'Jogador'}</b></div>`).join('')}</div></details><details class="dr-sala-section"><summary>Encerrar sala</summary><div class="dr-sala-actions"><button class="dr-btn danger" id="drEndRoom">Encerrar sala</button></div></details></div>`;
+  p.innerHTML=`<div class="dr-sala-card"><div class="dr-sala-head"><div><div class="dr-brand">MESTRE · ${esc(TITLE)}</div><h2>Sala</h2><p class="dr-note">${room?.ritmo==='conduzido'?'Ritmo conduzido pelo Mestre':'Ritmo automático'}</p></div><button class="dr-close" id="drSalaClose">Fechar</button></div><details class="dr-sala-section" open><summary>Código e QR da sala</summary><div class="dr-sala-code">${esc(code)}</div><div class="dr-sala-qr">${qr(code)}</div></details>${TELAO?`<details class="dr-sala-section"><summary>📺 Telão</summary><p class="dr-note">Abra este endereço na TV, no projetor ou no notebook. Ele entra na mesma sala e só mostra — ninguém opera nada por lá.</p><div class="dr-sala-code" style="font-size:13px;word-break:break-all">${esc(telaoUrl(code))}</div><div class="dr-sala-qr">${qrDe(telaoUrl(code),"QR para abrir o telão")}</div></details>`:""}<details class="dr-sala-section"><summary>Participantes · ${players.length}</summary><div class="dr-list">${players.map(x=>`<div class="dr-player"><span>${esc(x.nome||'Jogador')}</span><b>${x.mestre?'Mestre':'Jogador'}</b></div>`).join('')}</div></details><details class="dr-sala-section"><summary>Encerrar sala</summary><div class="dr-sala-actions"><button class="dr-btn danger" id="drEndRoom">Encerrar sala</button></div></details></div>`;
   document.getElementById('drSalaClose').onclick=()=>{salaAberta=false;atualizarSalaPersistente()};
   document.getElementById('drEndRoom').onclick=encerrarSala;
 }
