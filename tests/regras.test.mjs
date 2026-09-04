@@ -377,3 +377,53 @@ test("o Mestre move o balaio e credita o consignante", async () => {
   }));
   await assertSucceeds(updateDoc(jogadora(db, BIA), { moedas: 11 }));
 });
+
+/* ── O TELÃO ─────────────────────────────────────────────────────────────
+   Ele não é jogador e não é Mestre: entra anônimo na sala e só mostra. Até
+   04/09/2026 carimbava a presença no DOCUMENTO da sala (`opening.status`,
+   `opening.displaySeenMs`), onde `allow update` exige master() — e por isso
+   toda batida voltava negada, calada, desde agosto. O Mestre nunca via telão
+   vivo e a abertura caía sempre no celular dele.
+
+   O que estas quatro asserções guardam é o par: o telão PODE escrever o
+   próprio documento, e NÃO pode escrever o da sala nem o de outro aparelho. */
+const TELAO = "uid-telao";
+const OUTRO_TELAO = "uid-telao-2";
+
+test("o telão anônimo grava a própria presença na sala", async () => {
+  await assertSucceeds(setDoc(doc(como(TELAO), "mosaico", SALA, "telao", TELAO), {
+    vistoEmMs: Date.now(), status: "ready"
+  }));
+});
+
+test("mas não a de outro telão", async () => {
+  await assertFails(setDoc(doc(como(TELAO), "mosaico", SALA, "telao", OUTRO_TELAO), {
+    vistoEmMs: Date.now(), status: "ready"
+  }));
+});
+
+/* Sem `vistoEmMs` a presença não tem idade, e "há um telão agora" vira
+   "houve um telão algum dia": um telão aberto ontem sequestraria a abertura. */
+test("presença sem a hora da batida é recusada", async () => {
+  await assertFails(setDoc(doc(como(TELAO), "mosaico", SALA, "telao", TELAO), {
+    status: "ready"
+  }));
+});
+
+test("e o telão continua sem poder escrever no documento da sala", async () => {
+  await assertFails(updateDoc(doc(como(TELAO), "mosaico", SALA), {
+    "opening.command": "start", "opening.token": Date.now()
+  }));
+});
+
+test("o Mestre lê o que o telão anunciou, e é ele quem manda tocar", async () => {
+  await env.withSecurityRulesDisabled(async ctx => {
+    await setDoc(doc(ctx.firestore(), "mosaico", SALA, "telao", TELAO), {
+      vistoEmMs: Date.now(), status: "ready"
+    });
+  });
+  await assertSucceeds(getDoc(doc(como(MESTRE), "mosaico", SALA, "telao", TELAO)));
+  await assertSucceeds(updateDoc(doc(como(MESTRE), "mosaico", SALA), {
+    "opening.command": "start", "opening.token": Date.now()
+  }));
+});
