@@ -143,13 +143,26 @@ function latao(lado, semente) {
    Caixa com chanfro: em vez de 8 vértices e 12 triângulos, cada face é
    encolhida e as quinas viram tiras. Custa triângulo e paga em luz — é a
    diferença entre um móvel e uma caixa de papelão. */
-const V = [], N = [], UV = [], IDX = [], GRUPOS = [];
-let base = 0;
-function empurra(px, py, pz, nx, ny, nz, u, v) {
-  V.push(px, py, pz); N.push(nx, ny, nz); UV.push(u, v);
-  return base++;
+/* UMA PEÇA, UM NÓ. Animar exige nó próprio: transformação de nó move a malha
+   inteira, então gaveta que desliza não pode dividir malha com o caixote que
+   fica parado. Cada peça junta a própria geometria e vira um nó no glTF.
+
+   As coordenadas continuam sendo escritas em ABSOLUTO, como antes — na hora de
+   emitir, a origem da peça é subtraída dos vértices e vira a translação do nó.
+   Assim o código de marcenaria não precisa saber que existe animação. */
+const PECAS = [];
+let atual = null;
+function peca(nome, material, origem, fn) {
+  atual = { nome, material, origem, V: [], N: [], UV: [], IDX: [], base: 0 };
+  PECAS.push(atual);
+  fn();
+  atual = null;
 }
-function quad(a, b, c, d) { IDX.push(a, b, c, a, c, d); }
+function empurra(px, py, pz, nx, ny, nz, u, v) {
+  atual.V.push(px, py, pz); atual.N.push(nx, ny, nz); atual.UV.push(u, v);
+  return atual.base++;
+}
+function quad(a, b, c, d) { atual.IDX.push(a, b, c, a, c, d); }
 
 /* CAIXA CHANFRADA, POR CONSTRUÇÃO E NÃO POR PROXIMIDADE.
    A primeira versão desenhava as seis faces encolhidas e depois tentava achar,
@@ -252,11 +265,7 @@ function caixa(cx, cy, cz, sx, sy, sz, ch, escalaUV, eixoU = "x", eixoV = "y") {
 }
 function dist(a, b) { return Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]); }
 
-function grupo(nome, material, fn) {
-  const ini = IDX.length;
-  fn();
-  GRUPOS.push({ nome, material, ini, cont: IDX.length - ini });
-}
+
 
 /* ── A ESCRIVANINHA ──────────────────────────────────────────────────────────
    Mesmas medidas do modelo antigo — 1,280 × 0,765 × 0,629 — porque o texto do
@@ -278,11 +287,11 @@ const ALT_CAIX = Y_CAIX_TOPO - Y_CAIX_BASE;
 const X_CAIX = L / 2 - LARG_CAIX / 2 - REC_CAIX;
 const Z_FRENTE = PROF_CAIX / 2;       /* plano da frente dos caixotes */
 
-grupo("Tampo", 0, () => {
+peca("Tampo", 0, [0,0,0], () => {
   caixa(0, A - ESP / 2, 0, L, ESP, P, CH, 1.6, "x", "z");
 });
 
-grupo("Madeira", 1, () => {
+peca("Madeira", 1, [0,0,0], () => {
   for (const s of [-1, 1]) {
     caixa(s * X_CAIX, Y_CAIX_BASE + ALT_CAIX / 2, 0, LARG_CAIX, ALT_CAIX, PROF_CAIX, CH, 2.1, "x", "y");
   }
@@ -312,14 +321,23 @@ function frenteDaGaveta(s, g) {
   };
 }
 
-grupo("Gavetas", 2, () => {
+/* A GAVETA VIVA é a de baixo, à direita. Ela sai das peças fixas e ganha nó
+   próprio; as outras cinco continuam sendo cenário. Uma só se move porque uma
+   só guarda alguma coisa — seis gavetas abrindo seriam seis lugares de
+   procurar, e a atividade tem 75 segundos. */
+const GAV_VIVA = { s: 1, g: 0 };
+const viva = frenteDaGaveta(GAV_VIVA.s, GAV_VIVA.g);
+const CURSO = 0.30;                    /* o quanto ela desliza para fora */
+
+peca("Gavetas", 2, [0, 0, 0], () => {
   for (const s of [-1, 1]) for (let g = 0; g < N_GAV; g++) {
+    if (s === GAV_VIVA.s && g === GAV_VIVA.g) continue;
     const f = frenteDaGaveta(s, g);
     caixa(f.x, f.y, f.z, LARG_CAIX - 0.030, ALT_GAV, 0.016, CH, 2.6, "x", "y");
   }
 });
 
-grupo("Metal", 3, () => {
+peca("Metal", 3, [0,0,0], () => {
   for (const s of [-1, 1]) for (let g = 0; g < N_GAV; g++) {
     const f = frenteDaGaveta(s, g);
     const z = f.z + 0.008;
@@ -329,104 +347,322 @@ grupo("Metal", 3, () => {
   }
 });
 
-/* ── GLB ─────────────────────────────────────────────────────────────────── */
-const pos = new Float32Array(V), nor = new Float32Array(N), uv = new Float32Array(UV);
-const idx = new Uint16Array(IDX);
-function alinha(n) { return (n + 3) & ~3; }
-const partes = [pos, nor, uv, idx].map((a) => Buffer.from(a.buffer, a.byteOffset, a.byteLength));
-const desl = [];
-let corrida = 0;
-for (const p of partes) { desl.push(corrida); corrida = alinha(corrida + p.length); }
-const bin = Buffer.alloc(corrida);
-partes.forEach((p, i) => p.copy(bin, desl[i]));
+/* ── O PAPEL ─────────────────────────────────────────────────────────────────
+   Uma chapa fina dentro da gaveta, com DUAS caras: a frente é um registro
+   comum de escritório, o verso é a pista. Virar é o gesto que entrega — o
+   papel não muda, muda o lado que se vê.
 
-/* NOZ ENVELHECIDA, não pinho novo. A primeira volta saiu laranja e saturada
-   demais: lia como compensado de móvel barato, e esta é uma casa de 1867. Menos
-   vermelho, mais terra, e o contraste entre anel claro e escuro mais curto —
-   madeira velha é escura por igual, o veio aparece mais na luz rasante que na
-   diferença de cor.
+   O que vai no verso é PISTA e não resposta: um desenho e uma hora, que só
+   valem cruzados com o que a mesa souber de outro lugar. */
+const PAPEL_L = 0.185, PAPEL_P = 0.255, PAPEL_E = 0.0016;
 
-   E 384 no lugar de 512: a três palmos de distância, que é a única em que
-   alguém olha uma escrivaninha em RA, ninguém distingue — e corta quase metade
-   do peso, que num celular em rede de dados é o que decide se a peça chega. */
+function raster(largura, altura, fundo) {
+  const b = Buffer.alloc(largura * altura * 3);
+  for (let i = 0; i < largura * altura; i++) {
+    b[i * 3] = fundo[0]; b[i * 3 + 1] = fundo[1]; b[i * 3 + 2] = fundo[2];
+  }
+  const põe = (x, y, c, a = 1) => {
+    x = Math.round(x); y = Math.round(y);
+    if (x < 0 || y < 0 || x >= largura || y >= altura) return;
+    const i = (y * largura + x) * 3;
+    for (let k = 0; k < 3; k++) b[i + k] = Math.round(b[i + k] * (1 - a) + c[k] * a);
+  };
+  const linha = (x1, y1, x2, y2, c, esp = 1, a = 1) => {
+    const n = Math.ceil(Math.hypot(x2 - x1, y2 - y1) * 1.6) || 1;
+    for (let i = 0; i <= n; i++) {
+      const t = i / n, x = x1 + (x2 - x1) * t, y = y1 + (y2 - y1) * t;
+      for (let ox = -esp; ox <= esp; ox++) for (let oy = -esp; oy <= esp; oy++)
+        if (ox * ox + oy * oy <= esp * esp + 0.2) põe(x + ox, y + oy, c, a);
+    }
+  };
+  const retan = (x, y, w, h, c, esp = 1, a = 1) => {
+    linha(x, y, x + w, y, c, esp, a); linha(x + w, y, x + w, y + h, c, esp, a);
+    linha(x + w, y + h, x, y + h, c, esp, a); linha(x, y + h, x, y, c, esp, a);
+  };
+  return { b, põe, linha, retan };
+}
+/* dígitos de sete traços, os mesmos da Marca Partida — mesma casa, mesma mão */
+const SETE = { "0": [0,1,2,3,4,5], "1": [1,2], "2": [0,1,6,4,3], "3": [0,1,6,2,3],
+  "4": [5,6,1,2], "5": [0,5,6,2,3], "6": [0,5,4,3,2,6], "7": [0,1,2],
+  "8": [0,1,2,3,4,5,6], "9": [0,1,2,3,5,6] };
+const T7 = [[0,0,1,0],[1,0,1,1],[1,1,1,2],[1,2,0,2],[0,2,0,1],[0,1,0,0],[0,1,1,1]];
+function escreveHora(r, txt, x, y, alt, c, esp) {
+  const u = alt / 2;
+  for (const ch of txt) {
+    if (ch === ":") { r.linha(x + u * 0.2, y + u * 0.6, x + u * 0.2, y + u * 0.72, c, esp); r.linha(x + u * 0.2, y + u * 1.3, x + u * 0.2, y + u * 1.42, c, esp); x += u * 0.55; continue; }
+    for (const k of (SETE[ch] || [])) {
+      const t = T7[k];
+      r.linha(x + t[0] * u * 0.66, y + t[1] * u, x + t[2] * u * 0.66, y + t[3] * u, c, esp);
+    }
+    x += u * 0.95;
+  }
+}
+function papelTextura() {
+  /* uma folha só, dividida ao meio: metade esquerda é a frente, metade direita
+     é o verso. Duas imagens seriam dois downloads pela mesma coisa. */
+  const W = 512, H = 384;
+  const r = raster(W, H, [214, 203, 178]);
+  const tinta = [46, 38, 30], desbotada = [120, 104, 84], vermelho = [122, 44, 34];
+  const meio = W / 2;
+
+  /* ── FRENTE: um registro de escritório, tedioso de propósito ── */
+  r.linha(18, 26, meio - 18, 26, tinta, 1, 0.7);
+  for (let i = 0; i < 11; i++) {
+    const y = 52 + i * 27;
+    r.linha(18, y, meio - 18, y, desbotada, 0, 0.55);
+    /* rabiscos de valores, sem dizer nada */
+    const n = 3 + ((i * 7) % 5);
+    for (let k = 0; k < n; k++) {
+      const x = meio - 40 - k * 15;
+      r.linha(x, y - 9, x + 8, y - 9, tinta, 0, 0.5);
+    }
+  }
+  r.linha(18, 26, 18, 350, desbotada, 0, 0.5);
+  r.linha(meio - 18, 26, meio - 18, 350, desbotada, 0, 0.5);
+
+  /* ── VERSO: a pista. Desenho de mão, não formulário ── */
+  const ox = meio + 26;
+  /* a janela, com as barras */
+  r.retan(ox + 60, 84, 118, 150, tinta, 1, 0.92);
+  r.linha(ox + 119, 84, ox + 119, 234, tinta, 1, 0.85);
+  r.linha(ox + 60, 159, ox + 178, 159, tinta, 1, 0.85);
+  /* o peitoril, mais grosso */
+  r.linha(ox + 48, 240, ox + 190, 240, tinta, 2, 0.9);
+  /* a seta: alguma coisa veio de DENTRO para fora */
+  r.linha(ox + 119, 210, ox + 119, 132, vermelho, 1, 0.9);
+  r.linha(ox + 119, 132, ox + 108, 148, vermelho, 1, 0.9);
+  r.linha(ox + 119, 132, ox + 130, 148, vermelho, 1, 0.9);
+  /* a hora, escrita à mão ao lado */
+  escreveHora(r, "21:29", ox + 46, 262, 46, tinta, 1);
+  /* uma palavra riscada — havia outra coisa escrita aqui antes */
+  r.linha(ox + 34, 60, ox + 150, 60, desbotada, 2, 0.5);
+  r.linha(ox + 40, 54, ox + 146, 66, tinta, 1, 0.55);
+  /* dobra do papel, no meio de cada metade */
+  r.linha(meio, 0, meio, H, [190, 178, 152], 1, 0.6);
+
+  return png(W, H, r.b);
+}
+
+/* A gaveta viva e o papel dentro dela. O papel é FILHO da gaveta: assim ele
+   sai junto quando ela desliza, sem precisar de uma segunda animação
+   sincronizada — sincronizar duas coisas que sempre andam juntas é convite a
+   elas se desencontrarem. */
+/* O interior da gaveta, num lugar só — porque o papel precisa pousar EM CIMA
+   do fundo, e na primeira volta ele nasceu com y de chute e ficou enterrado
+   dentro da tábua. Medida que duas peças compartilham sai de conta comum. */
+const GAV_LI = LARG_CAIX - 0.052;      /* largura interna */
+const GAV_PI = PROF_CAIX - 0.10;       /* profundidade interna */
+const GAV_HI = ALT_GAV - 0.030;        /* altura interna */
+const GAV_ESP = 0.012;                 /* espessura das tábuas */
+const GAV_ZC = viva.z - GAV_PI / 2 - 0.010;
+const GAV_Y_FUNDO = viva.y - GAV_HI / 2 + GAV_ESP / 2;   /* centro da tábua */
+const GAV_Y_PISO = GAV_Y_FUNDO + GAV_ESP / 2;            /* face de cima dela */
+
+peca("Gaveta", 2, [viva.x, viva.y, viva.z], () => {
+  caixa(viva.x, viva.y, viva.z, LARG_CAIX - 0.030, ALT_GAV, 0.016, CH, 2.6, "x", "y");
+  /* as laterais e o fundo, que só aparecem depois de abrir */
+  caixa(viva.x, GAV_Y_FUNDO, GAV_ZC, GAV_LI, GAV_ESP, GAV_PI, CH * 0.6, 3.2, "x", "z");
+  for (const m of [-1, 1]) caixa(viva.x + m * (GAV_LI / 2 - GAV_ESP / 2), viva.y, GAV_ZC, GAV_ESP, GAV_HI, GAV_PI, CH * 0.6, 3.2, "z", "y");
+  caixa(viva.x, viva.y, GAV_ZC - GAV_PI / 2 + GAV_ESP / 2, GAV_LI, GAV_HI, GAV_ESP, CH * 0.6, 3.2, "x", "y");
+});
+/* pousado no fundo, ligeiramente torto — papel guardado com pressa não fica
+   alinhado com a gaveta */
+const PAPEL_POS = [viva.x - 0.008, GAV_Y_PISO + PAPEL_E / 2 + 0.0012, GAV_ZC + 0.012];
+/* O PAPEL NÃO É UMA CAIXA. A caixa genérica mapeia UV em metros e igual nas
+   seis faces — o papel saiu liso porque estava lendo um canto em branco da
+   textura, e as duas caras precisam ler METADES DIFERENTES dela.
+
+   São duas folhas coincidentes, de costas uma para a outra: a de cima lê a
+   metade esquerda (o registro comum), a de baixo lê a direita (a pista). É por
+   isso que virar mostra outra coisa, e não a mesma imagem espelhada. */
+function folha(cx, cy, cz, largura, prof, uMin, uMax, normalY) {
+  const hx = largura / 2, hz = prof / 2;
+  const cantos = [[-hx, -hz], [hx, -hz], [hx, hz], [-hx, hz]];
+  const ids = cantos.map(([dx, dz]) => {
+    const u = uMin + (dx / largura + 0.5) * (uMax - uMin);
+    /* o verso espelha em v: virando em torno de X, o que estava em cima vai
+       para baixo, e sem inverter aqui a pista sairia de cabeça para baixo */
+    const t = dz / prof + 0.5;
+    const v = normalY > 0 ? t : 1 - t;
+    return empurra(cx + dx, cy, cz + dz, 0, normalY, 0, u, v);
+  });
+  if (normalY > 0) quad(ids[0], ids[3], ids[2], ids[1]);
+  else quad(ids[0], ids[1], ids[2], ids[3]);
+}
+peca("Papel", 4, PAPEL_POS, () => {
+  const p = PAPEL_POS;
+  folha(p[0], p[1] + PAPEL_E / 2, p[2], PAPEL_L, PAPEL_P, 0.0, 0.5, 1);
+  folha(p[0], p[1] - PAPEL_E / 2, p[2], PAPEL_L, PAPEL_P, 0.5, 1.0, -1);
+});
+
+/* ── EMISSÃO ─────────────────────────────────────────────────────────────────
+   Uma malha e um nó por peça. A gaveta e o papel ganham animação; o resto é
+   cenário. */
 const texTampo = madeira(384, 384, { claro: [104, 63, 37], escuro: [44, 23, 11], semente: 0x51a1, anéis: 13, nós: 2 });
 const texMadeira = madeira(384, 384, { claro: [86, 51, 29], escuro: [33, 17, 8], semente: 0x77c3, anéis: 24, nós: 4 });
 const texGaveta = madeira(384, 384, { claro: [112, 68, 40], escuro: [48, 26, 13], semente: 0x2b9d, anéis: 17, nós: 1 });
 const texMetal = latao(192, 0x0f3a);
-const imagens = [texTampo, texMadeira, texGaveta, texMetal];
-const buffersImg = [];
-let corridaImg = corrida;
-for (const im of imagens) { buffersImg.push({ off: corridaImg, len: im.length }); corridaImg = alinha(corridaImg + im.length); }
-const binTotal = Buffer.alloc(corridaImg);
-bin.copy(binTotal, 0);
-imagens.forEach((im, i) => im.copy(binTotal, buffersImg[i].off));
-
-function mn(arr, k) { const o = []; for (let i = 0; i < k; i++) { let v = Infinity; for (let j = i; j < arr.length; j += k) v = Math.min(v, arr[j]); o.push(v) } return o }
-function mx(arr, k) { const o = []; for (let i = 0; i < k; i++) { let v = -Infinity; for (let j = i; j < arr.length; j += k) v = Math.max(v, arr[j]); o.push(v) } return o }
+const texPapel = papelTextura();
+const imagens = [texTampo, texMadeira, texGaveta, texMetal, texPapel];
 
 const MAT = [
   { nome: "Tampo", tex: 0, rough: 0.42, metal: 0 },
   { nome: "Madeira", tex: 1, rough: 0.60, metal: 0 },
   { nome: "Gavetas", tex: 2, rough: 0.48, metal: 0 },
   { nome: "Metal", tex: 3, rough: 0.26, metal: 0.85 },
+  { nome: "Papel", tex: 4, rough: 0.94, metal: 0 },
 ];
 
-const gltf = {
-  asset: { version: "2.0", generator: "MOSAICO · ferramentas/escrivaninha.mjs" },
-  scene: 0,
-  scenes: [{ nodes: [0] }],
-  nodes: [{ mesh: 0, name: "Escrivaninha" }],
-  meshes: [{
-    name: "Escrivaninha",
-    primitives: GRUPOS.map((g, i) => ({
-      attributes: { POSITION: 0, NORMAL: 1, TEXCOORD_0: 2 },
-      indices: 3 + i,
-      material: g.material,
-    })),
-  }],
-  materials: MAT.map((m) => ({
-    name: m.nome,
-    pbrMetallicRoughness: {
-      baseColorTexture: { index: m.tex },
-      metallicFactor: m.metal,
-      roughnessFactor: m.rough,
-    },
-  })),
-  textures: MAT.map((_, i) => ({ source: i, sampler: 0 })),
-  samplers: [{ magFilter: 9729, minFilter: 9987, wrapS: 10497, wrapT: 10497 }],
-  images: imagens.map((_, i) => ({ bufferView: 4 + i, mimeType: "image/png" })),
-  accessors: [
-    { bufferView: 0, componentType: 5126, count: pos.length / 3, type: "VEC3", min: mn(pos, 3), max: mx(pos, 3) },
-    { bufferView: 1, componentType: 5126, count: nor.length / 3, type: "VEC3" },
-    { bufferView: 2, componentType: 5126, count: uv.length / 2, type: "VEC2" },
-    ...GRUPOS.map((g) => ({ bufferView: 3, componentType: 5123, count: g.cont, type: "SCALAR", byteOffset: g.ini * 2 })),
+function alinha(n) { return (n + 3) & ~3; }
+const vistas = [], acessores = [], blocos = [];
+let corrida = 0;
+function poeBloco(buf, alvo) {
+  const off = alinha(corrida);
+  blocos.push({ off, buf });
+  corrida = off + buf.length;
+  vistas.push({ buffer: 0, byteOffset: off, byteLength: buf.length, ...(alvo ? { target: alvo } : {}) });
+  return vistas.length - 1;
+}
+function mn(a, k) { const o = []; for (let i = 0; i < k; i++) { let v = Infinity; for (let j = i; j < a.length; j += k) v = Math.min(v, a[j]); o.push(v) } return o }
+function mx(a, k) { const o = []; for (let i = 0; i < k; i++) { let v = -Infinity; for (let j = i; j < a.length; j += k) v = Math.max(v, a[j]); o.push(v) } return o }
+
+const malhas = [], nos = [];
+for (const pc of PECAS) {
+  /* posições relativas à origem da peça; a origem vira translação do nó */
+  const pos = new Float32Array(pc.V.length);
+  for (let i = 0; i < pc.V.length; i += 3) {
+    pos[i] = pc.V[i] - pc.origem[0];
+    pos[i + 1] = pc.V[i + 1] - pc.origem[1];
+    pos[i + 2] = pc.V[i + 2] - pc.origem[2];
+  }
+  const nor = new Float32Array(pc.N), uvs = new Float32Array(pc.UV), idx = new Uint16Array(pc.IDX);
+  const bp = poeBloco(Buffer.from(pos.buffer, pos.byteOffset, pos.byteLength), 34962);
+  const bn = poeBloco(Buffer.from(nor.buffer, nor.byteOffset, nor.byteLength), 34962);
+  const bu = poeBloco(Buffer.from(uvs.buffer, uvs.byteOffset, uvs.byteLength), 34962);
+  const bi = poeBloco(Buffer.from(idx.buffer, idx.byteOffset, idx.byteLength), 34963);
+  const aP = acessores.push({ bufferView: bp, componentType: 5126, count: pos.length / 3, type: "VEC3", min: mn(pos, 3), max: mx(pos, 3) }) - 1;
+  const aN = acessores.push({ bufferView: bn, componentType: 5126, count: nor.length / 3, type: "VEC3" }) - 1;
+  const aU = acessores.push({ bufferView: bu, componentType: 5126, count: uvs.length / 2, type: "VEC2" }) - 1;
+  const aI = acessores.push({ bufferView: bi, componentType: 5123, count: idx.length, type: "SCALAR" }) - 1;
+  malhas.push({ name: pc.nome, primitives: [{ attributes: { POSITION: aP, NORMAL: aN, TEXCOORD_0: aU }, indices: aI, material: pc.material }] });
+  nos.push({ mesh: malhas.length - 1, name: pc.nome, translation: pc.origem });
+}
+const iGaveta = PECAS.findIndex((p) => p.nome === "Gaveta");
+const iPapel = PECAS.findIndex((p) => p.nome === "Papel");
+/* o papel é filho da gaveta, e a translação dele passa a ser relativa a ela */
+nos[iPapel].translation = [
+  PECAS[iPapel].origem[0] - PECAS[iGaveta].origem[0],
+  PECAS[iPapel].origem[1] - PECAS[iGaveta].origem[1],
+  PECAS[iPapel].origem[2] - PECAS[iGaveta].origem[2],
+];
+nos[iGaveta].children = [iPapel];
+const raizes = PECAS.map((_, i) => i).filter((i) => i !== iPapel);
+
+/* ── ANIMAÇÃO ────────────────────────────────────────────────────────────────
+   UMA SÓ, EM DUAS FASES, e isto é conserto de um defeito medido: o
+   model-viewer aplica UMA animação por vez, e trocar de faixa devolve os nós
+   que a anterior movia à pose de repouso. Com "abrir" e "virar" separadas, o
+   toque no papel FECHAVA a gaveta — a gente via o papel virar dentro de uma
+   gaveta que tinha acabado de sumir.
+
+   Agora é uma faixa contínua, e cada gesto toca um TRECHO dela:
+
+     0,00 → 0,75   a gaveta sai
+     0,75 → 1,75   o papel sobe, gira meia volta e assenta
+
+   A gaveta tem quadro-chave no fim do trecho do papel também, segurando a
+   posição aberta: sem ele, a interpolação a puxaria de volta enquanto o papel
+   vira. Quadro que não se move ainda precisa existir. */
+const T_ABRE = 0.75, T_VIRA = 1.75, T_FIM = 2.10;
+/* T_FIM existe só para 1,75 NÃO ser o último quadro. Travar o relógio
+   exatamente na duração faz o model-viewer dar a volta e voltar ao zero — a
+   gaveta fechava sozinha no instante em que o papel acabava de virar. Um
+   trecho morto no fim, e o fim do gesto passa a ser um instante comum. */
+const animBlocos = [];
+function amostrador(tempos, valores, tipo) {
+  const t = new Float32Array(tempos), v = new Float32Array(valores);
+  const bt = poeBloco(Buffer.from(t.buffer, t.byteOffset, t.byteLength));
+  const bv = poeBloco(Buffer.from(v.buffer, v.byteOffset, v.byteLength));
+  const at = acessores.push({ bufferView: bt, componentType: 5126, count: tempos.length, type: "SCALAR", min: [Math.min(...tempos)], max: [Math.max(...tempos)] }) - 1;
+  const av = acessores.push({ bufferView: bv, componentType: 5126, count: tempos.length, type: tipo }) - 1;
+  return { input: at, output: av, interpolation: "LINEAR" };
+}
+const gt = nos[iGaveta].translation, pt = nos[iPapel].translation;
+const q = (ang) => [Math.sin(ang / 2), 0, 0, Math.cos(ang / 2)];
+
+const sGaveta = amostrador([0, 0.28, T_ABRE, T_VIRA, T_FIM], [
+  gt[0], gt[1], gt[2],
+  gt[0], gt[1], gt[2] + CURSO * 0.72,
+  gt[0], gt[1], gt[2] + CURSO,
+  gt[0], gt[1], gt[2] + CURSO,          /* segura aberta enquanto o papel vira */
+  gt[0], gt[1], gt[2] + CURSO,
+], "VEC3");
+const sPapelPos = amostrador([0, T_ABRE, 1.20, T_VIRA, T_FIM], [
+  pt[0], pt[1], pt[2],
+  pt[0], pt[1], pt[2],
+  pt[0], pt[1] + 0.085, pt[2] - 0.02,
+  pt[0], pt[1] + 0.004, pt[2],
+  pt[0], pt[1] + 0.004, pt[2],
+], "VEC3");
+const sPapelRot = amostrador([0, T_ABRE, 1.20, T_VIRA, T_FIM],
+  [...q(0), ...q(0), ...q(Math.PI * 0.55), ...q(Math.PI), ...q(Math.PI)], "VEC4");
+
+const gesto = {
+  name: "gesto",
+  samplers: [sGaveta, sPapelPos, sPapelRot],
+  channels: [
+    { sampler: 0, target: { node: iGaveta, path: "translation" } },
+    { sampler: 1, target: { node: iPapel, path: "translation" } },
+    { sampler: 2, target: { node: iPapel, path: "rotation" } },
   ],
-  bufferViews: [
-    { buffer: 0, byteOffset: desl[0], byteLength: partes[0].length, target: 34962 },
-    { buffer: 0, byteOffset: desl[1], byteLength: partes[1].length, target: 34962 },
-    { buffer: 0, byteOffset: desl[2], byteLength: partes[2].length, target: 34962 },
-    { buffer: 0, byteOffset: desl[3], byteLength: partes[3].length, target: 34963 },
-    ...buffersImg.map((b) => ({ buffer: 0, byteOffset: b.off, byteLength: b.len })),
-  ],
-  buffers: [{ byteLength: binTotal.length }],
 };
 
-const jsonBuf = Buffer.from(JSON.stringify(gltf), "utf8");
-const jsonPad = Buffer.concat([jsonBuf, Buffer.alloc(alinha(jsonBuf.length) - jsonBuf.length, 0x20)]);
-const binPad = Buffer.concat([binTotal, Buffer.alloc(alinha(binTotal.length) - binTotal.length, 0)]);
-const cab = Buffer.alloc(12);
-cab.write("glTF", 0, "ascii"); cab.writeUInt32LE(2, 4);
-cab.writeUInt32LE(12 + 8 + jsonPad.length + 8 + binPad.length, 8);
-const cJson = Buffer.alloc(8); cJson.writeUInt32LE(jsonPad.length, 0); cJson.write("JSON", 4, "ascii");
-const cBin = Buffer.alloc(8); cBin.writeUInt32LE(binPad.length, 0); cBin.write("BIN\0", 4, "ascii");
-const glb = Buffer.concat([cab, cJson, jsonPad, cBin, binPad]);
+/* imagens no fim do buffer */
+const vistasImg = imagens.map((im) => poeBloco(im));
 
-writeFileSync(join(SAIDA, "escrivaninha.glb"), glb);
+const binTotal = Buffer.alloc(alinha(corrida));
+for (const b of blocos) b.buf.copy(binTotal, b.off);
 
-const tris = IDX.length / 3;
-const cx = mx(pos, 3).map((v, i) => (v - mn(pos, 3)[i]).toFixed(3));
-console.log("escrivaninha.glb reescrita");
-console.log("  triângulos: " + tris + "   (antes: 192)");
-console.log("  texturas:   " + imagens.length + "        (antes: 0)");
-console.log("  caixa (m):  " + cx.join(" × "));
-console.log("  tamanho:    " + (glb.length / 1024).toFixed(1) + " KB   (antes: 13.6 KB)");
+function montaGltf({ comAnimacao }) {
+  const g = {
+    asset: { version: "2.0", generator: "MOSAICO · ferramentas/escrivaninha.mjs" },
+    scene: 0,
+    scenes: [{ nodes: raizes }],
+    nodes: nos,
+    meshes: malhas,
+    materials: MAT.map((m) => ({
+      name: m.nome,
+      pbrMetallicRoughness: { baseColorTexture: { index: m.tex }, metallicFactor: m.metal, roughnessFactor: m.rough },
+      doubleSided: false,
+    })),
+    textures: MAT.map((_, i) => ({ source: i, sampler: 0 })),
+    samplers: [{ magFilter: 9729, minFilter: 9987, wrapS: 10497, wrapT: 10497 }],
+    images: vistasImg.map((v) => ({ bufferView: v, mimeType: "image/png" })),
+    accessors: acessores,
+    bufferViews: vistas,
+    buffers: [{ byteLength: binTotal.length }],
+  };
+  if (comAnimacao) g.animations = [gesto];
+  return g;
+}
+function escreveGlb(arquivo, gltf) {
+  const j = Buffer.from(JSON.stringify(gltf), "utf8");
+  const jp = Buffer.concat([j, Buffer.alloc(alinha(j.length) - j.length, 0x20)]);
+  const bp = Buffer.concat([binTotal, Buffer.alloc(alinha(binTotal.length) - binTotal.length, 0)]);
+  const cab = Buffer.alloc(12);
+  cab.write("glTF", 0, "ascii"); cab.writeUInt32LE(2, 4);
+  cab.writeUInt32LE(12 + 8 + jp.length + 8 + bp.length, 8);
+  const cj = Buffer.alloc(8); cj.writeUInt32LE(jp.length, 0); cj.write("JSON", 4, "ascii");
+  const cb = Buffer.alloc(8); cb.writeUInt32LE(bp.length, 0); cb.write("BIN\0", 4, "ascii");
+  const glb = Buffer.concat([cab, cj, jp, cb, bp]);
+  writeFileSync(join(SAIDA, arquivo), glb);
+  return glb.length;
+}
+
+const tam1 = escreveGlb("escrivaninha.glb", montaGltf({ comAnimacao: false }));
+const tam2 = escreveGlb("escrivaninha-gaveta.glb", montaGltf({ comAnimacao: true }));
+const tris = PECAS.reduce((s, p) => s + p.IDX.length / 3, 0);
+console.log("duas saídas, mesma geometria:");
+console.log("  escrivaninha.glb        " + (tam1 / 1024).toFixed(0) + " KB   bancada 02, parada");
+console.log("  escrivaninha-gaveta.glb " + (tam2 / 1024).toFixed(0) + " KB   bancada 04, com abrir e virar");
+console.log("  peças: " + PECAS.length + " · triângulos: " + tris + " · texturas: " + imagens.length);
