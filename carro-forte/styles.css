@@ -162,6 +162,19 @@ h1,h2,h3{font-family:var(--display);font-weight:600;margin:0}
    bloco continuaria aparecendo para o convidado. */
 /* O pódio: a única coisa do fecho que é de todos. A composição de pontos
    continua sendo de cada um, e não sobe para lugar nenhum. */
+/* O cronômetro do cabeçalho conta o que falta na fase. Vermelho nos últimos
+   dez segundos, que é quando ele passa a mudar o que a pessoa faz. */
+#timer.urgente{color:#ff9b8b}
+/* Tocou o sino: o que estava por fazer para de aceitar toque. A tela continua
+   legível de propósito — a pessoa precisa ver o que deixou para trás. */
+body.fase-vencida .screen.active .hand,
+body.fase-vencida .screen.active .hyp-grid,
+body.fase-vencida .screen.active .relation-grid,
+body.fase-vencida .screen.active .case-form,
+body.fase-vencida .screen.active .sensor-actions{opacity:.45;pointer-events:none}
+#esperaDaMesa{position:fixed;left:50%;bottom:max(12px,env(safe-area-inset-bottom));transform:translateX(-50%);
+ z-index:40;max-width:min(560px,calc(100% - 24px));padding:9px 14px;border:1px solid #3a5769;border-radius:100px;
+ background:#0a1a24ee;color:#9fb6c4;font:600 12px var(--sans);text-align:center;backdrop-filter:blur(8px)}
 .podio-linha{display:grid;grid-template-columns:34px 1fr auto;align-items:baseline;gap:9px;padding:9px 0;border-bottom:1px solid #22323f}
 .podio-linha:last-child{border-bottom:0}
 .podio-linha b{font:800 13px var(--mono);color:#7f96a6}

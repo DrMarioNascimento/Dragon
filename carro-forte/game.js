@@ -148,7 +148,8 @@ const state={screen:'intro',game:null,semente:0,players:6,pace:'pressure',durati
  dossie:[],tercos:[[],[],[]],aberto:1,marcados:new Set(),lotes:{},colhidos:new Set(),
  relacoes:new Set(),hipoteseProv:'',hipoteseFinal:'',
  sensorDone:new Set(),sensorAberto:null,prazo:0,janela:null,final:{},reveal:0,start:Date.now(),
- telao:false,entregue:false,placar:[],passos:[],passoFecho:0,podioMostrado:false,fechoComecou:false};
+ telao:false,entregue:false,placar:[],passos:[],passoFecho:0,podioMostrado:false,fechoComecou:false,
+ fase:{nome:'intro',fimMs:0,vencida:false}};
 
 /* ── O TEMPO DA ATIVIDADE ────────────────────────────────────────────────
    Este campo existia como "Ritmo · 30 s / 60 s" e não fazia nada: ia para a
@@ -161,6 +162,31 @@ const state={screen:'intro',game:null,semente:0,players:6,pace:'pressure',durati
    playtest vai mexer neles. */
 const TEMPOS={pressure:60,calm:120};
 const tempoAtividadeMs=()=>(TEMPOS[state.pace]||TEMPOS.calm)*1000;
+
+/* ── TUDO TEM TEMPO ──────────────────────────────────────────────────────
+   Regra do Mario, 04/09/2026: "precisa terminar, tudo tem tempo; perdeu o
+   tempo, segue; não está, perdeu". Antes só as atividades tinham relógio; o
+   resto da partida esperava alguém tocar um botão, e a mesa podia ficar meia
+   hora num terço do dossiê.
+
+   O prazo é da MESA, não do aparelho: o Mestre abre a fase, o instante do fim
+   desce pela sala, e todos entram e saem juntos. Quem não fez, não fez — o
+   terço que não abriu não abre, a hipótese não registrada não pontua, o campo
+   em branco fica em branco.
+
+   Os números são um chute honesto e moram só aqui, porque é playtest que vai
+   decidi-los. SENSORES não aparece: ela dura o que a fila das atividades
+   durar, e cada atividade já tem o seu relógio. */
+const FASE_SEG={
+ briefing:{pressure:60,calm:120},
+ evidence:{pressure:150,calm:300},
+ hypothesis:{pressure:60,calm:120},
+ mosaic:{pressure:120,calm:240},
+ final:{pressure:90,calm:180},
+};
+const ORDEM_FASES=['briefing','sensory','evidence','hypothesis','mosaic','final'];
+const fasePrazoMs=n=>{const t=FASE_SEG[n];return t?(t[state.pace]||t.calm)*1000:0};
+const proximaFase=n=>ORDEM_FASES[ORDEM_FASES.indexOf(n)+1]||null;
 
 /* Quem é quem nesta sala. Sem código de sala não há Mestre nem convidado: é o
    ensaio e o aparelho solto, onde o sistema abre tudo sozinho. */
@@ -200,6 +226,7 @@ function go(name){
  const rot=$('partidaLabel');
  rot.hidden=!state.game||name==='intro'||name==='games';
  if(state.game)rot.textContent=PARTIDAS[state.game].title;
+ if(typeof ajustarDock==='function')ajustarDock();
  scrollTo(0,0);
 }
 
@@ -309,9 +336,11 @@ function selectGame(id){
  $('chooseGame').disabled=false;
  /* O fecho da rodada passada não atravessa para a nova: sem zerar, o Mestre
     entraria já achando que a revelação está no ar e ninguém entregaria nota. */
- clearTimeout(relogioFecho);
+ clearTimeout(relogioFecho);pararRelogioFase();
  state.entregue=false;state.placar=[];state.passos=[];state.passoFecho=0;state.podioMostrado=false;state.fechoComecou=false;
- ligarFecho();
+ state.fase={nome:'intro',fimMs:0,vencida:false};state.tercos=[[],[],[]];
+ document.body.classList.remove('fase-vencida');
+ ligarSala();
  const g=PARTIDAS[id],cfg=DURACOES[state.duration];
  window.MosaicoPauta?.publicarPergunta(g);
  $('gameNature').textContent=g.nature;
@@ -326,7 +355,9 @@ function selectGame(id){
   `<article class="plan-card depth-card green"><small>CAMPOS DESTA PERGUNTA</small><strong>${g.fields.length} campos</strong><p>${g.fields.map(f=>f[0]).join(' · ')}</p></article>`,
   `<article class="plan-card depth-card blue"><small>ATIVIDADES SENSORIAIS</small><strong>${g.activities.length} atividade${g.activities.length===1?'':'s'}</strong><p>${g.activities.map(a=>SENSORS[a].title).join(' · ')}</p></article>`
  ].join('');
- go('briefing');
+ /* Quem abre a fase é o Mestre; o convidado recebe o prazo pela sala e cai
+    aqui pelo ouvinte. Sem sala, o próprio aparelho abre. */
+ if(souMestreDaSala())abrirFase('briefing');else go('briefing');
 }
 
 /* As atividades são uma fila, não um cardápio.
@@ -475,7 +506,8 @@ function concluirSensor(sensor){
 function proximaAtividade(){
  const id=atividadeDaVez();
  atualizarAcaoMestre();
- if(!id||state.sensorAberto)return;
+ if(!id)return fimDaFila();
+ if(state.sensorAberto)return;
  if(!souMestreDaSala())return;
  if(ritmoConduzido())return;
  liberarAtividade(id);
@@ -499,16 +531,103 @@ function atualizarAcaoMestre(){
   aoTocar:()=>liberarAtividade(id)
  }:null);
 }
-/* O prazo desce pela sala, e é por ele que os aparelhos param juntos. */
-let ouvindoAtividade=false;
-function ligarSincroniaAtividade(){
- if(ouvindoAtividade||!window.MosaicoPauta?.ouvirAtividade)return;
- ouvindoAtividade=true;
- window.MosaicoPauta.ouvirAtividade(a=>{
-  if(!a||!a.sensor||a.partida!==state.game)return;
-  if(state.sensorDone.has(a.sensor)||state.sensorAberto===a.sensor)return;
-  iniciarAtividade(a.sensor,a.fimMs);
+/* ── O RELÓGIO DA FASE ────────────────────────────────────────────────────
+   Um ouvinte só na sala entrega `partida` inteiro, e daqui saem três coisas:
+   a atividade da vez, a fase da vez e o fecho. Eram três onSnapshot no mesmo
+   documento. */
+let ouvindoSala=false,relogioFase=null;
+function ligarSala(){
+ if(ouvindoSala||!window.MosaicoPauta?.ouvirPartida)return;
+ ouvindoSala=true;
+ window.MosaicoPauta.ouvirPartida(p=>{
+  const a=p?.atividade;
+  if(a&&a.sensor&&a.partida===state.game&&!state.sensorDone.has(a.sensor)&&state.sensorAberto!==a.sensor)
+   iniciarAtividade(a.sensor,a.fimMs);
+  const f=p?.fase;
+  if(f&&f.nome&&(!f.partida||f.partida===state.game)&&f.nome!==state.fase.nome)aplicarFase(f);
+  if(p?.fecho?.fase)receberFecho(p.fecho);
  });
+ window.MosaicoPauta.arbitrarPlacar?.(conduzirFecho);
+}
+function pararRelogioFase(){clearInterval(relogioFase);relogioFase=null}
+/* Quem abre é o Mestre — ou o próprio aparelho, quando não há sala. */
+function abrirFase(nome){
+ if(!nome)return;
+ const prazo=fasePrazoMs(nome);
+ const fim=prazo?Date.now()+prazo:0;
+ if(salaCodigo()&&souMestreDaSala())window.MosaicoPauta?.abrirFase?.(nome,fim,state.game);
+ aplicarFase({nome,fimMs:fim});
+}
+function aplicarFase(f){
+ if(!f||!f.nome)return;
+ pararRelogioFase();
+ state.fase={nome:f.nome,fimMs:Number(f.fimMs)||0,vencida:false};
+ document.body.classList.remove('fase-vencida');
+ montarTelaDaFase(f.nome);
+ if(state.fase.fimMs)relogioFase=setInterval(pulsarFase,250);
+ pintarRelogio();
+ atualizarAcaoDaMesa();
+}
+function montarTelaDaFase(nome){
+ if(nome==='sensory'){renderSensors();go('sensory');proximaAtividade();return}
+ if(nome==='evidence'){state.aberto=1;if(!state.tercos[0].length)montarDossie();renderDossie();go('evidence');return}
+ if(nome==='hypothesis'){renderHypothesis();go('hypothesis');return}
+ if(nome==='mosaic'){renderRelations();go('mosaic');return}
+ if(nome==='final'){renderFinal();go('final');return}
+ go(nome);
+}
+/* Os três terços abrem SOZINHOS, em um terço e em dois terços do tempo da
+   fase. Antes havia um botão "abrir o segundo terço", e ele era do jogador:
+   quem tocasse primeiro passava mais tempo com as pistas de fechamento na
+   mão. Agora a janela é a mesma para a mesa inteira. */
+function tercoPorTempo(){
+ if(state.fase.nome!=='evidence'||!state.fase.fimMs)return 3;
+ const total=fasePrazoMs('evidence');
+ if(!total)return 3;
+ const passado=total-(state.fase.fimMs-Date.now());
+ return passado>=total*2/3?3:passado>=total/3?2:1;
+}
+function pulsarFase(){
+ if(!state.fase.fimMs)return pararRelogioFase();
+ if(state.fase.nome==='evidence'){
+  const t=tercoPorTempo();
+  if(t>state.aberto){state.aberto=t;renderDossie()}
+ }
+ if(Date.now()>=state.fase.fimMs)return venceuFase();
+ pintarRelogio();
+}
+/* O sino. Ninguém é salvo por ter chegado tarde: o que estava por fazer fica
+   por fazer, e o custo aparece no relatório. */
+function venceuFase(){
+ pararRelogioFase();
+ const nome=state.fase.nome;
+ state.fase={...state.fase,fimMs:0,vencida:true};
+ document.body.classList.add('fase-vencida');
+ pintarRelogio();
+ if(nome==='final'){entregarDecisao();return}
+ if(!souMestreDaSala())return atualizarAcaoDaMesa();
+ if(ritmoConduzido())return atualizarAcaoDaMesa();
+ abrirFase(proximaFase(nome));
+}
+/* Um alerta só para o Mestre, e ele sabe de qual assunto é: durante a fila
+   das atividades quem manda é a atividade; fora dela, a fase. */
+function atualizarAcaoDaMesa(){
+ if(state.fase.nome==='sensory'&&atividadeDaVez())return atualizarAcaoMestre();
+ const sala=window.DragonSala;
+ if(!sala)return;
+ const seguinte=proximaFase(state.fase.nome);
+ const precisa=!!seguinte&&souMestreDaSala()&&ritmoConduzido()&&state.fase.vencida;
+ sala.acao(precisa?{
+  rotulo:`Abrir: ${FASES[seguinte]||seguinte.toUpperCase()}`,
+  texto:'O tempo desta fase acabou e a mesa está esperando você virar a página.',
+  aoTocar:()=>abrirFase(seguinte)
+ }:null);
+}
+/* No fim da fila das atividades quem abre o dossiê é a mesa, não o jogador. */
+function fimDaFila(){
+ if(!souMestreDaSala())return atualizarAcaoDaMesa();
+ if(ritmoConduzido()){state.fase={...state.fase,vencida:true};return atualizarAcaoDaMesa()}
+ abrirFase('evidence');
 }
 function receberAviso(dado){
  if(!dado||dado.fonte!=='mosaico-carro-forte')return;
@@ -547,12 +666,31 @@ function renderDossie(){
  });
  const tem=mao(),abertas=RELACOES.filter(r=>relacaoCompleta(r,tem)).length;
  $('dossierMeta').innerHTML=`<b>${state.marcados.size}</b> marcado${state.marcados.size===1?'':'s'} de ${tem.size} em mesa · <b>${abertas}</b> ${abertas===1?'relação já costurável':'relações já costuráveis'}`;
- const fim=state.aberto>=3;
- $('nextWave').hidden=fim;
- $('nextWave').textContent=`Abrir o ${state.aberto===1?'segundo terço':'terço final'} →`;
- $('toHypothesis').hidden=!fim;
+ /* O botão "abrir o segundo terço" era do JOGADOR, e isso dava a quem tocasse
+    primeiro mais tempo com as pistas de fechamento na mão. Agora os terços
+    abrem sozinhos, em um terço e em dois terços do tempo da fase, iguais para
+    a mesa inteira — ver tercoPorTempo(). O nó fica, escondido, porque o
+    rodapé conta com ele para o espaçamento. */
+ $('nextWave').hidden=true;
+ $('toHypothesis').hidden=state.aberto<3;
+ ajustarDock();
 }
 
+/* Para o convidado os botões de virar a página não existem: a fase é da mesa
+   e quem a abre é o Mestre, ou o relógio. Deixá-los visíveis e inertes seria
+   pior — a pessoa toca, nada acontece, e ela acha que o jogo travou. */
+const AVANCOS=['startGame','toEvidence','toHypothesis','toFinal'];
+function ajustarDock(){
+ const meu=souMestreDaSala();
+ AVANCOS.forEach(id=>{
+  const b=$(id);
+  if(!b)return;
+  b.dataset.mestre='1';
+  if(!meu)b.hidden=true;
+ });
+ const aviso=$('esperaDaMesa');
+ if(aviso)aviso.hidden=meu||state.screen==='intro'||state.screen==='reveal'||state.screen==='score';
+}
 function renderHypothesis(){
  const g=PARTIDAS[state.game],tem=mao();
  $('hypothesisPrompt').textContent=g.question;
@@ -637,7 +775,15 @@ function pontuar(){
  const ruido=[...state.marcados].filter(c=>g.incidentais.includes(c)).length;
  const leitura=centrais.length?Math.max(0,Math.round(certos/centrais.length*10)-Math.min(4,ruido)):0;
 
- const sensorial=Math.round(state.sensorDone.size/g.activities.length*10);
+ /* MEDE O QUE FOI ALCANÇADO, não quantas atividades "terminaram".
+    Era sensorDone.size / activities.length — e desde que o relógio passou a
+    fechar a atividade sozinho, TODA atividade termina: a conta dava 10 de 10
+    para quem não encostou em nenhuma. O ponto sensorial deixou de medir
+    qualquer coisa no dia em que o botão de pular saiu, e ninguém veria isso
+    olhando a tela, só a nota alta de quem não fez nada.
+    Agora vale o que entrou no dossiê. */
+ const doSensor=sensoriais().length;
+ const sensorial=doSensor?Math.round(state.colhidos.size/doSensor*10):0;
  const revisao=(state.hipoteseProv&&hFinal&&hFinal.canonica&&!HIPOTESES.find(h=>h.id===state.hipoteseProv).canonica)?5:0;
 
  return {total:Math.min(100,campos+hipotese+relacoes+leitura+sensorial+revisao),
@@ -720,19 +866,28 @@ function renderScore(){
    NADA PARCIAL APARECE, para ninguém — nem para o Mestre, que também está
    jogando. Entre a entrega e o pódio não há tela de "3 de 6 já fecharam" com
    pontos: o que se sabe é quantos faltam, nunca quanto alguém fez. */
-let relogioFecho=null,fechoLigado=false;
+let relogioFecho=null;
 const PASSO_MS=9000, PODIO_MS=12000;
 
+/* A DECISÃO SE ENTREGA SOZINHA quando o tempo acaba. Antes era preciso tocar
+   em enviar, e quem não tocasse não entrava no pódio nem via a revelação —
+   ficava parado numa tela morta enquanto a mesa seguia. Vai o que estiver
+   preenchido; campo em branco é campo errado, que é o custo de não ter feito. */
+function entregarDecisao(){
+ if(state.entregue)return;
+ const form=$('finalForm');
+ const dados=Object.fromEntries(new FormData(form));
+ state.hipoteseFinal=(dados.__hip||'').split(' · ')[0];
+ delete dados.__hip;
+ state.final=dados;state.reveal=0;
+ entregarAMesa();
+ if(state.telao)esperarTelao();else renderReveal();
+ go('reveal');
+}
 function entregarAMesa(){
  if(state.entregue)return;
  state.entregue=true;
  window.MosaicoPauta?.entregarNota?.(pontuar().total,state.game);
-}
-function ligarFecho(){
- if(fechoLigado||!window.MosaicoPauta?.ouvirFecho)return;
- fechoLigado=true;
- window.MosaicoPauta.ouvirFecho(receberFecho);
- window.MosaicoPauta.arbitrarPlacar?.(conduzirFecho);
 }
 /* Só o Mestre chega aqui, e a cada nota que entra.
 
@@ -879,31 +1034,27 @@ $('chooseGame').onclick=()=>{
  $('mesaOptionsText').textContent='O Mestre já definiu o ritmo e a duração desta mesa. Toque em começar para entrar.';
 })();
 document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>go(b.dataset.back));
-$('startGame').onclick=()=>{renderSensors();go('sensory');ligarSincroniaAtividade();proximaAtividade()};
+/* VIRAR A PÁGINA É DA MESA, NÃO DE QUEM ESTÁ COM O APARELHO. Estes quatro
+   botões avançavam a fase no aparelho de cada um — e com fase coletiva isso
+   deixaria duas pessoas em telas diferentes discutindo coisas diferentes.
+   Ficam com o Mestre; para o convidado eles somem, e quem vira a página é o
+   relógio. Sem sala, o próprio aparelho é a mesa. */
+$('startGame').onclick=()=>abrirFase('sensory');
 $('toEvidence').onclick=()=>{
- /* Sai da fila: relógio parado, aba fechada e o botão do Mestre sem alerta —
-    ele já não tem nada para deliberar aqui. */
  pararRelogioSensor();fecharJanelaAtividade();window.DragonSala?.acao(null);
- montarDossie();renderDossie();go('evidence');
+ abrirFase('evidence');
 };
-$('nextWave').onclick=()=>{if(state.aberto<3){state.aberto++;renderDossie()}};
-$('toHypothesis').onclick=()=>{renderHypothesis();go('hypothesis')};
+$('toHypothesis').onclick=()=>abrirFase('hypothesis');
+$('toFinal').onclick=()=>abrirFase('final');
+/* A hipótese REGISTRA, e não avança mais. O alerta que travava quem não tinha
+   escolhido também saiu: com relógio, travar a saída é prender a pessoa numa
+   tela até o sino — e a regra é que quem não registrou apenas não pontua. */
 $('hypothesisForm').onsubmit=e=>{
  e.preventDefault();
- if(!state.hipoteseProv){alert('Comprometa-se com uma hipótese provisória antes de seguir.');return}
- renderRelations();go('mosaic');
+ renderHypothesis();
+ if(souMestreDaSala())abrirFase('mosaic');
 };
-$('toFinal').onclick=()=>{renderFinal();go('final')};
-$('finalForm').onsubmit=e=>{
- e.preventDefault();
- const dados=Object.fromEntries(new FormData(e.currentTarget));
- state.hipoteseFinal=(dados.__hip||'').split(' · ')[0];
- delete dados.__hip;
- state.final=dados;state.reveal=0;
- entregarAMesa();
- if(state.telao)esperarTelao();else renderReveal();
- go('reveal');
-};
+$('finalForm').onsubmit=e=>{e.preventDefault();entregarDecisao()};
 $('nextReveal').onclick=()=>{
  if(state.reveal>=state.revealMax){renderScore();go('score')}
  else{state.reveal++;renderReveal()}
@@ -916,9 +1067,23 @@ $('infoBtn').onclick=()=>$('drawer').classList.add('on');
 $('drawerClose').onclick=()=>$('drawer').classList.remove('on');
 $('drawer').onclick=e=>{if(e.target===$('drawer'))$('drawer').classList.remove('on')};
 
-setInterval(()=>{
+/* O cronômetro do cabeçalho era o tempo DECORRIDO desde que a mesa abriu, e
+   não servia para decidir nada. Agora ele é o que falta na fase — que é o que
+   muda o que a pessoa faz nos próximos segundos. Fora das fases com prazo
+   (prólogo, revelação, relatório) ele volta a contar para cima. */
+function pintarRelogio(){
+ const el=$('timer');
+ if(state.fase.fimMs){
+  const r=Math.max(0,Math.ceil((state.fase.fimMs-Date.now())/1000));
+  el.textContent=`${String(Math.floor(r/60)).padStart(2,'0')}:${String(r%60).padStart(2,'0')}`;
+  el.classList.toggle('urgente',r<=10);
+  return;
+ }
+ el.classList.remove('urgente');
+ if(state.fase.vencida){el.textContent='00:00';return}
  const d=Math.floor((Date.now()-state.start)/1000);
- $('timer').textContent=`${String(Math.floor(d/60)).padStart(2,'0')}:${String(d%60).padStart(2,'0')}`;
-},1000);
+ el.textContent=`${String(Math.floor(d/60)).padStart(2,'0')}:${String(d%60).padStart(2,'0')}`;
+}
+setInterval(pintarRelogio,1000);
 
 go('intro');

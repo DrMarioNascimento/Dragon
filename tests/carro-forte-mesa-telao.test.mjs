@@ -159,8 +159,15 @@ test("no ritmo conduzido o botão do Mestre pisca", () => {
 
 test("o prazo da atividade é o mesmo para a mesa inteira", () => {
   assert.match(PAUTA, /'partida\.atividade': \{ sensor/, "a atividade aberta não sobe para a sala");
-  assert.match(PAUTA, /function ouvirAtividade|async function ouvirAtividade/, "ninguém escuta a atividade da sala");
-  assert.match(GAME, /ligarSincroniaAtividade\(\)/, "a Mesa não liga a sincronia da atividade");
+  assert.match(PAUTA, /async function ouvirPartida/, "ninguém escuta a partida da sala");
+  assert.match(GAME, /ligarSala\(\)/, "a Mesa não liga a sincronia da sala");
+  /* Eram três onSnapshot no MESMO documento — atividade, fase e fecho —, cada
+     um com o próprio cancelamento para alguém esquecer de chamar. */
+  assert.equal(
+    (PAUTA.match(/fs\.onSnapshot\(fs\.doc\(db, COLECAO, code\)/g) || []).length,
+    1,
+    "voltou a haver mais de um ouvinte no documento da sala",
+  );
 });
 
 /* ── 1. O telão: porta de entrada e identificação ───────────────────────── */
@@ -348,4 +355,75 @@ test("o telão desenha o pódio, e nada que seja de uma pessoa só", () => {
   renderFecho({ fase: "revelacao", passo: 0, passos: [{ k: "O QUE PARECIA", h: "h", p: "p" }] }, {});
   assert.match(alvo.innerHTML, /O QUE PARECIA/, "a revelação não desenha o passo");
   assert.match(alvo.innerHTML, /1 de 1/, "a revelação não diz onde está");
+});
+
+/* ── TUDO TEM TEMPO ───────────────────────────────────────────────────────
+ * Regra do Mario, 04/09/2026: "precisa terminar, tudo tem tempo; perdeu o
+ * tempo, segue; não está, perdeu". Antes só as atividades tinham relógio, e a
+ * mesa podia ficar meia hora num terço do dossiê esperando alguém tocar.
+ */
+
+test("toda fase da partida tem prazo, e ele mora num lugar só", () => {
+  assert.match(GAME, /const FASE_SEG=\{/, "não há tabela de tempos das fases");
+  for (const fase of ["briefing", "evidence", "hypothesis", "mosaic", "final"])
+    assert.match(GAME, new RegExp(`\n ${fase}:\{pressure:`), `a fase ${fase} ficou sem prazo`);
+  /* SENSORES não entra: ela dura o que a fila das atividades durar, e cada
+     atividade já tem o seu relógio. */
+  assert.ok(!/\n sensory:\{pressure:/.test(GAME), "SENSORES ganhou um prazo que briga com o das atividades");
+  assert.match(GAME, /function venceuFase\(/, "nada acontece quando o prazo vence");
+});
+
+test("o prazo da fase é da mesa, não do aparelho", () => {
+  assert.match(PAUTA, /'partida\.fase': \{ nome/, "a fase aberta não sobe para a sala");
+  assert.match(GAME, /function abrirFase\(nome\)/, "ninguém abre fase");
+  assert.match(
+    GAME,
+    /if\(salaCodigo\(\)&&souMestreDaSala\(\)\)window\.MosaicoPauta\?\.abrirFase/,
+    "o convidado voltou a publicar a própria fase, e a mesa desanda",
+  );
+});
+
+/* Quem chegou tarde não é salvo por isso. */
+test("o que não foi feito quando o sino toca fica por fazer", () => {
+  assert.match(GAME, /function entregarDecisao\(/, "a decisão não se entrega sozinha");
+  assert.match(
+    GAME,
+    /if\(nome==='final'\)\{entregarDecisao\(\);return\}/,
+    "o fim do tempo da DECISÃO não entrega o que estiver preenchido",
+  );
+  /* O alerta travava quem não tinha escolhido hipótese — com relógio, travar a
+     saída é prender a pessoa numa tela até o sino. */
+  assert.ok(
+    !/Comprometa-se com uma hipótese provisória/.test(GAME),
+    "voltou o alerta que impede seguir sem hipótese",
+  );
+});
+
+/* O botão "abrir o segundo terço" era do jogador: quem tocasse primeiro
+   passava mais tempo com as pistas de fechamento na mão. */
+test("os terços do dossiê abrem pelo relógio, não por quem toca primeiro", () => {
+  assert.match(GAME, /function tercoPorTempo\(\)/, "os terços voltaram a depender de um toque");
+  assert.match(GAME, /\$\('nextWave'\)\.hidden=true;/, "o botão de abrir terço voltou a aparecer");
+});
+
+/* Virar a página no próprio aparelho deixaria duas pessoas em telas
+   diferentes discutindo coisas diferentes. */
+test("quem vira a página é a mesa, e o convidado vê por quê", () => {
+  assert.match(GAME, /const AVANCOS=\['startGame','toEvidence','toHypothesis','toFinal'\]/, "os botões de avanço não foram recolhidos");
+  assert.match(GAME, /if\(!meu\)b\.hidden=true;/, "o convidado continua com os botões de avançar");
+  assert.match(MESA_HTML, /id="esperaDaMesa"/, "sumiu o aviso que explica ao convidado por que não há botão");
+});
+
+/* Fechar por tempo passou a marcar a atividade como concluída — e a conta
+   antiga dava a nota cheia a quem não encostou em nenhuma. */
+test("o ponto sensorial mede o que foi alcançado, não quantas atividades acabaram", () => {
+  assert.ok(
+    !/sensorDone\.size\/g\.activities\.length/.test(GAME),
+    "voltou a conta que dá 10 de 10 para quem não descobriu nada",
+  );
+  assert.match(
+    GAME,
+    /const sensorial=doSensor\?Math\.round\(state\.colhidos\.size\/doSensor\*10\):0;/,
+    "o ponto sensorial deixou de medir a colheita",
+  );
 });

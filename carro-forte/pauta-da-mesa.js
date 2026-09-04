@@ -100,9 +100,12 @@
           'partida.pergunta': id,
           'partida.abertaEmMs': Date.now(),
           'partida.opcoes': combinado,
-          /* O fecho da rodada passada não pode sobreviver à nova: sem zerar,
-             o telão abriria a partida seguinte com o pódio da anterior. */
+          /* O fecho e a fase da rodada passada não podem sobreviver à nova:
+             sem zerar, o telão abriria a partida seguinte com o pódio da
+             anterior e os aparelhos obedeceriam um prazo já vencido. */
           'partida.fecho': null,
+          'partida.fase': null,
+          'partida.placar': null,
         });
       } catch (e) {
         /* A mesa continua jogando com a pergunta sorteada; quem perde é a
@@ -276,18 +279,41 @@
       console.error('MOSAICO: não consegui abrir a atividade para a mesa.', e);
     }
   }
-  let unsubAtividade = null;
-  async function ouvirAtividade(aoMudar) {
+  /* ── A FASE TAMBÉM É DA MESA ─────────────────────────────────────────────
+     Regra do Mario, 04/09/2026: "tudo tem tempo; perdeu o tempo, segue; não
+     está, perdeu". Cada fase da partida tem prazo, e o prazo é um só para a
+     mesa inteira — senão "todos juntos" continua sendo uma intenção escrita no
+     comentário, com uma pessoa no dossiê enquanto a outra ainda lê a pauta.
+
+     Quem abre é o Mestre, e o instante do fim desce daqui. */
+  async function abrirFase(nome, fimMs, partida) {
     const code = codigo();
-    if (!code || unsubAtividade) return;
+    if (!code || !souMestre()) return;
     try {
       const { fs, db } = await firebase();
-      unsubAtividade = fs.onSnapshot(fs.doc(db, COLECAO, code), (s) => {
-        const a = s.exists() ? s.data()?.partida?.atividade : null;
-        if (a && a.sensor) aoMudar(a);
-      }, (e) => console.error('MOSAICO: perdi a atividade da mesa de vista.', e));
+      await fs.updateDoc(fs.doc(db, COLECAO, code), {
+        'partida.fase': { nome, partida: partida || null, abertaEmMs: Date.now(), fimMs: fimMs || 0 },
+      });
     } catch (e) {
-      console.error('MOSAICO: não consegui ouvir a atividade da mesa.', e);
+      console.error('MOSAICO: não consegui abrir a fase para a mesa.', e);
+    }
+  }
+
+  /* UM OUVINTE SÓ. Eram três onSnapshot no MESMO documento — atividade, fecho
+     e agora a fase —, cada um com o próprio cancelamento para alguém esquecer.
+     Este entrega o `partida` inteiro e quem chamou decide o que olhar. */
+  let unsubPartida = null;
+  async function ouvirPartida(aoMudar) {
+    const code = codigo();
+    if (!code || unsubPartida) return;
+    try {
+      const { fs, db } = await firebase();
+      unsubPartida = fs.onSnapshot(fs.doc(db, COLECAO, code), (s) => {
+        const p = s.exists() ? s.data()?.partida : null;
+        if (p) aoMudar(p);
+      }, (e) => console.error('MOSAICO: perdi a partida de vista.', e));
+    } catch (e) {
+      console.error('MOSAICO: não consegui ouvir a partida.', e);
     }
   }
 
@@ -398,20 +424,6 @@
   function publicarFecho(fecho) {
     return publicar({ 'partida.fecho': { ...fecho, emMs: Date.now() } });
   }
-  let unsubFecho = null;
-  async function ouvirFecho(aoMudar) {
-    const code = codigo();
-    if (!code || unsubFecho) return;
-    try {
-      const { fs, db } = await firebase();
-      unsubFecho = fs.onSnapshot(fs.doc(db, COLECAO, code), (s) => {
-        const f = s.exists() ? s.data()?.partida?.fecho : null;
-        if (f && f.fase) aoMudar(f);
-      }, (e) => console.error('MOSAICO: perdi o fecho de vista.', e));
-    } catch (e) {
-      console.error('MOSAICO: não consegui ouvir o fecho.', e);
-    }
-  }
 
   /* O que a mesa mostra na tela grande. Só o Mestre grava — as regras do
      Firestore não deixam outro, e aqui ele é o único que joga de qualquer
@@ -455,8 +467,8 @@
   }
 
   window.MosaicoPauta = {
-    escolher, abertura, abrirAtividade, ouvirAtividade,
-    entregarNota, arbitrarPlacar, publicarFecho, ouvirFecho, quantosNaMesa,
+    escolher, abertura, abrirAtividade, abrirFase, ouvirPartida,
+    entregarNota, arbitrarPlacar, publicarFecho, quantosNaMesa,
     souMestre, temSala: () => !!codigo(), publicarPergunta, publicarFim,
   };
 })();
