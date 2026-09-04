@@ -2528,7 +2528,6 @@ function telaInicio(){
    QR nao precisa de senha — sao os convidados, nao o dono da mesa.     */
 function modalSenha(){
   if(!STATE.senhaAberta) return "";
-  var autenticado=jaEhMestre();
   return '<div class="modal-fundo" onclick="if(event.target===this) fecharSenha()">'+
     '<div class="modal">'+
       '<span class="eyebrow">&Aacute;rea do mestre</span>'+
@@ -2539,11 +2538,13 @@ function modalSenha(){
       '<span class="eyebrow ritmo-titulo">Como as rodadas devem avan&ccedil;ar?</span>'+
       '<button class="ritmo-op'+((STATE.ritmoMesa||"automatico")==="automatico"?' on':'')+'" onclick="escolherRitmoMesa(\'automatico\')"><b>Automaticamente &middot; recomendado</b><span>O jogo avan&ccedil;a quando todos terminam.</span></button>'+
       '<button class="ritmo-op'+(STATE.ritmoMesa==="conduzido"?' on':'')+'" onclick="escolherRitmoMesa(\'conduzido\')"><b>Com minha libera&ccedil;&atilde;o</b><span>A Sala avisar&aacute; quando for hora de avan&ccedil;ar.</span></button>'+
-      (autenticado?'<p class="muted">Mestre reconhecido neste aparelho.</p>':'<input id="senha" class="senha" type="password" inputmode="text" '+
-        'autocomplete="off" placeholder="senha" '+
-        'onkeydown="if(event.key===\'Enter\') conferirSenha()">')+
-      '<div id="senha-erro"></div>'+
-      '<button class="btn btn-ambar" onclick="'+(autenticado?'criarMesa(STATE.modoMesa)':'conferirSenha()')+'">Abrir com Google</button>'+
+      /* A SENHA SAIU (03/09/2026). O comentário dela neste mesmo arquivo já
+         admitia: "nao e seguranca de fato. O que protege os DADOS sao as
+         Regras do Firestore." Era sha256 de constante escrita aqui, com o
+         desbloqueio num sessionStorage que qualquer um define pelo console.
+         Quem decide se alguém abre mesa é `emailMestre()`, no servidor. Uma
+         tela a menos no caminho de quem só quer começar a jogar. */
+      '<button class="btn btn-ambar" onclick="criarMesa(STATE.modoMesa)">Abrir com Google</button>'+
       '<button class="btn btn-fantasma" onclick="fecharSenha()">Cancelar</button>'+
     '</div></div>';
 }
@@ -3445,48 +3446,23 @@ function telaDeducao(){
    ACOES
    ============================================================ */
 /* ---------- porta do mestre ----------
-   AVISO HONESTO: qualquer senha guardada numa pagina web e verificavel
-   por quem abrir o codigo-fonte. Isto serve para impedir que alguem
-   abra mesas por engano ou por curiosidade — nao e seguranca de fato.
-   O que protege os DADOS sao as Regras do Firestore.                   */
-var SENHA_HASH="2ff22e27b070d318da49f2ba1062cfef81e85e7cb826a5e761cbdb5f07c62472";
+   A senha saiu em 03/09/2026, e o aviso honesto que ficava aqui é a razão:
+   "qualquer senha guardada numa pagina web e verificavel por quem abrir o
+   codigo-fonte… nao e seguranca de fato. O que protege os DADOS sao as Regras
+   do Firestore." Estava certo, e por isso a senha era só uma tela a mais entre
+   o Mestre e a mesa. Quem decide quem abre é `emailMestre()`, no servidor,
+   contra a lista em config/mestres.
 
-async function sha256hex(txt){
-  var buf=new TextEncoder().encode(txt);
-  var h=await crypto.subtle.digest("SHA-256",buf);
-  return Array.prototype.map.call(new Uint8Array(h),function(b){
-    return b.toString(16).padStart(2,"0");
-  }).join("");
-}
-function jaEhMestre(){
-  try{ return sessionStorage.getItem("mosaico_mestre")==="1"; }catch(e){ return false; }
-}
+   `pedirSenha` continua com o nome antigo: ele abre o painel de modo e ritmo,
+   que é o que sempre fez de útil. Renomear obrigaria a caçar chamadas em três
+   arquivos por ganho nenhum. */
 function pedirSenha(){
   STATE.senhaAberta=true; render();
   setTimeout(function(){ var i=document.getElementById("senha"); if(i) i.focus(); },80);
 }
 function fecharSenha(){ STATE.senhaAberta=false; render(); }
-function escolherModoMesa(modo){ STATE.modoMesa=modo; render(); setTimeout(function(){var i=document.getElementById('senha');if(i)i.focus();},50); }
+function escolherModoMesa(modo){ STATE.modoMesa=modo; render(); }
 function escolherRitmoMesa(ritmo){ STATE.ritmoMesa=ritmo==="conduzido"?"conduzido":"automatico"; render(); setTimeout(function(){var i=document.getElementById('senha');if(i)i.focus();},50); }
-async function conferirSenha(){
-  var campo=document.getElementById("senha");
-  var erro=document.getElementById("senha-erro");
-  if(!campo) return;
-  var txt=(campo.value||"").trim();
-  if(!txt){ erro.textContent="Escreva a senha."; return; }
-  var ok=false;
-  try{ ok = (await sha256hex(txt))===SENHA_HASH; }
-  catch(e){ erro.textContent="Este navegador não permite conferir a senha."; return; }
-  if(!ok){
-    erro.textContent="Senha incorreta.";
-    campo.value=""; campo.focus();
-    return;
-  }
-  try{ sessionStorage.setItem("mosaico_mestre","1"); }catch(e){}
-  STATE.senhaAberta=false;
-  criarMesa(STATE.modoMesa);
-}
-
 /* ---------- tela cheia ----------
    So funciona a partir de um gesto da pessoa — nenhum navegador deixa
    entrar em tela cheia sozinho. E no iPhone o Safari nao implementa a

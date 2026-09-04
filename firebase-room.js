@@ -15,8 +15,6 @@ const CASE_ID=script?.dataset.case||'caso';
 const TITLE=script?.dataset.title||'MOSAICO';
 const READY_EVENT=script?.dataset.readyEvent||'mosaico-room-ready';
 const TELAO=script?.dataset.telao||'';
-const SENHA_HASH='2ff22e27b070d318da49f2ba1062cfef81e85e7cb826a5e761cbdb5f07c62472';
-const MESTRE_LOCAL=`dragon_${PROJECT}_mestre`;
 const CONFIGS={
   mesa:{apiKey:'AIzaSyDwshZbqaMOKxdRuyLtdpbijPRdrjVOcxE',authDomain:'mosaico-game.firebaseapp.com',projectId:'mosaico-game',storageBucket:'mosaico-game.firebasestorage.app',messagingSenderId:'436141261767',appId:'1:436141261767:web:6a83555a2f7c4ed4550fe2'},
   noite:{apiKey:'AIzaSyA160bkgHBrYBwvIxlENax-aAyLWPMaOU4',authDomain:'mosaico-noite.firebaseapp.com',projectId:'mosaico-noite',storageBucket:'mosaico-noite.firebasestorage.app',messagingSenderId:'703343424116',appId:'1:703343424116:web:e6990b5c00d43aca6e9721'}
@@ -47,8 +45,6 @@ function qrDe(url,rotulo){
   return `<div class="room-qr-fallback">${esc(url)}</div>`;
 }
 function qr(c){const url=joinUrl(c);if(window.MosaicoQR)return window.MosaicoQR.svg(url,{nivel:'M',margem:4,rotulo:'QR para entrar na sala'});return `<div class="room-qr-fallback">${esc(c)}</div>`;}
-async function sha256hex(txt){const buf=new TextEncoder().encode(txt);const h=await crypto.subtle.digest('SHA-256',buf);return Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,'0')).join('');}
-function senhaLiberada(){try{return sessionStorage.getItem(MESTRE_LOCAL)==='1'}catch(e){return false}}
 
 function css(){const st=document.createElement('style');st.textContent=`
 #dragonRoomGate{position:fixed;inset:0;z-index:99999;background:radial-gradient(900px 600px at 50% -10%,#16242a 0,transparent 55%),#061014;color:#f0eadc;font-family:Inter,system-ui,sans-serif;overflow:auto}.dr-shell{width:min(620px,calc(100% - 28px));margin:auto;padding:max(24px,env(safe-area-inset-top)) 0 max(36px,env(safe-area-inset-bottom))}.dr-brand{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:#e8a94a;font-weight:800}.dr-card{margin-top:18px;padding:20px;border:1px solid #31404a;border-radius:14px;background:linear-gradient(160deg,#121c22,#080e12);box-shadow:inset 0 1px rgba(255,255,255,.06),0 7px 0 #020507,0 22px 45px rgba(0,0,0,.45)}.dr-card h1,.dr-card h2{font-family:Georgia,serif;margin:.25rem 0 .6rem}.dr-card h1{font-size:clamp(38px,10vw,62px);line-height:.95}.dr-card p{color:#afbdc5;line-height:1.5}.dr-btn{width:100%;min-height:52px;margin-top:10px;border:0;border-radius:10px;padding:12px 14px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;background:linear-gradient(#ffc266,#dd8b2e);color:#1b1005;box-shadow:inset 0 1px #ffe2b4,0 5px 0 #6a3712}.dr-btn.secondary{background:linear-gradient(#24343d,#142128);color:#dce8ed;box-shadow:inset 0 1px rgba(255,255,255,.08),0 5px 0 #030709;border:1px solid #334750}.dr-btn.danger{background:linear-gradient(#7d2d2a,#4b1715);color:#fff3ef;box-shadow:inset 0 1px rgba(255,255,255,.08),0 5px 0 #1b0706}.dr-input{width:100%;min-height:50px;margin-top:10px;border-radius:9px;border:1px solid #3a4c56;background:#071014;color:#fff;padding:12px;font-size:17px}.dr-code{font:800 clamp(40px,12vw,70px)/1 monospace;letter-spacing:.13em;color:#ffc46b;text-align:center;margin:12px 0}.dr-qr{width:min(300px,80vw);margin:14px auto;background:white;padding:10px;border-radius:12px}.dr-qr svg{display:block;width:100%;height:auto}.dr-list{display:grid;gap:8px;margin-top:14px}.dr-player{padding:10px 12px;border:1px solid #2d3b43;border-radius:9px;background:#0a1318;display:flex;justify-content:space-between;gap:10px}.dr-note{font-size:13px;color:#82959f}.dr-error{margin-top:12px;padding:10px;border-left:3px solid #e56b52;background:#28110e;color:#ffd4ca}.room-qr-fallback{color:#111;font:800 36px monospace;text-align:center;padding:40px 5px}.dr-formas{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}.dr-forma{position:relative;min-height:100px;border:1px solid #344750;border-radius:11px;background:#0a1419;color:#dce8ed;padding:10px 5px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;cursor:pointer;box-shadow:0 4px 0 #020507}.dr-forma input{position:absolute;opacity:0}.dr-forma:has(input:checked){border-color:#e8a94a;background:#25190e;color:#ffc46b}.dr-forma .em{font-size:28px}.dr-forma .lb{font-family:Georgia,serif;font-size:16px;text-align:center}.dr-ident{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#e8a94a;font-weight:800;margin-top:15px}.dr-choice{width:100%;margin-top:9px;padding:14px;border:1px solid #344750;border-radius:10px;background:#0a1419;color:#dce8ed;text-align:left;cursor:pointer}.dr-choice.on{border-color:#e8a94a;background:#25190e;color:#ffc46b}.dr-choice b,.dr-choice span{display:block}.dr-choice span{margin-top:5px;color:#9eafb8;font-size:13px}.dr-master-info{padding:14px;border-left:3px solid #e8a94a;background:#0a1318;border-radius:8px}.dr-master-info p{margin:.45rem 0}
@@ -81,17 +77,18 @@ function renderMasterGate(error=''){
   const corpo=ensaio
     ? `<div class="dr-master-info"><p><b>📱 Só neste aparelho</b></p><p>Nenhuma sala é aberta e ninguém entra por QR. Serve para você percorrer a partida sozinho.</p></div>`
     : `${modoHtml}<div class="dr-ident">Como as rodadas devem avançar?</div><button class="dr-choice ${ritmo==='automatico'?'on':''}" data-rhythm="automatico"><b>AUTOMATICAMENTE · RECOMENDADO</b><span>O jogo avança quando todos terminam.</span></button><button class="dr-choice ${ritmo==='conduzido'?'on':''}" data-rhythm="conduzido"><b>COM MINHA LIBERAÇÃO</b><span>A Sala avisará quando for hora de avançar.</span></button>`;
-  gate().innerHTML=`<div class="dr-shell"><div class="dr-brand">${esc(TITLE)} · ÁREA DO MESTRE</div><div class="dr-card"><h2>${ensaio?'Ensaiar neste aparelho':'Abrir uma mesa'}</h2>${corpo}${senhaLiberada()?'<p class="dr-note">Mestre reconhecido neste aparelho.</p>':'<input class="dr-input" id="drPass" type="password" autocomplete="off" placeholder="senha">'}${error?`<div class="dr-error">${esc(error)}</div>`:''}<button class="dr-btn" id="drGoogle">${ensaio?'Ensaiar com Google':'Abrir com Google'}</button><button class="dr-btn secondary" id="drBack">Cancelar</button></div></div>`;
+  gate().innerHTML=`<div class="dr-shell"><div class="dr-brand">${esc(TITLE)} · ÁREA DO MESTRE</div><div class="dr-card"><h2>${ensaio?'Ensaiar neste aparelho':'Abrir uma mesa'}</h2>${corpo}${error?`<div class="dr-error">${esc(error)}</div>`:''}<button class="dr-btn" id="drGoogle">${ensaio?'Ensaiar com Google':'Abrir com Google'}</button><button class="dr-btn secondary" id="drBack">Cancelar</button></div></div>`;
   document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{modo=b.dataset.mode;renderMasterGate()});
   document.querySelectorAll('[data-rhythm]').forEach(b=>b.onclick=()=>{ritmo=b.dataset.rhythm;renderMasterGate()});
-  document.getElementById('drGoogle').onclick=senhaLiberada()?loginMestre:conferirSenha;
+  /* A SENHA SAIU (03/09/2026), e com ela uma tela inteira do caminho do Mestre.
+     Ela era sha256 de uma constante escrita no próprio arquivo, e o desbloqueio
+     ficava num `sessionStorage` que qualquer um define pelo console — não era
+     controle, era pedágio. Quem de fato decide se alguém pode abrir mesa é a
+     regra do Firestore: `emailMestre()`, que confere o e-mail verificado contra
+     a lista em config/mestres, no servidor, onde não há como contornar.
+     Duas portas para a mesma pessoa, e só uma delas fechava. */
+  document.getElementById('drGoogle').onclick=loginMestre;
   document.getElementById('drBack').onclick=()=>menu();
-  const p=document.getElementById('drPass');if(p){p.onkeydown=e=>{if(e.key==='Enter')conferirSenha()};setTimeout(()=>p.focus(),20)}
-}
-async function conferirSenha(){
-  const txt=(document.getElementById('drPass')?.value||'').trim();if(!txt)return renderMasterGate('Escreva a senha.');
-  try{if((await sha256hex(txt))!==SENHA_HASH)return renderMasterGate('Senha incorreta.');try{sessionStorage.setItem(MESTRE_LOCAL,'1')}catch(e){}await loginMestre();}
-  catch(e){renderMasterGate('Este navegador não permite conferir a senha.');}
 }
 /* O redirect só volta com resultado quando a página e o authDomain estão na
    mesma origem. Aqui a página é drmarionascimento.github.io e o authDomain é

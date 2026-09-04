@@ -3,8 +3,6 @@
 const CFG={apiKey:'AIzaSyA160bkgHBrYBwvIxlENax-aAyLWPMaOU4',authDomain:'mosaico-noite.firebaseapp.com',projectId:'mosaico-noite',storageBucket:'mosaico-noite.firebasestorage.app',messagingSenderId:'703343424116',appId:'1:703343424116:web:e6990b5c00d43aca6e9721'};
 const ORDEM=['sete','cinco','apagao','nome','corpo','perceber'];
 const ROT='mosaico_casa_ultima_partida_noite';
-const SENHA_HASH='2ff22e27b070d318da49f2ba1062cfef81e85e7cb826a5e761cbdb5f07c62472';
-const MESTRE_LOCAL='mosaico_noite_mestre';
 const FORMAS={m:{emoji:'👨',label:'Bem-vindo'},f:{emoji:'👩',label:'Bem-vinda'},n:{emoji:'👥',label:'Tanto faz'}};
 const root=document.getElementById('app');
 let app,auth,db,roomCode='',roomData=null,players=[],unsubRoom=null,unsubPlayers=null,role='',pendingUser=null;
@@ -23,8 +21,6 @@ function code(){const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;
 function base(kicker,title,body,cls=''){root.innerHTML=`<main class="stage shell room-stage ${cls}"><section class="dossie room-card"><span class="eyebrow">${kicker}</span><h2>${title}</h2>${body}</section></main>`;}
 function formas(selected='m'){return `<div class="room-formas">${Object.entries(FORMAS).map(([id,f])=>`<label class="room-forma"><input type="radio" name="roomForma" value="${id}" ${id===selected?'checked':''}><span class="room-forma-emoji">${f.emoji}</span><span>${f.label}</span></label>`).join('')}</div>`;}
 function formaAtual(){return document.querySelector('input[name="roomForma"]:checked')?.value||'m';}
-async function sha256hex(txt){const buf=new TextEncoder().encode(txt);const h=await crypto.subtle.digest('SHA-256',buf);return Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,'0')).join('');}
-function senhaLiberada(){try{return sessionStorage.getItem(MESTRE_LOCAL)==='1'}catch(e){return false}}
 function joinUrl(){const u=new URL(location.href);u.search='';u.searchParams.set('sala',roomCode);return u.toString();}
 function qrSvg(){try{return window.MosaicoQR?MosaicoQR.svg(joinUrl(),{nivel:'M',margem:2,rotulo:'QR da sala',fundo:'#ffffff',tinta:'#05070c'}):''}catch(e){return '<div class="room-empty">QR indisponível — use o código.</div>';}}
 function myPlayer(){const uid=auth.currentUser&&auth.currentUser.uid;return players.find(p=>p.id===uid)||ownPlayer;}
@@ -41,20 +37,14 @@ function renderMenu(){
 
 function renderMasterGate(msg=''){
   localScreen='master-gate';
-  base('ÁREA DO MESTRE','Como a mesa será usada?',`<div class="room-mode-single"><div class="room-mode-icon">📱</div><b>Celular</b><span>A Noite é conduzida diretamente pelo celular do Mestre.</span></div><span class="room-section-label">Como as rodadas devem avançar?</span><button class="room-rhythm ${ritmo==='automatico'?'on':''}" data-r="automatico"><b>AUTOMATICAMENTE · RECOMENDADO</b><span>O jogo avança quando todos terminam.</span></button><button class="room-rhythm ${ritmo==='conduzido'?'on':''}" data-r="conduzido"><b>COM MINHA LIBERAÇÃO</b><span>A Sala avisará quando for hora de avançar.</span></button>${senhaLiberada()?'<p class="muted room-master-known">Mestre reconhecido neste aparelho.</p>':'<input id="masterPass" class="room-input room-password" type="password" autocomplete="off" placeholder="senha">'}${msg?`<div class="room-error">${esc(msg)}</div>`:''}<div class="room-actions"><button class="btn btn-gold" id="openGoogle">Abrir com Google</button><button class="btn btn-ghost" id="back">Cancelar</button></div>`,'room-master-gate');
+  base('ÁREA DO MESTRE','Como a mesa será usada?',`<div class="room-mode-single"><div class="room-mode-icon">📱</div><b>Celular</b><span>A Noite é conduzida diretamente pelo celular do Mestre.</span></div><span class="room-section-label">Como as rodadas devem avançar?</span><button class="room-rhythm ${ritmo==='automatico'?'on':''}" data-r="automatico"><b>AUTOMATICAMENTE · RECOMENDADO</b><span>O jogo avança quando todos terminam.</span></button><button class="room-rhythm ${ritmo==='conduzido'?'on':''}" data-r="conduzido"><b>COM MINHA LIBERAÇÃO</b><span>A Sala avisará quando for hora de avançar.</span></button>${msg?`<div class="room-error">${esc(msg)}</div>`:''}<div class="room-actions"><button class="btn btn-gold" id="openGoogle">Abrir com Google</button><button class="btn btn-ghost" id="back">Cancelar</button></div>`,'room-master-gate');
   document.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{ritmo=b.dataset.r;renderMasterGate()});
-  document.getElementById('openGoogle').onclick=senhaLiberada()?loginGoogle:conferirSenha;
+  /* A senha saiu (03/09/2026). Era sha256 de constante escrita neste arquivo,
+     com o desbloqueio num sessionStorage que qualquer um define pelo console —
+     pedágio, não controle. Quem decide se alguém abre mesa é a regra do
+     Firestore, emailMestre(), no servidor. Ver firebase-room.js. */
+  document.getElementById('openGoogle').onclick=loginGoogle;
   document.getElementById('back').onclick=renderMenu;
-  const pass=document.getElementById('masterPass');if(pass){pass.onkeydown=e=>{if(e.key==='Enter')conferirSenha()};setTimeout(()=>pass.focus(),30)}
-}
-async function conferirSenha(){
-  const txt=(document.getElementById('masterPass')?.value||'').trim();
-  if(!txt)return renderMasterGate('Escreva a senha.');
-  try{
-    if((await sha256hex(txt))!==SENHA_HASH)return renderMasterGate('Senha incorreta.');
-    try{sessionStorage.setItem(MESTRE_LOCAL,'1')}catch(e){}
-    await loginGoogle();
-  }catch(e){renderMasterGate('Este navegador não permite conferir a senha.');}
 }
 async function loginGoogle(){
   try{
