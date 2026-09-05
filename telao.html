@@ -317,7 +317,12 @@ else{
            <div class="fecho-conta">${i+1} de ${passos.length}</div></div>`;
       return;
     }
-    const placar=f.placar||[];
+    /* O placar do fecho é o caminho normal; o da sala é a rede de segurança.
+       Ele já mora em `partida.placar` como um mapa por uid, e ordenar aqui
+       custa nada — assim um fecho que esqueça de levar a lista não apaga o
+       pódio da parede. Foi o que aconteceu com o 'detalhe' em 4CHRML. */
+    const placar = (f.placar&&f.placar.length) ? f.placar
+      : Object.values(room?.partida?.placar||{}).sort((a,b)=>(b.pontos||0)-(a.pontos||0));
     root.innerHTML=
       `<div class="fecho-card"><div class="fecho-passo">RESOLUÇÃO</div>
          <h1>${esc(pub?.resposta||'')}</h1>

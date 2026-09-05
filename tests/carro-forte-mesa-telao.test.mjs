@@ -646,3 +646,24 @@ test("a abertura conclui uma vez só, e o teto não grava por cima", () => {
     assert.match(trecho, /teto = setTimeout\(acabou, /, `${nome}: o teto voltou a não ser cancelável`);
   }
 });
+
+/* Sala 4CHRML: a tela grande mostrou a RESOLUÇÃO sozinha, sem pódio. O placar
+   viajava só no fecho 'podio'; quando ele virava 'detalhe' — que é o que solta
+   a composição de pontos nos celulares — a lista sumia da parede.
+
+   O pódio é o estado FINAL da rodada: é o que a mesa olha enquanto cada um lê
+   a própria nota. Ele fica até a próxima pergunta. */
+test("o pódio não some quando os celulares abrem o relatório", () => {
+  assert.match(
+    GAME,
+    /publicarFecho\(\{fase:'detalhe',placar:state\.placar\}\)/,
+    "o fecho 'detalhe' voltou a viajar sem o placar, e a tela grande perde o pódio",
+  );
+  /* Rede de segurança: o placar já mora em partida.placar como mapa por uid,
+     então um fecho que esqueça a lista não apaga o pódio da parede. */
+  assert.match(
+    TELAO,
+    /Object\.values\(room\?\.partida\?\.placar\|\|\{\}\)\.sort/,
+    "a tela grande voltou a depender só do que o fecho carrega",
+  );
+});

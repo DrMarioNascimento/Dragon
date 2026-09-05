@@ -953,7 +953,12 @@ function avancarFecho(){
   return agendarFecho();
  }
  clearTimeout(relogioFecho);
- window.MosaicoPauta.publicarFecho({fase:'detalhe'});
+ /* O PLACAR VIAJA COM O 'detalhe' TAMBÉM. Ele ia só no 'podio', e no instante
+    em que os celulares abriam a composição de pontos a tela grande perdia o
+    pódio e ficava com a resolução sozinha — visto na sala 4CHRML. O pódio é o
+    estado final da rodada: é o que a mesa olha enquanto cada um lê a própria
+    nota, e fica lá até a próxima pergunta. */
+ window.MosaicoPauta.publicarFecho({fase:'detalhe',placar:state.placar});
  window.DragonSala?.acao(null);
 }
 function acaoDoFecho(){
