@@ -2540,7 +2540,16 @@ function render(forcar){
     if(modoAtual()==="sem-telao") h+=muralColetivoMovel();
   }
   if(STATE.eu&&!encenacaoPassiva) h+=painelCasoMovel();
-  if(souMestreDaMesa()&&((STATE.eu&&modoAtual()==="sem-telao")||(STATE.tela==="painel"&&faseAgora==="resultado"&&etapaRevelacao()>=4))) h+=controlesMestreMovel();
+  /* O MESTRE NUNCA FICA SEM CONTROLE DEPOIS QUE A PARTIDA COMEÇA.
+     A condição antiga dava controles no painel SÓ no resultado, e só a partir
+     da quarta etapa da revelação. Em com-telao o painel é o próprio aparelho
+     do Mestre — então durante a encenação ele ficava olhando a abertura sem
+     SALA, sem "Pular a abertura" e sem pausa. Se a narração emperrar, a mesa
+     inteira emperra junto, e é exatamente a regra que este jogo já carrega por
+     escrito: clima nunca segura a mesa.
+     A fase "sala" fica de fora porque o lobby do painel já tem o próprio
+     botão de começar, e dois seriam a mesma ordem em dois lugares. */
+  if(souMestreDaMesa()&&((STATE.eu&&modoAtual()==="sem-telao")||(STATE.tela==="painel"&&faseAgora!=="sala"))) h+=controlesMestreMovel();
   if(souMestreDaMesa()) h+=modalOrientacaoMestre();
   if(STATE.eu) h+=modalOrientacaoParticipante();
   h+=painelPartidaPausada();

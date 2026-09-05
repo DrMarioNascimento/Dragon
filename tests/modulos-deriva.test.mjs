@@ -42,7 +42,12 @@ const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
 /* Teto medido em 03/09/2026, depois da convergência da bússola. SÓ DESCE. */
 const TETO = {
   "janela-do-norte": 541,
-  "sala-as-escuras": 377,
+  /* 377 → 520 em 05/09/2026, e a subida é deliberada: o portão do oito entrou
+     na Sala da CASA e não entra na do Carro-Forte, porque lá não há bússola
+     nenhuma — o facho é arrastado com o dedo (`pointermove`), zero ocorrências
+     de deviceorientation no arquivo. Pedir calibragem de magnetômetro a quem
+     não lê magnetômetro seria um portão sem porta. */
+  "sala-as-escuras": 520,
   "vidro-embacado": 414,
 };
 const PARES = {

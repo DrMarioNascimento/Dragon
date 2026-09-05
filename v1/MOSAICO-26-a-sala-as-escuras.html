@@ -216,6 +216,30 @@
   html,body{overflow-x:hidden;min-height:100vh;min-height:100dvh}
   *,*::before,*::after{box-sizing:border-box}
 
+  /* ---------------- o oito no ar ---------------- */
+  #oito{position:fixed;left:0;right:0;top:0;height:100%;height:100dvh;z-index:11;
+    display:none;flex-direction:column;align-items:center;justify-content:center;
+    gap:18px;text-align:center;padding:24px;
+    background:radial-gradient(ellipse 110% 70% at 50% 45%,#070d15f2,#02040af7);}
+  #oito.on{display:flex;animation:fade .4s ease both}
+  #oito-tit{font-family:var(--display);font-size:clamp(30px,7.5vw,42px);line-height:1.06;
+    font-weight:600;color:#fff;text-shadow:0 0 40px #ffb26640,0 4px 30px #000}
+  #oito-tit.boa{color:var(--t-warms)}
+  #oito-txt{font-family:var(--serif);font-size:clamp(18px,4.6vw,22px);line-height:1.42;
+    font-weight:500;color:var(--t-hi);max-width:20em;text-shadow:var(--scrim-strong)}
+  #oito-botoes{display:none;flex-direction:column;align-items:center;gap:10px;
+    width:min(340px,88vw)}
+  #oito-botoes.on{display:flex}
+  #oito-vai{width:100%;padding:17px;font-size:clamp(13px,3.4vw,16px);letter-spacing:.16em;
+    border-color:#b87433;color:var(--t-warms);background:#1a1109ee}
+  #oito-refaz{width:100%;background:none;border:none;min-height:48px;
+    color:var(--t-max);font-size:clamp(14px,3.4vw,15px);letter-spacing:.1em;
+    text-transform:uppercase;font-weight:600;
+    text-decoration:underline;text-underline-offset:6px;padding:12px;order:2}
+  #oito-trilho{width:min(260px,70vw);height:5px;border-radius:5px;background:#1c2836;
+    box-shadow:inset 0 0 0 1px #3b4f64;overflow:hidden}
+  #oito-barra{height:100%;width:0%;border-radius:5px;background:#ffd9b0;
+    box-shadow:0 0 12px #ffbe7a}
   /* Áreas seguras nas QUATRO bordas. Só topo e rodapé não bastam: deitado,
      o notch e as bordas arredondadas passam para as laterais.            */
   #hud,#intro,#oito,#card,#carta,#cartao,#pistas,#final,#descanso,#falha{
@@ -340,6 +364,16 @@
   <button class="alt" id="b-sim">Estou no computador</button>
   <div id="rodada">RODADA <b id="cod-rodada">----</b></div>
   <div id="nota">Confiram: o código tem de ser o mesmo em todos os aparelhos.</div>
+</div>
+
+<div id="oito">
+  <div id="oito-tit">A bússola está tonta</div>
+  <p class="oito-p" id="oito-txt">Você vai varrer a sala no escuro com a lanterna, e é a bússola do aparelho que diz para onde você está virado. Ela precisa se acertar antes.</p>
+  <p class="oito-p"><b>Desenhe um 8 no ar à sua frente com o celular</b>, devagar, umas quatro vezes. Vire o pulso enquanto faz — é a variedade de posições que calibra, não a velocidade.</p>
+  <div id="oito-trilho"><div id="oito-barra"></div></div>
+  <div id="oito-botoes" class="on">
+    <button id="oito-vai" class="go" disabled>A bússola ainda está tonta</button>
+  </div>
 </div>
 
 <div id="falha" role="alertdialog" aria-live="polite">
@@ -1630,6 +1664,7 @@ function eulerParaVista(a,b,g){
 var temAbsoluto=false;
 function onOrient(e){
   if(e.alpha===null||e.beta===null||e.gamma===null) return;
+  sensorVivo=true;   /* o oito só amostra depois que a bússola fala */
   var alpha=e.alpha;
   var iOS=(typeof e.webkitCompassHeading==="number" && !isNaN(e.webkitCompassHeading));
   var abs=iOS || e.absolute===true || e.type==="deviceorientationabsolute";
@@ -1655,7 +1690,10 @@ function onOrient(e){
 function ativaSensor(){
   TarefaSensor.ativarOrientacao({
     aoOrientar: onOrient,
-    aoLigar: fechaIntro,
+    /* O oito entra AQUI, entre a permissão e a sala: pedir antes não faz
+       sentido (o sensor pode nem existir) e depois seria tarde, com o jogador
+       já varrendo o escuro com o rumo torto. */
+    aoLigar: function(){ oitoNoAr(fechaIntro); },
     esperaMs: 1400,
     respondeu: function(){ return jogando; },
     aoNaoResponder: function(){
@@ -1968,6 +2006,113 @@ function fechaIntro(){ document.getElementById("intro").classList.add("gone"); j
   /* jogavel daqui: intro fechada, permissao resolvida, sala montada */
   iniciarCronometroOficial(); enviarStatus("ativo"); }
 
+/* O PORTÃO DO OITO, VINDO DA JANELA DO NORTE (05/09/2026).
+   A Sala às Escuras lê `webkitCompassHeading` para saber para onde o jogador
+   está virado — e no iOS essa leitura sai torta de 5 a 20° enquanto o
+   magnetômetro não se acerta. A Janela já pedia o oito desde 02/09; aqui não
+   pedia, e o jogador varria a sala com o rumo errado sem nenhum sinal de que o
+   problema era a bússola, não ele. Mario notou jogando: "só não pediu para
+   fazer o 8 da bússola".
+   O CSS desta página já reservava um #oito na lista de sobreposições — a tela
+   era esperada e nunca chegou.
+   A rotina é a mesma da Janela, de propósito: o que ela mede é o GESTO, não a
+   atividade. Duplicar aqui em vez de compartilhar segue a mesma razão dos
+   outros gêmeos do repositório — são três documentos independentes, sem
+   módulo comum a não ser o tarefa-sensor.js. */
+var sensorVivo=false;
+/* ---- o oito no ar --------------------------------------------------------
+   NÃO é "calibrar o norte" (definir aqui = norte): isso congelaria o zero de
+   cada um na direção em que estava virado e abriria o grupo em leque. É a
+   calibragem do MAGNETÔMETRO, que o sistema faz sozinho quando o aparelho
+   vê orientações variadas. O app não consegue disparar isso — só pode pedir
+   o gesto e esperar. Ataca os 5 a 15° de bússola torta, sem coordenar
+   ninguém com ninguém.                                                    */
+var oitoGen=0;
+function oitoNoAr(depois){
+  var gen=++oitoGen;                 /* RETENTAR pode reabrir a tela: o laco
+                                        velho tem de morrer, senao dois ticks
+                                        disputam a mesma barra.            */
+  var el=document.getElementById("oito"),
+      barra=document.getElementById("oito-barra"),
+      bt=document.getElementById("oito-vai");
+  el.classList.add("on");
+  bt.disabled=true;
+  bt.textContent="A bússola ainda está tonta";
+  bt.onclick=function(){ el.classList.remove("on"); depois(); };
+
+  /* Nao existe API para perguntar ao sistema se o magnetometro ja calibrou
+     — no Android nao existe nada, e no iOS so ha webkitCompassAccuracy. O
+     unico jeito honesto que vale nas duas plataformas e medir o GESTO. Um
+     oito de verdade deixa tres marcas que estar parado nao deixa:
+       AMPLITUDE  quanto o pulso abriu em cada eixo (o MENOR dos tres manda:
+                  girar o corpo abre a guinada e nao abre os outros dois)
+       ATITUDES   por quantas orientacoes distintas o aparelho passou
+       VOLTAS     quantas vezes a guinada inverteu de sentido — e isto que
+                  separa o oito de um arco unico
+     Medido: oito rapido abre em ~4 s, oito curto e lento em ~8 s. Parado na
+     mao para em 4%, andando devagar em 13%, so girando o corpo em 36%.
+     Nao ha limiar de "percurso somado": o proprio ruido do sensor, uns 2
+     graus, enche esse contador com o telefone imovel em cima da mesa — a
+     barra marcaria metade sem ninguem fazer nada.                        */
+  var META_GUINADA=40, META_ELEV=20, META_ROLL=45,   /* amplitude, em graus */
+      META_ATITUDES=14,                  /* celulas distintas de 18 graus   */
+      META_VOLTAS=4;                     /* inversoes de sentido na guinada */
+
+  var visto={}, atitudes=0, voltas=0;
+  var ant=null, sentido=0, acum=0, gira=0, primeiro=true;
+  var mnG=0,mxG=0,mnE=0,mxE=0,mnR=0,mxR=0;
+  var t0o=performance.now(), pMax=0;
+
+  function amostra(){
+    var b=raw.bearing, ee=raw.elev, rr=raw.roll;
+    if(ant){
+      var db=wrap180(b-ant.b);
+      /* 45 graus num quadro so e troca de referencial do sensor, nao braco */
+      if(Math.abs(db)<45) gira+=db;
+      acum+=db;
+      if(Math.abs(acum)>12){        /* zona morta: tremer nao vira volta */
+        var s=acum>0?1:-1;
+        if(sentido!==0 && s!==sentido) voltas++;
+        sentido=s; acum=0;
+      }
+    }
+    ant={b:b,e:ee,r:rr};
+    if(primeiro){ mnE=mxE=ee; mnR=mxR=rr; primeiro=false; }
+    if(gira<mnG)mnG=gira; if(gira>mxG)mxG=gira;
+    if(ee<mnE)mnE=ee;     if(ee>mxE)mxE=ee;
+    if(rr<mnR)mnR=rr;     if(rr>mxR)mxR=rr;
+    var cel=Math.round(gira/18)+"|"+Math.round(ee/18)+"|"+Math.round(rr/18);
+    if(!visto[cel]){ visto[cel]=1; atitudes++; }
+  }
+
+  (function tick(){
+    if(gen!==oitoGen) return;
+    if(sensorVivo) amostra();
+    /* Anistia: passados 20 s as metas afrouxam ate 45% ao longo de 15 s. No
+       campo, no escuro, em grupo, ninguem pode ficar preso num portao. Mas
+       parado continua parado: com as metas frouxas o telefone imovel chega
+       a 10%. Isto nunca vira o cronometro de 3 s que era antes.          */
+    var seg=(performance.now()-t0o)/1000;
+    var af=1-0.55*clamp((seg-20)/15,0,1);
+    var amp=Math.min((mxG-mnG)/(META_GUINADA*af),
+                     (mxE-mnE)/(META_ELEV*af),
+                     (mxR-mnR)/(META_ROLL*af));
+    var p=0.40*clamp(amp,0,1)
+         +0.35*Math.min(1,atitudes/(META_ATITUDES*af))
+         +0.25*Math.min(1,voltas  /(META_VOLTAS  *af));
+    if(p>pMax) pMax=p;                 /* a barra nunca anda para tras */
+    barra.style.width=(pMax*100)+"%";
+    if(pMax>=0.999){
+      barra.style.width="100%";
+      bt.disabled=false;
+      bt.textContent="Entrar na sala";
+      try{ navigator.vibrate && navigator.vibrate([12,50,22]); }catch(err){}
+      return;                          /* daqui em diante quem manda e o dedo */
+    }
+    requestAnimationFrame(tick);
+  })();
+}
+
 document.getElementById("b-entrar").addEventListener("click",ativaSensor);
 document.getElementById("b-sim").addEventListener("click",function(){
   sim=true; src="mouse/dedo"; raw.elev=0; modoEntrada="toque"; fechaIntro();
@@ -2034,6 +2179,8 @@ window.addEventListener("touchend",pUp);
 /* ---- falha de sensor: nunca deixar o jogador preso -------------------- */
 var RETENTAR=null, SEGUIR_TOQUE=null;
 function mostraFalha(msg){
+  /* sem isto a tela do oito ficaria por cima do aviso de falha */
+  var _o=document.getElementById("oito"); if(_o)_o.classList.remove("on");
   document.getElementById("falha-msg").textContent=msg;
   document.getElementById("falha").classList.add("on");
   /* a tarefa NAO esta jogavel enquanto este aviso estiver na tela, entao o
