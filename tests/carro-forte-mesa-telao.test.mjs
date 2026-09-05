@@ -803,3 +803,97 @@ test("a Mesa da Casa abre o pop-up dentro do toque, e só mostra código de sala
   assert.ok(grava > 0 && mostra > 0, "não achei a gravação ou a troca de tela em criarMesa");
   assert.ok(grava < mostra, "a Mesa voltou a mostrar o código antes de a sala existir");
 });
+
+/* ==========================================================================
+   AS TRES ATIVIDADES SENSORIAIS, NO PADRAO DA CASA (05/09/2026)
+   ==========================================================================
+   Mario jogou as seis no mesmo dia: "a janela do norte, a sala escura
+   funcionaram perfeitamente bem. esse vai ser o padrao. Nao gostei do que foi
+   feito de atividade para o carro-forte. Aquele servico precisa ser
+   substituido."
+
+   O que estes testes guardam nao e a arte - e o que separava as duas
+   linhagens. As do Carro-Forte revelavam por PROXIMIDADE DE PONTEIRO sobre uma
+   div: o gesto era arrastar o mouse, o mundo nao existia, e um lote de quatro
+   cabia inteiro na tela ao mesmo tempo. As da Casa pedem o corpo.            */
+test("as atividades do Carro-Forte usam a bussola, e nao varredura de ponteiro", () => {
+  const BUSSOLA = ler("carro-forte/bussola.js");
+  assert.match(BUSSOLA, /webkitCompassHeading/, "o instrumento perdeu o tratamento de iOS");
+  assert.match(BUSSOLA, /oitoNoAr/, "o portao do oito saiu do instrumento");
+
+  for (const nome of ["janela-do-norte", "sala-as-escuras"]) {
+    const pagina = ler(`carro-forte/${nome}.html`);
+    const codigo = semComentarios(pagina);
+    assert.match(pagina, /bussola\.js/, `${nome} nao carrega mais a bussola`);
+    assert.match(codigo, /MosaicoBussola/, `${nome} parou de usar o instrumento`);
+    assert.match(codigo, /B\.Mira\(/, `${nome} nao cobra mais permanencia no alvo`);
+    assert.match(codigo, /oitoNoAr/, `${nome} deixou de pedir a calibragem do oito`);
+    assert.ok(
+      !/pointermove[\s\S]{0,200}RAIO/.test(codigo),
+      `${nome} voltou a revelar por proximidade de ponteiro`,
+    );
+  }
+});
+
+/* O beco sem saida que quase foi para a demonstracao: sem evento de
+   orientacao, amostra() nunca roda, a barra fica em zero e o botao do oito
+   nunca libera - com a tela por cima de tudo. A anistia afrouxa as metas, mas
+   multiplica por zero do mesmo jeito. */
+test("o portao do oito sempre tem saida, mesmo sem sensor nenhum", () => {
+  const BUSSOLA = semComentarios(ler("carro-forte/bussola.js"));
+  assert.match(
+    BUSSOLA,
+    /seg\s*>\s*25\s*&&\s*bt\.disabled/,
+    "sumiu a saida por tempo do oito: sem sensor, o botao fica desabilitado para sempre",
+  );
+  for (const nome of ["janela-do-norte", "sala-as-escuras"]) {
+    const dedo = semComentarios(ler(`carro-forte/${nome}.html`))
+      .match(/function porDedo\(\)\{[\s\S]*?\n\}/)?.[0] || "";
+    assert.ok(dedo, `${nome}: porDedo sumiu`);
+    assert.match(
+      dedo,
+      /getElementById\(['"]oito['"]\)[\s\S]{0,40}remove\(['"]on['"]\)/,
+      `${nome}: o modo dedo nao fecha a tela do oito, e ela fica por cima`,
+    );
+  }
+});
+
+/* A Sala e a unica das tres em que o jogador esta DENTRO do cenario, e foi por
+   isso que a mira da Casa nao servia crua: um armario de dois metros a dois
+   metros de distancia ocupa meia tela, e cobrar 3,4 graus do centro exato dele
+   deixava a barra em zero com o facho cheio em cima da coisa. */
+test("a mira da Sala acompanha o tamanho do movel, e o texto le a mesma janela", () => {
+  const BUSSOLA = semComentarios(ler("carro-forte/bussola.js"));
+  assert.match(
+    BUSSOLA,
+    /function tolerancia\(alto, altoEl\)/,
+    "a tolerancia voltou a ter altura fixa; alvos grandes viram impossiveis",
+  );
+  const ESCURA = semComentarios(ler("carro-forte/sala-as-escuras.html"));
+  assert.match(ESCURA, /mira\.passo\(dt, altoAz, altoEl\)/, "a Sala parou de alargar a mira pelo tamanho do alvo");
+  assert.match(
+    ESCURA,
+    /var tol=mira\.tolerancia\(altoAz, altoEl\)/,
+    "o texto de orientacao voltou a ter limiares proprios, e volta a contradizer a barra",
+  );
+});
+
+/* O que da segundo folego a uma sala pequena, e o que a versao antiga nao
+   tinha: uma coisa esconde outra. Sem isso, quatro alvos em 360 graus sao
+   quatro alvos, e a busca acaba antes do relogio. */
+test("a Sala mantem um objeto escondido atras de outro", () => {
+  const ESCURA = semComentarios(ler("carro-forte/sala-as-escuras.html"));
+  assert.match(ESCURA, /escondeAtras:'arquivo'/, "o painel deixou de nascer coberto pelo armario");
+  assert.match(
+    ESCURA,
+    /h\.escondeAtras!==o\.id \|\| h\.posto/,
+    "sumiu a entrada em cena do que estava escondido: o alvo fica inalcancavel",
+  );
+  /* Se a capa nao esta no lote da Mesa, ninguem nunca a derruba - e o
+     escondido vira alvo impossivel. */
+  assert.match(
+    ESCURA,
+    /if\(!temCapa\) o\.escondeAtras=null/,
+    "voltou a ser possivel pedir um alvo cuja capa nao esta em jogo",
+  );
+});

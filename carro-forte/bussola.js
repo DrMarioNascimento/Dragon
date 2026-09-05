@@ -69,10 +69,17 @@
 
   /* Tolerância assimétrica, como na Casa: o rumo perdoa muito mais que a
      altura, porque é o rumo que o magnetômetro erra — de 5 a 20°. */
-  function tolerancia(alto) {
+  /* `alto` alarga o rumo, `altoEl` alarga a altura. O segundo nasceu na Sala às
+     Escuras: lá o jogador está DENTRO do cenário, a um par de metros de um
+     armário de dois metros, e o objeto ocupa meia tela na vertical. Cobrar
+     3,4° do centro exato de um alvo de 51° não é pontaria, é adivinhação — a
+     barra ficava em zero com o facho cheio em cima da coisa. Na Janela do
+     Norte, onde os alvos estão longe e são pequenos, ninguém passa o segundo
+     argumento e nada muda. */
+  function tolerancia(alto, altoEl) {
     return {
       az: clamp(21, 17, 26) * CFG.FOLGA * (alto || 1),
-      el: clamp(3.4, 2.8, 4.2) * CFG.FOLGA,
+      el: clamp(3.4, 2.8, 4.2) * CFG.FOLGA * (altoEl || 1),
     };
   }
 
@@ -254,9 +261,12 @@
     return {
       alvo: alvo,
       progresso: function () { return p; },
+      /* quem chama precisa saber a janela que está sendo cobrada, senão o
+         texto de orientação diz uma coisa e a barra faz outra */
+      tolerancia: tolerancia,
       dentro: function () { return dentro; },
-      passo: function (dtSeg, alto) {
-        var t = tolerancia(alto);
+      passo: function (dtSeg, alto, altoEl) {
+        var t = tolerancia(alto, altoEl);
         var m = dentro ? CFG.SOLTA : 1;
         var dAz = Math.abs(wrap180(raw.bearing - alvo.az));
         var dEl = Math.abs(raw.elev - (alvo.el || 0));

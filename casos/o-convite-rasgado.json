@@ -1,0 +1,147 @@
+{
+  "_leia": "O CONVITE RASGADO — banco do caso, versão de mesa. RASCUNHO 1: espinha derivada do bot de Telegram (roteiro.json, 37 eventos em 14 dias). Aqui não há dias: a mesa acontece numa noite, e o que era entrega programada vira fragmento na mão de alguém. Mora em casos/ na raiz, e não em v1/casos/, de propósito — o motor ainda não foi escolhido, e este arquivo não deve nascer preso a um deles. O QUE FALTA: relacoes, pares, roteiros de encenação, capítulos e a matriz de seleção. Ver o fim do arquivo.",
+
+  "id": "o-convite-rasgado",
+  "titulo": "O Convite Rasgado",
+  "subtitulo": "Seis metades e um nome riscado",
+  "origem": "Adaptado do ARG de Telegram do mesmo nome. Universo: Santa Ferreira.",
+
+  "realidadeCanonica": {
+    "premissa": "Uma casa foi alugada para a festa de fim de ano. Sete convites foram impressos. Seis chegaram — rasgados ao meio. O sétimo convidado, que ficou de buscar os convites na gráfica, não deu mais notícia. A metade que falta de cada convite não apareceu.",
+    "sintese": "O Sétimo não sumiu: está na mesa. É o Jogador 4, cuja linha telefônica termina em 0917 — a mesma que aparece riscada no cadastro da gráfica. Ele buscou os sete convites no dia 22, rasgou os seis ao meio e entregou as metades esquerdas, guardando as direitas. Não foi ciúme nem vingança: fez isso para forçar um grupo que não se falava havia meses a se procurar. A festa da casa não vai acontecer — há dois contratos para a mesma noite, o da Organizadora e o da Vizinha, com o Fotógrafo de fiador dos dois. A festa de verdade é no galpão da Rua do Ipê, 118, que o Fotógrafo disse estar vazio no dia 30 numa ligação de catorze minutos.",
+    "frase": "Alguém rasgou, alguém entregou, alguém sabe."
+  },
+
+  "_leiaElenco": "Os J1–J6 do bot eram anônimos: no Telegram basta ser um destinatário. Numa mesa cada pessoa precisa de um lugar no mundo, senão não tem o que encenar. Os seis papéis abaixo saem das metades que cada um recebia no Dia 1 e do que cada um já sabia. O quarto é o Sétimo — e essa pessoa NÃO sabe disso ao começar: descobre junto com a mesa, quando a metade duplicada aparece.",
+  "elenco": [
+    { "id": "anfitria",    "av": "🔑", "nome": "{O Anfitrião|A Anfitriã}",     "desc": "Assinou a locação da casa e mandou imprimir os convites. Recebeu a metade com dois dígitos no rasgo: 2 9." },
+    { "id": "insistente",  "av": "📵", "nome": "{O Insistente|A Insistente}",  "desc": "Foi quem mais tentou reunir o grupo, e quem menos foi respondido. Guarda um bilhete próprio: “Ninguém respondeu. Vou dar um jeito.”" },
+    { "id": "arquivista",  "av": "🖼️", "nome": "{O Arquivista|A Arquivista}",  "desc": "Guarda as fotos antigas do grupo. Numa delas há uma pessoa recortada, e ninguém lembra quem era." },
+    { "id": "ausente",     "av": "⌚", "nome": "{O Ausente|A Ausente}",        "desc": "Voltou de viagem há pouco e quase não foi cobrado por isso. Recebeu a metade DIREITA de um convite — a que faltava a outra pessoa." },
+    { "id": "conferente",  "av": "📦", "nome": "{O Conferente|A Conferente}",  "desc": "Trabalha com entregas e repara em etiqueta, lacre e contagem. Ficou com a etiqueta da caixa da gráfica: “7 un.”" },
+    { "id": "ouvinte",     "av": "🎧", "nome": "{O Ouvinte|A Ouvinte}",        "desc": "Gravou sem querer o som do envelope entrando por baixo da porta. Passos, papel, e uma palavra no fim." }
+  ],
+
+  "_leiaFragmentos": "32 fragmentos, um por peça do bot: 22 itens + 10 documentos. O eixo não é hora e sim DIA — o caso corre entre o dia 22 (a retirada na gráfica) e o dia 30 (a festa). 'f' segue a convenção do MOSAICO: estrutural fecha a pergunta, relacional liga duas coisas, interpretativo sustenta ou enfraquece hipótese.",
+  "fragmentos": {
+    "F01": { "h": "Dia 1",  "t": "A metade com 2 9",        "d": "Metade ESQUERDA de um convite. No rasgo, dois dígitos legíveis: 2 9.", "f": "estrutural",    "familia": "convites" },
+    "F02": { "h": "Dia 1",  "t": "Ninguém respondeu",       "d": "Metade de convite com um bilhete junto: “Ninguém respondeu. Vou dar um jeito.”", "f": "interpretativo", "familia": "convites" },
+    "F03": { "h": "Dia 1",  "t": "A pessoa recortada",      "d": "Metade de convite e uma foto antiga do grupo com uma pessoa recortada da imagem.", "f": "interpretativo", "familia": "grupo" },
+    "F04": { "h": "Dia 1",  "t": "A metade com 4 7",        "d": "Metade DIREITA de um convite — a que faltava a outra pessoa. No rasgo: 4 7.", "f": "estrutural",    "familia": "convites" },
+    "F05": { "h": "Dia 1",  "t": "Sete unidades",           "d": "Metade de convite com a etiqueta da caixa da gráfica: “7 un.”", "f": "estrutural",    "familia": "grafica" },
+    "F06": { "h": "Dia 1",  "t": "O envelope por baixo",    "d": "Metade de convite e um áudio curto: passos e um envelope deslizando por baixo da porta.", "f": "relacional",   "familia": "entrega" },
+    "F07": { "h": "Dia 22", "t": "Seis chamadas",           "d": "Bilhete colado na caixa da gráfica: “Cliente ligou 6 vezes.”", "f": "relacional",   "familia": "grafica" },
+    "F08": { "h": "Dia 23", "t": "O pacote na portaria",    "d": "Recibo de um pacote deixado na portaria da casa, assinado “o zelador”.", "f": "estrutural",    "familia": "entrega" },
+    "F09": { "h": "Dia 24", "t": "Salão 2",                 "d": "Bilhete da Vizinha: “Confirmo dia 30, salão 2.”", "f": "estrutural",    "familia": "casa" },
+    "F10": { "h": "Dia 30", "t": "Duas reservas",           "d": "Página da agenda do Zelador: duas reservas para a mesma noite, dois nomes.", "f": "estrutural",    "familia": "casa" },
+    "F11": { "h": "Dia 23", "t": "Endereço sem número",     "d": "Cartão de visita do Fotógrafo. Traz o endereço do galpão, e nenhum número.", "f": "relacional",   "familia": "galpao" },
+    "F12": { "h": "Dia 22", "t": "16h40 na gráfica",        "d": "Foto tirada dentro da gráfica: mãos segurando os convites, um relógio de pulseira de couro, e o relógio de parede em 16h40.", "f": "estrutural",    "familia": "grafica" },
+    "F13": { "h": "Dia 23", "t": "O relógio no pacote",     "d": "Foto de um relógio de pulseira de couro, “encontrado dentro do pacote”.", "f": "relacional",   "familia": "entrega" },
+    "F14": { "h": "Dia 22", "t": "Retirada dia 22",         "d": "Cartão da relojoaria com uma única anotação: “retirada dia 22”.", "f": "relacional",   "familia": "relogio" },
+    "F15": { "h": "Dia 23", "t": "Quatro dígitos",          "d": "Foto escura da loja de ferragens. Clareada, lê-se: CADEADO 4 DÍGITOS.", "f": "interpretativo", "familia": "cofre" },
+    "F16": { "h": "Dia 23", "t": "Rua do Ipê, 118",         "d": "Foto do galpão do Fotógrafo. Na placa: Rua do Ipê, 118.", "f": "estrutural",    "familia": "galpao" },
+    "F17": { "h": "Dia 1",  "t": "A palavra invertida",     "d": "Áudio: passos, um envelope, e uma palavra dita ao contrário no fim.", "f": "interpretativo", "familia": "entrega" },
+    "F18": { "h": "Dia 23", "t": "Catorze minutos",         "d": "Print de uma conversa de catorze minutos. Só a última linha está legível: “…então é lá. Dia 30.”", "f": "estrutural",    "familia": "galpao" },
+    "F19": { "h": "Dia 10", "t": "A metade repetida",       "d": "Uma metade direita idêntica à que outra pessoa da mesa recebeu no primeiro dia. No rasgo, os mesmos dígitos: 4 7.", "f": "estrutural",    "familia": "convites", "fecho": 1 },
+    "F20": { "h": "Dia 23", "t": "O pino no mapa",          "d": "Mapa com um único pino, marcando o galpão.", "f": "relacional",   "familia": "galpao" },
+    "F21": { "h": "Dia 30", "t": "Sábado",                  "d": "Foto do cofre no salão, com o cadeado à mostra. Escrito ao lado: “Sábado.”", "f": "interpretativo", "familia": "cofre" },
+    "F22": { "h": "Dia 1",  "t": "O zoom do rasgo",         "d": "Ampliação do rasgo de uma das metades: 2 9.", "f": "relacional",   "familia": "convites" },
+
+    "F23": { "h": "Dia 22", "t": "Sete convites, data 31",  "d": "Recibo da gráfica: 7 convites, data impressa 31/12 — e a festa é dia 30. Cartão final 4471, pedido nº 2291.", "f": "estrutural",    "familia": "grafica", "fecho": 1, "documento": "recibo_grafica" },
+    "F24": { "h": "Dia 22", "t": "O nome rasurado",         "d": "Nota da relojoaria: retirada dia 22, pulseira de couro, nome do cliente rasurado.", "f": "relacional",   "familia": "relogio", "documento": "nota_relojoaria" },
+    "F25": { "h": "Dia 30", "t": "Dois contratos",          "d": "Dois contratos de locação para a mesma noite: um da Organizadora, um da Vizinha. Fiador dos dois: o Fotógrafo. Cláusula: “chave entregue ao portador do pacote”.", "f": "estrutural",    "familia": "casa", "fecho": 1, "documento": "contrato_locacao" },
+    "F26": { "h": "Dia 23", "t": "Dez minutos",             "d": "Agenda do Zelador: duas reservas, dois nomes, e uma anotação à margem — “rapaz do relógio — 10 min”.", "f": "relacional",   "familia": "entrega", "documento": "agenda_zelador" },
+    "F27": { "h": "Dia 24", "t": "A fatura 4471",           "d": "Dia 22: gráfica e relojoaria, no centro. Dia 23: loja de ferragens no bairro da casa, corrida de aplicativo até a casa, café na rua do galpão. Dia 24: plano de celular, linha final 0917.", "f": "estrutural",    "familia": "rastro", "fecho": 1, "documento": "fatura_cartao" },
+    "F28": { "h": "Dia 24", "t": "O registro das ligações", "d": "Dia 22: seis chamadas para a Organizadora, nenhuma atendida. Dia 23: Zelador 2 min, Fotógrafo 14 MIN, e a Vizinha ligou para ele por 3 min. Dia 24: SMS para a Organizadora — “Mandei o pacote. Abre.”", "f": "estrutural",    "familia": "rastro", "fecho": 1, "documento": "registro_ligacoes" },
+    "F29": { "h": "Dia 24", "t": "Vou fazer vocês se falarem", "d": "Os seis SMS que a Organizadora ignorou. O último: “Vou fazer vocês se falarem.”", "f": "estrutural",    "familia": "motivo", "fecho": 1, "documento": "sms_organizadora" },
+    "F30": { "h": "Dia 22", "t": "A linha riscada",         "d": "Cadastro da gráfica: sete nomes com telefone. Um deles está riscado, e a linha termina em 0917.", "f": "estrutural",    "familia": "rastro", "fecho": 1, "documento": "cadastro_grafica" },
+    "F31": { "h": "Dia 1",  "t": "As seis linhas",          "d": "A linha cadastrada de cada pessoa da mesa: 3320, 8815, 0042, 0917, 5561 e 7708.", "f": "estrutural",    "familia": "rastro", "fecho": 1, "documento": "ficha_jogadores" },
+    "F32": { "h": "Dia 24", "t": "Metade da carta",         "d": "A primeira metade da carta do Sétimo. A segunda está dentro do cofre.", "f": "interpretativo", "familia": "motivo", "documento": "carta_parcial" }
+  },
+
+  "_leiaHipoteses": "As quatro primeiras saem direto das opções do veredito do bot: três são armadilhas plausíveis, uma é a resposta. H5 e H6 cobrem o ONDE e o PORQUÊ.",
+  "hipoteses": [
+    { "id": "H1", "t": "Ciúme da Vizinha",   "d": "A Vizinha queria a casa para si e sabotou a festa rasgando os convites.", "apoia": ["F09", "F10", "F25"], "enfraquece": ["F29", "F30", "F31", "F19"] },
+    { "id": "H2", "t": "Erro da gráfica",    "d": "A data errada e o corte no meio seriam um defeito de impressão, não um gesto.", "apoia": ["F23", "F05"], "enfraquece": ["F19", "F22", "F01", "F04"] },
+    { "id": "H3", "t": "Vingança",           "d": "O Sétimo teria rasgado por raiva de ter sido deixado de fora do grupo.", "apoia": ["F03", "F07", "F28"], "enfraquece": ["F29", "F32"] },
+    { "id": "H4", "t": "O Sétimo sumiu",     "d": "Alguém de fora buscou os convites e desapareceu com as metades que faltam.", "apoia": ["F07", "F12", "F30"], "enfraquece": ["F19", "F31", "F27"] },
+    { "id": "H5", "t": "A festa é na casa",  "d": "O endereço do convite continua valendo; os dois contratos seriam engano do Zelador.", "apoia": ["F09", "F10"], "enfraquece": ["F18", "F16", "F20", "F25"] },
+    { "id": "H6", "t": "Para forçar a fala", "d": "Os convites foram rasgados ao meio para que ninguém pudesse ir sozinho — cada um precisaria procurar quem tem a outra metade.", "apoia": ["F29", "F32", "F19", "F31", "F02"], "enfraquece": [] }
+  ],
+
+  "_leiaTestemunhas": "No bot, a testemunha mente por botão até você MOSTRAR a peça certa. Na mesa isso vira a melhor engrenagem do caso: a peça que destrava está na mão de outra pessoa, então a verdade só sai se as duas se falarem. É o mesmo movimento que o Sétimo queria provocar — a mecânica encena o motivo.",
+  "testemunhas": {
+    "organizadora": {
+      "nome": "A Organizadora",
+      "perguntas": [
+        { "texto": "A data dos convites está certa?",   "mentira": "Está tudo certo com a casa e com os convites.", "verdade": "Eu pedi 31. Achei que ninguém ia notar.",              "destravaCom": "F23" },
+        { "texto": "O Sétimo tentou falar com você?",   "mentira": "Não recebi nada dele.",                         "verdade": "Seis ligações. Eu não atendi. Não queria ouvir.",       "destravaCom": "F28" },
+        { "texto": "Quem mais reservou a casa?",        "mentira": "Ninguém. A casa é nossa.",                      "verdade": "A Vizinha. Eu descobri depois.",                        "destravaCom": "F25" }
+      ]
+    },
+    "zelador": {
+      "nome": "O Zelador",
+      "perguntas": [
+        { "texto": "Você viu o Sétimo por aqui?",       "mentira": "Nunca vi esse rapaz.",                          "verdade": "Ele veio, deixou uma caixa, ficou dez minutos.",        "destravaCom": "F08", "entrega": "F10" },
+        { "texto": "Quantas reservas tem para o dia 30?", "mentira": "Uma só.",                                     "verdade": "Duas. Anotei as duas. Não é problema meu.",             "destravaCom": "F10" },
+        { "texto": "O que tinha na caixa?",             "mentira": "Não abro caixa dos outros.",                    "verdade": "Fazia barulho de relógio.",                             "destravaCom": "F13" }
+      ]
+    },
+    "fotografo": {
+      "nome": "O Fotógrafo",
+      "perguntas": [
+        { "texto": "Você conhece o Sétimo?",            "mentira": "Não sei de quem você está falando.",            "verdade": "Fui eu que tirei a foto na gráfica. Ele me ligou depois.", "destravaCom": "F12" },
+        { "texto": "Vocês falaram por catorze minutos. Sobre o quê?", "mentira": "Deve ser engano de número.",      "verdade": "Do galpão. Eu disse que estava vazio dia 30.",          "destravaCom": "F28" },
+        { "texto": "Por que você é fiador dos dois contratos?", "mentira": "Fiador? Não assinei nada.",              "verdade": "Assinei pras duas. Não sabia que era a mesma noite.",   "destravaCom": "F25" }
+      ]
+    },
+    "vizinha": {
+      "nome": "A Vizinha",
+      "perguntas": [
+        { "texto": "Sua festa é dia 30?",               "mentira": "Minha festa é em outra data.",                  "verdade": "Dia 30, salão 2. Eu reservei antes.",                   "destravaCom": "F10" },
+        { "texto": "Você ligou pro Sétimo?",            "mentira": "Nem tenho o número dele.",                      "verdade": "Liguei pra avisar que a casa era minha. Ele riu: “já resolvi”.", "destravaCom": "F28" },
+        { "texto": "Você rasgou os convites?",          "mentira": "Que convites?",                                 "verdade": "Não. Eu nem sabia que existiam.",                       "destravaCom": "F29" }
+      ]
+    }
+  },
+
+  "_leiaPartidas": "As três perguntas do veredito do bot, no formato de partida do MOSAICO. ATENÇÃO ao converter: no roteiro.json o índice de 'correta' é BASE ZERO. Lido como base um, as respostas viram Fotógrafo / ciúme / na casa — que é a leitura errada, e foi a que eu fiz na primeira passada.",
+  "partidas": {
+    "setimo": {
+      "titulo": "O Sétimo",
+      "natureza": "QUEM + POR QUÊ + ONDE",
+      "pergunta": "Sete convites foram impressos e seis chegaram rasgados. Quem é o Sétimo?",
+      "principal": "quemEhOSetimo",
+      "campos": [
+        { "id": "quemEhOSetimo", "rotulo": "Quem é o Sétimo?",              "opcoes": ["A Vizinha", "O Fotógrafo", "Alguém da mesa", "Ninguém — não existe sétimo"], "resposta": "Alguém da mesa" },
+        { "id": "porQueRasgou",  "rotulo": "Por que os convites foram rasgados?", "opcoes": ["Ciúme da Vizinha", "Para forçar o grupo a se falar", "Erro da gráfica", "Vingança"], "resposta": "Para forçar o grupo a se falar" },
+        { "id": "ondeEhAFesta",  "rotulo": "Onde é a festa de verdade?",    "opcoes": ["Na casa", "No galpão", "Na gráfica", "Na casa da Vizinha"], "resposta": "No galpão" },
+        { "id": "aLinha",        "rotulo": "Qual linha está riscada no cadastro da gráfica?", "opcoes": ["3320", "0042", "0917", "7708"], "resposta": "0917" }
+      ]
+    }
+  },
+
+  "historia": [
+    "Sete convites foram impressos para a festa de fim de ano. Seis chegaram às mãos do grupo, rasgados ao meio, e a metade que falta de cada um não apareceu.",
+    "O sétimo convidado ficou de buscá-los na gráfica no dia 22. Ligou seis vezes para a Organizadora naquele dia. Nenhuma foi atendida.",
+    "No dia 23 ele deixou um pacote na portaria da casa e ficou dez minutos conversando com o Zelador. Depois falou catorze minutos com o Fotógrafo, e no fim daquela conversa uma frase ficou legível: “então é lá. Dia 30.”",
+    "A casa está alugada duas vezes para a mesma noite. A festa que vai acontecer é em outro lugar — e o convite inteiro, que ninguém tem, traz o endereço."
+  ],
+
+  "revelacaoFinal": {
+    "titulo": "O nome riscado no cadastro",
+    "sintese": "O Sétimo nunca sumiu: passou o caso inteiro sentado à mesa. A linha 0917, riscada no cadastro da gráfica, é a mesma que consta na ficha de uma das seis pessoas. Ele retirou os sete convites, rasgou seis ao meio e entregou as metades esquerdas, guardando as direitas — e ficou com uma metade direita a mais, que foi o que o entregou.",
+    "evidencias": ["F30", "F31", "F19", "F29", "F27"]
+  },
+
+  "_faltaFazer": [
+    "relacoes — os encadeamentos de três peças que produzem uma conclusão (modelo: R1..R10 da Casa da Costa)",
+    "pares — as duplas que só juntas produzem um fato (modelo: P-A..P-G)",
+    "roteiros — a encenação de cada um dos seis papéis: resumo, ação, rubrica, tom, fala e pós",
+    "pistas privadas e publicas — o que cada papel sabe sozinho e o que a mesa vê",
+    "capitulos e relogio — a divisão da noite e quanto tempo cada trecho dura",
+    "selecao — quais fragmentos são centrais e quais são incidentais nesta partida",
+    "mosaico — a ordenação cronológica das públicas, se esta partida tiver essa etapa",
+    "arte — capa, painel e espera; os 19 MB de PDFs e fotos do bot servem direto"
+  ]
+}
