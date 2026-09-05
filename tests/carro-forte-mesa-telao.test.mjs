@@ -897,3 +897,42 @@ test("a Sala mantem um objeto escondido atras de outro", () => {
     "voltou a ser possivel pedir um alvo cuja capa nao esta em jogo",
   );
 });
+
+/* O Vidro nao usa a bussola: ele le beta e gama crus, como o da Casa, porque a
+   tarefa e de GRAVIDADE e nao de rumo. O que ele precisa manter e a regra que
+   o tornava uma tarefa sensorial - nao se limpa o vidro com o dedo. */
+test("o Vidro do Carro-Forte revela por inclinacao, nao por esfregar", () => {
+  const VIDRO = ler("carro-forte/vidro-embacado.html");
+  const codigo = semComentarios(VIDRO);
+  assert.match(codigo, /deviceorientation/, "o Vidro parou de ler a inclinacao do aparelho");
+  assert.match(codigo, /function cava\(/, "sumiu a agua que cava a trilha no embaco");
+  assert.match(codigo, /TOL_B=26, TOL_G=30/, "as tolerancias medidas da Casa foram trocadas sem playtest");
+  assert.match(codigo, /HOLD_MS=1500/, "sumiu a permanencia: o alvo passa a abrir de passagem");
+  /* O defeito antigo, por nome: contar passes de ponteiro sobre uma faixa. */
+  assert.ok(!/ESFORCO/.test(codigo), "voltou a contagem de passes de ponteiro");
+  assert.ok(
+    !/pointermove[\s\S]{0,300}classList\.add\(['"]limpa['"]\)/.test(codigo),
+    "voltou a revelar esfregando o ponteiro sobre a faixa",
+  );
+  /* E o vazamento: o texto do fragmento nao pode estar no DOM antes do gesto.
+     A versao antiga escrevia os quatro fatos e cobria com CSS. */
+  assert.ok(
+    !/innerHTML\s*=\s*`?<b>\$\{/.test(codigo) || /txtX\.fillText/.test(codigo),
+    "o texto do fragmento voltou para o DOM antes de ser alcancado",
+  );
+});
+
+/* Os tres angulos-alvo saem da semente da partida, nao de Math.random: a mesa
+   inteira procura a mesma inclinacao. Sem isso, "vira mais para a esquerda"
+   dito em voz alta na mesa vira conselho errado. */
+test("os alvos das atividades saem da partida, e nao de Math.random", () => {
+  for (const nome of ["janela-do-norte", "sala-as-escuras", "vidro-embacado"]) {
+    const codigo = semComentarios(ler(`carro-forte/${nome}.html`));
+    assert.match(codigo, /function semente\(/, `${nome} perdeu a semente da partida`);
+    assert.match(
+      codigo,
+      /semente\([^)]*A\.partida/,
+      `${nome} nao semeia mais pela partida: cada aparelho monta um cenario diferente`,
+    );
+  }
+});
