@@ -231,6 +231,17 @@
         try { navigator.vibrate && navigator.vibrate([12, 50, 22]); } catch (err) {}
         return;                        /* daqui em diante quem manda é o dedo */
       }
+      /* A SAÍDA POR TEMPO. A anistia afrouxa as metas, mas ela não salva quem
+         não tem sensor NENHUM: sem eventos de orientação, amostra() nunca roda
+         e a barra fica em zero para sempre — com o botão desabilitado e a tela
+         por cima de tudo. É beco sem saída, a mesma classe de defeito que
+         custou caro nas atividades hoje. Passados 25 s o botão libera de
+         qualquer jeito: seguir com a bússola torta é pior que seguir, mas
+         ficar preso é pior que os dois. */
+      if (seg > 25 && bt.disabled) {
+        bt.disabled = false;
+        bt.textContent = 'Seguir assim mesmo';
+      }
       requestAnimationFrame(tick);
     })();
   }

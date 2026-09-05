@@ -482,6 +482,9 @@ function fechaIntro(){
 }
 function porDedo(){
   modoDedo=true;
+  /* Fecha o oito junto: quem cai aqui por falha de sensor viria com a tela do
+     oito por cima, e ela não sai sozinha. */
+  document.getElementById('oito').classList.remove('on');
   document.getElementById('dica').textContent='Arraste para girar. Arraste para cima e para baixo para levantar o olhar.';
   fechaIntro();
 }
