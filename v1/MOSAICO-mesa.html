@@ -169,8 +169,11 @@
      no fluxo, ele rolava para fora e o Mestre perdia a pausa justamente ao
      descer a tela. A busca-fragmento fica de fora: ali o body vira o
      container de rolagem e o cabeçalho já é item de um flex próprio. */
+  /* O nome da rodada deixa de grudar no topo: quem gruda agora é a barra dos
+     três controles, e duas faixas coladas uma na outra comem meia tela de
+     celular. */
   body:not(.busca-fragmento) .rodada-telao.topo-jogo{
-    position:sticky;top:0;z-index:40;
+    position:static;z-index:40;
     backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
   .rodada-telao.topo-jogo{display:flex;align-items:center;gap:10px;
     text-align:left;margin:0 auto 10px;padding:8px 10px 8px 14px}
@@ -457,7 +460,15 @@
   body.fase-sensor #app>.eyebrow,body.fase-sensor #app>h2{display:none}
   body.fase-sensor #app>.lead{font-size:clamp(16px,4.4vw,19px);line-height:1.3;margin-bottom:7px}
   body.fase-sensor #app>.muted{display:none}
-  body.fase-sensor .tarefa-frame{height:calc(100dvh - 218px);min-height:430px;max-height:650px;margin:7px 0}
+  /* O QUADRO OCUPA O QUE SOBRA, em vez de descontar um número escrito à mão.
+     Era `calc(100dvh - 218px)`, e os 218 foram medidos numa tela que não existe
+     mais: a barra dos três controles subiu para o topo e entrou no fluxo. Cada
+     ajuste de cabeçalho desafinava a conta em silêncio, e o preço era o pé do
+     iframe passando do fim da tela — onde moram os botões do módulo, que é
+     `position:fixed` dentro do próprio quadro e sempre os põe na borda de
+     baixo. Com flex, a conta se refaz sozinha. */
+  body.fase-sensor #app{display:flex;flex-direction:column;min-height:100dvh}
+  body.fase-sensor .tarefa-frame{flex:1 1 auto;height:auto;min-height:300px;max-height:none;margin:7px 0}
   body.fase-sensor .btn-caso,body.fase-sensor #btn-pistas{padding:10px 13px}
   .revelacao-final{max-width:920px;margin:0 auto}.revelacao-final .card{margin-bottom:14px}
   .revelacao-chave{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:22px 0}
@@ -900,8 +911,18 @@
   /* Barra inferior: Caso | Arquivo. A Sala subiu para o cabeçalho em
      02/09/2026 — ver organizarBarraInferior(). Com duas colunas em vez de
      três os rótulos deixam de precisar de reticências. */
-  .barra-jogo{position:fixed;z-index:45;left:12px;right:12px;
-    bottom:max(8px,env(safe-area-inset-bottom));display:grid;
+  /* A BARRA SUBIU (05/09/2026), e os três controles ficaram juntos.
+     Caso e Arquivo moravam aqui embaixo e a Sala no cabeçalho. O argumento
+     escrito para o rodapé era o alcance do polegar — e ele foi escrito ANTES
+     de os módulos sensoriais passarem a ocupar o quadro inteiro. Dentro do
+     iframe eles são `position:fixed; height:100dvh`, então os botões DELES
+     nascem colados na borda de baixo: exatamente onde esta barra flutuava. E
+     não adianta rolar a página para fugir, porque o módulo captura o arrasto —
+     é assim que a lanterna d'A Sala às Escuras funciona. Mario jogou e não
+     conseguiu apertar.
+     Alcance de polegar não vale nada num botão que está debaixo de outro. */
+  .barra-jogo{position:sticky;z-index:45;left:12px;right:12px;
+    top:max(8px,env(safe-area-inset-top));margin:0 12px 10px;display:grid;
     grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:7px;align-items:stretch;
     padding:6px;border:1px solid rgba(127,212,255,.18);border-radius:18px;
     background:rgba(3,6,11,.94);box-shadow:0 10px 34px rgba(0,0,0,.5);
@@ -925,8 +946,15 @@
      tantas colunas quantos botões visíveis, e eles esticam.
      A ORDEM vem da propriedade order, não do DOM: o #btn-pistas já está no HTML e o
      Caso entra depois, por appendChild — sem isto o Arquivo viria primeiro. */
+  .barra-jogo .btn-menu-mestre{
+    position:static;left:auto;right:auto;bottom:auto;transform:none;width:100%;min-width:0;
+    min-height:52px;margin:0 0 3px;padding:9px 3px;display:flex;align-items:center;justify-content:center;
+    border-radius:12px;background:rgba(20,29,40,.62);
+    font-size:clamp(11px,3.1vw,14px);letter-spacing:.09em;white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis;pointer-events:auto}
   .barra-jogo .btn-caso{order:1;display:flex}
   .barra-jogo #btn-pistas{order:2}
+  .barra-jogo .btn-menu-mestre{order:3}
   .barra-jogo #btn-pistas.on{display:flex}
   .barra-jogo.vazia{display:none}
   /* Painel aberto = botão AFUNDADO, não botão plano. A regra antiga trocava a
@@ -2332,15 +2360,19 @@ function limparBarraInferior(){
    CONDUÇÃO, que só o Mestre usa e de vez em quando.
    Separando, a barra cai para duas colunas e os rótulos respiram, e o
    controle raro sai da zona onde o polegar bate sem querer. */
+/* Os três na mesma barra, e a barra fora do #app.
+   O #btn-pistas é o único deles que NÃO é recriado a cada desenho: ele existe
+   uma vez só no HTML, dentro de <nav id="barra-jogo">, que vive fora do #app.
+   Movê-lo para dentro do cabeçalho o mataria no render seguinte, quando
+   app.innerHTML é reescrito — e não haveria como trazê-lo de volta. Por isso
+   quem se muda são o Caso e a Sala, que nascem no desenho e são movidos para
+   cá (e limpos antes, por limparBarraInferior). */
 function organizarBarraInferior(){
   var barra=document.getElementById("barra-jogo"), app=document.getElementById("app");
   if(!barra||!app)return;
   var caso=app.querySelector(".btn-caso"), sala=app.querySelector(".btn-menu-mestre");
   if(caso)barra.appendChild(caso);
-  /* Sem cabeçalho do topo — telão, telas fora da partida — a Sala fica onde
-     nasceu, dentro do #app, e o CSS a trata como bloco comum. */
-  var topo=app.querySelector(".topo-jogo");
-  if(sala&&topo)topo.appendChild(sala);
+  if(sala)barra.appendChild(sala);
   medirBarraInferior();
 }
 /* A reserva de rodape do #app era um numero escrito a mao. Quando a barra
@@ -2364,10 +2396,13 @@ function medirBarraInferior(){
     raiz.style.setProperty("--barra-reserva","max(18px,env(safe-area-inset-bottom))");
     return;
   }
-  var alt=barra.getBoundingClientRect().height;
-  if(!alt){ raiz.style.removeProperty("--barra-reserva"); return; }
-  raiz.style.setProperty("--barra-reserva",
-    "calc("+Math.ceil(alt)+"px + max(8px,env(safe-area-inset-bottom)) + 18px)");
+  /* A RESERVA DE RODAPÉ ACABOU JUNTO COM A BARRA DE RODAPÉ.
+     Ela existia para o último elemento da tela não terminar debaixo de uma
+     barra flutuante. Com a barra no topo, e em fluxo normal, ela ocupa o
+     próprio espaço — e continuar reservando 70px embaixo deixaria um vão
+     aceso no fim de toda tela, exatamente o que este cálculo nasceu para
+     evitar do outro lado. */
+  raiz.style.setProperty("--barra-reserva","max(18px,env(safe-area-inset-bottom))");
 }
 addEventListener("resize",medirBarraInferior);
 addEventListener("orientationchange",medirBarraInferior);
@@ -2483,7 +2518,13 @@ function render(forcar){
     case "resultado":   h=telaResultado(); break;
     default:            h=telaInicio();
   }
-  if(STATE.eu&&!encenacaoPassiva){
+  /* O PAINEL JÁ DESENHA O DELE. `telaPainel()` começa com cabecalhoRodada(), e
+     esta linha prependia um segundo — então o Mestre, que é jogador E está no
+     painel, via "RODADA ATUAL · A SALA ÀS ESCURAS", a tarja da dinâmica e a
+     pergunta TUDO EM DOBRO, uma faixa em cima da outra, comendo meia tela de
+     celular. Ficou visível quando a barra dos três controles subiu para o topo
+     e empurrou as duas para o campo de visão. */
+  if(STATE.eu&&!encenacaoPassiva&&STATE.tela!=="painel"){
     h=cabecalhoRodada((STATE.doc&&STATE.doc.fase)||"sala","rodada-celular topo-jogo")+h;
     if(modoAtual()==="sem-telao") h+=muralColetivoMovel();
   }
