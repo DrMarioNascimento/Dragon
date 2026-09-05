@@ -467,7 +467,13 @@
      iframe passando do fim da tela — onde moram os botões do módulo, que é
      `position:fixed` dentro do próprio quadro e sempre os põe na borda de
      baixo. Com flex, a conta se refaz sozinha. */
-  body.fase-sensor #app{display:flex;flex-direction:column;min-height:100dvh}
+  /* 100dvh MENOS A BARRA. O #app começa ABAIXO dela, então pedir 100dvh aqui
+     estoura a tela por exatamente a altura da barra — e quem paga é o pé do
+     iframe, que é onde moram os botões do módulo. Medido: base do quadro em
+     865px numa tela de 812. A altura vem de medirBarraInferior(), que já mede
+     a barra a cada desenho, em vez de mais um número escrito à mão. */
+  body.fase-sensor #app{display:flex;flex-direction:column;
+    min-height:calc(100dvh - var(--barra-topo,0px))}
   body.fase-sensor .tarefa-frame{flex:1 1 auto;height:auto;min-height:300px;max-height:none;margin:7px 0}
   body.fase-sensor .btn-caso,body.fase-sensor #btn-pistas{padding:10px 13px}
   .revelacao-final{max-width:920px;margin:0 auto}.revelacao-final .card{margin-bottom:14px}
@@ -2403,6 +2409,11 @@ function medirBarraInferior(){
      aceso no fim de toda tela, exatamente o que este cálculo nasceu para
      evitar do outro lado. */
   raiz.style.setProperty("--barra-reserva","max(18px,env(safe-area-inset-bottom))");
+  /* O espaço que a barra ocupa NO TOPO. offsetTop/offsetHeight não dependem da
+     rolagem — getBoundingClientRect dependeria, e a medida sairia errada se
+     alguém rolasse antes do desenho. */
+  raiz.style.setProperty("--barra-topo",
+    (barra.classList.contains("vazia")?0:Math.ceil(barra.offsetTop+barra.offsetHeight+10))+"px");
 }
 addEventListener("resize",medirBarraInferior);
 addEventListener("orientationchange",medirBarraInferior);
