@@ -20,7 +20,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 
 /* Os arquivos do repositório não concordam sobre o fim de linha — uns são
    CRLF, outros LF. Uma expressão com \n dentro reprovaria conforme o arquivo,
@@ -702,4 +702,44 @@ test("as duas mesas carimbam o caso e recusam o do vizinho", () => {
     /snap\.data\(\)\.caseId&&snap\.data\(\)\.caseId!==CASE_ID/,
     "o Carro-Forte parou de recusar mesa de outro caso",
   );
+});
+
+/* O cânone antigo da Casa saiu das FRASES em 02/09/2026, mas voltou em outra
+   forma: `v2/noite-auto.js` carregava EVIDENCIAS_ANTIGAS, dez dos trinta e seis
+   fragmentos cravados no arquivo como "rede de segurança" da migração. Ela era
+   inalcançável — o fetch ou traz o caso inteiro ou mostra erro — e mesmo assim
+   já tinha derivado: F13 dizia "O consumo" e o caso diz "Consumo de água".
+   Uma cópia velha do cânone esperando o dia em que vence calada. */
+test("A Noite da Casa não guarda uma cópia própria do banco", () => {
+  const NOITE_CASA = ler("v2/noite-auto.js").replace(/\/\*[\s\S]*?\*\//g, " ");
+  assert.ok(
+    !/EVIDENCIAS_ANTIGAS/.test(NOITE_CASA),
+    "voltou um banco de fragmentos cravado dentro d'A Noite da Casa",
+  );
+  assert.ok(
+    !/F\d\d:\{h:"/.test(NOITE_CASA),
+    "voltou fragmento escrito à mão no arquivo, fora do JSON do caso",
+  );
+  /* Sem banco não há noite: melhor lançar alto do que jogar com fragmentos de
+     outra época. Mesma regra da Mesa em "sem caso não há partida". */
+  assert.match(
+    NOITE_CASA,
+    /throw new Error\('MOSAICO: o caso chegou sem banco de fragmentos\.'\)/,
+    "A Noite da Casa voltou a ter uma saída silenciosa quando o caso chega sem banco",
+  );
+});
+
+/* v2/ é cópia manual de dist/client, e o teste do build só compara modulos/ —
+   noite-auto.js ficava de fora. O favicon já derivou assim uma vez: editado no
+   v2/ e desfeito pelo build seguinte. */
+test("o noite-auto.js publicado é o mesmo da fonte", () => {
+  const a = ler("v2/noite-auto.js");
+  const b = ler("mosaico-web/public/noite-auto.js");
+  assert.equal(a, b, "v2/noite-auto.js divergiu de mosaico-web/public — o próximo build desfaz a correção");
+  /* dist/ é ignorado pelo git: num clone limpo ele não existe, e exigir a
+     terceira cópia reprovaria a suíte por ausência de arquivo, não por deriva.
+     Quando ela estiver aqui, tem de bater. */
+  const dist = new URL("../mosaico-web/dist/client/noite-auto.js", import.meta.url);
+  if (existsSync(dist))
+    assert.equal(a, ler("mosaico-web/dist/client/noite-auto.js"), "v2/noite-auto.js divergiu de dist/client");
 });

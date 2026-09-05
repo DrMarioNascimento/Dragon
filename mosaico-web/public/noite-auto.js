@@ -37,19 +37,6 @@ const ORDEM=["sete","cinco","apagao","nome","corpo","perceber"];
 const CHAVE_ROT="mosaico_casa_ultima_partida_noite";
 const CHAVE_ESTADO="mosaico_noite_costa_auto";
 
-/* Rede de segurança: só entra se o caso publicado ainda não trouxer o banco. */
-const EVIDENCIAS_ANTIGAS={
- F01:{h:"22:40",t:"As xícaras",d:"Sete xícaras limpas secando na pia. Seis pessoas do grupo beberam chá naquela noite.",f:"estrutural",m:[37,70]},
- F02:{h:"21:24",t:"Ausência de poeira",d:"Cozinha e corredor sem poeira; os demais cômodos guardam cinco meses de abandono.",f:"relacional",m:[47,68]},
- F04:{h:"21:21",t:"O quarto degrau",d:"Range sob peso. Às 21h21 e às 23h40, ninguém do grupo estava na escada.",f:"relacional",m:[55,66]},
- F06:{h:"21:29–21:31",t:"A respiração",d:"A Jornalista sente respiração próxima em ponto onde nenhum dos outros cinco estava.",f:"interpretativo",m:[56,58]},
- F09:{h:"—",t:"O contrato",d:"Registro de pagamentos a uma acompanhante por catorze meses, encerrado há cinco meses.",f:"estrutural",m:[70,45]},
- F10:{h:"23:05",t:"As pegadas",d:"No jardim interno, um par de pegadas entra e não sai.",f:"estrutural",m:[48,52]},
- F13:{h:"—",t:"O consumo",d:"O hidrômetro registra consumo diário contínuo nos cinco meses em que a casa esteve vazia.",f:"estrutural",m:[39,72]},
- F15:{h:"06:50",t:"Queda em rede",d:"A concessionária registra interrupção às 21h29 em três unidades da encosta.",f:"estrutural",m:[50,44]},
- F16:{h:"08:20",t:"O disjuntor",d:"A chave geral permaneceu ligada; não há sinal de acionamento manual.",f:"relacional",m:[52,46]},
- F20:{h:"21:36",t:"Cofre e relógio",d:"A porta estava encostada e nada foi subtraído; o relógio de corda travou às 21h29.",f:"interpretativo",m:[62,73]}
-};
 
 const MODULOS={sete:["janela","escuro","sala"],cinco:["vidro","escuro"],apagao:["sala","escuro","janela"],nome:["vidro","escuro"],corpo:["vidro","sala","janela"],perceber:["escuro","vidro"]};
 const MODINFO={
@@ -158,7 +145,23 @@ async function marcarConcluida(id){
 }
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));}
 
-function banco(){return (CASO&&CASO.fragmentos)||EVIDENCIAS_ANTIGAS;}
+/* NÃO HÁ MAIS REDE. Aqui morava EVIDENCIAS_ANTIGAS, dez dos trinta e seis
+   fragmentos cravados no arquivo — sobra da migração de 02/09/2026, quando o
+   banco ainda não tinha subido para o JSON do caso.
+
+   Ela era inalcançável (o fetch ou traz o caso inteiro ou mostra erro) e mesmo
+   assim já tinha DERIVADO: F13 dizia "O consumo" enquanto o caso diz "Consumo
+   de água". É a forma nova do mesmo defeito que custou meses na Casa — uma
+   cópia velha do cânone esperando um dia em que ela vença calada.
+
+   Sem banco não há noite: melhor lançar aqui, alto, do que jogar com dez
+   fragmentos de outra época. É a mesma regra que a Mesa segue em
+   "sem caso não há partida". */
+function banco(){
+ const b=CASO&&CASO.fragmentos;
+ if(!b)throw new Error('MOSAICO: o caso chegou sem banco de fragmentos.');
+ return b;
+}
 function relacoes(){return (CASO&&CASO.relacoes)||[];}
 function hipoteses(){return (CASO&&CASO.hipoteses)||[];}
 function selecao(){return (CASO&&CASO.selecao&&CASO.selecao[partida])||{centrais:[],incidentais:[]};}
