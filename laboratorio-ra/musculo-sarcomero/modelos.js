@@ -284,7 +284,18 @@ const M = {
     bumpMap: TEX.musculoBump, bumpScale: 2.2 }),
   /* o miolo é o fundo do poço entre os fascículos: nunca recebe luz direta */
   musculoFundo: phys({ color: 0x2e0a0d, roughness: .85, clearcoat: 0 }),
-  epimisio: phys({ color: 0xf6e6d6, map: TEX.fascia, roughness: .22, transparent: true, opacity: .19, side: THREE.DoubleSide, clearcoat: 1, clearcoatRoughness: .12, depthWrite: false }),
+  /* O VÉU. Este era o pior dos causadores e o último a ser visto: uma película
+     branca, envernizada com clearcoat 1, desenhada em DoubleSide por cima do
+     ventre inteiro. Ou seja — uma casca lisa e brilhante cobrindo o objeto.
+     Isso não se parece com uma cápsula: isso É uma cápsula, e nenhum conserto
+     na carne de baixo apareceria enquanto ela estivesse ali.
+
+     O epimísio existe e precisa ser visto, mas fáscia é transparente: ela só
+     aparece de fato onde a superfície vira de lado. Desenhar só a face de
+     TRÁS entrega exatamente isso — a borda ganha o brilho da bainha, o meio
+     do ventre fica livre e a carne volta a ser o que se vê. */
+  epimisio: phys({ color: 0xe8d8c4, map: TEX.fascia, roughness: .30, transparent: true,
+    opacity: .30, side: THREE.BackSide, clearcoat: .55, clearcoatRoughness: .25, depthWrite: false }),
   /* Tendão é o ÚNICO tecido desta cena que brilha mesmo: é colágeno paralelo e
      molhado, e reflete em faixa ao longo da fibra. Mantém sheen alto e ganha
      um resto de clearcoat — aqui a laca é verdade, não descuido. */
@@ -304,11 +315,15 @@ const M = {
     emissive: 0x24060a, emissiveIntensity: .40, roughness: .52, sheenColor: 0xffb0a0 }),
   fibraCorte: phys({ color: 0xd08a86, map: TEX.corteFibra, roughness: .55, side: THREE.DoubleSide }),
   endomisio: phys({ color: 0xf3ddc9, roughness: .5, transparent: true, opacity: .55 }),
-  perimisio: phys({ color: 0xfbeee0, map: TEX.fascia, transparent: true, opacity: .13, side: THREE.DoubleSide, roughness: .3, clearcoat: .7, depthWrite: false }),
+  perimisio: phys({ color: 0xf2e2d2, map: TEX.fascia, transparent: true, opacity: .17,
+    side: THREE.BackSide, roughness: .38, clearcoat: .35, clearcoatRoughness: .3, depthWrite: false }),
   /* vaso é o único tubo desta cena com parede molhada de verdade */
   capilar: phys({ color: 0x91101c, roughness: .34, clearcoat: .5, clearcoatRoughness: .35 }),
 
-  sarcolema: phys({ color: 0xf0c3b8, map: TEX.sarcolema, transparent: true, opacity: .34, side: THREE.DoubleSide, roughness: .22, clearcoat: 1, clearcoatRoughness: .1, depthWrite: false }),
+  /* Membrana viva é filme molhado, não vidro laqueado: clearcoat 1 punha um
+     reflexo duro por cima da fibra e apagava a estriação que é o assunto. */
+  sarcolema: phys({ color: 0xeec0b5, map: TEX.sarcolema, transparent: true, opacity: .30,
+    side: THREE.BackSide, roughness: .30, clearcoat: .45, clearcoatRoughness: .28, depthWrite: false }),
   bordaCorte: phys({ color: 0xf3cec2, roughness: .4, clearcoat: .5 }),
   nucleo: phys({ color: 0x4b2b72, roughness: .52, clearcoat: .15, clearcoatRoughness: .5, sheen: .6, sheenColor: 0xb79ae0 }),
   mitocondria: phys({ color: 0xc9822f, roughness: .62, clearcoat: 0, sheen: .4, sheenColor: 0xffcf95 }),
@@ -358,7 +373,7 @@ function tintar(geo, cor) {
 
    O resultado entra na COR DE VÉRTICE, que os materiais de carne já leem — não
    precisa de canal novo nem de segundo jogo de uv.                          */
-function ocluirNoFeixe(geo, cor, { eixo = 'x', raioFeixe = 1, piso = .30 } = {}) {
+function ocluirNoFeixe(geo, cor, { eixo = 'x', raioFeixe = 1, piso = .30, aoLongo = null } = {}) {
   geo.computeVertexNormals();
   const pos = geo.attributes.position, nor = geo.attributes.normal;
   const n = pos.count, arr = new Float32Array(n * 3);
@@ -374,7 +389,12 @@ function ocluirNoFeixe(geo, cor, { eixo = 'x', raioFeixe = 1, piso = .30 } = {})
     /* fundura: quem está no eixo do feixe não vê o céu por lado nenhum */
     const prof = Math.min(1, d / raioFeixe);
     const ao = piso + (1 - piso) * Math.pow(aberto, 1.35) * (.42 + .58 * prof);
-    arr[i * 3] = cor.r * ao; arr[i * 3 + 1] = cor.g * ao; arr[i * 3 + 2] = cor.b * ao;
+    /* `aoLongo` devolve uma cor para aquele ponto do comprimento. É por onde
+       entra a JUNÇÃO MIOTENDÍNEA: a carne não tem uma cor só do começo ao fim,
+       ela empalidece ao virar tendão. Uma peça com cor única de ponta a ponta
+       é peça moldada — e era isso que se via nas duas pontas do ventre. */
+    const c = aoLongo ? aoLongo(px) : cor;
+    arr[i * 3] = c.r * ao; arr[i * 3 + 1] = c.g * ao; arr[i * 3 + 2] = c.b * ao;
   }
   geo.setAttribute('color', new THREE.BufferAttribute(arr, 3));
   return geo;
@@ -434,7 +454,16 @@ function revolucaoX(x0, x1, raio, mat, { segs = 40, radiais = 64, achata = 1 } =
    Cada fascículo nasce fino no tendão, engrossa no ventre e afina de novo — e é
    a soma deles, não uma superfície de revolução, que dá a silhueta.          */
 const MUS = { A: 2.45, Rmax: .84, achata: .80, xTendao: 2.38 };
-const perfilVentre = t => Math.pow(Math.max(0, 1 - t * t), .58);
+/* O VENTRE NÃO É SIMÉTRICO. `1 - t²` é uma lente perfeita, e lente perfeita é
+   a forma de uma cápsula — foi ela que sobreviveu a todos os consertos
+   anteriores, porque nenhum deles mexia no perfil. Músculo fusiforme tem a
+   maior circunferência no terço PROXIMAL, não no meio, e afina mais devagar
+   de um lado que do outro. O deslocamento é pequeno — 0,09 do semicomprimento,
+   e 0,14 já era caricatura — e faz toda a diferença na silhueta.                                       */
+const perfilVentre = t => {
+  const d = Math.max(-1, Math.min(1, (t + .09) / (1 + .09 * Math.sign(t + .09))));
+  return Math.pow(Math.max(0, 1 - d * d), .58);
+};
 
 function musculo() {
   const g = new THREE.Group();
@@ -447,6 +476,18 @@ function musculo() {
   /* os fascículos */
   const aneis = [[1.00, 17, .108], [.775, 12, .102], [.525, 8, .098], [.25, 4, .092]];
   const geos = [];
+  /* A JUNÇÃO MIOTENDÍNEA, em cor. Nos 22% finais de cada lado a carne vira
+     tendão: perde vermelho e ganha o creme do colágeno. Sem esta transição o
+     ventre encosta no tendão por um corte seco, e corte seco entre dois
+     materiais é como se montam peças de brinquedo. */
+  const CREME = C(0xc9b394);
+  const misturaNaPonta = (base) => {
+    const guardado = base.clone();
+    return (x) => {
+      const t = Math.min(1, Math.max(0, (Math.abs(x) / MUS.A - .86) / .14));
+      return guardado.clone().lerp(CREME, Math.pow(t, 1.4) * .72);
+    };
+  };
   aneis.forEach(([anel, quantos, base], iAnel) => {
     for (let k = 0; k < quantos; k++) {
       const th = (k + (iAnel % 2) * .5) * (Math.PI * 2 / quantos) + iAnel * .37 + rnd(-.075, .075);
@@ -479,8 +520,9 @@ function musculo() {
         const onda = 1 + .085 * Math.sin(u * 9.3 + th * 2.1);
         return base * jitter * onda * (.24 + .76 * Math.pow(Math.max(0, 1 - td * td), cheio));
       };
+      const tom = variar(0x8c1f18, .016, .15, .085);
       geos.push(ocluirNoFeixe(tuboPerfil(curva, raio, { segsU: 72, segsV: 12 }),
-        variar(0x8c1f18, .016, .15, .085), { raioFeixe: MUS.Rmax }));
+        tom, { raioFeixe: MUS.Rmax, aoLongo: misturaNaPonta(tom) }));
     }
   });
   g.add(new THREE.Mesh(mergeGeometries(geos), M.musculo));
