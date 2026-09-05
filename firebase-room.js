@@ -103,9 +103,21 @@ function formTelao(err=''){
 }
 function renderMasterGate(error=''){
   const ensaio=intencao==='ensaio';
-  const modoHtml=PROJECT==='mesa'
+  /* A PERGUNTA DO TELÃO É DE QUEM DECLARA TELÃO, e não da Mesa por privilégio.
+     Aqui havia um caso especial: só `PROJECT==='mesa'` recebia a escolha, e A
+     Noite recebia um bloco fixo dizendo que era conduzida pelo celular. Mas ela
+     DECLARA `data-telao` desde 03/09 — o endereço da tela grande existe, só que
+     enterrado no painel SALA, alcançável depois que a partida já começou.
+     Prometer uma coisa no HTML e outra na tela é o mesmo defeito que a Mesa
+     tinha antes de ontem, do avesso: lá a promessa não entregava; aqui a
+     entrega não é prometida.
+
+     Agora quem manda é o arquivo: declarou `data-telao`, ganha a escolha. O
+     PADRÃO de cada jogo continua sendo o dele — a Mesa nasce com telão, A Noite
+     nasce sem —, então nada muda para quem só toca em "Abrir com Google". */
+  const modoHtml=TELAO
     ? `<div class="dr-ident">Como a mesa será usada?</div><button class="dr-choice ${modo==='com-telao'?'on':''}" data-mode="com-telao"><b>📺 Com telão</b><span>Um aparelho fica no painel.</span></button><button class="dr-choice ${modo==='sem-telao'?'on':''}" data-mode="sem-telao"><b>📱 Sem telão</b><span>Quem abre também joga pelo celular.</span></button>`
-    : `<div class="dr-ident">Como a mesa será usada?</div><div class="dr-master-info"><p><b>📱 Celular</b></p><p>A Noite é conduzida diretamente pelo celular do Mestre.</p></div>`;
+    : `<div class="dr-ident">Como a mesa será usada?</div><div class="dr-master-info"><p><b>📱 Celular</b></p><p>Esta mesa é conduzida diretamente pelo celular do Mestre.</p></div>`;
   /* No ensaio o modo e o ritmo não têm o que configurar: não existe sala, não
      existe telão e não existe ninguém para esperar. Fica só a validação. */
   const corpo=ensaio

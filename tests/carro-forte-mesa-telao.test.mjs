@@ -743,3 +743,27 @@ test("o noite-auto.js publicado é o mesmo da fonte", () => {
   if (existsSync(dist))
     assert.equal(a, ler("mosaico-web/dist/client/noite-auto.js"), "v2/noite-auto.js divergiu de dist/client");
 });
+
+/* 05/09/2026: a TV ficou congelada em "📺 Conectando o Telão…" para sempre —
+   sem mensagem, sem pista. O `if(!jogo)` existia, mas TRÊS LINHAS DEPOIS de
+   `jogo.parede`: com um ?jogo= que a tabela não conhece, o módulo morria no
+   primeiro acesso e o próprio if nunca chegava a rodar. O erro ficava só no
+   console, que ninguém abre numa televisão. */
+test("o telão confere o jogo antes de usá-lo", () => {
+  /* Sem tirar os comentários, o próprio texto que explica o defeito cita
+     `jogo.parede` antes da guarda e reprova a correção. */
+  const mod = semComentarios(TELAO.slice(TELAO.indexOf('<script type="module">')));
+  const guarda = mod.indexOf("if(!jogo){");
+  const usa = mod.indexOf("jogo.parede");
+  assert.ok(guarda > 0 && usa > 0, "não achei a guarda ou o uso do jogo no telão");
+  assert.ok(
+    guarda < usa,
+    "o telão voltou a usar `jogo` antes de conferir se ele existe — e trava mudo no 'Conectando'",
+  );
+  /* Quem digitou errado precisa saber o que digitar, não que errou. */
+  assert.match(
+    TELAO,
+    /Object\.keys\(JOGOS\)\.join/,
+    "a mensagem de jogo desconhecido parou de dizer quais existem",
+  );
+});

@@ -154,19 +154,33 @@ const JOGOS={
 };
 
 const p=new URLSearchParams(location.search);
-const jogo=JOGOS[p.get('jogo')||'carro-forte-noite'];
+const pedido=p.get('jogo')||'carro-forte-noite';
+const jogo=JOGOS[pedido];
 const code=(p.get('sala')||'').toUpperCase();
 const esc=s=>String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 
-document.getElementById('wall').style.backgroundImage=`url('${jogo.parede}')`;
-document.getElementById('openImg').src=jogo.abertura;
 const audio=document.getElementById('openingAudio');
-audio.src=jogo.audio;
 const stage=document.getElementById('opening');
 
-if(!jogo){waitMsg.textContent='Jogo desconhecido no endereço do telão.';}
-else if(!code){waitMsg.textContent='Código da sala ausente no endereço.';}
-else{
+/* A CONFERÊNCIA VEM ANTES DE USAR, e isto conserta um travamento mudo.
+   O `if(!jogo)` já existia — mas TRÊS LINHAS DEPOIS de ${jogo.parede}. Com um
+   ?jogo= que a tabela não conhece, o módulo morria no primeiro acesso, o `if`
+   nunca chegava a rodar, e a tela grande ficava congelada para sempre no
+   "📺 Conectando o Telão…": sem mensagem, sem pista, e com o erro só no
+   console, que ninguém abre numa TV. Medido em 05/09/2026 com ?jogo=noite.
+
+   A arte também desceu para dentro do `else`: ela é a primeira coisa que
+   depende do jogo, e não há por que pintar parede antes de saber se o jogo
+   existe. E a mensagem diz QUAIS chaves valem — quem digitou errado precisa
+   saber o que digitar, não que errou. */
+if(!jogo){
+  waitMsg.textContent='Este endereço pede um jogo que o telão não conhece: “'+pedido+'”. Os que existem são: '+Object.keys(JOGOS).join(', ')+'.';
+}else if(!code){
+  waitMsg.textContent='Código da sala ausente no endereço do telão.';
+}else{
+  document.getElementById('wall').style.backgroundImage=`url('${jogo.parede}')`;
+  document.getElementById('openImg').src=jogo.abertura;
+  audio.src=jogo.audio;
   const app=initializeApp(jogo.fb,'dragon-telao-'+Date.now());
   const auth=getAuth(app),db=getFirestore(app);
   const roomRef=doc(db,jogo.colecao,code);
