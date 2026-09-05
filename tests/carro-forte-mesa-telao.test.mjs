@@ -158,7 +158,7 @@ test("no ritmo conduzido o botão do Mestre pisca", () => {
 });
 
 test("o prazo da atividade é o mesmo para a mesa inteira", () => {
-  assert.match(PAUTA, /'partida\.atividade': \{ sensor/, "a atividade aberta não sobe para a sala");
+  assert.match(PAUTA, /'partida\.atividade': \{\s*\n\s*sensor, rotulo/, "a atividade aberta não sobe para a sala");
   assert.match(PAUTA, /async function ouvirPartida/, "ninguém escuta a partida da sala");
   assert.match(GAME, /ligarSala\(\)/, "a Mesa não liga a sincronia da sala");
   /* Eram três onSnapshot no MESMO documento — atividade, fase e fecho —, cada
@@ -393,7 +393,7 @@ test("o prazo da fase é da mesa, não do aparelho", () => {
   /* O telão serve todas as mesas e não conhece as fases de nenhuma: o rótulo
      viaja com a fase, senão a tela grande escreveria 'evidence' em inglês. */
   assert.match(PAUTA, /rotulo: rotulo \|\| nome/, "a fase sobe sem rótulo para a tela grande");
-  assert.match(TELAO, /function faseHtml\(f\)/, "a tela grande não desenha a fase nem o que falta dela");
+  assert.match(TELAO, /function agoraHtml\(f,at\)/, "a tela grande não desenha a fase nem o que falta dela");
 });
 
 /* Quem chegou tarde não é salvo por isso. */
@@ -550,4 +550,34 @@ test("um erro só encerra a abertura se ninguém estiver tocando", () => {
       `${nome} volta a encerrar a abertura no primeiro erro, mesmo com outra tela narrando`,
     );
   }
+});
+
+/* Visto na TV em 05/09/2026, com a partida em curso: a tela grande mostrava a
+   pergunta e mais nada. A fase SENSORES não tem prazo próprio — dura o que a
+   fila das atividades durar —, então o bloco do relógio sumia justamente no
+   momento em que a mesa inteira faz a mesma coisa contra o mesmo relógio e
+   olha para cima. */
+test("a tela grande mostra o relógio da atividade quando a fase não tem um", () => {
+  const fn = TELAO.match(/function agoraHtml\(f,at\)\{[\s\S]*?\n  \}/)?.[0] || "";
+  assert.ok(fn, "agoraHtml sumiu do telão");
+  assert.match(fn, /at&&at\.fimMs/, "a atividade deixou de ter prioridade sobre a fase");
+  assert.match(fn, /'ATIVIDADE'/, "o bloco não distingue atividade de fase");
+  /* O telão serve todas as mesas e não conhece as atividades de nenhuma. */
+  assert.match(PAUTA, /sensor, rotulo: rotulo \|\| sensor/, "a atividade sobe sem nome para a tela grande");
+  assert.match(
+    GAME,
+    /abrirAtividade\?\.\(id,fim,state\.game,SENSORS\[id\]\?\.title\|\|id\)/,
+    "a Mesa parou de mandar o nome da atividade, e a TV volta a escrever 'norte'",
+  );
+});
+
+/* "Mariopresente" na tela grande: b e span são os dois inline, e o nome saía
+   grudado no estado. Lido de longe, isso não é espaçamento — é nome errado. */
+test("no cartão do jogador o nome e o estado ficam em linhas diferentes", () => {
+  assert.match(
+    TELAO,
+    /\.field b,\.player b\{display:block/,
+    "o nome do jogador voltou a ser inline e a grudar no estado",
+  );
+  assert.match(TELAO, /\.field span,\.player span\{display:block/, "o estado voltou a colar no nome");
 });

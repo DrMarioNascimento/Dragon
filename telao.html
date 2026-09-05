@@ -72,6 +72,13 @@ body{margin:0;width:100%;min-height:100%;background:transparent;color:var(--ink)
 .field,.player{border:1px solid #526c7b;border-left:.3vw solid #70a8c6;background:#08131be8;
   padding:.8vw;border-radius:.65vw}
 .player.podio{border-left-color:var(--ouro)}
+/* "Mariopresente" — visto na TV em 05/09/2026. `b` e `span` são os dois
+   inline, então o nome e o estado saíam grudados numa palavra só. Numa tela
+   grande, lida de longe, isso não é um detalhe de espaçamento: é um nome
+   errado. Cada um na sua linha, e o estado em corpo menor. */
+.field b,.player b{display:block;font:700 clamp(17px,1.9vw,34px) Georgia,serif}
+.field span,.player span{display:block;margin-top:.35vh;color:var(--muted);
+  font:600 clamp(12px,1.1vw,20px) Inter,system-ui,sans-serif}
 @media(max-width:800px){.fields,.grid{grid-template-columns:1fr 1fr}}
 /* O FECHO NA TELA GRANDE. A revelação e o pódio são sempre e só daqui — regra
    do Mario, 04/09/2026. O que NÃO vem para cá é tudo que é de uma pessoa: o
@@ -334,7 +341,7 @@ else{
          ${pub.turnName?`<div class="turn"><small>VEZ</small><b>${esc(pub.turnName)}</b><strong>${esc(pub.timer||'00:00')}</strong></div>`:''}
        </section>
        <section class="question"><small>${esc(pub.questionTitle||'PERGUNTA')}</small><h1>${esc(pub.questionText)}</h1></section>
-       ${faseHtml(room?.partida?.fase)}
+       ${agoraHtml(room?.partida?.fase,room?.partida?.atividade)}
        ${pub.resposta?`<section class="question"><small>RESOLUÇÃO</small><h1>${esc(pub.resposta)}</h1></section>`:''}
        ${fs.length?`<section class="fields">${fs.map(f=>`<article class="field"><b>${esc(f.label)}</b><span>${f.closed?'FECHADO · '+esc(f.closedBy||'—'):'EM ABERTO'}</span></article>`).join('')}</section>`:''}
        ${pub.placar&&pub.placar.length?`<section class="players"><h2>Placar</h2><div class="grid">${pub.placar.map((x,i)=>`<article class="player${i===0?' podio':''}"><b>${i+1}º · ${esc(x.nome||'Investigador')}</b><span>${esc(x.pontos)} pontos</span></article>`).join('')}</div></section>`:''}
@@ -344,14 +351,26 @@ else{
   /* O relógio da fase é desenhado aqui e atualizado de segundo em segundo sem
      redesenhar a tela toda: o snapshot só chega quando a sala muda, e a mesa
      não pode ficar olhando um número parado. */
-  function faseHtml(f){
-    if(!f||!f.nome||!f.fimMs)return '';
-    return `<section class="fase"><div><small>FASE</small><b>${esc(f.rotulo||f.nome)}</b></div><strong id="faseRelogio">--:--</strong></section>`;
+  /* O QUE A MESA ESTÁ CORRENDO AGORA.
+     A fase SENSORES não tem prazo próprio — ela dura o que a fila das
+     atividades durar —, e por isso a tela grande ficava MUDA justamente no
+     momento em que a mesa inteira faz a mesma coisa contra o mesmo relógio e
+     olha para cima. Visto na TV em 05/09/2026: pergunta na tela, e mais nada.
+     A atividade tem prioridade sobre a fase porque é o relógio mais curto e é
+     o que está valendo. */
+  let fimAgora=0;
+  function agoraHtml(f,at){
+    const usar = (at&&at.fimMs) ? {rot:'ATIVIDADE',nome:at.rotulo||at.sensor,fim:at.fimMs}
+               : (f&&f.nome&&f.fimMs) ? {rot:'FASE',nome:f.rotulo||f.nome,fim:f.fimMs}
+               : null;
+    fimAgora=usar?usar.fim:0;
+    if(!usar)return '';
+    return `<section class="fase"><div><small>${usar.rot}</small><b>${esc(usar.nome)}</b></div><strong id="faseRelogio">--:--</strong></section>`;
   }
   function pintarFase(){
-    const el=document.getElementById('faseRelogio'),f=room?.partida?.fase;
-    if(!el||!f?.fimMs)return;
-    const r=Math.max(0,Math.ceil((f.fimMs-Date.now())/1000));
+    const el=document.getElementById('faseRelogio');
+    if(!el||!fimAgora)return;
+    const r=Math.max(0,Math.ceil((fimAgora-Date.now())/1000));
     el.textContent=`${String(Math.floor(r/60)).padStart(2,'0')}:${String(r%60).padStart(2,'0')}`;
     el.classList.toggle('urgente',r<=10);
   }

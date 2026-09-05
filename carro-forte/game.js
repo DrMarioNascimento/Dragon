@@ -515,7 +515,10 @@ function proximaAtividade(){
 function liberarAtividade(id){
  if(!id||state.sensorAberto||!souMestreDaSala())return;
  const fim=Date.now()+tempoAtividadeMs();
- window.MosaicoPauta?.abrirAtividade?.(id,fim,state.game);
+ /* O nome viaja junto, como no da fase: o telão serve todas as mesas e não
+    conhece as atividades de nenhuma — sem isto a tela grande escreveria
+    'norte' em vez de 'A Janela do Norte'. */
+ window.MosaicoPauta?.abrirAtividade?.(id,fim,state.game,SENSORS[id]?.title||id);
  iniciarAtividade(id,fim);
 }
 /* O botão da SALA pisca quando a mesa parou esperando uma decisão do Mestre —

@@ -274,13 +274,16 @@
      só executa dentro da janela que recebeu.
 
      Sem sala nada disto roda, e o aparelho solto segue com o próprio relógio. */
-  async function abrirAtividade(sensor, fimMs, partida) {
+  async function abrirAtividade(sensor, fimMs, partida, rotulo) {
     const code = codigo();
     if (!code || !souMestre()) return;
     try {
       const { fs, db } = await firebase();
       await fs.updateDoc(fs.doc(db, COLECAO, code), {
-        'partida.atividade': { sensor, partida: partida || null, abertaEmMs: Date.now(), fimMs },
+        'partida.atividade': {
+          sensor, rotulo: rotulo || sensor, partida: partida || null,
+          abertaEmMs: Date.now(), fimMs,
+        },
       });
     } catch (e) {
       console.error('MOSAICO: não consegui abrir a atividade para a mesa.', e);
