@@ -7,14 +7,8 @@ const FORMAS={m:{emoji:'👨',label:'Bem-vindo'},f:{emoji:'👩',label:'Bem-vind
 const root=document.getElementById('app');
 let app,auth,db,roomCode='',roomData=null,players=[],unsubRoom=null,unsubPlayers=null,role='',pendingUser=null;
 let ritmo='automatico',localScreen='menu',ownPlayer=null,salaOpen=false;
-
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-function init(){
-  if(!firebase.apps.length) app=firebase.initializeApp(CFG,'noite-shell'); else app=firebase.apps[0];
-  auth=firebase.auth(app);db=firebase.firestore(app);
-  const q=new URLSearchParams(location.search).get('sala');
-  if(q){roomCode=q.toUpperCase();localScreen='join';renderJoin(false);}else renderMenu();
-}
+function init(){if(!firebase.apps.length)app=firebase.initializeApp(CFG,'noite-shell');else app=firebase.apps[0];auth=firebase.auth(app);db=firebase.firestore(app);const q=new URLSearchParams(location.search).get('sala');if(q){roomCode=q.toUpperCase();localScreen='join';renderJoin(false);}else renderMenu();}
 function nextPartida(){let last='';try{last=localStorage.getItem(ROT)||''}catch(e){}let i=ORDEM.indexOf(last);return ORDEM[(i+1+ORDEM.length)%ORDEM.length]||'sete';}
 function markPartida(id){try{localStorage.setItem(ROT,id)}catch(e){}}
 function code(){const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<6;i++)s+=A[Math.floor(Math.random()*A.length)];return s;}
@@ -26,179 +20,16 @@ function qrSvg(){try{return window.MosaicoQR?MosaicoQR.svg(joinUrl(),{nivel:'M',
 function myPlayer(){const uid=auth.currentUser&&auth.currentUser.uid;return players.find(p=>p.id===uid)||ownPlayer;}
 function readyCount(){return players.filter(p=>p.pronto===true).length;}
 function allReady(){return players.length>0&&readyCount()===players.length;}
-
-function renderMenu(){
-  localScreen='menu';
-  base('MOSAICO · A NOITE','A Casa da Costa',`<p class="lead">Você possui uma parte da verdade. Para enxergar o todo, precisará das outras pessoas — mas elas também querem vencer.</p><div class="room-actions"><button class="btn btn-gold" id="open">Abrir uma mesa</button><button class="btn btn-ghost" id="join">Entrar em uma mesa</button><button class="btn btn-ghost" id="solo">Ensaiar sozinho</button></div>`,'room-menu');
-  document.getElementById('open').onclick=()=>renderMasterGate();
-  document.getElementById('join').onclick=()=>{localScreen='join';renderJoin(false)};
-  document.getElementById('solo').onclick=launchLocal;
-}
-
-function renderMasterGate(msg=''){
-  localScreen='master-gate';
-  base('ÁREA DO MESTRE','Como a mesa será usada?',`<div class="room-mode-single"><div class="room-mode-icon">📱</div><b>Celular</b><span>A Noite é conduzida diretamente pelo celular do Mestre.</span></div><span class="room-section-label">Como as rodadas devem avançar?</span><button class="room-rhythm ${ritmo==='automatico'?'on':''}" data-r="automatico"><b>AUTOMATICAMENTE · RECOMENDADO</b><span>O jogo avança quando todos terminam.</span></button><button class="room-rhythm ${ritmo==='conduzido'?'on':''}" data-r="conduzido"><b>COM MINHA LIBERAÇÃO</b><span>A Sala avisará quando for hora de avançar.</span></button>${msg?`<div class="room-error">${esc(msg)}</div>`:''}<div class="room-actions"><button class="btn btn-gold" id="openGoogle">Abrir com Google</button><button class="btn btn-ghost" id="back">Cancelar</button></div>`,'room-master-gate');
-  document.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{ritmo=b.dataset.r;renderMasterGate()});
-  /* A senha saiu (03/09/2026). Era sha256 de constante escrita neste arquivo,
-     com o desbloqueio num sessionStorage que qualquer um define pelo console —
-     pedágio, não controle. Quem decide se alguém abre mesa é a regra do
-     Firestore, emailMestre(), no servidor. Ver firebase-room.js. */
-  document.getElementById('openGoogle').onclick=loginGoogle;
-  document.getElementById('back').onclick=renderMenu;
-}
-async function loginGoogle(){
-  try{
-    /* Uma vez, e só uma. `prompt:'select_account'` ordenava ao Google mostrar
-       o seletor mesmo com sessão viva, e ninguém olhava para a conta que já
-       estava aqui — o Firebase guarda em browserLocalPersistence por padrão.
-       Agora só há popup quando não há conta, ou quando a que existe é anônima.
-       Ver firebase-room.js. A conferência contra config/mestres continua. */
-    const atual=auth.currentUser;
-    if(atual&&!atual.isAnonymous&&atual.email){pendingUser=atual;}
-    else{
-      const provider=new firebase.auth.GoogleAuthProvider();
-      const cred=await auth.signInWithPopup(provider);pendingUser=cred.user;
-    }
-    const cfg=await db.collection('config').doc('mestres').get();
-    const permitidos=cfg.exists&&Array.isArray(cfg.data().emails)?cfg.data().emails:[];
-    if(!permitidos.includes((pendingUser.email||'').trim())){
-      await auth.signOut();pendingUser=null;return renderMasterGate('Esta conta Google não está autorizada a abrir mesas.');
-    }
-    await createRoom();
-  }catch(e){renderMasterGate((e&&e.message)||'Não foi possível entrar com Google.');}
-}
-async function createRoom(){
-  try{
-    const u=pendingUser||auth.currentUser;if(!u)throw new Error('Login Google não encontrado.');
-    let c=code();for(let i=0;i<8;i++){const s=await db.collection('noite').doc(c).get();if(!s.exists)break;c=code();}
-    const partidaId=nextPartida();
-    await db.collection('noite').doc(c).set({ativa:true,fase:'sala',vez:0,modo:'sem-telao',ritmo,mestreUid:u.uid,criadaEm:firebase.firestore.FieldValue.serverTimestamp(),criadaEmMs:Date.now(),formato:'cheia',v3:true,partidaId,caseId:'casa-da-costa'});
-    markPartida(partidaId);role='master';roomCode=c;roomData={ativa:true,fase:'sala',modo:'sem-telao',ritmo,mestreUid:u.uid,partidaId,caseId:'casa-da-costa'};
-    localScreen='master-orientation';renderMasterOrientation();
-  }catch(e){renderMasterGate('Não foi possível criar a mesa. '+((e&&e.message)||e));}
-}
-
-function renderMasterOrientation(){
-  localScreen='master-orientation';
-  base('ÁREA DO MESTRE','Você é o mestre da sala',`<p class="lead room-center">Ative o som do celular e fique atento ao botão <b>Sala</b>.</p><div class="room-master-info"><p><b>Durante a partida, você continuará jogando normalmente.</b></p><p>O botão <b>Sala</b> mostrará comandos exclusivos do mestre, como iniciar, avançar ou liberar uma etapa.</p><p>Quando uma intervenção for necessária, o botão Sala ficará em destaque.</p></div><button class="btn btn-gold" id="understood">Entendi · continuar</button>`,'room-orientation');
-  document.getElementById('understood').onclick=()=>{localScreen='join-master';renderJoin(true)};
-}
-
-/* O campo do nome vinha preenchido com o displayName da conta Google, e o
-   Mestre entrava na casa com o nome civil completo — que aparece no lobby e no
-   estado público para todos. Isto é um jogo: o nome é da partida, escolhido na
-   hora, e a conta Google serve só para autorizar quem abre. O campo nasce
-   vazio, e nada da conta é gravado. Mesma regra de firebase-room.js, onde ela
-   foi escrita primeiro (3c8d643) e não tinha atravessado para cá. */
-function renderJoin(asMaster,msg=''){
-  localScreen=asMaster?'join-master':'join';
-  const codeValue=roomCode||(new URLSearchParams(location.search).get('sala')||'').toUpperCase();
-  base('ENTRAR','Quem chega agora?',`<p class="lead">Você não escolhe quem é. A casa escolhe por você — como escolheu naquela noite.</p><label class="room-label">Código da mesa</label><input id="code" class="room-input room-code-input" maxlength="6" value="${esc(codeValue)}" ${asMaster?'readonly':''} placeholder="ABC123"><label class="room-label">Seu nome</label><input id="name" class="room-input" maxlength="60" value="" placeholder="Como a mesa te chama"><label class="room-label">Como quer que o MOSAICO te chame?</label>${formas('m')}${msg?`<div class="room-error">${esc(msg)}</div>`:''}<button class="btn btn-gold" id="enter">Entrar na casa</button><button class="btn btn-ghost" id="back">← Voltar</button>`,'room-join');
-  document.getElementById('enter').onclick=()=>joinRoom(asMaster);
-  document.getElementById('back').onclick=asMaster?renderMasterOrientation:renderMenu;
-}
-async function joinRoom(asMaster){
-  const c=(document.getElementById('code')?.value||'').trim().toUpperCase(),name=(document.getElementById('name')?.value||'').trim(),forma=formaAtual();roomCode=c;
-  if(c.length!==6)return renderJoin(asMaster,'O código tem 6 caracteres.');
-  if(!name)return renderJoin(asMaster,'Escreva seu nome.');
-  try{
-    let user;
-    if(asMaster){user=pendingUser||auth.currentUser;if(!user)throw new Error('Mestre não autenticado.');}
-    else{user=auth.currentUser;if(!user||!user.isAnonymous){if(user)await auth.signOut();user=(await auth.signInAnonymously()).user;}}
-    const ref=db.collection('noite').doc(c),snap=await ref.get();if(!snap.exists||snap.data().ativa!==true)throw new Error('Mesa não encontrada ou encerrada.');
-    if(snap.data().caseId&&snap.data().caseId!=='casa-da-costa')throw new Error('Esse código pertence a outro caso do MOSAICO.');
-    await ref.collection('jogadores').doc(user.uid).set({nome:name.slice(0,60),personagem:'',forma,pronto:false,entrouMs:Date.now(),votos:0,moedas:9,total:0,atualizadoEmMs:Date.now(),mestre:!!asMaster},{merge:true});
-    role=asMaster?'master':'guest';ownPlayer={id:user.uid,nome:name.slice(0,60),forma,pronto:false,mestre:!!asMaster};
-    localScreen='objective';listen();renderObjective();
-  }catch(e){renderJoin(asMaster,'Não foi possível entrar. '+((e&&e.message)||e));}
-}
-
-function renderObjective(){
-  localScreen='objective';
-  base('ANTES DE COMEÇAR','Objetivo do jogo',`<p class="lead room-center">Analise os fragmentos, estabeleça relações e sustente uma conclusão para a pergunta desta noite.</p><div class="room-objective-list"><div><b>CASO</b><span>Consulte a pergunta, os fatos e as relações disponíveis.</span></div><div><b>ARQUIVO</b><span>Guarda os fragmentos que você reunir durante a partida.</span></div><div><b>DECISÃO</b><span>Feche os campos da pergunta com base no que as evidências sustentam.</span></div><div><b>PONTUAÇÃO</b><span>Seu resultado permanece individual, sem ranking aberto durante a partida.</span></div></div><button class="btn btn-gold" id="objectiveOk">Entendi · entrar no jogo</button>`,'room-objective');
-  document.getElementById('objectiveOk').onclick=()=>{localScreen='preparation';renderPreparation();};
-}
-
-function renderPreparation(){
-  localScreen='preparation';const me=myPlayer();const ready=!!(me&&me.pronto);
-  base('RODADA ATUAL','Preparação da mesa',`<div class="room-prep"><span class="room-subeyebrow">VOCÊ ESTÁ NA CASA</span><div class="room-candle">🕯️</div><h3>${ready?'A casa vai começar.':'A casa já decidiu.'}</h3><p>${ready?'Mantenha o celular com você e proteja sua tela. Ele mostrará as instruções quando chegar a sua vez.':'Você ainda não sabe qual fragmento será decisivo nesta noite. Vai descobrir durante a partida.'}</p>${ready?'':`<button class="btn btn-gold" id="ready">Estou pronto para jogar</button>`}<div class="room-ready-count">${readyCount()} de ${players.length||1} já estão prontos.</div></div><div class="room-bottom"><button class="room-bottom-btn" id="caseBtn">🔎 Caso</button>${role==='master'?'<button class="room-bottom-btn room-sala-btn" id="salaBtn">Sala</button>':''}</div>${role==='master'&&salaOpen?salaPanel():''}`,'room-preparation');
-  if(!ready)document.getElementById('ready').onclick=markReady;
-  if(role==='master')document.getElementById('salaBtn').onclick=()=>{salaOpen=!salaOpen;renderPreparation()};
-  const close=document.getElementById('closeSala');if(close)close.onclick=()=>{salaOpen=false;renderPreparation()};
-  const start=document.getElementById('startGame');if(start)start.onclick=startGame;
-}
-async function markReady(){const u=auth.currentUser;if(!u)return;await db.collection('noite').doc(roomCode).collection('jogadores').doc(u.uid).update({pronto:true,atualizadoEmMs:Date.now()});ownPlayer=Object.assign({},ownPlayer,{pronto:true});renderPreparation();}
-function salaPanel(){
-  const list=players.map(p=>`<div class="room-player"><span>${esc(p.nome||'Jogador')}</span><span>${p.pronto?'pronto':'aguardando'}</span></div>`).join('')||'<div class="room-empty">Nenhum participante conectado.</div>';
-  return `<div class="room-sala-overlay"><div class="room-sala-panel"><div class="room-sala-head"><div><span class="eyebrow">MESTRE · PREPARAÇÃO DA MESA</span><h2>Sala</h2><p class="muted">${ritmo==='conduzido'?'Ritmo conduzido pelo mestre':'Ritmo automático'}</p></div><button class="btn btn-ghost room-close" id="closeSala">Fechar</button></div><details open class="room-accordion room-action"><summary>Ação do mestre necessária</summary><div><button class="btn btn-gold" id="startGame" ${allReady()?'':'disabled'}>Começar</button></div></details><details class="room-accordion"><summary>Código e QR da sala</summary><div><div class="room-code"><strong>${esc(roomCode)}</strong></div><div class="room-qr">${qrSvg()}</div></div></details><details class="room-accordion"><summary>Participantes · ${players.length}</summary><div class="room-players">${list}</div></details></div></div>`;
-}
-async function startGame(){if(!allReady())return;await db.collection('noite').doc(roomCode).update({fase:'dossie',iniciadaEmMs:Date.now()});}
-
-function listen(){
-  if(unsubRoom)unsubRoom();if(unsubPlayers)unsubPlayers();const ref=db.collection('noite').doc(roomCode);
-  unsubRoom=ref.onSnapshot(s=>{roomData=s.exists?s.data():null;if(!roomData){renderMenu();return;}if(roomData.fase!=='sala'){launchOnline();return;}if(localScreen==='preparation')renderPreparation();});
-  unsubPlayers=ref.collection('jogadores').orderBy('entrouMs').onSnapshot(s=>{players=s.docs.map(d=>({id:d.id,...d.data()}));ownPlayer=myPlayer();if(localScreen==='preparation')renderPreparation();});
-}
-/* A ABERTURA É OBRIGATÓRIA, e toca num APARELHO SÓ (03/09/2026).
-   A Noite da Casa não tinha abertura nenhuma: o dossiê simplesmente aparecia.
-   Ganhou uma, e por algumas horas ela tocava em TODOS os telefones — o que
-   numa sala vira eco de oito aparelhos defasados, cada um com o próprio
-   atraso de rede e de toque.
-
-   A regra do Mario: com telão passa no telão; sem telão, no aparelho do
-   Mestre; no Solo, no próprio. O pressuposto é uma sala e um som, não um som
-   por pessoa. A Noite da Casa é sem-telão por decisão escrita (modo fixo em
-   três lugares), então aqui é sempre o Mestre.
-
-   Quem não é o Mestre não fica sem nada: espera, vendo que a casa está
-   falando, e entra quando a sala avisa que acabou. É o mesmo desenho do
-   AGUARDE da Mesa. Sem isso o convidado começaria a jogar por cima da
-   narração alheia.
-
-   `abertura-casa.js` mora na RAIZ: tudo em v2/ é apagado e recopiado a cada
-   publicação, e só mosaico-web/public/ sobrevive. De /Dragon/v2/, ../ cai em
-   /Dragon/. Se ela não carregar, o jogo entra assim mesmo — clima nunca
-   segura a mesa. */
-function aguardarAbertura(seguir){
-  /* Pelo `base` da própria casca: classe inventada aqui sairia sem estilo
-     nenhum, porque room.css não conhece nome que não passou por ele. */
-  base('A CASA DA COSTA','A casa está falando',
-    '<p class="lead">A abertura está tocando no aparelho de quem abriu a mesa. '+
-    'Ouça daí — a sua tela entra sozinha quando ela terminar.</p>');
-  let pronto=false;
-  const entra=()=>{if(pronto)return;pronto=true;seguir()};
-  /* Duas saídas, e as duas precisam existir: a sala avisando que acabou, e um
-     teto de tempo. Um convidado preso porque o Mestre fechou a aba no meio da
-     narração é o mesmo travamento que a Mesa levou meses para descobrir. */
-  const un=db.collection('noite').doc(roomCode).onSnapshot(s=>{
-    const d=s.exists?s.data():null;
-    if(d&&d.abertura&&d.abertura.concluida){un();entra()}
-  },e=>{console.error('MOSAICO: perdi a sala durante a abertura.',e);entra()});
-  setTimeout(()=>{un&&un();entra()},150000);
-}
-function marcarAberturaConcluida(){
-  if(!roomCode)return Promise.resolve();
-  return db.collection('noite').doc(roomCode)
-    .update({'abertura.concluida':true,'abertura.concluidaMs':Date.now()})
-    .catch(e=>console.error('MOSAICO: não consegui avisar que a abertura acabou.',e));
-}
-function comAbertura(seguir){
-  const sala=window.MosaicoSala;
-  const conduzo=!sala||!sala.online||sala.role==='master';
-  if(!conduzo){aguardarAbertura(seguir);return}
-  const a=document.createElement('script');
-  a.src='../abertura-casa.js?v=20260903-abertura2';
-  a.onload=()=>window.MosaicoAberturaCasa.mostrar(()=>{marcarAberturaConcluida();seguir()});
-  a.onerror=()=>{console.error('MOSAICO: abertura não carregou.');marcarAberturaConcluida();seguir()};
-  document.head.appendChild(a);
-}
-function launchOnline(){
-  if(window.__MOSAICO_NOITE_LAUNCHED)return;window.__MOSAICO_NOITE_LAUNCHED=true;
-  window.MosaicoSala={online:true,role,roomCode,roomData,players,auth,db};const id=roomData.partidaId||'sete',idx=ORDEM.indexOf(id);
-  try{localStorage.setItem(ROT,ORDEM[(idx-1+ORDEM.length)%ORDEM.length]);localStorage.removeItem('mosaico_noite_costa_auto');}catch(e){}
-  root.innerHTML='';comAbertura(()=>{const s=document.createElement('script');s.src='noite-auto.js?v=20260902-tecnica';document.body.appendChild(s)});
-}
-function launchLocal(){window.__MOSAICO_NOITE_LAUNCHED=true;root.innerHTML='';comAbertura(()=>{const s=document.createElement('script');s.src='noite-auto.js?v=20260902-tecnica';document.body.appendChild(s)});}
-window.addEventListener('beforeunload',()=>{if(unsubRoom)unsubRoom();if(unsubPlayers)unsubPlayers();});
-init();
-})();
+function renderMenu(){localScreen='menu';base('MOSAICO · A NOITE','A Casa da Costa',`<p class="lead">Você possui uma parte da verdade. Para enxergar o todo, precisará das outras pessoas — mas elas também querem vencer.</p><div class="room-actions"><button class="btn btn-gold" id="open">Abrir uma mesa</button><button class="btn btn-ghost" id="join">Entrar em uma mesa</button><button class="btn btn-ghost" id="solo">Ensaiar sozinho</button></div>`,'room-menu');document.getElementById('open').onclick=()=>renderMasterGate();document.getElementById('join').onclick=()=>{localScreen='join';renderJoin(false)};document.getElementById('solo').onclick=launchLocal;}
+function renderMasterGate(msg=''){localScreen='master-gate';base('ÁREA DO MESTRE','Como a mesa será usada?',`<div class="room-mode-single"><div class="room-mode-icon">📱</div><b>Celular</b><span>A Noite é conduzida diretamente pelo celular do Mestre.</span></div><span class="room-section-label">Como as rodadas devem avançar?</span><button class="room-rhythm ${ritmo==='automatico'?'on':''}" data-r="automatico"><b>AUTOMATICAMENTE · RECOMENDADO</b><span>O jogo avança quando todos terminam.</span></button><button class="room-rhythm ${ritmo==='conduzido'?'on':''}" data-r="conduzido"><b>COM MINHA LIBERAÇÃO</b><span>A Sala avisará quando for hora de avançar.</span></button>${msg?`<div class="room-error">${esc(msg)}</div>`:''}<div class="room-actions"><button class="btn btn-gold" id="openGoogle">Abrir com Google</button><button class="btn btn-ghost" id="back">Cancelar</button></div>`,'room-master-gate');document.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{ritmo=b.dataset.r;renderMasterGate()});document.getElementById('openGoogle').onclick=loginGoogle;document.getElementById('back').onclick=renderMenu;}
+async function loginGoogle(){try{const atual=auth.currentUser;if(atual&&!atual.isAnonymous&&atual.email){pendingUser=atual;}else{const provider=new firebase.auth.GoogleAuthProvider();const cred=await auth.signInWithPopup(provider);pendingUser=cred.user;}const cfg=await db.collection('config').doc('mestres').get();const permitidos=cfg.exists&&Array.isArray(cfg.data().emails)?cfg.data().emails:[];if(!permitidos.includes((pendingUser.email||'').trim())){await auth.signOut();pendingUser=null;return renderMasterGate('Esta conta Google não está autorizada a abrir mesas.');}await createRoom();}catch(e){renderMasterGate((e&&e.message)||'Não foi possível entrar com Google.');}}
+async function createRoom(){try{const u=pendingUser||auth.currentUser;if(!u)throw new Error('Login Google não encontrado.');let c=code();for(let i=0;i<8;i++){const s=await db.collection('noite').doc(c).get();if(!s.exists)break;c=code();}const partidaId=nextPartida();await db.collection('noite').doc(c).set({ativa:true,fase:'sala',vez:0,modo:'sem-telao',ritmo,mestreUid:u.uid,criadaEm:firebase.firestore.FieldValue.serverTimestamp(),criadaEmMs:Date.now(),formato:'cheia',v3:true,partidaId,caseId:'casa-da-costa'});markPartida(partidaId);role='master';roomCode=c;roomData={ativa:true,fase:'sala',modo:'sem-telao',ritmo,mestreUid:u.uid,partidaId,caseId:'casa-da-costa'};localScreen='master-orientation';renderMasterOrientation();}catch(e){renderMasterGate('Não foi possível criar a mesa. '+((e&&e.message)||e));}}
+function renderMasterOrientation(){localScreen='master-orientation';base('ÁREA DO MESTRE','Você é o mestre da sala',`<p class="lead room-center">Ative o som do celular e fique atento ao botão <b>Sala</b>.</p><div class="room-master-info"><p><b>Durante a partida, você continuará jogando normalmente.</b></p><p>O botão <b>Sala</b> mostrará comandos exclusivos do mestre, como iniciar, avançar ou liberar uma etapa.</p><p>Quando uma intervenção for necessária, o botão Sala ficará em destaque.</p></div><button class="btn btn-gold" id="understood">Entendi · continuar</button>`,'room-orientation');document.getElementById('understood').onclick=()=>{localScreen='join-master';renderJoin(true)};}
+function renderJoin(asMaster,msg=''){localScreen=asMaster?'join-master':'join';const codeValue=roomCode||(new URLSearchParams(location.search).get('sala')||'').toUpperCase();base('ENTRAR','Quem chega agora?',`<p class="lead">Você não escolhe quem é. A casa escolhe por você — como escolheu naquela noite.</p><label class="room-label">Código da mesa</label><input id="code" class="room-input room-code-input" maxlength="6" value="${esc(codeValue)}" ${asMaster?'readonly':''} placeholder="ABC123"><label class="room-label">Seu nome</label><input id="name" class="room-input" maxlength="60" value="" placeholder="Como a mesa te chama"><label class="room-label">Como quer que o MOSAICO te chame?</label>${formas('m')}${msg?`<div class="room-error">${esc(msg)}</div>`:''}<button class="btn btn-gold" id="enter">Entrar na casa</button><button class="btn btn-ghost" id="back">← Voltar</button>`,'room-join');document.getElementById('enter').onclick=()=>joinRoom(asMaster);document.getElementById('back').onclick=asMaster?renderMasterOrientation:renderMenu;}
+async function joinRoom(asMaster){const c=(document.getElementById('code')?.value||'').trim().toUpperCase(),name=(document.getElementById('name')?.value||'').trim(),forma=formaAtual();roomCode=c;if(c.length!==6)return renderJoin(asMaster,'O código tem 6 caracteres.');if(!name)return renderJoin(asMaster,'Escreva seu nome.');try{let user;if(asMaster){user=pendingUser||auth.currentUser;if(!user)throw new Error('Mestre não autenticado.');}else{user=auth.currentUser;if(!user||!user.isAnonymous){if(user)await auth.signOut();user=(await auth.signInAnonymously()).user;}}const ref=db.collection('noite').doc(c),snap=await ref.get();if(!snap.exists||snap.data().ativa!==true)throw new Error('Mesa não encontrada ou encerrada.');if(snap.data().caseId&&snap.data().caseId!=='casa-da-costa')throw new Error('Esse código pertence a outro caso do MOSAICO.');await ref.collection('jogadores').doc(user.uid).set({nome:name.slice(0,60),personagem:'',forma,pronto:false,entrouMs:Date.now(),votos:0,moedas:9,total:0,atualizadoEmMs:Date.now(),mestre:!!asMaster},{merge:true});role=asMaster?'master':'guest';ownPlayer={id:user.uid,nome:name.slice(0,60),forma,pronto:false,mestre:!!asMaster};localScreen='objective';listen();renderObjective();}catch(e){renderJoin(asMaster,'Não foi possível entrar. '+((e&&e.message)||e));}}
+function renderObjective(){localScreen='objective';base('ANTES DE COMEÇAR','Objetivo do jogo',`<p class="lead room-center">Analise os fragmentos, estabeleça relações e sustente uma conclusão para a pergunta desta noite.</p><div class="room-objective-list"><div><b>CASO</b><span>Consulte a pergunta, os fatos e as relações disponíveis.</span></div><div><b>ARQUIVO</b><span>Guarda os fragmentos que você reunir durante a partida.</span></div><div><b>DECISÃO</b><span>Feche os campos da pergunta com base no que as evidências sustentam.</span></div><div><b>PONTUAÇÃO</b><span>Seu resultado permanece individual, sem ranking aberto durante a partida.</span></div></div><button class="btn btn-gold" id="objectiveOk">Entendi · entrar no jogo</button>`,'room-objective');document.getElementById('objectiveOk').onclick=()=>{localScreen='preparation';renderPreparation();};}
+function renderPreparation(){localScreen='preparation';const me=myPlayer();const ready=!!(me&&me.pronto);base('RODADA ATUAL','Preparação da mesa',`<div class="room-prep"><span class="room-subeyebrow">VOCÊ ESTÁ NA CASA</span><div class="room-candle">🕯️</div><h3>${ready?'A casa vai começar.':'A casa já decidiu.'}</h3><p>${ready?'Mantenha o celular com você e proteja sua tela. Ele mostrará as instruções quando chegar a sua vez.':'Você ainda não sabe qual fragmento será decisivo nesta noite. Vai descobrir durante a partida.'}</p>${ready?'':`<button class="btn btn-gold" id="ready">Estou pronto para jogar</button>`}<div class="room-ready-count">${readyCount()} de ${players.length||1} já estão prontos.</div></div><div class="room-bottom"><button class="room-bottom-btn" id="caseBtn">🔎 Caso</button>${role==='master'?'<button class="room-bottom-btn room-sala-btn" id="salaBtn">Sala</button>':''}</div>${role==='master'&&salaOpen?salaPanel():''}`,'room-preparation');if(!ready)document.getElementById('ready').onclick=markReady;if(role==='master')document.getElementById('salaBtn').onclick=()=>{salaOpen=!salaOpen;renderPreparation()};const close=document.getElementById('closeSala');if(close)close.onclick=()=>{salaOpen=false;renderPreparation()};const start=document.getElementById('startGame');if(start)start.onclick=startGame;}
+async function markReady(){const u=auth.currentUser;if(!u)return;try{await db.collection('noite').doc(roomCode).collection('jogadores').doc(u.uid).update({pronto:true,atualizadoEmMs:Date.now()});ownPlayer=Object.assign({},ownPlayer,{pronto:true});renderPreparation();}catch(e){console.error('MOSAICO: não registrou pronto no Firestore',e);alert('A conexão com a sala falhou. A ação não foi registrada.');}}
+function salaPanel(){const list=players.map(p=>`<div class="room-player"><span>${esc(p.nome||'Jogador')}</span><span>${p.pronto?'pronto':'aguardando'}</span></div>`).join('')||'<div class="room-empty">Nenhum participante conectado.</div>';return `<div class="room-sala-overlay"><div class="room-sala-panel"><div class="room-sala-head"><div><span class="eyebrow">MESTRE · PREPARAÇÃO DA MESA</span><h2>Sala</h2><p class="muted">${ritmo==='conduzido'?'Ritmo conduzido pelo mestre':'Ritmo automático'}</p></div><button class="btn btn-ghost room-close" id="closeSala">Fechar</button></div><details open class="room-accordion room-action"><summary>Ação do mestre necessária</summary><div><button class="btn btn-gold" id="startGame" ${allReady()?'':'disabled'}>Começar</button></div></details><details class="room-accordion"><summary>Código e QR da sala</summary><div><div class="room-code"><strong>${esc(roomCode)}</strong></div><div class="room-qr">${qrSvg()}</div></div></details><details class="room-accordion"><summary>Participantes · ${players.length}</summary><div class="room-players">${list}</div></details></div></div>`;}
+async function startGame(){if(!allReady())return;try{await db.collection('noite').doc(roomCode).update({fase:'dossie',iniciadaEmMs:Date.now()});}catch(e){console.error('MOSAICO: não iniciou no Firestore',e);alert('A conexão com a sala falhou. O início não foi registrado.');}}
+function listen(){if(unsubRoom)unsubRoom();if(unsubPlayers)unsubPlayers();const ref=db.collection('noite').doc(roomCode);unsubRoom=ref.onSnapshot(s=>{roomData=s.exists?s.data():null;if(window.MosaicoSala)window.MosaicoSala.roomData=roomData;if(!roomData){renderMenu();return;}if(roomData.fase!=='sala'){launchOnline();return;}if(localScreen==='preparation')renderPreparation();},e=>{console
