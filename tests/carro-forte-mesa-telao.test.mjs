@@ -667,3 +667,17 @@ test("o pódio não some quando os celulares abrem o relatório", () => {
     "a tela grande voltou a depender só do que o fecho carrega",
   );
 });
+
+/* Foi assim que o aparelho do Mario serviu game.js de ontem no meio de uma
+   partida: o arquivo mudou e o carimbo não. A Noite carrega telao-publica.js
+   pela cascata de carro-forte-noite/game.js, e ele também mudou hoje. */
+test("o carimbo do telão d'A Noite acompanha o arquivo", () => {
+  const cascata = ler("carro-forte-noite/game.js");
+  const carimbo = cascata.match(/telao-publica\.js\?v=([^']+)/)?.[1];
+  assert.ok(carimbo, "telao-publica.js perdeu o carimbo e deixou de furar o cache");
+  assert.match(
+    carimbo,
+    /^\d{8}-/,
+    `o carimbo do telão d'A Noite não tem data (${carimbo}) — sem ela ninguém percebe que ficou para trás`,
+  );
+});
