@@ -1,192 +1,452 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#050b12"><title>A Janela do Norte — Carro-Forte</title>
-<link rel="stylesheet" href="atividade.css?v=20260904-tempo1"></head>
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#050b12">
+<title>A Janela do Norte — Carro-Forte</title>
+<link rel="stylesheet" href="atividade.css?v=20260905-cena1">
+<style>
+/* ==========================================================================
+   A JANELA DO NORTE — A MANHÃ DO CARRO-FORTE
+   ==========================================================================
+   Refeita em 05/09/2026 no padrão da Casa da Costa, a pedido do Mario: "a
+   janela do norte, a sala escura funcionaram perfeitamente bem, esse vai ser
+   o padrão... a agência na garoa, encena igual a Casa".
+
+   A versão anterior era um mostrador com uma agulha. Ela já tinha as quatro
+   correções de plataforma, mas não tinha MUNDO — e é o mundo que faz a pessoa
+   levantar o braço e procurar. A Casa encena a noite da tempestade em passes;
+   esta encena a rua da agência 0417 às 8h02, na garoa.
+
+   O QUE MUDA EM RELAÇÃO À CASA, e por quê:
+   · lá são seis passos até uma casa; aqui cada passo ABRE UM FRAGMENTO do lote
+     que a Mesa entregou. O número de passos é o tamanho do lote, não seis.
+   · o farol da costa vira o giroflex do carro-forte, que varre a fachada.
+   · o alvo é uma janela da agência, e ela sobe conforme você atravessa a rua —
+     a mesma escada de ALTURA da Casa, que é a parte justa: altura se lê pela
+     gravidade e é igual em qualquer telefone.
+
+   O instrumento (atitude + offset, histerese, dreno, portão do oito) mora em
+   bussola.js, com os números da Casa. Aqui só há cena e regra.
+   ========================================================================== */
+html,body{height:100%;height:100dvh;margin:0;background:#05070c;overflow:hidden;
+  touch-action:pinch-zoom;overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block}
+
+/* O HUD é uma coluna de altura de tela: texto em cima, ação embaixo. Mesma
+   forma da Casa — e é por isso que a Mesa precisa deixar o pé do quadro
+   visível, senão os botões nascem fora da tela. */
+#hud{position:fixed;left:0;right:0;top:0;height:100%;height:100dvh;z-index:2;
+  pointer-events:none;display:flex;flex-direction:column;justify-content:space-between;
+  padding:max(14px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right))
+          calc(env(safe-area-inset-bottom,0px) + 18px) max(14px,env(safe-area-inset-left))}
+#topo{text-align:center}
+#local{font:600 11px/1.2 var(--mono);letter-spacing:.2em;text-transform:uppercase;
+  color:var(--gold2);text-shadow:0 2px 10px #000}
+#alvo-nome{font:600 clamp(21px,5.6vw,28px)/1.15 var(--display);color:#fff;
+  margin-top:5px;text-shadow:0 2px 18px #000,0 0 40px #0008}
+#dica{font:500 clamp(13px,3.4vw,15px)/1.4 var(--sans);color:var(--muted);margin-top:6px;
+  text-shadow:0 1px 6px #000}
+#passos{display:flex;gap:6px;justify-content:center;margin-top:10px}
+#passos i{width:26px;height:4px;border-radius:3px;background:#22323f;
+  box-shadow:inset 0 0 0 1px #0006}
+#passos i.on{background:var(--gold2);box-shadow:0 0 10px #efc87880}
+
+#baixo{pointer-events:auto;display:grid;gap:9px}
+#barra-mira{height:6px;border-radius:6px;background:#132029;overflow:hidden;
+  box-shadow:inset 0 0 0 1px #2b3c49}
+#barra-mira i{display:block;height:100%;width:0%;border-radius:6px;
+  background:linear-gradient(90deg,#8fd6ae,#efc878);box-shadow:0 0 12px #efc87866;
+  transition:width .08s linear}
+#estado{font:600 11px/1.2 var(--mono);letter-spacing:.14em;text-transform:uppercase;
+  color:var(--muted);text-align:center}
+#dedo{width:100%;min-height:46px;border:1px solid #46667a;border-radius:9px;
+  background:linear-gradient(180deg,#162a38,#0c1b26);color:var(--ink);font-weight:700;cursor:pointer}
+
+/* ---------------- o oito no ar ---------------- */
+#oito{position:fixed;left:0;right:0;top:0;height:100%;height:100dvh;z-index:11;
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  gap:18px;text-align:center;padding:24px;
+  background:radial-gradient(ellipse 110% 70% at 50% 45%,#070d15f2,#02040af7)}
+#oito.on{display:flex}
+#oito-tit{font:600 clamp(28px,7vw,40px)/1.06 var(--display);color:#fff;
+  text-shadow:0 0 40px #efc87840,0 4px 30px #000}
+#oito p{font:500 clamp(16px,4.2vw,20px)/1.42 var(--sans);color:var(--ink);
+  max-width:21em;margin:0}
+#oito-trilho{width:min(260px,70vw);height:5px;border-radius:5px;background:#1c2836;
+  box-shadow:inset 0 0 0 1px #3b4f64;overflow:hidden}
+#oito-barra{height:100%;width:0%;border-radius:5px;background:#ffd9b0;
+  box-shadow:0 0 12px #ffbe7a;transition:width .1s linear}
+#oito-vai{width:min(340px,88vw);padding:16px;border-radius:10px;
+  border:1px solid #b87433;background:#1a1109ee;color:var(--gold2);
+  font:800 clamp(13px,3.4vw,16px) var(--sans);letter-spacing:.16em;
+  text-transform:uppercase;cursor:pointer}
+#oito-vai:disabled{opacity:.5;cursor:default}
+
+/* ---------------- a abertura ---------------- */
+#intro{position:fixed;left:0;right:0;top:0;height:100%;height:100dvh;z-index:10;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:14px;text-align:center;padding:26px;overflow-y:auto;
+  background:linear-gradient(180deg,#060b12f2,#02050af8)}
+#intro.off{display:none}
+#intro h1{font:600 clamp(30px,8vw,44px)/1 var(--display);margin:0;color:#fff}
+#intro .k{font:700 10px var(--mono);letter-spacing:.22em;text-transform:uppercase;color:var(--gold)}
+#intro p{font:500 clamp(15px,4vw,18px)/1.45 var(--sans);color:var(--ink);max-width:22em;margin:0}
+#intro .go,#intro .alt{width:min(340px,88vw);min-height:52px;border-radius:10px;cursor:pointer}
+#intro .go{border:0;background:linear-gradient(180deg,var(--gold2),var(--gold));color:#201707;
+  font:800 14px var(--sans);letter-spacing:.1em;box-shadow:0 5px 0 #6f4d17}
+#intro .alt{border:1px solid #46667a;background:#101d26;color:var(--ink);font-weight:700}
+
+/* ---------------- a carta do fragmento ---------------- */
+#carta{position:fixed;inset:0;z-index:12;display:none;align-items:center;justify-content:center;
+  padding:24px;background:#02060bee}
+#carta.on{display:flex}
+#carta .folha{width:min(460px,92vw);padding:20px;border-radius:12px;
+  border:1px solid #75664e;border-left:5px solid #9a7842;
+  background:linear-gradient(160deg,#e7dfca,#b9aa8d);color:#211d17}
+#carta b{display:block;font:700 10px var(--mono);letter-spacing:.14em;color:#6a5a3c}
+#carta h3{font:600 24px var(--display);margin:6px 0 8px}
+#carta p{font-size:14.5px;line-height:1.5;margin:0;color:#40382f}
+#carta button{width:100%;min-height:50px;margin-top:16px;border:0;border-radius:9px;
+  background:#211d17;color:#e7dfca;font-weight:800;letter-spacing:.1em;cursor:pointer}
+</style></head>
 <body>
-<header><span id="kicker">MOSAICO</span><h1>A Janela do Norte</h1><p>Cada setor da agência guarda um registro, e só se abre quando o aparelho aponta para ele. Gire o telefone e segure a direção até o setor fixar.</p></header>
-<main>
-  <button id="permitir" class="ghost" hidden>Permitir a bússola deste aparelho</button>
-  <button id="usarDedo" class="ghost">Girar com o dedo</button>
-  <div id="dica" class="dica">Procurando a bússola…</div>
-  <div id="bussola" class="bussola"><div id="agulha" class="agulha"></div><div class="grau" id="grau">—</div></div>
-  <div class="placar"><b id="conta">0 de 0</b><span>setores fixados</span></div>
-  <div id="lista" class="lista"></div>
-  <!-- Nasce escondido. Ele não é mais "concluir" — a atividade acaba pelo
-       relógio da mesa, e este botão só reaparece no fim, como a volta. Ver
-       atividade.js: o antigo Concluir ficava a um dedo de "Abrir atividade" e
-       encerrava tudo antes de a pessoa ver a primeira tela. -->
-  <button id="finish" class="primary" hidden>← Voltar à Mesa</button>
-</main>
+<canvas id="c"></canvas>
+
+<div id="hud">
+  <div id="topo">
+    <div id="local">AGÊNCIA 0417 · GAROA · 8H02</div>
+    <div id="alvo-nome">—</div>
+    <div id="dica">Procurando a bússola…</div>
+    <div id="passos"></div>
+  </div>
+  <div id="baixo">
+    <div id="barra-mira"><i id="mira-i"></i></div>
+    <div id="estado">—</div>
+    <button id="dedo" type="button">Girar com o dedo</button>
+  </div>
+</div>
+
+<div id="intro">
+  <div class="k">A MANHÃ DO CARRO-FORTE</div>
+  <h1>A Janela<br>do Norte</h1>
+  <p>Você está na calçada em frente à agência, na garoa. Lá dentro, atrás das janelas, ficaram os registros da manhã.</p>
+  <p>Cada janela se abre de um ponto da rua. <b>Aponte o celular para ela e segure firme</b> — quando o quadro parar de tremer, você atravessa mais um pedaço e a janela se acende.</p>
+  <p class="small">A bússola é do mundo real: todos na mesa apontam para o mesmo lado da rua.</p>
+  <button class="go" id="b-entrar" type="button">Atravessar a rua</button>
+  <button class="alt" id="b-dedo" type="button">Estou no computador</button>
+</div>
+
+<div id="oito">
+  <div id="oito-tit">A bússola está tonta</div>
+  <p>É a bússola do aparelho que diz para onde você está virado. Ela precisa se acertar antes de a rua fazer sentido.</p>
+  <p><b>Desenhe um 8 no ar à sua frente com o celular</b>, devagar, umas quatro vezes. Vire o pulso enquanto faz — o que calibra é a variedade de posições, não a velocidade.</p>
+  <div id="oito-trilho"><div id="oito-barra"></div></div>
+  <button id="oito-vai" type="button" disabled>A bússola ainda está tonta</button>
+</div>
+
+<div id="carta"><div class="folha">
+  <b id="carta-cod">—</b><h3 id="carta-tit">—</h3><p id="carta-txt">—</p>
+  <button id="carta-ok" type="button">Guardar no dossiê</button>
+</div></div>
+
+<!-- Nasce escondido: a atividade acaba pelo relógio da mesa, e este botão só
+     reaparece no fim, como a volta. Ver atividade.js. -->
+<button id="finish" class="primary" hidden>← Voltar à Mesa</button>
+
 <script src="fragmentos.js?v=20260901-colheita1"></script>
-<script src="atividade.js?v=20260904-tempo1"></script>
+<script src="bussola.js?v=20260905-cena1"></script>
+<script src="atividade.js?v=20260905-cena1"></script>
 <script>
-/* iOS e Android não são o mesmo instrumento, e tratá-los igual castiga o iPhone.
-
-   No Android, `deviceorientationabsolute` entrega o rumo do mundo, firme. Os
-   dois eventos disparam lá, e o `deviceorientation` traz um alpha RELATIVO ao
-   ponto onde a página abriu — havendo fonte absoluta, a relativa é descartada,
-   senão o rumo alterna de referencial quadro a quadro. (A lição é da v1,
-   MOSAICO-26-a-janela-do-norte.html.)
-
-   No iOS não existe evento absoluto: só `webkitCompassHeading`, que pede
-   permissão por gesto, oscila bem mais e depende de calibração. Com a mesma
-   tolerância e a mesma exigência de permanência, o iPhone fica caçando o grau
-   enquanto o Android fixa de primeira.
-
-   Daí as três diferenças, e a quarta que vale para todos:
-
-   1. leitura suavizada por média circular — janela longa no iOS, curta na
-      fonte absoluta, nenhuma no dedo;
-   2. tolerância e permanência mais folgadas no iOS;
-   3. `webkitCompassAccuracy` ruim (negativo ou acima de 25) significa bússola
-      descalibrada: em vez de deixar falhar sem entender, pede o oito e afrouxa
-      mais a tolerância;
-   4. o tempo apontando é ACUMULADO, não um cronômetro que zera no primeiro
-      quadro fora da faixa. Um tremor apagava a permanência inteira — era o que
-      mais doía, e não era só no iOS. Sair da faixa por menos que a folga não
-      perde o acumulado; o delta por quadro é limitado, senão uma aba em segundo
-      plano entregaria o setor de graça ao voltar. */
 (function(){
-  const A=window.MosaicoAtividade, itens=A.itens('norte');
-  const agulha=document.getElementById('agulha'), grau=document.getElementById('grau');
-  const bussola=document.getElementById('bussola'), dica=document.getElementById('dica');
-  const permitir=document.getElementById('permitir'), usarDedo=document.getElementById('usarDedo');
-  const achados=new Set();
-  const passo=360/itens.length;
+"use strict";
+var A=window.MosaicoAtividade, B=window.MosaicoBussola;
+var itens=A.itens('norte'), achados=new Set();
+var D2R=Math.PI/180, wrap180=B.wrap180, wrap360=B.wrap360, clamp=B.clamp;
 
-  const PERFIL={
-    ios:      {tolerancia:28,parada:900,graca:450,janela:8,rotulo:'bússola do iPhone'},
-    instavel: {tolerancia:36,parada:900,graca:600,janela:10,rotulo:'bússola descalibrada'},
-    absoluta: {tolerancia:18,parada:600,graca:250,janela:3,rotulo:'bússola'},
-    relativa: {tolerancia:24,parada:700,graca:350,janela:5,rotulo:'sensor sem norte verdadeiro'},
-    dedo:     {tolerancia:18,parada:600,graca:250,janela:1,rotulo:'giro com o dedo'}
+/* ── A RUA ────────────────────────────────────────────────────────────────
+   A escada é de ALTURA, como na Casa, e é essa escolha que mantém a tarefa
+   justa entre aparelhos: altura se lê pela gravidade, igual em todo telefone,
+   enquanto rumo depende do magnetômetro. Cada passo aproxima da fachada, e a
+   janela alvo sobe porque você chegou mais perto dela, não porque o jogo
+   apertou. Trigonometria, não dificuldade.                                */
+var ALTURA_JANELA=4.6;                 /* metros até o peitoril do 1º andar */
+var DIST=[26,19,13,8.5,6,4.5,3.6,3.0]; /* a rua, em metros de fachada */
+var LARG_JANELA=1.15, LARG_FACHADA=11; /* metros */
+
+/* O rumo de cada janela vem da PARTIDA, não de Math.random: a mesa inteira
+   aponta para o mesmo lado da rua. Mesmo princípio da semente compartilhada
+   da Casa — errar junto não atrapalha, divergir sim. */
+function semente(txt){var h=2166136261;for(var i=0;i<txt.length;i++){h^=txt.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0)/4294967296;}
+var base=semente('carro-forte|'+A.partida)*360;
+var janelas=itens.map(function(cod,i){
+  return {cod:cod, az:wrap360(base + i*(360/Math.max(3,itens.length)) + semente(cod)*22-11)};
+});
+
+var passo=0;                            /* quantas janelas já se abriram */
+var view={bearing:0,elev:0};            /* a câmera segue a leitura, alisada */
+var mira=B.Mira({az:janelas[0].az, el:0});
+var modoDedo=false, arrasto=null, entrou=false;
+var W=0,H=0,DPR=1,PPD=1;
+var cv=document.getElementById('c'), cx=cv.getContext('2d');
+
+function dimensionar(){
+  DPR=Math.min(2,window.devicePixelRatio||1);
+  W=cv.clientWidth; H=cv.clientHeight;
+  cv.width=Math.round(W*DPR); cv.height=Math.round(H*DPR);
+  cx.setTransform(DPR,0,0,DPR,0,0);
+  /* Mesmo PPD da Casa: 70° de campo vertical, com teto horizontal para a
+     tela deitada não esticar o mundo. */
+  PPD=Math.min(H/70, W/95);
+}
+addEventListener('resize',dimensionar); dimensionar();
+
+function sx(b){ return W/2 + wrap180(b-view.bearing)*PPD; }
+function sy(e){ return H/2 - (e-view.elev)*PPD; }
+
+function geometria(){
+  var d=DIST[Math.min(passo,DIST.length-1)];
+  return {
+    d:d,
+    elev:Math.atan2(ALTURA_JANELA,d)/D2R,
+    hw:Math.atan2(LARG_JANELA/2,d)/D2R*PPD,
+    hh:Math.atan2(0.95/2,d)/D2R*PPD,
+    fachada:Math.atan2(LARG_FACHADA/2,d)/D2R*PPD,
+    alturaFachada:Math.atan2(9.5,d)/D2R*PPD
   };
-  let perfil=PERFIL.absoluta, fonte='', temAbsoluto=false, respondeu=false, modoDedo=false;
+}
 
-  const setores=itens.map((cod,i)=>{
-    const rumo=Math.round(i*passo);
-    const el=document.createElement('div');
-    el.className='setor';
-    el.style.transform=`rotate(${rumo}deg) translateY(-2px)`;
-    el.textContent=`${rumo}°`;
-    bussola.appendChild(el);
-    return {cod,rumo,el,tempo:0,saiu:0};
+/* ── A CENA, EM PASSES ───────────────────────────────────────────────────
+   Mesma ordem da Casa: céu > silhuetas > garoa ao fundo > fachada > janela >
+   névoa rasteira > giroflex > chuva em profundidade > bloom. Cada passe é
+   barato sozinho; é a soma que dá profundidade.                          */
+var t0=performance.now();
+var predios=[];
+(function(){for(var i=0;i<26;i++){var r=semente('p'+i);predios.push({az:r*360,l:6+r*22,h:3+((r*7)%1)*9,c:r});}})();
+var gotas=[];
+(function(){for(var i=0;i<130;i++){var r=semente('g'+i);gotas.push({x:r,y:(r*3)%1,v:.35+r*.9,z:.3+r*.7});}})();
+
+function ceu(){
+  var g=cx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#131c25'); g.addColorStop(.45,'#1b2731'); g.addColorStop(1,'#0a1017');
+  cx.fillStyle=g; cx.fillRect(0,0,W,H);
+  /* a claridade fraca de uma manhã encoberta, atrás da agência */
+  var h=sy(6);
+  var b=cx.createRadialGradient(sx(janelas[Math.min(passo,janelas.length-1)].az),h,10,
+                                sx(janelas[Math.min(passo,janelas.length-1)].az),h,H*.8);
+  b.addColorStop(0,'#2e3c46aa'); b.addColorStop(1,'#0000');
+  cx.fillStyle=b; cx.fillRect(0,0,W,H);
+}
+function silhuetas(){
+  var solo=sy(-4);
+  for(var i=0;i<predios.length;i++){
+    var p=predios[i], x=sx(p.az);
+    if(x<-260||x>W+260) continue;
+    var l=p.l*PPD*0.22, alt=p.h*PPD*0.9;
+    cx.fillStyle='rgba(9,14,20,'+(.55+p.c*.3).toFixed(2)+')';
+    cx.fillRect(x-l/2, solo-alt, l, alt);
+    /* janelas acesas ao longe, poucas — é cedo */
+    if(p.c>.72){
+      cx.fillStyle='rgba(214,170,88,.13)';
+      for(var j=0;j<3;j++) cx.fillRect(x-l/2+6+j*11, solo-alt+14+j*17, 5, 7);
+    }
+  }
+}
+function garoa(prof){
+  var n=prof===0?46:84, a=prof===0?.05:.11;
+  cx.strokeStyle='rgba(190,208,220,'+a+')'; cx.lineWidth=prof===0?.8:1.25;
+  var tt=(performance.now()-t0)/1000;
+  cx.beginPath();
+  for(var i=0;i<n;i++){
+    var g=gotas[(i*3+prof)%gotas.length];
+    var z=prof===0?.35:g.z;
+    var x=((g.x + tt*0.012*z + view.bearing/900)%1)*W;
+    var y=((g.y + tt*g.v*(prof===0?.22:.6))%1)*H;
+    cx.moveTo(x,y); cx.lineTo(x-2.5*z, y+13*z);
+  }
+  cx.stroke();
+}
+function fachada(g){
+  var cAz=janelas[Math.min(passo,janelas.length-1)].az;
+  var x=sx(cAz), base=sy(-2.2), topo=base-g.alturaFachada;
+  cx.fillStyle='#0d151d';
+  cx.fillRect(x-g.fachada, topo, g.fachada*2, base-topo);
+  cx.strokeStyle='rgba(120,150,170,.18)'; cx.lineWidth=1;
+  cx.strokeRect(x-g.fachada, topo, g.fachada*2, base-topo);
+  /* a marquise e a porta, para a fachada não ser um bloco */
+  cx.fillStyle='#0a1119';
+  cx.fillRect(x-g.fachada*.34, base-g.alturaFachada*.30, g.fachada*.68, g.alturaFachada*.30);
+  cx.fillStyle='rgba(214,170,88,.10)';
+  cx.fillRect(x-g.fachada*.30, base-g.alturaFachada*.26, g.fachada*.60, g.alturaFachada*.20);
+}
+function janelaAlvo(g,pr){
+  var al=janelas[Math.min(passo,janelas.length-1)];
+  var x=sx(al.az), y=sy(g.elev);
+  /* o halo cresce com a mira: é o retorno que diz "está quase" sem escrever */
+  var r=g.hw*(2.6+pr*3.4);
+  var h=cx.createRadialGradient(x,y,1,x,y,Math.max(8,r));
+  h.addColorStop(0,'rgba(239,200,120,'+(.10+pr*.42).toFixed(3)+')');
+  h.addColorStop(1,'rgba(239,200,120,0)');
+  cx.fillStyle=h; cx.beginPath(); cx.arc(x,y,Math.max(8,r),0,7); cx.fill();
+  cx.fillStyle='rgba(18,26,34,.92)';
+  cx.fillRect(x-g.hw,y-g.hh,g.hw*2,g.hh*2);
+  cx.fillStyle='rgba(239,200,120,'+(.16+pr*.66).toFixed(3)+')';
+  cx.fillRect(x-g.hw+1,y-g.hh+1,g.hw*2-2,g.hh*2-2);
+  cx.strokeStyle='rgba(239,200,120,'+(.30+pr*.5).toFixed(2)+')'; cx.lineWidth=1.4;
+  cx.strokeRect(x-g.hw,y-g.hh,g.hw*2,g.hh*2);
+  /* o caixilho: duas barras, e é por elas que o roll importa */
+  cx.strokeStyle='rgba(10,16,22,.75)'; cx.lineWidth=Math.max(1,g.hw*.10);
+  cx.beginPath(); cx.moveTo(x,y-g.hh); cx.lineTo(x,y+g.hh);
+  cx.moveTo(x-g.hw,y); cx.lineTo(x+g.hw,y); cx.stroke();
+}
+function nevoaRasteira(){
+  var y=sy(-3.4);
+  var g=cx.createLinearGradient(0,y-H*.10,0,H);
+  g.addColorStop(0,'rgba(150,172,188,0)'); g.addColorStop(1,'rgba(150,172,188,.16)');
+  cx.fillStyle=g; cx.fillRect(0,y-H*.10,W,H);
+}
+/* O giroflex do carro-forte faz aqui o papel do farol da costa: varre, mostra
+   a rua por um instante e some. Nove segundos, o mesmo compasso de lá. */
+function giroflex(){
+  var f=((performance.now()-t0)%9000)/9000;
+  var forca=Math.max(0,Math.sin(f*Math.PI*2))*Math.max(0,Math.sin(f*Math.PI*2));
+  if(forca<0.01) return;
+  var az=wrap360(base+f*360), x=sx(az);
+  var g=cx.createLinearGradient(x-W*.5,0,x+W*.5,0);
+  g.addColorStop(0,'rgba(255,140,90,0)');
+  g.addColorStop(.5,'rgba(255,150,95,'+(forca*.13).toFixed(3)+')');
+  g.addColorStop(1,'rgba(255,140,90,0)');
+  cx.fillStyle=g; cx.fillRect(0,0,W,H);
+}
+function bloom(pr){
+  if(pr<=0.02) return;
+  cx.fillStyle='rgba(239,200,120,'+(pr*0.05).toFixed(3)+')';
+  cx.fillRect(0,0,W,H);
+}
+
+/* ── O LAÇO ─────────────────────────────────────────────────────────────── */
+var tPrev=performance.now();
+function quadro(){
+  var agora=performance.now();
+  var dt=(agora-tPrev)/1000; tPrev=agora;
+
+  /* A câmera segue a leitura com um alisamento leve — sem ele o mundo pisca
+     junto com o sensor, e é o mundo que a pessoa está olhando. */
+  var alvoB=B.raw.bearing, alvoE=B.raw.elev;
+  view.bearing=wrap360(view.bearing+wrap180(alvoB-view.bearing)*Math.min(1,dt*14));
+  view.elev+=(alvoE-view.elev)*Math.min(1,dt*14);
+
+  var g=geometria();
+  var pr=0;
+  if(entrou && passo<janelas.length){
+    mira.alvo.az=janelas[passo].az; mira.alvo.el=g.elev;
+    /* `alto` afrouxa o rumo conforme a janela sobe: quanto mais inclinado o
+       aparelho, pior a bússola. É compensação de HARDWARE, não de dificuldade. */
+    var alto=1+clamp((g.elev-8)/34,0,1)*0.5;
+    pr=mira.passo(dt, alto);
+    document.getElementById('mira-i').style.width=(pr*100)+'%';
+    if(pr>=1) abrirJanela();
+  }
+
+  ceu(); silhuetas(); garoa(0); fachada(g); janelaAlvo(g,pr);
+  nevoaRasteira(); giroflex(); garoa(1); bloom(pr);
+  pintarEstado(pr);
+  requestAnimationFrame(quadro);
+}
+
+function pintarEstado(pr){
+  var e=document.getElementById('estado');
+  if(!entrou){ e.textContent='—'; return; }
+  if(passo>=janelas.length){ e.textContent='TODAS AS JANELAS ABERTAS'; return; }
+  var g=geometria();
+  var dAz=Math.abs(wrap180(B.raw.bearing-janelas[passo].az));
+  var dEl=Math.abs(B.raw.elev-g.elev);
+  var dRo=Math.abs(B.raw.roll);
+  if(dRo>B.CFG.TOL_ROLL) e.textContent='ENDIREITE O APARELHO';
+  else if(dAz>60) e.textContent=(wrap180(janelas[passo].az-B.raw.bearing)>0?'GIRE PARA A DIREITA':'GIRE PARA A ESQUERDA');
+  else if(dEl>8) e.textContent=(g.elev>B.raw.elev?'MAIS ALTO':'MAIS BAIXO');
+  else if(pr>0.05) e.textContent='SEGURE ASSIM';
+  else e.textContent='QUASE — AJUSTE FINO';
+}
+
+function pintarPassos(){
+  var h=document.getElementById('passos'), s='';
+  for(var i=0;i<janelas.length;i++) s+='<i class="'+(i<passo?'on':'')+'"></i>';
+  h.innerHTML=s;
+  document.getElementById('alvo-nome').textContent =
+    passo>=janelas.length ? 'A rua acabou' : ('Janela '+(passo+1)+' de '+janelas.length);
+  document.getElementById('dica').textContent =
+    passo>=janelas.length ? 'Volte à Mesa quando quiser.'
+      : 'Aponte e segure. A cada janela você atravessa mais um pedaço da rua.';
+}
+
+function abrirJanela(){
+  var cod=janelas[passo].cod;
+  mira.zerar(); passo++;
+  achados.add(cod); A.marcar(achados,itens);
+  try{ navigator.vibrate && navigator.vibrate([14,40,26]); }catch(e){}
+  var f=(window.MOSAICO_FRAGMENTOS||{})[cod]||{};
+  document.getElementById('carta-cod').textContent=cod;
+  document.getElementById('carta-tit').textContent=f.t||cod;
+  document.getElementById('carta-txt').textContent=f.d||'';
+  document.getElementById('carta').classList.add('on');
+  pintarPassos();
+}
+document.getElementById('carta-ok').onclick=function(){
+  document.getElementById('carta').classList.remove('on');
+};
+
+/* ── ENTRADA ─────────────────────────────────────────────────────────────
+   O oito entra ENTRE a permissão e a rua: pedir antes não faz sentido (o
+   sensor pode nem existir) e depois seria tarde, com a pessoa já mirando com
+   o rumo torto. */
+function fechaIntro(){
+  document.getElementById('intro').classList.add('off');
+  entrou=true; tPrev=performance.now(); pintarPassos();
+}
+function porDedo(){
+  modoDedo=true;
+  document.getElementById('dica').textContent='Arraste para girar. Arraste para cima e para baixo para levantar o olhar.';
+  fechaIntro();
+}
+document.getElementById('b-dedo').onclick=porDedo;
+document.getElementById('dedo').onclick=porDedo;
+document.getElementById('b-entrar').onclick=function(){
+  B.ativar({
+    aoLigar:function(){
+      B.oitoNoAr(document.getElementById('oito'),
+                 document.getElementById('oito-barra'),
+                 document.getElementById('oito-vai'),
+                 'Atravessar a rua', fechaIntro);
+    },
+    aoNaoResponder:function(){
+      document.getElementById('dica').textContent='A bússola não respondeu. Use o giro com o dedo.';
+      porDedo();
+    },
+    aoNegar:function(){
+      document.getElementById('dica').textContent='Sem a permissão de movimento o aparelho não sabe para onde você está virado.';
+      porDedo();
+    },
+    aoIndisponivel:porDedo
   });
+};
 
-  const wrap360=d=>((d%360)+360)%360;
-  const distancia=(a,b)=>Math.abs(((a-b)%360+540)%360-180);
+/* modo dedo: o mundo gira com o arrasto, e o instrumento fica fora do caminho */
+function pDown(ev){ if(!modoDedo)return; var t=ev.touches?ev.touches[0]:ev; arrasto={x:t.clientX,y:t.clientY}; }
+function pMove(ev){
+  if(!modoDedo||!arrasto)return;
+  var t=ev.touches?ev.touches[0]:ev;
+  B.raw.bearing=wrap360(B.raw.bearing+(t.clientX-arrasto.x)*0.22);
+  B.raw.elev=clamp(B.raw.elev-(t.clientY-arrasto.y)*0.16,-20,60);
+  B.raw.roll=0;
+  arrasto={x:t.clientX,y:t.clientY};
+  if(ev.cancelable) ev.preventDefault();
+}
+function pUp(){ arrasto=null; }
+cv.addEventListener('pointerdown',pDown); cv.addEventListener('pointermove',pMove);
+cv.addEventListener('pointerup',pUp); cv.addEventListener('pointercancel',pUp);
 
-  /* Média circular: média aritmética de graus erra feio na virada do 360. */
-  const amostras=[];
-  function suavizar(v){
-    amostras.push(v*Math.PI/180);
-    while(amostras.length>perfil.janela)amostras.shift();
-    let sx=0,sy=0;
-    for(const a of amostras){sx+=Math.cos(a);sy+=Math.sin(a)}
-    return wrap360(Math.atan2(sy,sx)*180/Math.PI);
-  }
-
-  let ultimo=0;
-  function apontar(bruto,conta=true){
-    const rumo=suavizar(wrap360(bruto));
-    agulha.style.transform=`rotate(${rumo}deg)`;
-    grau.textContent=Math.round(rumo)+'°';
-    const agora=Date.now();
-    if(!conta){ultimo=agora;for(const s of setores){s.tempo=0;s.saiu=0}return}
-    /* 120 ms de teto: se a aba ficou em segundo plano, o salto de tempo não
-       pode contar como dedo firme. */
-    const delta=Math.min(120,ultimo?agora-ultimo:0);
-    ultimo=agora;
-    for(const s of setores){
-      if(achados.has(s.cod))continue;
-      if(distancia(rumo,s.rumo)<=perfil.tolerancia){
-        s.saiu=0;
-        s.tempo+=delta;
-        if(s.tempo>=perfil.parada){
-          achados.add(s.cod);s.el.style.color='#8ce4b0';A.marcar(achados,itens);
-        }else{
-          const p=s.tempo/perfil.parada;
-          s.el.style.color=p>.5?'#efc878':'#b08a3e';
-        }
-      }else{
-        if(s.tempo){
-          if(!s.saiu)s.saiu=agora;
-          else if(agora-s.saiu>perfil.graca){s.tempo=0;s.saiu=0;s.el.style.color='#5d7386'}
-        }else s.el.style.color='#5d7386';
-      }
-    }
-    const alvo=setores.find(s=>!achados.has(s.cod));
-    dica.textContent=alvo?`Aponte para ${alvo.rumo}° e segure · ${perfil.rotulo}`:'Todos os setores fixados.';
-  }
-
-  function onOrient(e){
-    if(e.alpha==null&&e.webkitCompassHeading==null)return;
-    const ios=typeof e.webkitCompassHeading==='number'&&!isNaN(e.webkitCompassHeading);
-    const abs=ios||e.absolute===true||e.type==='deviceorientationabsolute';
-    if(abs)temAbsoluto=true;else if(temAbsoluto)return;
-    if(modoDedo)return;
-    let valor;
-    if(ios){
-      valor=360-e.webkitCompassHeading;
-      const ruim=typeof e.webkitCompassAccuracy==='number'&&(e.webkitCompassAccuracy<0||e.webkitCompassAccuracy>25);
-      trocarPerfil(ruim?'instavel':'ios');
-    }else{
-      valor=e.alpha;
-      trocarPerfil(abs?'absoluta':'relativa');
-    }
-    if(!respondeu){respondeu=true;permitir.hidden=true;usarDedo.hidden=false;amostras.length=0;ultimo=0}
-    apontar(valor);
-  }
-  function trocarPerfil(nome){
-    if(fonte===nome)return;
-    fonte=nome;perfil=PERFIL[nome];amostras.length=0;
-    if(nome==='instavel')dica.textContent='Bússola descalibrada — faça um oito no ar com o aparelho.';
-  }
-  function ligarSensor(){
-    addEventListener('deviceorientationabsolute',onOrient);
-    addEventListener('deviceorientation',onOrient);
-  }
-  const pedePermissao=typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function';
-  if(pedePermissao){
-    permitir.hidden=false;
-    dica.textContent='Este iPhone precisa de permissão para usar a bússola.';
-    permitir.onclick=async()=>{
-      try{
-        if(await DeviceOrientationEvent.requestPermission()==='granted'){ligarSensor();esperarLeitura()}
-        else caiParaDedo('Permissão negada — gire a roda com o dedo.');
-      }catch(e){caiParaDedo('Não deu para pedir a bússola — gire a roda com o dedo.')}
-    };
-  }else{ligarSensor();esperarLeitura()}
-
-  /* O dedo não é castigo nem espera: está disponível desde o primeiro segundo,
-     para o telão, para o computador e para quem não quer girar o aparelho. */
-  function caiParaDedo(msg){
-    if(modoDedo)return;
-    modoDedo=true;permitir.hidden=true;usarDedo.hidden=true;
-    trocarPerfil('dedo');
-    dica.textContent=msg||'Gire a roda com o dedo.';
-    const centro=()=>{const r=bussola.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2}};
-    const girar=e=>{
-      if(e.pointerType==='mouse'&&!e.buttons)return;
-      const c=centro();
-      apontar(Math.atan2(e.clientX-c.x,c.y-e.clientY)*180/Math.PI);
-    };
-    bussola.addEventListener('pointermove',girar);
-    bussola.addEventListener('pointerdown',girar);
-    apontar(0,false);
-  }
-  usarDedo.onclick=()=>caiParaDedo();
-  /* A espera é longa de propósito: o oito da calibração leva alguns segundos, e
-     antes disso o sensor parece mudo sem estar. Ninguém fica preso esperando —
-     o botão do dedo já está na tela.
-
-     E ela só começa a correr QUANDO há o que esperar. Contando desde o
-     carregamento, o iPhone de quem demorasse mais de 4,5 s para tocar em
-     "Permitir" caía no modo dedo — e aí a bússola recém-concedida passava a
-     ser ignorada, porque onOrient volta cedo em modo dedo. */
-  function esperarLeitura(){
-    setTimeout(()=>{if(!respondeu)caiParaDedo('A bússola não respondeu — gire a roda com o dedo.')},4500);
-  }
-
-  A.iniciar({sensor:'norte',itens,achados});
+pintarPassos();
+requestAnimationFrame(quadro);
+A.iniciar({sensor:'norte',itens:itens,achados:achados});
 })();
 </script>
 </body></html>
