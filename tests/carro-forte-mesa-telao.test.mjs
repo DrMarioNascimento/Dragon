@@ -485,7 +485,33 @@ test("o telão só assina a sala depois de ter conta", () => {
 test("sem a regra do telão publicada, a tela grande ainda mostra a partida", () => {
   const connect = TELAO.match(/async function connect\(\)\{[\s\S]*?\n  \}/)?.[0] || "";
   const assina = connect.indexOf("ouvirASala()");
-  const presenca = connect.indexOf("await presenca(");
-  assert.ok(assina > 0 && presenca > 0, "connect perdeu a assinatura ou a presença");
-  assert.ok(assina < presenca, "a leitura da sala voltou a depender de a presença ser aceita");
+  const presenca = connect.indexOf("await bater()");
+  assert.ok(assina > 0 && presenca > 0, "connect perdeu a assinatura ou o registro");
+  assert.ok(assina < presenca, "a leitura da sala voltou a depender de o registro ser aceito");
+});
+
+/* 05/09/2026: a regra do telão entrou no ar e a TV continuou dizendo que não
+   tinha entrado. O registro era tentado UMA vez, no carregamento, e a batida
+   de coração só começava se essa vez desse certo — quem abriu a tela grande
+   antes do deploy ficava com a mensagem de erro para sempre. */
+test("o telão tenta se registrar de novo, não uma vez só", () => {
+  assert.match(TELAO, /function bater\(\)/, "não há tentativa repetida de registro");
+  assert.match(
+    TELAO,
+    /heartbeat=setInterval\(bater,5000\)/,
+    "a batida voltou a ser só um carimbo de hora, e não uma nova tentativa",
+  );
+  const connect = TELAO.match(/async function connect\(\)\{[\s\S]*?\n  \}/)?.[0] || "";
+  assert.match(connect, /await bater\(\);\n    beat\(\);/, "a batida deixou de começar quando a primeira tentativa falha");
+  /* Se beat() ficar dentro do try da primeira tentativa, um erro momentâneo
+     volta a virar tela morta. */
+  assert.ok(!/catch[\s\S]{0,200}beat\(\)/.test(connect), "a batida voltou a depender do sucesso da primeira tentativa");
+});
+
+/* O gesto do áudio não se repete: se ele aconteceu, o aparelho está armado
+   mesmo que avisar a sala tenha falhado naquele instante. */
+test("o áudio armado não se perde porque o registro falhou", () => {
+  const clique = TELAO.match(/readyBtn\.onclick=async\(\)=>\{[\s\S]*?\n  \};/)?.[0] || "";
+  assert.match(clique, /armed=true/, "o clique deixou de armar o áudio");
+  assert.ok(!/armed=false/.test(clique), "o telão volta a desarmar o áudio quando a sala recusa o registro");
 });

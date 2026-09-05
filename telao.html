@@ -182,7 +182,32 @@ else{
   }
   /* A batida de coração é o que separa "há um telão agora" de "houve um telão
      algum dia": quem manda a abertura confere a idade dela antes de mandar. */
-  function beat(){clearInterval(heartbeat);heartbeat=setInterval(()=>presenca({}).catch(()=>{}),5000)}
+  /* A BATIDA TAMBÉM É A SEGUNDA CHANCE.
+     Antes o registro era tentado UMA vez, no carregamento, e a batida só
+     começava se essa vez desse certo. Quem abriu a tela grande antes de a
+     regra do Firestore estar publicada ficava com a mensagem de erro para
+     sempre: a regra entrava no ar minutos depois e a página não tentava mais
+     nada. Foi assim na primeira sala de verdade (05/09/2026) — a regra passou
+     a valer e a TV continuou dizendo que não valia.
+     Agora a batida roda sempre, e cada uma é uma nova tentativa: quando a
+     regra entra, a tela se corrige sozinha. Serve igual para rede que caiu. */
+  let registrado=null;
+  function situacao(ok){
+    if(ok===registrado)return;
+    registrado=ok;
+    if(!ok){
+      readyBtn.style.display='none';
+      waitMsg.textContent='📺 Telão conectado, mas esta sala ainda não aceita o registro dele — falta publicar as regras do Firestore. A tela grande já acompanha a partida, e a abertura vai tocar no aparelho do Mestre. Assim que a regra entrar, isto se corrige sozinho.';
+      return;
+    }
+    if(armed){readyBtn.style.display='none';waitMsg.textContent='📺 Telão conectado ✓ · áudio preparado. Aguardando a mesa.';}
+    else{readyBtn.style.display='inline-block';waitMsg.textContent='📺 Telão conectado. Ative o áudio para continuar.';}
+  }
+  async function bater(){
+    try{await presenca(armed?{status:'ready',error:''}:{status:'conectado'});situacao(true)}
+    catch(e){console.error('telão · presença',e);situacao(false)}
+  }
+  function beat(){clearInterval(heartbeat);heartbeat=setInterval(bater,5000)}
 
   /* OUVIR SÓ DEPOIS DE ENTRAR.
      Os dois onSnapshot rodavam no fim do módulo, ANTES de connect() — ou seja,
@@ -215,24 +240,21 @@ else{
        fase. O que se perde sem a presença é a abertura, que precisa do
        Mestre saber que há alguém aqui. */
     ouvirASala();
-    try{
-      await presenca({status:'conectado'});
-      waitMsg.textContent='📺 Telão conectado. Ative o áudio para continuar.';
-      readyBtn.style.display='inline-block';
-      beat();
-    }catch(e){
-      console.error('telão · presença',e);
-      waitMsg.textContent='📺 Telão conectado, mas esta sala não aceita o registro dele — as regras do Firestore precisam ser publicadas. A tela grande vai mostrar a partida; a abertura vai tocar no aparelho do Mestre.';
-    }
+    /* A batida começa mesmo se a primeira tentativa falhar — é ela que
+       transforma um erro momentâneo em atraso, em vez de em tela morta. */
+    await bater();
+    beat();
   }
   readyBtn.onclick=async()=>{
     /* Tocar e parar dentro do gesto é o que arma o áudio: navegador nenhum
        deixa som começar sozinho depois. */
     try{audio.muted=true;await audio.play();audio.pause();audio.currentTime=0;audio.muted=false}catch{}
-    armed=true;readyBtn.style.display='none';
-    waitMsg.textContent='📺 Telão conectado ✓ · áudio preparado. Aguardando a mesa.';
-    try{await presenca({status:'ready',error:''})}
-    catch(e){armed=false;readyBtn.style.display='inline-block';waitMsg.textContent='Não foi possível registrar o Telão na sala.'}
+    /* O áudio fica armado NESTE aparelho mesmo que o registro na sala falhe:
+       o gesto aconteceu e não se repete. O que falta é avisar a sala, e disso
+       cuida a batida — quando ela passar, a mesa descobre que há telão pronto
+       sem ninguém tocar em nada de novo. */
+    armed=true;registrado=null;
+    await bater();
   };
   async function startOpening(token){
     if(!armed){await presenca({status:'error',error:'audio-not-armed',failedToken:token});return}
