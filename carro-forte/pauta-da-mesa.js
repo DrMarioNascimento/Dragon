@@ -247,7 +247,14 @@
       const acabou = () => { un?.(); un = null; concluir(); };
       un = fs.onSnapshot(fs.collection(db, COLECAO, code, 'telao'), (s) => {
         const estados = s.docs.map((d) => d.data() || {});
-        if (estados.some((o) => Number(o.finishedToken) === token || (o.error && Number(o.failedToken) === token))) acabou();
+        /* UM ERRO SÓ ENCERRA SE NINGUÉM ESTIVER TOCANDO.
+           Havia sala com duas telas abertas — e bastava a que não podia tocar
+           dizer que falhou para a abertura acabar por cima da que estava
+           narrando. Terminar é notícia de quem pegou o trabalho; falhar, não. */
+        const tocando = estados.some((o) => Number(o.token) === token && o.status === 'playing');
+        const terminou = estados.some((o) => Number(o.finishedToken) === token);
+        const falhou = estados.some((o) => o.error && Number(o.failedToken) === token);
+        if (terminou || (falhou && !tocando)) acabou();
       }, () => acabou());
       /* Teto: telão que não responde não pode segurar a mesa. */
       setTimeout(acabou, TETO_MS);

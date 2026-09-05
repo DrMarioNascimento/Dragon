@@ -515,3 +515,39 @@ test("o áudio armado não se perde porque o registro falhou", () => {
   assert.match(clique, /armed=true/, "o clique deixou de armar o áudio");
   assert.ok(!/armed=false/.test(clique), "o telão volta a desarmar o áudio quando a sala recusa o registro");
 });
+
+/* Sala H4S5M9, 05/09/2026. Havia DUAS telas na sala: a TV, com o áudio armado,
+   e uma segunda aberta só para conferir. O Mestre mandou a abertura; a TV
+   começou a narrar; a segunda respondeu 'audio-not-armed' com o MESMO token, e
+   o Mestre leu isso como "o telão acabou". A abertura foi dada por concluída
+   25 s depois do começo e o jogo abriu a primeira atividade por cima da
+   apresentação — que foi exatamente o que Mario viu.
+
+   Duas travas, porque uma só não basta: a tela que não pode tocar cala, e o
+   Mestre não desiste enquanto alguém estiver tocando. */
+test("telão sem áudio armado não responde à abertura", () => {
+  const inicio = TELAO.match(/async function startOpening\(token\)\{[\s\S]*?\n  \}/)?.[0] || "";
+  assert.ok(inicio, "startOpening sumiu do telão");
+  assert.match(inicio, /if\(!armed\)return;/, "o telão sem áudio voltou a responder à abertura");
+  /* Sem tirar o comentário, a asserção reprova pelo texto que EXPLICA o
+     defeito removido — e a saída seria apagar a explicação. */
+  assert.ok(
+    !/audio-not-armed/.test(semComentarios(inicio)),
+    "voltou o carimbo de erro que encerrava a abertura de quem estava narrando",
+  );
+});
+
+test("um erro só encerra a abertura se ninguém estiver tocando", () => {
+  for (const [nome, fonte] of [["a Mesa", PAUTA], ["A Noite", NOITE]]) {
+    assert.match(
+      fonte,
+      /const tocando = estados\.some\(\(o\) => Number\(o\.token\) === token && o\.status === 'playing'\);/,
+      `${nome} não olha se alguma tela está tocando antes de desistir`,
+    );
+    assert.match(
+      fonte,
+      /if \(terminou \|\| \(falhou && !tocando\)\)/,
+      `${nome} volta a encerrar a abertura no primeiro erro, mesmo com outra tela narrando`,
+    );
+  }
+});

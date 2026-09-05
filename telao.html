@@ -257,7 +257,18 @@ else{
     await bater();
   };
   async function startOpening(token){
-    if(!armed){await presenca({status:'error',error:'audio-not-armed',failedToken:token});return}
+    /* QUEM NÃO PODE TOCAR NÃO RESPONDE.
+       Aqui ele carimbava 'audio-not-armed' com o token da abertura — e o
+       Mestre lê qualquer resposta com aquele token como "o telão acabou".
+       Resultado, medido na sala H4S5M9 em 05/09/2026: uma segunda tela aberta
+       sem ninguém ter tocado em "ativar som" ENCERROU a abertura 25 s depois
+       do começo, enquanto a TV de verdade ainda estava narrando, e o jogo
+       abriu a primeira atividade por cima da apresentação.
+       Um telão sem áudio armado nunca foi contado como vivo pelo Mestre, então
+       ele também não tem o que dizer sobre uma abertura que não é dele. Ficar
+       calado é a resposta certa: o teto de 150 s cobre o caso em que nenhuma
+       tela toca. */
+    if(!armed)return;
     activeToken=token;stage.classList.add('on');audio.currentTime=0;
     try{await audio.play();await presenca({status:'playing',token,error:''})}
     catch{

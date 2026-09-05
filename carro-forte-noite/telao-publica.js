@@ -224,10 +224,12 @@
          token isso encerraria a abertura de hoje antes do primeiro segundo. */
       const un = fs2.onSnapshot(fs2.collection(db, 'noite', code, 'telao'), (s) => {
         const estados = s.docs.map((d) => d.data() || {});
-        const respondeu = estados.some(
-          (o) => Number(o.finishedToken) === token || (o.error && Number(o.failedToken) === token),
-        );
-        if (respondeu) { un(); concluir(); }
+        /* Um erro só encerra se ninguém estiver tocando — ver o gêmeo em
+           carro-forte/pauta-da-mesa.js e a sala H4S5M9 de 05/09/2026. */
+        const tocando = estados.some((o) => Number(o.token) === token && o.status === 'playing');
+        const terminou = estados.some((o) => Number(o.finishedToken) === token);
+        const falhou = estados.some((o) => o.error && Number(o.failedToken) === token);
+        if (terminou || (falhou && !tocando)) { un(); concluir(); }
       }, () => concluir());
       /* Teto: telão que não responde não pode segurar a reunião. */
       setTimeout(() => { un(); concluir(); }, 150000);
