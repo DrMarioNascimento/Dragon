@@ -169,7 +169,12 @@ var D2R=Math.PI/180, wrap180=B.wrap180, wrap360=B.wrap360, clamp=B.clamp;
    janela alvo sobe porque você chegou mais perto dela, não porque o jogo
    apertou. Trigonometria, não dificuldade.                                */
 var ALTURA_JANELA=4.6;                 /* metros até o peitoril do 1º andar */
-var DIST=[26,19,13,8.5,6,4.5,3.6,3.0]; /* a rua, em metros de fachada */
+/* A RUA ENCURTOU. Com 26 m no primeiro passo a agência era uma caixinha no
+   meio da tela e não parecia o assunto — e é ela que a pessoa tem de querer
+   alcançar. Começando a 16 m a fachada já ocupa quase metade da largura num
+   celular, e a escada de altura continua inteira: 16 m dão 16° de elevação e
+   3,2 m dão 55°, que é a mesma amplitude de braço da Casa. */
+var DIST=[16,12,9,7,5.5,4.5,3.8,3.2]; /* a rua, em metros de fachada */
 var LARG_JANELA=1.15, LARG_FACHADA=11; /* metros */
 
 /* O rumo de cada janela vem da PARTIDA, não de Math.random: a mesa inteira
@@ -225,33 +230,59 @@ var gotas=[];
 (function(){for(var i=0;i<130;i++){var r=semente('g'+i);gotas.push({x:r,y:(r*3)%1,v:.35+r*.9,z:.3+r*.7});}})();
 
 function ceu(){
+  /* É MANHÃ ENCOBERTA, NÃO NOITE. A primeira versão desta cena saiu quase
+     preta na tela: os tons vinham da noite da tempestade da Casa, e aqui são
+     8h02 com garoa — o céu é claro e baixo, e é ele que faz a silhueta da rua
+     aparecer. Sem contraste no fundo, nenhuma quantidade de passes adianta. */
   var g=cx.createLinearGradient(0,0,0,H);
-  g.addColorStop(0,'#131c25'); g.addColorStop(.45,'#1b2731'); g.addColorStop(1,'#0a1017');
+  g.addColorStop(0,'#3d4b57'); g.addColorStop(.42,'#55636e'); g.addColorStop(.72,'#6b7681');
+  g.addColorStop(1,'#2b343d');
   cx.fillStyle=g; cx.fillRect(0,0,W,H);
   /* a claridade fraca de uma manhã encoberta, atrás da agência */
   var h=sy(6);
   var b=cx.createRadialGradient(sx(janelas[Math.min(passo,janelas.length-1)].az),h,10,
                                 sx(janelas[Math.min(passo,janelas.length-1)].az),h,H*.8);
-  b.addColorStop(0,'#2e3c46aa'); b.addColorStop(1,'#0000');
+  b.addColorStop(0,'#95a2ab88'); b.addColorStop(1,'#0000');
   cx.fillStyle=b; cx.fillRect(0,0,W,H);
 }
+/* A RUA. Faltava chão: sem ele o mundo era céu e escuro, e não havia onde a
+   fachada se apoiar. O asfalto molhado também devolve a luz do giroflex, que é
+   o que dá a sensação de rua e não de vazio. */
+function rua(){
+  var y=sy(-2.2);
+  var g=cx.createLinearGradient(0,y,0,H);
+  g.addColorStop(0,'#1b232b'); g.addColorStop(.35,'#141b22'); g.addColorStop(1,'#0d1319');
+  cx.fillStyle=g; cx.fillRect(0,y,W,H-y);
+  cx.strokeStyle='rgba(150,175,195,.10)'; cx.lineWidth=1;
+  cx.beginPath(); cx.moveTo(0,y); cx.lineTo(W,y); cx.stroke();
+  /* poças: faixas claras que tremem devagar */
+  var t=(performance.now()-t0)/1000;
+  for(var i=0;i<5;i++){
+    var px=((i*0.23+0.07)*W + Math.sin(t*.5+i)*6);
+    var py=y+18+i*26, l=40+i*22;
+    cx.fillStyle='rgba(170,195,215,'+(0.05-i*0.007).toFixed(3)+')';
+    cx.fillRect(px-l/2,py,l,3);
+  }
+}
 function silhuetas(){
-  var solo=sy(-4);
+  var solo=sy(-2.2);
   for(var i=0;i<predios.length;i++){
     var p=predios[i], x=sx(p.az);
     if(x<-260||x>W+260) continue;
     var l=p.l*PPD*0.22, alt=p.h*PPD*0.9;
-    cx.fillStyle='rgba(9,14,20,'+(.55+p.c*.3).toFixed(2)+')';
+    /* Silhueta é recorte contra o céu: ela precisa ser MAIS ESCURA que o céu e
+       clara o bastante para não virar buraco. */
+    cx.fillStyle='rgba(26,34,42,'+(.72+p.c*.22).toFixed(2)+')';
     cx.fillRect(x-l/2, solo-alt, l, alt);
     /* janelas acesas ao longe, poucas — é cedo */
     if(p.c>.72){
-      cx.fillStyle='rgba(214,170,88,.13)';
+      cx.fillStyle='rgba(232,186,104,.30)';
       for(var j=0;j<3;j++) cx.fillRect(x-l/2+6+j*11, solo-alt+14+j*17, 5, 7);
     }
   }
 }
 function garoa(prof){
-  var n=prof===0?46:84, a=prof===0?.05:.11;
+  var n=prof===0?46:84, a=prof===0?.10:.22;
   cx.strokeStyle='rgba(190,208,220,'+a+')'; cx.lineWidth=prof===0?.8:1.25;
   var tt=(performance.now()-t0)/1000;
   cx.beginPath();
@@ -267,28 +298,54 @@ function garoa(prof){
 function fachada(g){
   var cAz=janelas[Math.min(passo,janelas.length-1)].az;
   var x=sx(cAz), base=sy(-2.2), topo=base-g.alturaFachada;
-  cx.fillStyle='#0d151d';
+  /* A fachada é o objeto mais importante da tela e era um retângulo quase da
+     cor do céu. Agora tem volume: pedra clara na frente, sombra do lado, e um
+     contorno que a separa da garoa. */
+  var pedra=cx.createLinearGradient(x-g.fachada,0,x+g.fachada,0);
+  pedra.addColorStop(0,'#38424c'); pedra.addColorStop(.45,'#4a5560'); pedra.addColorStop(1,'#2b333c');
+  cx.fillStyle=pedra;
   cx.fillRect(x-g.fachada, topo, g.fachada*2, base-topo);
-  cx.strokeStyle='rgba(120,150,170,.18)'; cx.lineWidth=1;
+  cx.strokeStyle='rgba(200,220,235,.34)'; cx.lineWidth=1.5;
   cx.strokeRect(x-g.fachada, topo, g.fachada*2, base-topo);
+  /* fiadas horizontais: dão escala e dizem que é um prédio, não um bloco */
+  cx.strokeStyle='rgba(15,21,27,.30)'; cx.lineWidth=1;
+  for(var f=1;f<5;f++){
+    var yy=topo+(base-topo)*f/5;
+    cx.beginPath(); cx.moveTo(x-g.fachada,yy); cx.lineTo(x+g.fachada,yy); cx.stroke();
+  }
+  /* as janelas que NÃO são o alvo, apagadas — a fachada tem mais de uma */
+  cx.fillStyle='rgba(18,25,32,.75)';
+  for(var c2=-1;c2<=1;c2++){
+    if(c2===0) continue;
+    cx.fillRect(x+c2*g.fachada*.55-g.hw, sy(g.elev)-g.hh, g.hw*2, g.hh*2);
+  }
   /* a marquise e a porta, para a fachada não ser um bloco */
-  cx.fillStyle='#0a1119';
+  cx.fillStyle='#161d25';
   cx.fillRect(x-g.fachada*.34, base-g.alturaFachada*.30, g.fachada*.68, g.alturaFachada*.30);
-  cx.fillStyle='rgba(214,170,88,.10)';
+  cx.fillStyle='rgba(232,186,104,.26)';
   cx.fillRect(x-g.fachada*.30, base-g.alturaFachada*.26, g.fachada*.60, g.alturaFachada*.20);
+  /* o carro-forte, parado na frente: é ele que nomeia a manhã */
+  var cw=g.fachada*.52, ch=g.alturaFachada*.20;
+  cx.fillStyle='#10171e';
+  cx.fillRect(x-cw*.5, base-ch, cw, ch);
+  cx.fillStyle='rgba(200,220,235,.16)';
+  cx.fillRect(x-cw*.5, base-ch, cw, ch*.32);
 }
 function janelaAlvo(g,pr){
   var al=janelas[Math.min(passo,janelas.length-1)];
   var x=sx(al.az), y=sy(g.elev);
   /* o halo cresce com a mira: é o retorno que diz "está quase" sem escrever */
-  var r=g.hw*(2.6+pr*3.4);
+  /* O halo é o que diz "é esta". Ele nasce grande o bastante para achar a
+     janela de longe e cresce com a mira — sem isto o alvo se perde entre as
+     outras janelas apagadas da fachada. */
+  var r=g.hw*(4.2+pr*4.0);
   var h=cx.createRadialGradient(x,y,1,x,y,Math.max(8,r));
-  h.addColorStop(0,'rgba(239,200,120,'+(.10+pr*.42).toFixed(3)+')');
+  h.addColorStop(0,'rgba(239,200,120,'+(.26+pr*.46).toFixed(3)+')');
   h.addColorStop(1,'rgba(239,200,120,0)');
   cx.fillStyle=h; cx.beginPath(); cx.arc(x,y,Math.max(8,r),0,7); cx.fill();
   cx.fillStyle='rgba(18,26,34,.92)';
   cx.fillRect(x-g.hw,y-g.hh,g.hw*2,g.hh*2);
-  cx.fillStyle='rgba(239,200,120,'+(.16+pr*.66).toFixed(3)+')';
+  cx.fillStyle='rgba(239,200,120,'+(.42+pr*.52).toFixed(3)+')';
   cx.fillRect(x-g.hw+1,y-g.hh+1,g.hw*2-2,g.hh*2-2);
   cx.strokeStyle='rgba(239,200,120,'+(.30+pr*.5).toFixed(2)+')'; cx.lineWidth=1.4;
   cx.strokeRect(x-g.hw,y-g.hh,g.hw*2,g.hh*2);
@@ -297,10 +354,28 @@ function janelaAlvo(g,pr){
   cx.beginPath(); cx.moveTo(x,y-g.hh); cx.lineTo(x,y+g.hh);
   cx.moveTo(x-g.hw,y); cx.lineTo(x+g.hw,y); cx.stroke();
 }
+/* ONDE ESTÁ A JANELA. Numa rua de 360° o alvo passa a maior parte do tempo
+   fora da tela, e sem indicação a pessoa gira à toa — foi o que aconteceu
+   comigo testando: mirei 60° errado sem perceber. O treinador de texto diz a
+   direção; esta seta diz QUANTO falta, que é o que o texto não consegue. */
+function seta(){
+  if(passo>=janelas.length) return;
+  var d=wrap180(janelas[passo].az-view.bearing);
+  if(Math.abs(d)<26) return;
+  var dir=d>0?1:-1, x=dir>0?W-26:26, y=H*0.52;
+  var f=0.35+0.35*Math.abs(Math.sin((performance.now()-t0)/420));
+  cx.save(); cx.translate(x,y); cx.scale(dir,1);
+  cx.fillStyle='rgba(239,200,120,'+f.toFixed(2)+')';
+  cx.beginPath(); cx.moveTo(9,0); cx.lineTo(-7,-13); cx.lineTo(-7,13); cx.closePath(); cx.fill();
+  cx.restore();
+  cx.fillStyle='rgba(239,200,120,.85)';
+  cx.font='600 11px ui-monospace,monospace'; cx.textAlign='center';
+  cx.fillText(Math.round(Math.abs(d))+'°', x, y+30);
+}
 function nevoaRasteira(){
   var y=sy(-3.4);
   var g=cx.createLinearGradient(0,y-H*.10,0,H);
-  g.addColorStop(0,'rgba(150,172,188,0)'); g.addColorStop(1,'rgba(150,172,188,.16)');
+  g.addColorStop(0,'rgba(178,196,210,0)'); g.addColorStop(1,'rgba(178,196,210,.26)');
   cx.fillStyle=g; cx.fillRect(0,y-H*.10,W,H);
 }
 /* O giroflex do carro-forte faz aqui o papel do farol da costa: varre, mostra
@@ -331,8 +406,11 @@ function quadro(){
   /* A câmera segue a leitura com um alisamento leve — sem ele o mundo pisca
      junto com o sensor, e é o mundo que a pessoa está olhando. */
   var alvoB=B.raw.bearing, alvoE=B.raw.elev;
-  view.bearing=wrap360(view.bearing+wrap180(alvoB-view.bearing)*Math.min(1,dt*14));
-  view.elev+=(alvoE-view.elev)*Math.min(1,dt*14);
+  /* 14 deixava o mundo arrastando meio segundo atrás da leitura, e quem gira
+     procurando via a rua chegar depois. 26 ainda mata o tremor do sensor e
+     não atrasa a procura. */
+  view.bearing=wrap360(view.bearing+wrap180(alvoB-view.bearing)*Math.min(1,dt*26));
+  view.elev+=(alvoE-view.elev)*Math.min(1,dt*26);
 
   var g=geometria();
   var pr=0;
@@ -346,8 +424,8 @@ function quadro(){
     if(pr>=1) abrirJanela();
   }
 
-  ceu(); silhuetas(); garoa(0); fachada(g); janelaAlvo(g,pr);
-  nevoaRasteira(); giroflex(); garoa(1); bloom(pr);
+  ceu(); silhuetas(); rua(); garoa(0); fachada(g); janelaAlvo(g,pr);
+  nevoaRasteira(); giroflex(); garoa(1); seta(); bloom(pr);
   pintarEstado(pr);
   requestAnimationFrame(quadro);
 }
