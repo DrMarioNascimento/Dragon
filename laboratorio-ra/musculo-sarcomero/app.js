@@ -39,7 +39,12 @@ const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true,
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.02;
+/* SUBIU DE 1.02 PARA 1.16 EM 05/09/2026. Os materiais deixaram de ter verniz
+   e ganharam oclusão entre as peças: as duas coisas tiram luz do quadro, e é
+   isso que se quer — mas somadas deixaram os níveis 03 e 04 no escuro. A
+   exposição devolve a leitura sem devolver o brilho de plástico, porque quem
+   dava o brilho era o clearcoat, não a exposição. */
+renderer.toneMappingExposure = 1.16;
 /* Sem sombra, tecido vira adesivo: é o contato com o pedestal e a sombra que um
    fascículo joga no vizinho que dizem qual está na frente. */
 renderer.shadowMap.enabled = true;
@@ -49,7 +54,7 @@ const scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2(0x120c09, .028);
 const pmrem = new THREE.PMREMGenerator(renderer);
 scene.environment = pmrem.fromScene(new RoomEnvironment(), .04).texture;
-scene.environmentIntensity = .55;
+scene.environmentIntensity = .72;
 
 const camera = new THREE.PerspectiveCamera(36, 1, .01, 200);
 camera.position.set(0, 1.4, 8.4);

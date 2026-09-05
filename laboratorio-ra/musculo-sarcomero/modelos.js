@@ -139,7 +139,12 @@ const TEX = {
   }, { repeatX: 2, repeatY: 2 }),
   /* cinza de propósito: com mapa colorido E cor de vértice, as duas se
      multiplicam e o vermelho vira marrom escuro. O mapa modula, o vértice tinge. */
-  musculo: estriasLongo('#c6bcbc', '#f6efef', '#827272', { linhas: 220 }),
+  /* O CINZA ERA CLARO DEMAIS. Este mapa multiplica a cor de vértice, e com
+     média perto de 0.8 ele não escurecia quase nada: sobrava um vermelho
+     lavado, e vermelho lavado é cor de pastilha. Média perto de 0.55, com a
+     mesma amplitude de estria, devolve o vermelho profundo da carne e mantém
+     o desenho longitudinal. */
+  musculo: estriasLongo('#a89d9d', '#e2d9d9', '#655858', { linhas: 220 }),
   tendao: estriasLongo('#e6dac2', '#fbf3e2', '#b8a684', { linhas: 260 }),
   osso: estriasLongo('#efe7d3', '#fffaf0', '#cfc3a8', { linhas: 90 }),
 
@@ -157,7 +162,15 @@ const TEX = {
     }
   }, { repeatX: 3, repeatY: 2 }),
 
-  /* relevo do ventre: o sulco entre fascículos corre no comprimento */
+  /* Relevo do ventre. O sulco entre fascículos corre no comprimento — isso já
+     estava. O QUE FALTAVA é a ondulação TRANSVERSAL: o perimísio que envolve
+     cada fascículo é crespo, e é ele que quebra o brilho.
+
+     Sem essa quebra, a luz direta desenha um risco especular reto e contínuo
+     em cima de cada tubo — e risco reto em cima de um cilindro é a assinatura
+     visual de um tubo de plástico. Nenhum ajuste de rugosidade resolve isso
+     sozinho, porque o problema não é a intensidade do brilho: é ele ser
+     ininterrupto. */
   musculoBump: canvasTex(512, 512, (g, w, h) => {
     g.fillStyle = '#808080'; g.fillRect(0, 0, w, h);
     for (let i = 0; i < 260; i++) {
@@ -166,7 +179,22 @@ const TEX = {
       grad.addColorStop(0, '#5c5c5c'); grad.addColorStop(.5, '#c0c0c0'); grad.addColorStop(1, '#5c5c5c');
       g.fillStyle = grad; g.globalAlpha = rnd(.25, .8); g.fillRect(0, y - esp, w, esp * 2);
     }
+    /* o crespo transversal do perimísio */
     g.globalAlpha = 1;
+    for (let x = 0; x < w; x += 2) {
+      const on = .5 + .5 * Math.sin(x * .085) * Math.sin(x * .031 + 1.7);
+      g.fillStyle = 'rgba(' + Math.round(96 + on * 78) + ',' + Math.round(96 + on * 78) + ',' + Math.round(96 + on * 78) + ',.34)';
+      g.fillRect(x, 0, 2.2, h);
+    }
+    /* e um pouco de irregularidade em mancha, para o crespo não virar pente */
+    for (let i = 0; i < 240; i++) {
+      const x = Math.random() * w, y = Math.random() * h, r = rnd(5, 22);
+      const gr = g.createRadialGradient(x, y, 0, x, y, r);
+      const c = Math.random() > .5 ? '160' : '82';
+      gr.addColorStop(0, 'rgba(' + c + ',' + c + ',' + c + ',.42)');
+      gr.addColorStop(1, 'rgba(128,128,128,0)');
+      g.fillStyle = gr; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
+    }
   }),
 
   /* disco Z: a rede de α-actinina, em ziguezague */
@@ -181,45 +209,130 @@ const TEX = {
     for (let y = -s; y <= h + s; y += s) { g.beginPath(); g.moveTo(0, y); g.lineTo(w, y); g.stroke(); }
     g.globalAlpha = 1;
   }, { repeatX: 3, repeatY: 3 }),
+
+  /* RUGOSIDADE DA CARNE, em manchas. Um valor só de roughness faz cada pixel
+     refletir igual, e casca uniforme é o que o olho lê como moldada. Aqui a
+     crista molhada do fascículo é mais lisa (escuro no mapa) e o fundo do vão
+     é fosco (claro), com manchas grandes de baixa frequência por cima — nada
+     de ruído fino, que vira chiado. */
+  carneRug: canvasTex(512, 512, (g, w, h) => {
+    g.fillStyle = '#8f8f8f'; g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 90; i++) {
+      const x = Math.random() * w, y = Math.random() * h, r = rnd(28, 130);
+      const grad = g.createRadialGradient(x, y, 0, x, y, r);
+      const claro = Math.random() > .5;
+      grad.addColorStop(0, claro ? 'rgba(190,190,190,.55)' : 'rgba(60,60,60,.55)');
+      grad.addColorStop(1, 'rgba(143,143,143,0)');
+      g.fillStyle = grad; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
+    }
+    /* as estrias no comprimento: fundo de sulco é fosco */
+    for (let i = 0; i < 160; i++) {
+      const y = Math.random() * h, esp = rnd(1.5, 5);
+      g.fillStyle = 'rgba(215,215,215,' + rnd(.10, .34) + ')';
+      g.fillRect(0, y, w, esp);
+    }
+  }, { repeatX: 2, repeatY: 2 }),
 };
 TEX.musculoBump.colorSpace = THREE.NoColorSpace;
+TEX.carneRug.colorSpace = THREE.NoColorSpace;
 
 /* ============================================================ materiais */
 const phys = o => new THREE.MeshPhysicalMaterial(Object.assign({ roughness: .45, metalness: 0 }, o));
-const M = {
-  musculo: phys({ color: 0xffffff, vertexColors: true, map: TEX.musculo, roughness: .40, clearcoat: .45, clearcoatRoughness: .35, sheen: .45, sheenColor: 0xffb59c, bumpMap: TEX.musculoBump, bumpScale: .6 }),
-  musculoFundo: phys({ color: 0x4d1013, roughness: .62, clearcoat: .2 }),
-  epimisio: phys({ color: 0xf6e6d6, map: TEX.fascia, roughness: .22, transparent: true, opacity: .19, side: THREE.DoubleSide, clearcoat: 1, clearcoatRoughness: .12, depthWrite: false }),
-  tendao: phys({ color: 0xe8dcc4, map: TEX.tendao, roughness: .44, sheen: .9, sheenColor: 0xfffaf0, clearcoat: .35 }),
-  osso: phys({ color: 0xf0e8d6, map: TEX.osso, roughness: .72, clearcoat: .1 }),
-  cartilagem: phys({ color: 0xdfe7e4, roughness: .35, clearcoat: .5 }),
 
-  fibra: phys({ color: 0xffffff, vertexColors: true, map: TEX.fibraTubo, roughness: .5, clearcoat: .2, clearcoatRoughness: .4, sheen: .35, sheenColor: 0xffb0a0 }),
+/* ── POR QUE ISTO PARECIA PÍLULA (05/09/2026) ────────────────────────────
+   Mario: "estão parecendo ainda muito como pílulas, precisam um pouco mais de
+   realidade. Tire esse efeito pílulas."
+
+   O diagnóstico não é a forma, é a SUPERFÍCIE. Três causas, nesta ordem de
+   culpa:
+
+   1. VERNIZ. Quase todo material de carne tinha `clearcoat` entre .2 e .55.
+      Clearcoat é uma camada de laca por cima do material — é literalmente o
+      que se usa para pintura de carro, esmalte e drágea. Tecido vivo não tem
+      laca: tem um filme úmido, que espalha luz de forma ampla e fraca. Laca
+      dá um ponto branco duro, sempre no mesmo lugar, e é esse ponto que o olho
+      lê como plástico. `sheen` faz o serviço certo, e já estava ali.
+   2. RUGOSIDADE CONSTANTE. Um só valor para a peça inteira faz cada pixel
+      refletir igual. Superfície viva varia: a crista do fascículo é mais lisa
+      (está esticada e molhada), o fundo do vão é fosco. Sem essa variação a
+      peça é uma casca só, e casca uniforme lê como moldada.
+   3. NENHUMA OCLUSÃO ENTRE AS PEÇAS. Os 41 fascículos recebiam a mesma luz na
+      crista e no vão. Sem sombra de contato entre eles, o feixe vira um
+      relevo ondulado na superfície de um objeto único — que é exatamente a
+      cara de uma cápsula estriada.
+
+   O que segue mexe nos três. A forma vem depois, e vale menos: uma cápsula bem
+   sombreada já lê como carne, e um feixe bem modelado com verniz continua
+   lendo como brinquedo.                                                     */
+
+/* Carne: sem laca, com brilho amplo e uma brasa interna de leve.
+   `emissive` aqui não é luz própria — é o barato que se paga no lugar de
+   subsuperfície de verdade (transmission custa um passe de render e briga com
+   vertexColors). Músculo é translúcido: a luz entra, espalha no vermelho e sai
+   pelo lado escuro. Sem isso a sombra fica preta e cheia de plástico. */
+const carne = o => phys(Object.assign({
+  roughness: .68, clearcoat: 0,
+  /* SHEEN COM PARCIMÔNIA. Em .55 ele acendia a borda de cada fascículo com um
+     rosa claro e a peça saía cor de doce. Tecido tem sheen — mas é fraco, e o
+     que ele faz é levantar a silhueta, não pintar. */
+  sheen: .28, sheenRoughness: .85,
+  emissive: 0x2a0508, emissiveIntensity: .42,
+}, o));
+const M = {
+  musculo: carne({ color: 0xffffff, vertexColors: true, map: TEX.musculo, emissiveMap: TEX.musculo,
+    roughnessMap: TEX.carneRug, roughness: .86, sheenColor: 0xffb59c,
+    bumpMap: TEX.musculoBump, bumpScale: 2.2 }),
+  /* o miolo é o fundo do poço entre os fascículos: nunca recebe luz direta */
+  musculoFundo: phys({ color: 0x2e0a0d, roughness: .85, clearcoat: 0 }),
+  epimisio: phys({ color: 0xf6e6d6, map: TEX.fascia, roughness: .22, transparent: true, opacity: .19, side: THREE.DoubleSide, clearcoat: 1, clearcoatRoughness: .12, depthWrite: false }),
+  /* Tendão é o ÚNICO tecido desta cena que brilha mesmo: é colágeno paralelo e
+     molhado, e reflete em faixa ao longo da fibra. Mantém sheen alto e ganha
+     um resto de clearcoat — aqui a laca é verdade, não descuido. */
+  /* Tendão e osso saíam ESTOURADOS: duas manchas brancas chapadas, sem
+     desenho, ao lado de um ventre escuro. Branco puro sob luz direta perde
+     toda a textura — e superfície sem textura é a definição de plástico. Os
+     dois desceram de valor até o mapa voltar a aparecer. */
+  tendao: phys({ color: 0xcdbf9f, map: TEX.tendao, roughness: .44, sheen: .8, sheenColor: 0xfff3dd,
+    sheenRoughness: .40, clearcoat: .18, clearcoatRoughness: .5 }),
+  osso: phys({ color: 0xcfc2a4, map: TEX.osso, roughness: .88, clearcoat: 0, bumpMap: TEX.osso, bumpScale: .35 }),
+  /* cartilagem articular é translúcida e azulada, e é fosca: brilho de bola de
+     pingue-pongue era metade do que fazia a epífise parecer brinquedo */
+  cartilagem: phys({ color: 0xb9c9c8, roughness: .52, clearcoat: .10, clearcoatRoughness: .6,
+    sheen: .5, sheenColor: 0xdff0ff }),
+
+  fibra: carne({ color: 0xffffff, vertexColors: true, map: TEX.fibraTubo, emissiveMap: TEX.fibraTubo,
+    emissive: 0x24060a, emissiveIntensity: .40, roughness: .52, sheenColor: 0xffb0a0 }),
   fibraCorte: phys({ color: 0xd08a86, map: TEX.corteFibra, roughness: .55, side: THREE.DoubleSide }),
   endomisio: phys({ color: 0xf3ddc9, roughness: .5, transparent: true, opacity: .55 }),
   perimisio: phys({ color: 0xfbeee0, map: TEX.fascia, transparent: true, opacity: .13, side: THREE.DoubleSide, roughness: .3, clearcoat: .7, depthWrite: false }),
-  capilar: phys({ color: 0xa8121f, roughness: .28, clearcoat: .8 }),
+  /* vaso é o único tubo desta cena com parede molhada de verdade */
+  capilar: phys({ color: 0x91101c, roughness: .34, clearcoat: .5, clearcoatRoughness: .35 }),
 
   sarcolema: phys({ color: 0xf0c3b8, map: TEX.sarcolema, transparent: true, opacity: .34, side: THREE.DoubleSide, roughness: .22, clearcoat: 1, clearcoatRoughness: .1, depthWrite: false }),
   bordaCorte: phys({ color: 0xf3cec2, roughness: .4, clearcoat: .5 }),
-  nucleo: phys({ color: 0x53307d, roughness: .3, clearcoat: .7, sheen: .4, sheenColor: 0xb79ae0 }),
-  mitocondria: phys({ color: 0xd9903a, roughness: .48, clearcoat: .3 }),
-  miofibrila: phys({ color: 0xffffff, vertexColors: true, map: TEX.miofibrila, roughness: .40 }),
+  nucleo: phys({ color: 0x4b2b72, roughness: .52, clearcoat: .15, clearcoatRoughness: .5, sheen: .6, sheenColor: 0xb79ae0 }),
+  mitocondria: phys({ color: 0xc9822f, roughness: .62, clearcoat: 0, sheen: .4, sheenColor: 0xffcf95 }),
+  miofibrila: carne({ color: 0xffffff, vertexColors: true, map: TEX.miofibrila, emissiveMap: TEX.miofibrila,
+    emissive: 0x1e0509, emissiveIntensity: .35, roughness: .50 }),
   miofibrilaCorte: phys({ color: 0xf0dedb, map: TEX.miofibrilaLonga, roughness: .40, side: THREE.DoubleSide }),
   miofibrilaTopo: phys({ color: 0xd08a86, map: TEX.corteFibra, roughness: .55, side: THREE.DoubleSide }),
-  sarcoplasma: phys({ color: 0x5b171c, roughness: .68 }),
+  sarcoplasma: phys({ color: 0x3f1015, roughness: .82 }),
   zAnel: phys({ color: 0x2b0609, roughness: .55 }),
 
-  actina: phys({ color: 0xe6c356, roughness: .32, clearcoat: .45 }),
-  tropomiosina: phys({ color: 0xf3e3a4, roughness: .4 }),
-  troponina: phys({ color: 0xd8853c, roughness: .35, clearcoat: .5 }),
-  miosina: phys({ color: 0x4f93bd, roughness: .33, clearcoat: .55 }),
-  cabeca: phys({ color: 0x336f9e, roughness: .28, clearcoat: .75 }),
+  /* Os filamentos são o único lugar onde um pouco de brilho AJUDA: aqui a
+     leitura é de esquema molecular, e o contraste entre actina e miosina é o
+     conteúdo. Mas .45 a .75 de clearcoat fazia bala de goma; .18 com
+     clearcoatRoughness alto dá volume sem confeito. */
+  actina: phys({ color: 0xdcb748, roughness: .46, clearcoat: .18, clearcoatRoughness: .45 }),
+  tropomiosina: phys({ color: 0xecd995, roughness: .52 }),
+  troponina: phys({ color: 0xcc7a31, roughness: .48, clearcoat: .16, clearcoatRoughness: .45 }),
+  miosina: phys({ color: 0x4586ad, roughness: .46, clearcoat: .18, clearcoatRoughness: .45 }),
+  cabeca: phys({ color: 0x2c6591, roughness: .40, clearcoat: .22, clearcoatRoughness: .40 }),
   zdisc: phys({ color: 0xd9c49b, map: TEX.zDisc, transparent: true, alphaTest: .35, side: THREE.DoubleSide, roughness: .45 }),
   zaro: phys({ color: 0xd9c49b, roughness: .45, clearcoat: .3 }),
   mlinha: phys({ color: 0xcbb691, transparent: true, opacity: .62, side: THREE.DoubleSide }),
   mponte: phys({ color: 0xcbb691, roughness: .45 }),
-  titina: phys({ color: 0x7fc99a, roughness: .38, clearcoat: .35 }),
+  titina: phys({ color: 0x74bd90, roughness: .50, clearcoat: .12, clearcoatRoughness: .5 }),
 };
 
 /* ============================================================ utilidades geométricas */
@@ -229,6 +342,44 @@ function tintar(geo, cor) {
   geo.setAttribute('color', new THREE.BufferAttribute(arr, 3));
   return geo;
 }
+/* ── A SOMBRA ENTRE AS PEÇAS ──────────────────────────────────────────────
+   Este é o conserto que mais muda a leitura, e o que faltava por inteiro.
+
+   Um feixe de 41 fascículos recebia a MESMA luz na crista e no vão. Sem sombra
+   de contato entre eles, o cérebro não tem como decidir que são peças
+   separadas encostadas — e resolve pela hipótese mais simples: um corpo só,
+   com relevo ondulado na casca. Que é a definição de cápsula estriada.
+
+   Oclusão de ambiente de verdade custa um render à parte. O que se faz aqui é
+   a aproximação que serve para feixe paralelo, e ela é geométrica, não
+   estatística: um ponto do tubo está tão escondido quanto (a) sua normal
+   aponta para DENTRO do feixe, onde só há vizinho, e (b) ele está fundo,
+   longe da superfície do feixe. Os dois fatores se multiplicam.
+
+   O resultado entra na COR DE VÉRTICE, que os materiais de carne já leem — não
+   precisa de canal novo nem de segundo jogo de uv.                          */
+function ocluirNoFeixe(geo, cor, { eixo = 'x', raioFeixe = 1, piso = .30 } = {}) {
+  geo.computeVertexNormals();
+  const pos = geo.attributes.position, nor = geo.attributes.normal;
+  const n = pos.count, arr = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) {
+    const px = pos.getX(i), py = pos.getY(i), pz = pos.getZ(i);
+    /* direção radial a partir do eixo do FEIXE (não do tubo) */
+    const a = eixo === 'x' ? py : px, b = eixo === 'x' ? pz : pz;
+    const d = Math.hypot(a, b) || 1e-6;
+    const rx = a / d, ry = b / d;
+    const nx = eixo === 'x' ? nor.getY(i) : nor.getX(i), ny = nor.getZ(i);
+    /* +1 = virado para fora do feixe (exposto); -1 = virado para o miolo */
+    const aberto = (nx * rx + ny * ry + 1) * .5;
+    /* fundura: quem está no eixo do feixe não vê o céu por lado nenhum */
+    const prof = Math.min(1, d / raioFeixe);
+    const ao = piso + (1 - piso) * Math.pow(aberto, 1.35) * (.42 + .58 * prof);
+    arr[i * 3] = cor.r * ao; arr[i * 3 + 1] = cor.g * ao; arr[i * 3 + 2] = cor.b * ao;
+  }
+  geo.setAttribute('color', new THREE.BufferAttribute(arr, 3));
+  return geo;
+}
+
 /* matiz próprio para cada peça do feixe: é o que faz uma se destacar da outra */
 function variar(hex, dh, ds, dl) {
   const c = C(hex), hsl = {}; c.getHSL(hsl);
@@ -299,16 +450,37 @@ function musculo() {
   aneis.forEach(([anel, quantos, base], iAnel) => {
     for (let k = 0; k < quantos; k++) {
       const th = (k + (iAnel % 2) * .5) * (Math.PI * 2 / quantos) + iAnel * .37 + rnd(-.075, .075);
-      const torcao = .78 + iAnel * .10 + rnd(-.06, .06);
+      /* A TORÇÃO ERA FORTE E IGUAL PARA TODOS. 0,78 rad de giro, com o mesmo
+         sentido e quase o mesmo passo nos quatro anéis, desenha uma espiral
+         regular na superfície — que é literalmente o embrulho de bala. Um
+         ventre fusiforme tem os fascículos quase paralelos; a torção existe,
+         mas é discreta, e cada um torce um pouco diferente do vizinho. */
+      const torcao = .26 + iAnel * .05 + rnd(-.14, .14);
+      /* e uma sinuosidade própria: fascículo não é linha reta puxada a régua */
+      const fase = Math.random() * 6.283, amp = rnd(.010, .034);
       const curva = curvaDePontos(u => {
         const t = -1 + 2 * u;
         const rr = .072 + (anel * MUS.Rmax - .072) * perfilVentre(t);
-        const a = th + torcao * t;
-        return V(t * MUS.A, Math.sin(a) * rr, Math.cos(a) * rr * MUS.achata);
+        const a = th + torcao * t + Math.sin(fase + u * 4.1) * .10;
+        const sopro = 1 + Math.sin(fase * 1.7 + u * 6.4) * amp;
+        return V(t * MUS.A, Math.sin(a) * rr * sopro, Math.cos(a) * rr * MUS.achata * sopro);
       });
-      const jitter = rnd(.80, 1.20);
-      const raio = u => { const t = -1 + 2 * u; return base * jitter * (.26 + .74 * Math.pow(Math.max(0, 1 - t * t), .40)); };
-      geos.push(tintar(tuboPerfil(curva, raio, { segsU: 72, segsV: 12 }), variar(0x94271f, .014, .13, .10)));
+      /* DESIGUALDADE. Todos os fascículos nasciam e morriam no mesmo x, com a
+         mesma curva de engorda: a soma dava uma lente perfeita, e lente
+         perfeita é cápsula. Agora cada um tem seu ponto de maior calibre
+         (`pico`), sua barriga mais ou menos cheia (`cheio`) e um ganho de
+         calibre próprio — e a silhueta do feixe deixa de ser uma fórmula. */
+      const jitter = rnd(.72, 1.30);
+      const pico = rnd(-.22, .22);          /* onde este fascículo é mais grosso */
+      const cheio = rnd(.30, .52);          /* quão cheia é a barriga dele */
+      const raio = u => {
+        const t = -1 + 2 * u, td = Math.max(-1, Math.min(1, (t - pico) / (1 - Math.abs(pico) * .55)));
+        /* a ondulação lenta é o que impede a superfície de virar torneada */
+        const onda = 1 + .085 * Math.sin(u * 9.3 + th * 2.1);
+        return base * jitter * onda * (.24 + .76 * Math.pow(Math.max(0, 1 - td * td), cheio));
+      };
+      geos.push(ocluirNoFeixe(tuboPerfil(curva, raio, { segsU: 72, segsV: 12 }),
+        variar(0x8c1f18, .016, .15, .085), { raioFeixe: MUS.Rmax }));
     }
   });
   g.add(new THREE.Mesh(mergeGeometries(geos), M.musculo));
@@ -333,10 +505,26 @@ function musculo() {
        margem justamente por isso. */
     const contexto = [];
     contexto.push(revolucaoX(s * 3.18, s * 4.50, u => .21 + .10 * Math.pow(u, 3), M.osso, { segs: 24, radiais: 32 }));
-    const epifise = new THREE.Mesh(new THREE.SphereGeometry(.32, 26, 18), M.osso);
-    epifise.scale.set(.85, 1, .92); epifise.position.x = s * 4.51; contexto.push(epifise);
-    const cart = new THREE.Mesh(new THREE.SphereGeometry(.325, 26, 18, 0, Math.PI * 2, 0, Math.PI / 2), M.cartilagem);
-    cart.scale.set(1, .85, .92); cart.rotation.z = s > 0 ? -Math.PI / 2 : Math.PI / 2; cart.position.x = s * 4.52; contexto.push(cart);
+    /* A EPÍFISE ERA UMA ESFERA. Uma bola branca lisa no fim do osso é o
+       elemento mais "brinquedo" da cena inteira — e osso nenhum é esférico.
+       Extremidade de osso longo tem DOIS côndilos, com um sulco entre eles, e
+       a superfície é porosa. Duas esferas achatadas e encostadas já dão a
+       leitura, e o sulco entre elas é o que o olho reconhece. */
+    for (const lado of [-1, 1]) {
+      const cond = new THREE.Mesh(new THREE.SphereGeometry(.265, 24, 16), M.osso);
+      cond.scale.set(.90, 1.02, .86);
+      cond.position.set(s * 4.50, -.02, lado * .145);
+      contexto.push(cond);
+      /* a cartilagem cobre só a face articular, e é uma calota, não meia bola */
+      const cc = new THREE.Mesh(new THREE.SphereGeometry(.272, 24, 16, 0, Math.PI * 2, 0, Math.PI / 2.6), M.cartilagem);
+      cc.scale.set(.90, 1.02, .86);
+      cc.rotation.z = s > 0 ? -Math.PI / 2 : Math.PI / 2;
+      cc.position.set(s * 4.505, -.02, lado * .145);
+      contexto.push(cc);
+    }
+    /* o colo, que liga a diáfise aos côndilos: sem ele os dois ficam colados
+       na ponta do cilindro como duas bolas espetadas num palito */
+    contexto.push(revolucaoX(s * 4.10, s * 4.46, u => .21 + .17 * Math.pow(u, 1.7), M.osso, { segs: 16, radiais: 32 }));
     contexto.forEach(o => { o.userData.foraDoQuadro = true; g.add(o); });
   }
 
@@ -364,7 +552,8 @@ function fasciculo() {
       z + Math.cos(fase * 1.3 + u * 4.6) * .035 + fz * u), 22);
     // ponta arredondada à esquerda; à direita, o corte é reto
     const raio = u => rF * (u < .05 ? Math.sqrt(Math.max(0, 1 - Math.pow((.05 - u) / .05, 2))) : 1);
-    geos.push(tintar(tuboPerfil(curva, raio, { segsU: 56, segsV: 12 }), variar(0xdfcac6, .016, .10, .065)));
+    geos.push(ocluirNoFeixe(tuboPerfil(curva, raio, { segsU: 56, segsV: 12 }),
+      variar(0xdfcac6, .016, .10, .065), { raioFeixe: Rb, piso: .46 }));
 
     const p = curva.getPointAt(1);
     const cap = new THREE.CircleGeometry(rF, 16); cap.rotateY(Math.PI / 2); cap.translate(p.x, p.y, p.z); cortes.push(cap);
@@ -414,7 +603,7 @@ function fibra() {
     // v corre no comprimento depois do rotateZ: é o que deixa a banda transversal
     const geo = new THREE.CylinderGeometry(.072, .072, L + .34, 14, 1, true);
     geo.rotateZ(-Math.PI / 2); geo.translate(.17, y, z);
-    mfGeo.push(tintar(geo, variar(0xe9d3cf, .012, .10, .065)));
+    mfGeo.push(ocluirNoFeixe(geo, variar(0xe9d3cf, .012, .10, .065), { raioFeixe: .58, piso: .42 }));
     const cap = new THREE.CircleGeometry(.072, 14); cap.rotateY(Math.PI / 2); cap.translate(L / 2 + .34, y, z); cortes.push(cap);
   });
   g.add(new THREE.Mesh(mergeGeometries(mfGeo), M.miofibrila));
