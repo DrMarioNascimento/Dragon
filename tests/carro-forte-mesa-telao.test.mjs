@@ -581,3 +581,48 @@ test("no cartão do jogador o nome e o estado ficam em linhas diferentes", () =>
   );
   assert.match(TELAO, /\.field span,\.player span\{display:block/, "o estado voltou a colar no nome");
 });
+
+/* Sala LXUSUR, 05/09/2026: o pódio na tela grande anunciou
+   `{nome: "18", pontos: 0}` — o nome do jogador era a NOTA dele, e a nota era
+   zero. `entregarNota` nasceu como (nome, pontos, partida) e o jogo chamava com
+   dois argumentos: (pontuar().total, state.game). O nome virou 18 e os pontos
+   viraram Number('antes') → NaN → 0.
+
+   O conserto não é acertar a ordem: é o nome parar de ser argumento. Quem
+   entrega a nota não precisa saber como se chama, e a sala é a única fonte que
+   não pode discordar dela mesma. */
+test("a nota entregue leva o nome que está na sala, não um argumento", () => {
+  assert.match(
+    PAUTA,
+    /async function entregarNota\(pontos, partida\)/,
+    "entregarNota voltou a receber o nome de quem chama",
+  );
+  assert.match(
+    PAUTA,
+    /fs\.doc\(db, COLECAO, code, 'jogadores', uid\)/,
+    "a nota deixou de buscar o nome na sala",
+  );
+  /* O `[^)]*` ingênuo para no primeiro parêntese, que é o de pontuar(). */
+  const chamada = GAME.match(/entregarNota\?\.\(.*?\);/)?.[0] || "";
+  assert.equal(
+    chamada,
+    "entregarNota?.(pontuar().total,state.game);",
+    `a chamada mudou de forma (${chamada}) — confira se ela ainda casa com (pontos, partida)`,
+  );
+});
+
+/* Os três arquivos da Mesa mudaram várias vezes num dia sob o mesmo ?v=, e o
+   aparelho do Mario serviu game.js velho do cache: a atividade subiu para a
+   sala sem rótulo, que é código do dia anterior. O carimbo tem de andar junto
+   com o conteúdo. */
+test("os três carimbos de cache da Mesa dizem a mesma versão", () => {
+  const achados = [...MESA_HTML.matchAll(/(styles\.css|pauta-da-mesa\.js|game\.js)\?v=([^'"]+)/g)]
+    .map((m) => ({ arquivo: m[1], versao: m[2] }));
+  assert.equal(achados.length, 3, `esperava 3 carimbos, achei ${achados.length}`);
+  const versoes = [...new Set(achados.map((a) => a.versao))];
+  assert.equal(
+    versoes.length,
+    1,
+    `os carimbos divergiram: ${achados.map((a) => a.arquivo + "=" + a.versao).join(", ")}`,
+  );
+});

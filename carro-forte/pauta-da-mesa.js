@@ -347,14 +347,32 @@
      NENHUM PLACAR PARCIAL SAI DAQUI. As notas ficam guardadas e só viram
      pódio quando a mesa inteira entregou — nem o Mestre vê antes, porque o
      Mestre também está jogando. */
-  async function entregarNota(nome, pontos, partida) {
+  /* O NOME VEM DA SALA, e não de quem chamou.
+     Nasceu como `entregarNota(nome, pontos, partida)` e o jogo chamava com dois
+     argumentos: `entregarNota(pontuar().total, state.game)`. O nome do jogador
+     virava a NOTA e a nota virava 0 — porque `Number('antes')` é NaN. Medido na
+     sala LXUSUR em 05/09/2026: o pódio na tela grande anunciou
+     `{nome:'18', pontos:0}`, com a mesa inteira olhando.
+
+     Ler o nome aqui fecha a classe inteira de erro: quem entrega a nota não
+     precisa saber como se chama, e a sala é a única fonte que não pode
+     discordar dela mesma. Uma leitura a mais por partida, uma vez. */
+  async function entregarNota(pontos, partida) {
     const code = codigo();
     if (!code) return false;
     try {
       const { fs, db } = await firebase();
       const uid = await meuUid();
+      if (!uid) return false;
+      let nome = 'Investigador';
+      try {
+        const eu = await fs.getDoc(fs.doc(db, COLECAO, code, 'jogadores', uid));
+        if (eu.exists() && eu.data().nome) nome = String(eu.data().nome).slice(0, 24);
+      } catch (e) {
+        console.error('MOSAICO: não consegui ler meu nome na sala.', e);
+      }
       await fs.addDoc(fs.collection(db, COLECAO, code, 'acoes'), {
-        jogadorId: uid, tipo: 'placar', nome: String(nome || 'Investigador').slice(0, 24),
+        jogadorId: uid, tipo: 'placar', nome,
         pontos: Number(pontos) || 0, partida: partida || null,
         pedidoEmMs: Date.now(), atendido: false,
       });
