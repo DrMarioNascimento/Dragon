@@ -3696,6 +3696,13 @@ async function entrarNaMesa(){
     var existe=await FB.mesaAtiva(codigo);
     if(!existe){ abrirCortina(); avisa("Mesa não encontrada ou encerrada."); return; }
 
+    /* Mesa de outro caso do MOSAICO não é esta mesa. Só recusa quando o caso
+       está gravado e é outro: mesa antiga, sem carimbo, continua entrando. */
+    var docMesa=await FB.obterMesa(codigo);
+    if(docMesa && docMesa.caseId && docMesa.caseId!=="casa-da-costa"){
+      abrirCortina(); avisa("Esse código pertence a outro caso do MOSAICO."); return;
+    }
+
     /* quem ja esta na casa define o que sobrou para sortear */
     var jaEstao=await FB.listarJogadores(codigo);
     var maxJogadores=((CASO.configuracao&&CASO.configuracao.jogadores||{}).maximo)||12;
@@ -4576,9 +4583,16 @@ if(CONFIGURADO) window.MosaicoFB = {
   uid(){ return _uid; },
   async criarMesa(codigo, modo, ritmo){
     await autenticarGoogle();
+    /* O CASO VAI GRAVADO. A Casa e A Manhã do Carro-Forte dividem o mesmo
+       projeto e a MESMA coleção "mosaico": um código de seis letras digitado
+       no jogo errado entrava sem nenhum aviso. O Carro-Forte já conferia
+       `caseId` — mas só quando ele existe, e aqui ele não existia, então a
+       porta ficava aberta nos dois sentidos: um investigador do Carro-Forte
+       aparecia na lista de jogadores desta mesa e mexia nas contagens de
+       prontidão, e vice-versa. */
     await setDoc(doc(db, RAIZ, codigo), {
       ativa:true, fase:"sala", vez:0, modo:modo||"com-telao",
-      mestreUid:_uid,
+      mestreUid:_uid, caseId:"casa-da-costa",
       criadaEm:serverTimestamp(), criadaEmMs:Date.now()
     });
     /* Compatível também com a regra anterior, que ainda não aceitava

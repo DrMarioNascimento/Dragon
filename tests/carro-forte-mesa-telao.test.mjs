@@ -681,3 +681,25 @@ test("o carimbo do telão d'A Noite acompanha o arquivo", () => {
     `o carimbo do telão d'A Noite não tem data (${carimbo}) — sem ela ninguém percebe que ficou para trás`,
   );
 });
+
+/* A Casa da Costa e A Manhã do Carro-Forte dividem o projeto mosaico-game E a
+   coleção "mosaico". Um código de seis letras digitado no jogo errado entrava
+   sem aviso nenhum: o Carro-Forte conferia `caseId`, mas só quando ele existe,
+   e a Casa não gravava. A porta ficava aberta nos dois sentidos — e o
+   intruso aparecia na lista de jogadores da outra mesa, mexendo nas contagens
+   de prontidão que decidem quando a partida avança. */
+test("as duas mesas carimbam o caso e recusam o do vizinho", () => {
+  const CASA = ler("v1/MOSAICO-mesa.html");
+  assert.match(CASA, /caseId:"casa-da-costa"/, "a Casa voltou a criar mesa sem dizer de que caso é");
+  assert.match(
+    CASA,
+    /docMesa\.caseId!=="casa-da-costa"/,
+    "a Casa voltou a aceitar o código de outro caso do MOSAICO",
+  );
+  assert.match(SALA, /caseId:CASE_ID/, "o Carro-Forte parou de carimbar o caso");
+  assert.match(
+    SALA,
+    /snap\.data\(\)\.caseId&&snap\.data\(\)\.caseId!==CASE_ID/,
+    "o Carro-Forte parou de recusar mesa de outro caso",
+  );
+});
