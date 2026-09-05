@@ -767,3 +767,39 @@ test("o telão confere o jogo antes de usá-lo", () => {
     "a mensagem de jogo desconhecido parou de dizer quais existem",
   );
 });
+
+/* 05/09/2026, foto da tela do Mario: "Firebase: Error (auth/popup-blocked)".
+   A Mesa da Casa abria o pop-up do Google DEPOIS de `await autenticar()` — e um
+   await já basta para o navegador considerar que o gesto do usuário acabou.
+   Quem tinha sessão Google viva nunca via isso (a checagem de ehGoogle devolve
+   antes), então o defeito só atingia quem chega sem sessão: justamente quem
+   mais precisa entrar.
+
+   E o efeito visível era pior que o erro: a Mesa já tinha mostrado um código de
+   seis letras, com o selo "Conectando…" no canto, e NENHUMA sala no Firestore.
+   O Mestre passava esse código para a mesa e ninguém conseguia entrar. */
+test("a Mesa da Casa abre o pop-up dentro do toque, e só mostra código de sala que existe", () => {
+  const CASA = ler("v1/MOSAICO-mesa.html");
+  const fn = CASA.match(/async function autenticarGoogle\(\)\{[\s\S]*?\n\}/)?.[0] || "";
+  assert.ok(fn, "autenticarGoogle sumiu");
+  const login = fn.indexOf("signInWithPopup");
+  const espera = fn.indexOf("await autenticar()");
+  assert.ok(login > 0, "o login com Google saiu de autenticarGoogle");
+  assert.ok(
+    espera === -1 || espera > login,
+    "voltou um await antes do pop-up — o navegador perde o gesto e devolve auth/popup-blocked",
+  );
+  assert.match(
+    CASA,
+    /auth\/popup-blocked/,
+    "a Mesa voltou a tratar pop-up bloqueado como erro genérico, e a mensagem culpa o e-mail",
+  );
+
+  /* A gravação vem antes da tela: código na mão sem sala no Firestore é pior
+     que erro nenhum, porque parece que deu certo. */
+  const criar = CASA.match(/async function criarMesa\(modo\)\{[\s\S]*?\n\}/)?.[0] || "";
+  const grava = criar.indexOf("FB.criarMesa(codigo");
+  const mostra = criar.indexOf("STATE.tela=modo===");
+  assert.ok(grava > 0 && mostra > 0, "não achei a gravação ou a troca de tela em criarMesa");
+  assert.ok(grava < mostra, "a Mesa voltou a mostrar o código antes de a sala existir");
+});

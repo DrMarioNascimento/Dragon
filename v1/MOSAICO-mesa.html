@@ -3626,7 +3626,27 @@ async function criarMesa(modo){
   var ultimaInterior="";try{ultimaInterior=localStorage.getItem("mosaico_ultima_tarefa_interior")||"";}catch(e){}
   var tarefaInterior=ultimaInterior==="vidro"?"sala-escura":"vidro";
   STATE.ritmoMesa=ritmo;
-  STATE.mesa={codigo:codigo,link:linkDaSala(codigo),fb:false,modo:modo,ritmo:ritmo};
+  /* O CÓDIGO NÃO APARECE ANTES DA SALA EXISTIR.
+     Aqui a tela do painel era montada na hora, com `fb:false`, e só o selo
+     "Conectando…" no canto dizia que a gravação ainda não tinha acontecido. Se
+     ela falhava, o Mestre ficava com um código de seis letras na mão, um selo
+     que nunca virava "Ao vivo", e NENHUMA sala no Firestore. Ele passava o
+     código para a mesa e ninguém conseguia entrar — porque não havia onde.
+     Foi o que aconteceu em 05/09/2026, duas vezes seguidas.
+     Agora a gravação vem primeiro. O código só é mostrado depois que a sala
+     existe de verdade. */
+  var FB;
+  try{
+    FB=await esperarFB();
+    await FB.criarMesa(codigo,modo,ritmo);
+  }catch(e){
+    console.error(e);
+    avisa("Não foi possível criar a mesa.\n\n"+
+          ((e&&(e.message||e.code))||e)+
+          "\n\nNenhuma sala foi aberta — o código acima não vale. Corrija e toque em abrir de novo.");
+    return;
+  }
+  STATE.mesa={codigo:codigo,link:linkDaSala(codigo),fb:true,modo:modo,ritmo:ritmo};
   try{ sessionStorage.setItem("mosaico_mestre_codigo",codigo); }catch(e){}
   STATE.orientacaoMestreAberta=true;
   _nivelSonoroAnterior=null;
@@ -3635,8 +3655,6 @@ async function criarMesa(modo){
   STATE.doc={fase:"sala",vez:0,modo:modo,ritmo:ritmo,tarefaInterior:tarefaInterior};
   render();
   try{
-    var FB=await esperarFB();
-    await FB.criarMesa(codigo,modo,ritmo);
     await FB.atualizarMesa(codigo,{tarefaInterior:tarefaInterior});
     var mestre={codigo:codigo,modo:modo,ritmo:ritmo,uid:FB.uid&&FB.uid()};
     try{localStorage.setItem("mosaico_mestre_reconexao",JSON.stringify(mestre));localStorage.setItem("mosaico_ultimo_codigo",codigo);localStorage.setItem("mosaico_ultima_tarefa_interior",tarefaInterior);}catch(e){}
@@ -3644,10 +3662,14 @@ async function criarMesa(modo){
     assinarSala(codigo,false);
     render();
   }catch(e){
+    /* A sala JÁ existe quando se chega aqui — o que falhou foi o acabamento:
+       a tarefa interior, a memória de reconexão ou a assinatura. Dizer "não foi
+       possível criar a mesa" seria mentir, e mandaria o Mestre abrir outra por
+       cima de uma que está de pé. */
     console.error(e);
-    avisa("Não foi possível criar a mesa.\n\n"+
+    avisa("A mesa "+codigo+" foi aberta, mas parte do acerto inicial falhou.\n\n"+
           ((e&&(e.message||e.code))||e)+
-          "\n\nSó e-mail autorizado abre mesa. Convidado entra com o código.");
+          "\n\nOs jogadores já podem entrar com o código. Se a sala não atualizar sozinha, recarregue esta página.");
   }
 }
 
@@ -4527,6 +4549,12 @@ function ehGoogle(u){
 
 function msgGoogle(e){
   var code = e && e.code || "";
+  /* "auth/popup-blocked" caía no genérico e a Mesa concluía por conta própria
+     "só e-mail autorizado abre mesa" — que é FALSO nesse caso e manda a pessoa
+     procurar no lugar errado. Custou uma hora de investigação em 05/09/2026:
+     o e-mail estava certo, quem recusou foi o navegador. */
+  if(code === "auth/popup-blocked")
+    return "O navegador bloqueou a janela do Google. Libere o pop-up para esta página e toque de novo. Se você abriu por dentro de outro aplicativo, abra a página no Safari ou no Chrome.";
   if(code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request")
     return "Login com Google cancelado.";
   if(code === "auth/unauthorized-domain")
@@ -4536,9 +4564,22 @@ function msgGoogle(e){
   return (e && (e.message || e.code)) || "Não foi possível entrar com o Google.";
 }
 
+/* O POPUP TEM DE NASCER DENTRO DO TOQUE.
+   Aqui havia `await autenticar()` — o login anônimo — ANTES de abrir a janela
+   do Google. Todo navegador só deixa abrir pop-up enquanto o gesto do usuário
+   ainda está valendo, e um await já basta para perdê-lo: o Google era chamado
+   fora do toque e voltava `auth/popup-blocked`.
+
+   Quem tinha sessão Google viva nunca via isso (a checagem de `ehGoogle` a
+   seguir devolve na hora), e foi por isso que o defeito ficou escondido — só
+   aparece para quem chega sem sessão, que é justamente quem mais precisa
+   entrar. Medido em 05/09/2026, com a Mesa mostrando um código de sala que
+   nunca chegou a existir.
+
+   Agora a leitura é síncrona e o popup é a primeira coisa que espera. O login
+   anônimo desceu para o caminho do convidado, que é o único que precisa dele. */
 async function autenticarGoogle(){
   if(!CONFIGURADO) throw new Error("Firebase não configurado.");
-  await autenticar();
   var u = auth.currentUser;
   if(ehGoogle(u)){ _uid = u.uid; return _uid; }
   /* Sem `prompt:"select_account"` desde 03/09/2026: ele ordenava ao Google
