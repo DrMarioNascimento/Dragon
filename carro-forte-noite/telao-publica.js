@@ -222,17 +222,31 @@
          quadro de um onSnapshot traz o que já estava gravado: um telão que
          terminou a abertura da partida passada ainda diz 'finished', e sem o
          token isso encerraria a abertura de hoje antes do primeiro segundo. */
-      const un = fs2.onSnapshot(fs2.collection(db, 'noite', code, 'telao'), (s) => {
+      /* Mesmo defeito do gêmeo em carro-forte/pauta-da-mesa.js, medido na sala
+         4CHRML: sem guardar que já acabou, o teto de 150 s gravava a conclusão
+         uma SEGUNDA vez, por cima da verdadeira. A reunião não sofria — quem
+         entra tem a trava do `feito` —, mas o carimbo passava a mentir sobre
+         quanto a abertura durou, e eu diagnostiquei por ele um defeito que não
+         existia. */
+      let un = null, teto = null, pronto = false;
+      const acabou = () => {
+        if (pronto) return;
+        pronto = true;
+        clearTimeout(teto);
+        un?.();
+        concluir();
+      };
+      un = fs2.onSnapshot(fs2.collection(db, 'noite', code, 'telao'), (s) => {
         const estados = s.docs.map((d) => d.data() || {});
         /* Um erro só encerra se ninguém estiver tocando — ver o gêmeo em
            carro-forte/pauta-da-mesa.js e a sala H4S5M9 de 05/09/2026. */
         const tocando = estados.some((o) => Number(o.token) === token && o.status === 'playing');
         const terminou = estados.some((o) => Number(o.finishedToken) === token);
         const falhou = estados.some((o) => o.error && Number(o.failedToken) === token);
-        if (terminou || (falhou && !tocando)) { un(); concluir(); }
-      }, () => concluir());
+        if (terminou || (falhou && !tocando)) acabou();
+      }, () => acabou());
       /* Teto: telão que não responde não pode segurar a reunião. */
-      setTimeout(() => { un(); concluir(); }, 150000);
+      teto = setTimeout(acabou, 150000);
       return;
     }
     tocarAqui(concluir);

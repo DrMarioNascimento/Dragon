@@ -243,8 +243,24 @@
          onSnapshot traz o que já estava gravado, e um telão que terminou a
          abertura da rodada passada ainda diz 'finished': sem o token, a
          abertura de hoje seria encerrada antes do primeiro segundo. */
-      let un = null;
-      const acabou = () => { un?.(); un = null; concluir(); };
+      /* O TETO DISPARA MESMO QUANDO JÁ ACABOU.
+         `acabou` desligava o ouvinte e chamava `concluir()` sem guardar que já
+         tinha corrido — e o setTimeout de 150 s continuava agendado. Numa
+         abertura normal isso dava DUAS gravações de `abertura.concluida`: a
+         verdadeira, aos 77 s, e outra aos 150 s por cima.
+         O jogo não sofria (quem entra na mesa tem a trava do `feito`), mas o
+         carimbo passava a mentir: medindo a sala 4CHRML em 05/09/2026 a
+         abertura parecia ter durado 150 s exatos quando durou 77. Um número
+         que mente sobre o próprio sistema é pior que número nenhum — foi a
+         partir dele que eu diagnostiquei um defeito que não existia. */
+      let un = null, teto = null, pronto = false;
+      const acabou = () => {
+        if (pronto) return;
+        pronto = true;
+        clearTimeout(teto);
+        un?.(); un = null;
+        concluir();
+      };
       un = fs.onSnapshot(fs.collection(db, COLECAO, code, 'telao'), (s) => {
         const estados = s.docs.map((d) => d.data() || {});
         /* UM ERRO SÓ ENCERRA SE NINGUÉM ESTIVER TOCANDO.
@@ -257,7 +273,7 @@
         if (terminou || (falhou && !tocando)) acabou();
       }, () => acabou());
       /* Teto: telão que não responde não pode segurar a mesa. */
-      setTimeout(acabou, TETO_MS);
+      teto = setTimeout(acabou, TETO_MS);
       return;
     }
     tocarAqui(concluir);

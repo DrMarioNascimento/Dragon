@@ -626,3 +626,23 @@ test("os três carimbos de cache da Mesa dizem a mesma versão", () => {
     `os carimbos divergiram: ${achados.map((a) => a.arquivo + "=" + a.versao).join(", ")}`,
   );
 });
+
+/* Sala 4CHRML, 05/09/2026: `abertura.concluidaMs` dizia 150 s exatos — o teto
+   — quando a narração durou 77. `acabou()` desligava o ouvinte e chamava
+   `concluir()` sem guardar que já tinha corrido, e o setTimeout do teto
+   continuava agendado: gravava a conclusão uma SEGUNDA vez, por cima.
+
+   O jogo nunca sofreu (quem entra na mesa tem a trava do `feito`). Quem sofreu
+   fui eu lendo: diagnostiquei por esse número um defeito que não existia. Um
+   carimbo que mente sobre o próprio sistema é pior que carimbo nenhum. */
+test("a abertura conclui uma vez só, e o teto não grava por cima", () => {
+  for (const [nome, fonte] of [["a Mesa", PAUTA], ["A Noite", NOITE]]) {
+    const trecho = fonte.slice(fonte.indexOf("opening.command"));
+    assert.match(
+      trecho,
+      /const acabou = \(\) => \{\n\s*if \(pronto\) return;\n\s*pronto = true;\n\s*clearTimeout\(teto\);/,
+      `${nome}: acabou() voltou a poder rodar duas vezes`,
+    );
+    assert.match(trecho, /teto = setTimeout\(acabou, /, `${nome}: o teto voltou a não ser cancelável`);
+  }
+});
