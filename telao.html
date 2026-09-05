@@ -184,17 +184,45 @@ else{
      algum dia": quem manda a abertura confere a idade dela antes de mandar. */
   function beat(){clearInterval(heartbeat);heartbeat=setInterval(()=>presenca({}).catch(()=>{}),5000)}
 
+  /* OUVIR SÓ DEPOIS DE ENTRAR.
+     Os dois onSnapshot rodavam no fim do módulo, ANTES de connect() — ou seja,
+     antes de existir conta. Toda regra desta sala começa por signedIn(), então
+     as duas assinaturas nasciam com permission-denied e não tentam de novo:
+     a tela grande ficava para sempre no cartão de espera, sem pergunta, sem
+     fase e sem pódio, mesmo com a presença dela funcionando.
+     Não aparecia em teste nenhum porque em sala falsa tudo é negado do mesmo
+     jeito; apareceu na primeira sala de verdade (05/09/2026, sala 2WYTQE). */
+  function ouvirASala(){
+    onSnapshot(roomRef,s=>{room=s.exists()?s.data():null;if(room){consume(room);render();pintarFase()}},
+      e=>{waitMsg.textContent='Perdi a sala de vista. Reabra o QR.';console.error(e)});
+    onSnapshot(collection(db,jogo.colecao,code,'jogadores'),s=>{
+      players=s.docs.map(d=>d.data()).map(x=>({name:x.nome,state:'presente'}));render();
+    },e=>console.error('jogadores',e));
+  }
+
   async function connect(){
+    let cred=null;
     try{
-      const cred=await signInAnonymously(auth);
+      cred=await signInAnonymously(auth);
       eu=cred.user.uid;
+    }catch(e){
+      console.error('telão · login',e);
+      waitMsg.textContent='Não foi possível entrar nesta sala. Confira a conexão e reabra o QR.';
+      return;
+    }
+    /* A leitura vem primeiro e não depende da presença: mesmo que a regra do
+       telão não esteja publicada, a tela grande ainda mostra a pergunta e a
+       fase. O que se perde sem a presença é a abertura, que precisa do
+       Mestre saber que há alguém aqui. */
+    ouvirASala();
+    try{
       await presenca({status:'conectado'});
       waitMsg.textContent='📺 Telão conectado. Ative o áudio para continuar.';
       readyBtn.style.display='inline-block';
       beat();
     }catch(e){
-      console.error('telão',e);
-      waitMsg.textContent='Não foi possível registrar o Telão nesta sala. Confira o código e reabra o QR.';
+      console.error('telão · presença',e);
+      waitMsg.textContent='📺 Telão conectado, mas esta sala não aceita o registro dele — as regras do Firestore precisam ser publicadas. A tela grande vai mostrar a partida; a abertura vai tocar no aparelho do Mestre.';
     }
   }
   readyBtn.onclick=async()=>{
@@ -296,11 +324,6 @@ else{
   }
   setInterval(pintarFase,1000);
 
-  onSnapshot(roomRef,s=>{room=s.exists()?s.data():null;if(room){consume(room);render();pintarFase()}},
-    e=>{waitMsg.textContent='Perdi a sala de vista. Reabra o QR.';console.error(e)});
-  onSnapshot(collection(db,jogo.colecao,code,'jogadores'),s=>{
-    players=s.docs.map(d=>d.data()).map(x=>({name:x.nome,state:'presente'}));render();
-  },e=>console.error('jogadores',e));
   connect();
 }
 </script>

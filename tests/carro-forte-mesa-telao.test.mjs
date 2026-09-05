@@ -454,3 +454,38 @@ test("a resolução chega ao telão antes do pódio, não depois", () => {
     "a resolução voltou a subir só no relatório, tarde demais para o pódio",
   );
 });
+
+/* Descoberto na PRIMEIRA sala de verdade, 05/09/2026 (sala 2WYTQE), e por
+   nenhum outro caminho: os dois onSnapshot do telão rodavam no fim do módulo,
+   antes de connect() — ou seja, antes de existir conta. Toda regra desta sala
+   começa por signedIn(), então as duas assinaturas nasciam com
+   permission-denied e não tentam de novo: a tela grande ficava para sempre no
+   cartão de espera, sem pergunta, sem fase e sem pódio.
+
+   Em sala falsa isso é invisível, porque ali tudo é negado do mesmo jeito. */
+test("o telão só assina a sala depois de ter conta", () => {
+  /* A ordem no arquivo não diz nada — a assinatura mora numa função declarada
+     acima de connect(). O que se mede é onde ela pode ser DISPARADA: toda
+     assinatura tem de estar dentro de ouvirASala(), e ouvirASala() só é
+     chamada depois do await do login. */
+  const corpo = TELAO.match(/function ouvirASala\(\)\{[\s\S]*?\n  \}/);
+  assert.ok(corpo, "a assinatura da sala saiu de dentro de ouvirASala()");
+  assert.match(corpo[0], /onSnapshot\(roomRef/, "a sala deixou de ser assinada em ouvirASala");
+  assert.match(corpo[0], /onSnapshot\(collection/, "os jogadores deixaram de ser assinados em ouvirASala");
+  const mod = TELAO.slice(TELAO.indexOf('<script type="module">'));
+  const fora = mod.replace(corpo[0], "");
+  assert.ok(
+    !/onSnapshot\(/.test(fora),
+    "voltou a haver assinatura solta no módulo, fora do login — ela nasce negada e nunca se recupera",
+  );
+});
+
+/* Uma regra que não foi publicada não pode apagar a tela grande: sem a
+   presença o telão perde a abertura, não a partida. */
+test("sem a regra do telão publicada, a tela grande ainda mostra a partida", () => {
+  const connect = TELAO.match(/async function connect\(\)\{[\s\S]*?\n  \}/)?.[0] || "";
+  const assina = connect.indexOf("ouvirASala()");
+  const presenca = connect.indexOf("await presenca(");
+  assert.ok(assina > 0 && presenca > 0, "connect perdeu a assinatura ou a presença");
+  assert.ok(assina < presenca, "a leitura da sala voltou a depender de a presença ser aceita");
+});
