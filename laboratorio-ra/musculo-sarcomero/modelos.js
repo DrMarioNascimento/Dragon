@@ -295,7 +295,7 @@ const M = {
      TRÁS entrega exatamente isso — a borda ganha o brilho da bainha, o meio
      do ventre fica livre e a carne volta a ser o que se vê. */
   epimisio: phys({ color: 0xe8d8c4, map: TEX.fascia, roughness: .30, transparent: true,
-    opacity: .30, side: THREE.BackSide, clearcoat: .55, clearcoatRoughness: .25, depthWrite: false }),
+    opacity: .30, side: THREE.FrontSide, clearcoat: .55, clearcoatRoughness: .25, depthWrite: false }),
   /* Tendão é o ÚNICO tecido desta cena que brilha mesmo: é colágeno paralelo e
      molhado, e reflete em faixa ao longo da fibra. Mantém sheen alto e ganha
      um resto de clearcoat — aqui a laca é verdade, não descuido. */
@@ -316,14 +316,14 @@ const M = {
   fibraCorte: phys({ color: 0xd08a86, map: TEX.corteFibra, roughness: .55, side: THREE.DoubleSide }),
   endomisio: phys({ color: 0xf3ddc9, roughness: .5, transparent: true, opacity: .55 }),
   perimisio: phys({ color: 0xf2e2d2, map: TEX.fascia, transparent: true, opacity: .17,
-    side: THREE.BackSide, roughness: .38, clearcoat: .35, clearcoatRoughness: .3, depthWrite: false }),
+    side: THREE.FrontSide, roughness: .38, clearcoat: .35, clearcoatRoughness: .3, depthWrite: false }),
   /* vaso é o único tubo desta cena com parede molhada de verdade */
   capilar: phys({ color: 0x91101c, roughness: .34, clearcoat: .5, clearcoatRoughness: .35 }),
 
   /* Membrana viva é filme molhado, não vidro laqueado: clearcoat 1 punha um
      reflexo duro por cima da fibra e apagava a estriação que é o assunto. */
   sarcolema: phys({ color: 0xeec0b5, map: TEX.sarcolema, transparent: true, opacity: .30,
-    side: THREE.BackSide, roughness: .30, clearcoat: .45, clearcoatRoughness: .28, depthWrite: false }),
+    side: THREE.FrontSide, roughness: .30, clearcoat: .45, clearcoatRoughness: .28, depthWrite: false }),
   bordaCorte: phys({ color: 0xf3cec2, roughness: .4, clearcoat: .5 }),
   nucleo: phys({ color: 0x4b2b72, roughness: .52, clearcoat: .15, clearcoatRoughness: .5, sheen: .6, sheenColor: 0xb79ae0 }),
   mitocondria: phys({ color: 0xc9822f, roughness: .62, clearcoat: 0, sheen: .4, sheenColor: 0xffcf95 }),
@@ -357,6 +357,32 @@ function tintar(geo, cor) {
   geo.setAttribute('color', new THREE.BufferAttribute(arr, 3));
   return geo;
 }
+/* ── A BAINHA VISTA POR DENTRO ────────────────────────────────────────────
+   As bainhas (epimísio, perimísio, sarcolema) precisam ser desenhadas só pela
+   face de TRÁS: é assim que a fáscia aparece na borda e some no meio, que é o
+   que ela faz de verdade — e é o que impede a película de virar casca.
+
+   `side: THREE.BackSide` faz isso no navegador e SÓ no navegador. O glTF não
+   tem esse conceito: o exportador grava `doubleSided: false` e o visualizador
+   de RA desenha a face da frente. Ou seja, a casca voltaria inteira justamente
+   no lugar que dá nome à página. Como o modelo desta bancada é exportado para
+   RA, a inversão precisa estar na GEOMETRIA, não no material: virando a ordem
+   dos índices e as normais, a face de trás VIRA a face da frente, e o arquivo
+   exportado carrega a intenção junto.                                       */
+function peloAvesso(mesh) {
+  const g = mesh.geometry;
+  if (g.index) {
+    const a = g.index.array;
+    for (let i = 0; i < a.length; i += 3) { const t = a[i]; a[i] = a[i + 2]; a[i + 2] = t; }
+    g.index.needsUpdate = true;
+  }
+  g.computeVertexNormals();
+  const n = g.attributes.normal.array;
+  for (let i = 0; i < n.length; i++) n[i] = -n[i];
+  g.attributes.normal.needsUpdate = true;
+  return mesh;
+}
+
 /* ── A SOMBRA ENTRE AS PEÇAS ──────────────────────────────────────────────
    Este é o conserto que mais muda a leitura, e o que faltava por inteiro.
 
@@ -528,9 +554,9 @@ function musculo() {
   g.add(new THREE.Mesh(mergeGeometries(geos), M.musculo));
 
   /* epimísio: a bainha do músculo inteiro, translúcida, com colágeno cruzado */
-  g.add(revolucaoX(-MUS.A * 1.01, MUS.A * 1.01, s => {
+  g.add(peloAvesso(revolucaoX(-MUS.A * 1.01, MUS.A * 1.01, s => {
     const t = -1 + 2 * s; return .075 + MUS.Rmax * 1.045 * perfilVentre(t);
-  }, M.epimisio, { achata: MUS.achata }));
+  }, M.epimisio, { achata: MUS.achata })));
 
   /* tendões: côncavos junto ao ventre, afinando até a inserção e alargando de
      leve onde encostam no osso */
@@ -606,10 +632,10 @@ function fasciculo() {
   g.add(new THREE.Mesh(mergeGeometries(cortes), M.fibraCorte));
 
   /* perimísio: mais curto que as fibras, para que elas saiam pelo corte */
-  const bainha = xCil(.94, .94, 4.05, M.perimisio, 64, true); bainha.position.x = -.62; g.add(bainha);
+  const bainha = peloAvesso(xCil(.94, .94, 4.05, M.perimisio, 64, true)); bainha.position.x = -.62; g.add(bainha);
   const borda = new THREE.Mesh(new THREE.TorusGeometry(.94, .022, 8, 64), M.perimisio);
   borda.rotation.y = Math.PI / 2; borda.position.x = 1.40; g.add(borda);
-  const fundo = new THREE.Mesh(new THREE.SphereGeometry(.94, 40, 24, 0, Math.PI * 2, 0, Math.PI / 2), M.perimisio);
+  const fundo = peloAvesso(new THREE.Mesh(new THREE.SphereGeometry(.94, 40, 24, 0, Math.PI * 2, 0, Math.PI / 2), M.perimisio));
   fundo.rotation.z = Math.PI / 2; fundo.scale.y = .55; fundo.position.x = -2.645; g.add(fundo);
 
   /* rede capilar: longitudinais com travessas — é rede, não fio solto */
@@ -672,8 +698,8 @@ function fibra() {
   g.add(new THREE.Mesh(mergeGeometries(nucGeo), M.nucleo));
 
   /* sarcolema: membrana translúcida e estriada, fechada à esquerda, cortada à direita */
-  g.add(xCil(R, R, L, M.sarcolema, 72, true));
-  const ponta = new THREE.Mesh(new THREE.SphereGeometry(R, 48, 24, 0, Math.PI * 2, 0, Math.PI / 2), M.sarcolema);
+  g.add(peloAvesso(xCil(R, R, L, M.sarcolema, 72, true)));
+  const ponta = peloAvesso(new THREE.Mesh(new THREE.SphereGeometry(R, 48, 24, 0, Math.PI * 2, 0, Math.PI / 2), M.sarcolema));
   ponta.rotation.z = Math.PI / 2; ponta.scale.y = .7; ponta.position.x = -L / 2; g.add(ponta);
   const borda = new THREE.Mesh(new THREE.TorusGeometry(R, .020, 8, 72), M.bordaCorte);
   borda.rotation.y = Math.PI / 2; borda.position.x = L / 2; g.add(borda);
