@@ -27,7 +27,7 @@ const TIPOS = {
   ".mp4": "video/mp4",
 };
 
-createServer((req, res) => {
+const servidor = createServer((req, res) => {
   const url = decodeURIComponent((req.url || "/").split("?")[0]);
   let rel = url.replace(/^\/+/, "");
   if (rel === "" || rel.endsWith("/")) rel += "index.html";
@@ -46,6 +46,11 @@ createServer((req, res) => {
   res.writeHead(200, { "content-type": tipo });
   res.end(readFileSync(caminho));
   console.log("200  " + url);
-}).listen(8123, "127.0.0.1", () => {
-  console.log("Pages simulado em http://127.0.0.1:8123/Dragon/v2/");
+});
+
+/* A porta vem do ambiente quando quem chama já escolheu uma — é o que deixa
+   duas conferências rodarem ao mesmo tempo sem disputar a 8123. */
+const PORTA = Number(process.env.PORT) || 8123;
+servidor.listen(PORTA, "127.0.0.1", () => {
+  console.log(`Pages simulado em http://127.0.0.1:${PORTA}/Dragon/v2/`);
 });

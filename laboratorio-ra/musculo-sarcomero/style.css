@@ -18,3 +18,14 @@
 .ra-box{display:grid;gap:8px}
 .ra-box model-viewer{width:100%;height:150px;border:1px solid rgba(224,177,58,.24);border-radius:12px;background:radial-gradient(circle at 50% 40%,#2a1a12,#0b0907 75%)}
 @media (max-width:800px){.experience{grid-template-columns:1fr}.stage,.stage canvas{min-height:460px}}
+
+/* ---- v3: o palco tinha 672×1204 ----
+   A grade esticava o .stage até a altura do painel lateral, então a cena de um
+   músculo deitado era desenhada num retrato quase 1:2 e saía cortada nas beiras.
+   E o [hidden] do bloco de contração não valia nada: display:grid ganha dele,
+   e a curva de tensão aparecia nos cinco níveis. */
+.experience{align-items:start}
+.stage{min-height:0;height:clamp(440px,62vh,680px)}
+.stage canvas{min-height:0;height:100%}
+.contracao[hidden]{display:none}
+@media(max-width:850px){.stage{height:clamp(360px,56vh,540px)}.stage canvas{min-height:0}}

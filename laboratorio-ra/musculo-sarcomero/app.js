@@ -1,4 +1,14 @@
-/* Do músculo ao sarcômero — v2
+/* Do músculo ao sarcômero — v3
+   ---------------------------------------------------------------------------
+   O QUE MUDOU NO v3 (a queixa era simples: a qualidade das peças, o músculo à frente)
+   • sombra ligada. Sem ela, cada peça era um adesivo colado no fundo preto;
+   • enquadramento medido, não uma lista de distâncias fixas — o palco tinha
+     672×1204 e a lista só servia a uma proporção de tela;
+   • ?nivel=1..5 abre direto num nível, sem mergulho: serve à aula que já sabe
+     onde quer parar, e serve à conferência do desenho, que precisa do quadro
+     parado;
+   • a geometria e as texturas mudaram muito; o porquê de cada uma está em
+     modelos.js, junto do código que a desenha.
    ---------------------------------------------------------------------------
    Cinco níveis gerados por código (sem .glb externo), com:
    • materiais PBR e texturas de estriação desenhadas em canvas;
@@ -29,7 +39,11 @@ const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true,
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.05;
+renderer.toneMappingExposure = 1.02;
+/* Sem sombra, tecido vira adesivo: é o contato com o pedestal e a sombra que um
+   fascículo joga no vizinho que dizem qual está na frente. */
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
 const scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2(0x120c09, .028);
@@ -43,13 +57,20 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true; controls.dampingFactor = .06;
 controls.minDistance = 1.6; controls.maxDistance = 16;
 
-scene.add(new THREE.HemisphereLight(0xffe2c4, 0x1c110c, 1.4));
-const key = new THREE.DirectionalLight(0xffd2a8, 3.2); key.position.set(4, 6, 5); scene.add(key);
-const fill = new THREE.DirectionalLight(0xffb090, .9); fill.position.set(-5, 2, 3); scene.add(fill);
-const rim = new THREE.DirectionalLight(0xff6a3a, 2.4); rim.position.set(-3, 1.5, -6); scene.add(rim);
+scene.add(new THREE.HemisphereLight(0xffe6cc, 0x1c110c, 1.1));
+const key = new THREE.DirectionalLight(0xfff0dc, 2.9); key.position.set(4.5, 7, 5.5); scene.add(key);
+key.castShadow = true; key.shadow.mapSize.set(2048, 2048);
+key.shadow.bias = -.0012; key.shadow.normalBias = .02; key.shadow.radius = 2.4;
+const sombra = key.shadow.camera;
+sombra.near = 1; sombra.far = 28; sombra.left = -7.5; sombra.right = 7.5; sombra.top = 7.5; sombra.bottom = -7.5;
+sombra.updateProjectionMatrix();
+const fill = new THREE.DirectionalLight(0xffc6ac, .75); fill.position.set(-5, 2, 3.5); scene.add(fill);
+/* a contraluz é o que separa a peça do fundo preto; laranja demais tingia o
+   tecido de neon, então ficou fraca de propósito */
+const rim = new THREE.DirectionalLight(0xff8a4e, 1.5); rim.position.set(-3.5, 2, -6); scene.add(rim);
 
-const pedestal = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 2.9, .14, 72), new THREE.MeshStandardMaterial({ color: 0x1a120e, roughness: .85, metalness: .05 }));
-pedestal.position.y = -1.9; scene.add(pedestal);
+const pedestal = new THREE.Mesh(new THREE.CylinderGeometry(3.2, 3.5, .14, 72), new THREE.MeshStandardMaterial({ color: 0x0e0907, roughness: .9, metalness: .04 }));
+pedestal.position.y = -1.9; pedestal.receiveShadow = true; scene.add(pedestal);
 const root = new THREE.Group(); scene.add(root);
 
 /* ------------------------------------------------------------ texturas (navegador) */
@@ -64,7 +85,19 @@ const { modelos, aplicarComprimento, SARC, SCM } = criar(canvasTex);
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 
 /* ------------------------------------------------------------ montagem dos níveis */
-modelos.forEach((m, i) => { m.visible = i === 0; root.add(m); });
+modelos.forEach((m, i) => {
+  m.visible = i === 0; root.add(m);
+  m.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+  /* medido aqui, com tudo na identidade: durante o mergulho a escala muda, e um
+     Box3 tirado no meio da transição enquadraria o quadro errado */
+  m.updateWorldMatrix(true, true);
+  const caixa = new THREE.Box3();
+  m.traverse(o => { if (o.isMesh && !o.userData.foraDoQuadro) caixa.expandByObject(o); });
+  const t = caixa.getSize(new THREE.Vector3()).multiplyScalar(.5);
+  /* rh é o meio-vão horizontal já contando o giro: o que hoje é o eixo X daqui a
+     meia volta aponta para a câmera, então o maior entre X e Z é que manda. */
+  m.userData.quadro = { rh: Math.max(t.x, t.z), hv: t.y };
+});
 const sarc = modelos[4];
 
 const dados = [
@@ -81,7 +114,32 @@ const E = {
 };
 
 let atual = 0, transicao = null, girar = true;
-function resetCam() { const dist = [8.4, 7.6, 8.2, 6.8, 5.0][atual]; camera.position.set(0, 1.2, dist); controls.target.set(0, 0, 0); controls.update(); }
+/* A distância era uma lista fixa — e lista fixa só serve a uma proporção de tela.
+   Num painel alto e estreito o músculo saía cortado pelas beiras. Agora a câmera
+   recua o que a caixa do nível exigir, largura e altura medidas contra a abertura
+   de cada eixo. Pela ESFERA não serve: uma peça deitada, seis vezes mais comprida
+   que alta, tem esfera do tamanho do comprimento, e enquadrá-la assim deixava o
+   músculo ocupando um quarto da altura do palco, com vazio em cima e embaixo. */
+function resetCam() {
+  const q = modelos[atual].userData.quadro || { rh: 3, hv: 1 };
+  const fovV = camera.fov * Math.PI / 180;
+  const fovH = 2 * Math.atan(Math.tan(fovV / 2) * camera.aspect);
+  const dist = Math.max(q.rh / Math.tan(fovH / 2), q.hv / Math.tan(fovV / 2)) * 1.06 + q.rh * .38;
+  controls.target.set(0, 0, 0);
+  camera.position.set(0, q.hv * .55, dist);
+  controls.minDistance = q.rh * .5;
+  controls.maxDistance = dist * 2.6;
+  controls.update();
+}
+
+function aplicarTextos(n) {
+  const d = dados[n];
+  E.scale.textContent = d[0]; E.step.textContent = d[1]; E.eye.textContent = d[2]; E.title.textContent = d[3]; E.text.textContent = d[4];
+  E.tags.innerHTML = d[5].split(',').map(x => `<span>${x}</span>`).join('');
+  E.prev.disabled = n === 0; E.next.disabled = n === 4; E.next.textContent = n === 4 ? 'Unidade contrátil ✓' : 'Aprofundar →';
+  document.querySelectorAll('.step').forEach((b, i) => b.classList.toggle('active', i === n));
+  E.contrBox.hidden = n !== 4; E.labels.innerHTML = '';
+}
 
 function setStep(n, viaMergulho = false) {
   n = Math.max(0, Math.min(4, n)); if (n === atual) return;
@@ -89,23 +147,39 @@ function setStep(n, viaMergulho = false) {
   novo.visible = true; novo.scale.setScalar(mergulho ? .18 : .7);
   if (mergulho) { const f = velho.userData.foco || V(); novo.position.copy(f); } else novo.position.set(0, 0, 0);
   transicao = { velho, novo, t: 0, mergulho, foco: (velho.userData.foco || V()).clone() };
-  atual = n; const d = dados[n];
-  E.scale.textContent = d[0]; E.step.textContent = d[1]; E.eye.textContent = d[2]; E.title.textContent = d[3]; E.text.textContent = d[4];
-  E.tags.innerHTML = d[5].split(',').map(x => `<span>${x}</span>`).join('');
-  E.prev.disabled = n === 0; E.next.disabled = n === 4; E.next.textContent = n === 4 ? 'Unidade contrátil ✓' : 'Aprofundar →';
-  document.querySelectorAll('.step').forEach((b, i) => b.classList.toggle('active', i === n));
-  E.contrBox.hidden = n !== 4; E.labels.innerHTML = '';
+  atual = n; aplicarTextos(n);
   prepararRA();
+}
+/* Abrir direto num nível, sem transição. Serve à aula que já sabe onde quer
+   parar (…/musculo-sarcomero/?nivel=4) e serve à conferência do desenho, que
+   precisa do quadro parado — o mergulho depende de animação para terminar. */
+function irDireto(n) {
+  n = Math.max(0, Math.min(4, n));
+  modelos.forEach((m, i) => { m.visible = i === n; m.scale.setScalar(1); m.position.set(0, 0, 0); });
+  atual = n; transicao = null; aplicarTextos(n); resetCam(); prepararRA();
 }
 document.querySelectorAll('.step').forEach((b, i) => b.onclick = () => setStep(i));
 E.prev.onclick = () => setStep(atual - 1); E.next.onclick = () => setStep(atual + 1, true);
 $('resetView').onclick = resetCam;
 
 /* materiais que podem esmaecer durante o mergulho */
+/* Guardar também o depthWrite. Epimísio, perimísio e sarcolema nascem com
+   depthWrite:false de propósito — é o que deixa ver o que está atrás da bainha.
+   Restaurar todo mundo como `true` depois do primeiro mergulho fazia a bainha
+   passar a tapar o que ela devia mostrar, e só a partir da segunda visita. */
 function setOpacidade(obj, f) {
-  obj.traverse(o => { if (!o.isMesh) return; const m = o.material; if (m.userData.op0 === undefined) { m.userData.op0 = m.opacity; m.userData.tr0 = m.transparent; } m.transparent = true; m.opacity = m.userData.op0 * f; m.depthWrite = f > .6; });
+  obj.traverse(o => {
+    if (!o.isMesh) return; const m = o.material;
+    if (m.userData.op0 === undefined) { m.userData.op0 = m.opacity; m.userData.tr0 = m.transparent; m.userData.dw0 = m.depthWrite; }
+    m.transparent = true; m.opacity = m.userData.op0 * f; m.depthWrite = m.userData.dw0 && f > .6;
+  });
 }
-function restaurar(obj) { obj.traverse(o => { if (!o.isMesh) return; const m = o.material; if (m.userData.op0 !== undefined) { m.opacity = m.userData.op0; m.transparent = m.userData.tr0; m.depthWrite = true; } }); }
+function restaurar(obj) {
+  obj.traverse(o => {
+    if (!o.isMesh) return; const m = o.material;
+    if (m.userData.op0 !== undefined) { m.opacity = m.userData.op0; m.transparent = m.userData.tr0; m.depthWrite = m.userData.dw0; }
+  });
+}
 
 /* ------------------------------------------------------------ contração + curva comprimento–tensão */
 function tensaoRelativa(L) { // Gordon, Huxley & Julian (1966), sarcômero de rã, aproximação linear por trechos
@@ -137,8 +211,8 @@ const ancoras = {
     ['zona H', V(0, .42, .35)], ['linha M', V(0, -.2, .45)], ['actina', V(-L / 2 + .45, .12, .38)], ['miosina', V(.35, .04, .32)], ['cabeças de miosina', V(-.6, -.15, .32)], ['titina', V(-(L / 2 + SCM.A / 2) / 2, .18, .12)]]; },
   3: () => [['disco Z', V(-SARC.len, .5, 0)], ['banda A (escura)', V(.45, -.55, .2)], ['banda I (clara)', V(-.75, .6, .2)], ['filamentos', V(0, .2, .4)]],
   2: () => [['sarcolema', V(-1.6, .85, 0)], ['núcleo periférico', V(.4, .8, .3)], ['miofibrilas', V(2.7, .2, 0)], ['mitocôndrias', V(-.6, -.55, .5)]],
-  1: () => [['perimísio', V(-1.4, 1.05, 0)], ['fibras musculares', V(2.5, .35, .3)], ['capilar', V(0, -.9, .4)]],
-  0: () => [['ventre muscular', V(0, 1.15, .4)], ['tendão', V(2.7, .45, 0)], ['epimísio', V(-1.2, -1.1, .5)], ['fascículos', V(.4, .95, .7)]],
+  1: () => [['perimísio', V(-1.4, 1.05, 0)], ['fibras musculares', V(2.1, .44, .3)], ['capilar', V(0, -.9, .4)]],
+  0: () => [['ventre muscular', V(0, 1.06, .4)], ['tendão', V(2.95, .40, 0)], ['osso', V(4.3, .55, 0)], ['epimísio', V(-1.35, -.90, .5)], ['fascículos', V(.5, .84, .58)]],
 };
 let mostrarRotulos = true; E.rot.onclick = () => { mostrarRotulos = !mostrarRotulos; E.rot.classList.toggle('on', mostrarRotulos); E.labels.innerHTML = ''; };
 function atualizarRotulos() {
@@ -149,7 +223,16 @@ function atualizarRotulos() {
 }
 
 /* ------------------------------------------------------------ laço */
-function resize() { const w = stage.clientWidth, h = stage.clientHeight; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+/* O devicePixelRatio muda quando a janela vai para outro monitor ou o navegador
+   dá zoom. Fixá-lo só na partida deixava a cena rasterizada abaixo da tela. */
+let ultimoDPR = 0, enquadrado = false;
+function resize() {
+  const w = stage.clientWidth, h = stage.clientHeight;
+  if (!w || !h) return;
+  if (devicePixelRatio !== ultimoDPR) { ultimoDPR = devicePixelRatio; renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); }
+  renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+  if (!enquadrado) { enquadrado = true; resetCam(); }
+}
 new ResizeObserver(resize).observe(stage); resize();
 $('girar').onclick = e => { girar = !girar; e.currentTarget.classList.toggle('on', girar); };
 const clock = new THREE.Clock();
@@ -195,4 +278,6 @@ E.viewer.addEventListener('error', () => { E.status.textContent = 'O modelo não
 /* o clique tem de chamar activateAR() sem nenhum await antes — regra do Safari */
 E.ar.addEventListener('click', () => { try { E.viewer.activateAR(); } catch (err) { console.error(err); E.status.textContent = 'A câmera não abriu. Verifique a permissão de câmera do navegador.'; } });
 
-onContracao(); prepararRA();
+onContracao();
+const pedido = parseInt(new URLSearchParams(location.search).get('nivel'), 10);
+if (Number.isFinite(pedido) && pedido >= 1 && pedido <= 5) irDireto(pedido - 1); else prepararRA();
