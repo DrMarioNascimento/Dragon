@@ -188,6 +188,9 @@ describe("papel muda ênfase sem remover campos obrigatórios", () => {
     assert.ok(MPC.SOCRATICAS);
     const html = MPC.htmlAndaime("casa-da-costa", { papel: "arquivista", camada: "assistida" }, { partidaId: "sete" });
     assert.match(html, /data-hpc-painel/);
+    assert.match(html, /hpc-painel pf-card/);
+    assert.match(html, /hpc-lista[^\"]*pf-inset/);
+    assert.match(HPC_SRC, /linear-gradient\(165deg,#1a3348/);
     assert.match(html, /data-hpc-campo=/);
     assert.equal(MPC.htmlAndaime("casa-da-costa", { papel: "investigador", camada: "livre" }), "");
     /* Guiada inclui prompts */

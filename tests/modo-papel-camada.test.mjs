@@ -162,11 +162,39 @@ describe("profundidade 1+1 · tokens compartilhados", () => {
     assert.match(pf, /\.pf-inset\{/);
     assert.match(pf, /border-left:4px solid #6aa8ca/);
     assert.match(pf, /\.pf-btn-gold\{/);
+    assert.match(pf, /\.waiting-card/);
+    assert.match(pf, /\.modal-card/);
+    assert.match(pf, /\.pf-pausa/);
     assert.match(room, /pf-card/);
     assert.match(room, /rgba\(127,212,255/);
     assert.match(room, /#060d14/);
     assert.match(ts, /mosaico-pf-1mais1/);
     assert.match(ler("v1/MOSAICO-mesa.html"), /profundidade-1mais1\.css/);
+  });
+
+  it("toda porta de produção carrega a língua 1+1", () => {
+    const portas = [
+      ["Casa Celular", "v1/MOSAICO-mesa.html", /profundidade-1mais1\.css/],
+      ["Casa Telão", "telao.html", /profundidade-1mais1\.css/],
+      ["Casa Solo", "solo/index.html", /profundidade-1mais1\.css/],
+      ["Carro Celular/Solo", "carro-forte/celular.html", /profundidade-1mais1\.css/],
+      ["Carro Noite", "carro-forte/noite/index.html", /profundidade-1mais1\.css/],
+      ["Vidro Casa", "v1/MOSAICO-26-vidro-embacado.html", /profundidade-1mais1\.css/],
+      ["Sala Casa", "v1/MOSAICO-26-a-sala-as-escuras.html", /profundidade-1mais1\.css/],
+      ["Janela Casa", "v1/MOSAICO-26-a-janela-do-norte.html", /profundidade-1mais1\.css/],
+    ];
+    for (const [nome, path, re] of portas) {
+      assert.match(ler(path), re, nome);
+    }
+    assert.match(ler("telao.html"), /waiting-card pf-card/);
+    assert.match(ler("telao.html"), /openbox pf-card/);
+    assert.match(ler("telao.html"), /fecho-card pf-card/);
+    assert.match(ler("carro-forte/noite/index.html"), /modal-card depth-card pf-card/);
+    assert.match(ler("carro-forte/noite/index.html"), /drawer-card depth-card pf-card/);
+    assert.match(ler("carro-forte/celular.html"), /drawer-card depth-card pf-card/);
+    assert.match(ler("solo/index.html"), /solo-auto\.css\?v=20260906-pf-all/);
+    assert.match(ler("abertura-casa.js"), /cartao pf-card/);
+    assert.match(ler("abertura-casa.js"), /cartao-inset pf-inset/);
   });
 });
 

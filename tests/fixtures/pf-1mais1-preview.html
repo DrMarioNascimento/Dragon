@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=390,initial-scale=1">
 <title>MOSAICO · preview profundidade 1+1</title>
+<link rel="stylesheet" href="../../v1/css/profundidade-1mais1.css">
 <style>
   :root{--breu:#05070c}
   *{box-sizing:border-box}
@@ -32,6 +33,36 @@
     <h1>Seu papel nesta partida</h1>
     <p class="note">Preview do seletor (Casa / Celular / Solo).</p>
     <div id="papelHost"></div>
+  </div>
+  <div class="stage" id="stageTelao" hidden>
+    <div class="kicker">TELÃO · ESPERA / ABERTURA</div>
+    <div class="waiting-card pf-card" style="max-width:390px;padding:14px">
+      <div class="waiting-inset pf-inset" style="padding:18px 16px;text-align:center">
+        <h1 style="margin:0;font:700 42px Georgia,serif;color:#efc878">MOSAICO</h1>
+        <p style="color:#d2dde2;font-size:15px">Digite o código da sala.</p>
+        <button class="ready-btn pf-btn-gold" type="button">📺 Abrir o telão</button>
+      </div>
+    </div>
+    <div class="openbox pf-card" style="margin-top:16px;max-width:390px;padding:14px">
+      <div class="openbox-inset pf-inset" style="padding:14px;text-align:center">
+        <h2 style="margin:0;font:600 26px Georgia,serif;color:#efc878">📓 Abertura</h2>
+        <p style="color:#b7c4ca">A abertura está em andamento.</p>
+      </div>
+    </div>
+  </div>
+  <div class="stage" id="stageSolo" hidden>
+    <div class="kicker">SOLO · CASA DA COSTA</div>
+    <section class="hero pf-card shell" style="max-width:390px;padding:22px">
+      <div class="shell">
+      <span class="k" style="color:#d6aa58;font:700 11px Inter,sans-serif;letter-spacing:.19em">UMA VERDADE · UMA NOVA PERGUNTA</span>
+      <h1 style="font:700 42px Georgia,serif;line-height:.94;margin:.3rem 0">A verdade é um fragmento.</h1>
+      <div class="question pf-inset" style="padding:16px 17px;margin:16px 0">
+        <b style="display:block;color:#7fd4ff;font-size:11px;letter-spacing:.14em">MISTÉRIO · PERGUNTA-MÃE</b>
+        <p style="margin:0;font:600 22px Georgia,serif;color:#fff">Quem estava na casa às 22h40?</p>
+      </div>
+      <button class="btn primary pf-btn-gold" type="button">Começar reconstrução</button>
+      </div>
+    </section>
   </div>
   <div class="stage" id="stageVidro">
     <div class="kicker">ATIVIDADE · VIDRO</div>
@@ -68,6 +99,16 @@
     if (q.get("only") === "papel") {
       var v = document.getElementById("stageVidro");
       if (v) v.hidden = true;
+    }
+    if (q.get("only") === "telao") {
+      document.getElementById("stagePapel").hidden = true;
+      document.getElementById("stageVidro").hidden = true;
+      document.getElementById("stageTelao").hidden = false;
+    }
+    if (q.get("only") === "solo") {
+      document.getElementById("stagePapel").hidden = true;
+      document.getElementById("stageVidro").hidden = true;
+      document.getElementById("stageSolo").hidden = false;
     }
     if (q.get("elenco") === "1") {
       document.getElementById("stagePapel").hidden = true;

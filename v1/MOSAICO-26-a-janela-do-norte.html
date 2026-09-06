@@ -324,6 +324,7 @@
      outras tres. Entra DEPOIS do <style> de proposito: em empate de
      especificidade, quem vem por ultimo vence, e o padrao tem de vencer. -->
 <link rel="stylesheet" href="css/profundidade.css?v=20260902-profundidade">
+<link rel="stylesheet" href="css/profundidade-1mais1.css?v=20260906-pf-all">
 </head>
 <body>
 <canvas id="c"></canvas>
@@ -597,14 +598,12 @@ function overlayPausa(texto){
   if(!elPausa){
     elPausa=document.createElement("div");
     elPausa.setAttribute("id","pausa-mesa");
-    elPausa.style.cssText="position:fixed;left:0;top:0;right:0;bottom:0;z-index:99999;"+
-      "display:none;align-items:center;justify-content:center;text-align:center;"+
-      "padding:28px;background:rgba(0,0,0,.86);color:#cfc6b6;letter-spacing:.03em;"+
-      "font:500 15px/1.6 system-ui,-apple-system,sans-serif";
+    elPausa.className="pf-pausa";
+    elPausa.innerHTML='<div class="pf-card pf-pausa-card"><div class="pf-inset pf-pausa-msg"></div></div>';
     document.body.appendChild(elPausa);
   }
   if(texto===null){ elPausa.style.display="none"; return; }
-  elPausa.textContent=texto;
+  elPausa.querySelector(".pf-pausa-msg").textContent=texto;
   elPausa.style.display="flex";
 }
 function aplicaPausa(){

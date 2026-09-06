@@ -91,3 +91,142 @@
   .pf-btn-gold,.pf-btn-ghost{transition:none}
   .pf-btn-gold:active,.pf-btn-ghost:active{transform:none}
 }
+
+/* Applied chrome — production doors that load this sheet last inherit 1+1
+   without inventing another box-shadow. Gold/green left-rail variants keep
+   their accent. Load AFTER local styles so these fills win on a tie. */
+
+.pf-pausa{
+  position:fixed;inset:0;z-index:99999;
+  display:none;align-items:center;justify-content:center;
+  padding:28px;background:rgba(2,6,10,.86);
+}
+.pf-pausa-card{width:min(440px,94vw);padding:20px}
+.pf-pausa-msg{
+  padding:18px 16px;color:var(--pf-ink-2);text-align:center;
+  font:500 15px/1.6 system-ui,sans-serif;letter-spacing:.03em;
+}
+
+.waiting-card,.openbox,.fecho-card{
+  background:var(--pf-card-fill);
+  border:1px solid var(--pf-stroke);
+  box-shadow:var(--pf-card-shadow);
+}
+.waiting-card{border-radius:14px;padding:14px}
+.openbox,.fecho-card{border-radius:14px}
+.waiting-inset,.openbox-inset,.fecho-inset{padding:18px 20px}
+.ready-btn{
+  min-height:58px;border:0;border-radius:10px;padding:12px 22px;cursor:pointer;
+  background:linear-gradient(180deg,var(--pf-gold-face),var(--pf-gold-base));
+  color:#1b1005;font-weight:900;
+  box-shadow:inset 0 1px 0 #ffe2b4,0 5px 0 var(--pf-gold-wall),0 12px 22px #000a;
+}
+.ready-btn:active{transform:translateY(4px);box-shadow:inset 0 1px 0 #ffe2b4,0 1px 0 var(--pf-gold-wall),0 5px 10px #0009}
+.opencontrols button{
+  min-height:48px;border:1px solid #46667a;border-radius:10px;
+  background:linear-gradient(180deg,#162a38,#0c1b26);color:var(--pf-ink);
+  font-weight:800;padding:8px 13px;cursor:pointer;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 4px 0 #020609;
+}
+.wrap .top,.wrap .question,.wrap .players,.wrap .fase{
+  background:var(--pf-card-fill);
+  border:1px solid var(--pf-stroke);
+  box-shadow:var(--pf-card-shadow);
+}
+
+.depth-card:not(.gold):not(.green):not(.blue):not(.question-banner):not(.meeting-head):not(.decision-panel){
+  background:var(--pf-card-fill);
+  border:1px solid var(--pf-stroke);
+  box-shadow:var(--pf-card-shadow);
+}
+.modal-card,.drawer-card{
+  background:var(--pf-card-fill);
+  border:1px solid var(--pf-stroke);
+  border-radius:14px;
+  box-shadow:var(--pf-card-shadow);
+}
+.modal-card .pf-inset,#modalBody.pf-inset,.drawer-inset{margin-top:10px;padding:10px}
+.choice-list{
+  background:var(--pf-inset-fill);
+  border:1px solid var(--pf-inset-stroke);
+  border-left:4px solid #6aa8ca;
+  border-radius:10px;
+  box-shadow:var(--pf-inset-shadow);
+  overflow:hidden;
+}
+.choice-item{
+  border:0;border-bottom:1px solid rgba(45,63,72,.7);border-radius:0;
+  background:transparent;
+}
+.choice-item:last-child{border-bottom:0}
+.btn.primary{
+  background:linear-gradient(180deg,var(--pf-gold-face),var(--pf-gold-base));
+  color:#1b1005;
+  box-shadow:inset 0 1px 0 #ffe2b4,0 5px 0 var(--pf-gold-wall),0 12px 22px #000a;
+}
+.btn.primary:active{
+  transform:translateY(4px);
+  box-shadow:inset 0 1px 0 #ffe2b4,0 1px 0 var(--pf-gold-wall),0 5px 10px #0009;
+}
+
+#abCasa .cartao{
+  background:var(--pf-card-fill);
+  border:1px solid var(--pf-stroke);
+  box-shadow:var(--pf-card-shadow);
+}
+#abCasa .cartao-inset{padding:4px 2px 2px}
+#abCasa .btn{
+  background:linear-gradient(180deg,var(--pf-gold-face),var(--pf-gold-base));
+  color:#1b1005;
+  box-shadow:inset 0 1px 0 #ffe2b4,0 5px 0 var(--pf-gold-wall),0 12px 22px #000a;
+}
+#abCasa .btn.fantasma{
+  background:linear-gradient(180deg,#162a38,#0c1b26);color:var(--pf-ink);
+  border:1px solid #46667a;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 4px 0 #020609;
+}
+
+.system-guard>div{
+  background:var(--pf-card-fill);
+  border:1px solid var(--pf-stroke);
+  border-radius:14px;
+  box-shadow:var(--pf-card-shadow);
+}
+.system-guard-inset{padding:8px 4px}
+
+#cartao-inner{
+  background:var(--pf-card-fill);
+  border:1px solid var(--pf-stroke);
+  border-radius:14px;
+  box-shadow:var(--pf-card-shadow);
+}
+#fechar-cartao{
+  background:linear-gradient(180deg,var(--pf-gold-face),var(--pf-gold-base));
+  color:#1b1005;border:0;border-radius:10px;
+  box-shadow:inset 0 1px 0 #ffe2b4,0 5px 0 var(--pf-gold-wall),0 12px 22px #000a;
+  text-shadow:none;
+}
+#fechar-cartao:active{
+  transform:translateY(4px);
+  box-shadow:inset 0 1px 0 #ffe2b4,0 1px 0 var(--pf-gold-wall),0 5px 10px #0009;
+  background:linear-gradient(180deg,var(--pf-gold-face),var(--pf-gold-base));
+}
+
+.shell .hero{
+  background:var(--pf-card-fill);
+  border:1px solid var(--pf-stroke);
+  box-shadow:var(--pf-card-shadow);
+}
+.shell .hero .question,.shell .opts,.shell .field,.shell .result,.shell .relation,.shell .factbox,.shell .map{
+  background:var(--pf-inset-fill);
+  border:1px solid var(--pf-inset-stroke);
+  border-left:4px solid #6aa8ca;
+  box-shadow:var(--pf-inset-shadow);
+}
+.shell .opt{
+  background:transparent;border:0;border-bottom:1px solid rgba(45,63,72,.7);border-radius:0;
+}
+.shell .opt:last-child{border-bottom:0}
+.shell .opt.on,.shell .opt:hover{background:#25190e;box-shadow:inset 0 0 0 2px var(--pf-gold)}
+.shell .opt.good{background:#10271f}
+.shell .opt.bad{background:#241310}
