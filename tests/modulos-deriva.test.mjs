@@ -41,7 +41,9 @@ const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 /* Teto medido em 03/09/2026, depois da convergência da bússola. SÓ DESCE. */
 const TETO = {
-  "janela-do-norte": 588,
+  "janela-do-norte": 597,
+  /* 588 → 597 em 06/09/2026: overlayPausa 1+1 + profundidade-1mais1.css
+     só no lado Mesa (porta de playtest). Cópias leftover ficam planas. */
   /* 575 → 588 em 06/09/2026: gate avisoElencoAntesJanela (OK obrigatório)
      só no lado Mesa — A Noite não tem PERSONAGENS da Casa. */
   /* 577 → 575 em 06/09/2026: CTA Casa (Apontar a janela) também no lado Noite. */
@@ -54,9 +56,11 @@ const TETO = {
      nenhuma — o facho é arrastado com o dedo (`pointermove`), zero ocorrências
      de deviceorientation no arquivo. Pedir calibragem de magnetômetro a quem
      não lê magnetômetro seria um portão sem porta. */
-  "sala-as-escuras": 526,
+  "sala-as-escuras": 535,
+  /* 526 → 535 em 06/09/2026: overlayPausa 1+1 + folha compartilhada no Mesa. */
   /* 520 → 526 em 06/09/2026: cairNoModoDedo + avisoAntesModoDedo no Mesa. */
-  "vidro-embacado": 428,
+  "vidro-embacado": 437,
+  /* 428 → 437 em 06/09/2026: overlayPausa 1+1 + folha compartilhada no Mesa. */
   /* 414 → 421 em 06/09/2026: finger mode + prazoSuave no lado Mesa. */
   /* 421 → 428 em 06/09/2026: cairNoModoDedo + avisoAntesModoDedo no Mesa. */
 };
