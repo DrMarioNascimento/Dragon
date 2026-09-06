@@ -22,6 +22,11 @@ import {
   deriveNoiteEconomy,
   continuityBannerText,
   handoffStorageKey,
+  MANHA_PARA_CAPTURA,
+  CAPTURA_ROTULOS,
+  CUSTOS_CAPTURA,
+  mapFragmentosManhaParaCaptura,
+  seedCapturaDeck,
 } from '../carro-forte/celular-para-noite-contrato.mjs';
 
 const ler = (p) =>
@@ -92,7 +97,7 @@ test('normalizeFecho aceita total no teto 100', () => {
   assert.equal(normalizeFecho({ total: 150 }).total, 100);
 });
 
-test('economia v1: herda do fecho quando from=celular; standalone intacto', () => {
+test('economia v1.1: herda do fecho quando from=celular; standalone intacto', () => {
   assert.deepEqual(deriveNoiteEconomy(null), {
     coins: 12,
     handSize: 3,
@@ -101,6 +106,11 @@ test('economia v1: herda do fecho quando from=celular; standalone intacto', () =
   });
   assert.equal(ECONOMIA_STANDALONE.coins, 12);
   assert.equal(ECONOMIA_PONTE_SEM_FECHO.coins, 10);
+  assert.equal(CUSTOS_CAPTURA.arriscar, 3);
+  assert.equal(CUSTOS_CAPTURA.capturar, 2);
+  assert.equal(CUSTOS_CAPTURA.comprar, 4);
+  /* Piso 9 = falha(3)+compra(4)+captura(2); Arriscar devolve no acerto. */
+  assert.equal(CUSTOS_CAPTURA.arriscar + CUSTOS_CAPTURA.comprar + CUSTOS_CAPTURA.capturar, 9);
 
   const semFecho = deriveNoiteEconomy(
     buildHandoffPayload({ pergunta: 'janela', sala: 'ABCDEF' }),
@@ -113,21 +123,22 @@ test('economia v1: herda do fecho quando from=celular; standalone intacto', () =
   const baixo = deriveNoiteEconomy(
     buildHandoffPayload({ pergunta: 'peso', fecho: { total: 20 } }),
   );
-  assert.equal(baixo.coins, 8); // 8 + floor(20/25)=8
+  assert.equal(baixo.coins, 9); // 9 + floor(20/25)=9
   assert.equal(baixo.handSize, 2);
 
   const medio = deriveNoiteEconomy(
     buildHandoffPayload({ pergunta: 'peso', fecho: { total: 50 } }),
   );
-  assert.equal(medio.coins, 10); // 8+2
+  assert.equal(medio.coins, 11); // 9+2
   assert.equal(medio.handSize, 3);
 
   const alto = deriveNoiteEconomy(
     buildHandoffPayload({ pergunta: 'peso', fecho: { total: 100 } }),
   );
-  assert.equal(alto.coins, 12); // 8+4
+  assert.equal(alto.coins, 13); // 9+4
   assert.equal(alto.handSize, 3);
   assert.equal(alto.source, 'celular-fecho');
+  assert.match(alto.rule, /v1\.1/);
 });
 
 test('noiteSeedPartida e marcador da Manhã incluem handoff', () => {
@@ -176,6 +187,15 @@ test('banner de continuidade resume pergunta + fecho + economia', () => {
   assert.match(txt, /55\/100/);
   assert.match(txt, /H10/);
   assert.match(txt, /moedas/);
+  const comFrag = continuityBannerText(
+    buildHandoffPayload({
+      pergunta: 'peso',
+      fragmentosRevelados: ['F09', 'F01'],
+      fecho: { total: 40 },
+    }),
+  );
+  assert.match(comFrag, /prioriza/);
+  assert.match(comFrag, /Zona cega|Antecipação/);
   assert.equal(handoffStorageKey({ sala: 'zzzzzz', pergunta: 'peso' }), 'mosaico-carro-handoff:ZZZZZZ:peso');
 });
 
@@ -195,6 +215,8 @@ test('o Celular expõe CTA e carrega a ponte com handoff', () => {
   assert.match(ponte, /ponteNoite/, 'a ponte não marca mosaico/{sala}');
   assert.match(ponte, /partida\.handoff|handoff:/, 'seed deve gravar partida.handoff');
   assert.match(ponte, /deriveNoiteEconomy/, 'ponte sem regra de economia');
+  assert.match(ponte, /seedCapturaDeck/, 'ponte sem semente de baralho');
+  assert.match(ponte, /MANHA_PARA_CAPTURA/, 'ponte sem mapa Manhã→Captura');
   assert.match(ponte, /['"]noite['"]/, 'seed deve gravar na coleção noite');
   assert.match(ponte, /['"]mosaico['"]/, 'marcador deve gravar na coleção mosaico');
 });
@@ -233,6 +255,72 @@ test('a Noite aceita deep link from=celular, herda pergunta e economia do handof
   assert.match(nucleo, /fromCelular|from['"]?\s*===\s*['"]celular['"]/, 'núcleo não herda pergunta da URL no solo');
   assert.match(nucleo, /economiaInicial|deriveNoiteEconomy/, 'núcleo não aplica economia do handoff');
   assert.match(nucleo, /handSize|handN/, 'núcleo não varia o tamanho da mão');
+  assert.match(nucleo, /seedCapturaDeck/, 'núcleo não semeia baralho a partir do handoff');
+  assert.match(nucleo, /preferredIds|capturaSeed|handoff-fragmentos/, 'núcleo não passa semente à mesa');
+});
+
+
+test('mapa Manhã→Captura e seedCapturaDeck priorizam fragmentos do handoff', () => {
+  assert.equal(MANHA_PARA_CAPTURA.F01, 'F1');
+  assert.equal(MANHA_PARA_CAPTURA.F09, 'F5');
+  assert.equal(MANHA_PARA_CAPTURA.F12, 'F7');
+  assert.equal(CAPTURA_ROTULOS.F5, 'Zona cega');
+  assert.deepEqual(mapFragmentosManhaParaCaptura(['F01', 'F01', 'F09', 'F99', 'xx']), ['F1', 'F5']);
+
+  const allIds = Object.keys(CAPTURA_ROTULOS);
+  let n = 0;
+  const rnd = () => {
+    n += 1;
+    return (n % 10) / 10;
+  };
+
+  const handoff = buildHandoffPayload({
+    pergunta: 'peso',
+    fecho: { total: 55 },
+    fragmentosRevelados: ['F01', 'F09', 'F13'],
+  });
+  const seeded = seedCapturaDeck({
+    allIds,
+    handoff,
+    fromCelular: true,
+    rnd,
+  });
+  assert.equal(seeded.source, 'handoff-fragmentos');
+  assert.deepEqual(seeded.seededIds, ['F1', 'F5', 'F8']);
+  assert.ok(seeded.seededLabels.includes('Zona cega'));
+  assert.deepEqual(new Set(seeded.deck), new Set(allIds));
+  assert.equal(seeded.deck.length, allIds.length);
+  /* Preferidos ocupam o prefixo do baralho (ordem interna pode embaralhar). */
+  const prefix = new Set(seeded.deck.slice(0, seeded.seededIds.length));
+  assert.deepEqual(prefix, new Set(seeded.seededIds));
+
+  const semFrag = seedCapturaDeck({
+    allIds,
+    handoff: buildHandoffPayload({ pergunta: 'janela' }),
+    fromCelular: true,
+    rnd,
+  });
+  assert.equal(semFrag.source, 'celular-sem-fragmentos');
+  assert.deepEqual(semFrag.seededIds, []);
+});
+
+test('standalone Noite usa baralho padrão sem semente de handoff', () => {
+  const allIds = Object.keys(CAPTURA_ROTULOS);
+  let n = 0;
+  const rnd = () => {
+    n += 1;
+    return (n % 7) / 7;
+  };
+  const alone = seedCapturaDeck({ allIds, fromCelular: false, rnd });
+  assert.equal(alone.source, 'standalone-default');
+  assert.deepEqual(alone.seededIds, []);
+  assert.deepEqual(alone.seededLabels, []);
+  assert.deepEqual(new Set(alone.deck), new Set(allIds));
+
+  const eco = deriveNoiteEconomy(null);
+  assert.equal(eco.coins, 12);
+  assert.equal(eco.handSize, 3);
+  assert.equal(eco.source, 'standalone');
 });
 
 test('firebase-room preserva Mestre Google ao reassumir a própria sala', () => {

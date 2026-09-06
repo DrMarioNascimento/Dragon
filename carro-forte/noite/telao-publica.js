@@ -275,7 +275,7 @@
 
      Sem sala — ensaio, solo-lab —, devolve null e quem chamou reparte local,
      exatamente como era. */
-  async function distribuir(todosIds, naMao) {
+  async function distribuir(todosIds, naMao, opts = {}) {
     const code = codigoDaSala();
     if (!code) return null;
     let db, doc, updateDoc, fs2, uid;
@@ -305,17 +305,33 @@
       return nomes;
     }
 
+    function embaralhar(lista) {
+      const baralho = lista.slice();
+      for (let i = baralho.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [baralho[i], baralho[j]] = [baralho[j], baralho[i]];
+      }
+      return baralho;
+    }
+
+    /* Continuidade Manhã→Noite: preferredIds (Fx mapeados) vão ao topo
+       do baralho antes da repartição — mãos e pool herdam a evidência. */
+    function baralhoComSemente(ids, preferredIds) {
+      const all = ids.slice();
+      const pref = (preferredIds || []).filter((id, i, a) => all.includes(id) && a.indexOf(id) === i);
+      if (!pref.length) return embaralhar(all);
+      const set = new Set(pref);
+      const rest = all.filter((id) => !set.has(id));
+      return embaralhar(pref).concat(embaralhar(rest));
+    }
+
     if (souMestre()) {
       const nomes = await nomesDaSala();
       const naSala = Object.keys(nomes);
       /* Se a sala ainda não registrou ninguém, não há o que repartir: cai no
          local em vez de publicar uma mesa vazia que os outros esperariam. */
       if (!naSala.length) return null;
-      const baralho = todosIds.slice();
-      for (let i = baralho.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [baralho[i], baralho[j]] = [baralho[j], baralho[i]];
-      }
+      const baralho = baralhoComSemente(todosIds, opts.preferredIds);
       const maos = {};
       naSala.forEach((u) => (maos[u] = baralho.splice(0, naMao)));
       const mesa = { maos, pool: baralho, distribuidoEmMs: Date.now() };

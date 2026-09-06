@@ -502,11 +502,30 @@ function economiaInicial() {
   return { coins: 12, handSize: 3, source: 'standalone' };
 }
 function setup() {
-  const q = QUESTIONS[state.question],
-    deck = shuffle(FRAGMENTS.map((f) => f.id));
+  const q = QUESTIONS[state.question];
   const eco = economiaInicial();
+  const ponte = window.MosaicoCelularParaNoite;
+  const search = ponte?.parseHandoffSearch?.(location.search) || {
+    fromCelular: new URLSearchParams(location.search).get('from') === 'celular',
+  };
+  const handoff = ponte?.resolveHandoff?.() || null;
+  const allIds = FRAGMENTS.map((f) => f.id);
+  const seed = ponte?.seedCapturaDeck
+    ? ponte.seedCapturaDeck({
+        allIds,
+        handoff,
+        fromCelular: !!search.fromCelular,
+      })
+    : {
+        deck: shuffle(allIds.slice()),
+        seededIds: [],
+        seededLabels: [],
+        source: search.fromCelular ? 'celular-sem-fragmentos' : 'standalone-default',
+      };
+  const deck = seed.deck.slice();
   state.coins = eco.coins;
   state.economia = eco;
+  state.capturaSeed = seed;
   state.score = 100;
   state.creditUsed = 0;
   /* Zerado a cada partida: `playAgain` chama setup de novo, e uma segunda
@@ -525,7 +544,9 @@ function setup() {
      solo-lab, aparelho solto. Havendo sala, ela é substituída logo abaixo
      pela repartição da mesa — um baralho só, mãos que não se repetem, e os
      nomes de quem está de verdade em vez de `Arquivo 02`.
-     handSize vem do handoff quando from=celular (Noite rica v1). */
+     handSize vem do handoff quando from=celular (Noite rica v1.1).
+     seedCapturaDeck prioriza evidências reveladas na Manhã no topo do
+     baralho (mão + pool de compra). */
   const handN = Math.max(2, Math.min(4, Number(eco.handSize) || 3));
   state.hand = deck.splice(0, handN).map(byId);
   if (eco.source && eco.source !== 'standalone') {
@@ -539,12 +560,24 @@ function setup() {
         ').',
     );
   }
+  if (seed.source === 'handoff-fragmentos' && seed.seededIds.length) {
+    nota(
+      'Evidências da manhã no Captura: ' +
+        seed.seededLabels.slice(0, 4).join(', ') +
+        (seed.seededLabels.length > 4 ? '…' : '') +
+        ' (' +
+        seed.seededIds.length +
+        ').',
+    );
+  }
   state.opponents = Array.from({ length: state.players - 1 }, (_, i) => ({
     name: `Arquivo ${String(i + 2).padStart(2, '0')}`,
     hand: [],
   }));
   state.pool = deck;
-  window.MosaicoTelao?.distribuir(FRAGMENTS.map((f) => f.id), 3)
+  window.MosaicoTelao?.distribuir(seed.deck.slice(), handN, {
+    preferredIds: seed.seededIds,
+  })
     .then((m) => {
       if (!m) return;
       state.naMesa = true;
