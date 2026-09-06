@@ -249,6 +249,16 @@
                   var k=document.createElement("script");
                   k.src="js/mercado-casa-da-costa.js?v=20260902-mediado";
                   k.dataset.mercadoCasa="1";
+                  /* O telão entra por último: ele só publica o que a mesa já
+                     sabe (pergunta, fase, resolução). Precisa do CASO e do
+                     STATE.doc estabilizados pelas camadas acima. */
+                  k.onload=function(){
+                    if(document.querySelector("script[data-telao-casa]"))return;
+                    var t=document.createElement("script");
+                    t.src="js/telao-publica.js?v=20260905-casa-telao";
+                    t.dataset.telaoCasa="1";
+                    document.head.appendChild(t);
+                  };
                   document.head.appendChild(k);
                 };
                 document.head.appendChild(m);

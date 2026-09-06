@@ -1370,8 +1370,8 @@
      Sao cinco porque cada modulo sensorial e um documento proprio e nao
      enxerga esta pagina. Dentro desta, o caso e o video releem o mesmo
      valor de window.MOSAICO_VERSAO, que sai da tag do mosaico-v5.js. -->
-<script src="js/mosaico-v5.js?v=20260903-auditoria"></script>
-<script src="js/qr.js?v=20260903-auditoria"></script>
+<script src="js/mosaico-v5.js?v=20260905-casa-telao"></script>
+<script src="js/qr.js?v=20260905-casa-telao"></script>
 <script>
 window.MOSAICO_VERSAO=(function(){
   var s=document.querySelector('script[src*="mosaico-v5.js"]');
@@ -1719,6 +1719,15 @@ function linkDaSala(codigo){
   var u=new URL(window.location.href);
   u.searchParams.set("sala",codigo);
   u.hash="";
+  return u.toString();
+}
+/* O telão compartilhado (telao.html) entra na MESMA sala, no mesmo projeto
+   mosaico-game, coleção mosaico — só lê `publicState`. Sem o código no
+   endereço ele fica no cartão de espera para sempre. */
+function linkDoTelao(codigo){
+  var u=new URL("../telao.html", window.location.href);
+  u.searchParams.set("jogo","casa-da-costa");
+  u.searchParams.set("sala",String(codigo||"").toUpperCase());
   return u.toString();
 }
 function novoId(){
@@ -2213,6 +2222,7 @@ function controlesMestreMovel(){
     secaoStatus+
     secaoPausa+
     '<details class="sala-acordeao" ontoggle="exclusivoSala(this)"><summary>C&oacute;digo e QR da sala</summary><div class="sala-acordeao-conteudo"><div class="codigo-grande">'+esc(m&&m.codigo)+'</div><div class="menu-mestre-qr">'+qr+'</div><button class="btn btn-sm" style="width:100%" onclick="copiarLink()">Copiar link</button></div></details>'+
+    (m&&m.codigo?'<details class="sala-acordeao" ontoggle="exclusivoSala(this)"><summary>&#128250; Tel&atilde;o</summary><div class="sala-acordeao-conteudo"><p class="muted">Abra este endere&ccedil;o na TV, no projetor ou no notebook. Ele entra na mesma sala e s&oacute; mostra o que a mesa publicar em <code>publicState</code>.</p><div class="codigo-grande" style="font-size:13px;word-break:break-all">'+esc(linkDoTelao(m.codigo))+'</div><div class="menu-mestre-qr">'+qrSvg(linkDoTelao(m.codigo),"QR do tel&atilde;o")+'</div><button class="btn btn-sm" style="width:100%" onclick="navigator.clipboard.writeText(linkDoTelao(STATE.mesa.codigo)).then(function(){avisa('Link do tel&atilde;o copiado.');},function(){avisa(linkDoTelao(STATE.mesa.codigo));})">Copiar link do tel&atilde;o</button></div></details>':'')+
     '<details class="sala-acordeao" ontoggle="exclusivoSala(this)"><summary>Encerrar sala</summary><div class="sala-acordeao-conteudo"><button class="btn btn-perigo" onclick="encerrarMesa()">Encerrar sala</button></div></details>'+
     '<details class="sala-acordeao" '+(abrirParticipantes?'open':'')+' ontoggle="exclusivoSala(this)"><summary>Participantes &middot; '+js.length+'</summary><div class="sala-acordeao-conteudo">'+conectados+'</div></details>'+
     '</div></div>':'';
