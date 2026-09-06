@@ -41,7 +41,9 @@ const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 /* Teto medido em 03/09/2026, depois da convergência da bússola. SÓ DESCE. */
 const TETO = {
-  "janela-do-norte": 575,
+  "janela-do-norte": 588,
+  /* 575 → 588 em 06/09/2026: gate avisoElencoAntesJanela (OK obrigatório)
+     só no lado Mesa — A Noite não tem PERSONAGENS da Casa. */
   /* 577 → 575 em 06/09/2026: CTA Casa (Apontar a janela) também no lado Noite. */
   /* 541 → 566 em 06/09/2026: finger mode + prazo suave 50s + CTA Casa
      ("Apontar a janela") no lado Mesa; Noite permanece na linhagem própria. */

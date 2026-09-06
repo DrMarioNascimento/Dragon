@@ -8,17 +8,17 @@
   "use strict";
 
   var PAPEIS = [
-    { id: "investigador", label: "Investigador", competencia: "Relacionar pistas e formular hipóteses." },
-    { id: "cetico", label: "Cético", competencia: "Testar a hipótese dominante e procurar contradições." },
-    { id: "arquivista", label: "Arquivista", competencia: "Separar fatos, interpretações e dúvidas." },
-    { id: "cronista", label: "Cronista", competencia: "Reconstruir sequência e compatibilidade temporal." },
-    { id: "decisor", label: "Decisor", competencia: "Sintetizar alternativas e transformar análise em decisão." }
+    { id: "investigador", label: "Investigador", subtitulo: "Investigador de campo", acao: "Junte pistas e monte uma teoria", competencia: "Relacionar pistas e formular hipóteses." },
+    { id: "cetico", label: "Cético", subtitulo: "Contestador", acao: "Ataque a teoria que está ganhando", competencia: "Testar a hipótese dominante e procurar contradições." },
+    { id: "arquivista", label: "Arquivista", subtitulo: "Custódio dos registros", acao: "Separe fato, achismo e dúvida", competencia: "Separar fatos, interpretações e dúvidas." },
+    { id: "cronista", label: "Cronista", subtitulo: "Reconstrutor da sequência", acao: "Coloque os fatos na ordem certa", competencia: "Reconstruir sequência e compatibilidade temporal." },
+    { id: "decisor", label: "Decisor", subtitulo: "Coordenador da investigação", acao: "Escolha a versão e feche o caso", competencia: "Sintetizar alternativas e transformar análise em decisão." }
   ];
 
   var CAMADAS = [
-    { id: "livre", label: "Livre", desc: "Autonomia total — UI atual." },
-    { id: "assistida", label: "Assistida", desc: "Estruturas visuais para organizar o raciocínio." },
-    { id: "guiada", label: "Guiada", desc: "Assistida + perguntas socráticas progressivas." }
+    { id: "livre", label: "Livre", subtitulo: "Modo Veterano", desc: "Você resolve sozinho" },
+    { id: "assistida", label: "Assistida", subtitulo: "Modo Organizado", desc: "O jogo te ajuda a arrumar as ideias" },
+    { id: "guiada", label: "Guiada", subtitulo: "Modo Acompanhado", desc: "O jogo te ajuda com os próximos passos" }
   ];
 
   /* caso → papel → alias narrativo (matriz do doc §5) */
@@ -161,18 +161,23 @@
     st.id = "mosaico-papel-camada-css";
     st.textContent = [
       ".mpc-bloco{margin-top:14px}",
-      ".mpc-rotulo{font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:#e8a94a;margin:12px 0 8px}",
-      ".mpc-papeis{display:grid;gap:8px}",
-      ".mpc-papel{display:block;width:100%;text-align:left;padding:12px 14px;border:1px solid #344750;border-radius:10px;background:#0a1419;color:#dce8ed;cursor:pointer}",
-      ".mpc-papel.on{border-color:#e8a94a;background:#25190e;color:#ffc46b}",
-      ".mpc-papel b{display:block;font-size:15px}",
-      ".mpc-papel small{display:block;margin-top:3px;color:#9eafb8;font-size:12px;line-height:1.35}",
-      ".mpc-papel .alias{display:block;margin-top:4px;font-style:italic;color:#c9b48a;font-size:13px}",
-      ".mpc-camadas{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}",
-      ".mpc-camada{min-height:72px;padding:10px 6px;border:1px solid #344750;border-radius:10px;background:#0a1419;color:#dce8ed;cursor:pointer;text-align:center}",
-      ".mpc-camada.on{border-color:#e8a94a;background:#25190e;color:#ffc46b}",
-      ".mpc-camada b{display:block;font-size:14px}",
-      ".mpc-camada small{display:block;margin-top:4px;font-size:11px;color:#9eafb8;line-height:1.3}",
+      ".mpc-rotulo{font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:#e8a94a;margin:14px 0 8px}",
+      ".mpc-grade{display:flex;flex-direction:column;border:1px solid #3d5360;border-radius:12px;overflow:hidden;background:#071014}",
+      ".mpc-papeis,.mpc-camadas{gap:0}",
+      ".mpc-celula{display:block;width:100%;text-align:left;padding:14px 16px;border:0;border-bottom:1px solid #2d3f48;border-radius:0;background:#0a1419;color:#dce8ed;cursor:pointer;box-sizing:border-box}",
+      ".mpc-celula:last-child{border-bottom:0}",
+      ".mpc-celula.on{background:#25190e;color:#ffc46b;box-shadow:inset 0 0 0 2px #e8a94a;position:relative;z-index:1}",
+      ".mpc-celula b{display:block;font-size:16px;line-height:1.25}",
+      ".mpc-celula .alias{display:block;margin-top:5px;font-style:italic;color:#c9b48a;font-size:13px;line-height:1.35}",
+      ".mpc-celula small{display:block;margin-top:5px;color:#9eafb8;font-size:13px;line-height:1.4}",
+      ".mpc-celula.on .alias,.mpc-celula.on small{color:#e8d2a4}",
+      ".mpc-papel,.mpc-camada{display:block;width:100%;text-align:left;padding:14px 16px;border:0;border-bottom:1px solid #2d3f48;border-radius:0;background:#0a1419;color:#dce8ed;cursor:pointer;box-sizing:border-box}",
+      ".mpc-papel:last-child,.mpc-camada:last-child{border-bottom:0}",
+      ".mpc-papel.on,.mpc-camada.on{background:#25190e;color:#ffc46b;box-shadow:inset 0 0 0 2px #e8a94a;position:relative;z-index:1}",
+      ".mpc-papel b,.mpc-camada b{display:block;font-size:16px;line-height:1.25}",
+      ".mpc-papel .alias,.mpc-camada .alias{display:block;margin-top:5px;font-style:italic;color:#c9b48a;font-size:13px;line-height:1.35}",
+      ".mpc-papel small,.mpc-camada small{display:block;margin-top:5px;color:#9eafb8;font-size:13px;line-height:1.4}",
+      ".mpc-papel.on .alias,.mpc-papel.on small,.mpc-camada.on .alias,.mpc-camada.on small{color:#e8d2a4}",
       ".mpc-chips{display:inline-flex;flex-wrap:wrap;gap:6px;align-items:center;vertical-align:middle}",
       ".mpc-sessao{display:block;width:100%;font:600 10px/1.2 Inter,system-ui,sans-serif;letter-spacing:.04em;color:#9eb6c2;margin-top:2px}",
       ".mpc-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:999px;border:1px solid rgba(232,169,74,.35);background:rgba(20,16,10,.75);color:#efc878;font:700 10px/1.2 Inter,system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase}",
@@ -202,19 +207,21 @@
     var e = escolha || carregar(c);
     var papeis = PAPEIS.map(function (p) {
       var on = e.papel === p.id ? " on" : "";
-      return '<button type="button" class="mpc-papel' + on + '" data-mpc-papel="' + p.id + '">' +
+      return '<button type="button" class="mpc-celula mpc-papel' + on + '" data-mpc-papel="' + p.id + '">' +
         "<b>" + esc(p.label) + "</b>" +
-        '<span class="alias">' + esc(aliasNarrativo(c, p.id)) + "</span>" +
-        "<small>" + esc(p.competencia) + "</small></button>";
+        '<span class="alias">' + esc(p.subtitulo) + "</span>" +
+        "<small>" + esc(p.acao) + "</small></button>";
     }).join("");
     var camadas = CAMADAS.map(function (cam) {
       var on = e.camada === cam.id ? " on" : "";
-      return '<button type="button" class="mpc-camada' + on + '" data-mpc-camada="' + cam.id + '">' +
-        "<b>" + esc(cam.label) + "</b><small>" + esc(cam.desc) + "</small></button>";
+      return '<button type="button" class="mpc-celula mpc-camada' + on + '" data-mpc-camada="' + cam.id + '">' +
+        "<b>" + esc(cam.label) + "</b>" +
+        '<span class="alias">' + esc(cam.subtitulo) + "</span>" +
+        "<small>" + esc(cam.desc) + "</small></button>";
     }).join("");
     return '<div class="mpc-bloco" data-mpc-caso="' + esc(c) + '">' +
-      '<div class="mpc-rotulo">Papel cognitivo</div><div class="mpc-papeis">' + papeis + "</div>" +
-      '<div class="mpc-rotulo">Camada de assistência</div><div class="mpc-camadas">' + camadas + "</div>" +
+      '<div class="mpc-rotulo">Papel Cognitivo</div><div class="mpc-grade mpc-papeis">' + papeis + "</div>" +
+      '<div class="mpc-rotulo">Camada de Assistência</div><div class="mpc-grade mpc-camadas">' + camadas + "</div>" +
       "</div>";
   }
 

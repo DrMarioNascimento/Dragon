@@ -405,7 +405,7 @@
 </div>
 
 <!-- Protocolo com a Mesa e ativacao de sensor: um so arquivo para as tres tarefas. -->
-<script src="js/tarefa-sensor.js?v=20260906-aviso-dedo"></script>
+<script src="js/tarefa-sensor.js?v=20260906-elenco"></script>
 <script>
 (function(){
 "use strict";
@@ -2453,6 +2453,9 @@ function revela(){
    UI
    ========================================================================== */
 var mAberto=false, jogando=false;
+/* Modal de elenco: a Janela não começa até OK (mesmo espírito do aviso de dedo). */
+var _elencoJanelaOk=false;
+function elencoJanelaPodeComecar(){ return _elencoJanelaOk; }
 function fechaIntro(){
   document.getElementById("intro").classList.add("gone");
   /* a saida pelo dialogo "Sem sensor" nao passa pelo botao do oito, e sem
@@ -2561,11 +2564,21 @@ function oitoNoAr(depois){
 document.getElementById("b-start").addEventListener("click",function(){
   /* a permissão do iOS precisa sair de DENTRO do gesto, então pede primeiro
      e só depois roda os três segundos do oito. */
+  if(!elencoJanelaPodeComecar()) return;
   ativarSensor(function(){ oitoNoAr(fechaIntro); });
 });
 document.getElementById("b-sim").addEventListener("click",function(){
+  if(!elencoJanelaPodeComecar()) return;
   entrarModoDedo("Arraste para girar. Q/E inclinam.");
 });
+if(typeof TarefaSensor!=="undefined"&&TarefaSensor.avisoElencoAntesJanela){
+  TarefaSensor.avisoElencoAntesJanela({
+    caso:"casa-da-costa",
+    aoLiberar:function(){ _elencoJanelaOk=true; }
+  });
+} else {
+  _elencoJanelaOk=true;
+}
 document.getElementById("b-beam").addEventListener("click",function(e){
   e.stopPropagation();
   if(!beamOn){ beamOn=true; }
