@@ -17,11 +17,12 @@ O que muda entre casos e modos é o jogo depois de iniciado. A infraestrutura de
 
 ### 1. Tela inicial
 
-Sempre oferecer:
+Sempre oferecer, nesta ordem:
 
-- **Abrir uma mesa**
-- **Entrar em uma mesa**
-- **Ensaiar sozinho/neste aparelho**, quando o modo possuir ensaio local
+1. **Abrir uma mesa** (primário)
+2. **Entrar em uma mesa** (secundário)
+3. **Ensaiar neste aparelho** (secundário; omitir só se o caso não tiver ensaio nesta superfície)
+4. **Entrar como telão** (secundário; só se a página declarar telão / `data-telao`)
 
 ### 2. Mestre da Mesa
 
@@ -49,7 +50,19 @@ A sala deve mostrar, no mesmo painel:
 - lista em tempo real dos jogadores conectados;
 - identificação do Mestre;
 - identificação visual dos jogadores;
-- botão **Iniciar partida** visível somente para o Mestre.
+- botão **Iniciar partida** visível somente para o Mestre;
+- convidados veem **Aguardando o Mestre iniciar a partida…**;
+- badges da lista: **Mestre** / **Jogador**;
+- o painel persistente chama-se **Sala** (Title Case).
+
+### Painel Sala (Mestre) — ordem
+
+1. Ação necessária (se houver)
+2. Código e QR
+3. Telão (se houver)
+4. Participantes
+5. Controle partida
+6. Encerrar sala
 
 O QR deve abrir o próprio jogo com `?sala=CODIGO`.
 
@@ -96,3 +109,11 @@ Este padrão vale, no mínimo, para:
 - futuros casos multiplayer do MOSAICO
 
 Não criar fluxos paralelos de login, identificação, QR ou lobby sem decisão explícita de projeto.
+
+
+## Implementação atual (gap estrutural)
+
+- **Carro-Forte Celular** e **A Noite (Carro-Forte)** usam o gate/lobby compartilhado em `firebase-room.js`.
+- **A Casa da Costa Celular** (`v1/MOSAICO-mesa.html`) ainda tem gate/lobby próprio (Firebase `mosaico-game` + fluxo de personagens/encenação). Os **rótulos, ordem dos botões, badges e ordem do painel Sala** foram alinhados ao canônico; a **infraestrutura** (auth Google do Mestre, anônimo do convidado, QR, início sincronizado) permanece dual até um port completo e seguro para `firebase-room.js`.
+- Porta Solo / hub: CTA **Ensaiar neste aparelho**.
+- Forma “Tanto faz”: código canônico **`n`** (Casa aceita legado `?` na leitura).

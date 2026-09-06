@@ -1,0 +1,146 @@
+/**
+ * Padronização UI Mestre vs Jogador — gate, lobby, Sala, telão.
+ * Fonte normativa: PADRAO-SALA-MULTIPLAYER.md + audit proposal.
+ */
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { describe, it } from "node:test";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const root = join(dirname(fileURLToPath(import.meta.url)), "..");
+const ler = (p) => readFileSync(join(root, p), "utf8").replace(/\r\n/g, "\n");
+
+const ROOM = ler("firebase-room.js");
+const CASA = ler("v1/MOSAICO-mesa.html");
+const CEL = ler("carro-forte/celular.html");
+const NOITE = ler("carro-forte/noite/index.html");
+const HUB = ler("index.html");
+const PADRAO = ler("PADRAO-SALA-MULTIPLAYER.md");
+const MPC = ler("papel-camada.js");
+
+function stripComments(src) {
+  return src
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/(^|[\n\r])\s*\/\/[^\n\r]*/g, "$1");
+}
+
+function gateButtonOrder(src, labels) {
+  const plain = stripComments(src);
+  let pos = -1;
+  for (const label of labels) {
+    const i = plain.indexOf(label, pos + 1);
+    assert.ok(i > pos, `faltou ou fora de ordem: ${label}`);
+    pos = i;
+  }
+}
+
+describe("gate canônico · firebase-room (Carro / Noite)", () => {
+  it("ordem Abrir → Entrar → Ensaiar → Telão", () => {
+    gateButtonOrder(ROOM, [
+      "Abrir uma mesa",
+      "Entrar em uma mesa",
+      "Ensaiar neste aparelho",
+      "Entrar como telão",
+    ]);
+  });
+
+  it("Abrir com Google no caminho do Mestre", () => {
+    assert.match(ROOM, /Abrir com Google/);
+  });
+
+  it("lobby: Iniciar partida só no caminho Mestre; convidado aguarda", () => {
+    assert.match(ROOM, /id="drStart">Iniciar partida</);
+    assert.match(ROOM, /Aguardando o Mestre iniciar a partida/);
+    assert.equal(/Começar o jogo/.test(ROOM), false);
+  });
+
+  it("Entrar (após nome/papel) e badges Mestre/Jogador", () => {
+    assert.match(ROOM, /id="drEnter">Entrar</);
+    assert.match(ROOM, /p\.mestre\?'Mestre':'Jogador'/);
+  });
+
+  it("painel Sala Title Case; telão sem seletor de papel", () => {
+    assert.match(ROOM, /b\.textContent='Sala'/);
+    assert.match(ROOM, /function formTelao\(/);
+    const formTelao = ROOM.slice(ROOM.indexOf("function formTelao"), ROOM.indexOf("function renderMasterGate"));
+    assert.equal(/mpc-|papelCognitivo|htmlSeletor|drForma/.test(formTelao), false);
+  });
+
+  it("Sala panel: Código/QR → Telão → Participantes → Controle partida → Encerrar", () => {
+    const panel = ROOM.slice(ROOM.indexOf("function atualizarSalaPersistente"), ROOM.indexOf("async function encerrarSala"));
+    gateButtonOrder(panel, [
+      "Código e QR",
+      "Telão",
+      "Participantes",
+      "Controle partida",
+      "Encerrar sala",
+    ]);
+  });
+});
+
+describe("gate canônico · Casa Celular", () => {
+  it("ordem Abrir → Entrar → Entrar como telão (sem botão Ensaiar nesta superfície)", () => {
+    const inicio = CASA.slice(CASA.indexOf("function telaInicio"), CASA.indexOf("function modalSenha"));
+    gateButtonOrder(inicio, [
+      "Abrir uma mesa",
+      "Entrar em uma mesa",
+      "Entrar como tel",
+    ]);
+    assert.equal(/btn[^>]*>Ensaiar/.test(inicio), false);
+  });
+
+  it("Entrar após identificação; Iniciar partida no Mestre; guest aguarda", () => {
+    assert.match(CASA, /Criando a mesa…':'Entrar'\)/);
+    assert.match(CASA, /Iniciar partida/);
+    assert.match(CASA, /Aguardando o Mestre iniciar a partida/);
+  });
+
+  it("guest lobby lista com badges Mestre/Jogador", () => {
+    const esp = CASA.slice(CASA.indexOf("function telaEsperando"), CASA.indexOf("function telaEncenacao"));
+    assert.match(esp, /j\.mestre\?'Mestre':'Jogador'/);
+    assert.match(esp, /papel-sessao/);
+  });
+
+  it("Sala panel ordem canônica (montagem do painel)", () => {
+    const painel = CASA.slice(CASA.indexOf("var painel=STATE.menuMestreAberto"), CASA.indexOf("return '<button class=\"btn-menu-mestre"));
+    gateButtonOrder(painel, [
+      "C&oacute;digo e QR",
+      "Tel&atilde;o",
+      "Participantes",
+      "secaoControle",
+      "Encerrar sala",
+    ]);
+    assert.match(CASA, /summary>Controle partida</);
+  });
+
+  it("forma Tanto faz usa código n (legado ? aceito na leitura)", () => {
+    assert.match(CASA, /escolherForma\(\\'n\\'\)/);
+    assert.match(CASA, /forma==="n"\|\|STATE\.forma==="\?"/);
+  });
+});
+
+describe("HUD / hub · Sala Title Case e Ensaiar", () => {
+  it("Carro Celular e Noite usam rótulo Sala (não SALA)", () => {
+    assert.match(CEL, />Sala</);
+    assert.equal(/>SALA</.test(CEL), false);
+    assert.match(NOITE, />Sala</);
+    assert.equal(/>SALA</.test(NOITE), false);
+  });
+
+  it("hub alinha Solo a Ensaiar neste aparelho", () => {
+    assert.match(HUB, /Ensaiar neste aparelho/);
+    assert.equal(/Ensaiar sozinho/.test(HUB), false);
+  });
+
+  it("PADRAO documenta Iniciar partida e ordem do gate", () => {
+    assert.match(PADRAO, /Iniciar partida/);
+    assert.match(PADRAO, /Ensaiar neste aparelho/);
+    assert.match(PADRAO, /gap estrutural/i);
+  });
+
+  it("chip pode mostrar sessão Mestre/Jogador sem substituir papel cognitivo", () => {
+    assert.match(MPC, /mpc-sessao/);
+    assert.match(MPC, /opts\.sessao|opts && opts\.sessao/);
+  });
+});
