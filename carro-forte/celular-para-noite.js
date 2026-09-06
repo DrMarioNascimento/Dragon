@@ -8,7 +8,7 @@
    A ponte semeia noite/{sala} com partida.pergunta + partida.handoff e
    navega com ?from=celular&sala=&pergunta=. Solo/offline guarda o payload
    em sessionStorage para refresh/rejoin local.
-   Economia Captura: deriveNoiteEconomy(handoff) — ver README da Noite. */
+   Economia Captura: deriveNoiteEconomy(handoff); baralho: seedCapturaDeck — ver README da Noite. */
 (function () {
   const PERGUNTAS = ['peso', 'janela', 'roubo', 'antes', 'quem', 'proteger'];
   const FROM_CELULAR = 'celular';
@@ -16,6 +16,23 @@
   const HANDOFF_STORAGE_PREFIX = 'mosaico-carro-handoff:';
   const ECONOMIA_STANDALONE = { coins: 12, handSize: 3 };
   const ECONOMIA_PONTE_SEM_FECHO = { coins: 10, handSize: 3 };
+  const MANHA_PARA_CAPTURA = {
+    F01: 'F1', F02: 'F2', F03: 'F2', F04: 'F2', F05: 'F3', F06: 'F3',
+    F07: 'F17', F08: 'F17', F09: 'F5', F10: 'F4', F11: 'F7', F12: 'F7',
+    F13: 'F8', F14: 'F9', F15: 'F9', F16: 'F10', F17: 'F11', F18: 'F12',
+    F19: 'F13', F20: 'F13', F21: 'F14', F22: 'F16', F23: 'F6', F24: 'F6',
+    F25: 'F18', F26: 'F18', F27: 'F19', F28: 'F15', F29: 'F1', F30: 'F5',
+  };
+  const CAPTURA_ROTULOS = {
+    F1: 'Antecipação interna', F2: 'Âncora 7h47', F3: 'Erro 17',
+    F4: 'Contato preparado', F5: 'Zona cega', F6: 'Afastamento',
+    F7: 'Duas etiquetas', F8: 'O saco vazio', F9: 'O peso',
+    F10: 'Conferência de destino', F11: 'Saque de madrugada', F12: 'Origem do penhor',
+    F13: 'Consolidação duplicada', F14: 'Assinatura sem contagem',
+    F15: 'Convocação da Auditoria', F16: 'Trajeto do malote', F17: 'Chave 17-B',
+    F18: 'Pasta azul', F19: 'Protocolo do Cliente',
+  };
+  const CUSTOS_CAPTURA = { arriscar: 3, capturar: 2, comprar: 4 };
   const CFG = {
     apiKey: 'AIzaSyA160bkgHBrYBwvIxlENax-aAyLWPMaOU4',
     authDomain: 'mosaico-noite.firebaseapp.com',
@@ -136,14 +153,79 @@
         rule: 'ponte-fair-seed-10/3',
       };
     }
-    const coins = Math.max(8, Math.min(12, 8 + Math.floor(fecho.total / 25)));
+    const coins = Math.max(9, Math.min(13, 9 + Math.floor(fecho.total / 25)));
     const handSize = fecho.total < 40 ? 2 : 3;
     return {
       coins,
       handSize,
       source: 'celular-fecho',
-      rule: 'v1-8+floor(total/25)_hand-2se<40',
+      rule: 'v1.1-9+floor(total/25)_hand-2se<40',
       fechoTotal: fecho.total,
+    };
+  }
+
+  function mapFragmentosManhaParaCaptura(manhaIds) {
+    const out = [];
+    const seen = new Set();
+    for (const raw of limparIds(manhaIds)) {
+      const cap = MANHA_PARA_CAPTURA[raw];
+      if (!cap || seen.has(cap)) continue;
+      seen.add(cap);
+      out.push(cap);
+    }
+    return out;
+  }
+
+  function shuffleCopy(list, rnd) {
+    const a = list.slice();
+    const r = typeof rnd === 'function' ? rnd : Math.random;
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(r() * (i + 1));
+      const t = a[i];
+      a[i] = a[j];
+      a[j] = t;
+    }
+    return a;
+  }
+
+  /** Prioriza no baralho Captura os Fx mapeados dos Fxx revelados na Manhã. */
+  function seedCapturaDeck(opts = {}) {
+    const allIds = Array.isArray(opts.allIds) ? opts.allIds.map(String) : [];
+    const fromCelular =
+      opts.fromCelular === true ||
+      opts.handoff?.from === FROM_CELULAR ||
+      !!normalizeHandoff(opts.handoff);
+    const rnd = opts.rnd;
+    if (!fromCelular) {
+      return {
+        deck: shuffleCopy(allIds, rnd),
+        seededIds: [],
+        seededLabels: [],
+        source: 'standalone-default',
+      };
+    }
+    const h = normalizeHandoff(opts.handoff);
+    const preferred = mapFragmentosManhaParaCaptura(h && h.fragmentosRevelados).filter(function (id) {
+      return allIds.indexOf(id) >= 0;
+    });
+    if (!preferred.length) {
+      return {
+        deck: shuffleCopy(allIds, rnd),
+        seededIds: [],
+        seededLabels: [],
+        source: 'celular-sem-fragmentos',
+      };
+    }
+    const preferSet = {};
+    preferred.forEach(function (id) { preferSet[id] = true; });
+    const rest = allIds.filter(function (id) { return !preferSet[id]; });
+    const deck = shuffleCopy(preferred, rnd).concat(shuffleCopy(rest, rnd));
+    const seededLabels = preferred.map(function (id) { return CAPTURA_ROTULOS[id] || id; });
+    return {
+      deck: deck,
+      seededIds: preferred.slice(),
+      seededLabels: seededLabels,
+      source: 'handoff-fragmentos',
     };
   }
 
@@ -158,6 +240,22 @@
     if (h?.fecho) parts.push('fecho ' + h.fecho.total + '/100');
     if (h?.fragmentosRevelados?.length)
       parts.push(h.fragmentosRevelados.length + ' fragmentos revelados');
+    const seeded = mapFragmentosManhaParaCaptura(h && h.fragmentosRevelados);
+    if (seeded.length) {
+      const labels = seeded
+        .slice(0, 3)
+        .map(function (id) { return CAPTURA_ROTULOS[id] || id; })
+        .join(', ');
+      parts.push(
+        'Captura prioriza ' +
+          seeded.length +
+          (seeded.length === 1 ? ' evidência' : ' evidências') +
+          ' (' +
+          labels +
+          (seeded.length > 3 ? '…' : '') +
+          ')',
+      );
+    }
     const eco = deriveNoiteEconomy(h || { from: FROM_CELULAR, pergunta: pergunta || 'peso' }, {
       fromCelular: true,
     });
@@ -382,6 +480,9 @@
     HANDOFF_VERSION,
     ECONOMIA_STANDALONE,
     ECONOMIA_PONTE_SEM_FECHO,
+    MANHA_PARA_CAPTURA,
+    CAPTURA_ROTULOS,
+    CUSTOS_CAPTURA,
     normalizeSala,
     normalizePergunta,
     normalizeFecho,
@@ -394,6 +495,8 @@
     readHandoffLocal,
     resolveHandoff,
     deriveNoiteEconomy,
+    mapFragmentosManhaParaCaptura,
+    seedCapturaDeck,
     continuityBannerText,
     seedNoiteRoom,
     goToNoite,

@@ -30,19 +30,31 @@ O lobby mostra o cartão **CONTINUIDADE · MANHÃ → NOITE** com pergunta e res
 | `jogadores` / `nomes` | quem jogou a manhã |
 | `fecho` | eixos de `pontuar()` (`total`, `campos`, `hipotese`, `relacoes`, `leitura`, `sensorial`, `revisao`, `acertos`) |
 | `hipoteseFinal` / `hipoteseProv` | decisão da Manhã (H1–H10), sem spoiler canônico |
-| `fragmentosRevelados` | ids `Fxx` revelados/marcados — **só banner**; não semeiam o baralho do Captura |
+| `fragmentosRevelados` | ids `Fxx` revelados/marcados — banner + **semente do baralho Captura** (via `MANHA_PARA_CAPTURA`) |
 | `emMs` | carimbo do handoff |
 
-### Economia / Captura — regra v1
+### Economia / Captura — regra v1.1
+
+Leitura do código: **Arriscar** devolve as 3 moedas no acerto; o orçamento paga erros, **Comprar (4)** e **Capturar (2)**. O ciclo exploratório mínimo (falha + compra + captura) custa **9** — por isso o piso/teto subiram face à v1 (8–12 → 9–13).
 
 Quando a Noite abre com `from=celular` e o handoff traz `fecho.total`:
 
-- **moedas** = `clamp(8 + floor(total / 25), 8, 12)`
+- **moedas** = `clamp(9 + floor(total / 25), 9, 13)`
 - **mão inicial** = `2` se `total < 40`, senão `3`
 
 Sem fecho numérico (só deep link antigo): semente justa **10 moedas · 3 fragmentos**.
 Entrada standalone: **12 moedas · 3 fragmentos** (experimental legado).
 Custos de Arriscar (3) / Capturar (2) / Comprar (4) **não mudam**. A pontuação da Manhã não é reescrita — só escala o orçamento inicial do fechamento.
+
+### Semente de fragmentos (Captura)
+
+Quando `from=celular` e o handoff traz `fragmentosRevelados`:
+
+1. Cada id `Fxx` da Manhã mapeia para um cartão condensado `Fx` (`MANHA_PARA_CAPTURA` em `celular-para-noite-contrato.mjs`).
+2. `seedCapturaDeck` monta o baralho como `shuffle(semeados) + shuffle(resto)`.
+3. A mão inicial e o pool de compra saem do topo — a mesa joga em torno do que a manhã revelou (ids + rótulos no log/banner).
+
+Standalone (sem `from=celular`) e ponte sem fragmentos: baralho padrão embaralhado por completo.
 
 ## Enquadramento narrativo
 
@@ -78,7 +90,7 @@ Os fatos são verdadeiros; as interpretações ainda estão em disputa. Cada par
 - erro queima o campo apenas para o jogador;
 - tabela de pontuação consultável em modal, sem ranking ao vivo.
 
-Os valores econômicos da entrada **avulsa** continuam **experimentais**. Na **Noite rica** (`from=celular`), o orçamento inicial segue a regra v1 acima — playável e ligada ao fecho da manhã, ainda não o balanceamento final do Captura.
+Os valores econômicos da entrada **avulsa** continuam **experimentais**. Na **Noite rica** (`from=celular`), o orçamento inicial segue a regra v1.1 acima — playável e ligada ao fecho da manhã, ainda não o balanceamento final do Captura.
 
 ## Identidade visual
 
@@ -93,6 +105,6 @@ Os ambientes internos do banco ainda poderão receber imagens próprias posterio
 - `index.html` — telas e estrutura;
 - `styles.css` — identidade visual, profundidade, mobile e responsividade;
 - `game.js` / `game-fixed.js` — perguntas, mãos, economia (standalone ou herdada do handoff), captura, risco e cronômetro;
-- `../celular-para-noite.js` (+ `celular-para-noite-contrato.mjs`) — ponte Manhã→Noite, schema do handoff e regra v1 de economia.
+- `../celular-para-noite.js` (+ `celular-para-noite-contrato.mjs`) — ponte Manhã→Noite, schema do handoff e regra v1.1 de economia + semente de fragmentos.
 
 **Prof. Mário César Nascimento, PhD ©**
