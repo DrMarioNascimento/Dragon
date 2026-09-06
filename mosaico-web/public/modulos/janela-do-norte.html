@@ -294,6 +294,11 @@
   body.embed #sub,
   body.embed #local{display:none}
   body.embed #intro{justify-content:center;justify-content:safe center}
+  /* No iframe a viewport é o quadro da Mesa, não o dvh do Safari. 100dvh
+     aqui estourava o quadro e escondia FAROL; 100% preenche o sensor-play. */
+  html.embed,html.embed body{height:100%;max-height:100%;overflow:hidden}
+  html.embed #hud,html.embed #intro,html.embed #oito,html.embed #card,
+  html.embed #carta,html.embed #falha,html.embed #c{height:100%;max-height:100%}
   body:has(#oito.on) #hud,
   body:has(#intro:not(.gone)) #hud { visibility: hidden; opacity: 0; }
 
@@ -2655,7 +2660,7 @@ RETENTAR=function(){ ativarSensor(function(){ oitoNoAr(fechaIntro); }); };
 SEGUIR_TOQUE=function(){ sim=true; src="mouse/dedo"; raw.elev=2;
   raw.bearing=view.bearing=wrap360(target.bearing+118);
   fechaIntro(); setStatus("Arraste para girar. Q/E inclinam."); };
-if(EMBED) document.body.classList.add("embed");
+if(EMBED){ document.documentElement.classList.add("embed"); document.body.classList.add("embed"); }
 if(!DEV){
   var _bt=document.getElementById("b-sim")||document.getElementById("alt");
   if(_bt && _bt.parentNode) _bt.parentNode.removeChild(_bt);

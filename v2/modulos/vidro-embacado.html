@@ -363,6 +363,9 @@
   body.embed #btn-pistas,
   body.embed #pistas{display:none}
   body.embed #intro{justify-content:center;justify-content:safe center}
+  html.embed,html.embed body{height:100%;max-height:100%;overflow:hidden}
+  html.embed #hud,html.embed #intro,html.embed #oito,html.embed #carta,
+  html.embed #falha,html.embed #c,html.embed #pistas{height:100%;max-height:100%}
 
   /* ---------------- falha de sensor ---------------- */
   #falha{position:fixed;left:0;right:0;top:0;height:100%;height:100dvh;z-index:20;
@@ -1441,7 +1444,7 @@ document.getElementById("falha-toque").addEventListener("click",function(){
 });
 RETENTAR=function(){ ativaSensor(); };
 SEGUIR_TOQUE=function(){ modoDedo=true; tBeta=90; tGamma=0; comeca(); avisa("Modo dedo — arraste a tela"); };
-if(EMBED) document.body.classList.add("embed");
+if(EMBED){ document.documentElement.classList.add("embed"); document.body.classList.add("embed"); }
 if(!DEV){
   var _bt=document.getElementById("b-sim")||document.getElementById("alt");
   if(_bt && _bt.parentNode) _bt.parentNode.removeChild(_bt);

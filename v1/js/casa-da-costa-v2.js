@@ -207,9 +207,18 @@
     return telaResultadoBase();
   };
 
-  /* A pergunta fica visível também no telão e no Caso durante toda a partida. */
+  /* A pergunta fica visível também no telão e no Caso durante toda a partida.
+     Nas telas de sensor ela entra no bloco .sensor-copy (mesa), para não
+     abrir um vão extra entre RODADA ATUAL e o quadro. */
   var cabecalhoBase=global.cabecalhoRodada;
-  global.cabecalhoRodada=function(fase,classe){var h=cabecalhoBase(fase,classe);if(fase==='sala'||fase==='resultado')return h;var p=partida();return h+'<div style="text-align:center;color:#ffd18d;font:700 clamp(11px,2.3vw,14px)/1.3 var(--serif);margin:-8px auto 13px;max-width:54em">'+escLocal(p.pergunta)+'</div>';};
+  global.cabecalhoRodada=function(fase,classe){
+    var h=cabecalhoBase(fase,classe);
+    if(fase==='sala'||fase==='resultado')return h;
+    if(STATE.tela==='inclinacao'||STATE.tela==='constelacao')return h;
+    var p=partida();
+    if(!p||!p.pergunta)return h;
+    return h+'<div class="partida-pergunta">'+escLocal(p.pergunta)+'</div>';
+  };
 
   /* O carregador antigo já pode ter renderizado a capa antes desta camada. */
   if(global.CASO&&CASO.partidas){if(!STATE.partidaId)STATE.partidaId=CASO.perguntaPadrao||"sete";render(true);}
