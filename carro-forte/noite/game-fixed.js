@@ -788,6 +788,20 @@ function chooseQuestionAutomatically() {
     });
     return;
   }
+  const handoff = window.MosaicoCelularParaNoite?.parseHandoffSearch?.(location.search);
+  if (handoff?.fromCelular && handoff.pergunta && QUESTIONS[handoff.pergunta]) {
+    state.question = handoff.pergunta;
+    mostrarRitmo();
+    return;
+  }
+  const daUrl = String(new URLSearchParams(location.search).get('pergunta') || '')
+    .trim()
+    .toLowerCase();
+  if (daUrl && QUESTIONS[daUrl] && new URLSearchParams(location.search).get('from') === 'celular') {
+    state.question = daUrl;
+    mostrarRitmo();
+    return;
+  }
   state.question = ids[Math.floor(Math.random() * ids.length)];
   mostrarRitmo();
 }

@@ -875,6 +875,16 @@ function renderScore(){
     e o que falta fica visível sem revelar qual vem a seguir. */
  const feitas=fechadas(),total=Object.keys(PARTIDAS).length;
  $('colecao').innerHTML=`<small>PERGUNTAS DESTA MESA</small><b>${feitas.length} de ${total} fechadas</b><div class="colecao-marcas">${Object.keys(PARTIDAS).map(id=>`<span class="marca ${feitas.includes(id)?'on':''}">${feitas.includes(id)?PARTIDAS[id].nature:'?'}</span>`).join('')}</div><p>${feitas.length>=total?'A mesa fechou as seis. O rodízio recomeça em outra ordem, com outro dossiê.':'A próxima pergunta é sorteada pelo sistema — e nenhuma se repete antes que as seis tenham caído.'}</p>`;
+ /* Ponte Manhã → Noite: mesmo código + pergunta congelada. */
+ const hint=$('noiteBridgeHint'),btnNoite=$('toNoite');
+ if(hint){
+  hint.hidden=false;
+  const code=salaCodigo();
+  hint.innerHTML=code
+   ?`A Noite continua com o <b>mesmo código ${code}</b> e a <b>mesma pergunta</b>. Mãos, moedas e economia do Captura começam do zero.`
+   :`Abra a Noite com a <b>mesma pergunta</b> desta investigação. Sem sala, o Captura segue em ensaio local — mãos e moedas começam do zero.`;
+ }
+ if(btnNoite)btnNoite.hidden=false;
 }
 
 /* ── O FECHO DA MESA ──────────────────────────────────────────────────────
@@ -1107,6 +1117,19 @@ $('nextReveal').onclick=()=>{
 /* Na rodada nova o convidado espera a pergunta MUDAR: sem passar a que acabou,
    ele receberia de volta a mesma e jogaria duas vezes o mesmo caso. */
 $('playAgain').onclick=()=>abrirPauta(state.game);
+$('toNoite')&&($('toNoite').onclick=()=>{
+ const ponte=window.MosaicoCelularParaNoite;
+ const pergunta=state.game;
+ const sala=salaCodigo();
+ const jogadores=(window.MOSAICO_ROOM?.players||[]).length||0;
+ if(!ponte?.goToNoite){
+  const q=new URLSearchParams({from:'celular'});
+  if(sala)q.set('sala',sala);if(pergunta)q.set('pergunta',pergunta);
+  location.href='noite/?'+q.toString();
+  return;
+ }
+ ponte.goToNoite({sala,pergunta,jogadores,base:'noite/'});
+});
 $('resetBtn').onclick=()=>{if(confirm('Reiniciar a Mesa e voltar à escolha inicial?'))location.reload()};
 $('infoBtn').onclick=()=>$('drawer').classList.add('on');
 $('drawerClose').onclick=()=>$('drawer').classList.remove('on');
