@@ -1373,7 +1373,7 @@
 <script src="../papel-camada.js?v=20260906-papel-camada-abc"></script>
 <script src="js/qr.js?v=20260906-aviso-dedo"></script>
 <script src="js/casa-firebase-room-bridge.js?v=20260906-aviso-dedo"></script>
-<script type="module" src="../firebase-room.js?v=20260906-casa-room"
+<script type="module" src="../firebase-room.js?v=20260906-abrir-sem-modo"
         data-project="mesa"
         data-root="mosaico"
         data-case="casa-da-costa"
@@ -2651,7 +2651,6 @@ function modalSenha(){
     '<div class="modal">'+
       '<span class="eyebrow">&Aacute;rea do mestre</span>'+
       '<h2 style="font-size:clamp(26px,7vw,34px);margin-bottom:18px">Como as rodadas devem avan&ccedil;ar?</h2>'+
-      '<p class="muted" style="margin:0 0 16px">Celular: mestre e jogadores neste aparelho. Se quiser telão, abra a porta Telão da landing na TV com o código da sala.</p>'+
       '<span class="eyebrow ritmo-titulo">Ritmo</span>'+
       '<button class="ritmo-op'+((STATE.ritmoMesa||"automatico")==="automatico"?' on':'')+'" onclick="escolherRitmoMesa(\'automatico\')"><b>Automaticamente &middot; recomendado</b><span>O jogo avan&ccedil;a quando todos terminam.</span></button>'+
       '<button class="ritmo-op'+(STATE.ritmoMesa==="conduzido"?' on':'')+'" onclick="escolherRitmoMesa(\'conduzido\')"><b>Com minha libera&ccedil;&atilde;o</b><span>A Sala avisar&aacute; quando for hora de avan&ccedil;ar.</span></button>'+
@@ -3598,9 +3597,9 @@ function telaDeducao(){
    contra a lista em config/mestres.
 
    `pedirSenha` continua com o nome antigo: ele abre o painel de ritmo
-   (Com/Sem telão saiu — presença de telão é heartbeat). Renomear obrigaria a
-   caçar chamadas em três arquivos por ganho nenhum. */
+   (modo já veio da landing Celular — força sem-telao, sem seletor). */
 function pedirSenha(){
+  STATE.modoMesa="sem-telao";
   STATE.senhaAberta=true; render();
   setTimeout(function(){ var i=document.getElementById("senha"); if(i) i.focus(); },80);
 }
