@@ -400,7 +400,7 @@
 </div>
 
 <!-- Protocolo com a Mesa e ativacao de sensor: um so arquivo para as tres tarefas. -->
-<script src="js/tarefa-sensor.js?v=20260906-casa-room"></script>
+<script src="js/tarefa-sensor.js?v=20260906-aviso-dedo"></script>
 <script>
 (function(){
 "use strict";
@@ -1022,6 +1022,19 @@ function onOrient(e){
    js/tarefa-sensor.js. O que é próprio desta tarefa fica aqui: a bússola
    precisa do norte verdadeiro, e a espera é maior que a das outras porque
    os 3 s do oito não podem contar como sensor mudo. */
+var _prazoSuaveArmado=false;
+function armarPrazoSuave(){
+  if(_prazoSuaveArmado) return;
+  if(typeof TarefaSensor==="undefined"||!TarefaSensor.prazoSuave) return;
+  _prazoSuaveArmado=true;
+  TarefaSensor.prazoSuave(ctxMesa(), function(){
+    if(conclusaoEnviada||ABORTADO) return;
+    setStatus("Tempo esgotado · sem precisão.");
+    /* Garante cronômetro mínimo e conclui para não bloquear a sala. */
+    if(inicioTarefa===null) iniciarCronometroOficial();
+    enviarConclusao();
+  });
+}
 function entrarModoDedo(motivo){
   /* Sem giroscópio / permissão negada: finger mode, sem prender a mesa. */
   sim=true; src="mouse/dedo"; modoEntrada="toque";
@@ -1032,15 +1045,15 @@ function entrarModoDedo(motivo){
   setStatus(motivo||"Arraste para girar. Toque nas zonas — sem precisão de bússola.");
   armarPrazoSuave();
 }
-function armarPrazoSuave(){
-  if(typeof TarefaSensor==="undefined"||!TarefaSensor.prazoSuave) return;
-  TarefaSensor.prazoSuave(ctxMesa(), function(){
-    if(conclusaoEnviada||ABORTADO) return;
-    setStatus("Tempo esgotado · sem precisão.");
-    /* Garante cronômetro mínimo e conclui para não bloquear a sala. */
-    if(inicioTarefa===null) iniciarCronometroOficial();
-    enviarConclusao();
-  });
+/* Fallback de sensor: modal + countdown + OK antes de liberar o dedo.
+   Soft deadline arma já aqui — o aviso não atrasa os 50s. */
+function cairNoModoDedo(motivo){
+  armarPrazoSuave();
+  if(typeof TarefaSensor!=="undefined"&&TarefaSensor.avisoAntesModoDedo){
+    TarefaSensor.avisoAntesModoDedo({ aoLiberar:function(){ entrarModoDedo(motivo); } });
+  } else {
+    entrarModoDedo(motivo);
+  }
 }
 function ativarSensor(pronto){
   TarefaSensor.ativarOrientacao({
@@ -1050,13 +1063,13 @@ function ativarSensor(pronto){
     respondeu: function(){ return started; },
     aoNaoResponder: function(){
       src="sem sensor";
-      entrarModoDedo("Bússola muda — arraste para apontar a janela.");
+      cairNoModoDedo("Bússola muda — arraste para apontar a janela.");
     },
     aoNegar: function(){
-      entrarModoDedo("Movimento negado — arraste para apontar a janela.");
+      cairNoModoDedo("Movimento negado — arraste para apontar a janela.");
     },
     aoIndisponivel: function(){
-      entrarModoDedo("Sem bússola — arraste para apontar a janela.");
+      cairNoModoDedo("Sem bússola — arraste para apontar a janela.");
     }
   });
 }

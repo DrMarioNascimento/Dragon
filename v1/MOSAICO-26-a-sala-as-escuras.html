@@ -384,7 +384,7 @@
 </div>
 
 <!-- Protocolo com a Mesa e ativacao de sensor: um so arquivo para as tres tarefas. -->
-<script src="js/tarefa-sensor.js?v=20260906-casa-room"></script>
+<script src="js/tarefa-sensor.js?v=20260906-aviso-dedo"></script>
 <script>
 (function(){
 "use strict";
@@ -1687,8 +1687,11 @@ function onOrient(e){
 }
 /* A permissão de movimento do iOS e os dois eventos do Android moram em
    js/tarefa-sensor.js. Aqui fica só o que é desta tarefa. */
+var _prazoSuaveArmado=false;
 function armarPrazoSuave(){
+  if(_prazoSuaveArmado) return;
   if(typeof TarefaSensor==="undefined"||!TarefaSensor.prazoSuave) return;
+  _prazoSuaveArmado=true;
   TarefaSensor.prazoSuave(ctxMesa(), function(){
     if(conclusaoEnviada||ABORTADO) return;
     if(typeof setStatus==="function") setStatus("Tempo esgotado · sem precisão.");
@@ -1703,15 +1706,23 @@ function entrarModoDedo(msg){
   if(typeof setStatus==="function") setStatus(msg||"Arraste para explorar no toque.");
   armarPrazoSuave();
 }
+function cairNoModoDedo(msg){
+  armarPrazoSuave();
+  if(typeof TarefaSensor!=="undefined"&&TarefaSensor.avisoAntesModoDedo){
+    TarefaSensor.avisoAntesModoDedo({ aoLiberar:function(){ entrarModoDedo(msg); } });
+  } else {
+    entrarModoDedo(msg);
+  }
+}
 function ativaSensor(){
   TarefaSensor.ativarOrientacao({
     aoOrientar: onOrient,
     aoLigar: function(){ oitoNoAr(function(){ fechaIntro(); armarPrazoSuave(); }); },
     esperaMs: 1400,
     respondeu: function(){ return jogando; },
-    aoNaoResponder: function(){ entrarModoDedo("Bússola muda — arraste para explorar."); },
-    aoNegar: function(){ entrarModoDedo("Movimento negado — arraste para explorar."); },
-    aoIndisponivel: function(){ entrarModoDedo("Sem bússola — arraste para explorar."); }
+    aoNaoResponder: function(){ cairNoModoDedo("Bússola muda — arraste para explorar."); },
+    aoNegar: function(){ cairNoModoDedo("Movimento negado — arraste para explorar."); },
+    aoIndisponivel: function(){ cairNoModoDedo("Sem bússola — arraste para explorar."); }
   });
 }
 

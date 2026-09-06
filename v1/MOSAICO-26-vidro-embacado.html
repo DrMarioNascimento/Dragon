@@ -461,7 +461,7 @@
 </div>
 
 <!-- Protocolo com a Mesa e ativacao de sensor: um so arquivo para as tres tarefas. -->
-<script src="js/tarefa-sensor.js?v=20260906-casa-room"></script>
+<script src="js/tarefa-sensor.js?v=20260906-aviso-dedo"></script>
 <script>
 (function(){
 "use strict";
@@ -1258,8 +1258,11 @@ function avisa(t){
 /* A permissão de movimento do iOS mora em js/tarefa-sensor.js. Esta tarefa
    é a única que NÃO quer o rumo absoluto: a água obedece à inclinação, não
    ao norte, então ouve só "deviceorientation". */
+var _prazoSuaveArmado=false;
 function armarPrazoSuave(){
+  if(_prazoSuaveArmado) return;
   if(typeof TarefaSensor==="undefined"||!TarefaSensor.prazoSuave) return;
+  _prazoSuaveArmado=true;
   TarefaSensor.prazoSuave(ctxMesa(), function(){
     if(conclusaoEnviada||ABORTADO) return;
     avisa("Tempo esgotado · sem precisão.");
@@ -1275,6 +1278,14 @@ function entrarModoDedo(msg){
   avisa(msg||"Modo dedo — arraste a tela");
   armarPrazoSuave();
 }
+function cairNoModoDedo(msg){
+  armarPrazoSuave();
+  if(typeof TarefaSensor!=="undefined"&&TarefaSensor.avisoAntesModoDedo){
+    TarefaSensor.avisoAntesModoDedo({ aoLiberar:function(){ entrarModoDedo(msg); } });
+  } else {
+    entrarModoDedo(msg);
+  }
+}
 function ativaSensor(){
   TarefaSensor.ativarOrientacao({
     aoOrientar: onOrient,
@@ -1282,9 +1293,9 @@ function ativaSensor(){
     esperaMs: 1800,
     absoluto: false,
     respondeu: function(){ return temSensor; },
-    aoNaoResponder: function(){ entrarModoDedo("Giroscópio mudo — arraste a tela."); },
-    aoNegar: function(){ entrarModoDedo("Movimento negado — arraste a tela."); },
-    aoIndisponivel: function(){ entrarModoDedo("Sem giroscópio — arraste a tela."); }
+    aoNaoResponder: function(){ cairNoModoDedo("Giroscópio mudo — arraste a tela."); },
+    aoNegar: function(){ cairNoModoDedo("Movimento negado — arraste a tela."); },
+    aoIndisponivel: function(){ cairNoModoDedo("Sem giroscópio — arraste a tela."); }
   });
 }
 
