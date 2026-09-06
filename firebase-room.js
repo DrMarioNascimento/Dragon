@@ -102,24 +102,13 @@ function formTelao(err=''){
 }
 function renderMasterGate(error=''){
   const ensaio=intencao==='ensaio';
-  /* A PERGUNTA DO TELÃO É DE QUEM DECLARA TELÃO, e não da Mesa por privilégio.
-     Aqui havia um caso especial: só `PROJECT==='mesa'` recebia a escolha, e A
-     Noite recebia um bloco fixo dizendo que era conduzida pelo celular. Mas ela
-     DECLARA `data-telao` desde 03/09 — o endereço da tela grande existe, só que
-     enterrado no painel SALA, alcançável depois que a partida já começou.
-     Prometer uma coisa no HTML e outra na tela é o mesmo defeito que a Mesa
-     tinha antes de ontem, do avesso: lá a promessa não entregava; aqui a
-     entrega não é prometida.
-
-     Agora quem manda é o arquivo: declarou `data-telao`, ganha a escolha. O
-     PADRÃO de cada jogo continua sendo o dele — a Mesa nasce com telão, A Noite
-     nasce sem —, então nada muda para quem só toca em "Abrir com Google". */
-  /* Com/Sem telão saiu do Abrir mesa: a landing já escolheu Celular.
-     Telão entra depois pela porta Telão + código; a abertura detecta heartbeat. */
+  /* Landing já escolheu Celular (ou Solo via ?soloLab=1). Não reperguntar
+     Celular/Telão/Solo nem Com/Sem telão. modo=sem-telao em silêncio;
+     a TV entra pela porta Telão + código. */
   modo='sem-telao';
   const corpo=ensaio
-    ? `<div class="dr-master-info"><p><b>📱 Só neste aparelho</b></p><p>Nenhuma sala é aberta e ninguém entra por QR. Serve para você percorrer a partida sozinho.</p></div>`
-    : `<div class="dr-master-info"><p><b>📱 Celular</b></p><p>Mestre e jogadores neste aparelho. Se quiser telão, abra a porta Telão da landing na TV com o código da sala.</p></div><div class="dr-ident">Como as rodadas devem avançar?</div><button class="dr-choice ${ritmo==='automatico'?'on':''}" data-rhythm="automatico"><b>AUTOMATICAMENTE · RECOMENDADO</b><span>O jogo avança quando todos terminam.</span></button><button class="dr-choice ${ritmo==='conduzido'?'on':''}" data-rhythm="conduzido"><b>COM MINHA LIBERAÇÃO</b><span>A Sala avisará quando for hora de avançar.</span></button>`;
+    ? `<div class="dr-master-info"><p>Nenhuma sala é aberta e ninguém entra por QR. Percorra a partida neste aparelho.</p></div>`
+    : `<div class="dr-ident">Como as rodadas devem avançar?</div><button class="dr-choice ${ritmo==='automatico'?'on':''}" data-rhythm="automatico"><b>AUTOMATICAMENTE · RECOMENDADO</b><span>O jogo avança quando todos terminam.</span></button><button class="dr-choice ${ritmo==='conduzido'?'on':''}" data-rhythm="conduzido"><b>COM MINHA LIBERAÇÃO</b><span>A Sala avisará quando for hora de avançar.</span></button>`;
   gate().innerHTML=`<div class="dr-shell"><div class="dr-brand">${esc(TITLE)} · ÁREA DO MESTRE</div><div class="dr-card"><h2>${ensaio?'Ensaiar neste aparelho':'Abrir uma mesa'}</h2>${corpo}${error?`<div class="dr-error">${esc(error)}</div>`:''}<button class="dr-btn" id="drGoogle">${ensaio?'Ensaiar com Google':'Abrir com Google'}</button><button class="dr-btn secondary" id="drBack">Cancelar</button></div></div>`;
   document.querySelectorAll('[data-rhythm]').forEach(b=>b.onclick=()=>{ritmo=b.dataset.rhythm;renderMasterGate()});
   /* A SENHA SAIU (03/09/2026), e com ela uma tela inteira do caminho do Mestre.

@@ -144,6 +144,78 @@ describe("gate Celular · sem Ensaiar / Telão / Com·Sem telão", () => {
   });
 });
 
+/* Depois de Celular na landing, Abrir NÃO pode reperguntar o modo.
+   O ecrã que ainda queimava o playtest (06/09, pós-PR #21) era
+   renderMasterGate / modalSenha: “Como a mesa será usada?” + tiles
+   Celular|Telão|Solo ou Com/Sem telão. Cache antigo (?v=20260906-casa-room
+   / ui-mestre) servia o picker Com/Sem; a fonte atual ainda pintava um
+   cartão “📱 Celular” que falava em telão. */
+const ABRIR_MODO_UI =
+  /Como a mesa ser[áa] usada|Com tel(?:&atilde;o|ão)|Sem tel(?:&atilde;o|ão)|escolherModoMesa\s*\(|data-mode=["'](?:com-telao|sem-telao|celular|telao|solo)["']|room-mode-single|📱\s*Celular|<b>\s*Celular\s*<\/b>|<b>\s*Tel[aã]o\s*<\/b>|<b>\s*Solo\s*<\/b>/i;
+
+describe("Abrir mesa · nenhum seletor de modo depois do Celular", () => {
+  it("firebase-room renderMasterGate: ritmo + Google; modo=sem-telao silencioso", () => {
+    const room = ler("firebase-room.js");
+    const master = fnSlice(room, "function renderMasterGate", ["async function autorizado"]);
+    const plain = stripComments(master);
+    assert.match(plain, /Como as rodadas devem avançar/);
+    assert.match(plain, /Abrir com Google/);
+    assert.match(master, /modo\s*=\s*['"]sem-telao['"]/);
+    assert.equal(
+      ABRIR_MODO_UI.test(plain),
+      false,
+      "Abrir (firebase-room) ainda oferece Celular|Telão|Solo ou Com/Sem telão"
+    );
+  });
+
+  it("legacy mesa modalSenha / pedirSenha: sem Com·Sem e sem Celular|Telão|Solo", () => {
+    const mesa = ler("v1/MOSAICO-mesa.html");
+    const senha = fnSlice(mesa, "function modalSenha()", ["function fecharOrientacaoMestre("]);
+    const pedir = fnSlice(mesa, "function pedirSenha()", ["function fecharSenha("]);
+    const plain = stripComments(senha + pedir);
+    assert.match(plain, /Abrir com Google/);
+    assert.match(plain, /Como as rodadas devem avan/);
+    assert.equal(
+      ABRIR_MODO_UI.test(plain),
+      false,
+      "legacy Abrir ainda oferece seletor de modo"
+    );
+    assert.match(pedir, /modoMesa\s*=\s*["']sem-telao["']/);
+  });
+
+  it("room-shell Abrir: sem “Como a mesa será usada?” / cartão Celular", () => {
+    for (const p of ["v2/room-shell.js", "mosaico-web/public/room-shell.js"]) {
+      const master = fnSlice(ler(p), "function renderMasterGate", ["async function loginGoogle"]);
+      const plain = stripComments(master);
+      assert.match(plain, /Abrir com Google/);
+      assert.match(plain, /Como as rodadas devem avançar/);
+      assert.equal(ABRIR_MODO_UI.test(plain), false, p);
+    }
+  });
+
+  it("carimbo firebase-room fura o JS cacheado com o picker Com/Sem", () => {
+    const stale = /firebase-room\.js\?v=20260906-(casa-room|ui-mestre)/;
+    for (const p of [
+      "v1/MOSAICO-mesa.html",
+      "carro-forte/celular.html",
+      "carro-forte/noite/index.html",
+    ]) {
+      const src = ler(p);
+      assert.match(src, /firebase-room\.js\?v=/);
+      assert.equal(stale.test(src), false, `${p} ainda aponta para o carimbo do picker`);
+    }
+  });
+
+  it("?soloLab=1 vai ao ensaio sem perguntar modo", () => {
+    const room = ler("firebase-room.js");
+    const boot = room.slice(room.indexOf("const qsSolo"));
+    assert.match(boot, /soloLab/);
+    assert.match(boot, /intencao\s*=\s*['"]ensaio['"]/);
+    const master = fnSlice(room, "function renderMasterGate", ["async function autorizado"]);
+    assert.equal(/data-mode=/.test(stripComments(master)), false);
+  });
+});
+
 describe("produção · v2 não é porta do playtest", () => {
   it("landing Casa não aponta para /v2/", () => {
     const land = ler("casa-da-costa/index.html");
