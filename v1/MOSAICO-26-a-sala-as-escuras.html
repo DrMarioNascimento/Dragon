@@ -384,7 +384,7 @@
 </div>
 
 <!-- Protocolo com a Mesa e ativacao de sensor: um so arquivo para as tres tarefas. -->
-<script src="js/tarefa-sensor.js?v=20260906-casa-room"></script>
+<script src="js/tarefa-sensor.js?v=20260906-aviso-dedo"></script>
 <script>
 (function(){
 "use strict";
@@ -1687,27 +1687,42 @@ function onOrient(e){
 }
 /* A permissão de movimento do iOS e os dois eventos do Android moram em
    js/tarefa-sensor.js. Aqui fica só o que é desta tarefa. */
+var _prazoSuaveArmado=false;
+function armarPrazoSuave(){
+  if(_prazoSuaveArmado) return;
+  if(typeof TarefaSensor==="undefined"||!TarefaSensor.prazoSuave) return;
+  _prazoSuaveArmado=true;
+  TarefaSensor.prazoSuave(ctxMesa(), function(){
+    if(conclusaoEnviada||ABORTADO) return;
+    if(typeof setStatus==="function") setStatus("Tempo esgotado · sem precisão.");
+    if(inicioTarefa===null) iniciarCronometroOficial();
+    enviarConclusao();
+  });
+}
+function entrarModoDedo(msg){
+  sim=true; src="mouse/dedo"; modoEntrada="toque";
+  enviarStatus("ativo","toque");
+  try{ fechaIntro(); }catch(e){}
+  if(typeof setStatus==="function") setStatus(msg||"Arraste para explorar no toque.");
+  armarPrazoSuave();
+}
+function cairNoModoDedo(msg){
+  armarPrazoSuave();
+  if(typeof TarefaSensor!=="undefined"&&TarefaSensor.avisoAntesModoDedo){
+    TarefaSensor.avisoAntesModoDedo({ aoLiberar:function(){ entrarModoDedo(msg); } });
+  } else {
+    entrarModoDedo(msg);
+  }
+}
 function ativaSensor(){
   TarefaSensor.ativarOrientacao({
     aoOrientar: onOrient,
-    /* O oito entra AQUI, entre a permissão e a sala: pedir antes não faz
-       sentido (o sensor pode nem existir) e depois seria tarde, com o jogador
-       já varrendo o escuro com o rumo torto. */
-    aoLigar: function(){ oitoNoAr(fechaIntro); },
+    aoLigar: function(){ oitoNoAr(function(){ fechaIntro(); armarPrazoSuave(); }); },
     esperaMs: 1400,
     respondeu: function(){ return jogando; },
-    aoNaoResponder: function(){
-      src="sem sensor"; enviarStatus("sem-resposta","sensor");
-      mostraFalha("A bússola deste aparelho não respondeu.");
-    },
-    aoNegar: function(){
-      enviarStatus("negado","sensor");
-      mostraFalha("A permissão de movimento foi negada. Sem ela o aparelho não sabe para onde você está virado.");
-    },
-    aoIndisponivel: function(){
-      enviarStatus("indisponivel","toque");
-      mostraFalha("Este aparelho não tem bússola.");
-    }
+    aoNaoResponder: function(){ cairNoModoDedo("Bússola muda — arraste para explorar."); },
+    aoNegar: function(){ cairNoModoDedo("Movimento negado — arraste para explorar."); },
+    aoIndisponivel: function(){ cairNoModoDedo("Sem bússola — arraste para explorar."); }
   });
 }
 
@@ -2198,8 +2213,7 @@ document.getElementById("falha-toque").addEventListener("click",function(){
   if(SEGUIR_TOQUE) SEGUIR_TOQUE();
 });
 RETENTAR=function(){ ativaSensor(); };
-SEGUIR_TOQUE=function(){ sim=true; src="mouse/dedo"; raw.elev=0; jogando=true;
-  fechaIntro(); setStatus("Arraste para girar o corpo."); };
+SEGUIR_TOQUE=function(){ entrarModoDedo("Arraste para girar o corpo."); };
 if(EMBED) document.body.classList.add("embed");
 if(!DEV){
   var _bt=document.getElementById("b-sim")||document.getElementById("alt");

@@ -15,14 +15,25 @@ O que muda entre casos e modos é o jogo depois de iniciado. A infraestrutura de
 
 ## Fluxo obrigatório
 
-### 1. Tela inicial
+### 1. Portas do caso (landing) e gate Celular
 
-Sempre oferecer, nesta ordem:
+Cada caso tem landing com **Celular · Telão · Solo**. O gate dentro do **Celular** NÃO repete a escolha de modo:
 
 1. **Abrir uma mesa** (primário)
 2. **Entrar em uma mesa** (secundário)
-3. **Ensaiar neste aparelho** (secundário; omitir só se o caso não tiver ensaio nesta superfície)
-4. **Entrar como telão** (secundário; só se a página declarar telão / `data-telao`)
+
+- **Solo** (landing): ensaio neste aparelho — abertura individual.
+- **Telão** (landing / CTA): display only. Mestre cria a sala no Celular; a TV entra com o código (`?sala=` ou formulário do telão).
+- Não há **Ensaiar** nem **Entrar como telão** dentro do gate Celular.
+- Não há **Com telão / Sem telão** no fluxo Abrir mesa: presença de telão é detectada por heartbeat `telao/{uid}` / `modo` na abertura.
+
+### Abertura (obrigatória) — roteamento
+
+| Modo | Onde toca a abertura AV |
+|---|---|
+| **Solo** | Neste aparelho |
+| **Multiplayer sem telão** | Só no aparelho do **Mestre** (convidados aguardam) |
+| **Multiplayer com telão** | Só no **Telão** (celulares não tocam o AV completo) |
 
 ### 2. Mestre da Mesa
 
@@ -59,10 +70,11 @@ A sala deve mostrar, no mesmo painel:
 
 1. Ação necessária (se houver)
 2. Código e QR
-3. Telão (se houver)
-4. Participantes
-5. Controle partida
-6. Encerrar sala
+3. Participantes
+4. Controle partida
+5. Encerrar sala
+
+(O bloco “abra o telão” saiu do painel Sala — o telão entra pela landing.)
 
 O QR deve abrir o próprio jogo com `?sala=CODIGO`.
 
