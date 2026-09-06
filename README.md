@@ -200,7 +200,7 @@ App em [`mosaico-web/`](./mosaico-web) (React / Vite). **Não substitui A Mesa.*
 - cronômetro âmbar com glow; a casa vira sozinha
 - arquétipo (emoji) em vez de nome de personagem na porta
 
-O GitHub Pages serve o build estático em [`v2/`](https://drmarionascimento.github.io/Dragon/v2/). Código-fonte: [`mosaico-web/`](./mosaico-web).
+O GitHub Pages ainda serve o build estático em [`v2/`](https://drmarionascimento.github.io/Dragon/v2/). **Não é porta de produção do playtest** — a landing da Casa não aponta para `/v2/`. Código-fonte: [`mosaico-web/`](./mosaico-web).
 
 ```bash
 cd mosaico-web && MOSAICO_PAGES=1 npx vite build

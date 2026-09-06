@@ -12,7 +12,9 @@ function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&l
 function init(){
   if(!firebase.apps.length) app=firebase.initializeApp(CFG,'noite-shell'); else app=firebase.apps[0];
   auth=firebase.auth(app);db=firebase.firestore(app);
-  const q=new URLSearchParams(location.search).get('sala');
+  const qs=new URLSearchParams(location.search);
+  const q=qs.get('sala');
+  if(qs.get('soloLab')==='1'){launchLocal();return;}
   if(q){roomCode=q.toUpperCase();localScreen='join';renderJoin(false);}else renderMenu();
 }
 function nextPartida(){let last='';try{last=localStorage.getItem(ROT)||''}catch(e){}let i=ORDEM.indexOf(last);return ORDEM[(i+1+ORDEM.length)%ORDEM.length]||'sete';}
@@ -29,10 +31,9 @@ function allReady(){return players.length>0&&readyCount()===players.length;}
 
 function renderMenu(){
   localScreen='menu';
-  base('MOSAICO · A NOITE','A Casa da Costa',`<p class="lead">Você possui uma parte da verdade. Para enxergar o todo, precisará das outras pessoas — mas elas também querem vencer.</p><div class="room-actions"><button class="btn btn-gold" id="open">Abrir uma mesa</button><button class="btn btn-ghost" id="join">Entrar em uma mesa</button><button class="btn btn-ghost" id="solo">Ensaiar sozinho</button></div>`,'room-menu');
+  base('MOSAICO · A NOITE','A Casa da Costa',`<p class="lead">Você possui uma parte da verdade. Para enxergar o todo, precisará das outras pessoas — mas elas também querem vencer.</p><div class="room-actions"><button class="btn btn-gold" id="open">Abrir uma mesa</button><button class="btn btn-ghost" id="join">Entrar em uma mesa</button></div>`,'room-menu');
   document.getElementById('open').onclick=()=>renderMasterGate();
   document.getElementById('join').onclick=()=>{localScreen='join';renderJoin(false)};
-  document.getElementById('solo').onclick=launchLocal;
 }
 
 function renderMasterGate(msg=''){

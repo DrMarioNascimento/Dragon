@@ -133,10 +133,19 @@ describe("gate canônico · Casa Celular", () => {
     assert.equal(/dinamica-nivel/.test(cab), false);
   });
 
-  it("DESCER DO CARRO não aparece na Janela do Norte da Casa", () => {
-    const janela = ler("v1/MOSAICO-26-a-janela-do-norte.html");
-    assert.equal(/Descer do carro/i.test(janela), false);
-    assert.match(janela, /Apontar a janela/);
+  it("DESCER DO CARRO não aparece em nenhuma Janela do Norte", () => {
+    for (const p of [
+      "v1/MOSAICO-26-a-janela-do-norte.html",
+      "v2/modulos/janela-do-norte.html",
+      "mosaico-web/public/modulos/janela-do-norte.html",
+      "carro-forte/janela-do-norte.html",
+    ]) {
+      const janela = ler(p);
+      assert.equal(/Descer do carro/i.test(janela), false, p);
+    }
+    assert.match(ler("v1/MOSAICO-26-a-janela-do-norte.html"), /Apontar a janela/);
+    assert.match(ler("v2/modulos/janela-do-norte.html"), /Apontar a janela/);
+    assert.match(ler("mosaico-web/public/modulos/janela-do-norte.html"), /Apontar a janela/);
   });
 });
 

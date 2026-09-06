@@ -439,29 +439,39 @@
   .caso-card .muted{color:#aab8c7}
   .tarefa-frame{width:100%;height:min(72vh,720px);border:1px solid var(--linha);border-radius:8px;
     background:#05070c;display:block;margin:14px 0}
-  body.fase-sensor #app{padding:12px 12px var(--barra-reserva)}
-  body.fase-sensor .rodada-celular{margin-bottom:8px;padding:8px 12px}
-  body.fase-sensor .rodada-celular .rotulo{font-size:9px;margin-bottom:3px}
-  body.fase-sensor .rodada-celular .nome{font-size:clamp(19px,6vw,25px)}
+  .partida-pergunta{text-align:center;color:#ffd18d;font:700 clamp(11px,2.3vw,14px)/1.3 var(--serif);
+    margin:-8px auto 13px;max-width:54em}
+  /* iPhone / viewport curta: o quadro do sensor come o vão entre o chrome
+     de cima e o mural, e o mural cola no safe-area. Antes o #app só tinha
+     min-height, o iframe era flex:1 1 auto + height:auto (não cresce) e o
+     mural guardava 78px de margem — resto da barra que já subiu pro topo. */
+  body.fase-sensor{display:flex;flex-direction:column;height:100dvh;height:100svh;overflow:hidden}
+  body.fase-sensor #app,body.fase-sensor.modo-sem-telao #app{
+    display:flex;flex-direction:column;flex:1 1 0;min-height:0;height:auto;
+    padding:6px 10px 0;overflow:hidden}
+  body.fase-sensor .rodada-celular{flex:0 0 auto;margin:0 auto 4px;padding:6px 10px}
+  body.fase-sensor .rodada-telao.topo-jogo{margin:0 auto 4px;padding:6px 10px}
+  body.fase-sensor .rodada-celular .rotulo{font-size:9px;margin-bottom:2px}
+  body.fase-sensor .rodada-celular .nome{font-size:clamp(17px,5.4vw,23px)}
+  body.fase-sensor .rodada-telao .rodada-sub{margin-top:1px;font-size:clamp(10px,2.4vw,11px)}
   body.fase-sensor #app>.eyebrow,body.fase-sensor #app>h2{display:none}
-  body.fase-sensor #app>.lead{font-size:clamp(16px,4.4vw,19px);line-height:1.3;margin-bottom:7px}
   body.fase-sensor #app>.muted{display:none}
-  /* O QUADRO OCUPA O QUE SOBRA, em vez de descontar um número escrito à mão.
-     Era `calc(100dvh - 218px)`, e os 218 foram medidos numa tela que não existe
-     mais: a barra dos três controles subiu para o topo e entrou no fluxo. Cada
-     ajuste de cabeçalho desafinava a conta em silêncio, e o preço era o pé do
-     iframe passando do fim da tela — onde moram os botões do módulo, que é
-     `position:fixed` dentro do próprio quadro e sempre os põe na borda de
-     baixo. Com flex, a conta se refaz sozinha. */
-  /* 100dvh MENOS A BARRA. O #app começa ABAIXO dela, então pedir 100dvh aqui
-     estoura a tela por exatamente a altura da barra — e quem paga é o pé do
-     iframe, que é onde moram os botões do módulo. Medido: base do quadro em
-     865px numa tela de 812. A altura vem de medirBarraInferior(), que já mede
-     a barra a cada desenho, em vez de mais um número escrito à mão. */
-  body.fase-sensor #app{display:flex;flex-direction:column;
-    min-height:calc(100dvh - var(--barra-topo,0px))}
-  body.fase-sensor .tarefa-frame{flex:1 1 auto;height:auto;min-height:300px;max-height:none;margin:7px 0}
-  body.fase-sensor .btn-caso,body.fase-sensor #btn-pistas{padding:10px 13px}
+  body.fase-sensor .sensor-copy{flex:0 0 auto;display:flex;flex-direction:column;gap:3px;
+    margin:0 auto 6px;width:100%;max-width:54em;text-align:center}
+  body.fase-sensor .sensor-copy .sensor-pergunta{margin:0;color:#ffd18d;
+    font:700 clamp(11px,3.2vw,13px)/1.25 var(--serif)}
+  body.fase-sensor .sensor-copy .lead{margin:0;font-size:12px;line-height:1.25;color:var(--nevoa)}
+  body.fase-sensor .sensor-play{flex:1 1 0;min-height:0;display:flex;flex-direction:column;margin:0}
+  body.fase-sensor .sensor-play .tarefa-frame,
+  body.fase-sensor .tarefa-frame{flex:1 1 0;min-height:0;height:100%;width:100%;
+    max-height:none;margin:0;border-radius:8px}
+  body.fase-sensor .mural-movel{flex:0 0 auto;margin:6px 0 0;padding:0 12px;
+    padding-bottom:max(8px,env(safe-area-inset-bottom,0px))}
+  body.fase-sensor .mural-movel summary{min-height:44px;display:flex;align-items:center;padding:8px 0}
+  body.fase-sensor .barra-jogo{padding:3px;margin:0 10px 6px;border-width:1px;border-radius:12px;gap:4px}
+  body.fase-sensor .barra-jogo .btn-caso,body.fase-sensor .barra-jogo #btn-pistas,
+  body.fase-sensor .barra-jogo .btn-menu-mestre{min-height:44px;margin:0;padding:6px 8px;border-radius:10px}
+  body.fase-sensor .btn-caso,body.fase-sensor #btn-pistas{padding:6px 8px}
   .revelacao-final{max-width:920px;margin:0 auto}.revelacao-final .card{margin-bottom:14px}
   .revelacao-chave{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:22px 0}
   .revelacao-chave .card{margin:0;border-top:2px solid rgba(232,164,76,.58)}
@@ -1566,7 +1576,7 @@ var STATE = {
   escolha:null,
   contando:0,
   jaVotei:false,
-  modoMesa:"com-telao",
+  modoMesa:"sem-telao",
   menuMestreAberto:false,
   casoAberto:false,
   resultadoVista:"podio",
@@ -2622,17 +2632,16 @@ function telaReconectando(){
 }
 
 function telaInicio(){
-  /* Ordem canônica do gate: Abrir → Entrar → (Ensaiar omitido: ensaio desta
-     casa é a porta Solo) → Entrar como telão. */
+  /* Fallback legado (só se o gate firebase-room não assumir). Mesma regra
+     do Celular canônico: Abrir | Entrar. Telão é landing/`telao.html`.
+     Ensaiar é a porta Solo. Sem Com/Sem telão neste fluxo. */
   return '<h1>A Casa da Costa</h1>'+
     '<p class="lead">Voc&ecirc; possui uma parte da verdade. Para enxergar o todo, '+
     'precisar&aacute; das outras pessoas &mdash; mas elas tamb&eacute;m querem vencer.</p>'+
     avisoLocal()+
     '<button class="btn btn-ambar" onclick="pedirSenha()">Abrir uma mesa</button>'+
     '<button class="btn btn-frio" onclick="irPara(\'entrar\')">Entrar em uma mesa</button>'+
-    '<button class="btn btn-frio" onclick="location.href=\'../telao.html?jogo=casa-da-costa\'">Entrar como tel&atilde;o</button>'+
-    '<p class="muted" style="margin-top:24px">Escolha abrir <b>com tel&atilde;o</b> dedicado ou '+
-    '<b>sem tel&atilde;o</b>, quando quem cria tamb&eacute;m participa pelo celular. O ensaio local fica na porta Solo.</p>'+
+    '<p class="muted" style="margin-top:24px">O telão, se houver, entra pela porta Telão da landing com o código da sala. O ensaio local fica na porta Solo.</p>'+
     modalSenha();
 }
 
@@ -2641,11 +2650,9 @@ function modalSenha(){
   return '<div class="modal-fundo" onclick="if(event.target===this) fecharSenha()">'+
     '<div class="modal">'+
       '<span class="eyebrow">&Aacute;rea do mestre</span>'+
-      '<h2 style="font-size:clamp(26px,7vw,34px);margin-bottom:18px">Como a mesa ser&aacute; usada?</h2>'+
-      '<button class="forma-op'+(STATE.modoMesa==="com-telao"?' on':'')+'" onclick="escolherModoMesa(\'com-telao\')"><b>📺</b><span>Com tel&atilde;o</span></button>'+
-      '<button class="forma-op'+(STATE.modoMesa==="sem-telao"?' on':'')+'" onclick="escolherModoMesa(\'sem-telao\')"><b>📱</b><span>Sem tel&atilde;o</span></button>'+
-      '<p class="muted" style="margin:10px 0 16px">Com tel&atilde;o: um aparelho fica no painel. Sem tel&atilde;o: quem abre tamb&eacute;m joga e controla pelo celular.</p>'+
-      '<span class="eyebrow ritmo-titulo">Como as rodadas devem avan&ccedil;ar?</span>'+
+      '<h2 style="font-size:clamp(26px,7vw,34px);margin-bottom:18px">Como as rodadas devem avan&ccedil;ar?</h2>'+
+      '<p class="muted" style="margin:0 0 16px">Celular: mestre e jogadores neste aparelho. Se quiser telão, abra a porta Telão da landing na TV com o código da sala.</p>'+
+      '<span class="eyebrow ritmo-titulo">Ritmo</span>'+
       '<button class="ritmo-op'+((STATE.ritmoMesa||"automatico")==="automatico"?' on':'')+'" onclick="escolherRitmoMesa(\'automatico\')"><b>Automaticamente &middot; recomendado</b><span>O jogo avan&ccedil;a quando todos terminam.</span></button>'+
       '<button class="ritmo-op'+(STATE.ritmoMesa==="conduzido"?' on':'')+'" onclick="escolherRitmoMesa(\'conduzido\')"><b>Com minha libera&ccedil;&atilde;o</b><span>A Sala avisar&aacute; quando for hora de avan&ccedil;ar.</span></button>'+
       /* A SENHA SAIU (03/09/2026). O comentário dela neste mesmo arquivo já
@@ -3326,6 +3333,14 @@ function sincronizarControleTarefa(frame,tipo){
   try{frame.contentWindow.postMessage({mosaico:"controle-tarefa",runId:ex.runId,acao:acao},location.origin);}
   catch(e){console.error("controle da tarefa não chegou ao quadro ("+acao+")",e);}
 }
+function perguntaPartidaAtual(){
+  try{
+    if(typeof CASO==="undefined"||!CASO.partidas) return "";
+    var id=(STATE.doc&&STATE.doc.partidaId)||STATE.partidaId||CASO.perguntaPadrao;
+    var p=CASO.partidas[id];
+    return (p&&p.pergunta)||"";
+  }catch(e){return "";}
+}
 function telaTarefaSensor(tipo){
   var cfg=configTarefaSensor(tipo);
   var concluida=(STATE.v5.tarefas||[]).some(function(t){return t.id===((STATE.eu&&STATE.eu.id)+'_'+tipo)&&tarefaConcluida(t);});
@@ -3335,7 +3350,12 @@ function telaTarefaSensor(tipo){
       (pista?'<div class="pista-card"><span class="ph">'+esc(pista.hora)+'</span><div class="pt">'+esc(pista.txt)+'</div><p class="pista-memorize">Observe o hor&aacute;rio. Ele poder&aacute; ser t&atilde;o importante quanto a pr&oacute;pria pista.</p></div>':'')+
       '<p class="lead" style="margin-top:16px">A pista foi adicionada ao seu Arquivo. Aguarde a pr&oacute;xima rodada.</p>';
   }
-  return '<span class="eyebrow">Rodada sensorial</span><h2>'+esc(cfg.titulo||tipo)+'</h2><p class="lead">Mantenha a tela voltada para voc&ecirc; e conclua a tarefa no quadro abaixo.</p><iframe class="tarefa-frame" data-tarefa="'+esc(tipo)+'" src="'+esc(urlTarefaSensor(cfg,tipo))+'" onload="this.dataset.controle=\'\';sincronizarControleTarefa(this,\''+esc(tipo)+'\')" allow="accelerometer; gyroscope; magnetometer" title="'+esc(cfg.titulo||tipo)+'"></iframe><p class="muted" style="text-align:center">Se o sensor n&atilde;o responder, aguarde o fim do prazo. A partida continuar&aacute; automaticamente.</p>';
+  var pergunta=perguntaPartidaAtual();
+  var copy='<div class="sensor-copy">'+(pergunta?'<p class="sensor-pergunta">'+esc(pergunta)+'</p>':'')+
+    '<p class="lead">Mantenha a tela voltada para voc&ecirc; e conclua a tarefa no quadro abaixo.</p></div>';
+  return '<span class="eyebrow">Rodada sensorial</span><h2>'+esc(cfg.titulo||tipo)+'</h2>'+copy+
+    '<div class="sensor-play" id="mosaic"><iframe class="tarefa-frame" data-tarefa="'+esc(tipo)+'" src="'+esc(urlTarefaSensor(cfg,tipo))+'" onload="this.dataset.controle=\'\';sincronizarControleTarefa(this,\''+esc(tipo)+'\')" allow="accelerometer; gyroscope; magnetometer" title="'+esc(cfg.titulo||tipo)+'"></iframe></div>'+
+    '<p class="muted" style="text-align:center">Se o sensor n&atilde;o responder, aguarde o fim do prazo. A partida continuar&aacute; automaticamente.</p>';
 }
 
 function meuJogador(){
@@ -3577,9 +3597,9 @@ function telaDeducao(){
    o Mestre e a mesa. Quem decide quem abre é `emailMestre()`, no servidor,
    contra a lista em config/mestres.
 
-   `pedirSenha` continua com o nome antigo: ele abre o painel de modo e ritmo,
-   que é o que sempre fez de útil. Renomear obrigaria a caçar chamadas em três
-   arquivos por ganho nenhum. */
+   `pedirSenha` continua com o nome antigo: ele abre o painel de ritmo
+   (Com/Sem telão saiu — presença de telão é heartbeat). Renomear obrigaria a
+   caçar chamadas em três arquivos por ganho nenhum. */
 function pedirSenha(){
   STATE.senhaAberta=true; render();
   setTimeout(function(){ var i=document.getElementById("senha"); if(i) i.focus(); },80);
