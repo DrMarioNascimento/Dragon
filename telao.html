@@ -7,7 +7,7 @@
 <!--
   O TELÃO, UM SÓ, PARA TODAS AS MESAS QUE TIVEREM UM.
   ==========================================================================
-  Nasceu dentro de carro-forte-noite/ e ia ganhar um irmão quase igual quando
+  Nasceu dentro de carro-forte/noite/ e ia ganhar um irmão quase igual quando
   A Mesa do Carro-Forte pediu o seu. Duas cópias de 90% do mesmo arquivo é
   exatamente a doença que custou caro nos módulos sensoriais — 989 linhas de
   deriva entre duas linhagens que ninguém queria diferentes.
@@ -144,13 +144,14 @@ import{getFirestore,doc,setDoc,onSnapshot,collection}from'https://www.gstatic.co
 const FB_MESA={apiKey:'AIzaSyDwshZbqaMOKxdRuyLtdpbijPRdrjVOcxE',authDomain:'mosaico-game.firebaseapp.com',projectId:'mosaico-game',storageBucket:'mosaico-game.firebasestorage.app',messagingSenderId:'436141261767',appId:'1:436141261767:web:6a83555a2f7c4ed4550fe2'};
 const FB_NOITE={apiKey:'AIzaSyA160bkgHBrYBwvIxlENax-aAyLWPMaOU4',authDomain:'mosaico-noite.firebaseapp.com',projectId:'mosaico-noite',storageBucket:'mosaico-noite.firebasestorage.app',messagingSenderId:'703343424116',appId:'1:703343424116:web:e6990b5c00d43aca6e9721'};
 const ARTE_CF={
-  parede:'carro-forte-noite/Papel-de-Parede-CarroforteTelao.jpg?v=20260831-wall6',
-  abertura:'carro-forte-noite/AberturaTelão.jpg?v=20260831-opening6',
-  audio:'carro-forte-noite/Amanha-do-carroforte.mp3?v=20260831-opening6',
+  parede:'carro-forte/noite/Papel-de-Parede-CarroforteTelao.jpg?v=20260831-wall6',
+  abertura:'carro-forte/noite/AberturaTelão.jpg?v=20260831-opening6',
+  audio:'carro-forte/noite/Amanha-do-carroforte.mp3?v=20260831-opening6',
 };
 const JOGOS={
-  'carro-forte-noite':{fb:FB_NOITE,colecao:'noite',sub:'A Noite · A Manhã do Carro-Forte',...ARTE_CF},
-  'carro-forte':{fb:FB_MESA,colecao:'mosaico',sub:'A Mesa · A Manhã do Carro-Forte',...ARTE_CF},
+  'carro-forte-noite':{fb:FB_NOITE,colecao:'noite',sub:'Carro-Forte · fechamento',...ARTE_CF},
+  'carro-forte':{fb:FB_NOITE,colecao:'mosaico',sub:'Carro-Forte · Celular',...ARTE_CF},
+  'casa-da-costa':{fb:FB_MESA,colecao:'mosaico',sub:'Casa da Costa · Telão',parede:'solo/tiles/foto-noite.jpg',abertura:'solo/tiles/carta-costa.jpg',audio:''},
 };
 
 const p=new URLSearchParams(location.search);

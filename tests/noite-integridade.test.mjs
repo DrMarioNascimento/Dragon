@@ -21,7 +21,7 @@ import { fileURLToPath } from "node:url";
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const pasta = new URL("../carro-forte-noite/", import.meta.url);
+const pasta = new URL("../carro-forte/noite/", import.meta.url);
 const ler = nome => readFileSync(new URL(nome, pasta), "utf8");
 const scripts = readdirSync(pasta).filter(nome => nome.endsWith(".js")).sort();
 
@@ -80,7 +80,7 @@ test("todo script que a página pede compila, venha de onde vier", () => {
    padrão da Mesa. A página da Noite falava com o projeto errado e anunciava
    um evento que ninguém escutava. */
 test("a sala lê a configuração da página mesmo sendo um módulo", () => {
-  const sala = readFileSync(new URL("../firebase-room.js", pasta), "utf8");
+  const sala = readFileSync(new URL("../../firebase-room.js", pasta), "utf8");
   assert.ok(
     sala.includes("document.currentScript||"),
     "firebase-room.js voltou a depender só de document.currentScript, que é null em módulo"
@@ -340,7 +340,7 @@ test("se a sincronia não carregar, o jogo abre mesmo assim", () => {
    A ordem é a correção: autenticar anonimamente, depois ler. Este teste
    guarda a ordem, que é o que se perde numa refatoração distraída. */
 test("o convidado autentica antes de ler a sala", () => {
-  const sala = readFileSync(new URL("../firebase-room.js", pasta), "utf8");
+  const sala = readFileSync(new URL("../../firebase-room.js", pasta), "utf8");
   const inicio = sala.indexOf("async function entrar");
   const fim = sala.indexOf("function ", inicio + 30);
   const corpo = sala.slice(inicio, fim > inicio ? fim : undefined);
@@ -367,7 +367,7 @@ test("o convidado autentica antes de ler a sala", () => {
 test("nenhuma caixa de texto tem a altura pregada", () => {
   const folhas = {
     "styles.css": ler("styles.css"),
-    "carro-forte-terminal.css": readFileSync(new URL("../carro-forte-terminal.css", pasta), "utf8")
+    "carro-forte-terminal.css": readFileSync(new URL("../../carro-forte-terminal.css", pasta), "utf8")
   };
   const caixas = [".intro-copy>p", ".question-banner", ".terminal-body", ".terminal-copy"];
   for (const [nome, css] of Object.entries(folhas)) {

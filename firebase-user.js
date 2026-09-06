@@ -1,7 +1,6 @@
-/* MOSAICO — conta Google e progresso pessoal no projeto mosaico-noite.
-   Usado por A Noite (v2) e Modo Solo. A Mesa permanece isolada no projeto
-   mosaico-game. O jogo só é carregado depois que a conta foi resolvida e o
-   estado remoto, quando disponível, foi restaurado no localStorage. */
+/* MOSAICO — conta Google e progresso pessoal.
+   Projeto via data-project no script: "mesa" → mosaico-game (Casa da Costa),
+   "noite" → mosaico-noite (Carro-Forte). Padrão: mesa. */
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
 import {
   getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup,
@@ -11,19 +10,32 @@ import {
   getFirestore, doc, getDoc, setDoc, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
-const firebaseConfig={
-  apiKey:"AIzaSyA160bkgHBrYBwvIxlENax-aAyLWPMaOU4",
-  authDomain:"mosaico-noite.firebaseapp.com",
-  projectId:"mosaico-noite",
-  storageBucket:"mosaico-noite.firebasestorage.app",
-  messagingSenderId:"703343424116",
-  appId:"1:703343424116:web:e6990b5c00d43aca6e9721"
+const CONFIGS={
+  mesa:{
+    apiKey:"AIzaSyDwshZbqaMOKxdRuyLtdpbijPRdrjVOcxE",
+    authDomain:"mosaico-game.firebaseapp.com",
+    projectId:"mosaico-game",
+    storageBucket:"mosaico-game.firebasestorage.app",
+    messagingSenderId:"436141261767",
+    appId:"1:436141261767:web:6a83555a2f7c4ed4550fe2"
+  },
+  noite:{
+    apiKey:"AIzaSyA160bkgHBrYBwvIxlENax-aAyLWPMaOU4",
+    authDomain:"mosaico-noite.firebaseapp.com",
+    projectId:"mosaico-noite",
+    storageBucket:"mosaico-noite.firebasestorage.app",
+    messagingSenderId:"703343424116",
+    appId:"1:703343424116:web:e6990b5c00d43aca6e9721"
+  }
 };
+const tagProbe=document.querySelector('script[type="module"][src*="firebase-user.js"]');
+const projectKey=(tagProbe&&tagProbe.dataset.project)||"mesa";
+const firebaseConfig=CONFIGS[projectKey]||CONFIGS.mesa;
 const APP_NAME="mosaico-conta";
 const firebaseApp=getApps().find(a=>a.name===APP_NAME)||initializeApp(firebaseConfig,APP_NAME);
 const auth=getAuth(firebaseApp);
 const db=getFirestore(firebaseApp);
-const tag=document.querySelector('script[type="module"][src*="firebase-user.js"]');
+const tag=tagProbe||document.querySelector('script[type="module"][src*="firebase-user.js"]');
 const experience=(tag&&tag.dataset.experience)||"mosaico";
 const storageKeys=((tag&&tag.dataset.storageKeys)||"").split(",").map(s=>s.trim()).filter(Boolean);
 let firestoreOk=true,lastSignature="",syncTimer=null,currentUser=null;
@@ -84,7 +96,7 @@ async function entrarGoogle(){
      sessão viva no Google, e era o que fazia parecer que o login não colava.
      Quem já entrou uma vez volta direto. */
   const status=document.querySelector("#mosaico-login .ml-status"),provider=new GoogleAuthProvider();if(status)status.textContent="Abrindo o Google…";
-  try{await signInWithPopup(auth,provider)}catch(e){const code=e&&e.code||"";if(code==="auth/popup-blocked"||code==="auth/operation-not-supported-in-this-environment"){if(status)status.textContent="Redirecionando para o Google…";await signInWithRedirect(auth,provider);return}if(status)status.textContent=(code==="auth/unauthorized-domain"?"Este domínio ainda não está autorizado no Firebase.":code==="auth/operation-not-allowed"?"Ative o provedor Google no projeto mosaico-noite.":"Não foi possível entrar com Google.")}}
+  try{await signInWithPopup(auth,provider)}catch(e){const code=e&&e.code||"";if(code==="auth/popup-blocked"||code==="auth/operation-not-supported-in-this-environment"){if(status)status.textContent="Redirecionando para o Google…";await signInWithRedirect(auth,provider);return}if(status)status.textContent=(code==="auth/unauthorized-domain"?"Este domínio ainda não está autorizado no Firebase.":code==="auth/operation-not-allowed"?"Ative o provedor Google no projeto Firebase deste modo.":"Não foi possível entrar com Google.")}}
 async function sair(){try{await sync(true)}catch(e){}clearInterval(syncTimer);try{await signOut(auth)}catch(e){}location.reload();}
 async function ready(user){currentUser=user;await restore(user);hideGate();accountChip(user);startSync();window.MosaicoUserCloud={user,entrarGoogle,sair,sincronizarAgora:()=>sync(true),get firestoreOk(){return firestoreOk}};window.dispatchEvent(new CustomEvent("mosaico-cloud-ready",{detail:{user,firestoreOk,experience}}));}
 css();gate("Verificando sua conta…");

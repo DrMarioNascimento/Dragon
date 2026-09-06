@@ -31,11 +31,11 @@ const ler = (p) =>
 const GAME = ler("carro-forte/game.js");
 const ATIVIDADE = ler("carro-forte/atividade.js");
 const PAUTA = ler("carro-forte/pauta-da-mesa.js");
-const MESA_HTML = ler("carro-forte/index.html");
+const MESA_HTML = ler("carro-forte/celular.html");
 const ESTILO = ler("carro-forte/styles.css");
 const SALA = ler("firebase-room.js");
 const TELAO = ler("telao.html");
-const NOITE = ler("carro-forte-noite/telao-publica.js");
+const NOITE = ler("carro-forte/noite/telao-publica.js");
 const REGRAS = ler("firestore.rules");
 const PAGINAS = ["sala-as-escuras", "vidro-embacado", "janela-do-norte"];
 
@@ -670,9 +670,9 @@ test("o pódio não some quando os celulares abrem o relatório", () => {
 
 /* Foi assim que o aparelho do Mario serviu game.js de ontem no meio de uma
    partida: o arquivo mudou e o carimbo não. A Noite carrega telao-publica.js
-   pela cascata de carro-forte-noite/game.js, e ele também mudou hoje. */
+   pela cascata de carro-forte/noite/game.js, e ele também mudou hoje. */
 test("o carimbo do telão d'A Noite acompanha o arquivo", () => {
-  const cascata = ler("carro-forte-noite/game.js");
+  const cascata = ler("carro-forte/noite/game.js");
   const carimbo = cascata.match(/telao-publica\.js\?v=([^']+)/)?.[1];
   assert.ok(carimbo, "telao-publica.js perdeu o carimbo e deixou de furar o cache");
   assert.match(
@@ -682,12 +682,9 @@ test("o carimbo do telão d'A Noite acompanha o arquivo", () => {
   );
 });
 
-/* A Casa da Costa e A Manhã do Carro-Forte dividem o projeto mosaico-game E a
-   coleção "mosaico". Um código de seis letras digitado no jogo errado entrava
-   sem aviso nenhum: o Carro-Forte conferia `caseId`, mas só quando ele existe,
-   e a Casa não gravava. A porta ficava aberta nos dois sentidos — e o
-   intruso aparecia na lista de jogadores da outra mesa, mexendo nas contagens
-   de prontidão que decidem quando a partida avança. */
+/* Casa (mosaico-game) e Carro-Forte (mosaico-noite) isolam por projeto, mas
+   ainda carimbam `caseId` na sala. Um código digitado no jogo errado não pode
+   entrar sem aviso. */
 test("as duas mesas carimbam o caso e recusam o do vizinho", () => {
   const CASA = ler("v1/MOSAICO-mesa.html");
   assert.match(CASA, /caseId:"casa-da-costa"/, "a Casa voltou a criar mesa sem dizer de que caso é");
