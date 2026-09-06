@@ -1,6 +1,6 @@
 /* MOSAICO · A MESA · abertura audiovisual */
 (function () {
-  const BASE='../carro-forte-noite/';
+  const BASE='noite/';
   const TELAO=(()=>{try{return matchMedia('(min-width:900px)').matches}catch(e){return false}})();
   const IMG=BASE+(TELAO?'AberturaTelão.jpg':'AberturaCelular.jpg'), AUDIO=BASE+'Amanha-do-carroforte.mp3';
   let armed=false,shown=false,started=false,finished=false;

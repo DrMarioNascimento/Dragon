@@ -100,20 +100,14 @@ Uma boa pergunta-mãe deve:
 
 ## Catálogo jogável
 
-| Experiência | Pasta | Jogar |
-|---|---|---|
-| **A Mesa — A Casa da Costa** | [`v1/`](./v1) | [Abrir a mesa](https://drmarionascimento.github.io/Dragon/v1/MOSAICO-mesa.html) |
-| **A Noite — A Casa da Costa** | [`mosaico-web/`](./mosaico-web) (código) · [`v2/`](./v2) (site) | [Abrir a noite](https://drmarionascimento.github.io/Dragon/v2/) |
-| **Modo Solo — A Casa da Costa** | [`solo/`](./solo) | [Jogar sozinho](https://drmarionascimento.github.io/Dragon/solo/) |
-| **A Mesa — A Manhã do Carro-Forte** | [`carro-forte/`](./carro-forte) | [Iniciar investigação](https://drmarionascimento.github.io/Dragon/carro-forte/) |
+| Caso | Pasta | Portas | Firebase |
+|---|---|---|---|
+| **A Casa da Costa** | [`casa-da-costa/`](./casa-da-costa) | Celular · Telão · Solo | `mosaico-game` |
+| **A Manhã do Carro-Forte** | [`carro-forte/`](./carro-forte) | Celular · Telão · Solo | `mosaico-noite` |
 
-O endereço antigo [`MOSAICO-mesa.html`](./MOSAICO-mesa.html) redireciona para **A Mesa — A Casa da Costa**.
+**Lab RA** (AR) vive em repositório próprio: [lab-ra](https://github.com/DrMarioNascimento/lab-ra).
 
-**Estória em desenvolvimento:** *O Peso do Malote 41* — primeira estória estruturada explicitamente a partir da nova gramática de incógnitas, com foco principal em **QUANTO** e camada de **QUAL / QUE TIPO**. Ainda não possui experiência jogável publicada.
-
-**Casos/estórias:** *A Casa da Costa* · *A Manhã do Carro-Forte* · *O Peso do Malote 41*<br>
-**Participantes:** Casa da Costa: 1 a 12 · Carro-Forte: 2, 3, 4 ou 6<br>
-**Situação:** experiências jogáveis em evolução e playtest; novas estórias em desenvolvimento
+Endereços antigos (`v1/`, `v2/`, `solo/`, `carro-forte-noite/`, `MOSAICO-mesa.html`) permanecem com redirect ou conteúdo para não quebrar QR/bookmarks.
 
 ## Autoria
 

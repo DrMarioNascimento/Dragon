@@ -146,7 +146,7 @@
      aparelhos narrando com atrasos diferentes é pior que um.
 
      GÊMEO, NÃO COMPARTILHADO. O mesmo mecanismo existe em
-     carro-forte-noite/telao-publica.js, e continua em dois arquivos pelo mesmo
+     carro-forte/noite/telao-publica.js, e continua em dois arquivos pelo mesmo
      motivo que opening-flow.js: os dois lados falam com PROJETOS diferentes do
      Firebase, por coleções diferentes, e leem "sou o Mestre" de objetos
      diferentes. Consolidar exigiria testar o caminho publicado d'A Noite, que

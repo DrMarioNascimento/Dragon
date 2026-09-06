@@ -6,12 +6,12 @@ Este documento é normativo para todos os jogos multiplayer do MOSAICO. A refer�
 
 O que muda entre casos e modos é o jogo depois de iniciado. A infraestrutura de entrada deve permanecer igual.
 
-**O projeto Firebase é definido exclusivamente pelo tipo de partida, nunca pelo caso.**
+**O projeto Firebase é definido pelo caso (1:1), não pelo rótulo Mesa/Noite.**
 
-- toda experiência **A Mesa**, atual ou futura, usa `mosaico-game`;
-- toda experiência **A Noite**, atual ou futura, usa `mosaico-noite`;
-- A Casa da Costa, A Manhã do Carro-Forte e futuros casos não criam projetos Firebase próprios;
-- o caso é identificado dentro da sala por `caseId` e não pela escolha do projeto Firebase.
+- **A Casa da Costa** → sempre `mosaico-game`;
+- **A Manhã do Carro-Forte** → sempre `mosaico-noite`;
+- cada caso tem um app com portas **Celular · Telão · Solo**;
+- o caso continua identificado na sala por `caseId`.
 
 ## Fluxo obrigatório
 
@@ -76,16 +76,14 @@ Convidado não precisa de login Google.
 
 ## Firebase por modo
 
-| Tipo de partida | Projeto Firebase | Coleção principal | Casos |
+| Caso | Projeto Firebase | Coleção Celular | Coleção fluxo alternativo/fechamento |
 |---|---|---|---|
-| **A Mesa** | `mosaico-game` | `mosaico/{codigo}` | todos |
-| **A Noite** | `mosaico-noite` | `noite/{codigo}` | todos |
-
-Casos diferentes compartilham a infraestrutura do modo e gravam `caseId` para impedir que um código de outro caso seja aceito na página errada.
+| **A Casa da Costa** | `mosaico-game` | `mosaico/{codigo}` | `noite/{codigo}` (v2, revisão) |
+| **A Manhã do Carro-Forte** | `mosaico-noite` | `mosaico/{codigo}` | `noite/{codigo}` |
 
 ### Invariante técnico
 
-Uma página marcada como `data-project="mesa"` deve carregar somente as credenciais Web do projeto `mosaico-game`. Uma página marcada como `data-project="noite"` deve carregar somente as credenciais Web do projeto `mosaico-noite`. Não reutilizar `apiKey`, `messagingSenderId` ou `appId` entre os dois projetos.
+`data-project="mesa"` → credenciais de `mosaico-game`. `data-project="noite"` → credenciais de `mosaico-noite`. Para Carro-Forte o Celular usa `data-project="noite"`. Não misturar chaves entre projetos.
 
 ## Casos abrangidos
 

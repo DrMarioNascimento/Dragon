@@ -25,10 +25,10 @@ button,select,input{font:inherit}
 /* ── Cenário ─────────────────────────────────────────────────────────── */
 /* Dois papéis de parede, um por tamanho de tela. O celular fica com o hero
    apertado do caso; a tela grande da mesa recebe o papel largo que A Noite usa
-   no telão — os arquivos moram numa cópia só, em ../carro-forte-noite/. */
+   no telão — os arquivos moram numa cópia só, em ../carro-forte/noite/. */
 .scene{position:fixed;inset:0;z-index:-3;background:linear-gradient(180deg,#06111be8,#03070bf5),url('assets/carro-forte-hero.png') center/cover no-repeat;filter:saturate(.72) brightness(.42)}
 @media(min-width:900px){
- .scene{background:linear-gradient(180deg,#06111be8,#03070bf5),url('../carro-forte-noite/Papel-de-Parede-CarroforteTelao.jpg') center/cover no-repeat}
+ .scene{background:linear-gradient(180deg,#06111be8,#03070bf5),url('../carro-forte/noite/Papel-de-Parede-CarroforteTelao.jpg') center/cover no-repeat}
 }
 .rain{position:fixed;inset:0;z-index:-2;pointer-events:none;opacity:.12;background:repeating-linear-gradient(108deg,transparent 0 22px,#b5d4e633 23px,transparent 24px 50px)}
 
