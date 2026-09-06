@@ -45,6 +45,17 @@ if (sala && !sala.local && sala.code) {
     const estado = { pergunta: '', jogadores: 0, ritmo: 0, ...(sala.room?.partida || {}) };
     const esperando = { pergunta: [], ritmo: [] };
 
+    /* Ponte Celular → Noite: se a Manhã já congelou a pergunta e ela veio na
+       URL (ou no doc semeado), não deixar o Mestre re-sortear outra. */
+    (function herdarDaPonte() {
+      const p = new URLSearchParams(location.search);
+      if (p.get('from') !== 'celular') return;
+      const id = String(p.get('pergunta') || '')
+        .trim()
+        .toLowerCase();
+      if (id && !estado.pergunta) estado.pergunta = id;
+    })();
+
     function recebeu(campo, valor) {
       if (!valor || estado[campo] === valor) return;
       estado[campo] = valor;
@@ -79,9 +90,19 @@ if (sala && !sala.local && sala.code) {
           esperando.pergunta.push((pergunta) => resolve({ pergunta, jogadores: estado.jogadores })),
         );
       }
-      const escolhida = ids[Math.floor(Math.random() * ids.length)];
+      const daUrl = String(new URLSearchParams(location.search).get('pergunta') || '')
+        .trim()
+        .toLowerCase();
+      const escolhida =
+        (daUrl && ids.includes(daUrl) && daUrl) ||
+        ids[Math.floor(Math.random() * ids.length)];
       const quantos = Math.max(2, Math.min(8, jogadoresNaSala || 0)) || 8;
-      return gravar({ 'partida.pergunta': escolhida, 'partida.jogadores': quantos }).then(() => {
+      const patch = { 'partida.pergunta': escolhida, 'partida.jogadores': quantos };
+      if (new URLSearchParams(location.search).get('from') === 'celular') {
+        patch['partida.origem'] = 'celular';
+        patch['partida.continuidade'] = { from: 'celular', emMs: Date.now() };
+      }
+      return gravar(patch).then(() => {
         estado.pergunta = estado.pergunta || escolhida;
         estado.jogadores = estado.jogadores || quantos;
         return { pergunta: estado.pergunta, jogadores: estado.jogadores };

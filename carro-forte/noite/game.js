@@ -10,7 +10,7 @@
     document.head.appendChild(s);
   };
   carregar('opening-flow.js?v=20260901-ios2', () => {
-    carregar('game-fixed.js?v=20260901-auditoria', () => {
+    carregar('game-fixed.js?v=20260906-ponte-noite', () => {
       carregar('layout-compacto.js?v=20260901-toque3', () => {
         carregar('touch-router.js?v=20260901-toque1', () => {
           carregar('telemetria-teste.js?v=20260905-persistencia', () => {

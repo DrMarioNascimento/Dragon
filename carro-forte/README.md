@@ -5,6 +5,7 @@
 A Mesa é a partida **coletiva e investigativa** do caso. Ela não é o Captura.
 Aqui não há moeda, vez, carteira nem mercado: o que se administra é interpretação.
 O Captura — economia, mãos e captura de evidência — vive em `../carro-forte/noite/`.
+Após o relatório da Manhã, o botão **Ir para a Noite** continua a sessão com o mesmo código de sala e a mesma pergunta (`?from=celular&sala=&pergunta=`); mãos e moedas do Captura não migram.
 
 > **A perspectiva muda a pergunta. Não muda o que aconteceu.**
 

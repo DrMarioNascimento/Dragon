@@ -313,9 +313,18 @@ async function entrar(asMaster=false){
        aconteça em segundo plano — é este o lugar dela. */
     let u;
     if(asMaster){u=pendingUser||auth.currentUser;if(!u)throw new Error('Mestre não autenticado.');}
-    else{u=auth.currentUser;if(!u||!u.isAnonymous){if(u)await signOut(auth);u=(await signInAnonymously(auth)).user;}}
+    else{
+      /* Autenticar antes de ler. Deep link / ponte Celular→Noite: se o Google
+         ainda é o mestreUid da sala, mantém a sessão — senão vira anônimo. */
+      u=auth.currentUser;
+      if(!u)u=(await signInAnonymously(auth)).user;
+    }
     const snap=await getDoc(roomRef(code));if(!snap.exists()||snap.data().ativa!==true)return formEntrar('Sala não encontrada ou encerrada.',asMaster);
     if(snap.data().caseId&&snap.data().caseId!==CASE_ID)return formEntrar('Esse código pertence a outro caso do MOSAICO.',asMaster);
+    if(!asMaster&&u&&!u.isAnonymous&&snap.data().mestreUid!==u.uid){
+      await signOut(auth);
+      u=(await signInAnonymously(auth)).user;
+    }
     await setDoc(playerRef(code,u.uid),{nome:nome.slice(0,24),forma,mestre:!!asMaster,pronto:true,entrouMs:Date.now(),atualizadoEmMs:Date.now()},{merge:true});
     /* Quem manda sobre isto é o documento da sala, não o caminho que a pessoa
        tomou para chegar aqui. O Mestre que recarrega, que volta pelo QR ou que

@@ -6,6 +6,12 @@ Primeira implementação do **Captura** como versão noturna de **A Manhã do Ca
 
 **URL:** https://drmarionascimento.github.io/Dragon/carro-forte/noite/
 
+## Continuidade Manhã → Noite
+
+Deep link: `?from=celular&sala=CODIGO&pergunta=peso` (ids: peso, janela, roubo, antes, quem, proteger).
+A Manhã grava em `mosaico/{sala}`; a ponte semeia `noite/{sala}` com `partida.pergunta` congelada.
+Entrada avulsa da Noite (sem params) permanece válida.
+
 ## Enquadramento narrativo
 
 Após um dia inteiro de levantamento de evidências, o grupo se reúne para consolidar o dossiê antes do encerramento do caso.

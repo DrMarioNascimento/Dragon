@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
   <meta name="theme-color" content="#050b12" />
   <title>MOSAICO — Celular · A Manhã do Carro-Forte</title>
-  <link rel="stylesheet" href="styles.css?v=20260906-rodizio-sala" />
+  <link rel="stylesheet" href="styles.css?v=20260906-ponte-noite" />
   <link rel="stylesheet" href="../carro-forte-terminal.css?v=20260901-linha-inteira" />
   <link rel="stylesheet" href="iphone-guard.css?v=20260831-v4-noite" />
 </head>
@@ -123,7 +123,11 @@
              depois que a mesa inteira entregou a nota. -->
         <div class="colecao depth-card" id="podio" hidden></div>
         <div class="colecao depth-card" id="colecao"></div>
-        <div class="dock"><button class="btn primary depth" id="playAgain" type="button">Sortear a próxima investigação <span>→</span></button></div>
+        <p class="dr-note" id="noiteBridgeHint" hidden style="margin:12px 0 0;color:#afc8d5;font-size:14px;line-height:1.45">A Noite continua com o <b>mesmo código de sala</b> e a <b>mesma pergunta</b>. Mãos, moedas e economia do Captura começam do zero.</p>
+        <div class="dock" style="flex-wrap:wrap">
+          <button class="btn ghost depth" id="toNoite" type="button">Ir para a Noite <span>→</span></button>
+          <button class="btn primary depth" id="playAgain" type="button">Sortear a próxima investigação <span>→</span></button>
+        </div>
       </div>
     </section>
 
@@ -150,7 +154,7 @@
 
   <script src="../v1/js/qr.js"></script>
   <script src="../carro-forte-terminal.js?v=20260901-linha-inteira"></script>
-  <script type="module" src="../firebase-room.js?v=20260905-telao3"
+  <script type="module" src="../firebase-room.js?v=20260906-ponte-noite"
           data-project="noite"
           data-root="mosaico"
           data-case="carro-forte"
@@ -172,11 +176,13 @@
         s.onload=()=>depois?.();
         document.body.appendChild(s);
       };
-      carregar('pauta-da-mesa.js?v=20260906-rodizio-sala',()=>{
+      carregar('pauta-da-mesa.js?v=20260906-ponte-noite',()=>{
       carregar('fragmentos.js?v=20260901-colheita1',()=>{
         carregar('opening-flow.js?v=20260901-abertura1',()=>{
-          carregar('game.js?v=20260906-rodizio-sala',()=>{
-            carregar('iphone-guard.js?v=20260901-rodizio1');
+          carregar('celular-para-noite.js?v=20260906-ponte-noite',()=>{
+            carregar('game.js?v=20260906-ponte-noite',()=>{
+              carregar('iphone-guard.js?v=20260901-rodizio1');
+            });
           });
         });
       });
