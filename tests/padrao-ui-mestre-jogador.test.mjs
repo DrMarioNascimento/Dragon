@@ -162,11 +162,13 @@ describe("HUD / hub · Sala Title Case e landings", () => {
     assert.equal(/Ensaiar sozinho/.test(HUB), false);
   });
 
-  it("landings documentam Celular gate Abrir|Entrar e Telão display-only", () => {
-    assert.match(LAND_CASA, /Abrir \| Entrar/);
-    assert.match(LAND_CARRO, /Abrir \| Entrar/);
-    assert.match(LAND_CASA, /Display only/i);
-    assert.match(LAND_CARRO, /Display only/i);
+  it("hub documenta Celular gate Abrir|Entrar e Telão display-only", () => {
+    assert.match(HUB, /Abrir mesa \| Entrar/);
+    assert.match(HUB, /Display only/i);
+    assert.match(LAND_CASA, /MOSAICO-mesa\.html/);
+    assert.match(LAND_CARRO, /celular\.html/);
+    assert.equal(/data-mode-ctas/.test(LAND_CASA), false);
+    assert.equal(/data-mode-ctas/.test(LAND_CARRO), false);
   });
 
   it("PADRAO documenta gate Celular Abrir|Entrar e abertura Solo/Mestre/Telão", () => {

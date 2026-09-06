@@ -2633,15 +2633,15 @@ function telaReconectando(){
 
 function telaInicio(){
   /* Fallback legado (só se o gate firebase-room não assumir). Mesma regra
-     do Celular canônico: Abrir | Entrar. Telão é landing/`telao.html`.
-     Ensaiar é a porta Solo. Sem Com/Sem telão neste fluxo. */
+     do Celular canônico: Abrir | Entrar. Telão é o hub / `telao.html`.
+     Ensaiar é a porta Solo do hub. Sem Com/Sem telão neste fluxo. */
   return '<h1>A Casa da Costa</h1>'+
     '<p class="lead">Voc&ecirc; possui uma parte da verdade. Para enxergar o todo, '+
     'precisar&aacute; das outras pessoas &mdash; mas elas tamb&eacute;m querem vencer.</p>'+
     avisoLocal()+
     '<button class="btn btn-ambar" onclick="pedirSenha()">Abrir uma mesa</button>'+
     '<button class="btn btn-frio" onclick="irPara(\'entrar\')">Entrar em uma mesa</button>'+
-    '<p class="muted" style="margin-top:24px">O telão, se houver, entra pela porta Telão da landing com o código da sala. O ensaio local fica na porta Solo.</p>'+
+    '<p class="muted" style="margin-top:24px">O telão, se houver, entra pela porta Telão do hub com o código da sala. O ensaio local fica na porta Solo.</p>'+
     modalSenha();
 }
 

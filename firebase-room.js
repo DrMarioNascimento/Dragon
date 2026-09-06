@@ -82,9 +82,9 @@ function formas(selected='m'){return `<div class="dr-formas">${Object.entries(FO
 function formaAtual(){return document.querySelector('input[name="drForma"]:checked')?.value||'m'}
 
 function menu(error=''){
-  /* Celular gate: só Abrir | Entrar. Ensaiar fica na landing Solo; Telão na
-     landing Telão (ou CTA do case). Sem segundo seletor de modo aqui. */
-  gate().innerHTML=`<div class="dr-shell"><div class="dr-brand">DRAGON GAMES · ${esc(TITLE)}</div><div class="dr-card"><h1>${esc(TITLE)}</h1><p>O Mestre abre a mesa neste celular. Os jogadores entram pelo QR ou pelo código. O telão, se houver, entra pela porta Telão da landing com o mesmo código.</p>${error?`<div class="dr-error">${esc(error)}</div>`:''}<button class="dr-btn" id="drOpen">Abrir uma mesa</button><button class="dr-btn secondary" id="drJoin">Entrar em uma mesa</button></div></div>`;
+  /* Celular gate: só Abrir | Entrar. Ensaiar fica na porta Solo do hub; Telão
+     na porta Telão do hub. Sem segundo seletor de modo aqui. */
+  gate().innerHTML=`<div class="dr-shell"><div class="dr-brand">DRAGON GAMES · ${esc(TITLE)}</div><div class="dr-card"><h1>${esc(TITLE)}</h1><p>O Mestre abre a mesa neste celular. Os jogadores entram pelo QR ou pelo código. O telão, se houver, entra pela porta Telão do hub com o mesmo código.</p>${error?`<div class="dr-error">${esc(error)}</div>`:''}<button class="dr-btn" id="drOpen">Abrir uma mesa</button><button class="dr-btn secondary" id="drJoin">Entrar em uma mesa</button></div></div>`;
   document.getElementById('drOpen').onclick=()=>{intencao='sala';renderMasterGate()};
   document.getElementById('drJoin').onclick=()=>formEntrar('');
 }
@@ -102,9 +102,9 @@ function formTelao(err=''){
 }
 function renderMasterGate(error=''){
   const ensaio=intencao==='ensaio';
-  /* Landing já escolheu Celular (ou Solo via ?soloLab=1). Não reperguntar
+  /* Hub já escolheu Celular (ou Solo via ?soloLab=1). Não reperguntar
      Celular/Telão/Solo nem Com/Sem telão. modo=sem-telao em silêncio;
-     a TV entra pela porta Telão + código. */
+     a TV entra pela porta Telão do hub + código. */
   modo='sem-telao';
   const corpo=ensaio
     ? `<div class="dr-master-info"><p>Nenhuma sala é aberta e ninguém entra por QR. Percorra a partida neste aparelho.</p></div>`
@@ -225,7 +225,7 @@ async function criarSalaBase(){
     await setDoc(roomRef(code),{ativa:true,fase:'sala',mestreUid:u.uid,criadaEm:serverTimestamp(),criadaEmMs:Date.now(),modo,ritmo,caseId:CASE_ID});
     role='master';room={ativa:true,fase:'sala',mestreUid:u.uid,modo,ritmo,caseId:CASE_ID};
     /* Telão não é mais etapa do Abrir mesa: o Mestre segue para o nome;
-       a TV entra pela landing Telão com o código. */
+       a TV entra pela porta Telão do hub com o código. */
     formEntrar('',true);
   }catch(e){renderMasterGate('Não foi possível criar a mesa. '+(e?.message||e))}
 }

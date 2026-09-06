@@ -102,10 +102,12 @@ Uma boa pergunta-mãe deve:
 
 | Caso | Pasta | Portas | Firebase |
 |---|---|---|---|
-| **A Casa da Costa** | [`casa-da-costa/`](./casa-da-costa) | Celular · Telão · Solo | `mosaico-game` |
-| **A Manhã do Carro-Forte** | [`carro-forte/`](./carro-forte) | Celular · Telão · Solo | `mosaico-noite` |
+| **A Casa da Costa** | [`casa-da-costa/`](./casa-da-costa) → [`v1/MOSAICO-mesa.html`](./v1/MOSAICO-mesa.html) | Celular · Telão · Solo (só no hub) | `mosaico-game` |
+| **A Manhã do Carro-Forte** | [`carro-forte/`](./carro-forte) → [`carro-forte/celular.html`](./carro-forte/celular.html) | Celular · Telão · Solo (só no hub) | `mosaico-noite` |
 
 **Lab RA** (AR) vive em repositório próprio: [lab-ra](https://github.com/DrMarioNascimento/lab-ra).
+
+A escolha **Celular · Telão · Solo** existe só no hub (`index.html`). `/casa-da-costa/` e `/carro-forte/` redirecionam ao gate Celular.
 
 Endereços antigos (`v1/`, `v2/`, `solo/`, `carro-forte-noite/`, `MOSAICO-mesa.html`) permanecem com redirect ou conteúdo para não quebrar QR/bookmarks.
 
@@ -200,7 +202,7 @@ App em [`mosaico-web/`](./mosaico-web) (React / Vite). **Não substitui A Mesa.*
 - cronômetro âmbar com glow; a casa vira sozinha
 - arquétipo (emoji) em vez de nome de personagem na porta
 
-O GitHub Pages ainda serve o build estático em [`v2/`](https://drmarionascimento.github.io/Dragon/v2/). **Não é porta de produção do playtest** — a landing da Casa não aponta para `/v2/`. Código-fonte: [`mosaico-web/`](./mosaico-web).
+O GitHub Pages ainda serve o build estático em [`v2/`](https://drmarionascimento.github.io/Dragon/v2/). **Não é porta de produção do playtest** — o hub e o redirect `/casa-da-costa/` não apontam para `/v2/`. Código-fonte: [`mosaico-web/`](./mosaico-web).
 
 ```bash
 cd mosaico-web && MOSAICO_PAGES=1 npx vite build
@@ -255,7 +257,8 @@ rotacionáveis sob pressão de tempo.
 
 | Arquivo | Responsabilidade |
 |---|---|
-| `carro-forte/index.html` | estrutura e telas do jogo |
+| `carro-forte/index.html` | redirect para o gate Celular (`celular.html`) |
+| `carro-forte/celular.html` | estrutura e telas do jogo |
 | `carro-forte/styles.css` | identidade visual, profundidade e responsividade |
 | `carro-forte/game.js` | estado, quebra-cabeça, investigação e pontuação |
 | `carro-forte/assets/` | cenas das seis perspectivas |

@@ -1,7 +1,7 @@
 /* Modo (Celular · Telão · Solo) + papel cognitivo + camada de acessibilidade.
  * =========================================================================
- * Landing de caso = três CTAs grandes, sem misturar papel/camada.
- * Celular / Solo têm seletor; Telão NÃO.
+ * Só o hub pergunta Celular · Telão · Solo. /casa-da-costa/ e /carro-forte/
+ * redirecionam ao gate Celular. Celular / Solo têm seletor; Telão NÃO.
  */
 import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
@@ -16,6 +16,7 @@ const ler = (p) => readFileSync(join(root, p), "utf8").replace(/\r\n/g, "\n");
 
 const CASA = ler("casa-da-costa/index.html");
 const CARRO = ler("carro-forte/index.html");
+const HUB = ler("index.html");
 const TELAO = ler("telao.html");
 const MESA = ler("v1/MOSAICO-mesa.html");
 const CEL = ler("carro-forte/celular.html");
@@ -27,46 +28,44 @@ const GAME = ler("carro-forte/game.js");
 const DOC = ler("MOSAICO-ACESSIBILIDADE-PAPEIS.md");
 const README = ler("README.md");
 
-function modes(html) {
-  const block = html.match(/data-mode-ctas[\s\S]*?<\/div>/)?.[0] || "";
-  return {
-    celular: /data-mode="celular"/.test(block),
-    telao: /data-mode="telao"/.test(block),
-    solo: /data-mode="solo"/.test(block),
-    block,
-  };
-}
-
-describe("landing · só três modos", () => {
-  it("Casa da Costa tem CTAs Celular · Telão · Solo", () => {
-    const m = modes(CASA);
-    assert.equal(m.celular && m.telao && m.solo, true);
-    assert.match(CASA, />\s*Celular\s*</);
-    assert.match(CASA, />\s*Telão\s*</);
-    assert.match(CASA, />\s*Solo\s*</);
+describe("hub · único seletor de modo", () => {
+  it("hub pergunta Celular · Telão · Solo", () => {
+    assert.match(HUB, />\s*Celular\s*</);
+    assert.match(HUB, />\s*Telão\s*</);
+    assert.match(HUB, />\s*Solo\s*</);
   });
 
-  it("Carro-Forte tem CTAs Celular · Telão · Solo", () => {
-    const m = modes(CARRO);
-    assert.equal(m.celular && m.telao && m.solo, true);
+  it("hub Celular vai direto ao gate (não à pasta do caso)", () => {
+    assert.match(HUB, /href="v1\/MOSAICO-mesa\.html"/);
+    assert.match(HUB, /href="carro-forte\/celular\.html"/);
+    assert.equal(/href="casa-da-costa\/"/.test(HUB), false);
+    assert.equal(/href="carro-forte\/"/.test(HUB), false);
   });
 
-  it("landing NÃO mistura papel/camada no modo", () => {
-    for (const [nome, html] of [
-      ["casa", CASA],
-      ["carro", CARRO],
-    ]) {
-      assert.ok(!/Investigador|Arquivista|Assistida|Guiada|papel cognitivo/i.test(html.match(/data-mode-ctas[\s\S]*?<\/div>/)?.[0] || ""), nome);
-      assert.match(html, /papel e camada|nunca nesta tela/i);
-    }
-  });
-
-  it("Telão deep-link aponta telao.html?jogo=… e a página pede sala", () => {
-    assert.match(CASA, /telao\.html\?jogo=casa-da-costa/);
-    assert.match(CARRO, /telao\.html\?jogo=carro-forte/);
+  it("hub Telão deep-link aponta telao.html?jogo=… e a página pede sala", () => {
+    assert.match(HUB, /telao\.html\?jogo=casa-da-costa/);
+    assert.match(HUB, /telao\.html\?jogo=carro-forte/);
     assert.match(TELAO, /telaoSalaInput/);
     assert.match(TELAO, /Digite o código da sala/);
     assert.ok(!/mpc-papel|papelCognitivo|MosaicoPapelCamada/.test(TELAO), "telão não deve carregar seletor de papel");
+  });
+});
+
+describe("pasta do caso · redirect ao Celular, sem três portas", () => {
+  it("Casa /casa-da-costa/ redireciona ao gate Celular", () => {
+    assert.match(CASA, /location\.replace\(["']\.\.\/v1\/MOSAICO-mesa\.html/);
+    assert.match(CASA, /http-equiv="refresh"/);
+    assert.match(CASA, /href="\.\.\/v1\/MOSAICO-mesa\.html"/);
+    assert.equal(/data-mode-ctas/.test(CASA), false);
+    assert.equal(/Tr[eê]s portas/.test(CASA), false);
+  });
+
+  it("Carro /carro-forte/ redireciona ao gate Celular", () => {
+    assert.match(CARRO, /location\.replace\(["']celular\.html/);
+    assert.match(CARRO, /http-equiv="refresh"/);
+    assert.match(CARRO, /href="celular\.html"/);
+    assert.equal(/data-mode-ctas/.test(CARRO), false);
+    assert.equal(/Tr[eê]s portas/.test(CARRO), false);
   });
 });
 
