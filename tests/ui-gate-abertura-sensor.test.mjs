@@ -94,6 +94,69 @@ describe("sensor · finger + soft deadline", () => {
     assert.equal(/Descer do carro/i.test(JANELA), false);
   });
 
+  it("tarefa-sensor: modal de elenco exige OK antes da Janela", async () => {
+    assert.match(TS, /avisoElencoAntesJanela\s*=\s*function/);
+    assert.match(TS, /elencoPodeLiberar\s*=\s*function/);
+    assert.match(TS, /Os personagens do jogo são:/);
+    assert.match(TS, /O seu personagem é:/);
+    assert.match(TS, /ELENCO_CASA_CANONICO/);
+    const { createContext, runInContext } = await import("node:vm");
+    const ctx = createContext({
+      setTimeout,
+      clearTimeout,
+      setInterval,
+      clearInterval,
+      URL,
+      location: { href: "http://localhost/" },
+      document: {
+        currentScript: null,
+        querySelector: () => null,
+        createElement: () => ({ dataset: {}, style: {}, setAttribute() {}, addEventListener() {}, appendChild() {} }),
+        body: { appendChild() {} },
+        head: { appendChild() {} },
+      },
+    });
+    ctx.window = ctx;
+    ctx.globalThis = ctx;
+    runInContext(TS + "; this.__TS = TarefaSensor;", ctx);
+    const api = ctx.__TS;
+    assert.equal(api.elencoPodeLiberar({ usuarioOk: false }), false);
+    assert.equal(api.elencoPodeLiberar({ usuarioOk: true }), true);
+    assert.equal(api.ELENCO_TIT, "Os personagens do jogo são:");
+    assert.equal(api.ELENCO_SEU_TIT, "O seu personagem é:");
+    const casa = JSON.parse(ler("v1/casos/casa-da-costa.json"));
+    const host = (v) => JSON.parse(JSON.stringify(v));
+    assert.deepEqual(
+      host(api.ELENCO_CASA_CANONICO.map((p) => p.id)),
+      casa.elenco.map((p) => p.id)
+    );
+    assert.deepEqual(
+      host(api.ELENCO_CASA_CANONICO.map((p) => p.av)),
+      casa.elenco.map((p) => p.av)
+    );
+    const resolvido = api.resolverElenco({
+      elenco: casa.elenco,
+      eu: { personagem: "jornalista", forma: "f" },
+    });
+    assert.equal(resolvido.meu.id, "jornalista");
+    assert.equal(resolvido.meu.nome, "A Jornalista");
+    assert.equal(resolvido.personagens.length, 6);
+    let liberou = false;
+    api.avisoElencoAntesJanela({
+      elenco: [],
+      caso: "carro-forte",
+      aoLiberar: () => { liberou = true; },
+    });
+    assert.equal(liberou, true, "sem elenco conhecido não inventa nomes nem bloqueia");
+  });
+
+  it("Janela Casa: OK do elenco é obrigatório para começar", () => {
+    assert.match(JANELA, /avisoElencoAntesJanela/);
+    assert.match(JANELA, /elencoJanelaPodeComecar/);
+    assert.match(JANELA, /if\s*\(\s*!elencoJanelaPodeComecar\(\)\s*\)\s*return/);
+    assert.match(JANELA, /caso:\s*["']casa-da-costa["']/);
+  });
+
   it("Vidro e Sala Casa: cairNoModoDedo antes do dedo", () => {
     const VIDRO = ler("v1/MOSAICO-26-vidro-embacado.html");
     const SALA = ler("v1/MOSAICO-26-a-sala-as-escuras.html");

@@ -220,6 +220,211 @@
     }
     return function cancelar() { limparUi(); liberou = true; };
   };
+
+  /* Elenco canônico da Casa da Costa (v1/casos/casa-da-costa.json).
+     Fallback só quando a mesa ainda não expôs PERSONAGENS/CASO.elenco.
+     Não inventa nomes — é a mesma lista do banco. */
+  TS.ELENCO_CASA_CANONICO = [
+    { id: "investigador", av: "🔎", nome: "{O Investigador|A Investigadora}" },
+    { id: "herdeiro", av: "🗝️", nome: "{O Herdeiro|A Herdeira}" },
+    { id: "morador", av: "🏠", nome: "{O Morador|A Moradora}" },
+    { id: "jornalista", av: "🎤", nome: "{O Jornalista|A Jornalista}" },
+    { id: "policial", av: "🚓", nome: "{O Policial|A Policial}" },
+    { id: "menina", av: "🧸", nome: "{O Menino|A Menina}" }
+  ];
+  TS.ELENCO_TIT = "Os personagens do jogo são:";
+  TS.ELENCO_SEU_TIT = "O seu personagem é:";
+
+  TS.flexNome = function (txt, forma) {
+    return String(txt == null ? "" : txt).replace(/\{([^|}]*)\|([^}]*)\}/g, function (_, m, f) {
+      return forma === "f" ? f : m;
+    });
+  };
+
+  function janelaParent() {
+    try {
+      if (global.parent && global.parent !== global) return global.parent;
+    } catch (e) {}
+    return null;
+  }
+
+  function lerCampo(obj, caminho) {
+    if (!obj) return null;
+    var cur = obj;
+    var parts = String(caminho || "").split(".");
+    for (var i = 0; i < parts.length; i++) {
+      if (!cur || typeof cur !== "object") return null;
+      cur = cur[parts[i]];
+    }
+    return cur == null ? null : cur;
+  }
+
+  TS.elencoVivo = function (opts) {
+    opts = opts || {};
+    if (opts.elenco && opts.elenco.length) return opts.elenco;
+    var fontes = [global.PERSONAGENS, lerCampo(global.CASO, "elenco")];
+    var p = janelaParent();
+    if (p) {
+      try { fontes.push(p.PERSONAGENS); } catch (e) {}
+      try { fontes.push(lerCampo(p.CASO, "elenco")); } catch (e2) {}
+    }
+    for (var i = 0; i < fontes.length; i++) {
+      if (fontes[i] && fontes[i].length) return fontes[i];
+    }
+    return null;
+  };
+
+  TS.euVivo = function (opts) {
+    opts = opts || {};
+    if (opts.eu && (opts.eu.personagem || opts.eu.id)) return opts.eu;
+    if (global.STATE && global.STATE.eu) return global.STATE.eu;
+    var p = janelaParent();
+    try {
+      if (p && p.STATE && p.STATE.eu) return p.STATE.eu;
+    } catch (e) {}
+    return null;
+  };
+
+  TS.resolverElenco = function (opts) {
+    opts = opts || {};
+    var bruto = TS.elencoVivo(opts);
+    var caso = String(opts.caso || "").toLowerCase();
+    if (!bruto || !bruto.length) {
+      if (!caso || caso.indexOf("casa") >= 0) bruto = TS.ELENCO_CASA_CANONICO;
+      else bruto = [];
+    }
+    var eu = TS.euVivo(opts);
+    var forma = eu && eu.forma;
+    var personagens = [];
+    for (var i = 0; i < bruto.length; i++) {
+      var p = bruto[i] || {};
+      var id = p.id || p;
+      var av = p.av || "👤";
+      var nomeBruto = p.nome || String(id);
+      var nome = TS.flexNome(nomeBruto, forma);
+      try {
+        var par = janelaParent();
+        if (eu && par && typeof par.nomePersFragmento === "function" && eu.personagem === id) {
+          nome = par.nomePersFragmento(eu, par.STATE && par.STATE.jogadores) || nome;
+        }
+      } catch (e3) {}
+      personagens.push({ id: id, av: av, nome: nome });
+    }
+    var meu = null;
+    if (eu && eu.personagem) {
+      for (var j = 0; j < personagens.length; j++) {
+        if (personagens[j].id === eu.personagem) { meu = personagens[j]; break; }
+      }
+    }
+    return { personagens: personagens, meu: meu, eu: eu };
+  };
+
+  /* Gate puro — testável sem DOM. OK obrigatório. */
+  TS.elencoPodeLiberar = function (estado) {
+    estado = estado || {};
+    return !!estado.usuarioOk;
+  };
+
+  /* Modal flutuante antes da Janela do Norte (mesmo espírito do aviso de dedo).
+     Não começa o sensorial até OK. Sem elenco conhecido, libera na hora
+     (Carro / Solo sem personagem — não inventa nomes). */
+  TS.avisoElencoAntesJanela = function (opcoes) {
+    opcoes = opcoes || {};
+    var aoLiberar = typeof opcoes.aoLiberar === "function" ? opcoes.aoLiberar : function () {};
+    var dados = TS.resolverElenco(opcoes);
+    var estado = { usuarioOk: !!opcoes.usuarioOk };
+    var liberou = false;
+    function tentarLiberar() {
+      if (liberou || !TS.elencoPodeLiberar(estado)) return;
+      liberou = true;
+      limparUi();
+      try { aoLiberar(dados); } catch (e) {}
+    }
+    var doc = global.document;
+    var root = null;
+    function limparUi() {
+      if (root && root.parentNode) root.parentNode.removeChild(root);
+      root = null;
+    }
+    if (!dados.personagens.length) {
+      estado.usuarioOk = true;
+      tentarLiberar();
+      return function cancelar() { liberou = true; };
+    }
+    if (!doc || !doc.body) {
+      if (estado.usuarioOk) tentarLiberar();
+      return function cancelar() { liberou = true; };
+    }
+    root = doc.createElement("div");
+    root.id = "ts-aviso-elenco";
+    root.setAttribute("role", "alertdialog");
+    root.setAttribute("aria-modal", "true");
+    root.setAttribute("aria-labelledby", "ts-elenco-tit");
+    root.style.cssText = [
+      "position:fixed", "inset:0", "z-index:100000",
+      "display:flex", "align-items:center", "justify-content:center",
+      "padding:max(16px,env(safe-area-inset-top)) 18px calc(env(safe-area-inset-bottom,0px) + 18px)",
+      "background:rgba(0,0,0,.78)", "box-sizing:border-box",
+      "-webkit-tap-highlight-color:transparent"
+    ].join(";");
+    var card = doc.createElement("div");
+    card.style.cssText = [
+      "width:min(440px,94vw)", "max-height:min(88dvh,640px)", "overflow:auto",
+      "background:#0c121a", "color:#f4f9fd",
+      "border:1px solid #2a3949", "border-radius:18px",
+      "padding:24px 20px 20px", "box-shadow:0 18px 60px #000c",
+      "display:flex", "flex-direction:column", "gap:14px", "text-align:left"
+    ].join(";");
+    var tit = doc.createElement("div");
+    tit.id = "ts-elenco-tit";
+    tit.style.cssText = "font:600 clamp(18px,4.6vw,22px)/1.35 system-ui,-apple-system,sans-serif";
+    tit.textContent = TS.ELENCO_TIT;
+    var lista = doc.createElement("ul");
+    lista.style.cssText = "list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px";
+    dados.personagens.forEach(function (p) {
+      var li = doc.createElement("li");
+      var ehMeu = !!(dados.meu && dados.meu.id === p.id);
+      li.style.cssText = ehMeu
+        ? "padding:10px 12px;border-radius:10px;border:2px solid #e8a94a;background:#25190e;font:600 16px/1.35 system-ui,-apple-system,sans-serif;color:#ffc46b"
+        : "padding:8px 12px;border-radius:10px;border:1px solid #2a3949;background:#0a1419;font:500 16px/1.35 system-ui,-apple-system,sans-serif;color:#e6edf2";
+      li.textContent = (p.av ? p.av + " " : "") + p.nome;
+      lista.appendChild(li);
+    });
+    card.appendChild(tit);
+    card.appendChild(lista);
+    if (dados.meu) {
+      var seuTit = doc.createElement("div");
+      seuTit.style.cssText = "margin-top:4px;font:700 13px/1.3 system-ui,-apple-system,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#e8a94a";
+      seuTit.textContent = TS.ELENCO_SEU_TIT;
+      var seu = doc.createElement("div");
+      seu.setAttribute("data-ts-meu-personagem", dados.meu.id);
+      seu.style.cssText = "padding:14px 14px;border-radius:12px;border:2px solid #e8a94a;background:#2a1c0c;font:700 clamp(18px,4.8vw,22px)/1.3 system-ui,-apple-system,sans-serif;color:#ffc46b;text-align:center";
+      seu.textContent = (dados.meu.av ? dados.meu.av + " " : "") + dados.meu.nome;
+      card.appendChild(seuTit);
+      card.appendChild(seu);
+    }
+    var ok = doc.createElement("button");
+    ok.type = "button";
+    ok.textContent = "OK";
+    ok.setAttribute("aria-label", "OK");
+    ok.style.cssText = [
+      "margin-top:6px", "width:100%", "min-height:56px",
+      "padding:16px 18px", "border:none", "border-radius:14px",
+      "background:#ff9a4d", "color:#140c06",
+      "font:700 clamp(18px,4.8vw,22px)/1.1 system-ui,-apple-system,sans-serif",
+      "letter-spacing:.06em", "cursor:pointer"
+    ].join(";");
+    ok.addEventListener("click", function () {
+      estado.usuarioOk = true;
+      tentarLiberar();
+    });
+    card.appendChild(ok);
+    root.appendChild(card);
+    doc.body.appendChild(root);
+    try { ok.focus(); } catch (e4) {}
+    return function cancelar() { limparUi(); liberou = true; };
+  };
+
   global.TarefaSensor = TS;
 
   /* Conteúdo narrativo específico do caso fica separado da engenharia dos
