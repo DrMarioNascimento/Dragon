@@ -118,7 +118,9 @@
     tempo: ['Tempo encerrado', 'O que ficou no escuro não entra no dossiê por nenhuma outra porta.'],
     completa: ['Tudo alcançado ✓', 'Os quatro fragmentos foram para o dossiê da mesa.'],
     mesa: ['A mesa encerrou esta atividade', 'O que você alcançou até aqui já subiu.'],
+    'sem-precisao': ['Sem precisão', 'O tempo suave esgotou — o que você alcançou já subiu; a sala não fica presa.'],
   };
+  const SOFT_MS = 50000;
   function fechar(motivo) {
     if (encerrada) return;
     encerrada = true;
@@ -176,6 +178,8 @@
     if (botao) { botao.hidden = true; botao.onclick = null; }
     marcar(achados, todos);
     montarRelogio();
+    /* Soft 50s só sem relógio da mesa (ensaio/aba solta). Com fimMs a mesa manda. */
+    if (!fimMs) setTimeout(() => { if (!encerrada) fechar('sem-precisao'); }, SOFT_MS);
   }
 
   /* A Mesa é quem manda encerrar: o relógio dela é o que vale, e esta página

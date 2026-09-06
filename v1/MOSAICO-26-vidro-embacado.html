@@ -1258,25 +1258,33 @@ function avisa(t){
 /* A permissão de movimento do iOS mora em js/tarefa-sensor.js. Esta tarefa
    é a única que NÃO quer o rumo absoluto: a água obedece à inclinação, não
    ao norte, então ouve só "deviceorientation". */
+function armarPrazoSuave(){
+  if(typeof TarefaSensor==="undefined"||!TarefaSensor.prazoSuave) return;
+  TarefaSensor.prazoSuave(ctxMesa(), function(){
+    if(conclusaoEnviada||ABORTADO) return;
+    avisa("Tempo esgotado · sem precisão.");
+    if(inicioTarefa===null) iniciarCronometroOficial();
+    enviarConclusao();
+  });
+}
+function entrarModoDedo(msg){
+  modoDedo=true; tBeta=90; tGamma=0; modoEntrada="toque";
+  enviarStatus("ativo","toque");
+  try{ telaCheia(); }catch(e){}
+  comeca();
+  avisa(msg||"Modo dedo — arraste a tela");
+  armarPrazoSuave();
+}
 function ativaSensor(){
   TarefaSensor.ativarOrientacao({
     aoOrientar: onOrient,
-    aoLigar: comeca,
+    aoLigar: function(){ comeca(); armarPrazoSuave(); },
     esperaMs: 1800,
     absoluto: false,
     respondeu: function(){ return temSensor; },
-    aoNaoResponder: function(){
-      enviarStatus("sem-resposta","sensor");
-      mostraFalha("O giroscópio deste aparelho não respondeu.");
-    },
-    aoNegar: function(){
-      enviarStatus("negado","sensor");
-      mostraFalha("A permissão de movimento foi negada. Sem ela a água não obedece à inclinação.");
-    },
-    aoIndisponivel: function(){
-      enviarStatus("indisponivel","toque");
-      mostraFalha("Este aparelho não tem giroscópio.");
-    }
+    aoNaoResponder: function(){ entrarModoDedo("Giroscópio mudo — arraste a tela."); },
+    aoNegar: function(){ entrarModoDedo("Movimento negado — arraste a tela."); },
+    aoIndisponivel: function(){ entrarModoDedo("Sem giroscópio — arraste a tela."); }
   });
 }
 
@@ -1284,8 +1292,7 @@ document.getElementById("btn-start").addEventListener("click",function(){
   telaCheia(); ativaSensor();
 });
 document.getElementById("alt").addEventListener("click",function(){
-  telaCheia();
-  modoDedo=true; tBeta=90; tGamma=0; modoEntrada="toque"; comeca(); avisa("Modo dedo — arraste a tela");
+  entrarModoDedo("Modo dedo — arraste a tela");
 });
 document.getElementById("btn-again").addEventListener("click",function(){
   document.getElementById("final").classList.remove("on");
@@ -1323,7 +1330,7 @@ document.getElementById("falha-toque").addEventListener("click",function(){
   if(SEGUIR_TOQUE) SEGUIR_TOQUE();
 });
 RETENTAR=function(){ ativaSensor(); };
-SEGUIR_TOQUE=function(){ modoDedo=true; tBeta=90; tGamma=0; comeca(); avisa("Modo dedo — arraste a tela"); };
+SEGUIR_TOQUE=function(){ entrarModoDedo("Modo dedo — arraste a tela"); };
 if(EMBED) document.body.classList.add("embed");
 if(!DEV){
   var _bt=document.getElementById("b-sim")||document.getElementById("alt");

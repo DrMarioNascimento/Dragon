@@ -84,10 +84,12 @@ test("o relógio publicado é o da mesa (dadosAutomacao), não um timer local", 
   );
 });
 
-test("a Mesa oferece o endereço do telão compartilhado", () => {
+test("a Mesa e a landing apontam o telão compartilhado", () => {
   assert.match(MESA, /function linkDoTelao\(/, "sumiu o helper do endereço do telão");
   assert.match(MESA, /jogo","casa-da-costa"/, "o link do telão perdeu a chave do jogo");
-  assert.match(MESA, /Tel&atilde;o/, "o painel do Mestre não oferece mais a seção do telão");
+  /* Bloco "abra o telão" saiu do painel Sala — entrada é pela landing. */
+  assert.match(LANDING, /telao\.html\?jogo=casa-da-costa/, "landing Telão da Casa");
+  assert.match(MESA, /#dragonSalaBtn\{display:none/, "Sala flutuante some; fica a do topo");
 });
 
 test("a landing da Casa aponta o telão para a chave certa", () => {

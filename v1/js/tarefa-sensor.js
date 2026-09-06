@@ -83,6 +83,24 @@
       Promise.resolve(pedido).then(function (s) { if (s === "granted") liga(); else aoNegar(); }).catch(function (e) { aoNegar(e); });
     } else if (DOE) liga(); else aoIndisponivel();
   };
+  /* Soft deadline por item (50s): sem giroscópio / travado no gesto não pode
+     segurar a sala. Quem estoura conclui com o que tiver — “sem precisão”. */
+  TS.SOFT_DEADLINE_MS = 50000;
+  TS.prazoSuave = function (ctx, aoEstourar) {
+    ctx = ctx || {};
+    var ms = Number(ctx.deadlineMs);
+    if (!Number.isFinite(ms) || ms <= 0) ms = TS.SOFT_DEADLINE_MS;
+    var done = false;
+    var t = setTimeout(function () {
+      if (done) return;
+      done = true;
+      try { aoEstourar && aoEstourar({ semPrecisao: true, deadlineMs: ms }); } catch (e) {}
+    }, ms);
+    return function cancelar() {
+      done = true;
+      clearTimeout(t);
+    };
+  };
   global.TarefaSensor = TS;
 
   /* Conteúdo narrativo específico do caso fica separado da engenharia dos

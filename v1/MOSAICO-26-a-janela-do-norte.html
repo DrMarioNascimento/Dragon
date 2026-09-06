@@ -386,7 +386,7 @@
   <div id="sub">A janela do segundo andar</div>
   <p>A tempestade não esperou ninguém. Às 21h29 a casa apagou por dois minutos e dois segundos. Não foi queda. Foi janela.</p>
   <p>A janela acesa fica sempre no <b>mesmo rumo real do mundo</b>. Todos viram o corpo para o mesmo lado.</p>
-  <button class="go" id="b-start">Descer do carro</button>
+  <button class="go" id="b-start">Apontar a janela</button>
   <button class="alt" id="b-sim">Estou no computador</button>
   <div id="round">RODADA <b id="round-code">----</b></div>
   <div id="round-note">Confiram: o código tem de ser o mesmo em todos os aparelhos.</div>
@@ -1022,23 +1022,41 @@ function onOrient(e){
    js/tarefa-sensor.js. O que é próprio desta tarefa fica aqui: a bússola
    precisa do norte verdadeiro, e a espera é maior que a das outras porque
    os 3 s do oito não podem contar como sensor mudo. */
+function entrarModoDedo(motivo){
+  /* Sem giroscópio / permissão negada: finger mode, sem prender a mesa. */
+  sim=true; src="mouse/dedo"; modoEntrada="toque";
+  enviarStatus("ativo","toque");
+  raw.elev=2;
+  raw.bearing=view.bearing=wrap360(target.bearing+118);
+  try{ fechaIntro(); }catch(e){}
+  setStatus(motivo||"Arraste para girar. Toque nas zonas — sem precisão de bússola.");
+  armarPrazoSuave();
+}
+function armarPrazoSuave(){
+  if(typeof TarefaSensor==="undefined"||!TarefaSensor.prazoSuave) return;
+  TarefaSensor.prazoSuave(ctxMesa(), function(){
+    if(conclusaoEnviada||ABORTADO) return;
+    setStatus("Tempo esgotado · sem precisão.");
+    /* Garante cronômetro mínimo e conclui para não bloquear a sala. */
+    if(inicioTarefa===null) iniciarCronometroOficial();
+    enviarConclusao();
+  });
+}
 function ativarSensor(pronto){
   TarefaSensor.ativarOrientacao({
     aoOrientar: onOrient,
-    aoLigar: pronto,
+    aoLigar: function(){ pronto(); armarPrazoSuave(); },
     esperaMs: 4600,
     respondeu: function(){ return started; },
     aoNaoResponder: function(){
-      src="sem sensor"; enviarStatus("sem-resposta","sensor");
-      mostraFalha("A bússola deste aparelho não respondeu.");
+      src="sem sensor";
+      entrarModoDedo("Bússola muda — arraste para apontar a janela.");
     },
     aoNegar: function(){
-      enviarStatus("negado","sensor");
-      mostraFalha("A permissão de movimento foi negada. Sem ela o aparelho não sabe para onde você está virado.");
+      entrarModoDedo("Movimento negado — arraste para apontar a janela.");
     },
     aoIndisponivel: function(){
-      enviarStatus("indisponivel","toque");
-      mostraFalha("Este aparelho não tem bússola.");
+      entrarModoDedo("Sem bússola — arraste para apontar a janela.");
     }
   });
 }
@@ -2528,10 +2546,7 @@ document.getElementById("b-start").addEventListener("click",function(){
   ativarSensor(function(){ oitoNoAr(fechaIntro); });
 });
 document.getElementById("b-sim").addEventListener("click",function(){
-  sim=true; src="mouse/dedo"; modoEntrada="toque"; raw.elev=2;
-  raw.bearing=view.bearing=wrap360(target.bearing+118);   /* começa de costas */
-  fechaIntro();
-  setStatus("Arraste para girar. Q/E inclinam.");
+  entrarModoDedo("Arraste para girar. Q/E inclinam.");
 });
 document.getElementById("b-beam").addEventListener("click",function(e){
   e.stopPropagation();
@@ -2616,9 +2631,7 @@ document.getElementById("falha-toque").addEventListener("click",function(){
   if(SEGUIR_TOQUE) SEGUIR_TOQUE();
 });
 RETENTAR=function(){ ativarSensor(function(){ oitoNoAr(fechaIntro); }); };
-SEGUIR_TOQUE=function(){ sim=true; src="mouse/dedo"; raw.elev=2;
-  raw.bearing=view.bearing=wrap360(target.bearing+118);
-  fechaIntro(); setStatus("Arraste para girar. Q/E inclinam."); };
+SEGUIR_TOQUE=function(){ entrarModoDedo("Arraste para girar. Q/E inclinam."); };
 if(EMBED) document.body.classList.add("embed");
 if(!DEV){
   var _bt=document.getElementById("b-sim")||document.getElementById("alt");

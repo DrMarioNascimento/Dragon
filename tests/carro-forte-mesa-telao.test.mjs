@@ -172,15 +172,12 @@ test("o prazo da atividade é o mesmo para a mesa inteira", () => {
 
 /* ── 1. O telão: porta de entrada e identificação ───────────────────────── */
 
-test("há como entrar como telão sem caçar o endereço", () => {
-  assert.match(SALA, /id="drTelao"/, "o menu não oferece entrar como telão");
-  assert.match(SALA, /function formTelao\(/, "não há tela para o telão informar o código");
-  assert.match(SALA, /function passoTelao\(/, "o Mestre não é levado a abrir a tela grande");
-  assert.match(
-    SALA,
-    /if\(modo==='com-telao'&&TELAO\)passoTelao\(\);/,
-    "escolher 'com telão' volta a cair direto no formulário de nome",
-  );
+test("telão entra pela landing (não pelo gate Celular)", () => {
+  /* Celular gate = Abrir|Entrar only. Telão = landing / telao.html com código. */
+  const menu = SALA.slice(SALA.indexOf("function menu("), SALA.indexOf("function formTelao("));
+  assert.equal(/id="drTelao"/.test(menu), false, "gate Celular não deve oferecer Entrar como telão");
+  assert.match(TELAO, /telaoSalaInput|Digite o código/, "landing Telão pede o código da sala");
+  assert.match(SALA, /function telaoPronto\(/, "abertura ainda detecta heartbeat do telão");
 });
 
 /* A presença morava em `opening.status` do documento da SALA, e o `allow

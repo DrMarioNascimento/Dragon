@@ -57,7 +57,7 @@ describe("landing · só três modos", () => {
       ["carro", CARRO],
     ]) {
       assert.ok(!/Investigador|Arquivista|Assistida|Guiada|papel cognitivo/i.test(html.match(/data-mode-ctas[\s\S]*?<\/div>/)?.[0] || ""), nome);
-      assert.match(html, /nunca nesta tela/i);
+      assert.match(html, /papel e camada|nunca nesta tela/i);
     }
   });
 

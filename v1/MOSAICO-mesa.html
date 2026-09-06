@@ -184,24 +184,10 @@
   .rodada-telao.topo-jogo .btn-menu-mestre{flex:0 0 auto;min-height:40px;
     padding:9px 13px;border-radius:11px;font-size:clamp(10px,2.6vw,12px);
     letter-spacing:.1em}
-  .dinamica-nivel{width:min(86%,620px);margin:-2px auto 18px;padding:8px 14px 9px;text-align:center;
-    border:1px solid rgba(232,164,76,.5);border-radius:7px;
-    background:linear-gradient(135deg,rgba(67,44,17,.94),rgba(28,24,21,.94));
-    box-shadow:0 9px 24px rgba(0,0,0,.28)}
-  .dinamica-nivel .dn-titulo{display:block;color:#ffd18d;font:800 clamp(11px,2.8vw,14px) var(--sans);
-    letter-spacing:.12em;text-transform:uppercase;line-height:1.2}
-  .dinamica-nivel .dn-sub{display:block;color:#fff;font:600 clamp(13px,3.5vw,17px) var(--serif);
-    letter-spacing:.04em;line-height:1.25;margin-top:3px}
-  .dinamica-nivel.equipe{border-color:rgba(127,212,255,.58);
-    background:linear-gradient(135deg,rgba(18,67,88,.94),rgba(12,34,49,.94))}
-  .dinamica-nivel.equipe .dn-titulo{color:#bdeeff}
-  .dinamica-nivel.mercado{border-color:rgba(224,103,79,.65);
-    background:linear-gradient(135deg,rgba(91,34,27,.95),rgba(48,20,20,.95))}
-  .dinamica-nivel.mercado .dn-titulo{color:#ffb1a2}
-  .dinamica-nivel.caso{border-color:rgba(180,148,225,.62);
-    background:linear-gradient(135deg,rgba(55,39,79,.95),rgba(29,24,43,.95))}
-  .dinamica-nivel.caso .dn-titulo{color:#d9c2ff}
-  #app.largo>.dinamica-nivel{width:min(72%,680px);margin:-8px auto 12px}
+  /* Dinâmica vira subtítulo compacto sob o título da rodada — sem caixa ouro. */
+  .rodada-telao .rodada-sub{display:block;margin-top:4px;color:#c9b48a;font:600 clamp(11px,2.8vw,13px)/1.3 var(--sans);letter-spacing:.02em;opacity:.92}
+  .rodada-telao.topo-jogo .rodada-sub{font-size:clamp(10px,2.6vw,12px);margin-top:2px}
+  .dinamica-nivel{display:none!important}
 
   /* Encontro presencial dos Fragmentos: a mesma arte recebe uma cor por grupo. */
   body.busca-fragmento{min-height:100dvh;overflow-x:hidden;overflow-y:auto}
@@ -575,6 +561,7 @@
   .conectado-item .papel-sessao{display:inline-block;margin-top:4px;font-size:11px;letter-spacing:.04em;color:var(--ambar)}
   @media(max-width:340px){.conectados-grade{grid-template-columns:1fr}}
   body.modo-sem-telao #app{padding-bottom:var(--barra-reserva)}
+  #dragonSalaBtn{display:none!important}
   .mural-movel{margin:18px 0 78px;border:1px solid var(--linha);border-radius:6px;background:rgba(12,18,26,.92);padding:0 12px}
   .mural-movel summary{cursor:pointer;padding:11px 0;color:var(--frio);font-size:13px;font-weight:800;line-height:1.25}
   .mural-movel[open]{padding-bottom:10px}
@@ -1845,11 +1832,9 @@ function dinamicaNivel(fase){
 }
 function cabecalhoRodada(fase, classe){
   var d=dinamicaNivel(fase);
-  /* O envelope .rr existe para o cabeçalho do celular poder ser uma linha:
-     texto à esquerda, botão da Sala à direita. No telão ele não muda nada —
-     as regras de .rotulo e .nome são por descendência. */
-  return '<div class="rodada-telao '+(classe||'')+'"><span class="rr"><span class="rotulo">Rodada atual</span><span class="nome">'+esc(nomeRodada(fase))+'</span></span></div>'+
-    (d?'<div class="dinamica-nivel '+d.classe+'"><span class="dn-titulo">'+esc(d.titulo)+'</span><span class="dn-sub">'+esc(d.sub)+'</span></div>':'');
+  /* Subtítulo compacto sob RODADA ATUAL / título — sem caixa ouro separada. */
+  var sub=d?'<span class="rodada-sub">'+esc(d.titulo)+(d.sub?' — '+esc(d.sub):'')+'</span>':'';
+  return '<div class="rodada-telao '+(classe||'')+'"><span class="rr"><span class="rotulo">Rodada atual</span><span class="nome">'+esc(nomeRodada(fase))+'</span>'+sub+'</span></div>';
 }
 var _audioNivel=null, _nivelSonoroAnterior=null, _vozesNivel={}, _podioAudioChave="";
 var _encerramentoAudioChave="", _fonteEncerramento=null, _timerEncerramento=null;
@@ -2026,11 +2011,23 @@ function sincronizarAudioAbertura(){
   pararAudioAbertura();_aberturaAudioChave=chave;
   var decorrido=Math.max(0,Date.now()-inicio), restante=Math.max(0,DURACAO_ABERTURA_MS-decorrido);
   if(!restante){concluirAbertura();return;}
-  /* Se o áudio ainda não pôde começar — contexto retomando, buffer a caminho —
-     a chave é solta para que o próximo render tente de novo. O temporizador
-     entra de qualquer forma: ele é a garantia contra travar, não a desistência
-     do som. Sem soltar a chave, uma única tentativa cedo demais silenciava a
-     abertura inteira. */
+  /* Com telão vivo: abertura AV só no telão (Mestre não toca o full AV no
+     celular). Guests já nem entram aqui. Solo / sem telão: toca neste aparelho. */
+  var noTelao=false;
+  try{ noTelao=!!(window.DragonSala&&typeof window.DragonSala.telaoPronto==="function"&&window.DragonSala.telaoPronto()); }catch(e){}
+  if(noTelao&&STATE.mesa&&STATE.mesa.fb&&STATE.mesa.codigo){
+    var token=Date.now();
+    esperarFB().then(function(FB){
+      return FB.atualizarMesa(STATE.mesa.codigo,{
+        "opening.command":"start",
+        "opening.token":token,
+        "opening.error":"",
+        modo:"com-telao"
+      });
+    }).catch(function(e){console.error("abertura→telão",e);});
+    _timerAbertura=setTimeout(concluirAbertura,restante+150);
+    return;
+  }
   if(tocarAberturaComAmbiente(concluirAbertura,decorrido)===false)_aberturaAudioChave="";
   _timerAbertura=setTimeout(concluirAbertura,restante+150);
 }
@@ -2247,7 +2244,7 @@ function controlesMestreMovel(){
     '<div class="menu-mestre-topo"><div><span class="eyebrow">Mestre &middot; '+esc(nomeRodada(fase))+'</span><h2>Sala</h2><p class="muted">'+(conduzido?'Ritmo conduzido pelo Mestre':'Ritmo autom&aacute;tico')+'</p></div><button class="btn btn-sm" onclick="alternarMenuMestre()">Fechar</button></div>'+
     secaoAcao+
     '<details class="sala-acordeao" ontoggle="exclusivoSala(this)"><summary>C&oacute;digo e QR</summary><div class="sala-acordeao-conteudo"><div class="codigo-grande">'+esc(m&&m.codigo)+'</div><div class="menu-mestre-qr">'+qr+'</div><button class="btn btn-sm" style="width:100%" onclick="copiarLink()">Copiar link</button></div></details>'+
-    (m&&m.codigo?'<details class="sala-acordeao" ontoggle="exclusivoSala(this)"><summary>&#128250; Tel&atilde;o</summary><div class="sala-acordeao-conteudo"><p class="muted">Abra este endere&ccedil;o na TV, no projetor ou no notebook. Ele entra na mesma sala e s&oacute; mostra o que a mesa publicar em <code>publicState</code>.</p><div class="codigo-grande" style="font-size:13px;word-break:break-all">'+esc(linkDoTelao(m.codigo))+'</div><div class="menu-mestre-qr">'+qrSvg(linkDoTelao(m.codigo),"QR do tel&atilde;o")+'</div><button class="btn btn-sm" style="width:100%" onclick="navigator.clipboard.writeText(linkDoTelao(STATE.mesa.codigo)).then(function(){avisa(\'Link do tel&atilde;o copiado.\');},function(){avisa(linkDoTelao(STATE.mesa.codigo));})">Copiar link do tel&atilde;o</button></div></details>':'')+
+    
     '<details class="sala-acordeao" '+(abrirParticipantes?'open':'')+' ontoggle="exclusivoSala(this)"><summary>Participantes &middot; '+js.length+'</summary><div class="sala-acordeao-conteudo">'+conectados+'</div></details>'+
     secaoControle+
     '<details class="sala-acordeao" ontoggle="exclusivoSala(this)"><summary>Encerrar sala</summary><div class="sala-acordeao-conteudo"><button class="btn btn-perigo" onclick="encerrarMesa()">Encerrar sala</button></div></details>'+
