@@ -131,7 +131,12 @@
       let id;
       let rodizioNovo = null;
       if (typeof avancar === 'function') {
-        const tirado = avancar(atual?.rodizio || {});
+        /* Sala antiga pode ter pergunta congelada sem partida.rodizio ainda:
+           planta ultima a partir da pergunta que acabou, senão o 1º reshuffle
+           pode devolver a mesma mãe na hora. */
+        const base = { ...(atual?.rodizio || {}) };
+        if (!base.ultima && (novaRodada || congelada)) base.ultima = novaRodada || congelada;
+        const tirado = avancar(base);
         id = tirado.id;
         rodizioNovo = tirado.rodizio;
         lembrarRodizio(rodizioNovo);
