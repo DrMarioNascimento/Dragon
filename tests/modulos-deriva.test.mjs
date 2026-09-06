@@ -41,7 +41,8 @@ const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 /* Teto medido em 03/09/2026, depois da convergência da bússola. SÓ DESCE. */
 const TETO = {
-  "janela-do-norte": 577,
+  "janela-do-norte": 575,
+  /* 577 → 575 em 06/09/2026: CTA Casa (Apontar a janela) também no lado Noite. */
   /* 541 → 566 em 06/09/2026: finger mode + prazo suave 50s + CTA Casa
      ("Apontar a janela") no lado Mesa; Noite permanece na linhagem própria. */
   /* 566 → 577 em 06/09/2026: modal avisoAntesModoDedo (countdown+OK) no

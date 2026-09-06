@@ -9,7 +9,7 @@ import { useParty } from "@/lib/mosaico/party";
 import type { NoiteFormato } from "@/lib/mosaico/noite-fases";
 import { cn } from "@/lib/utils";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { DoorOpen, Play, QrCode, Volume2, VolumeX } from "lucide-react";
+import { DoorOpen, QrCode, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 export const Route = createFileRoute("/")({
@@ -194,10 +194,6 @@ function Home() {
               <Button variant="outline" size="lg" onClick={() => setScreen("entrar")}>
                 <QrCode className="size-4" />
                 Entrar com o código
-              </Button>
-              <Button variant="soft" size="lg" onClick={() => setScreen("ensaiar")}>
-                <Play className="size-4" />
-                Ensaiar sozinho
               </Button>
               <Button variant="ghost" onClick={() => setScreen("como")}>
                 Como jogar

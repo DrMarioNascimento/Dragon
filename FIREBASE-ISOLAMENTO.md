@@ -29,7 +29,7 @@ nenhum cliente atual cria salas sob esses nomes.
 
 ## Gate compartilhado
 
-O lobby multiplayer (Abrir / Entrar / Ensaiar / Telão) vive em `firebase-room.js` para Casa e Carro-Forte. O que muda por caso é só o `data-project` / `data-root` / `data-case`:
+O lobby multiplayer (Abrir / Entrar) vive em `firebase-room.js` para Casa e Carro-Forte. Ensaiar é a porta Solo da landing; Telão é `telao.html`. O que muda por caso é só o `data-project` / `data-root` / `data-case`:
 
 | Superfície | data-project | data-root | Projeto |
 |---|---|---|---|

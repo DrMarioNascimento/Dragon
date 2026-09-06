@@ -11,15 +11,14 @@ Este cliente é **independente dela**: projeto Firebase próprio (`mosaico-noite
 → carta → óleo → acusação). Um código de uma não abre a outra — ver
 [`../FIREBASE-ISOLAMENTO.md`](../FIREBASE-ISOLAMENTO.md).
 
-**Jogar a noite:** [drmarionascimento.github.io/Dragon/v2/](https://drmarionascimento.github.io/Dragon/v2/)  
-**Jogar a mesa HTML:** [drmarionascimento.github.io/Dragon/v1/MOSAICO-mesa.html](https://drmarionascimento.github.io/Dragon/v1/MOSAICO-mesa.html)
+**Playtest ao vivo:** use as portas Celular · Telão · Solo em [`../casa-da-costa/`](../casa-da-costa/).  
+`/v2/` é linhagem de revisão (A Noite). Não é porta de produção.
 
-## Como jogar
+## Como jogar (shell de revisão)
 
 1. **Abrir uma mesa** — gera o código. Os outros entram com o código.
 2. **Entrar com o código** — nome, pronome, o código da sala.
-3. **Ensaiar sozinho** — a noite inteira neste telefone, sem nuvem.
-4. **A lanterna** — Janela, Sala, Vidro, Mapa, para praticar o rumo.
+3. Ensaio local: `?soloLab=1` (não há botão Ensaiar no gate).
 
 O telefone diz uma frase por vez: *Faça. Aponta. Procura a sua cor. Encosta. Compra ou guarda. Quem foi?*
 
@@ -30,7 +29,7 @@ código; quem **abre** a mesa entra com Google. Domínio autorizado:
 `drmarionascimento.github.io` (e `localhost` para desenvolvimento).
 
 Se a página atual não estiver autorizada no console do Firebase, 
-a criação de sala falha — use **Ensaiar sozinho**, ou abra o jogo num domínio já liberado.
+a criação de sala falha — abra a página num domínio já liberado, ou use `?soloLab=1`.
 
 ## Como rodar
 

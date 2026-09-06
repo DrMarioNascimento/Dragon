@@ -119,8 +119,9 @@ describe("PADRAO · nota Celular gate + abertura", () => {
     assert.match(PADRAO, /Multiplayer com telão/);
   });
 
-  it("firebase-room não chama passoTelao no Abrir", () => {
+  it("firebase-room não tem passoTelao", () => {
     const criar = ROOM.slice(ROOM.indexOf("async function criarSalaBase"), ROOM.indexOf("const TELAO_VIVO_MS"));
+    assert.equal(/function passoTelao/.test(ROOM), false);
     assert.equal(/passoTelao\(\)/.test(criar), false);
     assert.match(criar, /formEntrar\('',true\)/);
   });

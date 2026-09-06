@@ -4,7 +4,7 @@
 
 | Atividade | Linhagens | Decisão | Motivo |
 |---|---|---|---|
-| A Janela do Norte | `v1/MOSAICO-26-a-janela-do-norte.html` vs `v2/modulos/janela-do-norte.html` (= `mosaico-web/public/modulos/`) | **Mantidas as duas, sequenciadas** | Deriva monitorada por `tests/modulos-deriva.test.mjs`; Celular canônico usa v1; v2 fica sob `/v2/` para revisão. Sem playtest sensorial nesta passagem, não apagar. |
+| A Janela do Norte | `v1/MOSAICO-26-a-janela-do-norte.html` vs `v2/modulos/janela-do-norte.html` (= `mosaico-web/public/modulos/`) | **Mantidas as duas, sequenciadas; CTA unificado** | Celular canônico usa v1. CTA Casa em todas as cópias: **Apontar a janela** (nunca Descer do carro). `/v2/` deixou de ser link da landing `casa-da-costa/` — revisão/bookmark only. |
 | O Vidro Embaçado | `v1/MOSAICO-26-vidro-embacado.html` vs `v2/modulos/vidro-embacado.html` | **Mantidas as duas, sequenciadas** | Idem — commits recentes melhoraram o vidro na Casa; v2 ainda diverge. |
 | A Sala às Escuras | `v1/MOSAICO-26-a-sala-as-escuras.html` vs `v2/modulos/sala-as-escuras.html` | **Mantidas as duas, sequenciadas** | Portão do oito / bússola na linhagem Casa; Carro-Forte e v2 têm contratos diferentes. |
 | Mapa do Escuro | só em `v2/modulos/mapa-do-escuro.html` | **Mantido (sem sobreposição)** | Concatenado via preservação de `/v2/`. |

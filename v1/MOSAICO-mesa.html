@@ -1566,7 +1566,7 @@ var STATE = {
   escolha:null,
   contando:0,
   jaVotei:false,
-  modoMesa:"com-telao",
+  modoMesa:"sem-telao",
   menuMestreAberto:false,
   casoAberto:false,
   resultadoVista:"podio",
@@ -2622,17 +2622,16 @@ function telaReconectando(){
 }
 
 function telaInicio(){
-  /* Ordem canônica do gate: Abrir → Entrar → (Ensaiar omitido: ensaio desta
-     casa é a porta Solo) → Entrar como telão. */
+  /* Fallback legado (só se o gate firebase-room não assumir). Mesma regra
+     do Celular canônico: Abrir | Entrar. Telão é landing/`telao.html`.
+     Ensaiar é a porta Solo. Sem Com/Sem telão neste fluxo. */
   return '<h1>A Casa da Costa</h1>'+
     '<p class="lead">Voc&ecirc; possui uma parte da verdade. Para enxergar o todo, '+
     'precisar&aacute; das outras pessoas &mdash; mas elas tamb&eacute;m querem vencer.</p>'+
     avisoLocal()+
     '<button class="btn btn-ambar" onclick="pedirSenha()">Abrir uma mesa</button>'+
     '<button class="btn btn-frio" onclick="irPara(\'entrar\')">Entrar em uma mesa</button>'+
-    '<button class="btn btn-frio" onclick="location.href=\'../telao.html?jogo=casa-da-costa\'">Entrar como tel&atilde;o</button>'+
-    '<p class="muted" style="margin-top:24px">Escolha abrir <b>com tel&atilde;o</b> dedicado ou '+
-    '<b>sem tel&atilde;o</b>, quando quem cria tamb&eacute;m participa pelo celular. O ensaio local fica na porta Solo.</p>'+
+    '<p class="muted" style="margin-top:24px">O telão, se houver, entra pela porta Telão da landing com o código da sala. O ensaio local fica na porta Solo.</p>'+
     modalSenha();
 }
 
@@ -2641,11 +2640,9 @@ function modalSenha(){
   return '<div class="modal-fundo" onclick="if(event.target===this) fecharSenha()">'+
     '<div class="modal">'+
       '<span class="eyebrow">&Aacute;rea do mestre</span>'+
-      '<h2 style="font-size:clamp(26px,7vw,34px);margin-bottom:18px">Como a mesa ser&aacute; usada?</h2>'+
-      '<button class="forma-op'+(STATE.modoMesa==="com-telao"?' on':'')+'" onclick="escolherModoMesa(\'com-telao\')"><b>📺</b><span>Com tel&atilde;o</span></button>'+
-      '<button class="forma-op'+(STATE.modoMesa==="sem-telao"?' on':'')+'" onclick="escolherModoMesa(\'sem-telao\')"><b>📱</b><span>Sem tel&atilde;o</span></button>'+
-      '<p class="muted" style="margin:10px 0 16px">Com tel&atilde;o: um aparelho fica no painel. Sem tel&atilde;o: quem abre tamb&eacute;m joga e controla pelo celular.</p>'+
-      '<span class="eyebrow ritmo-titulo">Como as rodadas devem avan&ccedil;ar?</span>'+
+      '<h2 style="font-size:clamp(26px,7vw,34px);margin-bottom:18px">Como as rodadas devem avan&ccedil;ar?</h2>'+
+      '<p class="muted" style="margin:0 0 16px">Celular: mestre e jogadores neste aparelho. Se quiser telão, abra a porta Telão da landing na TV com o código da sala.</p>'+
+      '<span class="eyebrow ritmo-titulo">Ritmo</span>'+
       '<button class="ritmo-op'+((STATE.ritmoMesa||"automatico")==="automatico"?' on':'')+'" onclick="escolherRitmoMesa(\'automatico\')"><b>Automaticamente &middot; recomendado</b><span>O jogo avan&ccedil;a quando todos terminam.</span></button>'+
       '<button class="ritmo-op'+(STATE.ritmoMesa==="conduzido"?' on':'')+'" onclick="escolherRitmoMesa(\'conduzido\')"><b>Com minha libera&ccedil;&atilde;o</b><span>A Sala avisar&aacute; quando for hora de avan&ccedil;ar.</span></button>'+
       /* A SENHA SAIU (03/09/2026). O comentário dela neste mesmo arquivo já
@@ -3577,9 +3574,9 @@ function telaDeducao(){
    o Mestre e a mesa. Quem decide quem abre é `emailMestre()`, no servidor,
    contra a lista em config/mestres.
 
-   `pedirSenha` continua com o nome antigo: ele abre o painel de modo e ritmo,
-   que é o que sempre fez de útil. Renomear obrigaria a caçar chamadas em três
-   arquivos por ganho nenhum. */
+   `pedirSenha` continua com o nome antigo: ele abre o painel de ritmo
+   (Com/Sem telão saiu — presença de telão é heartbeat). Renomear obrigaria a
+   caçar chamadas em três arquivos por ganho nenhum. */
 function pedirSenha(){
   STATE.senhaAberta=true; render();
   setTimeout(function(){ var i=document.getElementById("senha"); if(i) i.focus(); },80);

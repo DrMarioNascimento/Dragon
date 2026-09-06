@@ -268,14 +268,6 @@ function pintarTelao(){
     :presente
       ?'📺 Telão conectado · falta tocar em "ativar som" na tela grande.'
       :'Aguardando o telão… deixe esta tela aberta enquanto abre a outra.';
-  const b=document.getElementById('drTelaoNext');
-  if(b)b.textContent=pronto?'Entrar':'Continuar sem telão';
-}
-function passoTelao(){
-  const url=telaoUrl(code);
-  gate().innerHTML=`<div class="dr-shell"><div class="dr-brand">${esc(TITLE)} · ÁREA DO MESTRE</div><div class="dr-card"><h2>Abra o telão</h2><p>Na TV, no projetor ou no notebook, abra este endereço — ou aponte a câmera para o QR. A tela grande entra sozinha nesta sala e se anuncia aqui.</p><div class="dr-code">${esc(code)}</div><div class="dr-qr">${qrDe(url,'QR para abrir o telão')}</div><div class="dr-sala-code" style="font-size:13px;word-break:break-all">${esc(url)}</div><div class="dr-telao-status" id="drTelaoEstado">Aguardando o telão…</div><p class="dr-note">Com telão, a abertura narrada roda só nele. Sem telão, ela roda só neste aparelho — nunca nos dois, e nunca nos celulares dos jogadores.</p><button class="dr-btn" id="drTelaoNext">Continuar sem telão</button></div></div>`;
-  pintarTelao();ouvirTelas();
-  document.getElementById('drTelaoNext').onclick=()=>formEntrar('',true);
 }
 async function formEntrar(err='',asMaster=false){
   /* Papel cognitivo + camada no mesmo ecrã do nome (não é wizard).
