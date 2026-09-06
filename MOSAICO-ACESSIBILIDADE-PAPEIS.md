@@ -233,7 +233,8 @@ O MOSAICO não deve tornar o mistério mais simples para incluir jogadores difer
 | Peça | Arquivo |
 |---|---|
 | Módulo compartilhado (papéis, aliases, camadas, seletor, chips, andaimes) | `papel-camada.js` (raiz) |
-| Landing só com 3 CTAs | `casa-da-costa/index.html`, `carro-forte/index.html` |
+| Hub (único seletor Celular · Telão · Solo) | `index.html` |
+| `/casa-da-costa/` e `/carro-forte/` → gate Celular | `casa-da-costa/index.html`, `carro-forte/index.html` |
 | Seletor no lobby Celular (Carro + ensaio) | `firebase-room.js` → formulário de entrada / ensaio |
 | Seletor Casa Celular | `v1/MOSAICO-mesa.html` → tela de entrar |
 | Seletor Solo Casa | `solo/solo-auto.js` (antes de “Começar”) |

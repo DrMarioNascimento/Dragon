@@ -20,6 +20,7 @@ const PAUTA_CF = ler("carro-forte/pauta-da-mesa.js");
 const GAME_CF = ler("carro-forte/game.js");
 const LANDING_CASA = ler("casa-da-costa/index.html");
 const LANDING_CARRO = ler("carro-forte/index.html");
+const HUB = ler("index.html");
 const TELAO = ler("telao.html");
 const REDIRECT_MESA = ler("carro-forte-mesa/index.html");
 const REDIRECT_NOITE = ler("carro-forte-noite/index.html");
@@ -108,11 +109,13 @@ test("o rodízio do Carro-Forte sobe para o documento da sala em multiplayer", (
 
 test("landings e redirects chegam a fluxos que existem", () => {
   assert.match(LANDING_CASA, /\.\.\/v1\/MOSAICO-mesa\.html/);
-  assert.match(LANDING_CASA, /telao\.html\?jogo=casa-da-costa/);
-  assert.match(LANDING_CASA, /\.\.\/solo\//);
+  assert.equal(/data-mode-ctas/.test(LANDING_CASA), false);
   assert.match(LANDING_CARRO, /celular\.html/);
-  assert.match(LANDING_CARRO, /telao\.html\?jogo=carro-forte/);
-  assert.match(LANDING_CARRO, /celular\.html\?soloLab=1/);
+  assert.equal(/data-mode-ctas/.test(LANDING_CARRO), false);
+  assert.match(HUB, /telao\.html\?jogo=casa-da-costa/);
+  assert.match(HUB, /telao\.html\?jogo=carro-forte/);
+  assert.match(HUB, /href="solo\/"/);
+  assert.match(HUB, /celular\.html\?soloLab=1/);
   assert.match(REDIRECT_MESA, /carro-forte\/celular\.html/);
   assert.match(REDIRECT_NOITE, /carro-forte\/noite\//);
   assert.match(ROOT_MESA, /v1\/MOSAICO-mesa\.html/);

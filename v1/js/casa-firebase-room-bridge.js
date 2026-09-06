@@ -1,7 +1,7 @@
 /* MOSAICO · Casa da Costa — ponte firebase-room → motor v1
    ==========================================================================
    O gate/lobby canônico vive em firebase-room.js (Abrir / Entrar).
-   Ensaiar é a porta Solo; Telão é landing/`telao.html`. Esta folha:
+   Ensaiar é a porta Solo do hub; Telão é o hub / `telao.html`. Esta folha:
      1. DragonSalaAoEntrar — completa personagem/moedas no create do jogador;
      2. DragonSalaAntesDeIniciar — ao “Iniciar partida”, grava fase encenacao
         e preenche lacunas (só o Mestre);

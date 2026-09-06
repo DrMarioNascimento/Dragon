@@ -1,53 +1,12 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<meta name="theme-color" content="#070605" />
-<title>MOSAICO · A Casa da Costa</title>
-<link rel="icon" href="../brand/dragon-mark.webp" />
-<style>
-:root{color-scheme:dark;--gold:#efc878;--ink:#f4ead7;--muted:#c6b69f}
-*{box-sizing:border-box}
-body{margin:0;min-height:100dvh;background:radial-gradient(900px 600px at 50% -10%,#2b170b,transparent 55%),#070605;color:var(--ink);font-family:Inter,system-ui,sans-serif}
-.wrap{width:min(640px,calc(100% - 28px));margin:auto;padding:max(28px,env(safe-area-inset-top)) 0 max(36px,env(safe-area-inset-bottom))}
-.brand{font-size:11px;letter-spacing:.2em;color:var(--gold);font-weight:800}
-.card{margin-top:16px;padding:22px;border:1px solid rgba(232,187,85,.35);border-radius:14px;background:linear-gradient(160deg,#21170f,#0e0b08);box-shadow:inset 0 1px rgba(255,255,255,.06),0 7px 0 #020201,0 22px 42px #0009}
-h1{font-family:Georgia,serif;font-size:clamp(34px,8vw,52px);line-height:.98;margin:8px 0 12px;color:#ffd982}
-p{color:var(--muted);line-height:1.5}
-.grid{display:grid;gap:14px;margin-top:22px}
-a.choice{display:flex;flex-direction:column;justify-content:center;min-height:92px;text-decoration:none;color:inherit;padding:20px 18px;border:1px solid rgba(232,187,85,.35);border-radius:14px;background:linear-gradient(#2a1c12,#140e0a);box-shadow:inset 0 1px rgba(255,255,255,.05),0 6px 0 #020201}
-a.choice:active{transform:translateY(3px);box-shadow:inset 0 1px rgba(255,255,255,.05),0 2px 0 #020201}
-a.choice b,a.choice span{display:block}
-a.choice b{font-size:clamp(22px,5.5vw,28px);letter-spacing:.02em}
-a.choice span{margin-top:6px;color:#b7a48a;font-size:14px;line-height:1.4}
-.back{display:inline-block;margin-top:16px;color:#9e8b72;text-decoration:none}
-.note{margin-top:14px;font-size:13px;color:#8a7a64}
-.note code{font-size:12px;color:#c9b48a}
-</style>
-<script>
-(function(){
-  var q=new URLSearchParams(location.search);
-  if(q.has('sala')||q.get('soloLab')==='1'){
-    location.replace('../v1/MOSAICO-mesa.html'+location.search+location.hash);
-  }
-})();
-</script>
+  <meta charset="utf-8" />
+  <meta http-equiv="refresh" content="0; url=../v1/MOSAICO-mesa.html" />
+  <title>MOSAICO · redirecionando…</title>
+  <script>location.replace("../v1/MOSAICO-mesa.html" + location.search + location.hash);</script>
 </head>
 <body>
-<main class="wrap">
-  <div class="brand">MOSAICO · UM APP · mosaico-game</div>
-  <section class="card">
-    <h1>A Casa da Costa</h1>
-    <p>Três portas. No Celular o gate pergunta só Abrir mesa ou Entrar — sem segundo seletor de modo. Papel e camada ficam no aparelho de cada jogador.</p>
-    <div class="grid" data-mode-ctas>
-      <a class="choice" data-mode="celular" href="../v1/MOSAICO-mesa.html"><b>Celular</b><span>Mestre abre a mesa no telefone; jogadores entram por QR/código. Abrir | Entrar — só isso.</span></a>
-      <a class="choice" data-mode="telao" href="../telao.html?jogo=casa-da-costa"><b>Telão</b><span>Display only. Mestre cria a sala no Celular; a TV entra aqui com o código (ou <code>?sala=</code>).</span></a>
-      <a class="choice" data-mode="solo" href="../solo/"><b>Solo</b><span>Ensaiar neste aparelho — abertura e partida individuais neste device.</span></a>
-    </div>
-    <p class="note">Playtest ao vivo: só as três portas acima. A linhagem <code>/v2/</code> (A Noite · revisão) não é porta de produção — não abra no playtest.</p>
-    <a class="back" href="../index.html">← Hub Dragon</a>
-  </section>
-</main>
+  <p><a href="../v1/MOSAICO-mesa.html">Abrir Celular · A Casa da Costa</a></p>
 </body>
 </html>

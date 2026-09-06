@@ -216,11 +216,32 @@ describe("Abrir mesa · nenhum seletor de modo depois do Celular", () => {
   });
 });
 
+describe("playtest · pasta do caso não repete Celular|Telão|Solo", () => {
+  it("hub Celular deep-link e pastas só redirecionam ao gate", () => {
+    const hub = ler("index.html");
+    const casa = ler("casa-da-costa/index.html");
+    const carro = ler("carro-forte/index.html");
+    assert.match(hub, /href="v1\/MOSAICO-mesa\.html"/);
+    assert.match(hub, /href="carro-forte\/celular\.html"/);
+    assert.equal(/href="casa-da-costa\/"/.test(hub), false);
+    assert.equal(/href="carro-forte\/"/.test(hub), false);
+    assert.match(casa, /location\.replace\(["']\.\.\/v1\/MOSAICO-mesa\.html/);
+    assert.match(carro, /location\.replace\(["']celular\.html/);
+    assert.equal(/data-mode-ctas|Tr[eê]s portas/.test(casa), false);
+    assert.equal(/data-mode-ctas|Tr[eê]s portas/.test(carro), false);
+  });
+});
+
 describe("produção · v2 não é porta do playtest", () => {
-  it("landing Casa não aponta para /v2/", () => {
+  it("redirect Casa não aponta para /v2/ e vai ao gate Celular", () => {
     const land = ler("casa-da-costa/index.html");
     assert.equal(/href=["'][^"']*v2\//.test(land), false);
-    assert.match(land, /não é porta de produção/i);
+    assert.match(land, /MOSAICO-mesa\.html/);
+    assert.equal(/data-mode/.test(land), false);
+  });
+
+  it("README ainda marca /v2/ como fora do playtest", () => {
+    assert.match(ler("README.md"), /não é porta de produção/i);
   });
 
   it("hub não aponta para /v2/", () => {

@@ -172,11 +172,11 @@ test("o prazo da atividade é o mesmo para a mesa inteira", () => {
 
 /* ── 1. O telão: porta de entrada e identificação ───────────────────────── */
 
-test("telão entra pela landing (não pelo gate Celular)", () => {
-  /* Celular gate = Abrir|Entrar only. Telão = landing / telao.html com código. */
+test("telão entra pelo hub (não pelo gate Celular)", () => {
+  /* Celular gate = Abrir|Entrar only. Telão = hub / telao.html com código. */
   const menu = SALA.slice(SALA.indexOf("function menu("), SALA.indexOf("function formTelao("));
   assert.equal(/id="drTelao"/.test(menu), false, "gate Celular não deve oferecer Entrar como telão");
-  assert.match(TELAO, /telaoSalaInput|Digite o código/, "landing Telão pede o código da sala");
+  assert.match(TELAO, /telaoSalaInput|Digite o código/, "porta Telão pede o código da sala");
   assert.match(SALA, /function telaoPronto\(/, "abertura ainda detecta heartbeat do telão");
 });
 
