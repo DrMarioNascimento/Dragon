@@ -1361,20 +1361,28 @@
 </div>
 
 <div id="cortina"><div id="cortina-txt"></div></div>
-<div id="app"></div>
+<div id="app" hidden></div>
 
 <!-- CARIMBO DE CACHE
      Ao publicar uma mudanca que precise furar o cache dos aparelhos, troque
-     a data no ?v= das CINCO tags que carregam modulos:
-       aqui:  js/mosaico-v5.js  e  js/qr.js
+     a data no ?v= das tags js/ sob v1/ (mesa + sensores + ponte):
+       aqui:  js/mosaico-v5.js, js/qr.js e js/casa-firebase-room-bridge.js
        nos tres modulos sensoriais:  js/tarefa-sensor.js
      Sao cinco porque cada modulo sensorial e um documento proprio e nao
      enxerga esta pagina. Dentro desta, o caso e o video releem o mesmo
      valor de window.MOSAICO_VERSAO, que sai da tag do mosaico-v5.js. -->
-<script src="js/mosaico-v5.js?v=20260906-placar-local"></script>
+<script src="js/mosaico-v5.js?v=20260906-casa-room"></script>
 <script src="../hipoteses-por-camada.js?v=20260906-hpc-abc"></script>
 <script src="../papel-camada.js?v=20260906-papel-camada-abc"></script>
-<script src="js/qr.js?v=20260906-placar-local"></script>
+<script src="js/qr.js?v=20260906-casa-room"></script>
+<script src="js/casa-firebase-room-bridge.js?v=20260906-casa-room"></script>
+<script type="module" src="../firebase-room.js?v=20260906-casa-room"
+        data-project="mesa"
+        data-root="mosaico"
+        data-case="casa-da-costa"
+        data-title="A Casa da Costa"
+        data-ready-event="casa-mesa-ready"
+        data-telao="../telao.html?jogo=casa-da-costa"></script>
 <script>
 window.MOSAICO_VERSAO=(function(){
   var s=document.querySelector('script[src*="mosaico-v5.js"]');
@@ -2115,6 +2123,16 @@ function souMestreDaMesa(){
   var pelaSessao=false;
   try{pelaSessao=!!codigo&&sessionStorage.getItem("mosaico_mestre_codigo")===codigo;}catch(e){}
   if(pelaSessao)return true;
+  try{
+    if(window.DragonSala&&window.DragonSala.papel==="master"){
+      var dc=window.DragonSala.codigo||"";
+      if(!codigo||!dc||dc===codigo)return true;
+    }
+    if(window.MOSAICO_ROOM&&window.MOSAICO_ROOM.role==="master"){
+      var rc=(window.MOSAICO_ROOM.code||"");
+      if(!codigo||!rc||rc===codigo)return true;
+    }
+  }catch(e){}
   /* A aba pode perder o sessionStorage ao ser reaberta no iPhone. O documento
      da Sala continua sendo a fonte de verdade sobre quem a criou. */
   try{
@@ -4536,7 +4554,8 @@ async function voltarParaSala(){
   var q=null;
   try{ q=new URLSearchParams(location.search); }catch(e){}
   var codigoUrl=q&&q.get("sala")?(q.get("sala")||"").toUpperCase():"";
-  if(codigoUrl) STATE.tela="entrar";
+  var gateExterno=!!window.MOSAICO_GATE_EXTERNO;
+  if(codigoUrl && !gateExterno) STATE.tela="entrar";
 
   /* ?caso=nome carrega casos/nome.json e troca a historia inteira.
      Sem o parametro, carrega explicitamente o caso canonico.       */
@@ -4545,7 +4564,7 @@ async function voltarParaSala(){
   if(/^[a-z0-9-]{1,40}$/.test(nomeCaso)){
     casoPronto=fetch("casos/"+nomeCaso+".json?v="+window.MOSAICO_VERSAO)
       .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
-      .then(function(c){ aplicarCaso(c); CASO_PRONTO=true; CASO_FALHOU=null; render(); })
+      .then(function(c){ aplicarCaso(c); CASO_PRONTO=true; CASO_FALHOU=null; if(!gateExterno)render(); })
       .catch(function(e){
         console.error("caso", e);
         /* Antes daqui saía só um aviso, e o jogo seguia jogável com a reserva
@@ -4553,10 +4572,15 @@ async function voltarParaSala(){
            sem desconfiar: o elenco aparecia, as pistas chegavam, só a verdade
            era outra. Agora sem caso não há partida. */
         CASO_FALHOU = (e && e.message) || "falha desconhecida";
-        render();
+        if(!gateExterno)render();
       });
   } else {
     CASO_FALHOU = "nome de caso inválido: " + nomeCaso;
+  }
+  if(gateExterno){
+    /* Gate/lobby: firebase-room.js. O #app permanece hidden até casa-mesa-ready. */
+    casoPronto.then(function(){ /* caso pronto para a ponte */ });
+    return;
   }
   render();
   /* Se este aparelho já pertencia a uma sala ativa, restaura a mesma
@@ -4566,7 +4590,7 @@ async function voltarParaSala(){
 </script>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
 import {
   getFirestore, doc, setDoc, getDoc, updateDoc,
   collection, onSnapshot, serverTimestamp, getDocs, runTransaction,
@@ -4612,7 +4636,11 @@ if(!CONFIGURADO){
   console.warn("MOSAICO: firebaseConfig não preenchido — modo offline.");
 }
 
-const app  = CONFIGURADO ? initializeApp(firebaseConfig, "mesa") : null;
+/* Mesma app do firebase-room (`dragon-mesa`): um gate, uma sessão Auth.
+   Se o room ainda não inicializou, criamos nós com o mesmo nome. */
+const app  = CONFIGURADO
+  ? (getApps().find(a => a.name === "dragon-mesa") || initializeApp(firebaseConfig, "dragon-mesa"))
+  : null;
 
 /* ══════════════════════════════════════════════════════════════════
    APP CHECK — o que impede abrir salas em massa
@@ -4668,6 +4696,9 @@ function autenticar(){
   if(!CONFIGURADO) return (_prontoAuth = Promise.resolve(null));
   _prontoAuth = new Promise(res => {
     onAuthStateChanged(auth, u => { if(u){ _uid = u.uid; res(u.uid); } });
+    /* Se o firebase-room já autenticou (Google do Mestre ou anônimo do
+       convidado), reutiliza — nunca abrir outra sessão por cima. */
+    if(auth.currentUser){ _uid = auth.currentUser.uid; res(_uid); return; }
     signInAnonymously(auth).catch(e => {
       console.error("Login anônimo falhou — ative Authentication > Anônimo", e);
       res(null);

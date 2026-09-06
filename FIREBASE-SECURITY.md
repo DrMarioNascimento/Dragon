@@ -25,6 +25,10 @@ sem auditar dados remotos.
 O Carro-Forte grava a pergunta em `partida.pergunta` (mapa aninhado) e não deve
 escrever `partidaId` na raiz da sala.
 
+## Gate (`firebase-room.js`)
+
+Casa Celular, Carro Celular e Carro Noite entram pela mesma folha. A Casa liga o motor v1 via `v1/js/casa-firebase-room-bridge.js` sem segundo fluxo de login. As regras (`emailMestre`, `ownPlayerUpdate`, fases conhecidas) não mudam com esse port.
+
 ## Autorização do Mestre
 
 A abertura de uma sala exige:

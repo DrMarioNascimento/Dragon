@@ -35,7 +35,7 @@ function gateButtonOrder(src, labels) {
   }
 }
 
-describe("gate canônico · firebase-room (Carro / Noite)", () => {
+describe("gate canônico · firebase-room (Carro / Noite / Casa)", () => {
   it("ordem Abrir → Entrar → Ensaiar → Telão", () => {
     gateButtonOrder(ROOM, [
       "Abrir uma mesa",
@@ -80,29 +80,28 @@ describe("gate canônico · firebase-room (Carro / Noite)", () => {
 });
 
 describe("gate canônico · Casa Celular", () => {
-  it("ordem Abrir → Entrar → Entrar como telão (sem botão Ensaiar nesta superfície)", () => {
-    const inicio = CASA.slice(CASA.indexOf("function telaInicio"), CASA.indexOf("function modalSenha"));
-    gateButtonOrder(inicio, [
+  it("Casa usa o gate compartilhado firebase-room (não o telaInicio dual)", () => {
+    assert.match(CASA, /firebase-room\.js/);
+    assert.match(CASA, /data-project="mesa"/);
+    assert.match(CASA, /casa-firebase-room-bridge/);
+  });
+
+  it("rótulos canônicos vêm do firebase-room (Abrir / Entrar / Ensaiar / Telão)", () => {
+    gateButtonOrder(ROOM, [
       "Abrir uma mesa",
       "Entrar em uma mesa",
-      "Entrar como tel",
+      "Ensaiar neste aparelho",
+      "Entrar como telão",
     ]);
-    assert.equal(/btn[^>]*>Ensaiar/.test(inicio), false);
   });
 
-  it("Entrar após identificação; Iniciar partida no Mestre; guest aguarda", () => {
-    assert.match(CASA, /Criando a mesa…':'Entrar'\)/);
-    assert.match(CASA, /Iniciar partida/);
-    assert.match(CASA, /Aguardando o Mestre iniciar a partida/);
+  it("Iniciar partida / guest aguarda no firebase-room; motor Casa guarda encenacao", () => {
+    assert.match(ROOM, /id="drStart">Iniciar partida</);
+    assert.match(ROOM, /Aguardando o Mestre iniciar a partida/);
+    assert.match(CASA, /fase:"encenacao"/);
   });
 
-  it("guest lobby lista com badges Mestre/Jogador", () => {
-    const esp = CASA.slice(CASA.indexOf("function telaEsperando"), CASA.indexOf("function telaEncenacao"));
-    assert.match(esp, /j\.mestre\?'Mestre':'Jogador'/);
-    assert.match(esp, /papel-sessao/);
-  });
-
-  it("Sala panel ordem canônica (montagem do painel)", () => {
+  it("Sala panel do motor Casa mantém ordem canônica (controles de fase)", () => {
     const painel = CASA.slice(CASA.indexOf("var painel=STATE.menuMestreAberto"), CASA.indexOf("return '<button class=\"btn-menu-mestre"));
     gateButtonOrder(painel, [
       "C&oacute;digo e QR",
@@ -133,10 +132,11 @@ describe("HUD / hub · Sala Title Case e Ensaiar", () => {
     assert.equal(/Ensaiar sozinho/.test(HUB), false);
   });
 
-  it("PADRAO documenta Iniciar partida e ordem do gate", () => {
+  it("PADRAO documenta Iniciar partida e gate unificado", () => {
     assert.match(PADRAO, /Iniciar partida/);
     assert.match(PADRAO, /Ensaiar neste aparelho/);
-    assert.match(PADRAO, /gap estrutural/i);
+    assert.match(PADRAO, /casa-firebase-room-bridge/);
+    assert.equal(/gap estrutural/i.test(PADRAO), false);
   });
 
   it("chip pode mostrar sessão Mestre/Jogador sem substituir papel cognitivo", () => {
