@@ -6,11 +6,43 @@ Primeira implementação do **Captura** como versão noturna de **A Manhã do Ca
 
 **URL:** https://drmarionascimento.github.io/Dragon/carro-forte/noite/
 
-## Continuidade Manhã → Noite
+## Continuidade Manhã → Noite (Noite rica)
 
 Deep link: `?from=celular&sala=CODIGO&pergunta=peso` (ids: peso, janela, roubo, antes, quem, proteger).
-A Manhã grava em `mosaico/{sala}`; a ponte semeia `noite/{sala}` com `partida.pergunta` congelada.
-Entrada avulsa da Noite (sem params) permanece válida.
+
+A Manhã grava em `mosaico/{sala}` (projeto **mosaico-noite**). A ponte (`celular-para-noite.js`) semeia `noite/{sala}` com:
+
+- `partida.pergunta` congelada;
+- `partida.origem = celular` + `partida.continuidade`;
+- `partida.handoff` — payload rico (schema v1) para refresh/rejoin.
+
+O lobby mostra o cartão **CONTINUIDADE · MANHÃ → NOITE** com pergunta e resumo curto do fecho. Solo/offline guarda o mesmo payload em `sessionStorage` (`mosaico-carro-handoff:…`).
+
+**Entrada avulsa** (sem `from=celular`) permanece válida: marcada como *partida só de fechamento*, economia experimental legada.
+
+### Campos do handoff (v1)
+
+| Campo | Uso |
+|---|---|
+| `v` | versão do schema (`1`) |
+| `from` | sempre `celular` |
+| `pergunta` / `sala` | continuidade de sessão |
+| `jogadores` / `nomes` | quem jogou a manhã |
+| `fecho` | eixos de `pontuar()` (`total`, `campos`, `hipotese`, `relacoes`, `leitura`, `sensorial`, `revisao`, `acertos`) |
+| `hipoteseFinal` / `hipoteseProv` | decisão da Manhã (H1–H10), sem spoiler canônico |
+| `fragmentosRevelados` | ids `Fxx` revelados/marcados — **só banner**; não semeiam o baralho do Captura |
+| `emMs` | carimbo do handoff |
+
+### Economia / Captura — regra v1
+
+Quando a Noite abre com `from=celular` e o handoff traz `fecho.total`:
+
+- **moedas** = `clamp(8 + floor(total / 25), 8, 12)`
+- **mão inicial** = `2` se `total < 40`, senão `3`
+
+Sem fecho numérico (só deep link antigo): semente justa **10 moedas · 3 fragmentos**.
+Entrada standalone: **12 moedas · 3 fragmentos** (experimental legado).
+Custos de Arriscar (3) / Capturar (2) / Comprar (4) **não mudam**. A pontuação da Manhã não é reescrita — só escala o orçamento inicial do fechamento.
 
 ## Enquadramento narrativo
 
@@ -46,7 +78,7 @@ Os fatos são verdadeiros; as interpretações ainda estão em disputa. Cada par
 - erro queima o campo apenas para o jogador;
 - tabela de pontuação consultável em modal, sem ranking ao vivo.
 
-Os valores econômicos atuais são **experimentais** e ainda não constituem o balanceamento final do Captura.
+Os valores econômicos da entrada **avulsa** continuam **experimentais**. Na **Noite rica** (`from=celular`), o orçamento inicial segue a regra v1 acima — playável e ligada ao fecho da manhã, ainda não o balanceamento final do Captura.
 
 ## Identidade visual
 
@@ -60,6 +92,7 @@ Os ambientes internos do banco ainda poderão receber imagens próprias posterio
 
 - `index.html` — telas e estrutura;
 - `styles.css` — identidade visual, profundidade, mobile e responsividade;
-- `game.js` — perguntas, mãos, economia experimental, captura, risco e cronômetro.
+- `game.js` / `game-fixed.js` — perguntas, mãos, economia (standalone ou herdada do handoff), captura, risco e cronômetro;
+- `../celular-para-noite.js` (+ `celular-para-noite-contrato.mjs`) — ponte Manhã→Noite, schema do handoff e regra v1 de economia.
 
 **Prof. Mário César Nascimento, PhD ©**

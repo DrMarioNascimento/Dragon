@@ -42,11 +42,12 @@ if (sala && !sala.local && sala.code) {
     const ref = doc(db, 'noite', sala.code);
     const mestre = sala.role === 'master';
 
-    const estado = { pergunta: '', jogadores: 0, ritmo: 0, ...(sala.room?.partida || {}) };
+    const estado = { pergunta: '', jogadores: 0, ritmo: 0, handoff: null, ...(sala.room?.partida || {}) };
     const esperando = { pergunta: [], ritmo: [] };
 
     /* Ponte Celular → Noite: se a Manhã já congelou a pergunta e ela veio na
-       URL (ou no doc semeado), não deixar o Mestre re-sortear outra. */
+       URL (ou no doc semeado), não deixar o Mestre re-sortear outra.
+       Handoff rico (fecho/hipótese) vem de partida.handoff no doc. */
     (function herdarDaPonte() {
       const p = new URLSearchParams(location.search);
       if (p.get('from') !== 'celular') return;
@@ -54,6 +55,11 @@ if (sala && !sala.local && sala.code) {
         .trim()
         .toLowerCase();
       if (id && !estado.pergunta) estado.pergunta = id;
+      const local = window.MosaicoCelularParaNoite?.readHandoffLocal?.({
+        sala: sala.code,
+        pergunta: id || estado.pergunta,
+      });
+      if (local && !estado.handoff) estado.handoff = local;
     })();
 
     function recebeu(campo, valor) {
@@ -67,6 +73,7 @@ if (sala && !sala.local && sala.code) {
       (s) => {
         const p = (s.exists() && s.data()?.partida) || {};
         if (p.jogadores) estado.jogadores = p.jogadores;
+        if (p.handoff) estado.handoff = p.handoff;
         recebeu('pergunta', p.pergunta);
         recebeu('ritmo', p.ritmo);
       },
@@ -100,7 +107,27 @@ if (sala && !sala.local && sala.code) {
       const patch = { 'partida.pergunta': escolhida, 'partida.jogadores': quantos };
       if (new URLSearchParams(location.search).get('from') === 'celular') {
         patch['partida.origem'] = 'celular';
-        patch['partida.continuidade'] = { from: 'celular', emMs: Date.now() };
+        const h =
+          estado.handoff ||
+          window.MosaicoCelularParaNoite?.resolveHandoff?.({
+            sala: sala.code,
+            pergunta: escolhida,
+          });
+        patch['partida.continuidade'] = {
+          from: 'celular',
+          emMs: Date.now(),
+          ...(h
+            ? {
+                v: h.v,
+                hipoteseFinal: h.hipoteseFinal ?? null,
+                fechoTotal: h.fecho?.total ?? null,
+              }
+            : {}),
+        };
+        if (h) {
+          patch['partida.handoff'] = h;
+          estado.handoff = h;
+        }
       }
       return gravar(patch).then(() => {
         estado.pergunta = estado.pergunta || escolhida;
@@ -133,6 +160,9 @@ if (sala && !sala.local && sala.code) {
       },
       get jogadores() {
         return estado.jogadores;
+      },
+      get handoff() {
+        return estado.handoff;
       },
     };
   }

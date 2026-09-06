@@ -903,8 +903,8 @@ function renderScore(){
   hint.hidden=false;
   const code=salaCodigo();
   hint.innerHTML=code
-   ?`A Noite continua com o <b>mesmo código ${code}</b> e a <b>mesma pergunta</b>. Mãos, moedas e economia do Captura começam do zero.`
-   :`Abra a Noite com a <b>mesma pergunta</b> desta investigação. Sem sala, o Captura segue em ensaio local — mãos e moedas começam do zero.`;
+   ?`A Noite continua com o <b>mesmo código ${code}</b> e a <b>mesma pergunta</b>. O Captura herda o fecho da manhã (${s.total}/100) para o orçamento inicial.`
+   :`Abra a Noite com a <b>mesma pergunta</b> desta investigação. Sem sala, o Captura herda o fecho local (${s.total}/100) para o orçamento inicial.`;
  }
  if(btnNoite)btnNoite.hidden=false;
 }
@@ -1144,13 +1144,24 @@ $('toNoite')&&($('toNoite').onclick=()=>{
  const pergunta=state.game;
  const sala=salaCodigo();
  const jogadores=(window.MOSAICO_ROOM?.players||[]).length||0;
+ const s=pontuar();
+ const nomes=(window.MOSAICO_ROOM?.players||[]).map(p=>p?.nome||p?.name||p?.displayName).filter(Boolean);
+ const fragmentosRevelados=[...new Set([...state.colhidos,...state.marcados])];
+ const handoff={
+  pergunta,sala,jogadores,nomes,
+  fecho:{total:s.total,campos:s.campos,hipotese:s.hipotese,relacoes:s.relacoes,leitura:s.leitura,sensorial:s.sensorial,revisao:s.revisao,acertos:s.acertos},
+  hipoteseFinal:state.hipoteseFinal||null,
+  hipoteseProv:state.hipoteseProv||null,
+  fragmentosRevelados
+ };
  if(!ponte?.goToNoite){
+  try{ponte?.persistHandoffLocal?.(handoff)||sessionStorage.setItem('mosaico-carro-handoff:'+(sala||'SOLO')+':'+(pergunta||'pauta'),JSON.stringify({...handoff,from:'celular',v:1,emMs:Date.now()}))}catch(e){}
   const q=new URLSearchParams({from:'celular'});
   if(sala)q.set('sala',sala);if(pergunta)q.set('pergunta',pergunta);
   location.href='noite/?'+q.toString();
   return;
  }
- ponte.goToNoite({sala,pergunta,jogadores,base:'noite/'});
+ ponte.goToNoite({sala,pergunta,jogadores,base:'noite/',handoff});
 });
 $('resetBtn').onclick=()=>{if(confirm('Reiniciar a Mesa e voltar à escolha inicial?'))location.reload()};
 $('infoBtn').onclick=()=>$('drawer').classList.add('on');

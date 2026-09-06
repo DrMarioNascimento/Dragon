@@ -489,10 +489,24 @@ function aplicarMesa(mesa, uid) {
   conferirFim();
   pintarPlacar(mesa.placar);
 }
+function economiaInicial() {
+  const ponte = window.MosaicoCelularParaNoite;
+  const search = ponte?.parseHandoffSearch?.(location.search) || {
+    fromCelular: new URLSearchParams(location.search).get('from') === 'celular',
+  };
+  const handoff = ponte?.resolveHandoff?.() || null;
+  if (ponte?.deriveNoiteEconomy) {
+    return ponte.deriveNoiteEconomy(handoff, { fromCelular: !!search.fromCelular });
+  }
+  if (search.fromCelular) return { coins: 10, handSize: 3, source: 'celular-sem-fecho' };
+  return { coins: 12, handSize: 3, source: 'standalone' };
+}
 function setup() {
   const q = QUESTIONS[state.question],
     deck = shuffle(FRAGMENTS.map((f) => f.id));
-  state.coins = 12;
+  const eco = economiaInicial();
+  state.coins = eco.coins;
+  state.economia = eco;
   state.score = 100;
   state.creditUsed = 0;
   /* Zerado a cada partida: `playAgain` chama setup de novo, e uma segunda
@@ -510,8 +524,21 @@ function setup() {
   /* A repartição LOCAL fica como estava, e é o que vale sem sala: ensaio,
      solo-lab, aparelho solto. Havendo sala, ela é substituída logo abaixo
      pela repartição da mesa — um baralho só, mãos que não se repetem, e os
-     nomes de quem está de verdade em vez de `Arquivo 02`. */
-  state.hand = deck.splice(0, 3).map(byId);
+     nomes de quem está de verdade em vez de `Arquivo 02`.
+     handSize vem do handoff quando from=celular (Noite rica v1). */
+  const handN = Math.max(2, Math.min(4, Number(eco.handSize) || 3));
+  state.hand = deck.splice(0, handN).map(byId);
+  if (eco.source && eco.source !== 'standalone') {
+    nota(
+      'Continuidade da manhã: ' +
+        eco.coins +
+        ' moedas · ' +
+        handN +
+        ' fragmentos (' +
+        (eco.rule || eco.source) +
+        ').',
+    );
+  }
   state.opponents = Array.from({ length: state.players - 1 }, (_, i) => ({
     name: `Arquivo ${String(i + 2).padStart(2, '0')}`,
     hand: [],
