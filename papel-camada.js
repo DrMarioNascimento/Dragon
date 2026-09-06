@@ -174,6 +174,7 @@
       ".mpc-camada b{display:block;font-size:14px}",
       ".mpc-camada small{display:block;margin-top:4px;font-size:11px;color:#9eafb8;line-height:1.3}",
       ".mpc-chips{display:inline-flex;flex-wrap:wrap;gap:6px;align-items:center;vertical-align:middle}",
+      ".mpc-sessao{display:block;width:100%;font:600 10px/1.2 Inter,system-ui,sans-serif;letter-spacing:.04em;color:#9eb6c2;margin-top:2px}",
       ".mpc-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:999px;border:1px solid rgba(232,169,74,.35);background:rgba(20,16,10,.75);color:#efc878;font:700 10px/1.2 Inter,system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase}",
       ".mpc-chip em{font-style:normal;color:#c6b69f;font-weight:600;text-transform:none;letter-spacing:0;font-size:11px}",
       ".mpc-andaime{margin:12px 0;padding:12px 14px;border:1px solid rgba(232,169,74,.28);border-radius:12px;background:rgba(8,12,16,.72)}",
@@ -279,20 +280,26 @@
     });
   }
 
-  function chipHtml(caso, escolha) {
+  function chipHtml(caso, escolha, opts) {
     var e = escolha || carregar(caso);
     var alias = aliasNarrativo(caso, e.papel);
     var cam = metaCamada(e.camada);
+    var sessao = opts && opts.sessao;
+    /* Micro-rótulo de sessão (Mestre/Jogador) — linha secundária, sem substituir o papel cognitivo. */
+    var linhaSessao = sessao
+      ? '<span class="mpc-sessao" title="Papel na sessão">' + esc(sessao) + "</span>"
+      : "";
     return '<span class="mpc-chips" data-mpc-chips>' +
       '<span class="mpc-chip" title="Papel cognitivo"><em>' + esc(alias) + "</em> · " + esc(metaPapel(e.papel).label) + "</span>" +
       '<span class="mpc-chip" title="Camada de assistência">' + esc(cam.label) + "</span>" +
+      linhaSessao +
       "</span>";
   }
 
-  function montarChip(alvo, caso, escolha) {
+  function montarChip(alvo, caso, escolha, opts) {
     injetarCss();
     if (!alvo) return;
-    var html = chipHtml(caso, escolha || carregar(caso));
+    var html = chipHtml(caso, escolha || carregar(caso), opts);
     if (typeof alvo === "string") {
       var el = document.querySelector(alvo);
       if (el) el.insertAdjacentHTML("beforeend", html);
@@ -431,7 +438,7 @@
     var e = opts.escolha || carregar(caso);
     injetarCss();
     if (opts.chipAlvo && !document.querySelector("[data-mpc-chips]")) {
-      montarChip(opts.chipAlvo, caso, e);
+      montarChip(opts.chipAlvo, caso, e, opts.sessao ? { sessao: opts.sessao } : opts.chipOpts);
     }
     if (opts.andaimeAlvo) {
       var alvo = typeof opts.andaimeAlvo === "string"

@@ -427,7 +427,7 @@
      uma só, e ela é a do cabeçalho. */
   .btn-menu-mestre{padding:12px 16px;border-radius:100px;
     border:1px solid rgba(127,212,255,.5);background:rgba(5,7,12,.82);color:var(--frio);
-    font:700 clamp(11px,3vw,14px) var(--sans);letter-spacing:.16em;text-transform:uppercase}
+    font:700 clamp(12px,3vw,15px) var(--sans);letter-spacing:.04em;text-transform:none}
   .btn-menu-mestre.acao-necessaria{
     border-color:var(--vermelho);color:#ff9b8b;
     animation:alertaMestre 1.05s ease-in-out infinite;
@@ -572,6 +572,7 @@
   .conectado-item{min-width:0;padding:10px;border:1px solid var(--linha);border-radius:6px;background:rgba(5,8,13,.58)}
   .conectado-item>span:first-child{display:block;overflow-wrap:anywhere;font-weight:700;line-height:1.18}
   .conectado-item .muted{display:block;margin-top:5px;font-size:10px;line-height:1.2}
+  .conectado-item .papel-sessao{display:inline-block;margin-top:4px;font-size:11px;letter-spacing:.04em;color:var(--ambar)}
   @media(max-width:340px){.conectados-grade{grid-template-columns:1fr}}
   body.modo-sem-telao #app{padding-bottom:var(--barra-reserva)}
   .mural-movel{margin:18px 0 78px;border:1px solid var(--linha);border-radius:6px;background:rgba(12,18,26,.92);padding:0 12px}
@@ -1562,7 +1563,7 @@ var STATE = {
   senhaAberta:false,
   revelando:false,
   travaTela:false,
-  forma:null,        /* "m" | "f" | "?" — escolha do jogador na entrada */
+  forma:null,        /* "m" | "f" | "n" — escolha do jogador na entrada (n = Tanto faz) */
   papelCognitivo:"investigador",
   camadaAcessibilidade:"livre",
   codigoEntrada:"",
@@ -2154,7 +2155,7 @@ function controlesMestreMovel(){
   }else if(fase==="sala"){
     todos=js.length>=1&&contaProntos()===js.length;
     acaoNecessaria=todos;
-    botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();iniciarEncenacao()" '+(todos?'':'disabled')+'>Come&ccedil;ar</button>';
+    botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();iniciarEncenacao()" '+(todos?'':'disabled')+'>Iniciar partida</button>';
   }else if(fase==="encenacao"){
     /* Enquanto a casa fala não há apresentação para pular — há narração. O
        temporizador da abertura já garante que ninguém fica preso, mas quem
@@ -2210,25 +2211,28 @@ function controlesMestreMovel(){
         '<button class="btn btn-perigo" onclick="alternarMenuMestre();encerrarMesa()">Encerrar sala</button>';
     }
   }
-  var conectados=js.length?'<div class="conectados-grade">'+js.map(function(j){var status=fase==="sala"?(j.pronto?'pronto':'aguardando prontid&atilde;o'):'conectado';return '<div class="conectado-item"><span>'+esc(j.nome)+'</span><span class="muted">'+status+'</span></div>';}).join('')+'</div>':'<p class="muted">Nenhum participante conectado.</p>';
+  var conectados=js.length?'<div class="conectados-grade">'+js.map(function(j){var badge=j.mestre?'Mestre':'Jogador';var status=fase==="sala"?(j.pronto?'pronto':'aguardando prontid&atilde;o'):'conectado';return '<div class="conectado-item"><span>'+esc(j.nome)+'</span><b class="papel-sessao">'+badge+'</b><span class="muted">'+status+'</span></div>';}).join('')+'</div>':'<p class="muted">Nenhum participante conectado.</p>';
   var m=STATE.mesa, qr=m?qrSvg(m.link,"QR da sala"):"";
   var abrirAcao=acaoNecessaria||(fase!=="sala"&&!!botoes);
-  var abrirParticipantes=false;
+  var abrirParticipantes=fase==="sala";
   var abrirStatus=!abrirAcao&&!!autoInfo;
   var secaoAcao=botoes?'<details class="sala-acordeao mestre-acao '+(acaoNecessaria?'acao-necessaria':'')+'" '+(abrirAcao?'open':'')+' ontoggle="exclusivoSala(this)"><summary>'+(acaoNecessaria?'A&ccedil;&atilde;o do mestre necess&aacute;ria':'Controles do mestre')+'</summary><div class="sala-acordeao-conteudo"><div class="menu-mestre-grade">'+botoes+'</div></div></details>':'';
-  var secaoStatus=autoInfo?'<details class="sala-acordeao" '+(abrirStatus?'open':'')+' ontoggle="exclusivoSala(this)"><summary>Acompanhamento da rodada</summary><div class="sala-acordeao-conteudo">'+autoInfo+'</div></details>':'';
-  var secaoPausa=fase==="resultado"?'':'<details class="sala-acordeao controle-pausa" '+(pausada?'open':'')+' ontoggle="exclusivoSala(this)"><summary>Controle da partida</summary><div class="sala-acordeao-conteudo">'+
-    (pausada?'<button class="btn btn-frio" onclick="retomarPartida()">&#9654; Retomar partida</button>':'<button class="btn btn-frio" onclick="pausarPartida()">&#10074;&#10074; Pausar partida</button>')+
-    '</div></details>';
+  var acompanhamento=autoInfo||'';
+  var secaoControle=fase==="resultado"
+    ? (autoInfo?'<details class="sala-acordeao" '+(abrirStatus?'open':'')+' ontoggle="exclusivoSala(this)"><summary>Controle partida</summary><div class="sala-acordeao-conteudo">'+autoInfo+'</div></details>':'')
+    : '<details class="sala-acordeao controle-pausa" '+(pausada||abrirStatus?'open':'')+' ontoggle="exclusivoSala(this)"><summary>Controle partida</summary><div class="sala-acordeao-conteudo">'+
+      (pausada?'<button class="btn btn-frio" onclick="retomarPartida()">&#9654; Retomar partida</button>':'<button class="btn btn-frio" onclick="pausarPartida()">&#10074;&#10074; Pausar partida</button>')+
+      acompanhamento+
+      '</div></details>';
+  /* Ordem canônica: 1 ação → 2 Código/QR → 3 Telão → 4 Participantes → 5 Controle partida → 6 Encerrar */
   var painel=STATE.menuMestreAberto?'<div class="menu-mestre-fundo" onclick="if(event.target===this)alternarMenuMestre()"><div class="menu-mestre-card">'+
-    '<div class="menu-mestre-topo"><div><span class="eyebrow">Mestre &middot; '+esc(nomeRodada(fase))+'</span><h2>Sala</h2><p class="muted">'+(conduzido?'Ritmo conduzido pelo mestre':'Ritmo autom&aacute;tico')+'</p></div><button class="btn btn-sm" onclick="alternarMenuMestre()">Fechar</button></div>'+
+    '<div class="menu-mestre-topo"><div><span class="eyebrow">Mestre &middot; '+esc(nomeRodada(fase))+'</span><h2>Sala</h2><p class="muted">'+(conduzido?'Ritmo conduzido pelo Mestre':'Ritmo autom&aacute;tico')+'</p></div><button class="btn btn-sm" onclick="alternarMenuMestre()">Fechar</button></div>'+
     secaoAcao+
-    secaoStatus+
-    secaoPausa+
-    '<details class="sala-acordeao" ontoggle="exclusivoSala(this)"><summary>C&oacute;digo e QR da sala</summary><div class="sala-acordeao-conteudo"><div class="codigo-grande">'+esc(m&&m.codigo)+'</div><div class="menu-mestre-qr">'+qr+'</div><button class="btn btn-sm" style="width:100%" onclick="copiarLink()">Copiar link</button></div></details>'+
-    (m&&m.codigo?'<details class="sala-acordeao" ontoggle="exclusivoSala(this)"><summary>&#128250; Tel&atilde;o</summary><div class="sala-acordeao-conteudo"><p class="muted">Abra este endere&ccedil;o na TV, no projetor ou no notebook. Ele entra na mesma sala e s&oacute; mostra o que a mesa publicar em <code>publicState</code>.</p><div class="codigo-grande" style="font-size:13px;word-break:break-all">'+esc(linkDoTelao(m.codigo))+'</div><div class="menu-mestre-qr">'+qrSvg(linkDoTelao(m.codigo),"QR do tel&atilde;o")+'</div><button class="btn btn-sm" style="width:100%" onclick="navigator.clipboard.writeText(linkDoTelao(STATE.mesa.codigo)).then(function(){avisa('Link do tel&atilde;o copiado.');},function(){avisa(linkDoTelao(STATE.mesa.codigo));})">Copiar link do tel&atilde;o</button></div></details>':'')+
-    '<details class="sala-acordeao" ontoggle="exclusivoSala(this)"><summary>Encerrar sala</summary><div class="sala-acordeao-conteudo"><button class="btn btn-perigo" onclick="encerrarMesa()">Encerrar sala</button></div></details>'+
+    '<details class="sala-acordeao" ontoggle="exclusivoSala(this)"><summary>C&oacute;digo e QR</summary><div class="sala-acordeao-conteudo"><div class="codigo-grande">'+esc(m&&m.codigo)+'</div><div class="menu-mestre-qr">'+qr+'</div><button class="btn btn-sm" style="width:100%" onclick="copiarLink()">Copiar link</button></div></details>'+
+    (m&&m.codigo?'<details class="sala-acordeao" ontoggle="exclusivoSala(this)"><summary>&#128250; Tel&atilde;o</summary><div class="sala-acordeao-conteudo"><p class="muted">Abra este endere&ccedil;o na TV, no projetor ou no notebook. Ele entra na mesma sala e s&oacute; mostra o que a mesa publicar em <code>publicState</code>.</p><div class="codigo-grande" style="font-size:13px;word-break:break-all">'+esc(linkDoTelao(m.codigo))+'</div><div class="menu-mestre-qr">'+qrSvg(linkDoTelao(m.codigo),"QR do tel&atilde;o")+'</div><button class="btn btn-sm" style="width:100%" onclick="navigator.clipboard.writeText(linkDoTelao(STATE.mesa.codigo)).then(function(){avisa(\'Link do tel&atilde;o copiado.\');},function(){avisa(linkDoTelao(STATE.mesa.codigo));})">Copiar link do tel&atilde;o</button></div></details>':'')+
     '<details class="sala-acordeao" '+(abrirParticipantes?'open':'')+' ontoggle="exclusivoSala(this)"><summary>Participantes &middot; '+js.length+'</summary><div class="sala-acordeao-conteudo">'+conectados+'</div></details>'+
+    secaoControle+
+    '<details class="sala-acordeao" ontoggle="exclusivoSala(this)"><summary>Encerrar sala</summary><div class="sala-acordeao-conteudo"><button class="btn btn-perigo" onclick="encerrarMesa()">Encerrar sala</button></div></details>'+
     '</div></div>':'';
   return '<button class="btn-menu-mestre '+(acaoNecessaria?'acao-necessaria ':'')+(STATE.menuMestreAberto?'ativo':'')+'" onclick="alternarMenuMestre()" aria-label="Abrir ou fechar a Sala do mestre">Sala</button>'+painel;
 }
@@ -2584,7 +2588,7 @@ function render(forcar){
       var escpc={papel:STATE.papelCognitivo||STATE.eu.papelCognitivo||'investigador',camada:STATE.camadaAcessibilidade||STATE.eu.camadaAcessibilidade||'livre'};
       if(!document.querySelector('[data-mpc-chips]')){
         var cab=document.querySelector('.rodada-celular')||document.querySelector('.rodada-telao')||document.getElementById('app');
-        if(cab) window.MosaicoPapelCamada.montarChip(cab,'casa-da-costa',escpc);
+        if(cab) window.MosaicoPapelCamada.montarChip(cab,'casa-da-costa',escpc,{sessao:souMestreDaMesa()?'Mestre':'Jogador'});
       }
       if(escpc.camada!=='livre' && STATE.tela==="painel" && !document.querySelector('[data-mpc-andaime]')){
         window.MosaicoPapelCamada.aplicarEmJogo({caso:'casa-da-costa',escolha:escpc,andaimeAlvo:document.getElementById('app'),andaimePos:'afterbegin',partidaId:(STATE.partidaId||(STATE.doc&&STATE.doc.partidaId)||undefined),playerId:(STATE.eu&&STATE.eu.id)||'local',state:{selecionados:(STATE.v5&&STATE.v5._deducaoDraft)||{}}});
@@ -2603,20 +2607,20 @@ function telaReconectando(){
 }
 
 function telaInicio(){
-  /* o poster ja escreve MOSAICO; aqui entra so o caso e a promessa */
+  /* Ordem canônica do gate: Abrir → Entrar → (Ensaiar omitido: ensaio desta
+     casa é a porta Solo) → Entrar como telão. */
   return '<h1>A Casa da Costa</h1>'+
     '<p class="lead">Voc&ecirc; possui uma parte da verdade. Para enxergar o todo, '+
     'precisar&aacute; das outras pessoas &mdash; mas elas tamb&eacute;m querem vencer.</p>'+
     avisoLocal()+
     '<button class="btn btn-ambar" onclick="pedirSenha()">Abrir uma mesa</button>'+
     '<button class="btn btn-frio" onclick="irPara(\'entrar\')">Entrar em uma mesa</button>'+
+    '<button class="btn btn-frio" onclick="location.href=\'../telao.html?jogo=casa-da-costa\'">Entrar como tel&atilde;o</button>'+
     '<p class="muted" style="margin-top:24px">Escolha abrir <b>com tel&atilde;o</b> dedicado ou '+
-    '<b>sem tel&atilde;o</b>, quando quem cria tamb&eacute;m participa pelo celular.</p>'+
+    '<b>sem tel&atilde;o</b>, quando quem cria tamb&eacute;m participa pelo celular. O ensaio local fica na porta Solo.</p>'+
     modalSenha();
 }
 
-/* Porta do mestre: protege apenas a ABERTURA da mesa. Quem entra pelo
-   QR nao precisa de senha — sao os convidados, nao o dono da mesa.     */
 function modalSenha(){
   if(!STATE.senhaAberta) return "";
   return '<div class="modal-fundo" onclick="if(event.target===this) fecharSenha()">'+
@@ -2800,11 +2804,11 @@ function telaEntrar(){
         'onclick="escolherForma(\'m\')"><b>👨</b><span>Bem-vindo</span></button>'+
       '<button class="forma-op'+(STATE.forma==="f"?" on":"")+'" '+
         'onclick="escolherForma(\'f\')"><b>👩</b><span>Bem-vinda</span></button>'+
-      '<button class="forma-op'+(STATE.forma==="?"?" on":"")+'" '+
-        'onclick="escolherForma(\'?\')"><b>👥</b><span>Tanto faz</span></button>'+
+      '<button class="forma-op'+(STATE.forma==="n"?" on":"")+'" '+
+        'onclick="escolherForma(\'n\')"><b>👥</b><span>Tanto faz</span></button>'+
     '</div>'+
     (window.MosaicoPapelCamada?(window.MosaicoPapelCamada.injetarCss(),window.MosaicoPapelCamada.htmlSeletor('casa-da-costa',{papel:STATE.papelCognitivo||'investigador',camada:STATE.camadaAcessibilidade||'livre'})):'')+
-    '<button class="btn btn-ambar" onclick="entrarNaMesa()" '+(criando?'disabled':'')+'>'+(criando?'Criando a mesa…':'Entrar na casa')+'</button>'+
+    '<button class="btn btn-ambar" onclick="entrarNaMesa()" '+(criando?'disabled':'')+'>'+(criando?'Criando a mesa…':'Entrar')+'</button>'+
     '<button class="btn btn-fantasma" onclick="irPara(\'inicio\')">&larr; Voltar</button>';
 }
 
@@ -2888,7 +2892,7 @@ function telaPainel(){
     var prontos=contaProntos();
     var todosProntos = js.length>=1 && prontos===js.length;
     acao='<button class="btn btn-ambar" '+(todosProntos?'':'disabled')+
-         ' onclick="iniciarEncenacao()">Come&ccedil;ar o jogo</button>'+
+         ' onclick="iniciarEncenacao()">Iniciar partida</button>'+
          '<p class="muted" style="text-align:center">'+
          (js.length<1 ? 'Aguardando participante.'
                       : prontos+' de '+js.length+' prontos'+
@@ -2974,6 +2978,7 @@ function telaEsperando(){
   var pronto=souPronto();
   var cls=STATE.revelando?" revela":"";
   if(STATE.revelando) setTimeout(function(){ STATE.revelando=false; },2600);
+  var lista='<div class="conectados-grade" style="margin:18px 0">'+js.map(function(j){return '<div class="conectado-item"><span>'+esc(j.nome)+'</span><b class="papel-sessao">'+(j.mestre?'Mestre':'Jogador')+'</b></div>';}).join('')+'</div>';
 
   if(!pronto){
     return '<span class="eyebrow">Voc&ecirc; est&aacute; na casa</span>'+
@@ -2983,19 +2988,21 @@ function telaEsperando(){
         '<p class="lead rv-desc" style="margin-bottom:0">Voc&ecirc; ainda n&atilde;o sabe quem &eacute; '+
         'nesta noite. Vai descobrir na hora.</p>'+
       '</div>'+
+      lista+
       '<button class="btn btn-ambar" onclick="marcarPronto()">Estou pronto para jogar</button>'+
       '<p class="muted" style="text-align:center;margin-top:14px">'+
         contaProntos()+' de '+js.length+' j&aacute; est&atilde;o prontos.</p>';
   }
 
-  /* declarou pronto: troca a arte e fica assim ate chegar a vez */
-  return '<span class="eyebrow">Pronto</span>'+
+  /* declarou pronto: lista com badges + aguarda o Mestre (mesmo texto do firebase-room) */
+  return '<span class="eyebrow">Sala</span>'+
     '<div class="revelacao">'+
       '<div class="pulso" style="margin:0 auto 26px"></div>'+
-      '<h2 class="rv-nome">A casa vai<br>come&ccedil;ar.</h2>'+
-      '<p class="lead rv-desc" style="margin-bottom:0">Mantenha o celular com voc&ecirc; e proteja sua tela. '+
-      'Ele mostrar&aacute; as instru&ccedil;&otilde;es quando chegar a sua vez.</p>'+
+      '<h2 class="rv-nome">Voc&ecirc; entrou</h2>'+
+      '<p class="lead rv-desc" style="margin-bottom:0">Mantenha o celular com voc&ecirc; e proteja sua tela.</p>'+
     '</div>'+
+    lista+
+    '<p class="muted" style="text-align:center;margin-top:14px">Aguardando o Mestre iniciar a partida…</p>'+
     '<div class="contagem-prontos">'+contaProntos()+' de '+js.length+' prontos</div>';
 }
 
@@ -3462,7 +3469,7 @@ function iconePortador(){
 function tituloPortador(){
   var eu=meuJogador();
   if(fragmentoCompartilhado())return 'Todos s&atilde;o Portadores do Fragmento';
-  return eu&&eu.forma==='f'?'Voc&ecirc; &eacute; a Portadora do Fragmento':eu&&eu.forma==='?'?'Voc&ecirc; controla o Fragmento':'Voc&ecirc; &eacute; o Portador do Fragmento';
+  return eu&&eu.forma==='f'?'Voc&ecirc; &eacute; a Portadora do Fragmento':eu&&(eu.forma==='n'||eu.forma==='?')?'Voc&ecirc; controla o Fragmento':'Voc&ecirc; &eacute; o Portador do Fragmento';
 }
 function abrirEscolhaMosaico(indice){STATE.mosaicoEscolha=Number(indice);render(true);}
 function fecharEscolhaMosaico(){STATE.mosaicoEscolha=null;render(true);}
@@ -3812,7 +3819,7 @@ async function entrarNaMesa(){
   if(!nome){ avisa("Escreva seu nome."); return; }
   if(!STATE.forma){ avisa("Escolha como a casa vai te chamar."); return; }
   /* "tanto faz" tambem e escolha: a casa decide, como decide o resto */
-  var forma = STATE.forma==="?" ? (Math.random()<0.5?"m":"f") : STATE.forma;
+  var forma = (STATE.forma==="n"||STATE.forma==="?") ? "n" : STATE.forma;
 
   if(TELA_CHEIA_AUTOMATICA) telaCheia();   /* quem entra pelo QR nao passa pelo portao: o gesto e aqui */
   fecharCortina("A porta abriu. A casa está decidindo quem você é.");

@@ -399,10 +399,10 @@ function selectGame(id){
 
    E quem ABRE não é o jogador. No ritmo automático quem abre é o sistema,
    assim que a anterior fecha; no ritmo conduzido é o Mestre, pelo painel da
-   Sala — e até ele tocar, o botão SALA fica piscando. */
+   Sala — e até ele tocar, o botão Sala fica piscando. */
 function esperaTexto(){
  if(ritmoConduzido())return souMestreDaSala()
-  ? 'A mesa está pronta. Abra esta atividade pelo painel da SALA — o botão está piscando.'
+  ? 'A mesa está pronta. Abra esta atividade pelo painel da Sala — o botão está piscando.'
   : 'Aguardando o Mestre abrir esta atividade para a mesa.';
  return souMestreDaSala()?'Abrindo a atividade para a mesa…':'Aguardando a mesa abrir esta atividade.';
 }
@@ -536,7 +536,7 @@ function liberarAtividade(id){
  window.MosaicoPauta?.abrirAtividade?.(id,fim,state.game,SENSORS[id]?.title||id);
  iniciarAtividade(id,fim);
 }
-/* O botão da SALA pisca quando a mesa parou esperando uma decisão do Mestre —
+/* O botão da Sala pisca quando a mesa parou esperando uma decisão do Mestre —
    a mesma forma que a Mesa da Casa usa em .btn-menu-mestre.acao-necessaria. */
 function atualizarAcaoMestre(){
  const sala=window.DragonSala;
@@ -1020,7 +1020,7 @@ function iniciarFecho(){
  agendarFecho();
 }
 /* No ritmo automático a tela grande anda sozinha; no conduzido quem anda é o
-   Mestre, pelo mesmo botão SALA que já pisca nas atividades. */
+   Mestre, pelo mesmo botão Sala que já pisca nas atividades. */
 function agendarFecho(){
  clearTimeout(relogioFecho);
  if(ritmoConduzido()){acaoDoFecho();return}
@@ -1235,10 +1235,12 @@ go('intro');
     if(!MPC)return;
     const escolha=(window.MOSAICO_ROOM&&window.MOSAICO_ROOM.papelCamada)||MPC.carregar('carro-forte');
     const host=document.getElementById('mpcChipHost')||document.querySelector('.turnline-right')||document.querySelector('.topbar');
+    const sessao=window.MOSAICO_ROOM?.role==='master'?'Mestre':(window.MOSAICO_ROOM?'Jogador':undefined);
     MPC.aplicarEmJogo({
       caso:'carro-forte',
       escolha,
       chipAlvo:host,
+      sessao,
       andaimeAlvo:document.getElementById('app'),
       andaimePos:'afterbegin',
       partidaId:state.game||undefined,
