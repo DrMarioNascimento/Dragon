@@ -374,8 +374,28 @@ function alertaSala(){
   document.getElementById('dragonSalaBtn')?.classList.toggle('acao-necessaria',ligado);
   document.querySelectorAll('[data-dragon-sala-espelho]').forEach(el=>el.classList.toggle('acao-necessaria',ligado));
 }
+/* Campos que ownPlayerUpdate aceita no convidado (espelho das regras). */
+const PATCH_ME_KEYS=new Set(['pronto','forma','atualizadoEmMs','pistas','personagem','fragmentoPronto','fragmentoProntoMs','papelCognitivo','camadaAcessibilidade','aliasNarrativo','hpcScaffold']);
+async function patchMe(fields){
+  try{
+    const u=auth.currentUser;
+    if(!code||!u||!fields||typeof fields!=='object')return false;
+    const patch={};
+    for(const k of Object.keys(fields)){
+      if(PATCH_ME_KEYS.has(k)&&fields[k]!==undefined)patch[k]=fields[k];
+    }
+    if(!Object.keys(patch).length)return false;
+    patch.atualizadoEmMs=Date.now();
+    await updateDoc(playerRef(code,u.uid),patch);
+    return true;
+  }catch(e){
+    console.warn('MOSAICO: patchMe falhou',e);
+    return false;
+  }
+}
 window.DragonSala={
   acao(cfg){acaoMestre=cfg&&cfg.rotulo?cfg:null;alertaSala();atualizarSalaPersistente();},
+  patchMe,
   telaoPronto,
   get codigo(){return code},
   get papel(){return role},

@@ -332,7 +332,7 @@ test("dedução própria é aceita uma vez; outro jogador não lê", async () =>
 test("o jogador NÃO debita a própria moeda: era assim que o mercado gravava", async () => {
   /* {moedas, acoesMercado} é exatamente a escrita que mercadoLevar fazia.
      hasOnly reprova a escrita inteira porque nenhuma das duas chaves está em
-     ['pronto','forma','atualizadoEmMs','pistas']. */
+     allowlist de ownPlayerUpdate (sem moedas). */
   await assertFails(updateDoc(jogadora(como(ANA), ANA), {
     moedas: 5, acoesMercado: 1
   }));
@@ -376,6 +376,48 @@ test("o Mestre move o balaio e credita o consignante", async () => {
     balaio: [{ frag: "F09", dono: BIA }]
   }));
   await assertSucceeds(updateDoc(jogadora(db, BIA), { moedas: 11 }));
+});
+
+
+/* ---------- ownPlayerUpdate expandido (Casa + papel/camada + HPC) ---------- */
+
+test("convidado declara personagem e fragmentoPronto", async () => {
+  await assertSucceeds(updateDoc(jogadora(como(ANA), ANA), {
+    personagem: "porteiro", fragmentoPronto: true, fragmentoProntoMs: Date.now(), atualizadoEmMs: Date.now()
+  }));
+});
+
+test("convidado grava papel cognitivo e camada", async () => {
+  await assertSucceeds(updateDoc(jogadora(como(ANA), ANA), {
+    papelCognitivo: "arquivista",
+    camadaAcessibilidade: "assistida",
+    aliasNarrativo: "Guardião do arquivo",
+    atualizadoEmMs: Date.now()
+  }));
+});
+
+test("convidado grava resumo hpcScaffold (mapa), não moedas", async () => {
+  await assertSucceeds(updateDoc(jogadora(como(ANA), ANA), {
+    hpcScaffold: {
+      compare: { A: "H8", B: "H10", C: "H1" },
+      compareFilled: 3,
+      favorLines: 1,
+      againstLines: 1,
+      unexaminedCount: 0,
+      socraticAnswered: 0,
+      organizedComparison: true
+    },
+    atualizadoEmMs: Date.now()
+  }));
+  await assertFails(updateDoc(jogadora(como(ANA), ANA), {
+    hpcScaffold: { compareFilled: 1 }, moedas: 99, atualizadoEmMs: Date.now()
+  }));
+});
+
+test("convidado não escreve campo inventado no próprio doc", async () => {
+  await assertFails(updateDoc(jogadora(como(ANA), ANA), {
+    nucleo: 99, atualizadoEmMs: Date.now()
+  }));
 });
 
 /* ── O TELÃO ─────────────────────────────────────────────────────────────

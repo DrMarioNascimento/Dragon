@@ -4750,13 +4750,11 @@ if(CONFIGURADO) window.MosaicoFB = {
   uid(){ return _uid; },
   async criarMesa(codigo, modo, ritmo){
     await autenticarGoogle();
-    /* O CASO VAI GRAVADO. A Casa e A Manhã do Carro-Forte dividem o mesmo
-       projeto e a MESMA coleção "mosaico": um código de seis letras digitado
-       no jogo errado entrava sem nenhum aviso. O Carro-Forte já conferia
-       `caseId` — mas só quando ele existe, e aqui ele não existia, então a
-       porta ficava aberta nos dois sentidos: um investigador do Carro-Forte
-       aparecia na lista de jogadores desta mesa e mexia nas contagens de
-       prontidão, e vice-versa. */
+    /* O CASO VAI GRAVADO. Casa (mosaico-game) e Manhã do Carro-Forte
+       (mosaico-noite) são projetos Firebase separados — ver FIREBASE-ISOLAMENTO.md.
+       Ainda assim gravamos caseId:"casa-da-costa" na coleção mosaico desta Mesa:
+       defesa em profundidade se um código cruzar de contexto, e o cliente
+       recusa entrada quando caseId existe e é de outro caso. */
     await setDoc(doc(db, RAIZ, codigo), {
       ativa:true, fase:"sala", vez:0, modo:modo||"com-telao",
       mestreUid:_uid, caseId:"casa-da-costa",

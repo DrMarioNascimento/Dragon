@@ -30,6 +30,9 @@ Portanto, para **A Noite**, reconhecer o Mestre na interface não é suficiente 
 - somente o UID que criou a sala pode alterar fases, encerrá-la e publicar o placar;
 - a fase da sala só pode ser um valor conhecido; qualquer outro valor é recusado, inclusive ao mestre;
 - cada participante cria apenas o documento correspondente ao próprio UID;
+- o convidado pode atualizar, no próprio `jogadores/{uid}`, só o allowlist de
+  `ownPlayerUpdate` (pronto/forma/pistas, personagem/fragmentoPronto, papel/camada,
+  resumo `hpcScaffold`) — nunca moedas, total nem núcleo;
 - uma pessoa autenticada com o código de uma sala ativa pode consultar a lista de jogadores necessária à entrada;
 - documentos e coleções desconhecidos são negados por padrão;
 - exclusões diretas são bloqueadas;

@@ -115,6 +115,22 @@
       localStorage.setItem(STORAGE_KEY + ":" + normalizarCaso(caso), JSON.stringify(e));
       localStorage.setItem(STORAGE_KEY, JSON.stringify(e));
     } catch (err) { /* ignore quota */ }
+    /* Se já há sala Firebase, espelha papel/camada no doc do jogador
+       (ownPlayerUpdate). Solo / pré-sala ficam só no localStorage. */
+    try {
+      var alias = aliasNarrativo(caso, e.papel);
+      var patch = {
+        papelCognitivo: e.papel,
+        camadaAcessibilidade: e.camada,
+        aliasNarrativo: alias
+      };
+      if (global.DragonSala && typeof global.DragonSala.patchMe === "function" && global.MOSAICO_ROOM) {
+        global.DragonSala.patchMe(patch);
+      } else if (global.MosaicoFB && typeof global.MosaicoFB.atualizarJogador === "function" &&
+                 global.STATE && global.STATE.eu && global.STATE.eu.codigo && global.STATE.eu.id) {
+        global.MosaicoFB.atualizarJogador(global.STATE.eu.codigo, global.STATE.eu.id, patch);
+      }
+    } catch (syncErr) { /* rede / regras — localStorage já salvou */ }
     return e;
   }
 

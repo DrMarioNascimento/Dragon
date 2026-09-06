@@ -266,12 +266,11 @@ test("nada que existe só para testar é carregado pela casca do jogo", () => {
 });
 
 test("o mercado não grava direto no documento do jogador nem da sala", () => {
-  /* firestore.rules · ownPlayerUpdate deixa o jogador mexer só em pronto,
-     forma, atualizadoEmMs e pistas — e hasOnly reprova a escrita inteira se
-     UMA chave estiver fora. Em 02/09/2026 as cinco escritas do mercado eram
-     todas negadas, e o balaio pior ainda: mora no documento da SALA, que só
-     o Mestre atualiza. Na tela funcionava; no servidor não acontecia nada, e
-     o jogador levava o fragmento sem pagar.
+  /* firestore.rules · ownPlayerUpdate é allowlist (pronto/forma/pistas,
+     personagem/fragmentoPronto, papel/camada, hpcScaffold…) — hasOnly reprova
+     a escrita inteira se UMA chave estiver fora. Em 02/09/2026 as cinco
+     escritas do mercado (moedas/acoesMercado) eram todas negadas, e o balaio
+     pior ainda: mora no documento da SALA, que só o Mestre atualiza.
 
      Agora o jogador CRIA um pedido em `acoes` e o Mestre aplica. Este teste
      guarda a separação: fora de aplicar(), que é o lado do Mestre, não pode
