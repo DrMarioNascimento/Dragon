@@ -100,6 +100,11 @@ describe("sensor · finger + soft deadline", () => {
     assert.match(TS, /Os personagens do jogo são:/);
     assert.match(TS, /O seu personagem é:/);
     assert.match(TS, /ELENCO_CASA_CANONICO/);
+    assert.match(TS, /injetarProfundidade1mais1/);
+    assert.match(TS, /pf-card/);
+    assert.match(TS, /pf-inset/);
+    assert.match(TS, /pf-btn-gold/);
+    assert.equal(/#ff9a4d/.test(TS), false);
     const { createContext, runInContext } = await import("node:vm");
     const ctx = createContext({
       setTimeout,
@@ -155,6 +160,20 @@ describe("sensor · finger + soft deadline", () => {
     assert.match(JANELA, /elencoJanelaPodeComecar/);
     assert.match(JANELA, /if\s*\(\s*!elencoJanelaPodeComecar\(\)\s*\)\s*return/);
     assert.match(JANELA, /caso:\s*["']casa-da-costa["']/);
+  });
+
+  it("Casa sensor: overlayPausa é cartão 1+1, não scrim plano", () => {
+    for (const path of [
+      "v1/MOSAICO-26-vidro-embacado.html",
+      "v1/MOSAICO-26-a-sala-as-escuras.html",
+      "v1/MOSAICO-26-a-janela-do-norte.html",
+    ]) {
+      const src = ler(path);
+      assert.match(src, /className="pf-pausa"/, path);
+      assert.match(src, /pf-pausa-card/, path);
+      assert.match(src, /pf-pausa-msg/, path);
+      assert.equal(/background:rgba\(0,0,0,\.86\);color:#cfc6b6/.test(src), false, path);
+    }
   });
 
   it("Vidro e Sala Casa: cairNoModoDedo antes do dedo", () => {

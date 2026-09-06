@@ -7,13 +7,14 @@
   <title>MOSAICO — Celular · A Manhã do Carro-Forte</title>
   <link rel="stylesheet" href="styles.css?v=20260906-papel-camada" />
   <link rel="stylesheet" href="../carro-forte-terminal.css?v=20260901-linha-inteira" />
-  <link rel="stylesheet" href="iphone-guard.css?v=20260831-v4-noite" />
+  <link rel="stylesheet" href="iphone-guard.css?v=20260906-pf-all" />
+  <link rel="stylesheet" href="../v1/css/profundidade-1mais1.css?v=20260906-pf-all" />
 </head>
 <body>
   <div class="scene" aria-hidden="true"></div>
   <div class="rain" aria-hidden="true"></div>
 
-  <div id="orientationGuard" class="system-guard hidden" role="dialog" aria-live="assertive"><div><span>ORIENTAÇÃO</span><strong>Gire o iPhone para continuar</strong><p>Esta mesa foi preparada para o modo vertical. O cronômetro fica pausado enquanto a tela estiver girada.</p></div></div>
+  <div id="orientationGuard" class="system-guard hidden" role="dialog" aria-live="assertive"><div class="pf-card"><div class="pf-inset system-guard-inset"><span>ORIENTAÇÃO</span><strong>Gire o iPhone para continuar</strong><p>Esta mesa foi preparada para o modo vertical. O cronômetro fica pausado enquanto a tela estiver girada.</p></div></div></div>
 
   <header class="topbar">
     <div class="topline">
@@ -138,8 +139,9 @@
   <div id="esperaDaMesa" hidden>⏳ A mesa vira a página quando o tempo acabar.</div>
 
   <aside id="drawer" class="drawer">
-    <div class="drawer-card depth-card">
+    <div class="drawer-card depth-card pf-card">
       <div class="drawer-head"><div><small>MOSAICO · A MESA</small><h2>Como esta mesa lê</h2></div><button id="drawerClose" class="icon-btn" type="button" aria-label="Fechar">×</button></div>
+      <div class="drawer-inset pf-inset">
       <div class="rules-list">
         <div class="rule-line"><b>Gramática</b><span>FATO → INTERPRETAÇÃO → RELAÇÃO → INFERÊNCIA</span></div>
         <div class="rule-line"><b>Dossiê</b><span>três terços</span></div>
@@ -149,14 +151,15 @@
       <p><b>Fragmentos têm função.</b> Estruturais fecham a pergunta; interpretativos sustentam ou enfraquecem hipóteses; relacionais só valem cruzados; contextuais aprofundam horário, acesso e circunstância.</p>
       <p><b>Hipótese não é sentença.</b> Abandonar uma leitura plausível diante de nova relação conta a favor no relatório, nunca contra.</p>
       <p class="coin-start"><b>O MOSAICO deve explorar a distância entre aquilo que parece ter acontecido e aquilo que os fatos permitem concluir.</b></p>
+      </div>
     </div>
   </aside>
 
   <script src="../v1/js/qr.js"></script>
-  <script src="../hipoteses-por-camada.js?v=20260906-hpc-abc"></script>
-<script src="../papel-camada.js?v=20260906-papel-grid"></script>
+  <script src="../hipoteses-por-camada.js?v=20260906-hpc-pf"></script>
+<script src="../papel-camada.js?v=20260906-pf-1mais1"></script>
   <script src="../carro-forte-terminal.js?v=20260901-linha-inteira"></script>
-  <script type="module" src="../firebase-room.js?v=20260906-abrir-sem-modo"
+  <script type="module" src="../firebase-room.js?v=20260906-pf-1mais1"
           data-project="noite"
           data-root="mosaico"
           data-case="carro-forte"

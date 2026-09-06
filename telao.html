@@ -36,14 +36,13 @@ body{margin:0;width:100%;min-height:100%;background:transparent;color:var(--ink)
 .wall{position:fixed;inset:0;background:#050b12 center/cover no-repeat;z-index:-2}
 .wall:after{content:'';position:absolute;inset:0;background:#02060955}
 .waiting{min-height:100vh;display:grid;place-items:center;text-align:center;padding:8vh 5vw}
-.waiting-card{padding:2vw 3vw;background:#061018df;border:1px solid #3c5d70;border-radius:1vw}
+.waiting-card{padding:14px;border-radius:14px}
 .waiting h1{margin:0;font:700 clamp(55px,8vw,120px) Georgia,serif;color:var(--ouro)}
 .waiting p{font-size:clamp(20px,2vw,34px);color:#d2dde2}
 /* O código na tela grande é o que faz o Mestre reconhecer ESTE telão como o
    da sala dele. Sem ele, "conectado" é uma palavra sem endereço. */
 .wait-code{font:800 clamp(30px,5vw,64px) monospace;letter-spacing:.14em;color:#bdeeff}
 .ready-btn{min-height:58px;border:0;border-radius:10px;padding:12px 22px;
-  background:linear-gradient(#ffc266,#dd8b2e);color:#1b1005;font-weight:900;
   font-size:clamp(16px,1.5vw,24px);cursor:pointer}
 .opening{position:fixed;inset:0;z-index:100;background:#020609;display:none;overflow:hidden}
 .opening.on{display:block}
@@ -51,22 +50,20 @@ body{margin:0;width:100%;min-height:100%;background:transparent;color:var(--ink)
 .opening img{width:100%;height:100%;object-fit:contain}
 .opening-shade{position:absolute;inset:0;background:linear-gradient(180deg,transparent 62%,#020609c9)}
 .openbox{position:absolute;z-index:3;left:50%;bottom:3vh;transform:translateX(-50%);
-  width:min(680px,92vw);padding:14px;background:#071014ed;border:1px solid #526a77;
-  border-radius:14px;text-align:center}
+  width:min(680px,92vw);padding:14px;text-align:center}
 .openbox h2{font:600 clamp(26px,3vw,44px) Georgia,serif;color:var(--ouro);margin:0}
 .openbox p{color:#b7c4ca}
 .opencontrols{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
-.opencontrols button{min-height:48px;border:1px solid #506976;border-radius:8px;
-  background:#10202a;color:var(--ink);padding:8px 13px;font-weight:800;cursor:pointer}
+.opencontrols button{min-height:48px;padding:8px 13px;font-weight:800;cursor:pointer}
 .wrap{padding:2.4vw;display:grid;gap:1.5vw}
 .top,.question,.players,.field,.player{backdrop-filter:blur(12px)}
 .top{display:grid;grid-template-columns:1fr auto;gap:2vw;align-items:center;
-  border:1px solid #3c5d70;background:#0c1821e8;padding:1.4vw 1.8vw;border-radius:1vw}
+  padding:1.4vw 1.8vw;border-radius:1vw}
 .brand b{font:800 clamp(36px,5vw,78px)/.9 Georgia,serif;color:var(--ouro)}
 .brand span{display:block;color:var(--muted)}
 .turn{text-align:right}
 .turn strong{display:block;font:800 clamp(34px,5vw,78px)/1 monospace}
-.question,.players{border:1px solid #3d5e70;background:#0a171fe8;padding:1.4vw;border-radius:1vw}
+.question,.players{padding:1.4vw;border-radius:1vw}
 .question h1{color:var(--g);font:700 clamp(25px,3vw,50px)/1.15 monospace}
 .fields,.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.8vw}
 .field,.player{border:1px solid #526c7b;border-left:.3vw solid #70a8c6;background:#08131be8;
@@ -88,13 +85,14 @@ body{margin:0;width:100%;min-height:100%;background:transparent;color:var(--ink)
    na pergunta enquanto a mesa inteira corria contra um relógio que só existia
    nos celulares — e o relógio é justamente o que a mesa precisa ver de longe. */
 .fase{display:grid;grid-template-columns:1fr auto;gap:2vw;align-items:center;
-  border:1px solid #3d5e70;background:#0a171fe8;padding:1.2vw 1.6vw;border-radius:1vw}
+  padding:1.2vw 1.6vw;border-radius:1vw}
 .fase small{display:block;font:700 clamp(10px,1vw,15px) monospace;letter-spacing:.22em;color:var(--muted)}
 .fase b{font:700 clamp(24px,3vw,52px) Georgia,serif;color:var(--ink)}
 .fase strong{font:800 clamp(34px,5vw,84px)/1 monospace;color:var(--ouro)}
 .fase strong.urgente{color:#ff9b8b}
 .fecho{min-height:100vh;display:grid;place-items:center;padding:6vh 5vw;text-align:center}
-.fecho-card{width:min(1200px,94vw);padding:3vw;border:1px solid #3d5e70;background:#0a171fee;border-radius:1vw}
+.fecho-card{width:min(1200px,94vw);padding:14px;border-radius:14px}
+.fecho-inset{padding:2.4vw 2.8vw}
 .fecho-passo{font:700 clamp(12px,1.4vw,20px) monospace;letter-spacing:.22em;color:var(--ouro)}
 .fecho-card h1{margin:.4em 0 .3em;font:700 clamp(34px,4.6vw,80px)/1.1 Georgia,serif;color:var(--g)}
 .fecho-card p{margin:0;font-size:clamp(17px,1.7vw,30px);color:#c3d2d9;line-height:1.45}
@@ -108,26 +106,31 @@ body{margin:0;width:100%;min-height:100%;background:transparent;color:var(--ink)
 .podio-l.p1{border-left-color:var(--ouro);background:#14202099}
 .podio-l.p1 b,.podio-l.p1 span{color:var(--ouro)}
 </style>
+<link rel="stylesheet" href="v1/css/profundidade-1mais1.css?v=20260906-pf-all">
 </head>
 <body>
 <div class="wall" id="wall"></div>
 <div id="root" class="waiting">
-  <div class="waiting-card">
+  <div class="waiting-card pf-card">
+    <div class="waiting-inset pf-inset">
     <h1>MOSAICO</h1>
     <p id="waitMsg">📺 Conectando o Telão…</p>
     <p id="waitCode" class="wait-code"></p>
-    <button id="readyBtn" class="ready-btn" style="display:none">🔊 Entendi · ativar som</button>
+    <button id="readyBtn" class="ready-btn pf-btn-gold" style="display:none">🔊 Entendi · ativar som</button>
+    </div>
   </div>
 </div>
 <div id="opening" class="opening">
   <div class="opening-media"><img id="openImg" alt="Abertura"><div class="opening-shade"></div></div>
   <audio id="openingAudio" preload="auto"></audio>
-  <div class="openbox">
+  <div class="openbox pf-card">
+    <div class="openbox-inset pf-inset">
     <h2>📓 Abertura</h2><p>A abertura está em andamento.</p>
     <div class="opencontrols">
       <button id="openPause">⏸ Pausar</button>
       <button id="openRestart">↻ Reiniciar</button>
       <button id="openSkip">Pular abertura</button>
+    </div>
     </div>
   </div>
 </div>
@@ -181,14 +184,14 @@ if(!jogo){
      firebase-room formTelao). Sem papel/camada: telão é somente leitura. */
   waitMsg.innerHTML='Digite o código da sala (aparece no aparelho do Mestre).<br><input id="telaoSalaInput" maxlength="6" autocapitalize="characters" placeholder="CÓDIGO" style="margin-top:14px;min-height:52px;width:min(280px,70vw);border-radius:10px;border:1px solid #3c5d70;background:#071014;color:#eef5f2;font:800 22px monospace;letter-spacing:.14em;text-align:center;padding:10px">';
   const go=document.createElement('button');
-  go.className='ready-btn';go.style.display='inline-block';go.style.marginTop='14px';
+  go.className='ready-btn pf-btn-gold';go.style.display='inline-block';go.style.marginTop='14px';
   go.textContent='📺 Abrir o telão';
   go.onclick=()=>{
     const c=(document.getElementById('telaoSalaInput').value||'').trim().toUpperCase();
     if(c.length!==6){waitMsg.insertAdjacentHTML('beforeend','<p style="color:#ff9b8b;font-size:18px">O código tem seis caracteres.</p>');return;}
     const u=new URL(location.href);u.searchParams.set('sala',c);location.replace(u.toString());
   };
-  document.querySelector('.waiting-card').appendChild(go);
+  (document.querySelector('.waiting-inset')||document.querySelector('.waiting-card')).appendChild(go);
   setTimeout(()=>document.getElementById('telaoSalaInput')?.focus(),40);
 }else{
   document.getElementById('wall').style.backgroundImage=`url('${jogo.parede}')`;
@@ -339,9 +342,9 @@ if(!jogo){
     if(f.fase==='revelacao'){
       const passos=f.passos||[],i=Math.min(Number(f.passo)||0,passos.length-1),s=passos[i]||{};
       root.innerHTML=
-        `<div class="fecho-card"><div class="fecho-passo">${esc(s.k||'REVELAÇÃO')}</div>
+        `<div class="fecho-card pf-card"><div class="fecho-inset pf-inset"><div class="fecho-passo">${esc(s.k||'REVELAÇÃO')}</div>
            <h1>${esc(s.h||'')}</h1><p>${esc(s.p||'')}</p>
-           <div class="fecho-conta">${i+1} de ${passos.length}</div></div>`;
+           <div class="fecho-conta">${i+1} de ${passos.length}</div></div></div>`;
       return;
     }
     /* O placar do fecho é o caminho normal; o da sala é a rede de segurança.
@@ -351,11 +354,11 @@ if(!jogo){
     const placar = (f.placar&&f.placar.length) ? f.placar
       : Object.values(room?.partida?.placar||{}).sort((a,b)=>(b.pontos||0)-(a.pontos||0));
     root.innerHTML=
-      `<div class="fecho-card"><div class="fecho-passo">RESOLUÇÃO</div>
+      `<div class="fecho-card pf-card"><div class="fecho-inset pf-inset"><div class="fecho-passo">RESOLUÇÃO</div>
          <h1>${esc(pub?.resposta||'')}</h1>
          ${placar.length?`<div class="podio">${placar.map((x,i)=>
            `<div class="podio-l${i===0?' p1':''}"><b>${i+1}º</b><span>${esc(x.nome||'Investigador')}</span><i>${esc(x.pontos)}</i></div>`).join('')}</div>`:''}
-       </div>`;
+       </div></div>`;
   }
 
   /* Só desenha o que a mesa publicou. Cada bloco é condicional pelo mesmo

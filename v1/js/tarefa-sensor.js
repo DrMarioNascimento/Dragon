@@ -86,6 +86,32 @@
   /* Soft deadline por item (50s): sem giroscópio / travado no gesto não pode
      segurar a sala. Quem estoura conclui com o que tiver — “sem precisão”. */
   TS.SOFT_DEADLINE_MS = 50000;
+  /* Same 1+1 tokens as v1/css/profundidade-1mais1.css / papel-camada.js.
+     Sensor iframes do not load the picker, so they inject the language here. */
+  TS.injetarProfundidade1mais1 = function () {
+    var doc = global.document;
+    if (!doc || !doc.createElement || doc.getElementById("mosaico-pf-1mais1")) return;
+    var st = doc.createElement("style");
+    st.id = "mosaico-pf-1mais1";
+    st.textContent = [
+      ":root{--pf-navy:#0e1c28;--pf-stroke:rgba(159,228,255,.52);--pf-gold:#e8a94a;--pf-gold2:#ffc46b;--pf-gold-face:#ffc878;--pf-gold-base:#d6aa58;--pf-gold-wall:#6a3712;--pf-ink:#f4f9fd;--pf-ink-2:#dfeaf5;--pf-muted:#c5d4dc;--pf-alias:#ffcf8f;--pf-card-fill:linear-gradient(165deg,#1a3348,#153044 60%,#102838);--pf-card-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 18px 50px rgba(0,0,0,.55),0 0 40px rgba(127,212,255,.10);--pf-inset-fill:#03080d;--pf-inset-stroke:rgba(20,36,48,.95);--pf-inset-shadow:inset 0 3px 10px rgba(0,0,0,.72),inset 2px 0 6px rgba(0,0,0,.45)}",
+      ".pf-card{background:var(--pf-card-fill);border:1px solid var(--pf-stroke);border-radius:14px;box-shadow:var(--pf-card-shadow)}",
+      ".pf-inset{background:var(--pf-inset-fill);border:1px solid var(--pf-inset-stroke);border-left:4px solid #6aa8ca;border-radius:10px;box-shadow:var(--pf-inset-shadow);overflow:hidden}",
+      ".pf-btn-gold{display:flex;align-items:center;justify-content:center;width:100%;min-height:56px;margin-top:8px;padding:16px 18px;border:0;border-radius:12px;cursor:pointer;background:linear-gradient(180deg,var(--pf-gold-face),var(--pf-gold-base));color:#1b1005;font:700 clamp(18px,4.8vw,22px)/1.1 system-ui,-apple-system,sans-serif;letter-spacing:.06em;box-shadow:inset 0 1px 0 #ffe2b4,0 5px 0 var(--pf-gold-wall),0 12px 22px #000a}",
+      ".pf-btn-gold:active{transform:translateY(4px);box-shadow:inset 0 1px 0 #ffe2b4,0 1px 0 var(--pf-gold-wall)}",
+      ".ts-pf-overlay{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:max(16px,env(safe-area-inset-top)) 18px calc(env(safe-area-inset-bottom,0px) + 18px);background:rgba(0,0,0,.76);box-sizing:border-box;-webkit-tap-highlight-color:transparent}",
+      ".ts-pf-card{width:min(440px,94vw);max-height:min(88dvh,640px);overflow:auto;padding:24px 20px 20px;color:#f4f9fd;display:flex;flex-direction:column;gap:14px;text-align:left}",
+      ".ts-pf-tit{font:600 clamp(18px,4.6vw,22px)/1.35 system-ui,-apple-system,sans-serif;color:#f4f9fd}",
+      ".ts-pf-msg{font:500 clamp(15px,3.8vw,17px)/1.45 system-ui,-apple-system,sans-serif;color:#dfeaf5}",
+      ".ts-pf-lista{list-style:none;margin:0;padding:6px;display:flex;flex-direction:column;gap:0}",
+      ".ts-pf-li{padding:10px 12px;border:0;border-bottom:1px solid rgba(45,63,72,.7);background:transparent;font:500 16px/1.35 system-ui,-apple-system,sans-serif;color:#e6edf2}",
+      ".ts-pf-li:last-child{border-bottom:0}",
+      ".ts-pf-li.meu{background:#25190e;font-weight:600;color:#ffc46b;box-shadow:inset 0 0 0 2px #e8a94a}",
+      ".ts-pf-seu-tit{margin-top:4px;font:700 13px/1.3 system-ui,-apple-system,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#e8a94a}",
+      ".ts-pf-seu{padding:14px;text-align:center;font:700 clamp(18px,4.8vw,22px)/1.3 system-ui,-apple-system,sans-serif;color:#ffc46b}"
+    ].join("");
+    doc.head.appendChild(st);
+  };
   TS.prazoSuave = function (ctx, aoEstourar) {
     ctx = ctx || {};
     var ms = Number(ctx.deadlineMs);
@@ -155,30 +181,22 @@
       }
       return function cancelar() { limparUi(); liberou = true; };
     }
+    TS.injetarProfundidade1mais1();
     root = doc.createElement("div");
     root.id = "ts-aviso-modo-dedo";
+    root.className = "ts-pf-overlay";
     root.setAttribute("role", "alertdialog");
     root.setAttribute("aria-modal", "true");
     root.setAttribute("aria-live", "polite");
-    root.style.cssText = [
-      "position:fixed", "inset:0", "z-index:99999",
-      "display:flex", "align-items:center", "justify-content:center",
-      "padding:max(16px,env(safe-area-inset-top)) 18px calc(env(safe-area-inset-bottom,0px) + 18px)",
-      "background:rgba(0,0,0,.72)", "box-sizing:border-box",
-      "-webkit-tap-highlight-color:transparent"
-    ].join(";");
     var card = doc.createElement("div");
-    card.style.cssText = [
-      "width:min(420px,92vw)", "background:#0c121a", "color:#f4f9fd",
-      "border:1px solid #2a3949", "border-radius:18px",
-      "padding:28px 22px 22px", "box-shadow:0 18px 60px #000c",
-      "display:flex", "flex-direction:column", "gap:16px", "text-align:center"
-    ].join(";");
+    card.className = "ts-pf-card pf-card";
+    card.style.textAlign = "center";
     var tit = doc.createElement("div");
-    tit.style.cssText = "font:600 clamp(18px,4.6vw,22px)/1.35 system-ui,-apple-system,sans-serif";
+    tit.className = "ts-pf-tit";
     tit.textContent = TS.AVISO_MODO_DEDO_TIT;
     var msg = doc.createElement("div");
-    msg.style.cssText = "font:500 clamp(15px,3.8vw,17px)/1.45 system-ui,-apple-system,sans-serif;color:#dfeaf5";
+    msg.className = "ts-pf-msg pf-inset";
+    msg.style.padding = "14px 14px";
     var restam = seg;
     function pintarMsg() {
       msg.textContent = TS.avisoModoDedoTexto(restam);
@@ -188,13 +206,7 @@
     ok.type = "button";
     ok.textContent = "OK";
     ok.setAttribute("aria-label", "OK");
-    ok.style.cssText = [
-      "margin-top:8px", "width:100%", "min-height:56px",
-      "padding:16px 18px", "border:none", "border-radius:14px",
-      "background:#ff9a4d", "color:#140c06",
-      "font:700 clamp(18px,4.8vw,22px)/1.1 system-ui,-apple-system,sans-serif",
-      "letter-spacing:.06em", "cursor:pointer"
-    ].join(";");
+    ok.className = "pf-btn-gold";
     ok.addEventListener("click", function () {
       estado.usuarioOk = true;
       tentarLiberar();
@@ -355,38 +367,26 @@
       if (estado.usuarioOk) tentarLiberar();
       return function cancelar() { liberou = true; };
     }
+    TS.injetarProfundidade1mais1();
     root = doc.createElement("div");
     root.id = "ts-aviso-elenco";
+    root.className = "ts-pf-overlay";
+    root.style.zIndex = "100000";
     root.setAttribute("role", "alertdialog");
     root.setAttribute("aria-modal", "true");
     root.setAttribute("aria-labelledby", "ts-elenco-tit");
-    root.style.cssText = [
-      "position:fixed", "inset:0", "z-index:100000",
-      "display:flex", "align-items:center", "justify-content:center",
-      "padding:max(16px,env(safe-area-inset-top)) 18px calc(env(safe-area-inset-bottom,0px) + 18px)",
-      "background:rgba(0,0,0,.78)", "box-sizing:border-box",
-      "-webkit-tap-highlight-color:transparent"
-    ].join(";");
     var card = doc.createElement("div");
-    card.style.cssText = [
-      "width:min(440px,94vw)", "max-height:min(88dvh,640px)", "overflow:auto",
-      "background:#0c121a", "color:#f4f9fd",
-      "border:1px solid #2a3949", "border-radius:18px",
-      "padding:24px 20px 20px", "box-shadow:0 18px 60px #000c",
-      "display:flex", "flex-direction:column", "gap:14px", "text-align:left"
-    ].join(";");
+    card.className = "ts-pf-card pf-card";
     var tit = doc.createElement("div");
     tit.id = "ts-elenco-tit";
-    tit.style.cssText = "font:600 clamp(18px,4.6vw,22px)/1.35 system-ui,-apple-system,sans-serif";
+    tit.className = "ts-pf-tit";
     tit.textContent = TS.ELENCO_TIT;
     var lista = doc.createElement("ul");
-    lista.style.cssText = "list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px";
+    lista.className = "ts-pf-lista pf-inset";
     dados.personagens.forEach(function (p) {
       var li = doc.createElement("li");
       var ehMeu = !!(dados.meu && dados.meu.id === p.id);
-      li.style.cssText = ehMeu
-        ? "padding:10px 12px;border-radius:10px;border:2px solid #e8a94a;background:#25190e;font:600 16px/1.35 system-ui,-apple-system,sans-serif;color:#ffc46b"
-        : "padding:8px 12px;border-radius:10px;border:1px solid #2a3949;background:#0a1419;font:500 16px/1.35 system-ui,-apple-system,sans-serif;color:#e6edf2";
+      li.className = ehMeu ? "ts-pf-li meu" : "ts-pf-li";
       li.textContent = (p.av ? p.av + " " : "") + p.nome;
       lista.appendChild(li);
     });
@@ -394,11 +394,13 @@
     card.appendChild(lista);
     if (dados.meu) {
       var seuTit = doc.createElement("div");
-      seuTit.style.cssText = "margin-top:4px;font:700 13px/1.3 system-ui,-apple-system,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#e8a94a";
+      seuTit.className = "ts-pf-seu-tit";
       seuTit.textContent = TS.ELENCO_SEU_TIT;
       var seu = doc.createElement("div");
       seu.setAttribute("data-ts-meu-personagem", dados.meu.id);
-      seu.style.cssText = "padding:14px 14px;border-radius:12px;border:2px solid #e8a94a;background:#2a1c0c;font:700 clamp(18px,4.8vw,22px)/1.3 system-ui,-apple-system,sans-serif;color:#ffc46b;text-align:center";
+      seu.className = "ts-pf-seu pf-inset";
+      seu.style.boxShadow = "inset 0 0 0 2px #e8a94a, inset 0 2px 8px rgba(0,0,0,.45)";
+      seu.style.background = "#25190e";
       seu.textContent = (dados.meu.av ? dados.meu.av + " " : "") + dados.meu.nome;
       card.appendChild(seuTit);
       card.appendChild(seu);
@@ -407,13 +409,7 @@
     ok.type = "button";
     ok.textContent = "OK";
     ok.setAttribute("aria-label", "OK");
-    ok.style.cssText = [
-      "margin-top:6px", "width:100%", "min-height:56px",
-      "padding:16px 18px", "border:none", "border-radius:14px",
-      "background:#ff9a4d", "color:#140c06",
-      "font:700 clamp(18px,4.8vw,22px)/1.1 system-ui,-apple-system,sans-serif",
-      "letter-spacing:.06em", "cursor:pointer"
-    ].join(";");
+    ok.className = "pf-btn-gold";
     ok.addEventListener("click", function () {
       estado.usuarioOk = true;
       tentarLiberar();

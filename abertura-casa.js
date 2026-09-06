@@ -56,17 +56,21 @@
    o bastante para o texto ficar legível por cima. */
 #abCasa .prep{position:absolute;inset:0;display:grid;place-items:center;padding:20px;
   background:radial-gradient(120% 80% at 50% 60%,#02060a55,#02060ad8);text-align:center}
-#abCasa .cartao{width:min(520px,calc(100% - 28px));padding:20px;border:1px solid #3d5360;
-  border-radius:14px;background:linear-gradient(160deg,#13212b,#071016);
-  box-shadow:0 8px 0 #020507,0 28px 70px #000b}
+#abCasa .cartao{width:min(520px,calc(100% - 28px));padding:16px;border:1px solid rgba(159,228,255,.52);
+  border-radius:14px;background:linear-gradient(165deg,#1a3348,#153044 60%,#102838);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 18px 50px rgba(0,0,0,.55),0 0 40px rgba(127,212,255,.10)}
+#abCasa .cartao-inset{padding:8px 6px 4px;border-radius:10px;background:#03080d;
+  border:1px solid rgba(20,36,48,.95);border-left:4px solid #6aa8ca;
+  box-shadow:inset 0 3px 10px rgba(0,0,0,.72)}
 #abCasa h2{font:600 27px Georgia,serif;margin:0 0 8px;color:#efc878}
-#abCasa p{color:#aab9c1;line-height:1.45;margin:.4rem 0}
+#abCasa p{color:#dfeaf5;line-height:1.45;margin:.4rem 0}
 #abCasa .btn{width:100%;min-height:54px;margin-top:12px;padding:12px 14px;border:0;
   border-radius:10px;font-weight:800;cursor:pointer;
-  background:linear-gradient(#ffc266,#dd8b2e);color:#1b1005;
-  box-shadow:inset 0 1px #ffe2b4,0 5px 0 #6a3712}
-#abCasa .btn.fantasma{background:transparent;color:#9db1b6;box-shadow:none;
-  border:1px solid #35505c;font-weight:600}
+  background:linear-gradient(180deg,#ffc878,#d6aa58);color:#1b1005;
+  box-shadow:inset 0 1px #ffe2b4,0 5px 0 #6a3712,0 12px 22px #000a}
+#abCasa .btn.fantasma{background:linear-gradient(180deg,#162a38,#0c1b26);color:#f4f9fd;
+  border:1px solid #46667a;font-weight:800;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 4px 0 #020609}
 #abCasa .controles{position:absolute;left:50%;bottom:max(18px,env(safe-area-inset-bottom));
   transform:translateX(-50%);display:flex;gap:9px;padding:9px 11px;border:1px solid #38566b;
   border-radius:20px;background:linear-gradient(180deg,#10212cef,#07131bef);
@@ -90,11 +94,13 @@
        <button id="abRestart" title="Reiniciar" aria-label="Reiniciar">↻</button>
        <button id="abSkip" title="Pular a abertura" aria-label="Pular a abertura">Pular</button>
      </div>` +
-    `<div class="prep" id="abPrep"><div class="cartao">
+    `<div class="prep" id="abPrep"><div class="cartao pf-card">
+       <div class="cartao-inset pf-inset">
        <h2>A casa vai falar</h2>
        <p>Ative o som antes de começar. São pouco mais de um minuto, e é aqui que o caso é entregue.</p>
-       <button class="btn" id="abIniciar">🔊 Ativar som e começar</button>
-       <button class="btn fantasma" id="abPular">Pular a abertura</button>
+       <button class="btn pf-btn-gold" id="abIniciar">🔊 Ativar som e começar</button>
+       <button class="btn fantasma pf-btn-ghost" id="abPular">Pular a abertura</button>
+       </div>
      </div></div>`;
 
   const audio = new Audio();

@@ -3,15 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#080706">
+<meta name="theme-color" content="#050b12">
 <title>MOSAICO · Modo Solo · A Casa da Costa</title>
 <link rel="icon" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="solo-auto.css?v=20260902-banco">
-<script src="../hipoteses-por-camada.js?v=20260906-hpc-abc"></script>
-<script src="../papel-camada.js?v=20260906-papel-grid"></script>
+<link rel="stylesheet" href="../v1/css/profundidade-1mais1.css?v=20260906-pf-all">
+<link rel="stylesheet" href="solo-auto.css?v=20260906-pf-all">
+<script src="../hipoteses-por-camada.js?v=20260906-hpc-pf"></script>
+<script src="../papel-camada.js?v=20260906-pf-1mais1"></script>
 </head>
 <body>
 <main id="app"></main>
@@ -29,14 +30,14 @@
     if(window.__mosaicoSoloIniciado)return;
     window.__mosaicoSoloIniciado=true;
     var ab=document.createElement('script');
-    ab.src='../abertura-casa.js?v=20260903-abertura2';
+    ab.src='../abertura-casa.js?v=20260906-pf-all';
     ab.onload=function(){window.MosaicoAberturaCasa.mostrar(carregarJogo)};
     ab.onerror=function(){console.error('MOSAICO: abertura não carregou.');carregarJogo()};
     document.head.appendChild(ab);
   }
   function carregarJogo(){
     var jogo=document.createElement('script');
-    jogo.src='solo-auto.js?v=20260902-banco';
+    jogo.src='solo-auto.js?v=20260906-pf-all';
     jogo.onload=function(){
       var ponte=document.createElement('script');
       ponte.src='solo-cloud-state.js?v=20260902-banco';
