@@ -233,8 +233,9 @@
   }
 
   /* Semeia noite/{sala} com pergunta + handoff. Idempotente na pergunta;
-     handoff novo atualiza o pacote de continuidade. fase=jogo evita lobby
-     extra quando a sala já veio da Manhã. */
+     handoff novo atualiza o pacote de continuidade.
+     CREATE exige fase=='sala' (firestore.rules); depois o Mestre avança para
+     'jogo' e anexa o handoff em partida.handoff — sem lobby extra na Manhã. */
   async function seedNoiteRoom({ sala, pergunta, jogadores, handoff } = {}) {
     const code = normalizeSala(sala);
     const id = normalizePergunta(pergunta);
@@ -262,24 +263,29 @@
       hipoteseFinal: payload.hipoteseFinal,
       fechoTotal: payload.fecho?.total ?? null,
     };
+    const handoffDoc = { ...payload, pergunta: perguntaFinal };
+    const partidaBase = {
+      pergunta: perguntaFinal,
+      origem: 'celular',
+      continuidade,
+      handoff: handoffDoc,
+      atualizadaEmMs: Date.now(),
+      ...(n >= 2 ? { jogadores: n } : {}),
+    };
     if (!snap.exists()) {
+      /* 1) create permitido só com fase:'sala' + ativa + mestreUid. */
       await fs.setDoc(ref, {
         ativa: true,
-        fase: 'jogo',
+        fase: 'sala',
         mestreUid: u.uid,
         criadaEmMs: Date.now(),
         modo: 'sem-telao',
         ritmo: 'automatico',
         caseId: 'carro-forte',
-        partida: {
-          pergunta: perguntaFinal,
-          origem: 'celular',
-          continuidade,
-          handoff: { ...payload, pergunta: perguntaFinal },
-          atualizadaEmMs: Date.now(),
-          ...(n >= 2 ? { jogadores: n } : {}),
-        },
+        partida: partidaBase,
       });
+      /* 2) Mestre avança para jogo; handoff já está em partida.handoff. */
+      await fs.updateDoc(ref, { fase: 'jogo' });
     } else {
       const patch = {
         ativa: true,
@@ -287,7 +293,7 @@
         'partida.pergunta': perguntaFinal,
         'partida.origem': 'celular',
         'partida.continuidade': continuidade,
-        'partida.handoff': { ...payload, pergunta: perguntaFinal },
+        'partida.handoff': handoffDoc,
         'partida.atualizadaEmMs': Date.now(),
       };
       if (n >= 2) patch['partida.jogadores'] = n;

@@ -14,6 +14,7 @@ const MPC_SRC = ler("papel-camada.js");
 const DOC = ler("MOSAICO-ACESSIBILIDADE-PAPEIS.md");
 const README = ler("README.md");
 const GAME = ler("carro-forte/game.js");
+const ROOM = ler("firebase-room.js");
 const SOLO = ler("solo/solo-auto.js");
 const MESA = ler("v1/MOSAICO-mesa.html");
 
@@ -253,6 +254,8 @@ describe("wiring placar · Carro / Solo / Casa", () => {
   it("Carro renderScore usa htmlRelatorioProcesso; Solo result também", () => {
     assert.match(GAME, /htmlRelatorioProcesso/);
     assert.match(GAME, /hpcScaffold/);
+    assert.match(GAME, /DragonSala\.patchMe/);
+    assert.match(ROOM, /async function patchMe|patchMe,/);
     assert.match(GAME, /canConfirmGuiada/);
     assert.match(SOLO, /htmlRelatorioProcesso/);
     assert.match(SOLO, /canConfirmGuiada/);

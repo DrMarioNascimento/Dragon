@@ -199,6 +199,26 @@ test('o Celular expõe CTA e carrega a ponte com handoff', () => {
   assert.match(ponte, /['"]mosaico['"]/, 'marcador deve gravar na coleção mosaico');
 });
 
+test('seedNoiteRoom cria com fase sala e só depois avança para jogo', () => {
+  const ponte = ler('carro-forte/celular-para-noite.js');
+  const regras = ler('firestore.rules');
+  assert.match(regras, /fase == 'sala'/, 'create de sala exige fase sala');
+  const i = ponte.indexOf('async function seedNoiteRoom');
+  const j = ponte.indexOf('async function goToNoite', i);
+  assert.ok(i >= 0 && j > i, 'não achei seedNoiteRoom / goToNoite');
+  const fn = ponte.slice(i, j);
+  const createStart = fn.indexOf('if (!snap.exists())');
+  const elseStart = fn.indexOf('} else {', createStart);
+  assert.ok(createStart >= 0 && elseStart > createStart, 'ramo de create sumiu');
+  const create = fn.slice(createStart, elseStart);
+  assert.match(create, /fase:\s*['"]sala['"]/, 'create deve usar fase sala (regras)');
+  assert.ok(!/fase:\s*['"]jogo['"]/.test(create.split('updateDoc')[0]), 'setDoc não pode ir direto para jogo');
+  assert.match(create, /updateDoc\([\s\S]*fase:\s*['"]jogo['"]/, 'após create, updateDoc deve avançar para jogo');
+  assert.match(create, /handoff/, 'create deve levar partida.handoff');
+  assert.match(ponte, /persistHandoffLocal/, 'fallback local do handoff');
+  assert.match(ponte, /buildNoiteHandoffUrl/, 'fallback de URL da ponte');
+})
+
 test('a Noite aceita deep link from=celular, herda pergunta e economia do handoff', () => {
   const index = ler('carro-forte/noite/index.html');
   const sala = ler('carro-forte/noite/sala-partida.js');

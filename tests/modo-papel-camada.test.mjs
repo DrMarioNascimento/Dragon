@@ -137,3 +137,12 @@ describe("docs", () => {
     assert.ok(pointer, "README ou MOSAICO-ACESSIBILIDADE-PAPEIS.md deve apontar para a UI");
   });
 });
+
+describe("sync Firestore · papel/camada + HPC", () => {
+  it("DragonSala.patchMe existe e salvar espelha papel/camada quando há sala", () => {
+    assert.match(ROOM, /patchMe/, "DragonSala.patchMe sumiu");
+    assert.match(ROOM, /PATCH_ME_KEYS|papelCognitivo/, "allowlist client do patchMe");
+    assert.match(MPC, /DragonSala\.patchMe|MosaicoFB\.atualizarJogador/, "salvar não sincroniza FS");
+    assert.match(MPC, /aliasNarrativo/, "sync deve incluir alias narrativo");
+  });
+});
