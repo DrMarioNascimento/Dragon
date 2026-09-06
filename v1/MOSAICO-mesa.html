@@ -1371,8 +1371,8 @@
      enxerga esta pagina. Dentro desta, o caso e o video releem o mesmo
      valor de window.MOSAICO_VERSAO, que sai da tag do mosaico-v5.js. -->
 <script src="js/mosaico-v5.js?v=20260906-placar-local"></script>
-<script src="../hipoteses-por-camada.js?v=20260906-hpc"></script>
-<script src="../papel-camada.js?v=20260906-papel-camada2"></script>
+<script src="../hipoteses-por-camada.js?v=20260906-hpc-abc"></script>
+<script src="../papel-camada.js?v=20260906-papel-camada-abc"></script>
 <script src="js/qr.js?v=20260906-placar-local"></script>
 <script>
 window.MOSAICO_VERSAO=(function(){
@@ -2587,7 +2587,7 @@ function render(forcar){
         if(cab) window.MosaicoPapelCamada.montarChip(cab,'casa-da-costa',escpc);
       }
       if(escpc.camada!=='livre' && STATE.tela==="painel" && !document.querySelector('[data-mpc-andaime]')){
-        window.MosaicoPapelCamada.aplicarEmJogo({caso:'casa-da-costa',escolha:escpc,andaimeAlvo:document.getElementById('app'),andaimePos:'afterbegin',partidaId:(STATE.partidaId||(STATE.doc&&STATE.doc.partidaId)||undefined),state:{selecionados:(STATE.v5&&STATE.v5._deducaoDraft)||{}}});
+        window.MosaicoPapelCamada.aplicarEmJogo({caso:'casa-da-costa',escolha:escpc,andaimeAlvo:document.getElementById('app'),andaimePos:'afterbegin',partidaId:(STATE.partidaId||(STATE.doc&&STATE.doc.partidaId)||undefined),playerId:(STATE.eu&&STATE.eu.id)||'local',state:{selecionados:(STATE.v5&&STATE.v5._deducaoDraft)||{}}});
       }
     }
   }catch(_mpc){}
@@ -3146,7 +3146,17 @@ function mostrarResultado(vista){
 function telaMinhaPontuacao(){
   var j=meuJogador();if(!j)return telaClassificacaoCompleta();
   var itens=CATEGORIAS_APURACAO.map(function(c){return '<span>'+esc(c.titulo)+'</span><b>'+pontosCategoria(j,c)+' pts</b>';}).join('');
-  return '<div class="resultado-detalhe"><span class="eyebrow">Resultado individual</span><h2>Minha pontuação</h2><div class="resultado-pontos-grade">'+itens+'<span>Total final</span><b>'+(j.total||0)+' pts</b></div><button class="btn btn-ambar" onclick="mostrarResultado(\'podio\')">Voltar ao pódio</button></div>';
+
+  var processo='';
+  try{
+    if(window.MosaicoHipotesesCamada){
+      var pid=STATE.partidaId||(STATE.doc&&STATE.doc.partidaId)||'_';
+      var playerId=(STATE.eu&&STATE.eu.id)||(j&&j.id)||'local';
+      var sc=window.MosaicoHipotesesCamada.carregarScaffold('casa-da-costa',{partidaId:pid,playerId:playerId});
+      processo=window.MosaicoHipotesesCamada.htmlRelatorioProcesso(sc,{caso:'casa-da-costa'})||'';
+    }
+  }catch(err){}
+  return '<div class="resultado-detalhe"><span class="eyebrow">Resultado individual</span><h2>Minha pontuação</h2><div class="resultado-pontos-grade">'+itens+'<span>Total final</span><b>'+(j.total||0)+' pts</b></div>'+processo+'<button class="btn btn-ambar" onclick="mostrarResultado(\'podio\')">Voltar ao pódio</button></div>';
 }
 function telaClassificacaoCompleta(){
   return '<div class="resultado-detalhe"><span class="eyebrow">Resultado final</span><h2>Classificação completa</h2>'+tabelaApuracaoHtml(true)+'<button class="btn btn-ambar" onclick="mostrarResultado(\'podio\')">Voltar ao pódio</button></div>';

@@ -233,30 +233,305 @@
     return true;
   }
 
+  var STORAGE_SCAFFOLD = "mosaico_hpc_scaffold";
+
+  function emptyScaffoldState() {
+    return {
+      compare: { A: "", B: "", C: "" },
+      notes: {
+        favor: "",
+        contra: "",
+        outra: "",
+        justificativa: "",
+        fatos: "",
+        interpretacoes: "",
+        duvidas: "",
+        sequencia: "",
+        lacunas: "",
+        horarios: "",
+        relacionadas: "",
+        hipotese: ""
+      },
+      unexamined: {},
+      linkedEvidence: "",
+      events: [],
+      socratic: { index: 0, acknowledged: [], answers: {} },
+      hipoteseId: "",
+      selecionados: {}
+    };
+  }
+
+  function normalizeScaffoldState(raw) {
+    var base = emptyScaffoldState();
+    if (!raw || typeof raw !== "object") return base;
+    var cmp = raw.compare || {};
+    base.compare = {
+      A: String(cmp.A || ""),
+      B: String(cmp.B || ""),
+      C: String(cmp.C || "")
+    };
+    var notes = raw.notes || {};
+    Object.keys(base.notes).forEach(function (k) {
+      base.notes[k] = String(notes[k] != null ? notes[k] : "");
+    });
+    /* Compat: buckets antigos como texto único. */
+    if (!base.notes.favor && raw.buckets && raw.buckets.favor) {
+      base.notes.favor = Array.isArray(raw.buckets.favor)
+        ? raw.buckets.favor.join("\n")
+        : String(raw.buckets.favor);
+    }
+    if (!base.notes.contra && raw.buckets && (raw.buckets.contra || raw.buckets.against)) {
+      var ag = raw.buckets.contra || raw.buckets.against;
+      base.notes.contra = Array.isArray(ag) ? ag.join("\n") : String(ag);
+    }
+    base.unexamined = {};
+    if (raw.unexamined && typeof raw.unexamined === "object") {
+      Object.keys(raw.unexamined).forEach(function (id) {
+        if (raw.unexamined[id]) base.unexamined[id] = true;
+      });
+    }
+    base.linkedEvidence = String(raw.linkedEvidence != null ? raw.linkedEvidence : "");
+    base.events = Array.isArray(raw.events)
+      ? raw.events.map(function (e) { return String(e || ""); }).filter(Boolean)
+      : [];
+    var soc = raw.socratic || {};
+    base.socratic = {
+      index: Math.max(0, Number(soc.index) || 0),
+      acknowledged: Array.isArray(soc.acknowledged)
+        ? soc.acknowledged.map(Number).filter(function (n) { return n === n; })
+        : [],
+      answers: {}
+    };
+    if (soc.answers && typeof soc.answers === "object") {
+      Object.keys(soc.answers).forEach(function (k) {
+        base.socratic.answers[String(k)] = String(soc.answers[k] || "");
+      });
+    }
+    base.hipoteseId = String(raw.hipoteseId || "");
+    base.selecionados = {};
+    if (raw.selecionados && typeof raw.selecionados === "object") {
+      Object.keys(raw.selecionados).forEach(function (k) {
+        base.selecionados[k] = String(raw.selecionados[k] || "");
+      });
+    }
+    return base;
+  }
+
+  function scaffoldStorageKey(caso, opts) {
+    opts = opts || {};
+    var c = normalizarCaso(caso);
+    var p = opts.partidaId ? String(opts.partidaId) : "_";
+    var player = opts.playerId ? String(opts.playerId) : "local";
+    return STORAGE_SCAFFOLD + ":" + c + ":" + p + ":" + player;
+  }
+
+  function carregarScaffold(caso, opts) {
+    opts = opts || {};
+    try {
+      if (typeof localStorage === "undefined") return normalizeScaffoldState(opts.state);
+      var key = scaffoldStorageKey(caso, opts);
+      var raw = localStorage.getItem(key);
+      if (!raw && opts.fallbackShared) {
+        raw = localStorage.getItem(scaffoldStorageKey(caso, {
+          partidaId: opts.partidaId,
+          playerId: "local"
+        }));
+      }
+      if (!raw) return normalizeScaffoldState(opts.state);
+      var parsed = JSON.parse(raw);
+      var merged = normalizeScaffoldState(parsed);
+      if (opts.state) {
+        var overlay = normalizeScaffoldState(opts.state);
+        if (overlay.hipoteseId) merged.hipoteseId = overlay.hipoteseId;
+        Object.keys(overlay.selecionados || {}).forEach(function (k) {
+          if (overlay.selecionados[k]) merged.selecionados[k] = overlay.selecionados[k];
+        });
+      }
+      return merged;
+    } catch (e) {
+      return normalizeScaffoldState(opts.state);
+    }
+  }
+
+  function salvarScaffold(caso, state, opts) {
+    opts = opts || {};
+    var normalized = normalizeScaffoldState(state);
+    try {
+      if (typeof localStorage !== "undefined") {
+        localStorage.setItem(scaffoldStorageKey(caso, opts), JSON.stringify(normalized));
+      }
+    } catch (err) { /* quota / private mode */ }
+    return normalized;
+  }
+
+  /** Patch leve para campos do jogador na sala (quando o multiplayer expuser hooks). */
+  function roomPlayerFields(state) {
+    var s = normalizeScaffoldState(state);
+    var metrics = processMetrics(s);
+    return {
+      hpcScaffold: {
+        compare: s.compare,
+        unexaminedCount: metrics.unexaminedCount,
+        favorLines: metrics.favorLines,
+        againstLines: metrics.againstLines,
+        compareFilled: metrics.compareFilled,
+        socraticAnswered: metrics.socraticAnswered,
+        organizedComparison: metrics.organizedComparison
+      }
+    };
+  }
+
+  function countLines(text) {
+    return String(text || "")
+      .split(/\n+/)
+      .map(function (l) { return l.trim(); })
+      .filter(Boolean).length;
+  }
+
+  /**
+   * Métricas de processo (trabalho do jogador) — nunca inferem a resposta.
+   * Ex.: evidências vinculadas: 5, contradições: 2, hipóteses em comparação: 3.
+   */
+  function processMetrics(state) {
+    var s = normalizeScaffoldState(state);
+    var filled = ["A", "B", "C"].filter(function (k) { return !!s.compare[k]; });
+    var labels = filled.map(function (k) {
+      return k + (s.compare[k] ? ("=" + s.compare[k]) : "");
+    });
+    var favorLines = countLines(s.notes.favor) + countLines(s.linkedEvidence);
+    var againstLines = countLines(s.notes.contra);
+    var unexaminedCount = Object.keys(s.unexamined).filter(function (id) {
+      return s.unexamined[id];
+    }).length;
+    var classLines =
+      countLines(s.notes.fatos) +
+      countLines(s.notes.interpretacoes) +
+      countLines(s.notes.duvidas);
+    var timelineLines =
+      countLines(s.notes.sequencia) +
+      countLines(s.notes.lacunas) +
+      countLines(s.notes.horarios) +
+      s.events.length;
+    var socraticAnswered = Object.keys(s.socratic.answers).filter(function (k) {
+      return String(s.socratic.answers[k] || "").trim();
+    }).length;
+    var hasJustification = !!String(s.notes.justificativa || "").trim();
+    var organizedComparison =
+      filled.length >= 2 && (favorLines + againstLines >= 1 || hasJustification);
+    return {
+      compareFilled: filled.length,
+      compareIds: filled.map(function (k) { return s.compare[k]; }),
+      compareSummary: labels.join(" · ") || "—",
+      favorLines: favorLines,
+      againstLines: againstLines,
+      unexaminedCount: unexaminedCount,
+      classLines: classLines,
+      timelineLines: timelineLines,
+      socraticAnswered: socraticAnswered,
+      socraticAcknowledged: (s.socratic.acknowledged || []).length,
+      hasJustification: hasJustification,
+      organizedComparison: organizedComparison,
+      /* Snippet seguro para telão — só contagens, sem ids de hipótese. */
+      telaoSnippet: filled.length
+        ? (filled.length + " hipóteses em comparação")
+        : ""
+    };
+  }
+
+  function htmlRelatorioProcesso(state, opts) {
+    opts = opts || {};
+    var s = normalizeScaffoldState(state);
+    var m = processMetrics(s);
+    if (m.compareFilled === 0 && m.favorLines === 0 && m.againstLines === 0 &&
+        m.unexaminedCount === 0 && m.classLines === 0 && m.timelineLines === 0 &&
+        m.socraticAnswered === 0 && !m.hasJustification) {
+      return "";
+    }
+    var hips = {};
+    try {
+      hypothesisOptions(opts.caso || "").forEach(function (h) { hips[h.id] = h.t; });
+    } catch (e) { /* ignore */ }
+    function slotLabel(letter) {
+      var id = s.compare[letter];
+      if (!id) return letter + ": —";
+      var t = hips[id] || id;
+      return letter + ": " + id + (t && t !== id ? (" · " + t) : "");
+    }
+    var parts = [];
+    parts.push('<article class="ending-card depth-card hpc-processo" data-hpc-processo>');
+    parts.push("<small>PROCESSO · COMPARAÇÃO A/B/C</small>");
+    parts.push("<h3>" + esc(String(m.compareFilled)) + " em comparação</h3>");
+    parts.push("<p>" + esc(slotLabel("A")) + "<br>" + esc(slotLabel("B")) + "<br>" + esc(slotLabel("C")) + "</p>");
+    parts.push("<p><b>A favor:</b> " + m.favorLines + " · <b>Contra:</b> " + m.againstLines);
+    if (m.unexaminedCount) parts.push(" · <b>Não examinadas:</b> " + m.unexaminedCount);
+    if (m.classLines) parts.push(" · <b>Classificações:</b> " + m.classLines);
+    if (m.timelineLines) parts.push(" · <b>Linha temporal:</b> " + m.timelineLines);
+    if (m.socraticAnswered) parts.push(" · <b>Prompts respondidos:</b> " + m.socraticAnswered);
+    if (m.hasJustification) parts.push(" · <b>Justificativa:</b> sim");
+    parts.push("</p>");
+    if (m.organizedComparison) {
+      parts.push("<p><em>Comparação organizada pelo jogador (métrica de processo — sem ranquear hipóteses).</em></p>");
+    }
+    parts.push("</article>");
+    var html = parts.join("");
+    assertNoForbidden(html);
+    return html;
+  }
+
+  /** Guiada + Decisor: justificativa curta obrigatória antes de confirmar. */
+  function canConfirmGuiada(state, opts) {
+    opts = opts || {};
+    if ((opts.camada || "livre") !== "guiada") return { ok: true };
+    if ((opts.papel || "") !== "decisor") return { ok: true };
+    var s = normalizeScaffoldState(state);
+    if (String(s.notes.justificativa || "").trim().length >= 3) return { ok: true };
+    return {
+      ok: false,
+      reason: "Na camada Guiada, o Decisor precisa de uma justificativa curta antes de confirmar."
+    };
+  }
+
   /**
    * HTML do painel de hipóteses/decisão com densidade da camada.
    * Liga opções reais do catálogo (não inventa segunda chave de solução).
-   * state opcional: { hipoteseId, notas:{}, selecionados:{}, partidaId }
+   * state opcional: scaffold completo ou { hipoteseId, notas:{}, selecionados:{}, partidaId }
    */
   function htmlPainel(opts) {
     opts = opts || {};
     var pres = presentation(opts);
-    var state = opts.state || {};
+    var state = normalizeScaffoldState(opts.state || {});
+    if (opts.state && opts.state.hipoteseId) state.hipoteseId = String(opts.state.hipoteseId);
+    if (opts.state && opts.state.selecionados) {
+      Object.keys(opts.state.selecionados).forEach(function (k) {
+        state.selecionados[k] = String(opts.state.selecionados[k] || "");
+      });
+    }
+    /* Compat notas soltas do MVP. */
+    if (opts.state && opts.state.notas) {
+      Object.keys(opts.state.notas).forEach(function (k) {
+        if (state.notes[k] != null) state.notes[k] = String(opts.state.notas[k] || "");
+      });
+    }
     var hipSel = state.hipoteseId || "";
     var parts = [];
+    var hideChrome = pres.rank === 0;
 
     parts.push('<section class="hpc-painel" data-hpc-painel data-hpc-caso="' + esc(pres.caso) +
       '" data-hpc-camada="' + esc(pres.camada) + '" data-hpc-papel="' + esc(pres.papel) +
-      '" data-hpc-rank="' + pres.rank + '">');
+      '" data-hpc-rank="' + pres.rank + '"' +
+      (hideChrome ? ' data-hpc-livre="1"' : "") + ">");
 
-    parts.push('<header class="hpc-head"><b>Hipóteses · ' + esc(labelCamada(pres.camada)) +
-      '</b><span class="hpc-enfase">Ênfase: ' + esc(pres.enfase.primario) + "</span></header>");
+    if (!hideChrome) {
+      parts.push('<header class="hpc-head"><b>Hipóteses · ' + esc(labelCamada(pres.camada)) +
+        '</b><span class="hpc-enfase">Ênfase: ' + esc(pres.enfase.primario) + "</span></header>");
+    } else {
+      parts.push('<header class="hpc-head hpc-head-livre"><b>Hipóteses · Livre</b></header>');
+    }
 
     var omitList = !!opts.omitHypothesisList;
     var omitFields = !!opts.omitDecisionFields;
     var items = (pres.widgets[0] && pres.widgets[0].items) || hypothesisOptions(pres.caso);
 
-    /* Lista de hipóteses — sempre as mesmas keys (omitível se o jogo já as mostra). */
     if (!omitList) {
       if (pres.rank === 0) {
         parts.push('<div class="hpc-lista hpc-raw" data-hpc-widget="hypothesisList">');
@@ -271,64 +546,101 @@
         parts.push('<div class="hpc-lista hpc-structured" data-hpc-widget="hypothesisList">');
         items.forEach(function (h) {
           var on = hipSel === h.id ? " on" : "";
-          parts.push('<label class="hpc-hip' + on + '" data-hpc-hip="' + esc(h.id) +
+          var unex = !!state.unexamined[h.id];
+          parts.push('<label class="hpc-hip' + on + (unex ? " hpc-unex-on" : "") +
+            '" data-hpc-hip="' + esc(h.id) +
             '"><input type="radio" name="hpc-hip" value="' + esc(h.id) + '"' +
             (hipSel === h.id ? " checked" : "") + "> <strong>" + esc(h.id) + " · " +
             esc(h.t) + "</strong><small>" + esc(h.d) + "</small>" +
-            '<span class="hpc-tag-unex" data-hpc-unexamined hidden>não examinada</span></label>');
+            '<button type="button" class="hpc-unex-btn" data-hpc-toggle-unexamined="' +
+            esc(h.id) + '" aria-pressed="' + (unex ? "true" : "false") + '">' +
+            (unex ? "não examinada ✓" : "marcar não examinada") +
+            "</button></label>");
         });
         parts.push("</div>");
       }
     }
 
+    /* Livre: sem chrome de andaime (compare / buckets / socrático). */
     if (pres.rank >= 1) {
       parts.push('<div class="hpc-compare" data-hpc-widget="compareSlots">');
       ["A", "B", "C"].forEach(function (slot) {
+        var cur = state.compare[slot] || "";
         parts.push('<div class="hpc-slot" data-hpc-compare="' + slot + '"><b>Hipótese ' + slot +
           '</b><select data-hpc-compare-sel="' + slot + '"><option value="">—</option>' +
           hypothesisOptions(pres.caso).map(function (h) {
-            return '<option value="' + esc(h.id) + '">' + esc(h.id) + " · " + esc(h.t) + "</option>";
-          }).join("") + "</select></div>");
+            return '<option value="' + esc(h.id) + '"' + (cur === h.id ? " selected" : "") +
+              ">" + esc(h.id) + " · " + esc(h.t) + "</option>";
+          }).join("") +
+          '<option value="__livre__"' + (cur && hypothesisKeys(pres.caso).indexOf(cur) < 0 ? " selected" : "") +
+          ">rótulo livre…</option></select>" +
+          '<input type="text" class="hpc-compare-livre" data-hpc-compare-livre="' + slot +
+          '" placeholder="Rótulo livre" value="' +
+          esc(cur && hypothesisKeys(pres.caso).indexOf(cur) < 0 ? cur : "") +
+          '"' + (cur && hypothesisKeys(pres.caso).indexOf(cur) < 0 ? "" : " hidden") +
+          "></div>");
       });
       parts.push("</div>");
 
       parts.push('<div class="hpc-buckets" data-hpc-widget="favorAgainst">' +
         '<div class="hpc-slot" data-hpc-bucket="favor"><b>A favor</b>' +
-        '<textarea rows="2" placeholder="Evidências que você vincula…" data-hpc-note="favor"></textarea></div>' +
+        '<textarea rows="2" placeholder="Evidências que você vincula…" data-hpc-note="favor">' +
+        esc(state.notes.favor) + "</textarea></div>" +
         '<div class="hpc-slot" data-hpc-bucket="contra"><b>Contra</b>' +
-        '<textarea rows="2" placeholder="Evidências que tensionam…" data-hpc-note="contra"></textarea></div>' +
+        '<textarea rows="2" placeholder="Evidências que tensionam…" data-hpc-note="contra">' +
+        esc(state.notes.contra) + "</textarea></div>" +
         "</div>");
 
       parts.push('<div class="hpc-unex" data-hpc-widget="unexaminedMarker">' +
-        "<b>Ainda não examinadas</b><p>Marque hipóteses que você ainda não testou. O sistema não ranqueia.</p></div>");
+        "<b>Ainda não examinadas</b><p>Marque hipóteses que você ainda não testou. O sistema não ranqueia. " +
+        "<span data-hpc-unex-count>" + Object.keys(state.unexamined).filter(function (k) {
+          return state.unexamined[k];
+        }).length + "</span> marcadas.</p></div>");
 
       /* Ênfase por papel — mesmas hipóteses; ferramentas diferentes em destaque. */
+      if (pres.papel === "investigador") {
+        parts.push('<div class="hpc-slot" data-hpc-widget="linkedEvidence"><b>Hipótese + evidências vinculadas</b>' +
+          '<textarea rows="2" placeholder="Liste evidências ligadas à hipótese…" data-hpc-note="relacionadas">' +
+          esc(state.notes.relacionadas || state.linkedEvidence) + "</textarea></div>");
+      }
       if (pres.papel === "arquivista") {
         parts.push('<div class="hpc-buckets" data-hpc-widget="classifyBuckets">' +
-          ["fatos","interpretacoes","duvidas"].map(function (b) {
+          ["fatos", "interpretacoes", "duvidas"].map(function (b) {
             var lab = ({ fatos: "Fatos", interpretacoes: "Interpretações", duvidas: "Dúvidas" })[b];
             return '<div class="hpc-slot" data-hpc-bucket="' + b + '"><b>' + lab +
-              '</b><textarea rows="2" placeholder="Classifique aqui…" data-hpc-note="' + b + '"></textarea></div>';
+              '</b><textarea rows="2" placeholder="Classifique aqui…" data-hpc-note="' + b + '">' +
+              esc(state.notes[b] || "") + "</textarea></div>";
           }).join("") + "</div>");
       }
       if (pres.papel === "cronista") {
+        var evText = state.events.length
+          ? state.events.join("\n")
+          : (state.notes.sequencia || "");
         parts.push('<div class="hpc-buckets" data-hpc-widget="timelineScaffold" style="grid-template-columns:1fr">' +
-          [["sequencia","Linha do tempo / sequência"],["lacunas","Lacunas temporais"],["horarios","Horários confirmados × estimados"]].map(function (pair) {
-            return '<div class="hpc-slot" data-hpc-bucket="' + pair[0] + '"><b>' + pair[1] +
-              '</b><textarea rows="2" placeholder="Organize aqui…" data-hpc-note="' + pair[0] + '"></textarea></div>';
-          }).join("") + "</div>");
+          '<div class="hpc-slot" data-hpc-bucket="sequencia"><b>Linha do tempo / sequência (uma por linha)</b>' +
+          '<textarea rows="3" placeholder="1. …&#10;2. …" data-hpc-note="sequencia">' +
+          esc(evText) + "</textarea></div>" +
+          '<div class="hpc-slot" data-hpc-bucket="lacunas"><b>Lacunas temporais</b>' +
+          '<textarea rows="2" placeholder="Onde falta elo…" data-hpc-note="lacunas">' +
+          esc(state.notes.lacunas) + "</textarea></div>" +
+          '<div class="hpc-slot" data-hpc-bucket="horarios"><b>Horários confirmados × estimados</b>' +
+          '<textarea rows="2" placeholder="Confirmado / estimado…" data-hpc-note="horarios">' +
+          esc(state.notes.horarios) + "</textarea></div></div>");
       }
       if (pres.papel === "cetico") {
         parts.push('<div class="hpc-slot" data-hpc-widget="objectionSlot"><b>Outra explicação possível</b>' +
-          '<textarea rows="2" placeholder="Explicação concorrente…" data-hpc-note="outra"></textarea></div>');
+          '<textarea rows="2" placeholder="Explicação concorrente…" data-hpc-note="outra">' +
+          esc(state.notes.outra) + "</textarea></div>");
       }
       if (pres.papel === "decisor") {
-        parts.push('<div class="hpc-slot" data-hpc-widget="justificativa"><b>Justificativa da decisão</b>' +
-          '<textarea rows="2" placeholder="Por que esta leitura?" data-hpc-note="justificativa"></textarea></div>');
+        var req = pres.rank >= 2 ? ' required data-hpc-required="1"' : "";
+        parts.push('<div class="hpc-slot" data-hpc-widget="justificativa"><b>Justificativa da decisão' +
+          (pres.rank >= 2 ? " (obrigatória na Guiada)" : "") + "</b>" +
+          '<textarea rows="2" placeholder="Por que esta leitura?" data-hpc-note="justificativa"' +
+          req + ">" + esc(state.notes.justificativa) + "</textarea></div>");
       }
     }
 
-    /* Campos de decisão — sempre as mesmas opções (omitível se o jogo já os mostra). */
     var campos = omitFields ? [] : decisionFields(pres.caso, opts.partidaId);
     if (campos.length) {
       parts.push('<div class="hpc-campos" data-hpc-widget="decisionFields">');
@@ -346,8 +658,16 @@
     }
 
     if (pres.rank >= 2 && pres.prompts.length) {
-      parts.push('<div class="hpc-socratic" data-hpc-widget="socraticPrompts" data-hpc-qi="0">' +
-        "<b>Mestre socrático</b><p class=\"hpc-q\">" + esc(pres.prompts[0]) + "</p>" +
+      var qi = Math.min(pres.prompts.length - 1, Math.max(0, state.socratic.index || 0));
+      var ans = state.socratic.answers[String(qi)] || "";
+      var ack = (state.socratic.acknowledged || []).indexOf(qi) >= 0;
+      parts.push('<div class="hpc-socratic" data-hpc-widget="socraticPrompts" data-hpc-qi="' + qi + '">' +
+        "<b>Mestre socrático</b><p class=\"hpc-q\">" + esc(pres.prompts[qi] || pres.prompts[0]) + "</p>" +
+        '<label class="hpc-soc-ans">Sua anotação (curta)' +
+        '<textarea rows="2" data-hpc-socratic-ans placeholder="Resposta de processo…">' +
+        esc(ans) + "</textarea></label>" +
+        '<label class="hpc-soc-ack"><input type="checkbox" data-hpc-socratic-ack"' +
+        (ack ? " checked" : "") + "> Marquei esta pergunta como considerada</label>" +
         '<div class="hpc-prog"><button type="button" data-hpc-prev>Anterior</button>' +
         '<button type="button" data-hpc-next>Próxima pergunta</button></div>' +
         '<div class="hpc-coerencia" data-hpc-widget="coherenceCheck">' +
@@ -365,54 +685,220 @@
     return ({ livre: "Livre", assistida: "Assistida", guiada: "Guiada" })[id] || id;
   }
 
-  function ligarPainel(raiz, opts) {
-    if (!raiz) return;
-    var mestre = raiz.querySelector("[data-hpc-widget='socraticPrompts']");
-    if (!mestre) return;
-    var prompts = (presentation(opts).prompts) || [];
-    function pintar() {
-      var i = Number(mestre.getAttribute("data-hpc-qi") || 0);
-      var p = mestre.querySelector(".hpc-q");
-      if (p) p.textContent = prompts[i] || prompts[0] || "";
+  function lerEstadoDoPainel(raiz) {
+    if (!raiz) return emptyScaffoldState();
+    var painel = raiz.querySelector("[data-hpc-painel]") || raiz;
+    var state = emptyScaffoldState();
+    var hip = painel.querySelector('input[name="hpc-hip"]:checked');
+    if (hip) state.hipoteseId = hip.value;
+    ["A", "B", "C"].forEach(function (slot) {
+      var sel = painel.querySelector('[data-hpc-compare-sel="' + slot + '"]');
+      var livre = painel.querySelector('[data-hpc-compare-livre="' + slot + '"]');
+      var v = sel ? sel.value : "";
+      if (v === "__livre__" || (livre && !livre.hidden && livre.value.trim())) {
+        state.compare[slot] = (livre && livre.value.trim()) || "";
+      } else {
+        state.compare[slot] = v || "";
+      }
+    });
+    painel.querySelectorAll("[data-hpc-note]").forEach(function (ta) {
+      var k = ta.getAttribute("data-hpc-note");
+      if (k && state.notes[k] != null) state.notes[k] = ta.value;
+      if (k === "relacionadas") state.linkedEvidence = ta.value;
+      if (k === "sequencia") {
+        state.events = String(ta.value || "").split(/\n+/).map(function (l) {
+          return l.trim();
+        }).filter(Boolean);
+      }
+    });
+    painel.querySelectorAll("[data-hpc-toggle-unexamined]").forEach(function (btn) {
+      var id = btn.getAttribute("data-hpc-toggle-unexamined");
+      if (btn.getAttribute("aria-pressed") === "true") state.unexamined[id] = true;
+    });
+    /* Fallback: labels com classe. */
+    painel.querySelectorAll("label.hpc-unex-on[data-hpc-hip]").forEach(function (lab) {
+      state.unexamined[lab.getAttribute("data-hpc-hip")] = true;
+    });
+    painel.querySelectorAll("[data-hpc-field]").forEach(function (sel) {
+      state.selecionados[sel.getAttribute("data-hpc-field")] = sel.value || "";
+    });
+    var mestre = painel.querySelector("[data-hpc-widget='socraticPrompts']");
+    if (mestre) {
+      var qi = Number(mestre.getAttribute("data-hpc-qi") || 0);
+      state.socratic.index = qi;
+      var ans = mestre.querySelector("[data-hpc-socratic-ans]");
+      if (ans && ans.value.trim()) state.socratic.answers[String(qi)] = ans.value;
+      /* Preserve other answers from data attr if present */
+      var dump = mestre.getAttribute("data-hpc-socratic-dump");
+      if (dump) {
+        try {
+          var extra = JSON.parse(dump);
+          Object.keys(extra).forEach(function (k) {
+            if (!state.socratic.answers[k]) state.socratic.answers[k] = extra[k];
+          });
+        } catch (e) { /* ignore */ }
+      }
+      var ack = mestre.querySelector("[data-hpc-socratic-ack]");
+      var acked = [];
+      var prevAck = mestre.getAttribute("data-hpc-acked");
+      if (prevAck) {
+        try { acked = JSON.parse(prevAck) || []; } catch (e) { acked = []; }
+      }
+      if (ack && ack.checked && acked.indexOf(qi) < 0) acked.push(qi);
+      if (ack && !ack.checked) acked = acked.filter(function (n) { return n !== qi; });
+      state.socratic.acknowledged = acked;
     }
-    var next = mestre.querySelector("[data-hpc-next]");
-    var prev = mestre.querySelector("[data-hpc-prev]");
-    if (next) next.addEventListener("click", function () {
-      var i = Number(mestre.getAttribute("data-hpc-qi") || 0);
-      mestre.setAttribute("data-hpc-qi", String(Math.min(prompts.length - 1, i + 1)));
-      pintar();
+    return normalizeScaffoldState(state);
+  }
+
+  function ligarPainel(raiz, opts) {
+    if (!raiz) return null;
+    opts = opts || {};
+    var caso = opts.caso || (raiz.querySelector("[data-hpc-caso]") &&
+      raiz.querySelector("[data-hpc-painel]").getAttribute("data-hpc-caso")) || "casa-da-costa";
+    var painel = raiz.querySelector("[data-hpc-painel]") || raiz;
+    var prompts = (presentation(opts).prompts) || [];
+    var persist = opts.persist !== false;
+
+    function dumpSocratic(mestre, state) {
+      if (!mestre) return;
+      mestre.setAttribute("data-hpc-socratic-dump", JSON.stringify(state.socratic.answers || {}));
+      mestre.setAttribute("data-hpc-acked", JSON.stringify(state.socratic.acknowledged || []));
+    }
+
+    function commit() {
+      var st = lerEstadoDoPainel(raiz);
+      dumpSocratic(painel.querySelector("[data-hpc-widget='socraticPrompts']"), st);
+      if (persist) salvarScaffold(caso, st, opts);
+      if (typeof opts.onChange === "function") opts.onChange(st);
+      var countEl = painel.querySelector("[data-hpc-unex-count]");
+      if (countEl) {
+        countEl.textContent = String(Object.keys(st.unexamined).filter(function (k) {
+          return st.unexamined[k];
+        }).length);
+      }
+      return st;
+    }
+
+    /* Compare slots A/B/C */
+    painel.querySelectorAll("[data-hpc-compare-sel]").forEach(function (sel) {
+      sel.addEventListener("change", function () {
+        var slot = sel.getAttribute("data-hpc-compare-sel");
+        var livre = painel.querySelector('[data-hpc-compare-livre="' + slot + '"]');
+        if (sel.value === "__livre__") {
+          if (livre) { livre.hidden = false; livre.focus(); }
+        } else if (livre) {
+          livre.hidden = true;
+          livre.value = "";
+        }
+        commit();
+      });
     });
-    if (prev) prev.addEventListener("click", function () {
-      var i = Number(mestre.getAttribute("data-hpc-qi") || 0);
-      mestre.setAttribute("data-hpc-qi", String(Math.max(0, i - 1)));
-      pintar();
+    painel.querySelectorAll("[data-hpc-compare-livre]").forEach(function (inp) {
+      inp.addEventListener("input", commit);
     });
+
+    painel.querySelectorAll("[data-hpc-note], [data-hpc-field], [data-hpc-socratic-ans]").forEach(function (el) {
+      el.addEventListener("input", commit);
+      el.addEventListener("change", commit);
+    });
+
+    painel.querySelectorAll("[data-hpc-toggle-unexamined]").forEach(function (btn) {
+      btn.addEventListener("click", function (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        var pressed = btn.getAttribute("aria-pressed") === "true";
+        btn.setAttribute("aria-pressed", pressed ? "false" : "true");
+        btn.textContent = pressed ? "marcar não examinada" : "não examinada ✓";
+        var lab = btn.closest("label.hpc-hip");
+        if (lab) lab.classList.toggle("hpc-unex-on", !pressed);
+        commit();
+      });
+    });
+
+    var ackBox = painel.querySelector("[data-hpc-socratic-ack]");
+    if (ackBox) ackBox.addEventListener("change", commit);
+
+    var mestre = painel.querySelector("[data-hpc-widget='socraticPrompts']");
+    if (mestre) {
+      function pintar() {
+        var i = Number(mestre.getAttribute("data-hpc-qi") || 0);
+        var p = mestre.querySelector(".hpc-q");
+        if (p) p.textContent = prompts[i] || prompts[0] || "";
+        var ans = mestre.querySelector("[data-hpc-socratic-ans]");
+        var dump = {};
+        try { dump = JSON.parse(mestre.getAttribute("data-hpc-socratic-dump") || "{}"); } catch (e) {}
+        if (ans) ans.value = dump[String(i)] || "";
+        var acked = [];
+        try { acked = JSON.parse(mestre.getAttribute("data-hpc-acked") || "[]"); } catch (e) {}
+        var ack = mestre.querySelector("[data-hpc-socratic-ack]");
+        if (ack) ack.checked = acked.indexOf(i) >= 0;
+      }
+      /* Seed dump from current fields */
+      commit();
+      var next = mestre.querySelector("[data-hpc-next]");
+      var prev = mestre.querySelector("[data-hpc-prev]");
+      if (next) next.addEventListener("click", function () {
+        commit();
+        var i = Number(mestre.getAttribute("data-hpc-qi") || 0);
+        mestre.setAttribute("data-hpc-qi", String(Math.min(prompts.length - 1, i + 1)));
+        pintar();
+        commit();
+      });
+      if (prev) prev.addEventListener("click", function () {
+        commit();
+        var i = Number(mestre.getAttribute("data-hpc-qi") || 0);
+        mestre.setAttribute("data-hpc-qi", String(Math.max(0, i - 1)));
+        pintar();
+        commit();
+      });
+    } else {
+      /* Ainda assim persiste radios/campos se existirem */
+      painel.querySelectorAll('input[name="hpc-hip"]').forEach(function (inp) {
+        inp.addEventListener("change", commit);
+      });
+    }
+
+    painel.querySelectorAll('input[name="hpc-hip"]').forEach(function (inp) {
+      inp.addEventListener("change", function () {
+        painel.querySelectorAll("label.hpc-hip").forEach(function (lab) {
+          lab.classList.toggle("on", !!(lab.querySelector("input") && lab.querySelector("input").checked));
+        });
+        commit();
+      });
+    });
+
+    return commit();
   }
 
   function cssHpc() {
     return [
       ".hpc-painel{margin:12px 0;padding:12px 14px;border:1px solid rgba(232,169,74,.28);border-radius:12px;background:rgba(8,12,16,.72);color:#e6edf2;font-family:Inter,system-ui,sans-serif}",
+      ".hpc-painel[data-hpc-livre='1']{border-style:dashed;opacity:.96}",
       ".hpc-head{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:baseline;margin-bottom:10px}",
       ".hpc-head b{font:700 12px Inter,system-ui,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#e8a94a}",
       ".hpc-enfase{font-size:11px;color:#9eafb8}",
       ".hpc-lista{display:grid;gap:8px}",
       ".hpc-hip{display:block;padding:10px 12px;border:1px solid #344750;border-radius:10px;background:#0a1419;cursor:pointer}",
       ".hpc-hip.on{border-color:#e8a94a;background:#25190e}",
+      ".hpc-hip.hpc-unex-on{border-color:#7a6a3a}",
       ".hpc-hip strong{display:block;font-size:14px}",
       ".hpc-hip small{display:block;margin-top:4px;color:#9eafb8;font-size:12px;line-height:1.35}",
+      ".hpc-unex-btn{display:inline-block;margin-top:6px;border:1px solid #5a4a2a;background:#1a160c;color:#c9b48a;border-radius:6px;padding:3px 8px;font-size:10px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer}",
       ".hpc-compare,.hpc-buckets,.hpc-campos{display:grid;gap:8px;margin-top:12px}",
       ".hpc-compare{grid-template-columns:repeat(3,1fr)}",
       ".hpc-buckets{grid-template-columns:1fr 1fr}",
       ".hpc-slot,.hpc-campo{padding:10px;border:1px dashed #3a4c56;border-radius:8px;background:#0a1318}",
       ".hpc-slot b,.hpc-campo span,.hpc-campos>b,.hpc-unex b,.hpc-socratic b{display:block;font-size:12px;color:#afc8d5;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}",
-      ".hpc-slot textarea,.hpc-slot select,.hpc-campo select{width:100%;border:0;background:transparent;color:#e6edf2;font:500 14px Inter,system-ui,sans-serif}",
+      ".hpc-slot textarea,.hpc-slot select,.hpc-slot input,.hpc-campo select,.hpc-soc-ans textarea{width:100%;border:0;background:transparent;color:#e6edf2;font:500 14px Inter,system-ui,sans-serif}",
       ".hpc-unex{margin-top:10px;padding:8px 10px;border-left:3px solid #5a7a8a;background:#0a1216;border-radius:6px;font-size:13px;color:#b7c6ce}",
       ".hpc-socratic{margin-top:12px;padding:10px 12px;border-left:3px solid #70d6a0;background:#0a1814;border-radius:8px}",
       ".hpc-socratic .hpc-q{margin:6px 0;color:#c5d8cf;font-size:14px;line-height:1.45}",
+      ".hpc-soc-ans,.hpc-soc-ack{display:block;margin-top:8px;font-size:12px;color:#9eb8ad}",
       ".hpc-prog{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}",
       ".hpc-prog button{border:1px solid #3d6a55;background:#102820;color:#bde8d0;border-radius:7px;padding:6px 10px;font-weight:700;cursor:pointer;font-size:12px}",
       ".hpc-coerencia{margin-top:8px;color:#8aa89a;font-size:12px}",
-      ".hpc-tag-unex{display:inline-block;margin-top:4px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#c9b48a}",
+      ".hpc-processo{margin-top:12px}",
       "@media(max-width:640px){.hpc-compare,.hpc-buckets{grid-template-columns:1fr}}"
     ].join("");
   }
@@ -428,7 +914,7 @@
 
   /**
    * Aplica / troca o painel conforme camada.
-   * Substitui stubs vazios do andaime MVP quando há catálogo.
+   * Carrega scaffold persistido; Livre esconde chrome estrutural.
    */
   function aplicarPainel(opts) {
     opts = opts || {};
@@ -439,6 +925,15 @@
     if (!alvo) return null;
     var existente = alvo.querySelector("[data-hpc-painel]");
     if (existente) existente.remove();
+    var loaded = carregarScaffold(opts.caso, opts);
+    if (opts.state) {
+      var over = normalizeScaffoldState(opts.state);
+      if (over.hipoteseId) loaded.hipoteseId = over.hipoteseId;
+      Object.keys(over.selecionados || {}).forEach(function (k) {
+        if (over.selecionados[k]) loaded.selecionados[k] = over.selecionados[k];
+      });
+    }
+    opts = { caso: opts.caso, papel: opts.papel, camada: opts.camada, partidaId: opts.partidaId, playerId: opts.playerId, omitHypothesisList: opts.omitHypothesisList, omitDecisionFields: opts.omitDecisionFields, alvo: opts.alvo, pos: opts.pos, persist: opts.persist, onChange: opts.onChange, state: loaded };
     var html = htmlPainel(opts);
     alvo.insertAdjacentHTML(opts.pos || "afterbegin", html);
     ligarPainel(alvo, opts);
@@ -466,6 +961,7 @@
     CATALOG: CATALOG,
     FORBIDDEN: FORBIDDEN,
     ENFASE_PAPEL: ENFASE_PAPEL,
+    STORAGE_SCAFFOLD: STORAGE_SCAFFOLD,
     normalizarCaso: normalizarCaso,
     casoModel: casoModel,
     partidaIds: partidaIds,
@@ -478,7 +974,17 @@
     affordancesCount: affordancesCount,
     containsForbidden: containsForbidden,
     assertNoForbidden: assertNoForbidden,
+    emptyScaffoldState: emptyScaffoldState,
+    normalizeScaffoldState: normalizeScaffoldState,
+    scaffoldStorageKey: scaffoldStorageKey,
+    carregarScaffold: carregarScaffold,
+    salvarScaffold: salvarScaffold,
+    roomPlayerFields: roomPlayerFields,
+    processMetrics: processMetrics,
+    htmlRelatorioProcesso: htmlRelatorioProcesso,
+    canConfirmGuiada: canConfirmGuiada,
     htmlPainel: htmlPainel,
+    lerEstadoDoPainel: lerEstadoDoPainel,
     ligarPainel: ligarPainel,
     aplicarPainel: aplicarPainel,
     injetarCss: injetarCss,

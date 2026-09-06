@@ -261,3 +261,19 @@ Camadas **não** alteram fatos, pistas nem pontuação. Assistida/Guiada são an
 | **Guiada** | Assistida + prompts socráticos progressivos e checagem de coerência de *processo* (sem dizer a resposta). |
 
 **Proibido no painel:** `%`, “mais provável”, ranking keyed à solução. Papel muda ênfase do painel, não o conjunto de hipóteses/campos.
+
+### 14.2 Persistência Assistida/Guiada + A/B/C no placar
+
+O andaime Assistida/Guiada agora **persiste por jogador** (`localStorage` chave `mosaico_hpc_scaffold:caso:partida:playerId`, com hook `roomPlayerFields` para campos da sala quando o multiplayer expuser):
+
+| Campo | Conteúdo |
+|---|---|
+| `compare` A/B/C | ids do catálogo ou rótulo livre |
+| `notes` favor/contra (+ papel) | evidências/notas atribuídas pelo jogador |
+| `unexamined` | marcadores “não examinada” que **grudam** no toggle |
+| `socratic.answers` / `acknowledged` | Guiada: anotações curtas por prompt |
+| classificação / timeline / justificativa | ênfase Arquivista / Cronista / Decisor |
+
+No **fecho/relatório** (Carro `renderScore`, Solo `result`, Casa `telaMinhaPontuacao`) aparece o bloco **PROCESSO · COMPARAÇÃO A/B/C** com contagens de trabalho do jogador (ex.: 3 em comparação, a favor: 2, contra: 1). Isso é métrica de **processo**, não bônus que revele a hipótese correta. Telão: só snippet opcional do tipo “N hipóteses em comparação” via `processMetrics().telaoSnippet` — sem ids.
+
+**Livre** esconde o chrome estrutural; `trocarCamada` re-renderiza o painel mantendo o scaffold persistido.

@@ -331,12 +331,19 @@
     var HPC = global.MosaicoHipotesesCamada;
     if (HPC && typeof HPC.htmlPainel === "function" && !opts.forceSlots) {
       HPC.injetarCss && HPC.injetarCss();
+      var scaffold = (HPC.carregarScaffold
+        ? HPC.carregarScaffold(caso, {
+            partidaId: opts.partidaId,
+            playerId: opts.playerId,
+            state: opts.state || {}
+          })
+        : (opts.state || {}));
       var painel = HPC.htmlPainel({
         caso: caso,
         papel: e.papel,
         camada: e.camada,
         partidaId: opts.partidaId,
-        state: opts.state || {}
+        state: scaffold
       });
       return '<aside class="mpc-andaime mpc-andaime-hpc" data-mpc-andaime data-mpc-papel="' + esc(e.papel) +
         '" data-mpc-camada="' + esc(e.camada) + '">' +
@@ -375,6 +382,9 @@
         papel: e.papel,
         camada: e.camada,
         partidaId: opts.partidaId,
+        playerId: opts.playerId,
+        persist: opts.persist !== false,
+        onChange: opts.onScaffoldChange,
         state: opts.state || {}
       });
     }
