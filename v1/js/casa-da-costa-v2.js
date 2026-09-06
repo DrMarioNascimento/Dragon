@@ -179,8 +179,20 @@
     else STATE.jogadores.forEach(function(j){var pos=concluidos.findIndex(function(n){return Number(n.id)===Number(j.nucleo);});coletivo[j.id]=pos<0?0:(escala[pos]==null?4:escala[pos]);});
     var negociacoes=STATE.v5.negociacoes.map(function(n){var pistaObj=Object.keys(CASO.pistas||{}).map(function(k){return CASO.pistas[k];}).find(function(x){return x.id===n.pistaId;});return Object.assign({},n,{qualidade:(pistaObj&&pistaObj.qualidade)||'mediana'});});
     var placar=MosaicoV5.calcular({jogadores:STATE.jogadores,deducoes:deducoes,negociacoes:negociacoes,coopColetiva:coletivo,coopIndividual:coopInd,performance:perf});
-    var FB=await esperarFB();await FB.gravarPlacar(STATE.mesa.codigo,placar);
-    var agora=Date.now();await FB.atualizarMesa(STATE.mesa.codigo,{fase:'resultado',revelacaoEtapa:0,reveladaEmMs:agora,solucao:respostas,partidaId:partidaId(),encerramentoIniciadoMs:0,encerramentoConcluido:true,encerramentoConcluidoMs:0});
+    /* Aplique o placar no STATE local ANTES de publicar a fase resultado.
+       Sem isto, telao-publica.js / o pódio leem j.total ainda zerado no mesmo
+       ciclo de render e o telão anuncia zeros até o próximo snapshot.
+       Espelha o patch de MOSAICO-mesa.html (PR #8): o live path sobrescreve
+       finalizarPartida aqui e precisa do mesmo cuidado. */
+    placar.forEach(function(l){
+      var j=STATE.jogadores.find(function(x){return x.id===l.id;});
+      if(!j)return;
+      j.total=l.total; j.pontuacao=l.componentes; j.economiaDetalhe=l.economia;
+    });
+    var codigoSala=(STATE.mesa&&STATE.mesa.codigo)||(STATE.eu&&STATE.eu.codigo)||"";
+    if(!codigoSala){console.error("MOSAICO: finalizarPartida sem código de sala");return;}
+    var FB=await esperarFB();await FB.gravarPlacar(codigoSala,placar);
+    var agora=Date.now();await FB.atualizarMesa(codigoSala,{fase:'resultado',revelacaoEtapa:0,reveladaEmMs:agora,solucao:respostas,partidaId:partidaId(),encerramentoIniciadoMs:0,encerramentoConcluido:true,encerramentoConcluidoMs:0});
   };
 
   var telaResultadoBase=global.telaResultado;

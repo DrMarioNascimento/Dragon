@@ -202,7 +202,7 @@
     setTimeout(function () {
       if (document.querySelector('script[data-casa-costa-v2]')) return;
       var s = document.createElement("script");
-      s.src = "js/casa-da-costa-v2.js?v=20260902-profundidade";
+      s.src = "js/casa-da-costa-v2.js?v=20260906-fecho-local";
       s.dataset.casaCostaV2 = "1";
       s.onload=function(){
         if(document.querySelector('script[data-rotacao-casa]'))return;

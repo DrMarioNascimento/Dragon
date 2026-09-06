@@ -22,13 +22,11 @@
    usa em `sala-partida.js`, e o mesmo princípio do relé de ações: só o dono da
    sala escreve nela, porque é só o que as regras do Firestore permitem.
 
-   O RODÍZIO NÃO SOBE JUNTO, e é de propósito. O saco de seis perguntas é a
-   memória da MESA — o que ela já jogou e o que falta — e o Mestre é a mesa.
-   Subir também isso obrigaria a resolver o que acontece quando duas mesas
-   diferentes compartilham um mesmo dono, que é problema que ninguém tem.
-
-   Sem sala — ensaio, aparelho solto, solo-lab — devolve o sorteio local
-   intacto, exatamente como sempre foi. */
+   O RODÍZIO TAMBÉM SOBE. O saco de seis (`partida.rodizio`: saco, ultima,
+   fechadas) é a memória da MESA, não do aparelho. O Mestre avança o saco e
+   grava; convidados leem o mesmo `partida.pergunta`. Recarga com pergunta já
+   congelada NÃO redesenha. Sem sala — ensaio, aparelho solto, solo-lab —
+   `sortear()` / localStorage seguem intactos. */
 (function () {
   const CFG = {
     apiKey: 'AIzaSyA160bkgHBrYBwvIxlENax-aAyLWPMaOU4',
@@ -69,8 +67,18 @@
     return api;
   }
 
-  /* `sortear` é o rodízio local de quem chamou — este arquivo não conhece as
-     perguntas nem a ordem delas, só decide de quem é a escolha.
+  /* Cache do rodízio da sala — convidados leem `fechadas`/`saco` daqui, sem
+     cada um inventar o próprio localStorage. Atualizado em escolher/ouvir. */
+  let rodizioSala = null;
+  function lembrarRodizio(r) {
+    if (r && typeof r === 'object') rodizioSala = r;
+    return rodizioSala;
+  }
+
+  /* `sortear` é o rodízio local (localStorage) — fallback de ensaio/solo.
+     `avancar` (opcional) aplica a mesma semântica de saco sobre um objeto
+     `{saco,ultima,fechadas}` sem I/O; o Mestre grava o resultado em
+     `partida.rodizio` no documento da sala.
 
      E AS OPÇÕES DA MESA VIAJAM JUNTO (04/09/2026). Ritmo, duração e número de
      investigadores eram lidos dos `<select>` de CADA aparelho: quem entrava
@@ -80,7 +88,7 @@
 
      Devolve sempre `{pergunta, opcoes}`; `opcoes` é null quando não veio da
      sala — aparelho solto e ensaio seguem com o que estiver na tela. */
-  async function escolher(sortear, novaRodada, opcoes) {
+  async function escolher(sortear, novaRodada, opcoes, avancar) {
     const code = codigo();
     if (!code) return { pergunta: sortear(), opcoes: null };
 
@@ -92,22 +100,59 @@
       return { pergunta: sortear(), opcoes: null };
     }
     const ref = fs.doc(db, COLECAO, code);
+    const doDoc = (d) => {
+      lembrarRodizio(d?.partida?.rodizio || null);
+      return {
+        pergunta: d?.partida?.pergunta || null,
+        opcoes: d?.partida?.opcoes || null,
+        rodizio: d?.partida?.rodizio || null,
+      };
+    };
 
     if (souMestre()) {
-      const id = sortear();
-      const combinado = { ...(opcoes || {}), telao: usouTelao };
+      let atual = null;
       try {
-        await fs.updateDoc(ref, {
-          'partida.pergunta': id,
-          'partida.abertaEmMs': Date.now(),
-          'partida.opcoes': combinado,
-          /* O fecho e a fase da rodada passada não podem sobreviver à nova:
-             sem zerar, o telão abriria a partida seguinte com o pódio da
-             anterior e os aparelhos obedeceriam um prazo já vencido. */
-          'partida.fecho': null,
-          'partida.fase': null,
-          'partida.placar': null,
-        });
+        const snap = await fs.getDoc(ref);
+        atual = doDoc(snap.exists() ? snap.data() : null);
+      } catch (e) {
+        console.error('MOSAICO: não consegui ler a pauta antes de sortear.', e);
+      }
+      /* Pergunta já congelada e isto NÃO é rodada nova → não redesenha
+         (PADRAO-SALA §5 / sala-partida.js). `novaRodada` é o id que acabou;
+         se a sala ainda tem exatamente esse id, a próxima precisa sair. */
+      const congelada = atual?.pergunta;
+      if (congelada && !novaRodada) {
+        return { pergunta: congelada, opcoes: atual.opcoes || { ...(opcoes || {}), telao: usouTelao } };
+      }
+      if (congelada && novaRodada && congelada !== novaRodada) {
+        return { pergunta: congelada, opcoes: atual.opcoes || { ...(opcoes || {}), telao: usouTelao } };
+      }
+
+      let id;
+      let rodizioNovo = null;
+      if (typeof avancar === 'function') {
+        const tirado = avancar(atual?.rodizio || {});
+        id = tirado.id;
+        rodizioNovo = tirado.rodizio;
+        lembrarRodizio(rodizioNovo);
+      } else {
+        id = sortear();
+      }
+      const combinado = { ...(opcoes || {}), telao: usouTelao };
+      const patch = {
+        'partida.pergunta': id,
+        'partida.abertaEmMs': Date.now(),
+        'partida.opcoes': combinado,
+        /* O fecho e a fase da rodada passada não podem sobreviver à nova:
+           sem zerar, o telão abriria a partida seguinte com o pódio da
+           anterior e os aparelhos obedeceriam um prazo já vencido. */
+        'partida.fecho': null,
+        'partida.fase': null,
+        'partida.placar': null,
+      };
+      if (rodizioNovo) patch['partida.rodizio'] = rodizioNovo;
+      try {
+        await fs.updateDoc(ref, patch);
       } catch (e) {
         /* A mesa continua jogando com a pergunta sorteada; quem perde é a
            sincronia, não a partida de quem está com o aparelho na mão. */
@@ -121,7 +166,6 @@
        `ultima`. Com teto: mesa que não responde não pode deixar ninguém
        olhando para uma tela parada. */
     const ultima = novaRodada || null;
-    const doDoc = (d) => ({ pergunta: d?.partida?.pergunta || null, opcoes: d?.partida?.opcoes || null });
     try {
       const snap = await fs.getDoc(ref);
       const lido = doDoc(snap.exists() ? snap.data() : null);
@@ -139,6 +183,39 @@
       }, (e) => { console.error('MOSAICO: perdi a sala ao esperar a pauta.', e); acabou({ pergunta: sortear(), opcoes: null }); });
       setTimeout(() => { un(); acabou({ pergunta: sortear(), opcoes: null }); }, 30000);
     });
+  }
+
+  /* Marca pergunta fechada no doc da sala (só Mestre escreve). Convidados
+     só atualizam o cache; o snapshot traz o canônico. Lê o doc antes de
+     gravar para não apagar o saco se o cache local ainda estiver vazio. */
+  async function marcarFechadaSala(id) {
+    if (!id) return;
+    const code = codigo();
+    if (!code) return;
+    if (!souMestre()) {
+      const base = rodizioSala && typeof rodizioSala === 'object' ? rodizioSala : {};
+      lembrarRodizio({
+        saco: Array.isArray(base.saco) ? base.saco : [],
+        ultima: base.ultima || id,
+        fechadas: [...new Set([...(Array.isArray(base.fechadas) ? base.fechadas : []), id])],
+      });
+      return;
+    }
+    try {
+      const { fs, db } = await firebase();
+      const ref = fs.doc(db, COLECAO, code);
+      const snap = await fs.getDoc(ref);
+      const base = (snap.exists() && snap.data()?.partida?.rodizio) || rodizioSala || {};
+      const novo = {
+        saco: Array.isArray(base.saco) ? base.saco : [],
+        ultima: base.ultima || id,
+        fechadas: [...new Set([...(Array.isArray(base.fechadas) ? base.fechadas : []), id])],
+      };
+      lembrarRodizio(novo);
+      await fs.updateDoc(ref, { 'partida.rodizio': novo });
+    } catch (e) {
+      console.error('MOSAICO: não consegui marcar a pergunta fechada na sala.', e);
+    }
   }
 
   /* ── A ABERTURA TOCA NUM APARELHO SÓ ──────────────────────────────────────
@@ -340,7 +417,10 @@
       const { fs, db } = await firebase();
       unsubPartida = fs.onSnapshot(fs.doc(db, COLECAO, code), (s) => {
         const p = s.exists() ? s.data()?.partida : null;
-        if (p) aoMudar(p);
+        if (p) {
+          lembrarRodizio(p.rodizio || null);
+          aoMudar(p);
+        }
       }, (e) => console.error('MOSAICO: perdi a partida de vista.', e));
     } catch (e) {
       console.error('MOSAICO: não consegui ouvir a partida.', e);
@@ -518,5 +598,6 @@
     escolher, abertura, abrirAtividade, abrirFase, ouvirPartida,
     entregarNota, arbitrarPlacar, publicarFecho, quantosNaMesa,
     souMestre, temSala: () => !!codigo(), publicarPergunta, publicarFim,
+    marcarFechadaSala, rodizio: () => rodizioSala,
   };
 })();
