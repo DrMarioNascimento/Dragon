@@ -615,7 +615,8 @@
 
   /* ---------- cartoes ---------- */
   .card{
-    border:1px solid var(--linha);border-radius:3px;background:var(--painel);
+    border:1px solid rgba(127,212,255,.28);border-radius:10px;
+    background:linear-gradient(165deg,#121c28,#0a121a);
     padding:20px;margin-bottom:14px;
   }
   .barra{
@@ -1065,10 +1066,12 @@
   }
   .modal-fundo.hidden{display:none}
   .modal{
-    background:var(--painel);border:1px solid var(--linha);border-radius:4px;
+    background:linear-gradient(165deg,#152433,#0c1824 58%,#071018);
+    border:1px solid rgba(127,212,255,.42);border-radius:14px;
     padding:28px 24px;max-width:400px;width:100%;text-align:center;
     max-height:calc(100dvh - max(32px,env(safe-area-inset-top)) - max(32px,env(safe-area-inset-bottom)));
     overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 18px 50px rgba(0,0,0,.55),0 0 40px rgba(127,212,255,.07);
   }
   .orientacao-mestre{max-width:460px;border-color:rgba(232,164,76,.62);
     box-shadow:0 22px 70px rgba(0,0,0,.72),0 0 30px rgba(232,164,76,.12)}
@@ -1082,15 +1085,19 @@
     padding:24px 18px;box-shadow:0 22px 70px rgba(0,0,0,.74)}
   .orientacao-participante h2{font-size:clamp(29px,8vw,40px);margin:7px 0 8px}
   .orientacao-participante>.lead{font-size:clamp(18px,4.8vw,22px);margin-bottom:15px}
-  .orientacao-lista{display:grid;gap:7px;text-align:left;margin-bottom:16px}
-  .orientacao-item{display:grid;gap:3px;padding:10px 12px;border:1px solid var(--linha);
-    border-left:3px solid var(--frio);border-radius:5px;background:rgba(8,13,20,.9)}
+  .orientacao-lista{display:grid;gap:0;text-align:left;margin-bottom:16px;padding:6px;
+    border-radius:10px;background:#060d14;border:1px solid rgba(45,68,82,.75);
+    box-shadow:inset 0 2px 8px rgba(0,0,0,.58),inset 1px 0 5px rgba(0,0,0,.32)}
+  .orientacao-item{display:grid;gap:3px;padding:10px 12px;border:0;border-bottom:1px solid rgba(45,63,72,.7);
+    border-left:3px solid var(--frio);border-radius:0;background:transparent}
+  .orientacao-item:last-child{border-bottom:0}
   .orientacao-item b{color:var(--frio);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
   .orientacao-item span{color:var(--texto);font:600 13px/1.38 var(--serif)}
   .orientacao-participante .btn{margin-bottom:0}
   .ritmo-titulo{display:block;text-align:left;margin:18px 0 8px;color:var(--ambar)}
   .ritmo-op{width:100%;display:grid;gap:4px;text-align:left;padding:13px 14px;margin-bottom:8px;
-    border:1px solid var(--linha);border-radius:6px;background:#080d14;color:var(--texto);cursor:pointer}
+    border:1px solid rgba(45,68,82,.75);border-radius:10px;background:#060d14;color:var(--texto);cursor:pointer;
+    box-shadow:inset 0 2px 6px rgba(0,0,0,.45)}
   .ritmo-op b{font:800 12px var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--nevoa)}
   .ritmo-op span{font:600 14px/1.35 var(--serif);color:var(--dim)}
   .ritmo-op.on{border-color:rgba(232,164,76,.7);background:rgba(232,164,76,.09);
@@ -1098,8 +1105,9 @@
   .ritmo-op.on b{color:var(--ambar)}.ritmo-op.on span{color:var(--texto)}
   .partida-pausada{position:fixed;inset:0;z-index:42;display:flex;align-items:center;justify-content:center;
     padding:24px;background:rgba(2,4,7,.94);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-  .partida-pausada-card{width:min(100%,480px);padding:28px 22px;text-align:center;border:1px solid rgba(127,212,255,.48);
-    border-radius:9px;background:rgba(12,18,26,.96);box-shadow:0 22px 70px rgba(0,0,0,.72)}
+  .partida-pausada-card{width:min(100%,480px);padding:28px 22px;text-align:center;border:1px solid rgba(127,212,255,.42);
+    border-radius:14px;background:linear-gradient(165deg,#152433,#0c1824 58%,#071018);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 18px 50px rgba(0,0,0,.55),0 0 40px rgba(127,212,255,.07)}
   .partida-pausada-card h2{font-size:clamp(31px,9vw,48px);color:var(--frio);margin:8px 0 12px}
   .partida-pausada-card p{font:600 clamp(19px,5vw,25px)/1.4 var(--serif);color:var(--texto)}
   body:has(.partida-pausada) .btn-caso,body:has(.partida-pausada) #btn-pistas{display:none!important}
@@ -1144,10 +1152,11 @@
     overflow-y:auto;animation:dialogo-entra .18s ease-out}
   @keyframes dialogo-entra{from{opacity:0}to{opacity:1}}
   .dialogo-card{
-    width:100%;max-width:440px;margin:auto;background:var(--painel);
-    border:1px solid var(--linha);border-left:3px solid var(--ambar);
-    border-radius:4px;padding:24px 24px 20px;
-    box-shadow:0 24px 60px -30px rgba(0,0,0,.95);
+    width:100%;max-width:440px;margin:auto;
+    background:linear-gradient(165deg,#152433,#0c1824 58%,#071018);
+    border:1px solid rgba(127,212,255,.42);border-left:3px solid var(--ambar);
+    border-radius:14px;padding:24px 24px 20px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 18px 50px rgba(0,0,0,.55),0 0 40px rgba(127,212,255,.07);
     max-height:calc(100dvh - var(--barra-reserva) - 40px);
     display:flex;flex-direction:column;gap:18px}
   .dialogo-card.perigo{border-left-color:var(--vermelho)}
@@ -1309,6 +1318,7 @@
      outras tres. Entra DEPOIS do <style> de proposito: em empate de
      especificidade, quem vem por ultimo vence, e o padrao tem de vencer. -->
 <link rel="stylesheet" href="css/profundidade.css?v=20260902-profundidade">
+<link rel="stylesheet" href="css/profundidade-1mais1.css?v=20260906-pf-1mais1">
 </head>
 <body>
 <div id="arte">
@@ -1368,12 +1378,12 @@
      Sao cinco porque cada modulo sensorial e um documento proprio e nao
      enxerga esta pagina. Dentro desta, o caso e o video releem o mesmo
      valor de window.MOSAICO_VERSAO, que sai da tag do mosaico-v5.js. -->
-<script src="js/mosaico-v5.js?v=20260906-elenco"></script>
+<script src="js/mosaico-v5.js?v=20260906-pf-1mais1"></script>
 <script src="../hipoteses-por-camada.js?v=20260906-hpc-abc"></script>
-<script src="../papel-camada.js?v=20260906-papel-grid"></script>
-<script src="js/qr.js?v=20260906-elenco"></script>
-<script src="js/casa-firebase-room-bridge.js?v=20260906-elenco"></script>
-<script type="module" src="../firebase-room.js?v=20260906-abrir-sem-modo"
+<script src="../papel-camada.js?v=20260906-pf-1mais1"></script>
+<script src="js/qr.js?v=20260906-pf-1mais1"></script>
+<script src="js/casa-firebase-room-bridge.js?v=20260906-pf-1mais1"></script>
+<script type="module" src="../firebase-room.js?v=20260906-pf-1mais1"
         data-project="mesa"
         data-root="mosaico"
         data-case="casa-da-costa"

@@ -100,6 +100,11 @@ describe("sensor · finger + soft deadline", () => {
     assert.match(TS, /Os personagens do jogo são:/);
     assert.match(TS, /O seu personagem é:/);
     assert.match(TS, /ELENCO_CASA_CANONICO/);
+    assert.match(TS, /injetarProfundidade1mais1/);
+    assert.match(TS, /pf-card/);
+    assert.match(TS, /pf-inset/);
+    assert.match(TS, /pf-btn-gold/);
+    assert.equal(/#ff9a4d/.test(TS), false);
     const { createContext, runInContext } = await import("node:vm");
     const ctx = createContext({
       setTimeout,

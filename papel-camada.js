@@ -153,39 +153,67 @@
     return CAMADAS.find(function (c) { return c.id === id; }) || CAMADAS[0];
   }
 
+  /* Shared 1+1 card language (outer navy + inner carved inset).
+     Same tokens as v1/css/profundidade-1mais1.css — keep the two in sync.
+     Injected here so Celular / Solo / overlays inherit without a <link>. */
+  var PF_CSS = [
+    ":root{--pf-navy:#0e1c28;--pf-navy-mid:#152433;--pf-navy-deep:#060d14;--pf-stroke:rgba(127,212,255,.42);--pf-gold:#e8a94a;--pf-gold2:#ffc46b;--pf-gold-face:#ffc878;--pf-gold-base:#d6aa58;--pf-gold-wall:#6a3712;--pf-ink:#f4f9fd;--pf-ink-2:#dfeaf5;--pf-muted:#c5d4dc;--pf-alias:#ffcf8f;--pf-card-fill:linear-gradient(165deg,#152433,#0c1824 58%,#071018);--pf-card-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 18px 50px rgba(0,0,0,.55),0 0 40px rgba(127,212,255,.07);--pf-inset-fill:#060d14;--pf-inset-stroke:rgba(45,68,82,.75);--pf-inset-shadow:inset 0 2px 8px rgba(0,0,0,.58),inset 1px 0 5px rgba(0,0,0,.32),inset 0 -1px 0 rgba(127,212,255,.05)}",
+    ".pf-card{background:var(--pf-card-fill);border:1px solid var(--pf-stroke);border-radius:14px;box-shadow:var(--pf-card-shadow)}",
+    ".pf-inset{background:var(--pf-inset-fill);border:1px solid var(--pf-inset-stroke);border-radius:10px;box-shadow:var(--pf-inset-shadow);overflow:hidden}",
+    ".pf-btn-gold{display:flex;align-items:center;justify-content:center;width:100%;min-height:52px;margin-top:12px;padding:12px 14px;border:0;border-radius:10px;cursor:pointer;background:linear-gradient(180deg,var(--pf-gold-face),var(--pf-gold-base));color:#1b1005;font-weight:800;letter-spacing:.08em;text-transform:uppercase;box-shadow:inset 0 1px 0 #ffe2b4,0 5px 0 var(--pf-gold-wall),0 12px 22px #000a}",
+    ".pf-btn-gold:active{transform:translateY(4px);box-shadow:inset 0 1px 0 #ffe2b4,0 1px 0 var(--pf-gold-wall),0 5px 10px #0009}",
+    ".pf-btn-ghost{display:flex;align-items:center;justify-content:center;width:100%;min-height:48px;margin-top:10px;padding:12px 14px;border:1px solid #46667a;border-radius:10px;cursor:pointer;background:linear-gradient(180deg,#162a38,#0c1b26);color:var(--pf-ink);font-weight:800;letter-spacing:.06em;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 4px 0 #020609,0 10px 18px #0008}",
+    ".pf-cell{display:block;width:100%;text-align:left;padding:14px 16px;border:0;border-bottom:1px solid rgba(45,63,72,.7);border-radius:0;background:transparent;color:var(--pf-ink-2);cursor:pointer;box-sizing:border-box}",
+    ".pf-cell:last-child{border-bottom:0}",
+    ".pf-cell.on{background:#25190e;color:var(--pf-gold2);box-shadow:inset 0 0 0 2px var(--pf-gold),inset 0 0 18px rgba(232,169,74,.1);position:relative;z-index:1}",
+    ".pf-cell b{display:block;font-size:17px;line-height:1.25;color:var(--pf-ink)}",
+    ".pf-cell .alias{display:block;margin-top:5px;font-style:italic;color:var(--pf-alias);font-size:14px;line-height:1.35}",
+    ".pf-cell small{display:block;margin-top:5px;color:var(--pf-muted);font-size:13.5px;line-height:1.4}",
+    ".pf-cell.on b{color:var(--pf-gold2)}",
+    ".pf-cell.on .alias,.pf-cell.on small{color:#ffe2b4}"
+  ].join("");
+
+  function injetarProfundidade1mais1() {
+    if (typeof document === "undefined" || !document.createElement) return;
+    if (document.getElementById("mosaico-pf-1mais1")) return;
+    var pf = document.createElement("style");
+    pf.id = "mosaico-pf-1mais1";
+    pf.textContent = PF_CSS;
+    document.head.appendChild(pf);
+  }
+
   function injetarCss() {
     if (typeof document === "undefined" || !document.createElement) return;
+    injetarProfundidade1mais1();
     if (cssInjetado || document.getElementById("mosaico-papel-camada-css")) return;
     cssInjetado = true;
     var st = document.createElement("style");
     st.id = "mosaico-papel-camada-css";
     st.textContent = [
       ".mpc-bloco{margin-top:14px}",
-      ".mpc-rotulo{font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:#e8a94a;margin:14px 0 8px}",
-      ".mpc-grade{display:flex;flex-direction:column;border:1px solid #3d5360;border-radius:12px;overflow:hidden;background:#071014}",
+      ".mpc-rotulo{font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:#e8a94a;margin:16px 0 8px}",
+      /* Outer spectacular card. Inner carved box is .mpc-grade-inset. */
+      ".mpc-grade{display:flex;flex-direction:column;padding:8px;overflow:hidden}",
+      ".mpc-grade-inset{display:flex;flex-direction:column}",
+      /* Inside an already-spectacular gate/sheet, the grade is only the inset. */
+      ".dr-card .mpc-grade.pf-card,.mpc-sheet .mpc-grade.pf-card{background:transparent;border:0;box-shadow:none;padding:0;border-radius:0}",
       ".mpc-papeis,.mpc-camadas{gap:0}",
-      ".mpc-celula{display:block;width:100%;text-align:left;padding:14px 16px;border:0;border-bottom:1px solid #2d3f48;border-radius:0;background:#0a1419;color:#dce8ed;cursor:pointer;box-sizing:border-box}",
-      ".mpc-celula:last-child{border-bottom:0}",
-      ".mpc-celula.on{background:#25190e;color:#ffc46b;box-shadow:inset 0 0 0 2px #e8a94a;position:relative;z-index:1}",
-      ".mpc-celula b{display:block;font-size:16px;line-height:1.25}",
-      ".mpc-celula .alias{display:block;margin-top:5px;font-style:italic;color:#c9b48a;font-size:13px;line-height:1.35}",
-      ".mpc-celula small{display:block;margin-top:5px;color:#9eafb8;font-size:13px;line-height:1.4}",
-      ".mpc-celula.on .alias,.mpc-celula.on small{color:#e8d2a4}",
-      ".mpc-papel,.mpc-camada{display:block;width:100%;text-align:left;padding:14px 16px;border:0;border-bottom:1px solid #2d3f48;border-radius:0;background:#0a1419;color:#dce8ed;cursor:pointer;box-sizing:border-box}",
-      ".mpc-papel:last-child,.mpc-camada:last-child{border-bottom:0}",
-      ".mpc-papel.on,.mpc-camada.on{background:#25190e;color:#ffc46b;box-shadow:inset 0 0 0 2px #e8a94a;position:relative;z-index:1}",
-      ".mpc-papel b,.mpc-camada b{display:block;font-size:16px;line-height:1.25}",
-      ".mpc-papel .alias,.mpc-camada .alias{display:block;margin-top:5px;font-style:italic;color:#c9b48a;font-size:13px;line-height:1.35}",
-      ".mpc-papel small,.mpc-camada small{display:block;margin-top:5px;color:#9eafb8;font-size:13px;line-height:1.4}",
-      ".mpc-papel.on .alias,.mpc-papel.on small,.mpc-camada.on .alias,.mpc-camada.on small{color:#e8d2a4}",
+      ".mpc-celula,.mpc-papel,.mpc-camada{display:block;width:100%;text-align:left;padding:14px 16px;border:0;border-bottom:1px solid rgba(45,63,72,.7);border-radius:0;background:transparent;color:#dfeaf5;cursor:pointer;box-sizing:border-box}",
+      ".mpc-celula:last-child,.mpc-papel:last-child,.mpc-camada:last-child{border-bottom:0}",
+      ".mpc-celula.on,.mpc-papel.on,.mpc-camada.on{background:#25190e;color:#ffc46b;box-shadow:inset 0 0 0 2px #e8a94a,inset 0 0 18px rgba(232,169,74,.1);position:relative;z-index:1}",
+      ".mpc-celula b,.mpc-papel b,.mpc-camada b{display:block;font-size:17px;line-height:1.25;color:#f4f9fd}",
+      ".mpc-celula .alias,.mpc-papel .alias,.mpc-camada .alias{display:block;margin-top:5px;font-style:italic;color:#ffcf8f;font-size:14px;line-height:1.35}",
+      ".mpc-celula small,.mpc-papel small,.mpc-camada small{display:block;margin-top:5px;color:#c5d4dc;font-size:13.5px;line-height:1.4}",
+      ".mpc-celula.on b,.mpc-papel.on b,.mpc-camada.on b{color:#ffc46b}",
+      ".mpc-celula.on .alias,.mpc-celula.on small,.mpc-papel.on .alias,.mpc-papel.on small,.mpc-camada.on .alias,.mpc-camada.on small{color:#ffe2b4}",
       ".mpc-chips{display:inline-flex;flex-wrap:wrap;gap:6px;align-items:center;vertical-align:middle}",
       ".mpc-sessao{display:block;width:100%;font:600 10px/1.2 Inter,system-ui,sans-serif;letter-spacing:.04em;color:#9eb6c2;margin-top:2px}",
       ".mpc-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:999px;border:1px solid rgba(232,169,74,.35);background:rgba(20,16,10,.75);color:#efc878;font:700 10px/1.2 Inter,system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase}",
       ".mpc-chip em{font-style:normal;color:#c6b69f;font-weight:600;text-transform:none;letter-spacing:0;font-size:11px}",
-      ".mpc-andaime{margin:12px 0;padding:12px 14px;border:1px solid rgba(232,169,74,.28);border-radius:12px;background:rgba(8,12,16,.72)}",
+      ".mpc-andaime{margin:12px 0;padding:12px 14px;border:1px solid rgba(232,169,74,.28);border-radius:12px;background:rgba(8,12,16,.72);box-shadow:inset 0 2px 8px rgba(0,0,0,.35)}",
       ".mpc-andaime h3{margin:0 0 8px;font:700 12px Inter,system-ui,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#e8a94a}",
       ".mpc-andaime .mpc-slots{display:grid;gap:8px}",
-      ".mpc-slot{padding:10px;border:1px dashed #3a4c56;border-radius:8px;background:#0a1318;min-height:52px}",
+      ".mpc-slot{padding:10px;border:1px dashed #3a4c56;border-radius:8px;background:#060d14;min-height:52px;box-shadow:inset 0 2px 6px rgba(0,0,0,.4)}",
       ".mpc-slot b{display:block;font-size:12px;color:#afc8d5;letter-spacing:.08em;text-transform:uppercase}",
       ".mpc-slot textarea,.mpc-slot input{width:100%;margin-top:6px;min-height:44px;border:0;background:transparent;color:#e6edf2;font:500 14px Inter,system-ui,sans-serif;resize:vertical}",
       ".mpc-mestre{margin-top:10px;padding:10px 12px;border-left:3px solid #70d6a0;background:#0a1814;border-radius:8px}",
@@ -194,10 +222,10 @@
       ".mpc-mestre .mpc-prog{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}",
       ".mpc-mestre button{border:1px solid #3d6a55;background:#102820;color:#bde8d0;border-radius:7px;padding:6px 10px;font-weight:700;cursor:pointer;font-size:12px}",
       "#mpcOverlay{position:fixed;inset:0;z-index:100050;background:rgba(0,0,0,.78);display:flex;align-items:flex-end;justify-content:center;padding:16px;overflow:auto}",
-      "#mpcOverlay .mpc-sheet{width:min(520px,100%);margin:auto;background:#071014;border:1px solid #334750;border-radius:16px 16px 12px 12px;padding:18px;color:#e6edf2;box-shadow:0 22px 60px rgba(0,0,0,.55);font-family:Inter,system-ui,sans-serif}",
-      "#mpcOverlay .mpc-sheet h2{font:600 28px Georgia,serif;margin:0 0 6px}",
-      "#mpcOverlay .mpc-sheet .lead{color:#afbdc5;font-size:14px;line-height:1.45;margin:0 0 8px}",
-      "#mpcOverlay .mpc-ok{width:100%;min-height:52px;margin-top:14px;border:0;border-radius:10px;padding:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;background:linear-gradient(#ffc266,#dd8b2e);color:#1b1005}"
+      "#mpcOverlay .mpc-sheet{width:min(520px,100%);margin:auto;padding:18px;color:#e6edf2;font-family:Inter,system-ui,sans-serif}",
+      "#mpcOverlay .mpc-sheet h2{font:600 28px Georgia,serif;margin:0 0 6px;color:#f4f9fd}",
+      "#mpcOverlay .mpc-sheet .lead{color:#c5d4dc;font-size:14px;line-height:1.45;margin:0 0 8px}",
+      "#mpcOverlay .mpc-ok{width:100%;min-height:52px;margin-top:14px;border:0;border-radius:10px;padding:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;background:linear-gradient(180deg,#ffc878,#d6aa58);color:#1b1005;box-shadow:inset 0 1px 0 #ffe2b4,0 5px 0 #6a3712,0 12px 22px #000a}"
     ].join("");
     document.head.appendChild(st);
   }
@@ -207,21 +235,21 @@
     var e = escolha || carregar(c);
     var papeis = PAPEIS.map(function (p) {
       var on = e.papel === p.id ? " on" : "";
-      return '<button type="button" class="mpc-celula mpc-papel' + on + '" data-mpc-papel="' + p.id + '">' +
+      return '<button type="button" class="mpc-celula mpc-papel pf-cell' + on + '" data-mpc-papel="' + p.id + '">' +
         "<b>" + esc(p.label) + "</b>" +
         '<span class="alias">' + esc(p.subtitulo) + "</span>" +
         "<small>" + esc(p.acao) + "</small></button>";
     }).join("");
     var camadas = CAMADAS.map(function (cam) {
       var on = e.camada === cam.id ? " on" : "";
-      return '<button type="button" class="mpc-celula mpc-camada' + on + '" data-mpc-camada="' + cam.id + '">' +
+      return '<button type="button" class="mpc-celula mpc-camada pf-cell' + on + '" data-mpc-camada="' + cam.id + '">' +
         "<b>" + esc(cam.label) + "</b>" +
         '<span class="alias">' + esc(cam.subtitulo) + "</span>" +
         "<small>" + esc(cam.desc) + "</small></button>";
     }).join("");
     return '<div class="mpc-bloco" data-mpc-caso="' + esc(c) + '">' +
-      '<div class="mpc-rotulo">Papel Cognitivo</div><div class="mpc-grade mpc-papeis">' + papeis + "</div>" +
-      '<div class="mpc-rotulo">Camada de Assistência</div><div class="mpc-grade mpc-camadas">' + camadas + "</div>" +
+      '<div class="mpc-rotulo">Papel Cognitivo</div><div class="mpc-grade mpc-papeis pf-card"><div class="mpc-grade-inset pf-inset">' + papeis + "</div></div>" +
+      '<div class="mpc-rotulo">Camada de Assistência</div><div class="mpc-grade mpc-camadas pf-card"><div class="mpc-grade-inset pf-inset">' + camadas + "</div></div>" +
       "</div>";
   }
 
@@ -270,11 +298,11 @@
       ov.id = "mpcOverlay";
       ov.setAttribute("role", "dialog");
       ov.setAttribute("aria-label", "Papel e camada");
-      ov.innerHTML = '<div class="mpc-sheet">' +
+      ov.innerHTML = '<div class="mpc-sheet pf-card">' +
         "<h2>Seu papel nesta partida</h2>" +
         '<p class="lead">Escolha a responsabilidade cognitiva e o nível de apoio. Mesma verdade — diferentes andaimes.</p>' +
         htmlSeletor(caso, estado) +
-        '<button type="button" class="mpc-ok" id="mpcOk">Continuar</button></div>';
+        '<button type="button" class="mpc-ok pf-btn-gold" id="mpcOk">Continuar</button></div>';
       document.body.appendChild(ov);
       var bloco = ov.querySelector(".mpc-bloco");
       ligarSeletor(bloco, estado);
@@ -488,6 +516,7 @@
     aplicarEmJogo: aplicarEmJogo,
     slotsPara: slotsPara,
     injetarCss: injetarCss,
+    injetarProfundidade1mais1: injetarProfundidade1mais1,
     normalizarCaso: normalizarCaso,
     /** Troca camada/papel e re-renderiza andaime (mesmas hipóteses). */
     trocarCamada: function (opts) {
