@@ -123,7 +123,7 @@
              depois que a mesa inteira entregou a nota. -->
         <div class="colecao depth-card" id="podio" hidden></div>
         <div class="colecao depth-card" id="colecao"></div>
-        <p class="dr-note" id="noiteBridgeHint" hidden style="margin:12px 0 0;color:#afc8d5;font-size:14px;line-height:1.45">A Noite continua com o <b>mesmo código de sala</b> e a <b>mesma pergunta</b>. Mãos, moedas e economia do Captura começam do zero.</p>
+        <p class="dr-note" id="noiteBridgeHint" hidden style="margin:12px 0 0;color:#afc8d5;font-size:14px;line-height:1.45">A Noite continua com o <b>mesmo código de sala</b> e a <b>mesma pergunta</b>. O Captura herda o fecho da manhã para o orçamento inicial.</p>
         <div class="dock" style="flex-wrap:wrap">
           <button class="btn ghost depth" id="toNoite" type="button">Ir para a Noite <span>→</span></button>
           <button class="btn primary depth" id="playAgain" type="button">Sortear a próxima investigação <span>→</span></button>
@@ -181,7 +181,7 @@
       carregar('pauta-da-mesa.js?v=20260906-papel-camada',()=>{
       carregar('fragmentos.js?v=20260901-colheita1',()=>{
         carregar('opening-flow.js?v=20260901-abertura1',()=>{
-          carregar('celular-para-noite.js?v=20260906-papel-camada',()=>{
+          carregar('celular-para-noite.js?v=20260906-noite-rica',()=>{
             carregar('game.js?v=20260906-papel-camada',()=>{
               carregar('iphone-guard.js?v=20260901-rodizio1');
             });
