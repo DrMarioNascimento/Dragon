@@ -1,6 +1,6 @@
-import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
-import { getAuth, GoogleAuthProvider, signInWithPopup, getRedirectResult, signInAnonymously, signOut } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
-import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js';
+import { getAuth, GoogleAuthProvider, signInWithPopup, getRedirectResult, signInAnonymously, signOut } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
+import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 
 /* Esta folha é carregada com type="module", e em módulo document.currentScript
    é null: a configuração da página — projeto Firebase, coleção, nome do evento
@@ -337,7 +337,15 @@ async function entrar(asMaster=false){
       await signOut(auth);
       u=(await signInAnonymously(auth)).user;
     }
-    await setDoc(playerRef(code,u.uid),{nome:nome.slice(0,24),forma,mestre:!!asMaster,pronto:true,papelCognitivo:escolha.papel,camadaAcessibilidade:escolha.camada,entrouMs:Date.now(),atualizadoEmMs:Date.now()},{merge:true});
+    const basePlayer={nome:nome.slice(0,24),forma,mestre:!!asMaster,pronto:true,papelCognitivo:escolha.papel,camadaAcessibilidade:escolha.camada,entrouMs:Date.now(),atualizadoEmMs:Date.now()};
+    let extraPlayer={};
+    try{
+      if(typeof window.DragonSalaAoEntrar==='function'){
+        const x=await window.DragonSalaAoEntrar({code,asMaster,nome,forma,escolha,uid:u.uid,root:ROOT,caseId:CASE_ID});
+        if(x&&typeof x==='object')extraPlayer=x;
+      }
+    }catch(e){console.warn('MOSAICO: DragonSalaAoEntrar',e)}
+    await setDoc(playerRef(code,u.uid),{...basePlayer,...extraPlayer},{merge:true});
     /* Quem manda sobre isto é o documento da sala, não o caminho que a pessoa
        tomou para chegar aqui. O Mestre que recarrega, que volta pelo QR ou que
        reconecta entra pelo mesmo formulário do convidado — e saía marcado como
@@ -348,13 +356,22 @@ async function entrar(asMaster=false){
 }
 function ouvir(){
   unsubRoom?.();unsubPlayers?.();
-  unsubRoom=onSnapshot(roomRef(code),s=>{room=s.exists()?s.data():null;if(!room){if(!gameReleased)menu();return;}if(room.fase==='jogo'&&!gameReleased)liberar({code,role,room,players});else if(!gameReleased)renderLobby();else atualizarSalaPersistente();});
+  unsubRoom=onSnapshot(roomRef(code),s=>{room=s.exists()?s.data():null;if(!room){if(!gameReleased)menu();return;}if(room.fase&&room.fase!=='sala'&&!gameReleased)liberar({code,role,room,players});else if(!gameReleased)renderLobby();else atualizarSalaPersistente();});
   unsubPlayers=onSnapshot(collection(db,ROOT,code,'jogadores'),s=>{players=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.entrouMs||0)-(b.entrouMs||0));if(!gameReleased)renderLobby();else atualizarSalaPersistente()});
 }
 function renderLobby(){
   if(!code||!room)return;const master=role==='master';
   gate().innerHTML=`<div class="dr-shell"><div class="dr-brand">${esc(TITLE)} · ${master?'Mestre da Mesa':'Sala'}</div><div class="dr-card"><h2>${master?'Sala aberta':'Você entrou'}</h2><div class="dr-code">${esc(code)}</div>${master?`<div class="dr-qr">${qr(code)}</div><p class="dr-note">QR e código ficam nesta sala durante toda a entrada dos participantes.</p>`:''}<div class="dr-list">${players.map(p=>{const f=FORMAS[p.forma]||FORMAS.n;return `<div class="dr-player"><span>${f.emoji} ${esc(p.nome||'Jogador')}</span><b>${p.mestre?'Mestre':'Jogador'}</b></div>`}).join('')||'<div class="dr-player"><span>Aguardando jogadores…</span></div>'}</div>${master?`<button class="dr-btn" id="drStart">Iniciar partida</button>`:`<p class="dr-note">Aguardando o Mestre iniciar a partida…</p>`}</div></div>`;
-  if(master)document.getElementById('drStart').onclick=async()=>{await updateDoc(roomRef(code),{fase:'jogo',iniciadaEmMs:Date.now()})}
+  if(master)document.getElementById('drStart').onclick=async()=>{
+    const patch={fase:'jogo',iniciadaEmMs:Date.now()};
+    try{
+      if(typeof window.DragonSalaAntesDeIniciar==='function'){
+        const extra=await window.DragonSalaAntesDeIniciar({code,role,room,players,root:ROOT,caseId:CASE_ID});
+        if(extra&&typeof extra==='object')Object.assign(patch,extra);
+      }
+    }catch(e){console.error('MOSAICO: DragonSalaAntesDeIniciar',e);return}
+    await updateDoc(roomRef(code),patch);
+  }
 }
 function liberar(detail){
   gameReleased=true;document.getElementById('dragonRoomGate')?.remove();
@@ -399,6 +416,12 @@ window.DragonSala={
   telaoPronto,
   get codigo(){return code},
   get papel(){return role},
+  get app(){return app},
+  get auth(){return auth},
+  get db(){return db},
+  get root(){return ROOT},
+  get caseId(){return CASE_ID},
+  get project(){return PROJECT},
 };
 function instalarSalaPersistente(){
   if(document.getElementById('dragonSalaBtn'))return;

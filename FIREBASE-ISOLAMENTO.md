@@ -27,3 +27,15 @@ Raízes canônicas de sala: `mosaico/` e `noite/`. Os nomes `carroforte` /
 `carroforte-noite` existem só como aliases legados em `firestore.rules` —
 nenhum cliente atual cria salas sob esses nomes.
 
+## Gate compartilhado
+
+O lobby multiplayer (Abrir / Entrar / Ensaiar / Telão) vive em `firebase-room.js` para Casa e Carro-Forte. O que muda por caso é só o `data-project` / `data-root` / `data-case`:
+
+| Superfície | data-project | data-root | Projeto |
+|---|---|---|---|
+| Casa Celular | `mesa` | `mosaico` | `mosaico-game` |
+| Carro Celular | `noite` | `mosaico` | `mosaico-noite` |
+| Carro Noite | `noite` | `noite` | `mosaico-noite` |
+
+A Casa mantém `MosaicoFB` para as fases do caso, reutilizando a app Auth/Firestore `dragon-mesa` criada pelo gate.
+

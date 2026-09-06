@@ -111,9 +111,9 @@ Este padrão vale, no mínimo, para:
 Não criar fluxos paralelos de login, identificação, QR ou lobby sem decisão explícita de projeto.
 
 
-## Implementação atual (gap estrutural)
+## Implementação atual
 
-- **Carro-Forte Celular** e **A Noite (Carro-Forte)** usam o gate/lobby compartilhado em `firebase-room.js`.
-- **A Casa da Costa Celular** (`v1/MOSAICO-mesa.html`) ainda tem gate/lobby próprio (Firebase `mosaico-game` + fluxo de personagens/encenação). Os **rótulos, ordem dos botões, badges e ordem do painel Sala** foram alinhados ao canônico; a **infraestrutura** (auth Google do Mestre, anônimo do convidado, QR, início sincronizado) permanece dual até um port completo e seguro para `firebase-room.js`.
-- Porta Solo / hub: CTA **Ensaiar neste aparelho**.
+- **Carro-Forte Celular**, **A Noite (Carro-Forte)** e **A Casa da Costa Celular** usam o mesmo gate/lobby em `firebase-room.js`.
+- Casa: `v1/MOSAICO-mesa.html` carrega `firebase-room.js` com `data-project="mesa"` / `data-root="mosaico"` / `data-case="casa-da-costa"`. A ponte `v1/js/casa-firebase-room-bridge.js` entrega a partida ao motor v1 (personagem, `fase:encenacao`, `MosaicoFB` na app `dragon-mesa`).
+- Porta Solo / hub: CTA **Ensaiar neste aparelho** (no gate da Casa, Ensaiar redireciona para `/solo/`).
 - Forma “Tanto faz”: código canônico **`n`** (Casa aceita legado `?` na leitura).
