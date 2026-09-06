@@ -105,11 +105,11 @@ function render(){if(!state.caso)return;let h=header();if(state.phase==='home')h
   try{
     if(window.MosaicoPapelCamada && state.phase!=='home'){
       var e=window.MosaicoPapelCamada.carregar('casa-da-costa');
-      if(e.camada!=='livre') h+=window.MosaicoPapelCamada.htmlAndaime('casa-da-costa',e);
+      if(e.camada!=='livre') h+=window.MosaicoPapelCamada.htmlAndaime('casa-da-costa',e,{partidaId:state.key,state:{selecionados:state.answers||{}}});
     }
   }catch(err){}
   app.innerHTML=h+'</div>';
-  try{ if(window.MosaicoPapelCamada) window.MosaicoPapelCamada.ligarAndaime(app,'casa-da-costa'); }catch(err){}
+  try{ if(window.MosaicoPapelCamada) window.MosaicoPapelCamada.ligarAndaime(app,'casa-da-costa',null,{partidaId:state.key,state:{selecionados:state.answers||{}}}); }catch(err){}
 }
 function home(){let p=state.caso.partidas[state.key];return '<section class="hero"><span class="k">Uma verdade · uma nova pergunta</span><h1>A verdade é um fragmento.</h1><p class="lead">Reconstrua sozinho as evidências da Casa da Costa. O MOSAICO escolheu automaticamente o problema desta execução.</p><div class="question"><b>'+esc(p.natureza)+' · pergunta-mãe</b><p>'+esc(p.pergunta)+'</p></div><button class="btn" onclick="start()">Começar reconstrução</button><p class="muted small" style="margin-top:16px">Ao concluir, a próxima execução avançará automaticamente para outra pergunta da mesma realidade.</p></section>';}
 function start(){
@@ -121,8 +121,8 @@ function start(){
         if(e.camada!=='livre' && !document.querySelector('[data-mpc-andaime]')){
           var shell=document.querySelector('.shell');
           if(shell){
-            shell.insertAdjacentHTML('beforeend', window.MosaicoPapelCamada.htmlAndaime('casa-da-costa',e));
-            window.MosaicoPapelCamada.ligarAndaime(shell,'casa-da-costa',e);
+            shell.insertAdjacentHTML('beforeend', window.MosaicoPapelCamada.htmlAndaime('casa-da-costa',e,{partidaId:state.key,state:{selecionados:state.answers||{}}}));
+            window.MosaicoPapelCamada.ligarAndaime(shell,'casa-da-costa',e,{partidaId:state.key,state:{selecionados:state.answers||{}}});
           }
         }
       }

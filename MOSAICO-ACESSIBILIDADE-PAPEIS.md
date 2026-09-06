@@ -228,7 +228,7 @@ O MOSAICO não deve tornar o mistério mais simples para incluir jogadores difer
 
 ## 14. Onde a UI vive (implementação)
 
-**Modo · Papel · Camada** (MVP, set/2026):
+**Modo · Papel · Camada** (set/2026):
 
 | Peça | Arquivo |
 |---|---|
@@ -240,4 +240,24 @@ O MOSAICO não deve tornar o mistério mais simples para incluir jogadores difer
 | Chip no HUD + andaime Assistida/Guiada | `MosaicoPapelCamada.aplicarEmJogo` / `htmlAndaime` |
 | Telão (sem papel/camada; pede `?sala=`) | `telao.html` |
 
-Camadas **não** alteram fatos, pistas nem pontuação. Assistida/Guiada no MVP são andaimes estruturais + perguntas socráticas estáticas.
+Camadas **não** alteram fatos, pistas nem pontuação. Assistida/Guiada são andaimes estruturais + perguntas socráticas (processo), sem veredito.
+
+### 14.1 Hipóteses / respostas por camada
+
+**Próximo degrau** (invariância MOSAICO): as mesmas hipóteses e os mesmos campos de decisão existem em Livre, Assistida e Guiada. A camada só muda o **andaime** — como o jogador organiza e testa o raciocínio.
+
+| Peça | Arquivo |
+|---|---|
+| Catálogo player-facing (sem `resposta` / sem `canonica`) | `hipoteses-por-camada.json` |
+| API de apresentação + HTML por densidade | `hipoteses-por-camada.js` → `MosaicoHipotesesCamada` |
+| Integração no andaime (substitui slots vazios do MVP) | `papel-camada.js` → `htmlAndaime` / `trocarCamada` |
+| Carro · fase HIPÓTESE com scaffold Assistida/Guiada | `carro-forte/game.js` → `renderHypothesis` |
+| Testes de invariância / densidade / proibições | `tests/hipoteses-por-camada.test.mjs` |
+
+| Camada | Densidade do painel de hipóteses |
+|---|---|
+| **Livre** | Lista crua / selects dos campos (chrome mínimo). |
+| **Assistida** | + comparação A/B/C, buckets a favor/contra, marcador “não examinadas”; ênfase por papel. |
+| **Guiada** | Assistida + prompts socráticos progressivos e checagem de coerência de *processo* (sem dizer a resposta). |
+
+**Proibido no painel:** `%`, “mais provável”, ranking keyed à solução. Papel muda ênfase do painel, não o conjunto de hipóteses/campos.

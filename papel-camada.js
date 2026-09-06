@@ -1,6 +1,7 @@
-/*! MOSAICO · Papel cognitivo + camada de acessibilidade (MVP)
+/*! MOSAICO · Papel cognitivo + camada de acessibilidade
  * Fonte de design: MOSAICO-ACESSIBILIDADE-PAPEIS.md
  * UI: seletor compacto (celular/solo), chips no cabeçalho, andaimes Assistida/Guiada.
+ * Hipóteses/decisão por camada: integra MosaicoHipotesesCamada (hipoteses-por-camada.js).
  * Telão NÃO carrega isto — é somente leitura.
  */
 (function (global) {
@@ -321,10 +322,27 @@
     }
   }
 
-  function htmlAndaime(caso, escolha) {
+  function htmlAndaime(caso, escolha, opts) {
     var e = escolha || carregar(caso);
     if (e.camada === "livre") return "";
     injetarCss();
+    opts = opts || {};
+    /* Preferir painel real de hipóteses/decisão (mesmo catálogo do jogo). */
+    var HPC = global.MosaicoHipotesesCamada;
+    if (HPC && typeof HPC.htmlPainel === "function" && !opts.forceSlots) {
+      HPC.injetarCss && HPC.injetarCss();
+      var painel = HPC.htmlPainel({
+        caso: caso,
+        papel: e.papel,
+        camada: e.camada,
+        partidaId: opts.partidaId,
+        state: opts.state || {}
+      });
+      return '<aside class="mpc-andaime mpc-andaime-hpc" data-mpc-andaime data-mpc-papel="' + esc(e.papel) +
+        '" data-mpc-camada="' + esc(e.camada) + '">' +
+        "<h3>Andaime · " + esc(aliasNarrativo(caso, e.papel)) + " · " + esc(metaCamada(e.camada).label) + "</h3>" +
+        painel + "</aside>";
+    }
     var slots = slotsPara(e.papel).map(function (s) {
       return '<div class="mpc-slot" data-mpc-slot="' + esc(s.id) + '"><b>' + esc(s.titulo) +
         '</b><textarea rows="2" placeholder="Anote aqui…" data-mpc-note="' + esc(s.id) + '"></textarea></div>';
@@ -346,9 +364,20 @@
       '<div class="mpc-slots">' + slots + "</div>" + mestre + "</aside>";
   }
 
-  function ligarAndaime(raiz, caso, escolha) {
+  function ligarAndaime(raiz, caso, escolha, opts) {
     if (!raiz) return;
     var e = escolha || carregar(caso);
+    opts = opts || {};
+    var HPC = global.MosaicoHipotesesCamada;
+    if (HPC && typeof HPC.ligarPainel === "function" && raiz.querySelector("[data-hpc-painel]")) {
+      HPC.ligarPainel(raiz, {
+        caso: caso,
+        papel: e.papel,
+        camada: e.camada,
+        partidaId: opts.partidaId,
+        state: opts.state || {}
+      });
+    }
     var qs = SOCRATICAS[e.papel] || SOCRATICAS.investigador;
     var mestre = raiz.querySelector("[data-mpc-mestre]");
     if (!mestre) return;
@@ -369,7 +398,7 @@
     });
   }
 
-  /** Injeta andaime + chip se ainda não existirem. Seguro chamar várias vezes. */
+  /** Injeta andaime + chip. Troca densidade se a camada mudou (data-mpc-camada). */
   function aplicarEmJogo(opts) {
     opts = opts || {};
     var caso = normalizarCaso(opts.caso);
@@ -378,13 +407,23 @@
     if (opts.chipAlvo && !document.querySelector("[data-mpc-chips]")) {
       montarChip(opts.chipAlvo, caso, e);
     }
-    if (opts.andaimeAlvo && e.camada !== "livre" && !document.querySelector("[data-mpc-andaime]")) {
+    if (opts.andaimeAlvo) {
       var alvo = typeof opts.andaimeAlvo === "string"
         ? document.querySelector(opts.andaimeAlvo)
         : opts.andaimeAlvo;
       if (alvo) {
-        alvo.insertAdjacentHTML(opts.andaimePos || "afterbegin", htmlAndaime(caso, e));
-        ligarAndaime(alvo, caso, e);
+        var atual = document.querySelector("[data-mpc-andaime]");
+        var precisa = e.camada !== "livre";
+        var camadaMudou = atual && atual.getAttribute("data-mpc-camada") !== e.camada;
+        var papelMudou = atual && atual.getAttribute("data-mpc-papel") !== e.papel;
+        if (atual && (!precisa || camadaMudou || papelMudou || opts.forcar)) {
+          atual.remove();
+          atual = null;
+        }
+        if (precisa && !document.querySelector("[data-mpc-andaime]")) {
+          alvo.insertAdjacentHTML(opts.andaimePos || "afterbegin", htmlAndaime(caso, e, opts));
+          ligarAndaime(alvo, caso, e, opts);
+        }
       }
     }
     return e;
@@ -394,6 +433,7 @@
     PAPEIS: PAPEIS,
     CAMADAS: CAMADAS,
     ALIAS: ALIAS,
+    SOCRATICAS: SOCRATICAS,
     carregar: carregar,
     salvar: salvar,
     aliasNarrativo: aliasNarrativo,
@@ -406,7 +446,20 @@
     htmlAndaime: htmlAndaime,
     ligarAndaime: ligarAndaime,
     aplicarEmJogo: aplicarEmJogo,
+    slotsPara: slotsPara,
     injetarCss: injetarCss,
-    normalizarCaso: normalizarCaso
+    normalizarCaso: normalizarCaso,
+    /** Troca camada/papel e re-renderiza andaime (mesmas hipóteses). */
+    trocarCamada: function (opts) {
+      opts = opts || {};
+      var caso = normalizarCaso(opts.caso);
+      var e = salvar(caso, {
+        papel: opts.papel || (carregar(caso).papel),
+        camada: opts.camada || (carregar(caso).camada)
+      });
+      opts.escolha = e;
+      opts.forcar = true;
+      return aplicarEmJogo(opts);
+    }
   };
 })(typeof window !== "undefined" ? window : globalThis);
