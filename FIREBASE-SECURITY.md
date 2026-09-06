@@ -1,16 +1,29 @@
 # Segurança do Firebase
 
-O MOSAICO usa **dois projetos Firebase independentes**. Essa separação é intencional e deve ser preservada:
+O MOSAICO usa **dois projetos Firebase independentes**, amarrados ao **caso**
+(não ao antigo par Mesa/Noite). Essa separação é intencional e deve ser preservada:
 
-| Experiência | Alias Firebase | Projeto | Estrutura principal |
+| Caso / experiência | Alias Firebase | Projeto | Estrutura principal |
 |---|---|---|---|
-| **A Mesa** | `mesa` | `mosaico-game` | `mosaico/{sala}` |
-| **A Noite** | `noite` | `mosaico-noite` | `noite/{sala}` |
-| **Modo Solo** | `noite` | `mosaico-noite` | `usuarios/{uid}/...` |
+| **A Casa da Costa** (Celular / Telão / Solo) | `mesa` | `mosaico-game` | `mosaico/{sala}`; Solo em `usuarios/{uid}/experiencias/casa-da-costa-solo` |
+| **Casa · fluxo v2** (revisão) | `mesa` | `mosaico-game` | `noite/{sala}` |
+| **A Manhã do Carro-Forte** (Celular / Telão) | `noite` | `mosaico-noite` | `mosaico/{sala}` |
+| **Carro-Forte · fechamento (A Noite)** | `noite` | `mosaico-noite` | `noite/{sala}` |
 
-O arquivo `firestore.rules` é a fonte versionada das regras. Ele pode ser mantido como fonte comum no repositório, mas **precisa ser publicado separadamente em cada projeto Firebase**. Publicar no projeto da Mesa não altera as regras de A Noite, e vice-versa.
+O arquivo `firestore.rules` é a fonte versionada das regras. Ele pode ser mantido como fonte comum no repositório, mas **precisa ser publicado separadamente em cada projeto Firebase**. Publicar no projeto da Casa (`mesa` → `mosaico-game`) não altera as regras do Carro-Forte (`noite` → `mosaico-noite`), e vice-versa.
 
 Os projetos não compartilham banco Firestore, sessão de Authentication, documento `config/mestres` nem estado de sala. Cada projeto deve ter sua própria configuração operacional.
+
+## Coleções-raiz (`known`)
+
+As regras aceitam as raízes canônicas `mosaico` e `noite`, mais os aliases legados
+`carroforte` e `carroforte-noite` (salas antigas). **Clientes atuais só usam
+`mosaico` / `noite`** — ver testes de sincronia Firebase. Não remover os aliases
+sem auditar dados remotos.
+
+`validPartida` restringe o campo raiz `partidaId` aos IDs de pergunta da Casa.
+O Carro-Forte grava a pergunta em `partida.pergunta` (mapa aninhado) e não deve
+escrever `partidaId` na raiz da sala.
 
 ## Autorização do Mestre
 
@@ -22,7 +35,7 @@ A abertura de uma sala exige:
 - `mestreUid` igual ao UID autenticado;
 - sala criada ativa e na fase inicial permitida pelas regras.
 
-Portanto, para **A Noite**, reconhecer o Mestre na interface não é suficiente se as regras ou `config/mestres` do projeto `mosaico-noite` estiverem ausentes/desatualizados. Nessa situação o Firestore devolve `Missing or insufficient permissions`.
+Portanto, para o **Carro-Forte / A Noite**, reconhecer o Mestre na interface não é suficiente se as regras ou `config/mestres` do projeto `mosaico-noite` estiverem ausentes/desatualizados. Nessa situação o Firestore devolve `Missing or insufficient permissions`.
 
 ## Garantias implementadas
 
@@ -48,10 +61,10 @@ Os aliases oficiais estão em `.firebaserc`:
 Com a Firebase CLI autenticada em uma conta autorizada, publique explicitamente no destino desejado:
 
 ```bash
-# A Mesa
+# Casa da Costa (e Solo Casa)
 firebase deploy --only firestore:rules -P mesa
 
-# A Noite + Solo
+# Carro-Forte (Celular + fechamento)
 firebase deploy --only firestore:rules -P noite
 ```
 
@@ -62,11 +75,11 @@ firebase deploy --only firestore:rules -P mesa
 firebase deploy --only firestore:rules -P noite
 ```
 
-Não use apenas o projeto `default` para uma atualização destinada a A Noite. O `default` aponta para `mosaico-game` e, portanto, atualiza somente A Mesa.
+Não use apenas o projeto `default` para uma atualização destinada ao Carro-Forte. O `default` aponta para `mosaico-game` e, portanto, atualiza somente a Casa.
 
-## Checklist de implantação — A Noite
+## Checklist de implantação — Carro-Forte / A Noite
 
-Antes de testar a criação de uma mesa em A Noite, conferir no projeto `mosaico-noite`:
+Antes de testar a criação de uma mesa no Carro-Forte, conferir no projeto `mosaico-noite`:
 
 1. Google habilitado em Authentication;
 2. autenticação anônima habilitada para convidados;
@@ -74,7 +87,7 @@ Antes de testar a criação de uma mesa em A Noite, conferir no projeto `mosaico
 4. documento `config/mestres` existente;
 5. campo `emails` contendo o e-mail autorizado do Mestre;
 6. `firestore.rules` publicado com `-P noite`;
-7. cliente apontando para `projectId: mosaico-noite` e coleção `noite`.
+7. cliente apontando para `projectId: mosaico-noite` e coleção canônica (`mosaico` no Celular; `noite` no fechamento).
 
 Se a interface mostrar o Mestre reconhecido, mas a criação retornar `Missing or insufficient permissions`, verificar primeiro os itens **4, 5 e 6**.
 
@@ -90,4 +103,4 @@ O emulador valida a regra versionada; ele **não comprova que essa mesma versão
 
 ## Princípio de isolamento
 
-**A Mesa e A Noite não devem ser reunidas em um único projeto Firebase.** O isolamento `mosaico-game` / `mosaico-noite` é parte da arquitetura do MOSAICO. Alterações futuras de autenticação, regras ou dados devem sempre indicar explicitamente a qual dos dois projetos se destinam.
+**Casa da Costa e Carro-Forte não devem ser reunidos em um único projeto Firebase.** O isolamento `mosaico-game` / `mosaico-noite` (caso→projeto) é parte da arquitetura do MOSAICO. Alterações futuras de autenticação, regras ou dados devem sempre indicar explicitamente a qual dos dois projetos se destinam.

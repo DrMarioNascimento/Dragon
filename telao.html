@@ -137,10 +137,10 @@ import{getAuth,signInAnonymously}from'https://www.gstatic.com/firebasejs/10.12.5
 import{getFirestore,doc,setDoc,onSnapshot,collection}from'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
 
 /* A TABELA. Acrescentar mesa é acrescentar linha.
-   `colecao` e `fb` andam juntos: as salas da Mesa moram no projeto
-   mosaico-game, coleção `mosaico`; as d'A Noite, em mosaico-noite, coleção
-   `noite`. Ouvir a coleção certa no projeto errado devolve silêncio, não
-   erro — foi por confundir os dois que a Noite já abriu sala no lugar errado. */
+   Caso→projeto: Casa da Costa → mosaico-game; Carro-Forte → mosaico-noite.
+   Dentro de cada projeto, Celular canônico usa coleção `mosaico`; fechamento
+   do Carro (e fluxo v2 da Casa) usa `noite`. `colecao` e `fb` andam juntos —
+   ouvir a coleção certa no projeto errado devolve silêncio, não erro. */
 const FB_MESA={apiKey:'AIzaSyDwshZbqaMOKxdRuyLtdpbijPRdrjVOcxE',authDomain:'mosaico-game.firebaseapp.com',projectId:'mosaico-game',storageBucket:'mosaico-game.firebasestorage.app',messagingSenderId:'436141261767',appId:'1:436141261767:web:6a83555a2f7c4ed4550fe2'};
 const FB_NOITE={apiKey:'AIzaSyA160bkgHBrYBwvIxlENax-aAyLWPMaOU4',authDomain:'mosaico-noite.firebaseapp.com',projectId:'mosaico-noite',storageBucket:'mosaico-noite.firebasestorage.app',messagingSenderId:'703343424116',appId:'1:703343424116:web:e6990b5c00d43aca6e9721'};
 const ARTE_CF={

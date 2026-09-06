@@ -19,6 +19,11 @@ firebase deploy --only firestore:rules -P mesa
 firebase deploy --only firestore:rules -P noite
 ```
 
-`mesa` → `mosaico-game` (Casa da Costa). `noite` → `mosaico-noite` (Manhã / Noite / Solo).
-Publicar só no `default` atualiza apenas a Mesa.
+`mesa` → `mosaico-game` (Casa da Costa: Celular, Telão, Solo Casa, fluxo v2).
+`noite` → `mosaico-noite` (Carro-Forte: Celular / Manhã e fechamento / A Noite).
+Publicar só no `default` atualiza apenas a Casa (`mosaico-game`).
+
+Raízes canônicas de sala: `mosaico/` e `noite/`. Os nomes `carroforte` /
+`carroforte-noite` existem só como aliases legados em `firestore.rules` —
+nenhum cliente atual cria salas sob esses nomes.
 

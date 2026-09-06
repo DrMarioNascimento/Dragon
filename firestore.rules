@@ -3,7 +3,13 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null; }
+    /* Raízes canônicas: mosaico | noite (por projeto — ver FIREBASE-ISOLAMENTO.md).
+       carroforte / carroforte-noite ficam como aliases legados: salas antigas
+       ainda podem existir sob esses nomes; nenhum cliente atual escreve neles.
+       Não remover sem auditar dados remotos. */
     function known(v) { return v in ['mosaico','noite','carroforte','carroforte-noite']; }
+    /* IDs de pergunta da Casa (raiz partidaId). Carro usa partida.pergunta aninhado
+       e NÃO deve gravar partidaId na raiz — se gravar, só passa se for um destes. */
     function validPartida(id) { return id in ['sete','cinco','apagao','nome','corpo','perceber']; }
     function roomPath(v,id) { return /databases/$(database)/documents/$(v)/$(id); }
     function roomExists(v,id) { return exists(roomPath(v,id)); }
