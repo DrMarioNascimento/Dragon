@@ -157,9 +157,9 @@
      Same tokens as v1/css/profundidade-1mais1.css — keep the two in sync.
      Injected here so Celular / Solo / overlays inherit without a <link>. */
   var PF_CSS = [
-    ":root{--pf-navy:#0e1c28;--pf-navy-mid:#152433;--pf-navy-deep:#060d14;--pf-stroke:rgba(127,212,255,.42);--pf-gold:#e8a94a;--pf-gold2:#ffc46b;--pf-gold-face:#ffc878;--pf-gold-base:#d6aa58;--pf-gold-wall:#6a3712;--pf-ink:#f4f9fd;--pf-ink-2:#dfeaf5;--pf-muted:#c5d4dc;--pf-alias:#ffcf8f;--pf-card-fill:linear-gradient(165deg,#152433,#0c1824 58%,#071018);--pf-card-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 18px 50px rgba(0,0,0,.55),0 0 40px rgba(127,212,255,.07);--pf-inset-fill:#060d14;--pf-inset-stroke:rgba(45,68,82,.75);--pf-inset-shadow:inset 0 2px 8px rgba(0,0,0,.58),inset 1px 0 5px rgba(0,0,0,.32),inset 0 -1px 0 rgba(127,212,255,.05)}",
+    ":root{--pf-navy:#0e1c28;--pf-navy-mid:#152433;--pf-navy-deep:#03080d;--pf-stroke:rgba(159,228,255,.52);--pf-gold:#e8a94a;--pf-gold2:#ffc46b;--pf-gold-face:#ffc878;--pf-gold-base:#d6aa58;--pf-gold-wall:#6a3712;--pf-ink:#f4f9fd;--pf-ink-2:#dfeaf5;--pf-muted:#c5d4dc;--pf-alias:#ffcf8f;--pf-card-fill:linear-gradient(165deg,#1a3348,#153044 60%,#102838);--pf-card-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 18px 50px rgba(0,0,0,.55),0 0 40px rgba(127,212,255,.10);--pf-inset-fill:#03080d;--pf-inset-stroke:rgba(20,36,48,.95);--pf-inset-shadow:inset 0 3px 10px rgba(0,0,0,.72),inset 2px 0 6px rgba(0,0,0,.45),inset 0 -1px 0 rgba(127,212,255,.04)}",
     ".pf-card{background:var(--pf-card-fill);border:1px solid var(--pf-stroke);border-radius:14px;box-shadow:var(--pf-card-shadow)}",
-    ".pf-inset{background:var(--pf-inset-fill);border:1px solid var(--pf-inset-stroke);border-radius:10px;box-shadow:var(--pf-inset-shadow);overflow:hidden}",
+    ".pf-inset{background:var(--pf-inset-fill);border:1px solid var(--pf-inset-stroke);border-left:4px solid #6aa8ca;border-radius:10px;box-shadow:var(--pf-inset-shadow);overflow:hidden}",
     ".pf-btn-gold{display:flex;align-items:center;justify-content:center;width:100%;min-height:52px;margin-top:12px;padding:12px 14px;border:0;border-radius:10px;cursor:pointer;background:linear-gradient(180deg,var(--pf-gold-face),var(--pf-gold-base));color:#1b1005;font-weight:800;letter-spacing:.08em;text-transform:uppercase;box-shadow:inset 0 1px 0 #ffe2b4,0 5px 0 var(--pf-gold-wall),0 12px 22px #000a}",
     ".pf-btn-gold:active{transform:translateY(4px);box-shadow:inset 0 1px 0 #ffe2b4,0 1px 0 var(--pf-gold-wall),0 5px 10px #0009}",
     ".pf-btn-ghost{display:flex;align-items:center;justify-content:center;width:100%;min-height:48px;margin-top:10px;padding:12px 14px;border:1px solid #46667a;border-radius:10px;cursor:pointer;background:linear-gradient(180deg,#162a38,#0c1b26);color:var(--pf-ink);font-weight:800;letter-spacing:.06em;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 4px 0 #020609,0 10px 18px #0008}",
@@ -193,7 +193,7 @@
       ".mpc-bloco{margin-top:14px}",
       ".mpc-rotulo{font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:#e8a94a;margin:16px 0 8px}",
       /* Outer spectacular card. Inner carved box is .mpc-grade-inset. */
-      ".mpc-grade{display:flex;flex-direction:column;padding:8px;overflow:hidden}",
+      ".mpc-grade{display:flex;flex-direction:column;padding:10px;overflow:hidden}",
       ".mpc-grade-inset{display:flex;flex-direction:column}",
       /* Inside an already-spectacular gate/sheet, the grade is only the inset. */
       ".dr-card .mpc-grade.pf-card,.mpc-sheet .mpc-grade.pf-card{background:transparent;border:0;box-shadow:none;padding:0;border-radius:0}",

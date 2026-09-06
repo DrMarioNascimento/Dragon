@@ -64,6 +64,17 @@
       if (!window.TarefaSensor) return;
       window.TarefaSensor.avisoAntesModoDedo({ segundos: 3 });
     };
+    var q = new URLSearchParams(location.search);
+    if (q.get("only") === "papel") {
+      var v = document.getElementById("stageVidro");
+      if (v) v.hidden = true;
+    }
+    if (q.get("elenco") === "1") {
+      document.getElementById("stagePapel").hidden = true;
+      document.getElementById("stageVidro").hidden = true;
+      window.__openElenco();
+    }
+    if (q.get("gyro") === "1") window.__openGyro();
   </script>
 </body>
 </html>

@@ -160,6 +160,7 @@ describe("profundidade 1+1 · tokens compartilhados", () => {
     assert.match(pf, /--pf-navy/);
     assert.match(pf, /\.pf-card\{/);
     assert.match(pf, /\.pf-inset\{/);
+    assert.match(pf, /border-left:4px solid #6aa8ca/);
     assert.match(pf, /\.pf-btn-gold\{/);
     assert.match(room, /pf-card/);
     assert.match(room, /rgba\(127,212,255/);
