@@ -1371,7 +1371,8 @@
      enxerga esta pagina. Dentro desta, o caso e o video releem o mesmo
      valor de window.MOSAICO_VERSAO, que sai da tag do mosaico-v5.js. -->
 <script src="js/mosaico-v5.js?v=20260906-placar-local"></script>
-<script src="../papel-camada.js?v=20260906-papel-camada"></script>
+<script src="../hipoteses-por-camada.js?v=20260906-hpc"></script>
+<script src="../papel-camada.js?v=20260906-papel-camada2"></script>
 <script src="js/qr.js?v=20260906-placar-local"></script>
 <script>
 window.MOSAICO_VERSAO=(function(){
@@ -2586,7 +2587,7 @@ function render(forcar){
         if(cab) window.MosaicoPapelCamada.montarChip(cab,'casa-da-costa',escpc);
       }
       if(escpc.camada!=='livre' && STATE.tela==="painel" && !document.querySelector('[data-mpc-andaime]')){
-        window.MosaicoPapelCamada.aplicarEmJogo({caso:'casa-da-costa',escolha:escpc,andaimeAlvo:document.getElementById('app'),andaimePos:'afterbegin'});
+        window.MosaicoPapelCamada.aplicarEmJogo({caso:'casa-da-costa',escolha:escpc,andaimeAlvo:document.getElementById('app'),andaimePos:'afterbegin',partidaId:(STATE.partidaId||(STATE.doc&&STATE.doc.partidaId)||undefined),state:{selecionados:(STATE.v5&&STATE.v5._deducaoDraft)||{}}});
       }
     }
   }catch(_mpc){}

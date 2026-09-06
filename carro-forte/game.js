@@ -715,14 +715,36 @@ function ajustarDock(){
 function renderHypothesis(){
  const g=PARTIDAS[state.game],tem=mao();
  $('hypothesisPrompt').textContent=g.question;
- $('hypothesisList').innerHTML=HIPOTESES.map(h=>{
+ /* Camada só muda chrome/andaime — mesmas HIPOTESES (chaves canônicas). */
+ const escolha=(window.MOSAICO_ROOM&&window.MOSAICO_ROOM.papelCamada)||(window.MosaicoPapelCamada&&window.MosaicoPapelCamada.carregar('carro-forte'))||{papel:'investigador',camada:'livre'};
+ const camada=escolha.camada||'livre';
+ const host=$('hypothesisList');
+ host.innerHTML=HIPOTESES.map(h=>{
   const a=h.apoia.filter(c=>tem.has(c)),e=h.enfraquece.filter(c=>tem.has(c));
   const cls=a.length&&e.length?'tensao':a.length?'apoiada':e.length?'fraca':'neutra';
   const rot=a.length&&e.length?'EM TENSÃO':a.length?'APOIADA':e.length?'ENFRAQUECIDA':'SEM APOIO NA MESA';
   const marcas=[a.length?`apoiada por ${a.join(', ')}`:'',e.length?`enfraquecida por ${e.join(', ')}`:''].filter(Boolean).join(' · ')||'nenhum fragmento desta mesa a toca';
-  return `<label class="hyp-card depth-card ${cls} ${state.hipoteseProv===h.id?'chosen':''}"><input type="radio" name="hip" value="${h.id}" ${state.hipoteseProv===h.id?'checked':''}><span class="hyp-body"><small>${h.id} · ${rot}</small><strong>${h.t}</strong><p>${h.d}</p><em>${marcas}</em></span></label>`;
+  return `<label class="hyp-card depth-card ${cls} ${state.hipoteseProv===h.id?'chosen':''}" data-hip-id="${h.id}"><input type="radio" name="hip" value="${h.id}" ${state.hipoteseProv===h.id?'checked':''}><span class="hyp-body"><small>${h.id} · ${rot}</small><strong>${h.t}</strong><p>${h.d}</p><em>${marcas}</em></span></label>`;
  }).join('');
- $('hypothesisList').querySelectorAll('input').forEach(i=>i.onchange=()=>{state.hipoteseProv=i.value;renderHypothesis()});
+ host.querySelectorAll('input').forEach(i=>i.onchange=()=>{state.hipoteseProv=i.value;renderHypothesis()});
+ /* Assistida/Guiada: densidade extra ao lado da lista (sem veredito / sem %). */
+ let scaffold=host.parentElement&&host.parentElement.querySelector('[data-hpc-hyp-scaffold]');
+ if(scaffold)scaffold.remove();
+ if(camada!=='livre'&&window.MosaicoHipotesesCamada&&host.parentElement){
+  const wrap=document.createElement('div');
+  wrap.setAttribute('data-hpc-hyp-scaffold','1');
+  wrap.innerHTML=window.MosaicoHipotesesCamada.htmlPainel({
+   caso:'carro-forte',papel:escolha.papel,camada,partidaId:state.game,
+   omitHypothesisList:true,omitDecisionFields:true,
+   state:{hipoteseId:state.hipoteseProv,selecionados:state.final||{}}
+  });
+  host.parentElement.insertBefore(wrap, host.nextSibling);
+  window.MosaicoHipotesesCamada.ligarPainel(wrap,{caso:'carro-forte',papel:escolha.papel,camada,partidaId:state.game});
+  /* Sync compare/radio → state.hipoteseProv (mesmas keys). */
+  wrap.querySelectorAll('input[name="hpc-hip"]').forEach(inp=>{
+   inp.onchange=()=>{state.hipoteseProv=inp.value;renderHypothesis();};
+  });
+ }
 }
 
 function renderRelations(){
@@ -1169,9 +1191,12 @@ go('intro');
       escolha,
       chipAlvo:host,
       andaimeAlvo:document.getElementById('app'),
-      andaimePos:'afterbegin'
+      andaimePos:'afterbegin',
+      partidaId:state.game||undefined,
+      state:{hipoteseId:state.hipoteseProv,selecionados:state.final||{}}
     });
   }
   window.addEventListener('carroforte-mesa-ready',()=>setTimeout(aplicar,80),{once:true});
   if(window.MOSAICO_ROOM)setTimeout(aplicar,120);
+  window.mosaicoReaplicarPapelCamada=aplicar;
 })();

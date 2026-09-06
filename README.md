@@ -313,3 +313,5 @@ Repositório público para consulta e GitHub Pages — **não é código aberto*
 ### Modo · Papel · Camada
 
 Fluxo: hub → caso → **Celular / Telão / Solo**. Em Celular e Solo, cada aparelho escolhe **papel cognitivo** + **camada** (Livre / Assistida / Guiada). Implementação: `papel-camada.js` — ver `MOSAICO-ACESSIBILIDADE-PAPEIS.md` §14.
+
+**Hipóteses por camada:** mesmas chaves de hipótese/decisão em Livre · Assistida · Guiada; a camada só muda o andaime (`hipoteses-por-camada.js` + §14.1). Sem probabilidades nem ranking de solução.

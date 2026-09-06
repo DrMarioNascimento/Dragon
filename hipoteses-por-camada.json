@@ -1,0 +1,809 @@
+{
+  "casos": {
+    "casa-da-costa": {
+      "id": "casa-da-costa",
+      "titulo": "A Casa da Costa",
+      "hipoteses": [
+        {
+          "id": "H1",
+          "t": "Assombração",
+          "d": "Respiração, vulto, nome, degrau e relógio formam uma leitura sobrenatural aparente."
+        },
+        {
+          "id": "H2",
+          "t": "Só a casa",
+          "d": "Umidade, madeira e vento explicam parte real dos fenômenos — e a generalização é a armadilha."
+        },
+        {
+          "id": "H3",
+          "t": "Intruso entrou durante a reunião",
+          "d": "Presença física, apagão e pegadas podem ser lidos como entrada recente."
+        },
+        {
+          "id": "H4",
+          "t": "Alguém entrou antes dos seis",
+          "d": "Anotação, nome estranho e cofre encostado deslocam a entrada para antes do inventário, mas ainda para aquela noite."
+        },
+        {
+          "id": "H5",
+          "t": "Tentativa de furto",
+          "d": "Cofre tocado, apagão e movimentação no corredor parecem preparar subtração."
+        },
+        {
+          "id": "H6",
+          "t": "Encenação do apagão",
+          "d": "A coincidência temporal sugere sabotagem até a falha externa aparecer."
+        },
+        {
+          "id": "H7",
+          "t": "O Morador mantém alguém na casa",
+          "d": "Limpeza e rotina doméstica incriminam o caseiro antes de se comparar visitas com consumo."
+        },
+        {
+          "id": "H8",
+          "t": "Alguém mora ali há dias",
+          "d": "Água, boiler, estoque e poeira sustentam ocupação recente."
+        },
+        {
+          "id": "H9",
+          "t": "Alguém mora ali há cinco meses",
+          "d": "Contrato, consumo contínuo e boiler fora das visitas fecham a duração sem ainda fechar a contagem."
+        },
+        {
+          "id": "H10",
+          "t": "Havia sete dentro da casa",
+          "d": "As famílias doméstica, física e documental convergem."
+        }
+      ],
+      "partidas": {
+        "sete": {
+          "titulo": "Sete dentro da casa",
+          "natureza": "QUANTO + ONDE",
+          "pergunta": "Seis pessoas atravessaram o portão. Quantas estavam dentro da casa?",
+          "principal": "contagemReal",
+          "campos": [
+            {
+              "id": "contagemDeclarada",
+              "rotulo": "Contagem declarada",
+              "opcoes": [
+                "5",
+                "6",
+                "7",
+                "8"
+              ]
+            },
+            {
+              "id": "contagemReal",
+              "rotulo": "Contagem real",
+              "opcoes": [
+                "6",
+                "7",
+                "8",
+                "Não é possível determinar"
+              ]
+            },
+            {
+              "id": "sinaisCasa",
+              "rotulo": "Sinais atribuíveis à casa",
+              "opcoes": [
+                "Estalos do sótão e cortina",
+                "Respiração e sombra",
+                "Colher e cadeira morna",
+                "Pegadas e xícaras"
+              ]
+            },
+            {
+              "id": "sinaisCorpo",
+              "rotulo": "Sinais que exigem um corpo",
+              "opcoes": [
+                "Degrau, respiração, sombra e colher",
+                "Estalos, vento e umidade",
+                "Cortina, disjuntor e caixa de passagem",
+                "Névoa, chuva e rangidos gerais"
+              ]
+            },
+            {
+              "id": "localizacao",
+              "rotulo": "Onde estava a pessoa a mais?",
+              "opcoes": [
+                "Quarto de serviço atrás do jardim interno",
+                "Farol",
+                "Anexo do caseiro",
+                "Porão sob o cofre"
+              ]
+            },
+            {
+              "id": "duracao",
+              "rotulo": "Há quanto tempo?",
+              "opcoes": [
+                "Desde aquela tarde",
+                "Quarenta minutos",
+                "Cinco meses",
+                "Catorze meses"
+              ]
+            },
+            {
+              "id": "confirmacao",
+              "rotulo": "O que fecha a contagem?",
+              "opcoes": [
+                "Sete xícaras + ausência seletiva de poeira",
+                "A porta do cofre entreaberta",
+                "A queda de energia",
+                "A janela trancada"
+              ]
+            }
+          ]
+        },
+        "cinco": {
+          "titulo": "Cinco meses",
+          "natureza": "HÁ QUANTO TEMPO",
+          "pergunta": "Desde quando alguém permanece na Casa da Costa?",
+          "principal": "duracao",
+          "campos": [
+            {
+              "id": "duracao",
+              "rotulo": "Duração da permanência",
+              "opcoes": [
+                "Uma noite",
+                "Duas semanas",
+                "Cinco meses",
+                "Catorze meses"
+              ]
+            },
+            {
+              "id": "marco",
+              "rotulo": "Marco inicial",
+              "opcoes": [
+                "O falecimento do antigo dono",
+                "O anúncio do inventário",
+                "O início da tempestade",
+                "A primeira visita do Morador"
+              ]
+            },
+            {
+              "id": "consumo",
+              "rotulo": "Registro que sustenta continuidade",
+              "opcoes": [
+                "Hidrômetro com consumo diário",
+                "Relógio da sala",
+                "Cofre entreaberto",
+                "Queda em três casas"
+              ]
+            },
+            {
+              "id": "rotina",
+              "rotulo": "Outro sinal de rotina",
+              "opcoes": [
+                "Boiler acionado fora das visitas do Morador",
+                "Janela fechada",
+                "Envelope lacrado",
+                "Luz religada às 21h31"
+              ]
+            },
+            {
+              "id": "domestico",
+              "rotulo": "Sinais domésticos",
+              "opcoes": [
+                "Xícaras, poeira e despensa",
+                "Cofre, chave e envelope",
+                "Raio, névoa e vento",
+                "Carros, portão e relógio"
+              ]
+            }
+          ]
+        },
+        "apagao": {
+          "titulo": "Os 2 minutos e 2 segundos",
+          "natureza": "COMO",
+          "pergunta": "Como uma pessoa atravessou a casa durante o apagão sem ser identificada?",
+          "principal": "movimento",
+          "campos": [
+            {
+              "id": "movimento",
+              "rotulo": "O que aconteceu no escuro?",
+              "opcoes": [
+                "Uma pessoa já dentro da casa atravessou corredor e sala",
+                "Alguém entrou pela janela",
+                "O Morador desligou a energia e abriu o cofre",
+                "Ninguém se moveu; tudo foi estrutural"
+              ]
+            },
+            {
+              "id": "inicio",
+              "rotulo": "Onde o deslocamento começa?",
+              "opcoes": [
+                "Vão do sótão",
+                "Portão principal",
+                "Cozinha",
+                "Farol"
+              ]
+            },
+            {
+              "id": "fim",
+              "rotulo": "Para onde ela segue?",
+              "opcoes": [
+                "Porta do jardim / quarto de serviço",
+                "Cofre",
+                "Portão principal",
+                "Anexo do caseiro"
+              ]
+            },
+            {
+              "id": "sinais",
+              "rotulo": "O que acompanha o trajeto?",
+              "opcoes": [
+                "Respiração, sombra e colher chutada",
+                "Somente estalos do sótão",
+                "Abertura da janela",
+                "Disjuntor desligado"
+              ]
+            },
+            {
+              "id": "apagao",
+              "rotulo": "Quem provocou o apagão?",
+              "opcoes": [
+                "Ninguém dentro da casa",
+                "A Sétima",
+                "O Morador",
+                "A Herdeira"
+              ]
+            }
+          ]
+        },
+        "nome": {
+          "titulo": "O nome",
+          "natureza": "QUEM",
+          "pergunta": "De quem é o nome que a secretária eletrônica reproduziu às 21h31?",
+          "principal": "identidade",
+          "campos": [
+            {
+              "id": "identidade",
+              "rotulo": "A quem o nome pertence?",
+              "opcoes": [
+                "À antiga acompanhante do proprietário",
+                "À Herdeira",
+                "Ao Morador",
+                "Ao antigo zelador"
+              ]
+            },
+            {
+              "id": "fonte",
+              "rotulo": "De onde vem o nome?",
+              "opcoes": [
+                "Última mensagem gravada pelo antigo dono",
+                "Ligação feita naquela noite",
+                "Relatório policial",
+                "Contrato lido em voz alta"
+              ]
+            },
+            {
+              "id": "documento",
+              "rotulo": "O que liga o nome a uma pessoa real?",
+              "opcoes": [
+                "Registro de pagamentos de acompanhante",
+                "Registro do cofre",
+                "Conta de energia",
+                "Lista de convidados"
+              ]
+            },
+            {
+              "id": "periodo",
+              "rotulo": "Quando os pagamentos cessaram?",
+              "opcoes": [
+                "Cinco meses atrás",
+                "Naquela manhã",
+                "Catorze meses atrás",
+                "Às 21h31"
+              ]
+            }
+          ]
+        },
+        "corpo": {
+          "titulo": "Casa, corpo ou assombração?",
+          "natureza": "QUAL / QUE TIPO",
+          "pergunta": "Quais fenômenos eram da própria casa e quais exigiam uma presença humana?",
+          "principal": "leitura",
+          "campos": [
+            {
+              "id": "leitura",
+              "rotulo": "Leitura final",
+              "opcoes": [
+                "Parte era a casa; parte exigia um corpo",
+                "Tudo era assombração",
+                "Tudo era estrutura e tempestade",
+                "Tudo foi encenado pelos seis"
+              ]
+            },
+            {
+              "id": "estrutura",
+              "rotulo": "Fenômenos estruturais",
+              "opcoes": [
+                "Estalos do sótão, umidade e cortina",
+                "Respiração, sombra e cadeira morna",
+                "Pegadas, colher e degrau",
+                "Xícaras, contrato e hidrômetro"
+              ]
+            },
+            {
+              "id": "corpo",
+              "rotulo": "Fenômenos que exigem corpo",
+              "opcoes": [
+                "Degrau sob carga, respiração, sombra e cadeira morna",
+                "Higrômetro, vento e caixa de passagem",
+                "Cortina, chuva e disjuntor",
+                "Religamento, envelope e cofre"
+              ]
+            },
+            {
+              "id": "cofre",
+              "rotulo": "O cofre prova o quê?",
+              "opcoes": [
+                "Nada foi furtado; a porta estava apenas encostada",
+                "Houve invasão",
+                "A Herdeira roubou o envelope",
+                "O apagão foi provocado"
+              ]
+            }
+          ]
+        },
+        "perceber": {
+          "titulo": "Quem deveria ter percebido?",
+          "natureza": "QUEM COMPOSTO",
+          "pergunta": "Quem teve oportunidade de perceber a ocupação e por que ela permaneceu invisível?",
+          "principal": "cadeia",
+          "campos": [
+            {
+              "id": "cadeia",
+              "rotulo": "O que melhor explica a falha coletiva?",
+              "opcoes": [
+                "Sinais verdadeiros foram atribuídos a causas isoladas",
+                "Todos sabiam e esconderam",
+                "A casa apagava provas",
+                "A Sétima possuía todas as chaves"
+              ]
+            },
+            {
+              "id": "morador",
+              "rotulo": "Por que o Morador não percebeu?",
+              "opcoes": [
+                "Atribuía a limpeza ao próprio cuidado",
+                "Nunca entrava na casa",
+                "Não conhecia o quarto de serviço",
+                "Estava fora da cidade por cinco meses"
+              ]
+            },
+            {
+              "id": "familia",
+              "rotulo": "O que a família deixou de verificar?",
+              "opcoes": [
+                "A saída efetiva da acompanhante após o falecimento",
+                "A existência do cofre",
+                "O horário do apagão",
+                "O funcionamento da janela"
+              ]
+            },
+            {
+              "id": "grupo",
+              "rotulo": "O que o grupo fez naquela noite?",
+              "opcoes": [
+                "Interpretou sinais antes de recontar pessoas e relações",
+                "Contou sete ao entrar",
+                "Encontrou o quarto de serviço imediatamente",
+                "Provou uma invasão"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "carro-forte": {
+      "id": "carro-forte",
+      "titulo": "A Manhã do Carro-Forte",
+      "hipoteses": [
+        {
+          "id": "H1",
+          "t": "Furto consumado de R$ 480 mil",
+          "d": "Saco vazio, câmera cega, vigilância afastada e lacre rompido."
+        },
+        {
+          "id": "H2",
+          "t": "Furto parcial de R$ 96 mil",
+          "d": "A diferença entre R$ 384 mil físicos e R$ 480 mil declarados."
+        },
+        {
+          "id": "H3",
+          "t": "Troca ou desvio do malote",
+          "d": "Duas etiquetas, coleta antecipada e trajeto pelo corredor."
+        },
+        {
+          "id": "H4",
+          "t": "Tentativa de furto frustrada",
+          "d": "Saco vazio e perturbação da segurança, mas o valor aparece no destino."
+        },
+        {
+          "id": "H5",
+          "t": "Cumplicidade logística",
+          "d": "Rota antecipada, contestação do Transporte e confirmação interna."
+        },
+        {
+          "id": "H6",
+          "t": "Cumplicidade de acesso",
+          "d": "Chave 17-B, Limpeza e Aprendiz com pasta e chaveiro."
+        },
+        {
+          "id": "H7",
+          "t": "O saque é produto do desvio",
+          "d": "O dinheiro em espécie visto antes de sua origem e direção serem compreendidas."
+        },
+        {
+          "id": "H8",
+          "t": "O saque é reposição",
+          "d": "384 + 96 = 480, com lacre novo e janela preparada."
+        },
+        {
+          "id": "H9",
+          "t": "Fraude ou erro contábil anterior",
+          "d": "Duplicidade D-11 e ausência de contagem física explicam o buraco sem subtração."
+        },
+        {
+          "id": "H10",
+          "t": "Nenhum desaparecimento físico na manhã",
+          "d": "Peso de 5,1 kg, tabela operacional e conferência às 8h40."
+        }
+      ],
+      "partidas": {
+        "peso": {
+          "titulo": "O Peso do Malote 41",
+          "natureza": "QUANTO + QUANDO",
+          "pergunta": "O banco anuncia que faltam quatrocentos e oitenta mil reais. Quanto realmente desapareceu?",
+          "principal": "valor-declarado",
+          "campos": [
+            {
+              "id": "valor-declarado",
+              "rotulo": "Valor declarado",
+              "opcoes": [
+                "R$ 480.000",
+                "R$ 384.000",
+                "R$ 96.000",
+                "R$ 0"
+              ]
+            },
+            {
+              "id": "valor-fisico-antes-da-manha",
+              "rotulo": "Valor físico antes da manhã",
+              "opcoes": [
+                "R$ 480.000",
+                "R$ 384.000",
+                "R$ 96.000",
+                "R$ 0"
+              ]
+            },
+            {
+              "id": "movimento-liquido-da-manha",
+              "rotulo": "Movimento líquido da manhã",
+              "opcoes": [
+                "+ R$ 96.000",
+                "− R$ 96.000",
+                "− R$ 480.000",
+                "R$ 0"
+              ]
+            },
+            {
+              "id": "diferenca-fisica-real-as-8h40",
+              "rotulo": "Diferença física real às 8h40",
+              "opcoes": [
+                "R$ 480.000",
+                "R$ 384.000",
+                "R$ 96.000",
+                "R$ 0"
+              ]
+            },
+            {
+              "id": "quando-nasceu-a-diferenca",
+              "rotulo": "Quando nasceu a diferença?",
+              "opcoes": [
+                "Na janela de 87 s",
+                "Às 8h02",
+                "Na véspera",
+                "Onze dias antes"
+              ]
+            }
+          ]
+        },
+        "janela": {
+          "titulo": "Os 87 Segundos",
+          "natureza": "O QUÊ + COMO",
+          "pergunta": "O que realmente aconteceu enquanto a câmera 3 ficou cega?",
+          "principal": "primeiro-evento",
+          "campos": [
+            {
+              "id": "primeiro-evento",
+              "rotulo": "Primeiro evento",
+              "opcoes": [
+                "Rádio afasta Vigilância",
+                "Lacre é rompido",
+                "Malote sai da agência",
+                "Etiqueta é impressa"
+              ]
+            },
+            {
+              "id": "o-que-ocorre-no-malote",
+              "rotulo": "O que ocorre no malote?",
+              "opcoes": [
+                "R$ 480.000 saem",
+                "R$ 96.000 entram",
+                "Nada é tocado",
+                "O malote é trocado"
+              ]
+            },
+            {
+              "id": "o-que-ocorre-com-o-lacre",
+              "rotulo": "O que ocorre com o lacre?",
+              "opcoes": [
+                "Permanece ML-8842",
+                "É trocado por ML-8847",
+                "Desaparece",
+                "É rompido só no destino"
+              ]
+            },
+            {
+              "id": "direcao-do-fluxo",
+              "rotulo": "Direção do fluxo",
+              "opcoes": [
+                "Agência → rua",
+                "Malote → corredor",
+                "Fora → dentro do malote",
+                "Tesouraria → agência"
+              ]
+            },
+            {
+              "id": "fim-da-janela",
+              "rotulo": "Fim da janela",
+              "opcoes": [
+                "7h58min12s",
+                "7h58min50s",
+                "7h59min39s",
+                "8h02"
+              ]
+            }
+          ]
+        },
+        "roubo": {
+          "titulo": "Foi um roubo?",
+          "natureza": "QUAL / QUE TIPO",
+          "pergunta": "Todo mundo viu os sinais de um assalto. Mas houve realmente um roubo?",
+          "principal": "natureza-da-manha",
+          "campos": [
+            {
+              "id": "natureza-da-manha",
+              "rotulo": "Natureza da manhã",
+              "opcoes": [
+                "Roubo consumado",
+                "Tentativa de roubo",
+                "Bagunça administrativa sem ação deliberada",
+                "Encenação operacional de reparação clandestina"
+              ]
+            },
+            {
+              "id": "houve-subtracao-de-valores",
+              "rotulo": "Houve subtração de valores?",
+              "opcoes": [
+                "Sim",
+                "R$ 480.000",
+                "Sim",
+                "R$ 96.000",
+                "Não",
+                "Não é possível saber"
+              ]
+            },
+            {
+              "id": "a-falha-da-camera-foi",
+              "rotulo": "A falha da câmera foi",
+              "opcoes": [
+                "Acidental",
+                "Deliberadamente preparada",
+                "Rotina técnica",
+                "Produzida pela transportadora"
+              ]
+            },
+            {
+              "id": "a-diferenca-central-e",
+              "rotulo": "A diferença central é",
+              "opcoes": [
+                "Patrimonial",
+                "Escritural",
+                "De transporte",
+                "De lacre"
+              ]
+            },
+            {
+              "id": "a-leitura-so-bagunca-e",
+              "rotulo": "A leitura “só bagunça” é",
+              "opcoes": [
+                "Totalmente correta",
+                "Parcialmente correta",
+                "Totalmente falsa",
+                "Irrelevante"
+              ]
+            }
+          ]
+        },
+        "antes": {
+          "titulo": "Antes das 8h02",
+          "natureza": "QUANDO",
+          "pergunta": "Quando nasceu a diferença que todos procuram?",
+          "principal": "ancora-da-manha",
+          "campos": [
+            {
+              "id": "ancora-da-manha",
+              "rotulo": "Âncora da manhã",
+              "opcoes": [
+                "7h47",
+                "7h58min12s",
+                "8h02",
+                "8h40"
+              ]
+            },
+            {
+              "id": "janela-critica",
+              "rotulo": "Janela crítica",
+              "opcoes": [
+                "87 segundos",
+                "3 minutos",
+                "11 dias",
+                "40 minutos"
+              ]
+            },
+            {
+              "id": "momento-da-duplicidade",
+              "rotulo": "Momento da duplicidade",
+              "opcoes": [
+                "Na manhã",
+                "Na véspera",
+                "Onze dias antes",
+                "No destino"
+              ]
+            },
+            {
+              "id": "evento-que-transforma-o-erro-em-ameaca",
+              "rotulo": "Evento que transforma o erro em ameaça",
+              "opcoes": [
+                "Chegada do carro-forte",
+                "Auditoria anunciada na véspera",
+                "Grito às 8h02",
+                "Reset da câmera"
+              ]
+            },
+            {
+              "id": "a-diferenca-fisica-nasce",
+              "rotulo": "A diferença física nasce",
+              "opcoes": [
+                "Às 7h58",
+                "Às 8h02",
+                "Onze dias antes",
+                "Nunca nasce"
+              ]
+            }
+          ]
+        },
+        "quem": {
+          "titulo": "Quem construiu a janela?",
+          "natureza": "QUEM COMPOSTO",
+          "pergunta": "Quem colocou cada peça daqueles 87 segundos em movimento?",
+          "principal": "quem-decide-a-operacao",
+          "campos": [
+            {
+              "id": "quem-decide-a-operacao",
+              "rotulo": "Quem decide a operação?",
+              "opcoes": [
+                "Subgerente",
+                "Limpeza",
+                "Manutenção",
+                "Gerência"
+              ]
+            },
+            {
+              "id": "quem-prepara-a-falha",
+              "rotulo": "Quem prepara a falha?",
+              "opcoes": [
+                "Subgerente",
+                "Manutenção",
+                "Vigilância",
+                "Transporte"
+              ]
+            },
+            {
+              "id": "quem-abre-o-acesso-sem-conhecer-a-finalidade",
+              "rotulo": "Quem abre o acesso sem conhecer a finalidade?",
+              "opcoes": [
+                "Limpeza",
+                "Aprendiz",
+                "Gerência",
+                "Cliente"
+              ]
+            },
+            {
+              "id": "quem-executa-o-reset-autorizado",
+              "rotulo": "Quem executa o reset autorizado?",
+              "opcoes": [
+                "Manutenção",
+                "Subgerente",
+                "Gerência",
+                "Vigilância"
+              ]
+            },
+            {
+              "id": "quem-autoriza-o-reset-sem-contingencia",
+              "rotulo": "Quem autoriza o reset sem contingência?",
+              "opcoes": [
+                "Gerência",
+                "Manutenção",
+                "Transporte",
+                "Caixa Sênior"
+              ]
+            }
+          ]
+        },
+        "proteger": {
+          "titulo": "O que estava sendo protegido?",
+          "natureza": "POR QUÊ",
+          "pergunta": "Se não era o dinheiro, o que alguém estava tentando salvar?",
+          "principal": "o-que-subgerente-teme-perder",
+          "campos": [
+            {
+              "id": "o-que-subgerente-teme-perder",
+              "rotulo": "O que Subgerente teme perder?",
+              "opcoes": [
+                "R$ 480.000",
+                "A assinatura e a carreira",
+                "O malote 41",
+                "A chave 17-B"
+              ]
+            },
+            {
+              "id": "por-que-usar-dinheiro-proprio",
+              "rotulo": "Por que usar dinheiro próprio?",
+              "opcoes": [
+                "Para lavar produto de crime",
+                "Para completar fisicamente o saldo",
+                "Para pagar Transporte",
+                "Para comprar silêncio"
+              ]
+            },
+            {
+              "id": "o-que-dispara-a-urgencia",
+              "rotulo": "O que dispara a urgência?",
+              "opcoes": [
+                "A garoa",
+                "A auditoria integral",
+                "O Cliente",
+                "O relógio da farmácia"
+              ]
+            },
+            {
+              "id": "qual-ato-original-precisa-ser-escondido",
+              "rotulo": "Qual ato original precisa ser escondido?",
+              "opcoes": [
+                "Roubo anterior",
+                "Assinatura sem conferência física",
+                "Erro da transportadora",
+                "Abertura do cofre pelo Cliente"
+              ]
+            },
+            {
+              "id": "o-objetivo-final-e",
+              "rotulo": "O objetivo final é",
+              "opcoes": [
+                "Enriquecimento",
+                "Desviar a auditoria para inocentes",
+                "Fazer registros e dinheiro coincidirem",
+                "Fechar a agência"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  },
+  "_leia": "Catálogo player-facing de hipóteses e campos de decisão. Sem respostas canônicas, sem probabilidade. Camadas só mudam andaime."
+}
