@@ -1371,6 +1371,7 @@
      enxerga esta pagina. Dentro desta, o caso e o video releem o mesmo
      valor de window.MOSAICO_VERSAO, que sai da tag do mosaico-v5.js. -->
 <script src="js/mosaico-v5.js?v=20260906-placar-local"></script>
+<script src="../papel-camada.js?v=20260906-papel-camada"></script>
 <script src="js/qr.js?v=20260906-placar-local"></script>
 <script>
 window.MOSAICO_VERSAO=(function(){
@@ -1561,6 +1562,8 @@ var STATE = {
   revelando:false,
   travaTela:false,
   forma:null,        /* "m" | "f" | "?" — escolha do jogador na entrada */
+  papelCognitivo:"investigador",
+  camadaAcessibilidade:"livre",
   codigoEntrada:"",
   nomeEntrada:"",
   escolha:null,
@@ -2571,6 +2574,22 @@ function render(forcar){
      rodada em que o celular esta sendo sacudido.                     */
   limparBarraInferior();
   app.innerHTML=h;
+  if(STATE.tela==="entrar" && window.MosaicoPapelCamada){
+    var stPc={papel:STATE.papelCognitivo||'investigador',camada:STATE.camadaAcessibilidade||'livre'};
+    window.MosaicoPapelCamada.ligarSeletor(document.querySelector('.mpc-bloco'),stPc);
+  }
+  try{
+    if(window.MosaicoPapelCamada && STATE.eu && (STATE.tela==="painel"||STATE.tela==="esperando")){
+      var escpc={papel:STATE.papelCognitivo||STATE.eu.papelCognitivo||'investigador',camada:STATE.camadaAcessibilidade||STATE.eu.camadaAcessibilidade||'livre'};
+      if(!document.querySelector('[data-mpc-chips]')){
+        var cab=document.querySelector('.rodada-celular')||document.querySelector('.rodada-telao')||document.getElementById('app');
+        if(cab) window.MosaicoPapelCamada.montarChip(cab,'casa-da-costa',escpc);
+      }
+      if(escpc.camada!=='livre' && STATE.tela==="painel" && !document.querySelector('[data-mpc-andaime]')){
+        window.MosaicoPapelCamada.aplicarEmJogo({caso:'casa-da-costa',escolha:escpc,andaimeAlvo:document.getElementById('app'),andaimePos:'afterbegin'});
+      }
+    }
+  }catch(_mpc){}
   if(tipoSensor&&!sensorConcluido)sincronizarControleTarefa(app.querySelector('iframe.tarefa-frame[data-tarefa="'+tipoSensor+'"]'),tipoSensor);
   organizarBarraInferior();
   if(faseMudou)requestAnimationFrame(function(){window.scrollTo(0,0);});
@@ -2783,6 +2802,7 @@ function telaEntrar(){
       '<button class="forma-op'+(STATE.forma==="?"?" on":"")+'" '+
         'onclick="escolherForma(\'?\')"><b>👥</b><span>Tanto faz</span></button>'+
     '</div>'+
+    (window.MosaicoPapelCamada?(window.MosaicoPapelCamada.injetarCss(),window.MosaicoPapelCamada.htmlSeletor('casa-da-costa',{papel:STATE.papelCognitivo||'investigador',camada:STATE.camadaAcessibilidade||'livre'})):'')+
     '<button class="btn btn-ambar" onclick="entrarNaMesa()" '+(criando?'disabled':'')+'>'+(criando?'Criando a mesa…':'Entrar na casa')+'</button>'+
     '<button class="btn btn-fantasma" onclick="irPara(\'inicio\')">&larr; Voltar</button>';
 }
@@ -3575,6 +3595,15 @@ function alternarTelaCheia(){
 function irPara(t){ STATE.tela=t; render(); }
 function escolher(id){ STATE.escolha=id; render(); }
 function escolherForma(f){ STATE.forma=f; render(); }
+(function prefPapelCamada(){
+  function apply(){
+    if(!window.MosaicoPapelCamada)return;
+    var e=window.MosaicoPapelCamada.carregar('casa-da-costa');
+    STATE.papelCognitivo=e.papel;STATE.camadaAcessibilidade=e.camada;
+  }
+  if(window.MosaicoPapelCamada)apply();
+  else document.addEventListener('DOMContentLoaded',function(){setTimeout(apply,0)});
+})();
 function abrirQr(){ STATE.qrAberto=true; render(); }
 function fecharQr(){ STATE.qrAberto=false; render(); }
 
@@ -3807,12 +3836,17 @@ async function entrarNaMesa(){
       if(jaEstao[j].id!==id && jaEstao[j].personagem) ocupados.push(jaEstao[j].personagem);
     var sorteado=sortearPersonagem(ocupados);
 
-    STATE.eu={codigo:codigo,id:id,nome:nome,personagem:sorteado,forma:forma};
+    var MPC=window.MosaicoPapelCamada;
+    var escolha=MPC?MPC.lerSeletor(document.querySelector('.mpc-bloco'),{papel:STATE.papelCognitivo||'investigador',camada:STATE.camadaAcessibilidade||'livre'}):{papel:'investigador',camada:'livre'};
+    if(MPC)MPC.salvar('casa-da-costa',escolha);
+    STATE.papelCognitivo=escolha.papel;STATE.camadaAcessibilidade=escolha.camada;
+    STATE.eu={codigo:codigo,id:id,nome:nome,personagem:sorteado,forma:forma,papelCognitivo:escolha.papel,camadaAcessibilidade:escolha.camada};
     try{ sessionStorage.setItem("mosaico_eu",JSON.stringify(STATE.eu)); }catch(e){}
     try{ localStorage.setItem("mosaico_reconexao",JSON.stringify(STATE.eu)); }catch(e){}
 
     await FB.entrarJogador(codigo,id,{
       nome:nome, personagem:sorteado, forma:forma,
+      papelCognitivo:escolha.papel, camadaAcessibilidade:escolha.camada,
       pronto:false,          /* so o proprio jogador se declara pronto */
       entrouMs:Date.now(), votos:0,
       moedas:((CASO.configuracao||{}).moedasIniciais||9), total:0

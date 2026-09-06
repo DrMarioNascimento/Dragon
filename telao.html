@@ -177,7 +177,19 @@ const stage=document.getElementById('opening');
 if(!jogo){
   waitMsg.textContent='Este endereço pede um jogo que o telão não conhece: “'+pedido+'”. Os que existem são: '+Object.keys(JOGOS).join(', ')+'.';
 }else if(!code){
-  waitMsg.textContent='Código da sala ausente no endereço do telão.';
+  /* Landing Telão chega sem ?sala= — pedir o código aqui (mesmo padrão do
+     firebase-room formTelao). Sem papel/camada: telão é somente leitura. */
+  waitMsg.innerHTML='Digite o código da sala (aparece no aparelho do Mestre).<br><input id="telaoSalaInput" maxlength="6" autocapitalize="characters" placeholder="CÓDIGO" style="margin-top:14px;min-height:52px;width:min(280px,70vw);border-radius:10px;border:1px solid #3c5d70;background:#071014;color:#eef5f2;font:800 22px monospace;letter-spacing:.14em;text-align:center;padding:10px">';
+  const go=document.createElement('button');
+  go.className='ready-btn';go.style.display='inline-block';go.style.marginTop='14px';
+  go.textContent='📺 Abrir o telão';
+  go.onclick=()=>{
+    const c=(document.getElementById('telaoSalaInput').value||'').trim().toUpperCase();
+    if(c.length!==6){waitMsg.insertAdjacentHTML('beforeend','<p style="color:#ff9b8b;font-size:18px">O código tem seis caracteres.</p>');return;}
+    const u=new URL(location.href);u.searchParams.set('sala',c);location.replace(u.toString());
+  };
+  document.querySelector('.waiting-card').appendChild(go);
+  setTimeout(()=>document.getElementById('telaoSalaInput')?.focus(),40);
 }else{
   document.getElementById('wall').style.backgroundImage=`url('${jogo.parede}')`;
   document.getElementById('openImg').src=jogo.abertura;

@@ -310,3 +310,6 @@ Repositório público para consulta e GitHub Pages — **não é código aberto*
 ---
 
 **Prof. Mário César Nascimento, PhD ©**
+### Modo · Papel · Camada
+
+Fluxo: hub → caso → **Celular / Telão / Solo**. Em Celular e Solo, cada aparelho escolhe **papel cognitivo** + **camada** (Livre / Assistida / Guiada). Implementação: `papel-camada.js` — ver `MOSAICO-ACESSIBILIDADE-PAPEIS.md` §14.

@@ -90,11 +90,50 @@ function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){let j=Math.floor(M
 function valida(k){return !!(state.caso&&state.caso.partidas&&state.caso.partidas[k]&&conjunto(k).length);}
 function proxima(){let u='';try{u=localStorage.getItem(CHAVE_ROT)||''}catch(e){}let i=ORDEM.indexOf(u);for(let n=1;n<=ORDEM.length;n++){let k=ORDEM[(i+n+ORDEM.length)%ORDEM.length];if(valida(k))return k}return state.caso.perguntaPadrao||'sete';}
 function marcarUsada(){try{localStorage.setItem(CHAVE_ROT,state.key)}catch(e){}}
-function header(){return '<div class="shell"><div class="top"><div class="brand">MOSAICO · MODO SOLO</div><div class="badge">A Casa da Costa · 1867</div></div>';}
+function header(){
+  var chip='';
+  try{
+    if(window.MosaicoPapelCamada){
+      window.MosaicoPapelCamada.injetarCss();
+      chip=window.MosaicoPapelCamada.chipHtml('casa-da-costa');
+    }
+  }catch(e){}
+  return '<div class="shell"><div class="top"><div class="brand">MOSAICO · MODO SOLO</div><div class="badge">A Casa da Costa · 1867</div>'+chip+'</div>';
+}
 async function load(){try{const r=await fetch('../v1/casos/casa-da-costa.json?v=20260902-banco');if(!r.ok)throw Error();state.caso=await r.json();state.key=proxima();}catch(e){app.innerHTML=header()+'<div class="hero"><span class="k">Falha de carregamento</span><h2>O caso não pôde ser aberto.</h2><p class="muted">Recarregue a página quando a conexão estiver disponível.</p></div></div>';return;}render();}
-function render(){if(!state.caso)return;let h=header();if(state.phase==='home')h+=home();if(state.phase==='puzzle')h+=puzzle();if(state.phase==='fact')h+=fact();if(state.phase==='relations')h+=relations();if(state.phase==='map')h+=map();if(state.phase==='decision')h+=decision();if(state.phase==='result')h+=result();app.innerHTML=h+'</div>';}
+function render(){if(!state.caso)return;let h=header();if(state.phase==='home')h+=home();if(state.phase==='puzzle')h+=puzzle();if(state.phase==='fact')h+=fact();if(state.phase==='relations')h+=relations();if(state.phase==='map')h+=map();if(state.phase==='decision')h+=decision();if(state.phase==='result')h+=result();
+  try{
+    if(window.MosaicoPapelCamada && state.phase!=='home'){
+      var e=window.MosaicoPapelCamada.carregar('casa-da-costa');
+      if(e.camada!=='livre') h+=window.MosaicoPapelCamada.htmlAndaime('casa-da-costa',e);
+    }
+  }catch(err){}
+  app.innerHTML=h+'</div>';
+  try{ if(window.MosaicoPapelCamada) window.MosaicoPapelCamada.ligarAndaime(app,'casa-da-costa'); }catch(err){}
+}
 function home(){let p=state.caso.partidas[state.key];return '<section class="hero"><span class="k">Uma verdade · uma nova pergunta</span><h1>A verdade é um fragmento.</h1><p class="lead">Reconstrua sozinho as evidências da Casa da Costa. O MOSAICO escolheu automaticamente o problema desta execução.</p><div class="question"><b>'+esc(p.natureza)+' · pergunta-mãe</b><p>'+esc(p.pergunta)+'</p></div><button class="btn" onclick="start()">Começar reconstrução</button><p class="muted small" style="margin-top:16px">Ao concluir, a próxima execução avançará automaticamente para outra pergunta da mesma realidade.</p></section>';}
-function start(){marcarUsada();state.i=0;state.seen=[];state.facts={};state.answers={};state.scoreFacts=0;state.phase='puzzle';newPuzzle();render();}
+function start(){
+  function go(){
+    marcarUsada();state.i=0;state.seen=[];state.facts={};state.answers={};state.scoreFacts=0;state.phase='puzzle';newPuzzle();render();
+    try{
+      if(window.MosaicoPapelCamada){
+        var e=window.MosaicoPapelCamada.carregar('casa-da-costa');
+        if(e.camada!=='livre' && !document.querySelector('[data-mpc-andaime]')){
+          var shell=document.querySelector('.shell');
+          if(shell){
+            shell.insertAdjacentHTML('beforeend', window.MosaicoPapelCamada.htmlAndaime('casa-da-costa',e));
+            window.MosaicoPapelCamada.ligarAndaime(shell,'casa-da-costa',e);
+          }
+        }
+      }
+    }catch(err){}
+  }
+  if(window.MosaicoPapelCamada && !state._papelOk){
+    window.MosaicoPapelCamada.mostrarSeletor({caso:'casa-da-costa'}).then(function(){state._papelOk=true;go();});
+    return;
+  }
+  go();
+}
 function currentId(){return conjunto(state.key)[state.i];}
 function newPuzzle(){state.order=shuffle([0,1,2,3]);if(state.order.every((v,i)=>v===i))[state.order[0],state.order[1]]=[state.order[1],state.order[0]];state.pick=null;}
 function puzzle(){let id=currentId(),e=evid(id),p=state.caso.partidas[state.key],pct=Math.round(state.i/conjunto(state.key).length*100);let pieces=state.order.map((n,i)=>'<button class="piece '+(state.pick===i?'sel ':'')+(n===i?'ok':'')+'" data-mark="'+esc(e.icon)+'" onclick="tap('+i+')"><span style="position:absolute;left:7px;top:5px;font-size:10px;opacity:.6">'+(n+1)+'</span></button>').join('');return '<div class="stage"><div><span class="k">'+esc(p.titulo)+'</span><h2>Evidência '+(state.i+1)+' de '+conjunto(state.key).length+'</h2></div><div class="badge">'+pct+'%</div></div><div class="progress"><i style="width:'+pct+'%"></i></div><div class="evidence"><div class="meta"><span>Arquivo fragmentado</span><span>'+esc(e.hora||'—')+'</span></div><h3>'+esc(e.title)+'</h3><div class="puzzle">'+pieces+'</div><p class="muted" style="color:#59452e">Toque em duas peças para trocar suas posições.</p></div>';}

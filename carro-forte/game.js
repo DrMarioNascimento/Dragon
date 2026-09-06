@@ -1155,3 +1155,23 @@ function pintarRelogio(){
 setInterval(pintarRelogio,1000);
 
 go('intro');
+
+
+/* Papel cognitivo + camada (MVP). Chip no HUD; andaime em Assistida/Guiada. */
+(function mosaicoPapelCamadaCarro(){
+  function aplicar(){
+    const MPC=window.MosaicoPapelCamada;
+    if(!MPC)return;
+    const escolha=(window.MOSAICO_ROOM&&window.MOSAICO_ROOM.papelCamada)||MPC.carregar('carro-forte');
+    const host=document.getElementById('mpcChipHost')||document.querySelector('.turnline-right')||document.querySelector('.topbar');
+    MPC.aplicarEmJogo({
+      caso:'carro-forte',
+      escolha,
+      chipAlvo:host,
+      andaimeAlvo:document.getElementById('app'),
+      andaimePos:'afterbegin'
+    });
+  }
+  window.addEventListener('carroforte-mesa-ready',()=>setTimeout(aplicar,80),{once:true});
+  if(window.MOSAICO_ROOM)setTimeout(aplicar,120);
+})();
