@@ -255,7 +255,7 @@
                   k.onload=function(){
                     if(document.querySelector("script[data-telao-casa]"))return;
                     var t=document.createElement("script");
-                    t.src="js/telao-publica.js?v=20260905-casa-telao";
+                    t.src="js/telao-publica.js?v=20260906-placar-local";
                     t.dataset.telaoCasa="1";
                     document.head.appendChild(t);
                   };

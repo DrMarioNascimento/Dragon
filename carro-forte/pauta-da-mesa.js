@@ -31,12 +31,12 @@
    intacto, exatamente como sempre foi. */
 (function () {
   const CFG = {
-    apiKey: 'AIzaSyDwshZbqaMOKxdRuyLtdpbijPRdrjVOcxE',
-    authDomain: 'mosaico-game.firebaseapp.com',
-    projectId: 'mosaico-game',
-    storageBucket: 'mosaico-game.firebasestorage.app',
-    messagingSenderId: '436141261767',
-    appId: '1:436141261767:web:6a83555a2f7c4ed4550fe2',
+    apiKey: 'AIzaSyA160bkgHBrYBwvIxlENax-aAyLWPMaOU4',
+    authDomain: 'mosaico-noite.firebaseapp.com',
+    projectId: 'mosaico-noite',
+    storageBucket: 'mosaico-noite.firebasestorage.app',
+    messagingSenderId: '703343424116',
+    appId: '1:703343424116:web:e6990b5c00d43aca6e9721',
   };
   const COLECAO = 'mosaico';
 
@@ -57,7 +57,8 @@
       import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js'),
     ]);
     const app =
-      appmod.getApps().find((a) => a.name === 'dragon-mesa') ||
+      appmod.getApps().find((a) => a.name === 'dragon-noite') ||
+      appmod.getApps().find((a) => a.options && a.options.projectId === 'mosaico-noite') ||
       appmod.initializeApp(CFG, 'dragon-pauta');
     const auth = authmod.getAuth(app);
     if (!auth.currentUser) await authmod.signInAnonymously(auth);
