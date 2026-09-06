@@ -1370,8 +1370,8 @@
      Sao cinco porque cada modulo sensorial e um documento proprio e nao
      enxerga esta pagina. Dentro desta, o caso e o video releem o mesmo
      valor de window.MOSAICO_VERSAO, que sai da tag do mosaico-v5.js. -->
-<script src="js/mosaico-v5.js?v=20260905-casa-telao"></script>
-<script src="js/qr.js?v=20260905-casa-telao"></script>
+<script src="js/mosaico-v5.js?v=20260906-placar-local"></script>
+<script src="js/qr.js?v=20260906-placar-local"></script>
 <script>
 window.MOSAICO_VERSAO=(function(){
   var s=document.querySelector('script[src*="mosaico-v5.js"]');
@@ -4276,10 +4276,20 @@ async function finalizarPartida(){
     return Object.assign({},n,{qualidade:(pista&&pista.qualidade)||'mediana'});
   });
   var placar=MosaicoV5.calcular({jogadores:STATE.jogadores,deducoes:deducoes,negociacoes:negociacoes,coopColetiva:coletivo,coopIndividual:coopInd,performance:perf});
+  /* Aplique o placar no STATE local ANTES de publicar a fase resultado.
+     Sem isto, telao-publica.js / o pódio leem j.total ainda zerado no mesmo
+     ciclo de render e o telão anuncia zeros até o próximo snapshot. */
+  placar.forEach(function(l){
+    var j=STATE.jogadores.find(function(x){return x.id===l.id;});
+    if(!j)return;
+    j.total=l.total; j.pontuacao=l.componentes; j.economiaDetalhe=l.economia;
+  });
+  var codigoSala=(STATE.mesa&&STATE.mesa.codigo)||(STATE.eu&&STATE.eu.codigo)||"";
+  if(!codigoSala){console.error("MOSAICO: finalizarPartida sem código de sala");return;}
   var FB=await esperarFB();
-  await FB.gravarPlacar(STATE.mesa.codigo,placar);
+  await FB.gravarPlacar(codigoSala,placar);
   var agora=Date.now();
-  await FB.atualizarMesa(STATE.mesa.codigo,{fase:'resultado',revelacaoEtapa:0,reveladaEmMs:agora,solucao:sol,encerramentoIniciadoMs:0,encerramentoConcluido:true,encerramentoConcluidoMs:0});
+  await FB.atualizarMesa(codigoSala,{fase:'resultado',revelacaoEtapa:0,reveladaEmMs:agora,solucao:sol,encerramentoIniciadoMs:0,encerramentoConcluido:true,encerramentoConcluidoMs:0});
 }
 
 /* Encerra a mesa: marca ativa:false. Quem esta jogando ve o aviso e sai,
