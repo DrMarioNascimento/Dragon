@@ -157,7 +157,35 @@ function relationGroups(){
 function relations(){let groups=relationGroups();let html=groups.map(([r,ids],idx)=>'<div class="relation"><span class="k">RELAÇÃO '+(idx+1)+'</span><h3>'+ids.map(id=>esc(evid(id).title)).join(' + ')+'</h3><div class="tags">'+ids.map(id=>'<span class="tag">'+esc(evid(id).fact.split('.')[0])+'</span>').join('')+'</div><p class="muted">Juntos, esses fatos sustentam: <b style="color:var(--gold2)">'+esc(String(r.efeito||'').replace(/.s*$/,''))+'</b>.</p></div>').join('');return '<span class="k">FATO → RELAÇÃO → INFERÊNCIA</span><h2>Agora os fragmentos começam a conversar.</h2><p class="lead">Uma pista isolada é fraca. A relação entre fatos é o que torna a inferência auditável.</p>'+html+'<button class="btn" onclick="state.phase=\'map\';render()">Abrir a planta de 1867</button>';}
 function map(){let p=state.caso.partidas[state.key];return '<span class="k">MAPA DA CASA</span><h2>Onde os fatos se encontram?</h2><p class="lead">Use a planta como síntese espacial. Não procure um culpado: procure onde a pergunta começa a fechar.</p><div class="map"><img src="../v1/img/casa-da-costa-planta-1867.svg" alt="Planta esquemática da Casa da Costa, construção de 1867"><div class="mapnote"><b>'+esc(p.titulo)+'</b><br>'+esc(p.pergunta)+'</div></div><button class="btn" onclick="state.phase=\'decision\';render()">Responder à pergunta</button>';}
 function decision(){let p=state.caso.partidas[state.key];let fields=p.campos.map(f=>'<div class="field"><label>'+esc(f.rotulo)+'</label><select id="f-'+esc(f.id)+'"><option value="">Escolha…</option>'+f.opcoes.map(o=>'<option>'+esc(o)+'</option>').join('')+'</select></div>').join('');return '<span class="k">INFERÊNCIA → DECISÃO</span><h2>'+esc(p.pergunta)+'</h2><p class="lead">Preencha os campos derivados desta pergunta. Depois do envio, a resposta será comparada à realidade canônica.</p><div class="fields">'+fields+'</div><button class="btn red" onclick="finish()">Fechar minha conclusão</button><button class="btn ghost" onclick="state.phase=\'relations\';render()">Rever relações</button>';}
-function finish(){let p=state.caso.partidas[state.key],all=true,correct=0;state.answers={};p.campos.forEach(f=>{let el=document.getElementById('f-'+f.id),v=el?el.value:'';if(!v)all=false;state.answers[f.id]=v;if(v===f.resposta)correct++});if(!all){alert('Preencha todos os campos antes de fechar a conclusão.');return;}state.correct=correct;state.phase='result';render();}
-function result(){let p=state.caso.partidas[state.key],total=p.campos.length,fieldPct=Math.round(100*state.correct/total),factPct=Math.round(100*state.scoreFacts/conjunto(state.key).length),score=Math.round(fieldPct*.7+factPct*.3);let rows=p.campos.map(f=>'<div class="relation"><span class="k">'+esc(f.rotulo)+'</span><p style="margin:.35rem 0"><b>Sua resposta:</b> '+esc(state.answers[f.id])+'</p><p class="muted" style="margin:0"><b>Canônica:</b> '+esc(f.resposta)+'</p></div>').join('');return '<span class="k">REVELAÇÃO</span><h2>'+esc(p.titulo)+'</h2><div class="result"><div class="score">'+score+'</div><p class="muted">Índice desta execução · 30% leitura factual + 70% decisão</p><p class="lead">'+esc(p.revelacao)+'</p></div>'+rows+'<div class="factbox"><b>Realidade canônica</b><span>'+esc(state.caso.realidadeCanonica.sintese)+'</span></div><button class="btn" onclick="nextRun()">Nova partida</button>';}
+function finish(){
+  try{
+    if(window.MosaicoPapelCamada&&window.MosaicoHipotesesCamada){
+      const e=window.MosaicoPapelCamada.carregar('casa-da-costa');
+      const sc=window.MosaicoHipotesesCamada.carregarScaffold('casa-da-costa',{partidaId:state.key,playerId:'local'});
+      /* Sync selects into scaffold selecionados before gate */
+      const painel=document.querySelector('[data-hpc-painel]');
+      if(painel&&window.MosaicoHipotesesCamada.lerEstadoDoPainel){
+        const live=window.MosaicoHipotesesCamada.lerEstadoDoPainel(document);
+        window.MosaicoHipotesesCamada.salvarScaffold('casa-da-costa',live,{partidaId:state.key,playerId:'local'});
+      }
+      const gate=window.MosaicoHipotesesCamada.canConfirmGuiada(
+        window.MosaicoHipotesesCamada.carregarScaffold('casa-da-costa',{partidaId:state.key,playerId:'local'}),
+        {papel:e.papel,camada:e.camada}
+      );
+      if(!gate.ok){alert(gate.reason);return;}
+    }
+  }catch(err){}
+  let p=state.caso.partidas[state.key],all=true,correct=0;state.answers={};p.campos.forEach(f=>{let el=document.getElementById('f-'+f.id),v=el?el.value:'';if(!v)all=false;state.answers[f.id]=v;if(v===f.resposta)correct++});if(!all){alert('Preencha todos os campos antes de fechar a conclusão.');return;}state.correct=correct;state.phase='result';render();
+}
+function result(){let p=state.caso.partidas[state.key],total=p.campos.length,fieldPct=Math.round(100*state.correct/total),factPct=Math.round(100*state.scoreFacts/conjunto(state.key).length),score=Math.round(fieldPct*.7+factPct*.3);let rows=p.campos.map(f=>'<div class="relation"><span class="k">'+esc(f.rotulo)+'</span><p style="margin:.35rem 0"><b>Sua resposta:</b> '+esc(state.answers[f.id])+'</p><p class="muted" style="margin:0"><b>Canônica:</b> '+esc(f.resposta)+'</p></div>').join('');
+  let processo='';
+  try{
+    if(window.MosaicoHipotesesCamada){
+      const sc=window.MosaicoHipotesesCamada.carregarScaffold('casa-da-costa',{partidaId:state.key,playerId:'local'});
+      processo=window.MosaicoHipotesesCamada.htmlRelatorioProcesso(sc,{caso:'casa-da-costa'})||'';
+    }
+  }catch(err){}
+  return '<span class="k">REVELAÇÃO</span><h2>'+esc(p.titulo)+'</h2><div class="result"><div class="score">'+score+'</div><p class="muted">Índice desta execução · 30% leitura factual + 70% decisão</p><p class="lead">'+esc(p.revelacao)+'</p></div>'+processo+rows+'<div class="factbox"><b>Realidade canônica</b><span>'+esc(state.caso.realidadeCanonica.sintese)+'</span></div><button class="btn" onclick="nextRun()">Nova partida</button>';
+}
 function nextRun(){state.key=proxima();state.phase='home';state.i=0;state.seen=[];state.facts={};state.answers={};state.scoreFacts=0;render();}
 load();

@@ -731,15 +731,32 @@ function renderHypothesis(){
  let scaffold=host.parentElement&&host.parentElement.querySelector('[data-hpc-hyp-scaffold]');
  if(scaffold)scaffold.remove();
  if(camada!=='livre'&&window.MosaicoHipotesesCamada&&host.parentElement){
+  const HPC=window.MosaicoHipotesesCamada;
   const wrap=document.createElement('div');
   wrap.setAttribute('data-hpc-hyp-scaffold','1');
-  wrap.innerHTML=window.MosaicoHipotesesCamada.htmlPainel({
+  const playerId=(window.MOSAICO_ROOM&& (window.MOSAICO_ROOM.meuId||window.MOSAICO_ROOM.playerId))||'local';
+  const scaffold=HPC.carregarScaffold('carro-forte',{
+   partidaId:state.game,playerId,
+   state:Object.assign({},state.hpcScaffold||{},{hipoteseId:state.hipoteseProv,selecionados:state.final||{}})
+  });
+  wrap.innerHTML=HPC.htmlPainel({
    caso:'carro-forte',papel:escolha.papel,camada,partidaId:state.game,
    omitHypothesisList:true,omitDecisionFields:true,
-   state:{hipoteseId:state.hipoteseProv,selecionados:state.final||{}}
+   state:scaffold
   });
   host.parentElement.insertBefore(wrap, host.nextSibling);
-  window.MosaicoHipotesesCamada.ligarPainel(wrap,{caso:'carro-forte',papel:escolha.papel,camada,partidaId:state.game});
+  HPC.ligarPainel(wrap,{
+   caso:'carro-forte',papel:escolha.papel,camada,partidaId:state.game,playerId,
+   onChange:function(st){
+    state.hpcScaffold=st;
+    /* Multiplayer hook: espelha contagens em campos do jogador quando existir. */
+    try{
+     const patch=HPC.roomPlayerFields(st);
+     if(window.DragonSala&&typeof window.DragonSala.patchMe==='function')window.DragonSala.patchMe(patch);
+     else if(window.MOSAICO_ROOM)window.MOSAICO_ROOM.hpcScaffold=patch.hpcScaffold;
+    }catch(err){}
+   }
+  });
   /* Sync compare/radio → state.hipoteseProv (mesmas keys). */
   wrap.querySelectorAll('input[name="hpc-hip"]').forEach(inp=>{
    inp.onchange=()=>{state.hipoteseProv=inp.value;renderHypothesis();};
@@ -887,12 +904,22 @@ function renderScore(){
  $('totalScore').textContent=s.total;
  const rows=[['Campos da pergunta',s.campos,45],['Hipótese sustentada',s.hipotese,15],['Relações costuradas',s.relacoes,20],['Leitura do dossiê',s.leitura,10],['Atividades sensoriais',s.sensorial,10],['Revisão de hipótese',s.revisao,5]];
  $('scoreBars').innerHTML=rows.map(([n,v,m])=>`<div class="score-row"><span>${n}</span><div class="bar"><i style="width:${Math.min(100,v/m*100)}%"></i></div><b>${v}</b></div>`).join('');
+ const hpcCards=[];
+ try{
+  const HPC=window.MosaicoHipotesesCamada;
+  if(HPC){
+   const playerId=(window.MOSAICO_ROOM&& (window.MOSAICO_ROOM.meuId||window.MOSAICO_ROOM.playerId))||'local';
+   const sc=state.hpcScaffold||HPC.carregarScaffold('carro-forte',{partidaId:state.game,playerId});
+   const bloco=HPC.htmlRelatorioProcesso(sc,{caso:'carro-forte'});
+   if(bloco)hpcCards.push(bloco);
+  }
+ }catch(err){}
  $('endingCards').innerHTML=[
   `<article class="ending-card depth-card green"><small>PERGUNTA</small><h3>${g.question}</h3><p>${g.answer}</p></article>`,
   `<article class="ending-card depth-card gold"><small>CAMPOS</small><h3>${s.acertos}/${g.fields.length}</h3><p>Campos corretos da resolução específica desta partida.</p></article>`,
   `<article class="ending-card depth-card blue"><small>RELAÇÕES</small><h3>${s.relFeitas}/${s.relDisp}</h3><p>Relações completas nesta mesa que você efetivamente costurou.</p></article>`,
   `<article class="ending-card depth-card"><small>HIPÓTESE</small><h3>${hFinal?hFinal.id+' · '+hFinal.t:'—'}</h3><p>${hFinal&&hFinal.canonica?'Sobrevive ao fechamento auditável.':'Continua plausível, mas não sobrevive às relações físicas.'}${s.revisao?' Você abandonou uma leitura anterior diante de nova evidência — isso conta a favor.':''}</p></article>`
- ].join('');
+ ].concat(hpcCards).join('');
  /* A coleção é o que traz a mesa de volta: as seis perguntas caem em rodízio,
     e o que falta fica visível sem revelar qual vem a seguir. */
  const feitas=fechadas(),total=Object.keys(PARTIDAS).length;
@@ -927,6 +954,17 @@ const PASSO_MS=9000, PODIO_MS=12000;
    preenchido; campo em branco é campo errado, que é o custo de não ter feito. */
 function entregarDecisao(){
  if(state.entregue)return;
+ /* Guiada + Decisor: justificativa curta obrigatória (processo, sem spoiler). */
+ try{
+  const escolha=(window.MOSAICO_ROOM&&window.MOSAICO_ROOM.papelCamada)||(window.MosaicoPapelCamada&&window.MosaicoPapelCamada.carregar('carro-forte'))||{};
+  const HPC=window.MosaicoHipotesesCamada;
+  if(HPC&&HPC.canConfirmGuiada){
+   const playerId=(window.MOSAICO_ROOM&& (window.MOSAICO_ROOM.meuId||window.MOSAICO_ROOM.playerId))||'local';
+   const sc=state.hpcScaffold||HPC.carregarScaffold('carro-forte',{partidaId:state.game,playerId});
+   const gate=HPC.canConfirmGuiada(sc,{papel:escolha.papel,camada:escolha.camada});
+   if(!gate.ok){alert(gate.reason);return;}
+  }
+ }catch(err){}
  const form=$('finalForm');
  const dados=Object.fromEntries(new FormData(form));
  state.hipoteseFinal=(dados.__hip||'').split(' · ')[0];
