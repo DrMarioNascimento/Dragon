@@ -23,6 +23,17 @@ const app=getApps().find(a=>a.name===`dragon-${PROJECT}`)||initializeApp(CONFIGS
 const auth=getAuth(app),db=getFirestore(app);
 const ALPH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const FORMAS={m:{emoji:'👨',label:'Bem-vindo'},f:{emoji:'👩',label:'Bem-vinda'},n:{emoji:'👥',label:'Tanto faz'}};
+function casoPapel(){return CASE_ID||'caso'}
+function ensurePapelCamada(){
+  return new Promise(res=>{
+    if(window.MosaicoPapelCamada)return res(window.MosaicoPapelCamada);
+    const s=document.createElement('script');
+    s.src=new URL('papel-camada.js',script.src).href;
+    s.onload=()=>res(window.MosaicoPapelCamada);
+    s.onerror=()=>res(null);
+    document.head.appendChild(s);
+  });
+}
 let role='',code='',players=[],room=null,unsubRoom=null,unsubPlayers=null,pendingUser=null;
 let unsubTelas=null,telas=[],acaoMestre=null;
 let modo=PROJECT==='mesa'?'com-telao':'sem-telao',ritmo='automatico',salaAberta=false,gameReleased=false,intencao='sala';
@@ -176,8 +187,12 @@ async function abrirComoMestre(user){
 /* O ensaio passa pela mesma validação e não cria nada: sem documento de sala,
    sem código, sem QR. `role` fica vazio de propósito — é ele que decide se o
    botão flutuante da Sala é instalado, e no ensaio não há sala para abrir. */
-function liberarEnsaio(){
+async function liberarEnsaio(){
   role='';code='';room=null;
+  const MPC=await ensurePapelCamada();
+  if(MPC){
+    await MPC.mostrarSeletor({caso:casoPapel()});
+  }
   liberar({local:true,ensaio:true});
 }
 /* A mensagem crua do SDK chegava em inglês e falando de SAML: "Unable to
@@ -281,22 +296,16 @@ function passoTelao(){
   pintarTelao();ouvirTelas();
   document.getElementById('drTelaoNext').onclick=()=>formEntrar('',true);
 }
-function formEntrar(err='',asMaster=false){
-  /* O campo do nome vinha preenchido com o displayName da conta Google, então o
-     Mestre entrava na mesa com o nome civil completo e ele aparecia no lobby e
-     no estado público para todos os participantes. Isto é um jogo: o nome é da
-     partida, escolhido na hora, e a conta Google serve só para autorizar quem
-     abre. O campo nasce vazio, e nada da conta é gravado — o documento do
-     jogador guarda apenas o que foi digitado aqui. */
-  /* Eram duas telas para o Mestre: uma explicando o botão Sala, com um "Entendi
-     · continuar", e só depois o formulário de nome. Logo após o Google, isso
-     parecia pedido de login repetido. O aviso da Sala virou um bloco dentro do
-     próprio formulário, e o Mestre entra na mesa em um toque.
-
-     Aqui o Mestre não tem "Voltar": a sala já existe no Firestore quando esta
-     tela aparece, e voltar ao menu a deixaria órfã, aberta e sem dono. */
+async function formEntrar(err='',asMaster=false){
+  /* Papel cognitivo + camada no mesmo ecrã do nome (não é wizard).
+     Persistência local + campos no doc do jogador. Telão não passa por aqui. */
   const aviso=asMaster?`<div class="dr-master-info"><p>Sala criada. Durante a partida você continua jogando normalmente.</p><p>O botão <b>Sala</b> fica disponível o tempo todo: por ele você acompanha os participantes, consulta QR e código, e encerra a sala.</p></div>`:'';
-  gate().innerHTML=`<div class="dr-shell"><div class="dr-brand">${esc(TITLE)}${asMaster?' · ÁREA DO MESTRE':''}</div><div class="dr-card"><h2>${asMaster?'Sua mesa está aberta':'Quem chega agora?'}</h2><p>Escolha o nome que a mesa vai ver nesta partida. Não precisa ser o seu.</p>${aviso}<input class="dr-input" id="drCode" maxlength="6" placeholder="CÓDIGO" value="${esc(code||q||'')}" ${asMaster?'readonly':''}><div class="dr-ident">Nome nesta partida</div><input class="dr-input" id="drName" maxlength="24" placeholder="Como quer ser chamado" autocomplete="off">${formas('m')}${err?`<div class="dr-error">${esc(err)}</div>`:''}<button class="dr-btn" id="drEnter">${asMaster?'Entrar na mesa':'Entrar'}</button>${asMaster?'':'<button class="dr-btn secondary" id="drBack">Voltar</button>'}</div></div>`;
+  const MPC=await ensurePapelCamada();
+  MPC?.injetarCss?.();
+  const escolha=MPC?MPC.carregar(casoPapel()):{papel:'investigador',camada:'livre'};
+  const blocoPapel=MPC?MPC.htmlSeletor(casoPapel(),escolha):'';
+  gate().innerHTML=`<div class="dr-shell"><div class="dr-brand">${esc(TITLE)}${asMaster?' · ÁREA DO MESTRE':''}</div><div class="dr-card"><h2>${asMaster?'Sua mesa está aberta':'Quem chega agora?'}</h2><p>Escolha o nome que a mesa vai ver nesta partida. Não precisa ser o seu.</p>${aviso}<input class="dr-input" id="drCode" maxlength="6" placeholder="CÓDIGO" value="${esc(code||q||'')}" ${asMaster?'readonly':''}><div class="dr-ident">Nome nesta partida</div><input class="dr-input" id="drName" maxlength="24" placeholder="Como quer ser chamado" autocomplete="off">${formas('m')}${blocoPapel}${err?`<div class="dr-error">${esc(err)}</div>`:''}<button class="dr-btn" id="drEnter">${asMaster?'Entrar na mesa':'Entrar'}</button>${asMaster?'':'<button class="dr-btn secondary" id="drBack">Voltar</button>'}</div></div>`;
+  if(MPC)MPC.ligarSeletor(gate().querySelector('.mpc-bloco'),escolha);
   document.getElementById('drBack')?.addEventListener('click',()=>menu());
   document.getElementById('drEnter').onclick=()=>entrar(asMaster);
   setTimeout(()=>document.getElementById('drName')?.focus(),20)
@@ -304,6 +313,9 @@ function formEntrar(err='',asMaster=false){
 async function entrar(asMaster=false){
   try{
     code=(document.getElementById('drCode').value||'').trim().toUpperCase();const nome=(document.getElementById('drName').value||'').trim(),forma=formaAtual();
+    const MPC=window.MosaicoPapelCamada;
+    const escolha=MPC?MPC.lerSeletor(gate().querySelector('.mpc-bloco'),MPC.carregar(casoPapel())):{papel:'investigador',camada:'livre'};
+    if(MPC)MPC.salvar(casoPapel(),escolha);
     if(code.length!==6||!nome)return formEntrar('Informe o código e seu nome.',asMaster);
     /* Autenticar antes de ler. A regra de `get` exige signedIn(), e um
        aparelho que chega pelo QR não tem sessão nenhuma: lendo primeiro, o
@@ -325,7 +337,7 @@ async function entrar(asMaster=false){
       await signOut(auth);
       u=(await signInAnonymously(auth)).user;
     }
-    await setDoc(playerRef(code,u.uid),{nome:nome.slice(0,24),forma,mestre:!!asMaster,pronto:true,entrouMs:Date.now(),atualizadoEmMs:Date.now()},{merge:true});
+    await setDoc(playerRef(code,u.uid),{nome:nome.slice(0,24),forma,mestre:!!asMaster,pronto:true,papelCognitivo:escolha.papel,camadaAcessibilidade:escolha.camada,entrouMs:Date.now(),atualizadoEmMs:Date.now()},{merge:true});
     /* Quem manda sobre isto é o documento da sala, não o caminho que a pessoa
        tomou para chegar aqui. O Mestre que recarrega, que volta pelo QR ou que
        reconecta entra pelo mesmo formulário do convidado — e saía marcado como
@@ -345,7 +357,10 @@ function renderLobby(){
   if(master)document.getElementById('drStart').onclick=async()=>{await updateDoc(roomRef(code),{fase:'jogo',iniciadaEmMs:Date.now()})}
 }
 function liberar(detail){
-  gameReleased=true;document.getElementById('dragonRoomGate')?.remove();window.MOSAICO_ROOM=detail;
+  gameReleased=true;document.getElementById('dragonRoomGate')?.remove();
+  const MPC=window.MosaicoPapelCamada;
+  if(MPC){detail.papelCamada=MPC.carregar(casoPapel());}
+  window.MOSAICO_ROOM=detail;
   if(role==='master'){instalarSalaPersistente();if(code)ouvirTelas();}
   window.dispatchEvent(new CustomEvent(READY_EVENT,{detail}));
 }
@@ -394,6 +409,9 @@ async function encerrarSala(){
   catch(e){alert('Não foi possível encerrar a sala. '+(e?.message||e));}
 }
 css();
+const qsSolo=new URLSearchParams(location.search);
+const querEnsaio=qsSolo.get('soloLab')==='1'||qsSolo.has('bots');
+if(querEnsaio){intencao='ensaio';}
 getRedirectResult(auth).then(r=>{
   const voltandoDoGoogle=recuperarEscolhas();
   /* Se o Google devolveu usuário, seguimos mesmo sem a marca da viagem: alguns
@@ -403,6 +421,7 @@ getRedirectResult(auth).then(r=>{
   if(r?.user)return abrirComoMestre(r.user);
   if(voltandoDoGoogle)return renderMasterGate('O Google voltou sem concluir o login neste navegador. Toque em “Abrir com Google” de novo: desta vez a janela abre por cima desta página, sem sair dela.');
   if(q){code=q.toUpperCase();return formEntrar('',false)}
+  if(querEnsaio)return renderMasterGate();
   menu();
 }).catch(e=>{
   const voltandoDoGoogle=recuperarEscolhas();
@@ -413,5 +432,6 @@ getRedirectResult(auth).then(r=>{
   const erroDeLogin=/missing initial state|auth\//i.test(String(e?.code||'')+' '+String(e?.message||''));
   if(voltandoDoGoogle||erroDeLogin)return renderMasterGate(mensagemLogin(e));
   if(q){code=q.toUpperCase();return formEntrar('',false)}
+  if(querEnsaio)return renderMasterGate();
   menu();
 });
