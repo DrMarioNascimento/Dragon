@@ -304,26 +304,41 @@ function distribuirTercos(lista){
    de sair, senão a virada do saco repetiria a mesma pergunta duas vezes
    seguidas. Ninguém revê uma pergunta antes de ver as seis.
 
-   A Mesa roda numa tela só, a da mesa, então o rodízio é dessa tela. Se um dia
-   ela for jogada em vários aparelhos na mesma sala, esta escolha precisa subir
-   para o documento da sala — como A Noite faz em sala-partida.js —, senão cada
-   aparelho abre uma pergunta diferente. */
+   Em multiplayer o saco canônico mora no documento da sala (`partida.rodizio`),
+   escrito pelo Mestre via pauta-da-mesa.js — como A Noite em sala-partida.js.
+   localStorage fica só para ensaio/solo/offline: aparelhos na mesma sala não
+   podem cada um sortear o próprio saco. */
 const RODIZIO='mosaico-cf-rodizio';
 function lerRodizio(){try{return JSON.parse(localStorage.getItem(RODIZIO))||{}}catch(e){return{}}}
 function salvarRodizio(r){try{localStorage.setItem(RODIZIO,JSON.stringify(r))}catch(e){}}
-function proximaPartida(){
- const ids=Object.keys(PARTIDAS),r=lerRodizio();
- let saco=Array.isArray(r.saco)?r.saco.filter(id=>ids.includes(id)):[];
- if(!saco.length){saco=embaralhar(ids);if(saco[0]===r.ultima&&saco.length>1)saco.push(saco.shift())}
+/* Avança um saco sem I/O: multiplayer aplica o resultado no doc da sala;
+   solo grava em localStorage via proximaPartida(). */
+function avancarRodizio(r){
+ const ids=Object.keys(PARTIDAS),base=r&&typeof r==='object'?r:{};
+ let saco=Array.isArray(base.saco)?base.saco.filter(id=>ids.includes(id)):[];
+ if(!saco.length){saco=embaralhar(ids);if(saco[0]===base.ultima&&saco.length>1)saco.push(saco.shift())}
  const id=saco.shift();
- salvarRodizio({...r,saco,ultima:id});
+ const fechadas=[...new Set([...(Array.isArray(base.fechadas)?base.fechadas:[])].filter(x=>ids.includes(x)))];
+ return {id,rodizio:{saco,ultima:id,fechadas}};
+}
+function proximaPartida(){
+ const {id,rodizio}=avancarRodizio(lerRodizio());
+ salvarRodizio(rodizio);
  return id;
 }
 function marcarFechada(id){
+ if(window.MosaicoPauta?.marcarFechadaSala){
+  window.MosaicoPauta.marcarFechadaSala(id);
+  return;
+ }
  const r=lerRodizio();
  salvarRodizio({...r,fechadas:[...new Set([...(r.fechadas||[]),id])]});
 }
-function fechadas(){return (lerRodizio().fechadas||[]).filter(id=>PARTIDAS[id])}
+function fechadas(){
+ const sala=window.MosaicoPauta?.rodizio?.();
+ if(sala)return (sala.fechadas||[]).filter(id=>PARTIDAS[id]);
+ return (lerRodizio().fechadas||[]).filter(id=>PARTIDAS[id]);
+}
 
 /* ── Telas ─────────────────────────────────────────────────────────────── */
 function selectGame(id){
@@ -1011,7 +1026,8 @@ function abrirPauta(anterior){
  const local=()=>proximaPartida();
  const seguir=r=>{aplicarOpcoes(r?.opcoes||meu);selectGame(r?.pergunta||local())};
  if(!window.MosaicoPauta){aplicarOpcoes(meu);return selectGame(local())}
- window.MosaicoPauta.escolher(local,anterior||null,meu).then(seguir)
+ /* avancarRodizio sobe o saco para a sala; local() só entra sem sala / fallback. */
+ window.MosaicoPauta.escolher(local,anterior||null,meu,avancarRodizio).then(seguir)
   .catch(e=>{console.error('MOSAICO: pauta falhou; sorteio local.',e);aplicarOpcoes(meu);selectGame(local())});
 }
 /* A ABERTURA TOCA NUM APARELHO SÓ. Quem decide onde é o pauta-da-mesa.js: com
