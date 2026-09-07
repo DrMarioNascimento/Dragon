@@ -406,7 +406,7 @@
 </div>
 
 <!-- Protocolo com a Mesa e ativacao de sensor: um so arquivo para as tres tarefas. -->
-<script src="js/tarefa-sensor.js?v=20260907-elenco-pista"></script>
+<script src="js/tarefa-sensor.js?v=20260907-playtest-ux"></script>
 <script>
 (function(){
 "use strict";
@@ -2452,7 +2452,7 @@ function revela(){
    UI
    ========================================================================== */
 var mAberto=false, jogando=false;
-/* Modal de elenco: a Janela não começa até OK (mesmo espírito do aviso de dedo). */
+/* Elenco agora é da mesa (antes da encenação). A Janela não espera OK. */
 var _elencoJanelaOk=false;
 function elencoJanelaPodeComecar(){ return _elencoJanelaOk; }
 function fechaIntro(){
@@ -2570,17 +2570,9 @@ document.getElementById("b-sim").addEventListener("click",function(){
   if(!elencoJanelaPodeComecar()) return;
   entrarModoDedo("Arraste para girar. Q/E inclinam.");
 });
-if(typeof TarefaSensor!=="undefined"&&TarefaSensor.avisoElencoAntesJanela){
-  var ctxElenco=ctxMesa();
-  TarefaSensor.avisoElencoAntesJanela({
-    caso:"casa-da-costa",
-    embed:ctxElenco.embed,
-    runId:ctxElenco.runId,
-    aoLiberar:function(){ _elencoJanelaOk=true; }
-  });
-} else {
-  _elencoJanelaOk=true;
-}
+/* Elenco (quem você é) agora abre na mesa ANTES da encenação.
+   A Janela não espera mais esse OK — quem chegou aqui já sabe o papel. */
+_elencoJanelaOk=true;
 document.getElementById("b-beam").addEventListener("click",function(e){
   e.stopPropagation();
   if(!beamOn){ beamOn=true; }

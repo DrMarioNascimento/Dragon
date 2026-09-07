@@ -240,7 +240,7 @@ O MOSAICO não deve tornar o mistério mais simples para incluir jogadores difer
 | Seletor Solo Casa | `solo/solo-auto.js` (antes de “Começar”) |
 | Chip no HUD + andaime Assistida/Guiada | `MosaicoPapelCamada.aplicarEmJogo` / `htmlAndaime` |
 | Telão (sem papel/camada; pede `?sala=`) | `telao.html` |
-| Modal de elenco antes da Janela do Norte (Casa) | `tarefa-sensor.js` → `avisoElencoAntesJanela` · gate em `v1/MOSAICO-26-a-janela-do-norte.html` |
+| Modal de elenco antes da encenação (Casa) | mesa `telaElencoIntro` · `elencoEmJogo` (só assentos ocupados) · `tarefa-sensor.js` `resolverElenco` |
 
 O seletor de papel/camada é **uma caixa externa por bloco** (Papel Cognitivo · Camada de Assistência), com células empilhadas de três linhas: título · subtítulo · ação. IDs internos (`investigador`, `livre`…) não mudam. O Decisor usa **Coordenador da investigação** (não “Instigação”).
 

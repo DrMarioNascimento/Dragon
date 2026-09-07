@@ -364,6 +364,11 @@
   <p>A cada vez, uma <b>frase</b> aparece no alto. Ela não diz onde está — diz <b>o que é</b>. Decifre e procure.</p>
   <p class="small"><b>Ache os nove antes dos outros. Não conte o que descobriu.</b> O farol da costa passa a cada nove segundos e mostra a sala inteira por um instante — use a passagem dele.</p>
   <p class="small" id="hist-nota">Os objetos preservam registros de momentos anteriores da noite.</p>
+  <div class="pf-card" id="sala-explica" style="margin:12px 0 16px;padding:4px;text-align:left">
+    <div class="pf-inset" id="sala-explica-txt" style="padding:14px 16px;font:500 15px/1.45 system-ui,sans-serif;color:#dfeaf5">
+      As luzes caíram e você está no escuro. Acenda a lanterna e ache os objetos até preencher a barrinha. São <b id="sala-explica-n">9</b> pistas para achar.
+    </div>
+  </div>
   <button class="go" id="b-entrar">Entrar na sala</button>
   <button class="alt" id="b-sim">Estou no computador</button>
   <div id="rodada">RODADA <b id="cod-rodada">----</b></div>
@@ -388,7 +393,7 @@
 </div>
 
 <!-- Protocolo com a Mesa e ativacao de sensor: um so arquivo para as tres tarefas. -->
-<script src="js/tarefa-sensor.js?v=20260907-elenco-pista"></script>
+<script src="js/tarefa-sensor.js?v=20260907-playtest-ux"></script>
 <script>
 (function(){
 "use strict";
@@ -409,6 +414,7 @@ var CFG = {
   VFOV: 68,          /* campo de visão vertical, graus */
   TOL_ROLL: 18,
   HOLD_MS: 1400,     /* tempo firme no objeto para se aproximar */
+  HOLD_MS_ANDROID: 2400, /* playtest: no Android o alvo enchia demais depressa */
   ROUND_MIN: 30,
   FOLGA: 1,          /* multiplicador de tolerância (painel do mestre) */
   SOLTA: 1.7,        /* histerese: a janela alarga depois de engatar */
@@ -419,6 +425,14 @@ var CFG = {
   SALA_H: 2.95,      /* pé-direito */
   OLHO: 1.55
 };
+if(typeof TarefaSensor!=="undefined"&&TarefaSensor.holdMsPorPlataforma){
+  CFG.HOLD_MS=TarefaSensor.holdMsPorPlataforma(
+    typeof navigator!=="undefined"?navigator.userAgent:"",
+    {base:CFG.HOLD_MS, android:CFG.HOLD_MS_ANDROID}
+  );
+}else if(typeof navigator!=="undefined"&&/Android/i.test(navigator.userAgent||"")){
+  CFG.HOLD_MS=CFG.HOLD_MS_ANDROID;
+}
 
 /* ==========================================================================
    OS OITO OBJETOS
@@ -496,6 +510,10 @@ var OBJETOS = [
     txt:"No fundo da gaveta, ligada na tomada de rodapé. A luz vermelha volta a piscar quando a energia retorna, a fita rebobina sozinha e toca uma gravação antiga: alguém avisa que chega tarde, e diz um nome.",
     obs:"O nome não é de nenhum dos seis." }
 ];
+(function(){
+  var n=document.getElementById("sala-explica-n");
+  if(n) n.textContent=String(OBJETOS.length);
+})();
 
 /* ==========================================================================
    ENTRADA PELA URL  —  ?embed=1&s=SEMENTE&run=IDENTIFICADOR[&dev=1]
