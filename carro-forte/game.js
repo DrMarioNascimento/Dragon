@@ -673,7 +673,7 @@ addEventListener('message',e=>{if(e.origin===location.origin)receberAviso(e.data
 
 function cartaoFragmento(cod){
  const f=FRAGMENTOS[cod],m=state.marcados.has(cod);
- return `<button class="fragment depth ${m?'marked':''}" data-f="${cod}" type="button" aria-pressed="${m}"><small>${cod} · ${f.f.toUpperCase()}</small><strong>${f.t}</strong><p>${f.d}</p></button>`;
+ return `<button class="fragment depth ${m?'marked':''}" data-f="${cod}" type="button" aria-pressed="${m}"><small class="carta-num">${cod} · ${f.f.toUpperCase()}</small><strong>${f.t}</strong><p>${f.d}</p></button>`;
 }
 
 function renderDossie(){

@@ -163,6 +163,8 @@ describe("sensor · finger + soft deadline", () => {
     assert.match(TS, /elencoPodeLiberar\s*=\s*function/);
     assert.match(TS, /Os personagens do jogo são:/);
     assert.match(TS, /O seu personagem é:/);
+    assert.match(TS, /ELENCO_DESTAQUE\s*=\s*["']rodape["']/);
+    assert.match(TS, /elencoChromeDuplo/);
     assert.match(TS, /ELENCO_CASA_CANONICO/);
     assert.match(TS, /injetarProfundidade1mais1/);
     assert.match(TS, /pf-card/);
@@ -183,6 +185,7 @@ describe("sensor · finger + soft deadline", () => {
         createElement: () => ({ dataset: {}, style: {}, setAttribute() {}, addEventListener() {}, appendChild() {} }),
         body: { appendChild() {} },
         head: { appendChild() {} },
+        documentElement: { classList: { toggle() {} } },
       },
     });
     ctx.window = ctx;
@@ -193,6 +196,13 @@ describe("sensor · finger + soft deadline", () => {
     assert.equal(api.elencoPodeLiberar({ usuarioOk: true }), true);
     assert.equal(api.ELENCO_TIT, "Os personagens do jogo são:");
     assert.equal(api.ELENCO_SEU_TIT, "O seu personagem é:");
+    assert.equal(api.ELENCO_DESTAQUE, "rodape");
+    assert.equal(api.elencoDestacaNaLista(), false);
+    assert.equal(api.elencoDestacaNoRodape(), true);
+    assert.equal(api.elencoChromeDuplo(true, true), true);
+    assert.equal(api.elencoChromeDuplo(false, true), false);
+    assert.equal(/ts-pf-li\.meu/.test(TS) && /li\.className\s*=\s*ehMeu/.test(TS), false,
+      "elenco não pode marcar lista E rodapé ao mesmo tempo");
     const casa = JSON.parse(ler("v1/casos/casa-da-costa.json"));
     const host = (v) => JSON.parse(JSON.stringify(v));
     assert.deepEqual(

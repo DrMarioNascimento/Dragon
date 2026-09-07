@@ -265,12 +265,14 @@
   @keyframes pecaPortador{0%,100%{transform:rotate(-2deg) scale(.96);filter:drop-shadow(0 0 5px rgba(217,154,34,.6))}
     50%{transform:rotate(2deg) scale(1.06);filter:drop-shadow(0 0 12px rgba(255,232,137,1))}}
   .mosaico-dicas,.mosaico-campos{display:grid;gap:5px}
-  .mosaico-dica{display:grid;grid-template-columns:64px 1fr;gap:8px;align-items:center;min-height:49px;
+  .mosaico-dica{display:grid;grid-template-columns:minmax(88px,auto) 1fr;gap:8px;align-items:center;min-height:49px;
     padding:7px 9px;border:1px solid rgba(127,212,255,.22);border-radius:7px;background:rgba(9,17,25,.78)}
-  .mosaico-dica time{color:#f7c94a;font:900 17px/1 var(--sans);font-variant-numeric:tabular-nums}
+  .mosaico-dica time,.mosaico-campo time,.carta-num{
+    color:#f7c94a;font:900 clamp(22px,6.4vw,34px)/1 var(--sans);font-variant-numeric:tabular-nums;
+    letter-spacing:.04em;text-shadow:0 0 8px rgba(247,201,74,.45)
+  }
   .mosaico-dica span{color:#fff;font:600 14px/1.22 var(--serif)}
   .mosaico-campo{display:grid;gap:2px}
-  .mosaico-campo time{color:#f7c94a;font:900 15px/1 var(--sans);font-variant-numeric:tabular-nums}
   .mosaico-escolher{width:100%;min-height:44px;padding:8px 12px;border:1px solid rgba(232,164,76,.48);
     border-radius:7px;background:rgba(9,14,21,.94);color:#fff;text-align:left;font:700 13px/1.2 var(--sans);
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -289,7 +291,7 @@
   .mosaico-opcao{display:block;width:100%;margin:0 0 8px;padding:12px;text-align:left;border:1px solid rgba(232,164,76,.3);
     border-radius:8px;background:rgba(255,255,255,.035);color:#fff}
   .mosaico-opcao .mo-topo{display:flex;justify-content:space-between;gap:10px;margin-bottom:5px;color:#f7c94a;
-    font:800 11px/1.2 var(--sans);letter-spacing:.1em;text-transform:uppercase}
+    font:800 clamp(16px,4.4vw,22px)/1.2 var(--sans);letter-spacing:.06em;text-transform:uppercase}
   .mosaico-opcao .mo-texto{display:block;font:600 16px/1.32 var(--serif)}
   .mosaico-opcao.usada{border-color:rgba(127,212,255,.32);background:rgba(49,107,132,.1)}
   .mosaico-opcoes .btn{margin-top:5px}
@@ -1267,11 +1269,18 @@
     text-shadow:0 0 5px #fffbe0,0 0 22px rgba(247,201,74,.78);
   }
   .pista-card .pt{
-    font-family:var(--serif);font-size:clamp(27px,7.2vw,38px);line-height:1.3;
-    margin-top:14px;
+    font-family:system-ui,-apple-system,sans-serif;font-size:clamp(20px,5.2vw,26px);line-height:1.4;
+    font-weight:600;margin-top:14px;color:#f4f9fd;
   }
-  .pista-memorize{text-align:center;margin:13px 0 0;color:#ffe889;font:800 12px/1.35 var(--sans);
-    letter-spacing:.08em;text-transform:uppercase}
+  .pista-memorize{text-align:center;margin:13px 0 0;color:#ffe889;font:800 13px/1.4 var(--sans);
+    letter-spacing:.06em;text-transform:uppercase}
+  .revelacao-passo{
+    padding-bottom:calc(env(safe-area-inset-bottom,0px) + 88px);
+  }
+  .revelacao-passo .rv-desc{
+    color:#f4f9fd;font:600 clamp(17px,4.4vw,21px)/1.4 system-ui,-apple-system,sans-serif;
+  }
+  body.elenco-modal-aberto .mural-movel{display:none}
 
   /* abertura da estoria, no fim */
   .historia p{
@@ -1318,7 +1327,7 @@
      outras tres. Entra DEPOIS do <style> de proposito: em empate de
      especificidade, quem vem por ultimo vence, e o padrao tem de vencer. -->
 <link rel="stylesheet" href="css/profundidade.css?v=20260902-profundidade">
-<link rel="stylesheet" href="css/profundidade-1mais1.css?v=20260906-pf-all">
+<link rel="stylesheet" href="css/profundidade-1mais1.css?v=20260907-elenco-pista">
 </head>
 <body>
 <div id="arte">
@@ -1378,7 +1387,7 @@
      Sao cinco porque cada modulo sensorial e um documento proprio e nao
      enxerga esta pagina. Dentro desta, o caso e o video releem o mesmo
      valor de window.MOSAICO_VERSAO, que sai da tag do mosaico-v5.js. -->
-<script src="js/mosaico-v5.js?v=20260906-pf-1mais1"></script>
+<script src="js/mosaico-v5.js?v=20260907-elenco-pista"></script>
 <script src="../hipoteses-por-camada.js?v=20260906-hpc-pf"></script>
 <script src="../papel-camada.js?v=20260906-pf-1mais1"></script>
 <script src="js/qr.js?v=20260906-pf-1mais1"></script>
@@ -1590,7 +1599,8 @@ var STATE = {
   menuMestreAberto:false,
   casoAberto:false,
   resultadoVista:"podio",
-  mosaicoEscolha:null
+  mosaicoEscolha:null,
+  revelacaoPasso:"personagem"
 };
 var _unsubJog=null, _unsubMesa=null, _unsubVotos=null, _unsubPub=null, _unsubV5=[], _timerContagem=null;
 var _autoFasePendente=null, _autoTimer=null, _autoTimerChave="";
@@ -3071,22 +3081,46 @@ function telaEncenacao(){
     '<button class="btn btn-ambar" onclick="terminei()">Toque para concluir sua apresenta&ccedil;&atilde;o</button>';
 }
 
-/* So aqui o jogador descobre quem era — e ja leva a pista da noite. */
-function telaRevelacao(){
-  var p=personagemPor(STATE.eu&&STATE.eu.personagem);
-  var pista=PISTA_PRIVADA[STATE.eu&&STATE.eu.personagem];
+/* Personagem primeiro; a pista só depois do OK. Os dois no mesmo viewport
+   (playtest iPhone) deixavam a pista ilegível atrás do Safari. */
+function revelacaoMostraPersonagem(passo){ return String(passo||"personagem")!=="pista"; }
+function revelacaoMostraPista(passo){ return String(passo)==="pista"; }
+function htmlPersonagemRevelacao(p){
   return '<span class="eyebrow">Voc&ecirc; era</span>'+
     '<div class="revelacao revela">'+
       '<div class="rv-av">'+(p?p.av:"👤")+'</div>'+
       '<h2 class="rv-nome">'+esc(nomePers(p,STATE.eu&&STATE.eu.forma))+'</h2>'+
       '<p class="lead rv-desc">'+esc(descPers(p,STATE.eu&&STATE.eu.forma))+'</p>'+
-    '</div>'+
-    (pista?'<div class="pista-card">'+
-      '<span class="ph">'+esc(pista.hora)+'</span>'+
-      '<div class="pt">'+esc(pista.txt)+'</div><p class="pista-memorize">Observe o hor&aacute;rio. Ele poder&aacute; ser t&atilde;o importante quanto a pr&oacute;pria pista.</p></div>':'')+
+    '</div>';
+}
+function htmlPistaCard(pista){
+  if(!pista) return '';
+  return '<div class="pista-card pf-card">'+
+    '<span class="ph carta-num">'+esc(pista.hora)+'</span>'+
+    '<div class="pt">'+esc(pista.txt)+'</div>'+
+    '<p class="pista-memorize">Observe o hor&aacute;rio. Ele poder&aacute; ser t&atilde;o importante quanto a pr&oacute;pria pista.</p></div>';
+}
+function telaRevelacao(){
+  var p=personagemPor(STATE.eu&&STATE.eu.personagem);
+  var pista=PISTA_PRIVADA[STATE.eu&&STATE.eu.personagem];
+  var passo=STATE.revelacaoPasso||"personagem";
+  if(revelacaoMostraPersonagem(passo)){
+    return '<div class="revelacao-passo" data-revelacao-passo="personagem">'+
+      htmlPersonagemRevelacao(p)+
+      '<button class="btn btn-ambar pf-btn-gold" style="margin-top:8px" '+
+        'onclick="confirmarPersonagemRevelacao()">OK</button></div>';
+  }
+  return '<div class="revelacao-passo" data-revelacao-passo="pista">'+
+    htmlPistaCard(pista)+
     '<p class="muted" style="text-align:center;margin:18px 0 8px">Toque para adicionar a pista ao Arquivo e seguir com o caso.</p>'+
     '<button class="btn btn-ambar" style="margin-top:8px" '+
-      'onclick="guardarPista()">Adicionar ao Arquivo</button>';
+      'onclick="guardarPista()">Adicionar ao Arquivo</button></div>';
+}
+function confirmarPersonagemRevelacao(){
+  var pista=PISTA_PRIVADA[STATE.eu&&STATE.eu.personagem];
+  if(!pista){ guardarPista(); return; }
+  STATE.revelacaoPasso="pista";
+  render(true);
 }
 
 function telaEncerrada(){
@@ -3356,7 +3390,7 @@ function telaTarefaSensor(tipo){
   if(concluida){
     var pista=cfg.pista;
     return '<span class="eyebrow">'+esc(cfg.titulo||tipo)+'</span><h2>Fragmento encontrado.</h2>'+
-      (pista?'<div class="pista-card"><span class="ph">'+esc(pista.hora)+'</span><div class="pt">'+esc(pista.txt)+'</div><p class="pista-memorize">Observe o hor&aacute;rio. Ele poder&aacute; ser t&atilde;o importante quanto a pr&oacute;pria pista.</p></div>':'')+
+      htmlPistaCard(pista)+
       '<p class="lead" style="margin-top:16px">A pista foi adicionada ao seu Arquivo. Aguarde a pr&oacute;xima rodada.</p>';
   }
   var pergunta=perguntaPartidaAtual();
@@ -3547,12 +3581,12 @@ function telaMosaico(){
   var dicas=dicasMosaico(), rascunho=(n&&n.rascunho)||{};
   var topo='<div class="mosaico-tarefa-topo"><span class="fragmento-nome">'+esc(fragmento.nome)+'</span>'+cronometroFragmentoHTML()+'<span class="cronometro-legenda">O tempo continua contando</span></div>';
   if(!souPortadorFragmento()){
-    var linhas=dicas.map(function(d){return '<div class="mosaico-dica"><time>'+esc(d.hora)+'</time><span>'+esc(d.dica)+'</span></div>';}).join('');
+    var linhas=dicas.map(function(d){return '<div class="mosaico-dica"><time class="carta-num">'+esc(d.hora)+'</time><span>'+esc(d.dica)+'</span></div>';}).join('');
     return '<div class="mosaico-tarefa">'+topo+'<div class="mosaico-orientacao"><b>Ajude seu Fragmento</b><p>Consulte suas pistas no Arquivo e converse com o Portador. Somente ele pode selecionar e fazer o envio final, que n&atilde;o poder&aacute; ser alterado.</p></div><div class="mosaico-dicas">'+linhas+'</div><p class="mosaico-aguarde">O Portador do Fragmento est&aacute; organizando as respostas&hellip;</p></div>';
   }
   var preenchidos=chavesRespostaMosaico(rascunho).filter(function(k){return !!rascunho[k];}).length;
   var campos=dicas.map(function(d,i){var id=rascunho[String(i)], pista=pistasMosaico().find(function(p){return p.id===id;});
-    return '<div class="mosaico-campo"><time>'+esc(d.hora)+'</time><button class="mosaico-escolher '+(pista?'':'vazio')+'" onclick="abrirEscolhaMosaico('+i+')">'+(pista?esc(rotuloPistaMosaico(pista))+' &#10003;':'Selecionar pista &#9662;')+'</button></div>';}).join('');
+    return '<div class="mosaico-campo"><time class="carta-num">'+esc(d.hora)+'</time><button class="mosaico-escolher '+(pista?'':'vazio')+'" onclick="abrirEscolhaMosaico('+i+')">'+(pista?esc(rotuloPistaMosaico(pista))+' &#10003;':'Selecionar pista &#9662;')+'</button></div>';}).join('');
   return '<div class="mosaico-tarefa">'+topo+'<div class="mosaico-orientacao"><div class="portador-identidade">'+iconePortador()+'<b>'+tituloPortador()+'</b></div><p>Escute seu grupo e selecione as respostas. Somente voc&ecirc; pode enviar.</p></div><div class="mosaico-campos">'+campos+'</div><div class="mosaico-progresso">'+preenchidos+' de '+dicas.length+' hor&aacute;rios preenchidos</div><p class="mosaico-regra-pontos">Revise com seu Fragmento. Esta &eacute; a resposta final do grupo e n&atilde;o poder&aacute; ser alterada. A quantidade de acertos define o resultado; o tempo desempata.</p><button class="btn btn-ambar mosaico-enviar" onclick="enviarMosaico()" '+(preenchidos<dicas.length?'disabled':'')+'>Enviar resposta final do Fragmento</button>'+modalEscolhaMosaico(rascunho)+'</div>';
 }
 
@@ -4066,6 +4100,7 @@ async function terminei(){
      mas quem acabou de atuar fica vendo quem era e a propria pista */
   STATE.travaTela=true;
   STATE.tela="revelacao";
+  STATE.revelacaoPasso="personagem";
   render();
   /* A pista privada entra no Arquivo aqui, e nao so no clique do botao:
      ninguem deve ficar sem ela por ter recarregado a tela. */
@@ -4107,6 +4142,7 @@ async function registrarPistaPrivada(){
 async function guardarPista(){
   await registrarPistaPrivada();
   STATE.travaTela=false;
+  STATE.revelacaoPasso="personagem";
   sincronizarJogador();
 }
 
@@ -4205,6 +4241,10 @@ async function concluirTarefaSensor(tipo,tempoMs,runId){
 }
 window.addEventListener('message',function(event){
   if(event.origin!==location.origin||!event.data) return;
+  if(event.data.mosaico==='elenco-modal'){
+    document.body.classList.toggle('elenco-modal-aberto',!!event.data.aberto);
+    return;
+  }
   if(event.data.mosaico!=='tarefa-ok') return;
   var tipo=STATE.doc&&STATE.doc.fase;
   if(tipo!=='constelacao'&&tipo!=='inclinacao') return;
