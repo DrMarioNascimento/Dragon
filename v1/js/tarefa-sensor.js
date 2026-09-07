@@ -99,14 +99,14 @@
       ".pf-inset{background:var(--pf-inset-fill);border:1px solid var(--pf-inset-stroke);border-left:4px solid #6aa8ca;border-radius:10px;box-shadow:var(--pf-inset-shadow);overflow:hidden}",
       ".pf-btn-gold{display:flex;align-items:center;justify-content:center;width:100%;min-height:56px;margin-top:8px;padding:16px 18px;border:0;border-radius:12px;cursor:pointer;background:linear-gradient(180deg,var(--pf-gold-face),var(--pf-gold-base));color:#1b1005;font:700 clamp(18px,4.8vw,22px)/1.1 system-ui,-apple-system,sans-serif;letter-spacing:.06em;box-shadow:inset 0 1px 0 #ffe2b4,0 5px 0 var(--pf-gold-wall),0 12px 22px #000a}",
       ".pf-btn-gold:active{transform:translateY(4px);box-shadow:inset 0 1px 0 #ffe2b4,0 1px 0 var(--pf-gold-wall)}",
-      ".ts-pf-overlay{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:max(16px,env(safe-area-inset-top)) 18px calc(env(safe-area-inset-bottom,0px) + 18px);background:rgba(0,0,0,.76);box-sizing:border-box;-webkit-tap-highlight-color:transparent}",
-      ".ts-pf-card{width:min(440px,94vw);max-height:min(88dvh,640px);overflow:auto;padding:24px 20px 20px;color:#f4f9fd;display:flex;flex-direction:column;gap:14px;text-align:left}",
+      ".ts-pf-overlay{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:max(16px,env(safe-area-inset-top)) 18px calc(env(safe-area-inset-bottom,0px) + 88px);background:#050b12;box-sizing:border-box;-webkit-tap-highlight-color:transparent}",
+      "html.ts-elenco-aberto #intro,html.ts-elenco-aberto #hud,html.ts-elenco-aberto #oito,html.ts-elenco-aberto #card,html.ts-elenco-aberto #carta,html.ts-elenco-aberto #cartao{visibility:hidden!important;pointer-events:none}",
+      ".ts-pf-card{width:min(440px,94vw);max-height:min(78dvh,640px);overflow:auto;padding:24px 20px 20px;color:#f4f9fd;display:flex;flex-direction:column;gap:14px;text-align:left}",
       ".ts-pf-tit{font:600 clamp(18px,4.6vw,22px)/1.35 system-ui,-apple-system,sans-serif;color:#f4f9fd}",
       ".ts-pf-msg{font:500 clamp(15px,3.8vw,17px)/1.45 system-ui,-apple-system,sans-serif;color:#dfeaf5}",
       ".ts-pf-lista{list-style:none;margin:0;padding:6px;display:flex;flex-direction:column;gap:0}",
       ".ts-pf-li{padding:10px 12px;border:0;border-bottom:1px solid rgba(45,63,72,.7);background:transparent;font:500 16px/1.35 system-ui,-apple-system,sans-serif;color:#e6edf2}",
       ".ts-pf-li:last-child{border-bottom:0}",
-      ".ts-pf-li.meu{background:#25190e;font-weight:600;color:#ffc46b;box-shadow:inset 0 0 0 2px #e8a94a}",
       ".ts-pf-seu-tit{margin-top:4px;font:700 13px/1.3 system-ui,-apple-system,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#e8a94a}",
       ".ts-pf-seu{padding:14px;text-align:center;font:700 clamp(18px,4.8vw,22px)/1.3 system-ui,-apple-system,sans-serif;color:#ffc46b}"
     ].join("");
@@ -246,6 +246,14 @@
   ];
   TS.ELENCO_TIT = "Os personagens do jogo são:";
   TS.ELENCO_SEU_TIT = "O seu personagem é:";
+  /* Destaque UMA vez: rodapé “O seu personagem é”. A lista fica limpa.
+     List+rodapé ao mesmo tempo foi o que queimou o playtest no iPhone. */
+  TS.ELENCO_DESTAQUE = "rodape";
+  TS.elencoDestacaNaLista = function () { return TS.ELENCO_DESTAQUE === "lista"; };
+  TS.elencoDestacaNoRodape = function () { return TS.ELENCO_DESTAQUE === "rodape"; };
+  TS.elencoChromeDuplo = function (marcaLista, marcaRodape) {
+    return !!(marcaLista && marcaRodape);
+  };
 
   TS.flexNome = function (txt, forma) {
     return String(txt == null ? "" : txt).replace(/\{([^|}]*)\|([^}]*)\}/g, function (_, m, f) {
@@ -354,7 +362,18 @@
     }
     var doc = global.document;
     var root = null;
+    function avisarHost(aberto) {
+      try {
+        TS.enviar({ mosaico: "elenco-modal", aberto: !!aberto }, opcoes);
+      } catch (e0) {}
+      try {
+        if (doc && doc.documentElement) {
+          doc.documentElement.classList.toggle("ts-elenco-aberto", !!aberto);
+        }
+      } catch (e1) {}
+    }
     function limparUi() {
+      avisarHost(false);
       if (root && root.parentNode) root.parentNode.removeChild(root);
       root = null;
     }
@@ -385,19 +404,20 @@
     lista.className = "ts-pf-lista pf-inset";
     dados.personagens.forEach(function (p) {
       var li = doc.createElement("li");
-      var ehMeu = !!(dados.meu && dados.meu.id === p.id);
-      li.className = ehMeu ? "ts-pf-li meu" : "ts-pf-li";
+      /* Lista limpa: o “seu” vai só no rodapé (ELENCO_DESTAQUE=rodape). */
+      li.className = "ts-pf-li";
       li.textContent = (p.av ? p.av + " " : "") + p.nome;
       lista.appendChild(li);
     });
     card.appendChild(tit);
     card.appendChild(lista);
-    if (dados.meu) {
+    if (dados.meu && TS.elencoDestacaNoRodape()) {
       var seuTit = doc.createElement("div");
       seuTit.className = "ts-pf-seu-tit";
       seuTit.textContent = TS.ELENCO_SEU_TIT;
       var seu = doc.createElement("div");
       seu.setAttribute("data-ts-meu-personagem", dados.meu.id);
+      seu.setAttribute("data-elenco-destaque", "uma-vez");
       seu.className = "ts-pf-seu pf-inset";
       seu.style.boxShadow = "inset 0 0 0 2px #e8a94a, inset 0 2px 8px rgba(0,0,0,.45)";
       seu.style.background = "#25190e";
@@ -417,6 +437,7 @@
     card.appendChild(ok);
     root.appendChild(card);
     doc.body.appendChild(root);
+    avisarHost(true);
     try { ok.focus(); } catch (e4) {}
     return function cancelar() { limparUi(); liberou = true; };
   };

@@ -72,6 +72,14 @@ header p{color:var(--muted);font-size:13.5px;line-height:1.5;margin:0}
 .achado b{display:block;font:700 9px var(--mono);color:#6a5a3c}
 .achado span{display:block;font-size:11.5px;line-height:1.4;margin-top:2px;color:#40382f}
 
+/* Carta do fragmento: linha secundária sob a pista, sem competir com o texto. */
+.pista-arquivo-hint{text-align:center;margin:12px 0 0;font:500 13px/1.45 var(--sans);color:#5c5348}
+.pista-arquivo-hint .pista-arquivo-curta{display:none}
+@media (max-height:600px),(max-width:330px){
+  .pista-arquivo-hint .pista-arquivo-curta{display:inline}
+  .pista-arquivo-hint .pista-arquivo-completa{display:none}
+}
+
 button.primary{width:100%;min-height:52px;border:0;border-radius:10px;padding:12px 14px;font-weight:800;font-size:14px;cursor:pointer;background:linear-gradient(180deg,var(--gold2),var(--gold));color:#201707;box-shadow:0 5px 0 #6f4d17,0 12px 22px #000a}
 button.primary:active{transform:translateY(3px);box-shadow:0 2px 0 #6f4d17}
 button.primary:disabled{opacity:.5;box-shadow:none;transform:none;cursor:default}
