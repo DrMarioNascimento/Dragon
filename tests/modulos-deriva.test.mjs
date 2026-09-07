@@ -58,9 +58,10 @@ const TETO = {
      nenhuma — o facho é arrastado com o dedo (`pointermove`), zero ocorrências
      de deviceorientation no arquivo. Pedir calibragem de magnetômetro a quem
      não lê magnetômetro seria um portão sem porta. */
-  "sala-as-escuras": 543,
-  /* 535 → 543 em 07/09/2026: hold Android 2400ms + cartão “As luzes caíram”
-     no lado Mesa (TarefaSensor.holdMsPorPlataforma). A Noite usa holdAlvo. */
+  "sala-as-escuras": 547,
+  /* 543 → 547 em 07/09/2026: Mesa passou a holdAlvo() sem mutar CFG.HOLD_MS
+     (iOS não herda o endurecimento). A Noite continua IPHONE?850 primeiro. */
+  /* 535 → 543 em 07/09/2026: hold Android 2400ms + cartão “As luzes caíram”. */
   /* 526 → 535 em 06/09/2026: overlayPausa 1+1 + folha compartilhada no Mesa. */
   /* 520 → 526 em 06/09/2026: cairNoModoDedo + avisoAntesModoDedo no Mesa. */
   "vidro-embacado": 437,

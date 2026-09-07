@@ -134,11 +134,36 @@ describe("cores · título único e CTA verde de avançar", () => {
 describe("sala às escuras · Android mais longo + texto das pistas", () => {
   it("hold Android > hold base e o cartão usa o número real de pistas", () => {
     const api = loadTS();
-    assert.equal(api.holdMsPorPlataforma("Mozilla/5.0 (iPhone; CPU iPhone OS 17_0)", { base: 1400, android: 2400 }), 1400);
-    assert.equal(api.holdMsPorPlataforma("Mozilla/5.0 (Linux; Android 14)", { base: 1400, android: 2400 }), 2400);
-    assert.match(SALA, /holdMsPorPlataforma|HOLD_MS_ANDROID|Android/);
+    const iphone = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)";
+    const crios = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) CriOS/120.0.0.0";
+    const android = "Mozilla/5.0 (Linux; Android 14)";
+    assert.equal(api.holdMsPorPlataforma(iphone, { base: 1400, android: 2400 }), 1400);
+    assert.equal(api.holdMsPorPlataforma(crios, { base: 1400, android: 2400 }), 1400);
+    assert.equal(
+      api.holdMsPorPlataforma("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)", { base: 1400, android: 2400 }, { platform: "MacIntel", maxTouchPoints: 5 }),
+      1400,
+      "iPadOS disfarçado de Mac não herda o hold do Android",
+    );
+    assert.equal(api.holdMsPorPlataforma(android, { base: 1400, android: 2400 }), 2400);
+    assert.equal(api.uaEhIOS(iphone), true);
+    assert.equal(api.uaEhAndroid(iphone), false);
+    assert.equal(api.uaEhAndroid(android), true);
+    assert.match(SALA, /function holdAlvo\(/);
+    assert.match(SALA, /HOLD_MS_ANDROID/);
+    assert.equal(/CFG\.HOLD_MS\s*=/.test(SALA), false, "não sobrescrever HOLD_MS no boot (iOS herdaria o Android)");
     assert.match(SALA, /As luzes caíram e você está no escuro/);
     assert.match(SALA, /São .+ pistas para achar|sala-explica-n|OBJETOS\.length/);
+  });
+
+  it("cópias da Noite não endurecem o iPhone", () => {
+    const noite = ler("mosaico-web/public/modulos/sala-as-escuras.html");
+    const v2 = ler("v2/modulos/sala-as-escuras.html");
+    for (const src of [noite, v2]) {
+      const fn = fnSlice(src, "function holdAlvo(", ["function drenoMao("]);
+      assert.match(fn, /if\s*\(\s*IPHONE\s*\)\s*return 850/);
+      assert.match(fn, /Android/);
+      assert.match(src, /As luzes caíram e você está no escuro/);
+    }
   });
 });
 

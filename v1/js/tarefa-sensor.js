@@ -345,13 +345,30 @@
 
   TS.HOLD_SALA_MS = 1400;
   TS.HOLD_SALA_ANDROID_MS = 2400;
-  TS.holdMsPorPlataforma = function (ua, opts) {
+  /* iPhone/iPad primeiro: um UA estranho nunca pode cair no hold do Android.
+     Playtest (Mario): o iPhone já está bom — NÃO endurecer iOS. */
+  TS.uaEhIOS = function (ua, nav) {
+    ua = String(ua == null ? "" : ua);
+    nav = nav || {};
+    if (/iPad|iPhone|iPod/i.test(ua)) return true;
+    try {
+      if (nav.platform === "MacIntel" && Number(nav.maxTouchPoints) > 1) return true;
+    } catch (e1) {}
+    return false;
+  };
+  TS.uaEhAndroid = function (ua, nav) {
+    if (TS.uaEhIOS(ua, nav)) return false;
+    return /Android/i.test(String(ua == null ? "" : ua));
+  };
+  TS.holdMsPorPlataforma = function (ua, opts, nav) {
     opts = opts || {};
     var base = opts.base != null ? Number(opts.base) : TS.HOLD_SALA_MS;
     var and = opts.android != null ? Number(opts.android) : TS.HOLD_SALA_ANDROID_MS;
     if (!Number.isFinite(base) || base <= 0) base = TS.HOLD_SALA_MS;
     if (!Number.isFinite(and) || and <= 0) and = TS.HOLD_SALA_ANDROID_MS;
-    return /Android/i.test(String(ua || "")) ? and : base;
+    if (TS.uaEhIOS(ua, nav)) return base;
+    if (TS.uaEhAndroid(ua, nav)) return and;
+    return base;
   };
 
   TS.resolverElenco = function (opts) {

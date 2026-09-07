@@ -421,7 +421,7 @@ var CFG = {
   VFOV: 68,          /* campo de visão vertical, graus */
   TOL_ROLL: 18,
   HOLD_MS: 1400,     /* tempo firme no objeto para se aproximar */
-  HOLD_MS_ANDROID: 2400, /* playtest: no Android o alvo enchia demais depressa */
+  HOLD_MS_ANDROID: 2400, /* playtest: só Android. iPhone usa holdAlvo()=850 */
   ROUND_MIN: 30,
   FOLGA: 1,          /* multiplicador de tolerância (painel do mestre) */
   SOLTA: 1.7,        /* histerese: a janela alarga depois de engatar */
@@ -746,7 +746,12 @@ var spdAng=0, rawAnt=null;
 var IPHONE=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
 var iOSInstavel=false, iosHead=null;
 function folgaMao(){ return CFG.FOLGA*(IPHONE?(iOSInstavel?1.9:1.5):1); }
-function holdAlvo(){ return IPHONE?850:(/Android/i.test(navigator.userAgent||"")?(CFG.HOLD_MS_ANDROID||2400):CFG.HOLD_MS); }
+function holdAlvo(){
+  /* Mario: iPhone já está bom — NÃO endurecer iOS. Android only. */
+  if(IPHONE) return 850;
+  if(/Android/i.test(navigator.userAgent||"")) return CFG.HOLD_MS_ANDROID||2400;
+  return CFG.HOLD_MS;
+}
 function drenoMao(){ return IPHONE?0.28:CFG.DRENO; }
 var t0=performance.now(), tPrev=t0;
 var raio=0, raioProx=4000, raioForca=0;
