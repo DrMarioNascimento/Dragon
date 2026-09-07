@@ -545,7 +545,8 @@ var FRAGMENTOS = [
 
 /* ================= MODO EMBUTIDO =================
    Dentro da mesa isto e uma TAREFA: ao revelar, avisa a pagina que
-   hospeda em vez de seguir sozinho para a proxima rodada.          */
+   hospeda em vez de seguir sozinho para a proxima rodada. Um acerto
+   encerra. As seis bolinhas do modo sozinho nao valem aqui.        */
 /* ==========================================================================
    ENTRADA PELA URL  —  ?embed=1&s=SEMENTE&run=IDENTIFICADOR[&dev=1]
    s   : semente fixa da tarefa. Presente, nada mais é sorteado ao acaso —
@@ -1347,9 +1348,15 @@ function telaCheia(){
   }
 }
 
+/* Na Mesa (?embed=1) a tarefa é UM acerto: revela() avisa a hospedeira
+   e fecharPista() volta. Seis bolinhas prometem seis rodadas que nunca
+   acontecem — e, se o iframe remonta, a primeira acesa volta a zero. */
+function totalMarcas(){ return EMBED ? 1 : FRAGMENTOS.length; }
 function marcas(){
-  var el=document.getElementById("marcas"); el.innerHTML="";
-  for(var i=0;i<FRAGMENTOS.length;i++){
+  var el=document.getElementById("marcas"); if(!el) return;
+  el.innerHTML="";
+  var n=totalMarcas();
+  for(var i=0;i<n;i++){
     var d=document.createElement("div");
     d.className="marca"+(i<feitos?" on":"");
     el.appendChild(d);
@@ -1363,6 +1370,7 @@ function embaralha(){
        do sorteio semeado — com semente, todos recebem o mesmo. */
     var j=(sorteio()*(i+1))|0, t=fila[i]; fila[i]=fila[j]; fila[j]=t;
   }
+  if(EMBED) fila=fila.slice(0,1);
   feitos=0; marcas();
 }
 
