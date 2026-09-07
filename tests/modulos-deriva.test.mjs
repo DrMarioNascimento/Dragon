@@ -41,7 +41,10 @@ const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 /* Teto medido em 03/09/2026, depois da convergência da bússola. SÓ DESCE. */
 const TETO = {
-  "janela-do-norte": 597,
+  "janela-do-norte": 600,
+  /* 597 → 600 em 07/09/2026: elenco opaco + ctx embed + carimbo
+     20260907-elenco-pista só no lado Mesa (playtest Celular). A Noite
+     não tem PERSONAGENS da Casa — não copia o modal. */
   /* 588 → 597 em 06/09/2026: overlayPausa 1+1 + profundidade-1mais1.css
      só no lado Mesa (porta de playtest). Cópias leftover ficam planas. */
   /* 575 → 588 em 06/09/2026: gate avisoElencoAntesJanela (OK obrigatório)
