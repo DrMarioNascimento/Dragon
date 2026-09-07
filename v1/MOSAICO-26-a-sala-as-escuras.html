@@ -364,6 +364,11 @@
   <p>A cada vez, uma <b>frase</b> aparece no alto. Ela não diz onde está — diz <b>o que é</b>. Decifre e procure.</p>
   <p class="small"><b>Ache os nove antes dos outros. Não conte o que descobriu.</b> O farol da costa passa a cada nove segundos e mostra a sala inteira por um instante — use a passagem dele.</p>
   <p class="small" id="hist-nota">Os objetos preservam registros de momentos anteriores da noite.</p>
+  <div class="pf-card" id="sala-explica" style="margin:12px 0 16px;padding:4px;text-align:left">
+    <div class="pf-inset" id="sala-explica-txt" style="padding:14px 16px;font:500 15px/1.45 system-ui,sans-serif;color:#dfeaf5">
+      As luzes caíram e você está no escuro. Acenda a lanterna e ache os objetos até preencher a barrinha. São <b id="sala-explica-n">9</b> pistas para achar.
+    </div>
+  </div>
   <button class="go" id="b-entrar">Entrar na sala</button>
   <button class="alt" id="b-sim">Estou no computador</button>
   <div id="rodada">RODADA <b id="cod-rodada">----</b></div>
@@ -388,7 +393,7 @@
 </div>
 
 <!-- Protocolo com a Mesa e ativacao de sensor: um so arquivo para as tres tarefas. -->
-<script src="js/tarefa-sensor.js?v=20260907-elenco-pista"></script>
+<script src="js/tarefa-sensor.js?v=20260907-android-hold"></script>
 <script>
 (function(){
 "use strict";
@@ -408,7 +413,8 @@
 var CFG = {
   VFOV: 68,          /* campo de visão vertical, graus */
   TOL_ROLL: 18,
-  HOLD_MS: 1400,     /* tempo firme no objeto para se aproximar */
+  HOLD_MS: 1400,     /* tempo firme no objeto (iPhone/desktop — NÃO alterar) */
+  HOLD_MS_ANDROID: 2400, /* playtest: só Android; iOS não passa por aqui */
   ROUND_MIN: 30,
   FOLGA: 1,          /* multiplicador de tolerância (painel do mestre) */
   SOLTA: 1.7,        /* histerese: a janela alarga depois de engatar */
@@ -419,6 +425,18 @@ var CFG = {
   SALA_H: 2.95,      /* pé-direito */
   OLHO: 1.55
 };
+/* Hold mais longo SÓ no Android. CFG.HOLD_MS permanece o valor do iPhone/
+   desktop — nunca sobrescrever no boot, senão o iOS herda o endurecimento. */
+function holdAlvo(){
+  var nav=typeof navigator!=="undefined"?navigator:{};
+  var ua=nav.userAgent||"";
+  if(typeof TarefaSensor!=="undefined"&&TarefaSensor.holdMsPorPlataforma){
+    return TarefaSensor.holdMsPorPlataforma(ua,{base:CFG.HOLD_MS,android:CFG.HOLD_MS_ANDROID},nav);
+  }
+  if(/iPad|iPhone|iPod/i.test(ua)||(nav.platform==="MacIntel"&&nav.maxTouchPoints>1)) return CFG.HOLD_MS;
+  if(/Android/i.test(ua)) return CFG.HOLD_MS_ANDROID;
+  return CFG.HOLD_MS;
+}
 
 /* ==========================================================================
    OS OITO OBJETOS
@@ -496,6 +514,10 @@ var OBJETOS = [
     txt:"No fundo da gaveta, ligada na tomada de rodapé. A luz vermelha volta a piscar quando a energia retorna, a fita rebobina sozinha e toca uma gravação antiga: alguém avisa que chega tarde, e diz um nome.",
     obs:"O nome não é de nenhum dos seis." }
 ];
+(function(){
+  var n=document.getElementById("sala-explica-n");
+  if(n) n.textContent=String(OBJETOS.length);
+})();
 
 /* ==========================================================================
    ENTRADA PELA URL  —  ?embed=1&s=SEMENTE&run=IDENTIFICADOR[&dev=1]
@@ -1963,18 +1985,19 @@ function loop(){
 
   var elFirme=document.getElementById("firme"), elFirmeI=document.getElementById("firme-i");
   if(al.ok){
-    holdAcc=Math.min(CFG.HOLD_MS, holdAcc+dt*1000);
+    var holdMs=holdAlvo();
+    holdAcc=Math.min(holdMs, holdAcc+dt*1000);
     elFirme.classList.add("on");
-    elFirmeI.style.width=(holdAcc/CFG.HOLD_MS*100)+"%";
+    elFirmeI.style.width=(holdAcc/holdMs*100)+"%";
     setStatus("É isto. Segure.",true);
     elDica.textContent=al.obj.final?"o cofre se abre para você":"não desvie o feixe";
     if(agora-ultimoZum>170){ ultimoZum=agora; try{navigator.vibrate&&navigator.vibrate(6);}catch(e){} }
-    if(holdAcc>=CFG.HOLD_MS) acha(al.obj);
+    if(holdAcc>=holdMs) acha(al.obj);
   } else {
     /* escoa em vez de zerar: um blip de ruído não custa a busca inteira */
     if(holdAcc>0){
       holdAcc=Math.max(0,holdAcc-dt*1000*CFG.DRENO);
-      elFirmeI.style.width=(holdAcc/CFG.HOLD_MS*100)+"%";
+      elFirmeI.style.width=(holdAcc/holdAlvo()*100)+"%";
       if(holdAcc<=0) elFirme.classList.remove("on");
     }
     if(achados>=OBJETOS.length){

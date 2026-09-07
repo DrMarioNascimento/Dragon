@@ -97,12 +97,13 @@
       ":root{--pf-navy:#0e1c28;--pf-stroke:rgba(159,228,255,.52);--pf-gold:#e8a94a;--pf-gold2:#ffc46b;--pf-gold-face:#ffc878;--pf-gold-base:#d6aa58;--pf-gold-wall:#6a3712;--pf-ink:#f4f9fd;--pf-ink-2:#dfeaf5;--pf-muted:#c5d4dc;--pf-alias:#ffcf8f;--pf-card-fill:linear-gradient(165deg,#1a3348,#153044 60%,#102838);--pf-card-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 18px 50px rgba(0,0,0,.55),0 0 40px rgba(127,212,255,.10);--pf-inset-fill:#03080d;--pf-inset-stroke:rgba(20,36,48,.95);--pf-inset-shadow:inset 0 3px 10px rgba(0,0,0,.72),inset 2px 0 6px rgba(0,0,0,.45)}",
       ".pf-card{background:var(--pf-card-fill);border:1px solid var(--pf-stroke);border-radius:14px;box-shadow:var(--pf-card-shadow)}",
       ".pf-inset{background:var(--pf-inset-fill);border:1px solid var(--pf-inset-stroke);border-left:4px solid #6aa8ca;border-radius:10px;box-shadow:var(--pf-inset-shadow);overflow:hidden}",
-      ".pf-btn-gold{display:flex;align-items:center;justify-content:center;width:100%;min-height:56px;margin-top:8px;padding:16px 18px;border:0;border-radius:12px;cursor:pointer;background:linear-gradient(180deg,var(--pf-gold-face),var(--pf-gold-base));color:#1b1005;font:700 clamp(18px,4.8vw,22px)/1.1 system-ui,-apple-system,sans-serif;letter-spacing:.06em;box-shadow:inset 0 1px 0 #ffe2b4,0 5px 0 var(--pf-gold-wall),0 12px 22px #000a}",
-      ".pf-btn-gold:active{transform:translateY(4px);box-shadow:inset 0 1px 0 #ffe2b4,0 1px 0 var(--pf-gold-wall)}",
+      ".pf-btn-gold,.pf-btn-go{display:flex;align-items:center;justify-content:center;width:100%;min-height:56px;margin-top:8px;padding:16px 18px;border:0;border-radius:12px;cursor:pointer;background:linear-gradient(180deg,#8ee4ad,#3ea86a);color:#062011;font:700 clamp(18px,4.8vw,22px)/1.1 system-ui,-apple-system,sans-serif;letter-spacing:.06em;box-shadow:inset 0 1px 0 #d4f5e2,0 5px 0 #1b5c38,0 12px 22px #000a}",
+      ".pf-btn-gold:active,.pf-btn-go:active{transform:translateY(4px);box-shadow:inset 0 1px 0 #d4f5e2,0 1px 0 #1b5c38}",
       ".ts-pf-overlay{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:max(16px,env(safe-area-inset-top)) 18px calc(env(safe-area-inset-bottom,0px) + 88px);background:#050b12;box-sizing:border-box;-webkit-tap-highlight-color:transparent}",
       "html.ts-elenco-aberto #intro,html.ts-elenco-aberto #hud,html.ts-elenco-aberto #oito,html.ts-elenco-aberto #card,html.ts-elenco-aberto #carta,html.ts-elenco-aberto #cartao{visibility:hidden!important;pointer-events:none}",
       ".ts-pf-card{width:min(440px,94vw);max-height:min(78dvh,640px);overflow:auto;padding:24px 20px 20px;color:#f4f9fd;display:flex;flex-direction:column;gap:14px;text-align:left}",
       ".ts-pf-tit{font:600 clamp(18px,4.6vw,22px)/1.35 system-ui,-apple-system,sans-serif;color:#f4f9fd}",
+      ":root{--titulo:#f4f9fd}",
       ".ts-pf-msg{font:500 clamp(15px,3.8vw,17px)/1.45 system-ui,-apple-system,sans-serif;color:#dfeaf5}",
       ".ts-pf-lista{list-style:none;margin:0;padding:6px;display:flex;flex-direction:column;gap:0}",
       ".ts-pf-li{padding:10px 12px;border:0;border-bottom:1px solid rgba(45,63,72,.7);background:transparent;font:500 16px/1.35 system-ui,-apple-system,sans-serif;color:#e6edf2}",
@@ -206,7 +207,7 @@
     ok.type = "button";
     ok.textContent = "OK";
     ok.setAttribute("aria-label", "OK");
-    ok.className = "pf-btn-gold";
+    ok.className = "pf-btn-go";
     ok.addEventListener("click", function () {
       estado.usuarioOk = true;
       tentarLiberar();
@@ -305,6 +306,71 @@
     return null;
   };
 
+  TS.jogadoresVivo = function (opts) {
+    opts = opts || {};
+    if (opts.jogadores && opts.jogadores.length) return opts.jogadores;
+    if (global.STATE && global.STATE.jogadores && global.STATE.jogadores.length) {
+      return global.STATE.jogadores;
+    }
+    var p = janelaParent();
+    try {
+      if (p && p.STATE && p.STATE.jogadores && p.STATE.jogadores.length) {
+        return p.STATE.jogadores;
+      }
+    } catch (e) {}
+    return [];
+  };
+
+  /* Regra (playtest): a lista mostra SÓ personagens com assento ocupado.
+     Sem jogadores conhecidos, não despeja o cânone de 6 — fica só “você é X”
+     quando o aparelho já sabe o próprio papel. Mestre e jogador usam a
+     mesma regra; a diferença 2×6 vinha do iframe cair no cânone completo
+     quando não lia STATE.jogadores (Android) vs. um caminho com assentos. */
+  TS.elencoOcupado = function (elenco, jogadores, eu) {
+    elenco = elenco || [];
+    jogadores = jogadores || [];
+    var ids = {};
+    for (var i = 0; i < jogadores.length; i++) {
+      var pid = jogadores[i] && jogadores[i].personagem;
+      if (pid) ids[pid] = true;
+    }
+    if (!Object.keys(ids).length) {
+      if (eu && eu.personagem) {
+        return elenco.filter(function (p) { return (p.id || p) === eu.personagem; });
+      }
+      return [];
+    }
+    return elenco.filter(function (p) { return ids[p.id || p]; });
+  };
+
+  TS.HOLD_SALA_MS = 1400;
+  TS.HOLD_SALA_ANDROID_MS = 2400;
+  /* iPhone/iPad primeiro: um UA estranho nunca pode cair no hold do Android.
+     Playtest (Mario): o iPhone já está bom — NÃO endurecer iOS. */
+  TS.uaEhIOS = function (ua, nav) {
+    ua = String(ua == null ? "" : ua);
+    nav = nav || {};
+    if (/iPad|iPhone|iPod/i.test(ua)) return true;
+    try {
+      if (nav.platform === "MacIntel" && Number(nav.maxTouchPoints) > 1) return true;
+    } catch (e1) {}
+    return false;
+  };
+  TS.uaEhAndroid = function (ua, nav) {
+    if (TS.uaEhIOS(ua, nav)) return false;
+    return /Android/i.test(String(ua == null ? "" : ua));
+  };
+  TS.holdMsPorPlataforma = function (ua, opts, nav) {
+    opts = opts || {};
+    var base = opts.base != null ? Number(opts.base) : TS.HOLD_SALA_MS;
+    var and = opts.android != null ? Number(opts.android) : TS.HOLD_SALA_ANDROID_MS;
+    if (!Number.isFinite(base) || base <= 0) base = TS.HOLD_SALA_MS;
+    if (!Number.isFinite(and) || and <= 0) and = TS.HOLD_SALA_ANDROID_MS;
+    if (TS.uaEhIOS(ua, nav)) return base;
+    if (TS.uaEhAndroid(ua, nav)) return and;
+    return base;
+  };
+
   TS.resolverElenco = function (opts) {
     opts = opts || {};
     var bruto = TS.elencoVivo(opts);
@@ -314,6 +380,8 @@
       else bruto = [];
     }
     var eu = TS.euVivo(opts);
+    var jogadores = TS.jogadoresVivo(opts);
+    bruto = TS.elencoOcupado(bruto, jogadores, eu);
     var forma = eu && eu.forma;
     var personagens = [];
     for (var i = 0; i < bruto.length; i++) {
@@ -345,9 +413,9 @@
     return !!estado.usuarioOk;
   };
 
-  /* Modal flutuante antes da Janela do Norte (mesmo espírito do aviso de dedo).
-     Não começa o sensorial até OK. Sem elenco conhecido, libera na hora
-     (Carro / Solo sem personagem — não inventa nomes). */
+  /* Modal de elenco (mesmo espírito do aviso de dedo). A Casa chama isto
+     na mesa, ANTES da encenação; a Janela não bloqueia mais aqui.
+     Sem elenco conhecido, libera na hora (Carro / Solo — não inventa nomes). */
   TS.avisoElencoAntesJanela = function (opcoes) {
     opcoes = opcoes || {};
     var aoLiberar = typeof opcoes.aoLiberar === "function" ? opcoes.aoLiberar : function () {};
@@ -429,7 +497,7 @@
     ok.type = "button";
     ok.textContent = "OK";
     ok.setAttribute("aria-label", "OK");
-    ok.className = "pf-btn-gold";
+    ok.className = "pf-btn-go";
     ok.addEventListener("click", function () {
       estado.usuarioOk = true;
       tentarLiberar();

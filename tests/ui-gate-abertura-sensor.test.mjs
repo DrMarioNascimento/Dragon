@@ -216,6 +216,7 @@ describe("sensor · finger + soft deadline", () => {
     const resolvido = api.resolverElenco({
       elenco: casa.elenco,
       eu: { personagem: "jornalista", forma: "f" },
+      jogadores: casa.elenco.map((p) => ({ personagem: p.id })),
     });
     assert.equal(resolvido.meu.id, "jornalista");
     assert.equal(resolvido.meu.nome, "A Jornalista");
@@ -229,11 +230,9 @@ describe("sensor · finger + soft deadline", () => {
     assert.equal(liberou, true, "sem elenco conhecido não inventa nomes nem bloqueia");
   });
 
-  it("Janela Casa: OK do elenco é obrigatório para começar", () => {
-    assert.match(JANELA, /avisoElencoAntesJanela/);
-    assert.match(JANELA, /elencoJanelaPodeComecar/);
-    assert.match(JANELA, /if\s*\(\s*!elencoJanelaPodeComecar\(\)\s*\)\s*return/);
-    assert.match(JANELA, /caso:\s*["']casa-da-costa["']/);
+  it("Janela Casa: elenco não bloqueia mais o sensor (foi para antes da encenação)", () => {
+    assert.equal(/avisoElencoAntesJanela/.test(JANELA), false);
+    assert.match(JANELA, /_elencoJanelaOk\s*=\s*true/);
   });
 
   it("Casa sensor: overlayPausa é cartão 1+1, não scrim plano", () => {

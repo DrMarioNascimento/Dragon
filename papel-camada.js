@@ -162,6 +162,8 @@
     ".pf-inset{background:var(--pf-inset-fill);border:1px solid var(--pf-inset-stroke);border-left:4px solid #6aa8ca;border-radius:10px;box-shadow:var(--pf-inset-shadow);overflow:hidden}",
     ".pf-btn-gold{display:flex;align-items:center;justify-content:center;width:100%;min-height:52px;margin-top:12px;padding:12px 14px;border:0;border-radius:10px;cursor:pointer;background:linear-gradient(180deg,var(--pf-gold-face),var(--pf-gold-base));color:#1b1005;font-weight:800;letter-spacing:.08em;text-transform:uppercase;box-shadow:inset 0 1px 0 #ffe2b4,0 5px 0 var(--pf-gold-wall),0 12px 22px #000a}",
     ".pf-btn-gold:active{transform:translateY(4px);box-shadow:inset 0 1px 0 #ffe2b4,0 1px 0 var(--pf-gold-wall),0 5px 10px #0009}",
+    ".pf-btn-go{display:flex;align-items:center;justify-content:center;width:100%;min-height:52px;margin-top:12px;padding:12px 14px;border:0;border-radius:10px;cursor:pointer;background:linear-gradient(180deg,#8ee4ad,#3ea86a);color:#062011;font-weight:800;letter-spacing:.08em;text-transform:uppercase;box-shadow:inset 0 1px 0 #d4f5e2,0 5px 0 #1b5c38,0 12px 22px #000a}",
+    ".pf-btn-go:active{transform:translateY(4px);box-shadow:inset 0 1px 0 #d4f5e2,0 1px 0 #1b5c38,0 5px 10px #0009}",
     ".pf-btn-ghost{display:flex;align-items:center;justify-content:center;width:100%;min-height:48px;margin-top:10px;padding:12px 14px;border:1px solid #46667a;border-radius:10px;cursor:pointer;background:linear-gradient(180deg,#162a38,#0c1b26);color:var(--pf-ink);font-weight:800;letter-spacing:.06em;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 4px 0 #020609,0 10px 18px #0008}",
     ".pf-cell{display:block;width:100%;text-align:left;padding:14px 16px;border:0;border-bottom:1px solid rgba(45,63,72,.7);border-radius:0;background:transparent;color:var(--pf-ink-2);cursor:pointer;box-sizing:border-box}",
     ".pf-cell:last-child{border-bottom:0}",
@@ -224,8 +226,9 @@
       "#mpcOverlay{position:fixed;inset:0;z-index:100050;background:rgba(0,0,0,.78);display:flex;align-items:flex-end;justify-content:center;padding:16px;overflow:auto}",
       "#mpcOverlay .mpc-sheet{width:min(520px,100%);margin:auto;padding:18px;color:#e6edf2;font-family:Inter,system-ui,sans-serif}",
       "#mpcOverlay .mpc-sheet h2{font:600 28px Georgia,serif;margin:0 0 6px;color:#f4f9fd}",
+      /* keep --titulo in lockstep with profundidade-1mais1 / mesa */
       "#mpcOverlay .mpc-sheet .lead{color:#c5d4dc;font-size:14px;line-height:1.45;margin:0 0 8px}",
-      "#mpcOverlay .mpc-ok{width:100%;min-height:52px;margin-top:14px;border:0;border-radius:10px;padding:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;background:linear-gradient(180deg,#ffc878,#d6aa58);color:#1b1005;box-shadow:inset 0 1px 0 #ffe2b4,0 5px 0 #6a3712,0 12px 22px #000a}"
+      "#mpcOverlay .mpc-ok{width:100%;min-height:52px;margin-top:14px;border:0;border-radius:10px;padding:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;background:linear-gradient(180deg,#8ee4ad,#3ea86a);color:#062011;box-shadow:inset 0 1px 0 #d4f5e2,0 5px 0 #1b5c38,0 12px 22px #000a}"
     ].join("");
     document.head.appendChild(st);
   }
@@ -302,7 +305,7 @@
         "<h2>Seu papel nesta partida</h2>" +
         '<p class="lead">Escolha a responsabilidade cognitiva e o nível de apoio. Mesma verdade — diferentes andaimes.</p>' +
         htmlSeletor(caso, estado) +
-        '<button type="button" class="mpc-ok pf-btn-gold" id="mpcOk">Continuar</button></div>';
+        '<button type="button" class="mpc-ok pf-btn-go" id="mpcOk">Continuar</button></div>';
       document.body.appendChild(ov);
       var bloco = ov.querySelector(".mpc-bloco");
       ligarSeletor(bloco, estado);

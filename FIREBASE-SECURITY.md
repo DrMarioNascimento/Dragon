@@ -49,7 +49,11 @@ Portanto, para o **Carro-Forte / A Noite**, reconhecer o Mestre na interface nã
 - cada participante cria apenas o documento correspondente ao próprio UID;
 - o convidado pode atualizar, no próprio `jogadores/{uid}`, só o allowlist de
   `ownPlayerUpdate` (pronto/forma/pistas, personagem/fragmentoPronto, papel/camada,
-  resumo `hpcScaffold`) — nunca moedas, total nem núcleo;
+  resumo `hpcScaffold`, voto de envio do Fragmento `pedidoEnvioFragmento` /
+  `votoEnvioSim` / `votoEnvioMs`) — nunca moedas, total nem núcleo;
+- o Portador (ou integrante de Fragmento compartilhado, mesas ≤3) grava o
+  rascunho do núcleo e pode fechar com `concluidoEm` **uma vez**, como
+  timestamp do servidor — número de cliente é recusado (desempate de tempo);
 - uma pessoa autenticada com o código de uma sala ativa pode consultar a lista de jogadores necessária à entrada;
 - documentos e coleções desconhecidos são negados por padrão;
 - exclusões diretas são bloqueadas;

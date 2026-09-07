@@ -150,6 +150,21 @@ test("concluidoMs não pode mais ser escrito por ninguém", async () => {
   }));
 });
 
+test("o Portador fecha o Fragmento com concluidoEm timestamp", async () => {
+  const db = como(ANA);
+  await assertSucceeds(updateDoc(doc(db, "mosaico", SALA, "nucleos", "1"), {
+    rascunho: { 0: "pub-2103", _enviadoMs: Date.now() },
+    rascunhoMs: Date.now(),
+    concluidoEm: new Date()
+  }));
+});
+
+test("integrante comum não fecha o Fragmento com concluidoEm", async () => {
+  await assertFails(updateDoc(doc(como(BIA), "mosaico", SALA, "nucleos", "1"), {
+    rascunho: { 0: "x" }, rascunhoMs: Date.now(), concluidoEm: new Date()
+  }));
+});
+
 /* ---------- votos ---------- */
 
 test("votar em si mesmo é negado", async () => {
@@ -381,9 +396,9 @@ test("o Mestre move o balaio e credita o consignante", async () => {
 
 /* ---------- ownPlayerUpdate expandido (Casa + papel/camada + HPC) ---------- */
 
-test("convidado declara personagem e fragmentoPronto", async () => {
+test("convidado registra voto de envio do Fragmento", async () => {
   await assertSucceeds(updateDoc(jogadora(como(ANA), ANA), {
-    personagem: "porteiro", fragmentoPronto: true, fragmentoProntoMs: Date.now(), atualizadoEmMs: Date.now()
+    pedidoEnvioFragmento: true, votoEnvioSim: true, votoEnvioMs: Date.now(), atualizadoEmMs: Date.now()
   }));
 });
 

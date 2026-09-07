@@ -25,7 +25,7 @@ service cloud.firestore {
        Continua sem moedas/total/nucleo — mercado e placar ficam com o Mestre. */
     function ownPlayerUpdate(v,id,playerId) {
       return signedIn() && active(v,id) && playerId == request.auth.uid
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pronto','forma','atualizadoEmMs','pistas','personagem','fragmentoPronto','fragmentoProntoMs','papelCognitivo','camadaAcessibilidade','aliasNarrativo','hpcScaffold'])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pronto','forma','atualizadoEmMs','pistas','personagem','fragmentoPronto','fragmentoProntoMs','papelCognitivo','camadaAcessibilidade','aliasNarrativo','hpcScaffold','pedidoEnvioFragmento','votoEnvioSim','votoEnvioMs'])
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['pistas']) || (request.resource.data.pistas is list && resource.data.pistas is list && request.resource.data.pistas.size() == resource.data.pistas.size() + 1))
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['hpcScaffold']) || request.resource.data.hpcScaffold is map)
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['personagem']) || request.resource.data.personagem is string)
@@ -34,10 +34,28 @@ service cloud.firestore {
     }
     function nucleoPortador(v,id) { return resource.data.portadorId == request.auth.uid; }
     function nucleoV3(v,id) { return room(v,id).v3 == true; }
+    function membroDoNucleo(v,id) {
+      return exists(/databases/$(database)/documents/$(v)/$(id)/jogadores/$(request.auth.uid))
+        && get(/databases/$(database)/documents/$(v)/$(id)/jogadores/$(request.auth.uid)).data.nucleo == resource.data.numero;
+    }
+    function podeEscreverNucleo(v,id) {
+      return nucleoPortador(v,id) || nucleoV3(v,id)
+        || (resource.data.portadoresCompartilhados == true && membroDoNucleo(v,id));
+    }
+    /* rascunho: portador (ou mesa ≤3 compartilhada / v3). concluidoEm só
+       entra UMA vez, como timestamp do servidor — é o desempate de tempo
+       do Mosaico. Playtest: sem isto o envio era recusado e a UI congelava. */
     function validNucleoUpdate(v,id) {
       return signedIn() && active(v,id) && participant(v,id)
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['rascunho','rascunhoMs'])
-        && (nucleoPortador(v,id) || nucleoV3(v,id));
+        && podeEscreverNucleo(v,id)
+        && !resource.data.keys().hasAny(['concluidoEm'])
+        && (
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['rascunho','rascunhoMs'])
+          || (
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['rascunho','rascunhoMs','concluidoEm'])
+            && request.resource.data.concluidoEm is timestamp
+          )
+        );
     }
     function validTarefa() { return request.resource.data.tarefa in ['inclinacao','janela','vidro','sala','salaescura','escuro','cor','mosaico','encaixe','cooperacao','palimpsesto','espelho','planta','mercado','oleo']; }
     function actorAdvance(v,id) {
