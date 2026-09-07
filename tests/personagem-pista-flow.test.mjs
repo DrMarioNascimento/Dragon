@@ -109,6 +109,26 @@ describe("revelação · personagem depois pista", () => {
     assert.match(MESA, /\.revelacao-passo\{[^}]*safe-area-inset-bottom/);
     assert.match(MESA, /revelacaoPasso:"personagem"/);
   });
+
+  it("pista depois do OK: hint do Arquivo (completa no iPhone, curta se apertar)", () => {
+    const fn = fnSlice(MESA, "function telaRevelacao(", ["function confirmarPersonagemRevelacao("]);
+    const pistaBranch = fn.slice(fn.indexOf('data-revelacao-passo="pista"'));
+    assert.match(pistaBranch, /htmlPistaArquivoHint\(["']Arquivo["']\)/);
+    assert.equal(/htmlPistaArquivoHint/.test(fn.slice(0, fn.indexOf('data-revelacao-passo="pista"'))), false);
+    assert.match(MESA, /Ela vai estar no ["']?\s*\+\s*destino/);
+    assert.match(MESA, /para quando você quiser consultar/);
+    assert.match(MESA, /\.pista-arquivo-hint \.pista-arquivo-curta\{display:none\}/);
+    assert.match(MESA, /@media \(max-height:600px\),\(max-width:330px\)/);
+    const g = runArquivoHint();
+    assert.equal(g.pistaArquivoHintTexto("curta", "Arquivo"), "Ela vai estar no Arquivo");
+    assert.equal(
+      g.pistaArquivoHintTexto("completa", "Arquivo"),
+      "Ela vai estar no Arquivo — para quando você quiser consultar",
+    );
+    assert.equal(g.pistaArquivoHintUsaCompleta({ largura: 390, altura: 844 }), true);
+    assert.equal(g.pistaArquivoHintUsaCompleta({ largura: 375, altura: 667 }), true);
+    assert.equal(g.pistaArquivoHintUsaCompleta({ largura: 320, altura: 560 }), false);
+  });
 });
 
 describe("números de carta · mínimo 22px", () => {
@@ -141,6 +161,23 @@ describe("números de carta · mínimo 22px", () => {
     assert.equal(/\.fragment small\{font:700 8px/.test(css), false);
     assert.match(ler("carro-forte/game.js"), /class="carta-num"/);
   });
+
+  it("Carro: hint do dossiê na carta do fragmento (as três portas)", () => {
+    const css = ler("carro-forte/atividade.css");
+    assert.match(css, /\.pista-arquivo-hint \.pista-arquivo-curta\{display:none\}/);
+    assert.match(css, /@media \(max-height:600px\),\(max-width:330px\)/);
+    for (const p of [
+      "carro-forte/janela-do-norte.html",
+      "carro-forte/vidro-embacado.html",
+      "carro-forte/sala-as-escuras.html",
+    ]) {
+      const src = ler(p);
+      assert.match(src, /data-pista-arquivo-hint="1"/, p);
+      assert.match(src, /Ela vai estar no dossiê/, p);
+      assert.match(src, /para quando você quiser consultar/, p);
+      assert.match(src, /atividade\.css\?v=20260907-pista-arquivo/, p);
+    }
+  });
 });
 
 describe("portas sem este padrão", () => {
@@ -171,6 +208,15 @@ function runHelpers() {
   const src = fnSlice(MESA, "function revelacaoMostraPersonagem(", ["function htmlPersonagemRevelacao("]);
   const g = {};
   const wrapped = src + "; this.revelacaoMostraPersonagem=revelacaoMostraPersonagem; this.revelacaoMostraPista=revelacaoMostraPista;";
+  const fn = new Function(wrapped);
+  fn.call(g);
+  return g;
+}
+
+function runArquivoHint() {
+  const src = fnSlice(MESA, "function pistaArquivoHintTexto(", ["function htmlPistaArquivoHint("]);
+  const g = {};
+  const wrapped = src + "; this.pistaArquivoHintTexto=pistaArquivoHintTexto; this.pistaArquivoHintUsaCompleta=pistaArquivoHintUsaCompleta;";
   const fn = new Function(wrapped);
   fn.call(g);
   return g;

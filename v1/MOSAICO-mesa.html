@@ -1274,6 +1274,17 @@
   }
   .pista-memorize{text-align:center;margin:13px 0 0;color:#ffe889;font:800 13px/1.4 var(--sans);
     letter-spacing:.06em;text-transform:uppercase}
+  /* Secundária: não compete com o corpo da pista. Completa no iPhone típico;
+     curta só quando a janela é estreita ou baixa (Safari + home indicator). */
+  .pista-arquivo-hint{
+    text-align:center;margin:14px 0 2px;color:var(--dim);
+    font:500 13px/1.45 var(--sans);
+  }
+  .pista-arquivo-hint .pista-arquivo-curta{display:none}
+  @media (max-height:600px),(max-width:330px){
+    .pista-arquivo-hint .pista-arquivo-curta{display:inline}
+    .pista-arquivo-hint .pista-arquivo-completa{display:none}
+  }
   .revelacao-passo{
     padding-bottom:calc(env(safe-area-inset-bottom,0px) + 88px);
   }
@@ -3093,6 +3104,26 @@ function htmlPersonagemRevelacao(p){
       '<p class="lead rv-desc">'+esc(descPers(p,STATE.eu&&STATE.eu.forma))+'</p>'+
     '</div>';
 }
+function pistaArquivoHintTexto(forma, destino){
+  destino = destino || "Arquivo";
+  if(forma==="curta") return "Ela vai estar no "+destino;
+  return "Ela vai estar no "+destino+" — para quando você quiser consultar";
+}
+function pistaArquivoHintUsaCompleta(layout){
+  layout = layout || {};
+  var w = Number(layout.largura);
+  var h = Number(layout.altura);
+  if(!isFinite(w)) w = 390;
+  if(!isFinite(h)) h = 844;
+  return w >= 350 && h >= 620;
+}
+function htmlPistaArquivoHint(destino){
+  destino = destino || "Arquivo";
+  return '<p class="pista-arquivo-hint" data-pista-arquivo-hint="1">'+
+    '<span class="pista-arquivo-curta">'+esc(pistaArquivoHintTexto("curta", destino))+'</span>'+
+    '<span class="pista-arquivo-completa">'+esc(pistaArquivoHintTexto("completa", destino))+'</span>'+
+  '</p>';
+}
 function htmlPistaCard(pista){
   if(!pista) return '';
   return '<div class="pista-card pf-card">'+
@@ -3112,7 +3143,7 @@ function telaRevelacao(){
   }
   return '<div class="revelacao-passo" data-revelacao-passo="pista">'+
     htmlPistaCard(pista)+
-    '<p class="muted" style="text-align:center;margin:18px 0 8px">Toque para adicionar a pista ao Arquivo e seguir com o caso.</p>'+
+    htmlPistaArquivoHint("Arquivo")+
     '<button class="btn btn-ambar" style="margin-top:8px" '+
       'onclick="guardarPista()">Adicionar ao Arquivo</button></div>';
 }
