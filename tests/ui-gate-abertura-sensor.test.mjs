@@ -2,7 +2,7 @@
  * Gate Celular Abrir|Entrar, abertura Solo/Mestre/Telão, sensor soft deadline.
  */
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -18,6 +18,11 @@ const JANELA = ler("v1/MOSAICO-26-a-janela-do-norte.html");
 const ATIV = ler("carro-forte/atividade.js");
 const TELAO = ler("telao.html");
 const PADRAO = ler("PADRAO-SALA-MULTIPLAYER.md");
+const CEL = ler("carro-forte/celular.html");
+const GAME = ler("carro-forte/game.js");
+const OPEN = ler("carro-forte/opening-flow.js");
+const HUB = ler("index.html");
+const SOLO_CASA = ler("solo/index.html");
 
 describe("abertura · roteamento", () => {
   it("Carro: convidado espera; Mestre toca local ou aciona telão", () => {
@@ -36,6 +41,65 @@ describe("abertura · roteamento", () => {
 
   it("Telão Casa tem áudio da abertura", () => {
     assert.match(TELAO, /casa-da-costa[\s\S]*A-Casa-da-Costa-Abertura\.mp3/);
+  });
+});
+
+describe("abertura · Carro Celular / Solo / Telão wiring", () => {
+  it("Celular carrega opening-flow antes de game.js e chama abertura no boot", () => {
+    const iOpen = CEL.indexOf("carregar('opening-flow.js");
+    const iGame = CEL.indexOf("carregar('game.js");
+    assert.ok(iOpen > 0 && iGame > iOpen, "celular.html perdeu opening-flow.js antes de game.js");
+    assert.match(CEL, /carregar\('opening-flow\.js\?v=/);
+    assert.match(GAME, /function pedirAbertura\(/);
+    assert.match(GAME, /pedirAbertura\(\);/);
+    assert.match(GAME, /quandoAbertura\(\(\)=>abrirPauta\(\)\)/);
+    assert.match(GAME, /MosaicoPauta\?\.abertura/);
+  });
+
+  it("Solo ?soloLab=1 libera ensaio local (sem Google) e toca neste aparelho", () => {
+    assert.match(HUB, /celular\.html\?soloLab=1/);
+    assert.match(ROOM, /async function iniciarEnsaioLocal\(/);
+    assert.match(ROOM, /if\(querEnsaio\)return iniciarEnsaioLocal\(\)/);
+    assert.match(PAUTA, /if \(!code\) \{ tocarAqui\(entrar\); return; \}/);
+    assert.match(PAUTA, /MosaicoOpening\?\.show/);
+    assert.match(OPEN, /#mosaicoPrep|#mosaicoOpening/);
+    assert.match(OPEN, /mosaico-opening-finished/);
+    assert.match(OPEN, /window\.MosaicoOpening\s*=/);
+  });
+
+  it("Telão carro-forte tem arte + áudio e consome opening.command", () => {
+    assert.match(TELAO, /const ARTE_CF=\{/);
+    assert.match(TELAO, /abertura:'carro-forte\/noite\/AberturaTel/);
+    assert.match(TELAO, /audio:'carro-forte\/noite\/Amanha-do-carroforte\.mp3/);
+    assert.match(TELAO, /'carro-forte':\{fb:FB_NOITE,colecao:'mosaico'[\s\S]*?\.\.\.ARTE_CF\}/);
+    assert.match(TELAO, /async function startOpening/);
+    assert.match(TELAO, /if\(o\.command==='start'&&token&&token!==lastToken\)/);
+    assert.match(TELAO, /id="opening"/);
+    assert.match(TELAO, /id="openingAudio"/);
+  });
+
+  it("arquivos da abertura do Carro existem no disco", () => {
+    const noite = join(root, "carro-forte", "noite");
+    const nomes = readdirSync(noite);
+    assert.ok(nomes.includes("AberturaCelular.jpg"), "faltou AberturaCelular.jpg");
+    assert.ok(nomes.some((n) => /^AberturaTel/.test(n) && n.endsWith(".jpg")), "faltou AberturaTelão.jpg");
+    assert.ok(nomes.includes("Amanha-do-carroforte.mp3"), "faltou Amanha-do-carroforte.mp3");
+    assert.ok(existsSync(join(root, "carro-forte", "opening-flow.js")));
+  });
+
+  it("opening-flow resolve mídia a partir do script, não do documento", () => {
+    assert.match(OPEN, /document\.currentScript/);
+    assert.match(OPEN, /noite\/AberturaCelular\.jpg/);
+    assert.match(OPEN, /noite\/Amanha-do-carroforte\.mp3/);
+    assert.match(OPEN, /z-index:100060/);
+  });
+
+  it("Casa Solo e Casa Mesa não perderam a própria abertura", () => {
+    assert.match(SOLO_CASA, /abertura-casa\.js/);
+    assert.match(SOLO_CASA, /MosaicoAberturaCasa\.mostrar/);
+    const fn = MESA.slice(MESA.indexOf("function sincronizarAudioAbertura"), MESA.indexOf("function vozDaFase"));
+    assert.match(fn, /tocarAberturaComAmbiente/);
+    assert.match(ler("abertura-casa.js"), /function mostrar\(/);
   });
 });
 

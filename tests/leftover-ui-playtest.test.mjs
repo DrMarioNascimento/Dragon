@@ -211,6 +211,8 @@ describe("Abrir mesa · nenhum seletor de modo depois do Celular", () => {
     const boot = room.slice(room.indexOf("const qsSolo"));
     assert.match(boot, /soloLab/);
     assert.match(boot, /intencao\s*=\s*['"]ensaio['"]/);
+    assert.match(boot, /iniciarEnsaioLocal\(\)/);
+    assert.equal(/if\(querEnsaio\)return renderMasterGate\(\)/.test(boot), false);
     const master = fnSlice(room, "function renderMasterGate", ["async function autorizado"]);
     assert.equal(/data-mode=/.test(stripComments(master)), false);
   });

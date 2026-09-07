@@ -169,6 +169,18 @@ async function liberarEnsaio(){
   }
   liberar({local:true,ensaio:true});
 }
+/* Solo do hub (`?soloLab=1`): sem Google e sem sala — o mesmo espírito da
+   porta `/solo/` da Casa. A abertura toca NESTE aparelho assim que o jogo
+   libera. Pedir conta de Mestre aqui fazia o ensaio morrer no gate e a
+   manhã nunca falava. */
+async function iniciarEnsaioLocal(){
+  try{
+    await liberarEnsaio();
+  }catch(e){
+    console.error('MOSAICO: não consegui abrir o ensaio local.', e);
+    renderMasterGate('Não foi possível ensaiar neste aparelho.');
+  }
+}
 /* A mensagem crua do SDK chegava em inglês e falando de SAML: "Unable to
    process request due to missing initial state…". Quem lê é o Mestre com o
    celular na mão, no escuro, com a mesa esperando. Cada erro que a gente sabe
@@ -430,7 +442,7 @@ getRedirectResult(auth).then(r=>{
   if(r?.user)return abrirComoMestre(r.user);
   if(voltandoDoGoogle)return renderMasterGate('O Google voltou sem concluir o login neste navegador. Toque em “Abrir com Google” de novo: desta vez a janela abre por cima desta página, sem sair dela.');
   if(q){code=q.toUpperCase();return formEntrar('',false)}
-  if(querEnsaio)return renderMasterGate();
+  if(querEnsaio)return iniciarEnsaioLocal();
   menu();
 }).catch(e=>{
   const voltandoDoGoogle=recuperarEscolhas();
@@ -441,6 +453,6 @@ getRedirectResult(auth).then(r=>{
   const erroDeLogin=/missing initial state|auth\//i.test(String(e?.code||'')+' '+String(e?.message||''));
   if(voltandoDoGoogle||erroDeLogin)return renderMasterGate(mensagemLogin(e));
   if(q){code=q.toUpperCase();return formEntrar('',false)}
-  if(querEnsaio)return renderMasterGate();
+  if(querEnsaio)return iniciarEnsaioLocal();
   menu();
 });
