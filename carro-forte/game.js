@@ -1080,12 +1080,38 @@ function receberFecho(f){
 }
 
 /* ── Ligações ──────────────────────────────────────────────────────────── */
-/* A abertura roda uma vez, na primeira entrada, e só então a pauta é sorteada —
-   a pergunta aparece depois da narração, não antes. Nas entradas seguintes
-   (voltar ao prólogo, sortear a próxima) ela não volta: MosaicoOpening.show()
-   é inerte depois de terminada, e sem esta bandeira o clique ficaria esperando
-   um evento que não viria mais. */
+/* A abertura roda UMA vez, no começo da sessão — não espera o toque em
+   "Começar a investigação". Casa toca sozinha na encenação / no Solo; aqui o
+   prólogo já entregava o caso e a narração só nascia se alguém clicasse de
+   novo, então o playtest via "Carro sem abertura".
+   Começar ainda sorteia a pauta, mas espera a abertura terminar se ela
+   ainda estiver no ar. Nas entradas seguintes (prólogo, próxima) ela não
+   volta: MosaicoOpening.show() é inerte depois de terminada. */
 let aberturaPedida=false;
+let aberturaPronta=false;
+const aposAbertura=[];
+function quandoAbertura(fn){
+  if(aberturaPronta)return fn();
+  aposAbertura.push(fn);
+  pedirAbertura();
+}
+function pedirAbertura(){
+  if(aberturaPedida)return;
+  aberturaPedida=true;
+  const pronto=()=>{
+    if(aberturaPronta)return;
+    aberturaPronta=true;
+    const fila=aposAbertura.splice(0);
+    fila.forEach(f=>f());
+  };
+  if(window.MosaicoPauta?.abertura)return window.MosaicoPauta.abertura(pronto);
+  if(window.MosaicoOpening?.show){
+    window.addEventListener('mosaico-opening-finished',pronto,{once:true});
+    window.MosaicoOpening.show();
+    return;
+  }
+  pronto();
+}
 /* A pergunta da mesa é UMA. Quem sorteia é o Mestre e grava na sala; os outros
    recebem. Sem sala, `escolher` devolve o sorteio local intacto — é o caminho
    do ensaio e do aparelho solto, que continua sendo a maioria das partidas.
@@ -1115,12 +1141,12 @@ $('chooseGame').onclick=()=>{
     mesa via a pergunta trocar sozinha depois da narração. selectGame devolve
     o botão. */
  $('chooseGame').disabled=true;
- if(aberturaPedida)return abrirPauta();
- aberturaPedida=true;
- if(window.MosaicoPauta?.abertura)return window.MosaicoPauta.abertura(()=>abrirPauta());
- if(window.MosaicoOpening){window.addEventListener('mosaico-opening-finished',()=>abrirPauta(),{once:true});window.MosaicoOpening.show();return}
- abrirPauta();
+ quandoAbertura(()=>abrirPauta());
 };
+/* A sessão começa pela narração, não pelo prólogo. Sem esta chamada a
+   abertura só existia se alguém tocasse em Começar — e o playtest relatava
+   que Carro não tinha abertura. */
+pedirAbertura();
 
 /* A sala tem duas portas e só precisa de uma. O #dragonSalaBtn flutuante vem do
    firebase-room.js, compartilhado com A Noite, onde ele é a única porta e não

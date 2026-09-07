@@ -282,9 +282,24 @@
   }
 
   function tocarAqui(depois) {
-    if (!window.MosaicoOpening?.show) { depois(); return; }
-    window.addEventListener('mosaico-opening-finished', depois, { once: true });
-    window.MosaicoOpening.show();
+    /* NÃO pular em silêncio. Se opening-flow ainda não chegou (rede lenta) ou
+       o script morreu, o jogo seguia para a pauta e a mesa nunca via abertura.
+       Espera curta; se o overlay não aparecer, o jogo continua — clima não
+       trava mesa — mas o erro fica no console. */
+    const tentar = (restantes) => {
+      if (window.MosaicoOpening?.show) {
+        window.addEventListener('mosaico-opening-finished', depois, { once: true });
+        window.MosaicoOpening.show();
+        return;
+      }
+      if (restantes <= 0) {
+        console.error('MOSAICO: overlay da abertura ausente — a manhã não falou neste aparelho.');
+        depois();
+        return;
+      }
+      setTimeout(() => tentar(restantes - 1), 50);
+    };
+    tentar(40);
   }
 
   async function abertura(seguir) {
