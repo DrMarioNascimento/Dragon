@@ -1657,7 +1657,8 @@ var STATE = {
   resultadoVista:"podio",
   mosaicoEscolha:null,
   revelacaoPasso:"personagem",
-  elencoVisto:false
+  elencoVisto:false,
+  sensorOkPorRun:{}
 };
 var _unsubJog=null, _unsubMesa=null, _unsubVotos=null, _unsubPub=null, _unsubV5=[], _timerContagem=null;
 var _autoFasePendente=null, _autoTimer=null, _autoTimerChave="";
@@ -2230,6 +2231,16 @@ function alternarMenuMestre(){
   STATE.menuMestreAberto=!STATE.menuMestreAberto;if(STATE.menuMestreAberto)STATE.casoAberto=false;render(true);
 }
 function tarefaConcluida(t){return !!(t&&(t.status==='concluida'||t.concluidoEm));}
+/* Conclusão local (tarefa-ok aceito) conta antes do snapshot do Firestore.
+   Sem isto, um render(true) entre o postMessage e o carimbo reabre o iframe. */
+function sensorRodadaConcluida(tipo){
+  if(!tipo||!STATE.eu) return false;
+  var id=STATE.eu.id+'_'+tipo;
+  if((STATE.v5.tarefas||[]).some(function(t){return t.id===id&&tarefaConcluida(t);})) return true;
+  var runId="";
+  try{ runId=execucaoTarefaSensor(tipo).runId; }catch(e){ return false; }
+  return !!(STATE.sensorOkPorRun&&STATE.sensorOkPorRun[runId]);
+}
 function tarefasConcluidas(tipo){return (STATE.v5.tarefas||[]).filter(function(t){return t.tarefa===tipo&&tarefaConcluida(t);});}
 function resumoSensores(tipo,total){
   return tarefasConcluidas(tipo).length+' de '+total+' conclusões';
@@ -2614,13 +2625,22 @@ function render(forcar){
   }
   /* Os snapshots do Firebase podem chegar várias vezes durante uma rodada.
      Recriar o iframe a cada snapshot descarrega o módulo, perde a permissão
-     do sensor e devolve o jogador à introdução. Enquanto a mesma tarefa
-     continua aberta, preservamos o iframe já iniciado. */
+     do sensor e devolve o jogador à introdução. O mesmo vale para render(true)
+     — abrir Caso, Arquivo ou Sala no meio da rodada reescrevia #app e o
+     módulo recomeçava com feitos=0. Enquanto a tarefa continua aberta e a
+     conclusão ainda não foi reconhecida, o iframe vivo sai de #app, o chrome
+     redesenha, e o mesmo quadro volta para #mosaic. */
   var tipoSensor=(STATE.tela==="constelacao"||STATE.tela==="inclinacao")?STATE.tela:"";
-  var frameSensor=tipoSensor&&app.querySelector('iframe.tarefa-frame[data-tarefa="'+tipoSensor+'"]');
-  var sensorConcluido=tipoSensor&&(STATE.v5.tarefas||[]).some(function(t){
-    return t.id===((STATE.eu&&STATE.eu.id)+'_'+tipoSensor)&&tarefaConcluida(t);
-  });
+  var frameSensor=tipoSensor&&(
+    app.querySelector('iframe.tarefa-frame[data-tarefa="'+tipoSensor+'"]')||
+    document.querySelector('iframe.tarefa-frame[data-tarefa="'+tipoSensor+'"][data-sensor-vivo]')
+  );
+  var sensorConcluido=!!(tipoSensor&&sensorRodadaConcluida(tipoSensor));
+  if(sensorConcluido){
+    document.querySelectorAll('iframe.tarefa-frame[data-sensor-vivo]').forEach(function(n){
+      if(n.parentNode) n.parentNode.removeChild(n);
+    });
+  }
   if(!forcar&&frameSensor&&!sensorConcluido){
     sincronizarControleTarefa(frameSensor,tipoSensor);
     var pausaExistente=app.querySelector('.partida-pausada');
@@ -2629,6 +2649,12 @@ function render(forcar){
     if(faseMudou)requestAnimationFrame(function(){window.scrollTo(0,0);});
     agendarAutomacoes();
     return;
+  }
+  var iframeVivo=null;
+  if(forcar&&frameSensor&&!sensorConcluido){
+    iframeVivo=frameSensor;
+    iframeVivo.setAttribute("data-sensor-vivo","1");
+    document.body.appendChild(iframeVivo);
   }
   var h="";
   switch(STATE.tela){
@@ -2641,8 +2667,8 @@ function render(forcar){
     case "revelacao":   h=telaRevelacao(); break;
     case "encerrada":   h=telaEncerrada(); break;
     case "votacao":     h=telaVotacao(); break;
-    case "constelacao": h=telaTarefaSensor("constelacao"); break;
-    case "inclinacao":  h=telaTarefaSensor("inclinacao"); break;
+    case "constelacao": h=telaTarefaSensor("constelacao", !!iframeVivo); break;
+    case "inclinacao":  h=telaTarefaSensor("inclinacao", !!iframeVivo); break;
     case "mosaico":     h=telaMosaico(); break;
     case "cooperacao":  h=telaCooperacao(); break;
     case "mercado":     h=telaMercado(); break;
@@ -2682,6 +2708,12 @@ function render(forcar){
      rodada em que o celular esta sendo sacudido.                     */
   limparBarraInferior();
   app.innerHTML=h;
+  if(iframeVivo){
+    iframeVivo.removeAttribute("data-sensor-vivo");
+    var slot=app.querySelector("#mosaic");
+    if(slot) slot.appendChild(iframeVivo);
+    else if(iframeVivo.parentNode) iframeVivo.parentNode.removeChild(iframeVivo);
+  }
   if(STATE.tela==="entrar" && window.MosaicoPapelCamada){
     var stPc={papel:STATE.papelCognitivo||'investigador',camada:STATE.camadaAcessibilidade||'livre'};
     window.MosaicoPapelCamada.ligarSeletor(document.querySelector('.mpc-bloco'),stPc);
@@ -3519,9 +3551,9 @@ function perguntaPartidaAtual(){
     return (p&&p.pergunta)||"";
   }catch(e){return "";}
 }
-function telaTarefaSensor(tipo){
+function telaTarefaSensor(tipo, preservarQuadro){
   var cfg=configTarefaSensor(tipo);
-  var concluida=(STATE.v5.tarefas||[]).some(function(t){return t.id===((STATE.eu&&STATE.eu.id)+'_'+tipo)&&tarefaConcluida(t);});
+  var concluida=sensorRodadaConcluida(tipo);
   if(concluida){
     var pista=cfg.pista;
     return '<span class="eyebrow">'+esc(cfg.titulo||tipo)+'</span><h2>Fragmento encontrado.</h2>'+
@@ -3531,8 +3563,11 @@ function telaTarefaSensor(tipo){
   var pergunta=perguntaPartidaAtual();
   var copy='<div class="sensor-copy">'+(pergunta?'<p class="sensor-pergunta">'+esc(pergunta)+'</p>':'')+
     '<p class="lead">Mantenha a tela voltada para voc&ecirc; e conclua a tarefa no quadro abaixo.</p></div>';
+  var quadro=preservarQuadro
+    ? '<div class="sensor-play" id="mosaic"></div>'
+    : '<div class="sensor-play" id="mosaic"><iframe class="tarefa-frame" data-tarefa="'+esc(tipo)+'" src="'+esc(urlTarefaSensor(cfg,tipo))+'" onload="this.dataset.controle=\'\';sincronizarControleTarefa(this,\''+esc(tipo)+'\')" allow="accelerometer; gyroscope; magnetometer" title="'+esc(cfg.titulo||tipo)+'"></iframe></div>';
   return '<span class="eyebrow">Rodada sensorial</span><h2>'+esc(cfg.titulo||tipo)+'</h2>'+copy+
-    '<div class="sensor-play" id="mosaic"><iframe class="tarefa-frame" data-tarefa="'+esc(tipo)+'" src="'+esc(urlTarefaSensor(cfg,tipo))+'" onload="this.dataset.controle=\'\';sincronizarControleTarefa(this,\''+esc(tipo)+'\')" allow="accelerometer; gyroscope; magnetometer" title="'+esc(cfg.titulo||tipo)+'"></iframe></div>'+
+    quadro+
     '<p class="muted" style="text-align:center">Se o sensor n&atilde;o responder, aguarde o fim do prazo. A partida continuar&aacute; automaticamente.</p>';
 }
 
@@ -4439,6 +4474,14 @@ async function concluirTarefaSensor(tipo,tempoMs,runId){
   if(String(runId||"")!==esperado||!Number.isFinite(tempoMs)||tempoMs<=0||tempoMs>3600000) return;
   var id=STATE.eu.id+'_'+tipo;
   if((STATE.v5.tarefas||[]).some(function(t){return t.id===id&&tarefaConcluida(t);})) return;
+  STATE.sensorOkPorRun=STATE.sensorOkPorRun||{};
+  if(!STATE.sensorOkPorRun[esperado]){
+    STATE.sensorOkPorRun[esperado]=true;
+    /* Troca o iframe pela tela "Fragmento encontrado" agora, sem esperar
+       o round-trip do Firestore — senão um render(true) no meio reabre
+       a introdução com as bolinhas zeradas. */
+    render();
+  }
   var FB=await esperarFB(), cfg=configTarefaSensor(tipo), pista=cfg&&cfg.pista;
   if(pista){
     var repetida=minhasPistas().some(function(p){return p.id===pista.id;});
