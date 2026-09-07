@@ -41,10 +41,9 @@ const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 /* Teto medido em 03/09/2026, depois da convergência da bússola. SÓ DESCE. */
 const TETO = {
-  "janela-do-norte": 600,
-  /* 597 → 600 em 07/09/2026: elenco opaco + ctx embed + carimbo
-     20260907-elenco-pista só no lado Mesa (playtest Celular). A Noite
-     não tem PERSONAGENS da Casa — não copia o modal. */
+  "janela-do-norte": 592,
+  /* 600 → 592 em 07/09/2026: elenco saiu da Janela (foi para a mesa antes
+     da encenação). A Noite nunca teve o modal. */
   /* 588 → 597 em 06/09/2026: overlayPausa 1+1 + profundidade-1mais1.css
      só no lado Mesa (porta de playtest). Cópias leftover ficam planas. */
   /* 575 → 588 em 06/09/2026: gate avisoElencoAntesJanela (OK obrigatório)
@@ -59,7 +58,9 @@ const TETO = {
      nenhuma — o facho é arrastado com o dedo (`pointermove`), zero ocorrências
      de deviceorientation no arquivo. Pedir calibragem de magnetômetro a quem
      não lê magnetômetro seria um portão sem porta. */
-  "sala-as-escuras": 535,
+  "sala-as-escuras": 543,
+  /* 535 → 543 em 07/09/2026: hold Android 2400ms + cartão “As luzes caíram”
+     no lado Mesa (TarefaSensor.holdMsPorPlataforma). A Noite usa holdAlvo. */
   /* 526 → 535 em 06/09/2026: overlayPausa 1+1 + folha compartilhada no Mesa. */
   /* 520 → 526 em 06/09/2026: cairNoModoDedo + avisoAntesModoDedo no Mesa. */
   "vidro-embacado": 437,

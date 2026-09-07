@@ -59,10 +59,9 @@ describe("elenco · destaque uma vez", () => {
     assert.equal(api.elencoChromeDuplo(api.elencoDestacaNaLista(), api.elencoDestacaNoRodape()), false);
   });
 
-  it("Janela Casa manda embed ao elenco e some o intro enquanto o modal está aberto", () => {
-    assert.match(JANELA, /avisoElencoAntesJanela/);
-    assert.match(JANELA, /embed:ctxElenco\.embed/);
-    assert.match(JANELA, /tarefa-sensor\.js\?v=20260907-elenco-pista/);
+  it("Janela Casa não bloqueia no elenco — a mesa abre o modal antes da encenação", () => {
+    assert.equal(/avisoElencoAntesJanela/.test(JANELA), false);
+    assert.match(JANELA, /tarefa-sensor\.js\?v=20260907-playtest-ux/);
   });
 
   it("Mesa esconde o mural enquanto o elenco cobre o iframe", () => {
