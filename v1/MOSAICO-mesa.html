@@ -5281,7 +5281,8 @@ function atualizarDockTeste3D(){
       '<button class="btn-fechar-teste" onclick="sairTeste3D()">Sair</button>' +
     '</div>' +
     '<div class="m3d-dock-botoes">' +
-      '<button class="m3d-dock-btn '+((faseAtual==='sala3d'||faseAtual==='ra')?'on':'')+'" onclick="irParaFaseTeste3D(\'sala3d\')">🕯️ Sala 3D & RA</button>' +
+      '<button class="m3d-dock-btn '+(faseAtual==='ra'?'on':'')+'" onclick="irParaFaseTeste3D(\'ra\')">📷 Câmera RA</button>' +
+      '<button class="m3d-dock-btn '+((faseAtual==='sala3d')?'on':'')+'" onclick="irParaFaseTeste3D(\'sala3d\')">🕯️ Sala 3D & RA</button>' +
       '<button class="m3d-dock-btn '+(faseAtual==='mosaico'?'on':'')+'" onclick="irParaFaseTeste3D(\'mosaico\')">🌀 Mosaico 3D</button>' +
       '<button class="m3d-dock-btn '+(faseAtual==='mercado'?'on':'')+'" onclick="irParaFaseTeste3D(\'mercado\')">💰 Mercado 3D</button>' +
       '<button class="m3d-dock-btn '+(faseAtual==='deducao'?'on':'')+'" onclick="irParaFaseTeste3D(\'deducao\')">📌 Dedução 3D</button>' +
@@ -5329,7 +5330,7 @@ if(typeof window !== "undefined"){
   var faseParam = (paramsTeste && paramsTeste.get("teste")) || "";
   if(faseParam || location.hash === "#teste" || location.hash === "#sala3d" || location.hash === "#ra"){
     setTimeout(function(){
-      var f = (faseParam === "mosaico" || faseParam === "mercado" || faseParam === "deducao" || faseParam === "resultado") ? faseParam : "sala3d";
+      var f = (faseParam === "mosaico" || faseParam === "mercado" || faseParam === "deducao" || faseParam === "resultado" || faseParam === "ra") ? faseParam : (location.hash === "#ra" ? "ra" : "sala3d");
       window.iniciarTeste3D(f);
     }, 250);
   }

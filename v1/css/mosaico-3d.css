@@ -674,6 +674,30 @@
   padding: 4px;
 }
 
+/* Prompt / Banner de Permissão de Câmera RA */
+.mosaico-ra-prompt {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  background: rgba(4, 6, 10, 0.88);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  pointer-events: auto;
+}
+.mosaico-ra-prompt-card {
+  width: min(92vw, 400px);
+  background: linear-gradient(165deg, #162436 0%, #0c141f 60%, #060a0f 100%);
+  border: 1.5px solid rgba(77, 252, 186, 0.45);
+  border-radius: 18px;
+  padding: 24px 20px;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), 0 0 30px rgba(77, 252, 186, 0.15);
+}
+
 body.modo-teste-3d #dragonRoomGate {
   display: none !important;
   pointer-events: none !important;
