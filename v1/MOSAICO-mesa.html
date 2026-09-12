@@ -1444,6 +1444,8 @@
      Sao cinco porque cada modulo sensorial e um documento proprio e nao
      enxerga esta pagina. Dentro desta, o caso e o video releem o mesmo
      valor de window.MOSAICO_VERSAO, que sai da tag do mosaico-v5.js. -->
+<script src="js/three.min.js"></script>
+<script src="js/mosaico-ra-engine.js"></script>
 <script src="js/mosaico-3d-engine.js"></script>
 <script src="js/mosaico-v5.js?v=20260907-android-hold"></script>
 <script src="../hipoteses-por-camada.js?v=20260906-hpc-pf"></script>
@@ -2709,6 +2711,8 @@ function render(forcar){
     case "mercado":     h=telaMercado(); break;
     case "deducao":     h=telaDeducao(); break;
     case "resultado":   h=telaResultado(); break;
+    case "sala3d":
+    case "ra":          h=telaSala3D(); break;
     default:            h=telaInicio();
   }
   /* O PAINEL JÁ DESENHA O DELE. `telaPainel()` começa com cabecalhoRodada(), e
@@ -2743,6 +2747,14 @@ function render(forcar){
      rodada em que o celular esta sendo sacudido.                     */
   limparBarraInferior();
   app.innerHTML=h;
+  if((STATE.tela === "sala3d" || STATE.tela === "ra") && window.MosaicoRA){
+    var modoRA = (STATE.tela === "ra") ? "camera-ra" : "sala3d";
+    setTimeout(function(){
+      if(window.MosaicoRA && (STATE.tela === "sala3d" || STATE.tela === "ra")){
+        window.MosaicoRA.iniciar("mosaico-ra-app", modoRA);
+      }
+    }, 20);
+  }
   if(iframeVivo){
     iframeVivo.removeAttribute("data-sensor-vivo");
     var slot=app.querySelector("#mosaic");
@@ -2772,6 +2784,10 @@ function render(forcar){
   agendarAutomacoes();
   if(typeof atualizarDockTeste3D==="function") atualizarDockTeste3D();
   if(typeof atualizarBotaoFlutuanteTeste==="function") atualizarBotaoFlutuanteTeste();
+}
+
+function telaSala3D(){
+  return '<div id="mosaico-ra-app" style="width:100%;height:100vh;position:relative;background:#04060a;overflow:hidden;"></div>';
 }
 
 function telaReconectando(){
@@ -5220,6 +5236,9 @@ window.irParaFaseTeste3D = function(fase){
     window.iniciarTeste3D(fase);
     return;
   }
+  if(fase !== 'sala3d' && fase !== 'ra' && window.MosaicoRA && window.MosaicoRA.ativo){
+    window.MosaicoRA.encerrar();
+  }
   STATE.tela = fase;
   STATE.doc = STATE.doc || {};
   STATE.doc.fase = fase;
@@ -5240,6 +5259,7 @@ window.irParaFaseTeste3D = function(fase){
 
 window.sairTeste3D = function(){
   STATE.modoTeste3D = false;
+  if(window.MosaicoRA && window.MosaicoRA.ativo) window.MosaicoRA.encerrar();
   var dock = document.getElementById("m3d-dock-teste");
   if(dock) dock.remove();
   var gate = document.getElementById("dragonRoomGate");
@@ -5259,6 +5279,7 @@ function atualizarDockTeste3D(){
       '<button class="btn-fechar-teste" onclick="sairTeste3D()">Sair</button>' +
     '</div>' +
     '<div class="m3d-dock-botoes">' +
+      '<button class="m3d-dock-btn '+((faseAtual==='sala3d'||faseAtual==='ra')?'on':'')+'" onclick="irParaFaseTeste3D(\'sala3d\')">🕯️ Sala 3D & RA</button>' +
       '<button class="m3d-dock-btn '+(faseAtual==='mosaico'?'on':'')+'" onclick="irParaFaseTeste3D(\'mosaico\')">🌀 Mosaico 3D</button>' +
       '<button class="m3d-dock-btn '+(faseAtual==='mercado'?'on':'')+'" onclick="irParaFaseTeste3D(\'mercado\')">💰 Mercado 3D</button>' +
       '<button class="m3d-dock-btn '+(faseAtual==='deducao'?'on':'')+'" onclick="irParaFaseTeste3D(\'deducao\')">📌 Dedução 3D</button>' +

@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@400;500;600;700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;0,7..72,600;1,7..72,400;1,7..72,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/mosaico-3d.css">
 <style>
   :root{
     --breu:#04060a;
@@ -327,6 +328,7 @@
     <div id="marcas"></div>
     <div id="botoes">
       <button id="b-luz" class="acc">Lanterna</button>
+      <button id="b-ra" type="button" style="border-color:#7fd4ff;color:#c6ecff;">3D / RA</button>
       <button id="b-mestre">Mestre</button>
     </div>
   </div>
@@ -393,6 +395,8 @@
   <button id="falha-toque" aria-label="Continuar usando o toque na tela">Continuar tocando na tela</button>
 </div>
 
+<script src="js/three.min.js"></script>
+<script src="js/mosaico-ra-engine.js"></script>
 <!-- Protocolo com a Mesa e ativacao de sensor: um so arquivo para as tres tarefas. -->
 <script src="js/tarefa-sensor.js?v=20260907-android-hold"></script>
 <script>
@@ -2262,6 +2266,30 @@ if(!DEV){
 
 window.addEventListener("resize",resize);
 window.addEventListener("orientationchange",function(){ setTimeout(resize,250); });
+
+function alternarModo3DRA(){
+  if(window.MosaicoRA && window.MosaicoRA.ativo){
+    window.MosaicoRA.encerrar();
+    var raCont = document.getElementById("mosaico-ra-viewport");
+    if(raCont) raCont.remove();
+  } else if(window.MosaicoRA){
+    var raCont = document.getElementById("mosaico-ra-viewport");
+    if(!raCont){
+      raCont = document.createElement("div");
+      raCont.id = "mosaico-ra-viewport";
+      raCont.style.position = "fixed";
+      raCont.style.inset = "0";
+      raCont.style.zIndex = "100";
+      document.body.appendChild(raCont);
+    }
+    window.MosaicoRA.iniciar("mosaico-ra-viewport", "sala3d");
+  }
+}
+
+var bRa = document.getElementById("b-ra");
+if(bRa){
+  bRa.addEventListener("click", alternarModo3DRA);
+}
 
 /* ==========================================================================
    INÍCIO
