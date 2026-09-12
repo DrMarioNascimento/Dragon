@@ -2770,6 +2770,8 @@ function render(forcar){
   if(faseMudou)requestAnimationFrame(function(){window.scrollTo(0,0);});
   iniciarApuracaoSeNecessario();
   agendarAutomacoes();
+  if(typeof atualizarDockTeste3D==="function") atualizarDockTeste3D();
+  if(typeof atualizarBotaoFlutuanteTeste==="function") atualizarBotaoFlutuanteTeste();
 }
 
 function telaReconectando(){
@@ -2786,6 +2788,7 @@ function telaInicio(){
     avisoLocal()+
     '<button class="btn btn-ambar" onclick="pedirSenha()">Abrir uma mesa</button>'+
     '<button class="btn btn-frio" onclick="irPara(\'entrar\')">Entrar em uma mesa</button>'+
+    '<button class="btn btn-sm" style="margin-top:14px;border:1px solid #f7c94a;color:#ffe889;background:rgba(247,201,74,0.12)" onclick="iniciarTeste3D(\'mosaico\')">⚡ Modo de Teste 3D (Sem Sala)</button>'+
     '<p class="muted" style="margin-top:24px">O telão, se houver, entra pela porta Telão do hub com o código da sala. O ensaio local fica na porta Solo.</p>'+
     modalSenha();
 }
@@ -3895,10 +3898,28 @@ function telaMercado(){
      isso dependia da ordem do array; agora e explicito. */
   var propria=minhas.find(function(p){return !p.adquirida && p.origem!=='tarefa';});
   var aberta=(STATE.v5.ofertas||[]).find(function(o){return o.vendedorId===eu.id&&o.status==='aberta';});
-  var criar=propria&&!aberta?'<div class="card"><b>Oferecer sua pista</b><p class="muted">A import&acirc;ncia real da pista permanece oculta at&eacute; a revela&ccedil;&atilde;o final do caso.</p><select id="faixa-oferta">'+Object.keys(cfg.precos).map(function(k){return opcao(k,k+' — '+cfg.precos[k]+' moedas');}).join('')+'</select><button class="btn btn-sm" onclick="criarOferta()">Colocar a pista &agrave; venda</button></div>':'';
+  var criar=propria&&!aberta?'<div class="card m3d-tilt-box" style="margin-bottom:16px"><b>Oferecer sua pista no mercado</b><p class="muted">A import&acirc;ncia real da pista permanece oculta at&eacute; a revela&ccedil;&atilde;o final do caso.</p><select id="faixa-oferta">'+Object.keys(cfg.precos).map(function(k){return opcao(k,k+' — '+cfg.precos[k]+' moedas');}).join('')+'</select><button class="btn btn-sm btn-ambar" onclick="criarOferta()" style="margin-top:8px">Lacre e colocar &agrave; venda</button></div>':'';
   var ofertas=(STATE.v5.ofertas||[]).filter(function(o){return o.status==='aberta'&&o.vendedorId!==eu.id;});
-  var lista=ofertas.map(function(o){return '<div class="card"><b>Pista de '+esc(o.vendedorNome)+'</b><p class="muted">Preço '+esc(o.faixaPreco)+': '+o.preco+' moedas.</p><button class="btn btn-sm btn-ambar" onclick="comprarOferta(\''+o.id+'\')" '+(eu.moedas<o.preco?'disabled':'')+'>Comprar</button></div>';}).join('')||'<p class="muted">Nenhuma oferta aberta agora.</p>';
-  return cronometroMercadoHTML()+'<span class="eyebrow">Mercado Cego</span><h2>'+inteiroSeguro(eu.moedas)+' moedas</h2><p class="lead">Ao final do caso, o jogo comparar&aacute; o pre&ccedil;o cobrado com a import&acirc;ncia real da pista.</p>'+criar+lista;
+  var lista=ofertas.map(function(o){
+    var seloLacre = '<div style="width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#d83a3a,#751010);box-shadow:0 2px 6px rgba(0,0,0,0.6);border:1px solid #ff7b7b;display:flex;align-items:center;justify-content:center;color:#ffebeb;font:700 12px serif;flex-shrink:0;">§</div>';
+    return '<div class="card m3d-tilt-box" style="position:relative;background:linear-gradient(165deg,#131f2d,#0b131c);border:1px solid rgba(232,164,76,0.3);padding:14px;border-radius:12px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:12px">'+
+      '<div style="display:flex;align-items:center;gap:10px">'+
+        seloLacre+
+        '<div><b style="font-size:14px;color:#f4f9fd">Pista de '+esc(o.vendedorNome)+'</b><p class="muted" style="margin:2px 0 0;font-size:12px">Preço '+esc(o.faixaPreco)+': <span style="color:#ffe889;font-weight:700">'+o.preco+' moedas</span></p></div>'+
+      '</div>'+
+      '<button class="btn btn-sm btn-ambar" onclick="comprarOferta(\''+o.id+'\')" '+(eu.moedas<o.preco?'disabled':'')+'>Comprar</button>'+
+    '</div>';
+  }).join('')||'<p class="muted">Nenhuma oferta aberta agora.</p>';
+
+  var moedas3D = (typeof Mosaico3D !== "undefined" && Mosaico3D.htmlMoedas) ? Mosaico3D.htmlMoedas(eu.moedas) : '';
+  return cronometroMercadoHTML()+
+    '<span class="eyebrow">Mercado Cego</span>'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin:8px 0 14px">'+
+      '<h2 style="margin:0">'+inteiroSeguro(eu.moedas)+' moedas</h2>'+
+      moedas3D+
+    '</div>'+
+    '<p class="lead">Ao final do caso, o jogo comparar&aacute; o pre&ccedil;o cobrado com a import&acirc;ncia real da pista.</p>'+
+    criar+lista;
 }
 function inteiroSeguro(v){return Math.trunc(Number(v)||0);}
 
@@ -4589,6 +4610,11 @@ async function selecionarPistaMosaico(pistaId){
   rascunho[indice]=pistaId;
   STATE.mosaicoEscolha=null;
   if(typeof Mosaico3D !== "undefined") { Mosaico3D.som.encaixe(); }
+  if(STATE.modoTeste3D){
+    if(n) n.rascunho = rascunho;
+    render(true);
+    return;
+  }
   var FB=await esperarFB();
   await FB.gravar(STATE.eu.codigo,'nucleos',String(n.numero),{rascunho:rascunho,rascunhoMs:Date.now()});
 }
@@ -4655,9 +4681,20 @@ async function finalizarEnvioFragmento(){
   if(ordem.some(function(id){return !id;})){avisa('Preencha os seis horários antes de enviar.');return;}
   var correta=((CASO.mosaico||{}).ordemCorreta||[]);
   var acertos=ordem.reduce(function(total,id,indice){return total+(id===correta[indice]?1:0);},0);
-  var eu=meuJogador(), FB=await esperarFB();
+  var eu=meuJogador();
   var rascunhoFinal=Object.assign({},rascunho,{_acertos:acertos,_totalItens:correta.length,_enviadoMs:Date.now()});
   _envioMosaicoTrava=true;
+  if(typeof Mosaico3D !== "undefined") { Mosaico3D.som.sucesso(); }
+  if(STATE.modoTeste3D){
+    if(n){ n.rascunho = rascunhoFinal; n.concluidoEm = { toMillis: function(){ return Date.now(); } }; }
+    _envioMosaicoTrava=false;
+    render(true);
+    setTimeout(function(){
+      if(window.irParaFaseTeste3D) window.irParaFaseTeste3D('mercado');
+    }, 1200);
+    return;
+  }
+  var FB=await esperarFB();
   render(true);
   try{
     await FB.concluirNucleo(STATE.eu.codigo,String(eu.nucleo),{rascunho:rascunhoFinal,rascunhoMs:Date.now()});
@@ -4689,10 +4726,47 @@ async function abrirMercado(){ var FB=await esperarFB(); await FB.atualizarMesa(
 async function criarOferta(){
   var eu=meuJogador(), pista=minhasPistas().find(function(p){return !p.adquirida;}), faixa=document.getElementById('faixa-oferta').value;
   if(!pista||!faixa) return;
-  var preco=(CASO.configuracao||{}).precos[faixa], id='of_'+eu.id+'_'+pista.id;
+  var cfg=(CASO.configuracao||{});
+  var preco=(cfg.precos&&cfg.precos[faixa])||4, id='of_'+eu.id+'_'+pista.id+'_'+Date.now();
+  if(typeof Mosaico3D !== "undefined") { Mosaico3D.som.lacre(); }
+  if(STATE.modoTeste3D){
+    STATE.v5.ofertas = STATE.v5.ofertas || [];
+    STATE.v5.ofertas.push({
+      id: id,
+      vendedorId: eu.id,
+      vendedorNome: eu.nome,
+      pistaId: pista.id,
+      faixaPreco: faixa,
+      preco: preco,
+      status: 'aberta',
+      criadaMs: Date.now()
+    });
+    render(true);
+    return;
+  }
   var FB=await esperarFB(); await FB.gravar(STATE.eu.codigo,'ofertas',id,{vendedorId:eu.id,vendedorNome:eu.nome,pistaId:pista.id,faixaPreco:faixa,preco:preco,status:'aberta',criadaMs:Date.now()});
 }
 async function comprarOferta(ofertaId){
+  if(STATE.modoTeste3D){
+    var ofItem = (STATE.v5.ofertas||[]).find(function(o){return o.id===ofertaId;});
+    if(!ofItem) return;
+    var eu = meuJogador();
+    if((eu.moedas||0) < ofItem.preco){
+      avisa('Moedas insuficientes!');
+      return;
+    }
+    eu.moedas -= ofItem.preco;
+    if(STATE.eu) STATE.eu.moedas = eu.moedas;
+    ofItem.status = 'comprada';
+    ofItem.compradorId = eu.id;
+    var pistaObj = (CASO.pistas && CASO.pistas[ofItem.pistaId]) || (CASO.publicas||[]).find(function(p){return p.id===ofItem.pistaId;}) || {id: ofItem.pistaId, hora: "21:35", txt: "Evidência comprada no mercado da costa."};
+    var novaPista = Object.assign({}, pistaObj, { id: ofItem.pistaId, adquirida: true, compradaDe: ofItem.vendedorNome });
+    eu.pistas = (eu.pistas||[]).concat([novaPista]);
+    if(STATE.eu) STATE.eu.pistas = eu.pistas;
+    if(typeof Mosaico3D !== "undefined") { Mosaico3D.som.moeda(); }
+    render(true);
+    return;
+  }
   var FB=await esperarFB();
   try{ await FB.comprarOferta(STATE.eu.codigo,ofertaId,STATE.eu.id); }
   catch(e){ avisa((e&&e.message)||'A oferta não está mais disponível.'); }
@@ -4704,6 +4778,16 @@ async function enviarDeducao(){
     var el=document.getElementById('ded-'+ids[i]); if(!el||!el.value){avisa('Preencha todos os cinco campos.');return;} dados[ids[i]]=el.value;
   }
   dados.pistasUsadas=Array.from(document.querySelectorAll('input[name="pista-usada"]:checked')).map(function(x){return x.value;});
+  if(typeof Mosaico3D !== "undefined") { Mosaico3D.som.sucesso(); }
+  if(STATE.modoTeste3D){
+    dados.submetidoEm = { toMillis: function(){ return Date.now(); } };
+    STATE.v5.deducoes = (STATE.v5.deducoes||[]).concat([dados]);
+    render(true);
+    setTimeout(function(){
+      if(window.irParaFaseTeste3D) window.irParaFaseTeste3D('resultado');
+    }, 1200);
+    return;
+  }
   var FB=await esperarFB(); await FB.gravarServidor(STATE.eu.codigo,'deducoes',STATE.eu.id,dados,'submetidoEm');
 }
 async function avancarRevelacao(){
@@ -5013,6 +5097,221 @@ async function voltarParaSala(){
      identidade. Um link de outra sala sempre prevalece sobre o vínculo local. */
   casoPronto.then(function(){ tentarReconectar(codigoUrl); });
 })();
+
+/* ============================================================
+   MODO DE TESTE RAPIDO 3D — A CASA DA COSTA
+   Permite testar e conferir qualquer fase diretamente no aparelho,
+   sem depender de sala, segundo jogador ou login Firebase.
+   ============================================================ */
+window.iniciarTeste3D = function(fase){
+  fase = fase || 'mosaico';
+  var gate = document.getElementById('dragonRoomGate');
+  if(gate) gate.style.display = 'none';
+  var app = document.getElementById('app');
+  if(app) app.hidden = false;
+
+  var executarConfig = function(){
+    STATE.modoTeste3D = true;
+    STATE.modoMesa = "sem-telao";
+    STATE.ritmoMesa = "automatico";
+    STATE.mesa = { codigo: "TEST3D", link: "#", fb: false, modo: "sem-telao", ritmo: "automatico" };
+
+    var todasPistas = (CASO && CASO.publicas && CASO.publicas.length) ? CASO.publicas.slice() : [
+      { id: "p1", hora: "21:03", txt: "A luz da sala oscilou pela primeira vez.", nucleo: 1 },
+      { id: "p2", hora: "21:07", txt: "A porta do corredor estava entreaberta.", nucleo: 1 },
+      { id: "p3", hora: "21:12", txt: "O cofre da sala estava fechado com marca fresca.", nucleo: 1 },
+      { id: "p4", hora: "21:20", txt: "Um estalo seco vindo da escada do sótão.", nucleo: 1 },
+      { id: "p5", hora: "21:35", txt: "A cortina balançava e a janela voltada ao norte trancada.", nucleo: 1 },
+      { id: "p6", hora: "21:40", txt: "Gotas de chuva no peitoril e passos no cascalho.", nucleo: 1 }
+    ];
+
+    STATE.eu = {
+      id: "eu_investigador",
+      codigo: "TEST3D",
+      nome: "Investigador",
+      personagem: "anfitria",
+      papelCognitivo: "investigador",
+      camadaAcessibilidade: "livre",
+      moedas: 14,
+      nucleo: 1,
+      pronto: true,
+      forma: "m",
+      total: 85,
+      pistas: [
+        { id: "p1", hora: "21:03", txt: "A luz da sala oscilou pela primeira vez.", nucleo: 1, adquirida: false, origem: "tarefa" },
+        { id: "p2", hora: "21:07", txt: "A porta do corredor estava entreaberta.", nucleo: 1, adquirida: false, origem: "tarefa" },
+        { id: "p3", hora: "21:12", txt: "O cofre da sala estava fechado com marca fresca.", nucleo: 1, adquirida: false, origem: "tarefa" },
+        { id: "p4", hora: "21:20", txt: "Um estalo seco vindo da escada do sótão.", nucleo: 1, adquirida: false, origem: "tarefa" },
+        { id: "p5", hora: "21:35", txt: "A cortina balançava e a janela voltada ao norte trancada.", nucleo: 1, adquirida: false, origem: "tarefa" },
+        { id: "priv_anfitria", hora: "20:50", txt: "Chave do cofre guardada na gaveta trancada da anfitriã.", nucleo: 1, adquirida: false, origem: "privada" }
+      ]
+    };
+
+    STATE.jogadores = [
+      STATE.eu,
+      {
+        id: "p2_herdeira",
+        nome: "Herdeira",
+        personagem: "herdeiro",
+        moedas: 11,
+        nucleo: 1,
+        pronto: true,
+        forma: "f",
+        total: 72,
+        pistas: [
+          { id: "p5", hora: "21:35", txt: "A cortina balançava e a janela voltada ao norte trancada.", nucleo: 1, adquirida: false }
+        ]
+      },
+      {
+        id: "p3_morador",
+        nome: "Morador",
+        personagem: "viuva",
+        moedas: 8,
+        nucleo: 1,
+        pronto: true,
+        forma: "m",
+        total: 58,
+        pistas: [
+          { id: "p6", hora: "21:40", txt: "Gotas de chuva no peitoril e passos no cascalho.", nucleo: 1, adquirida: false }
+        ]
+      }
+    ];
+
+    STATE.v5 = STATE.v5 || {};
+    STATE.v5.nucleos = [
+      {
+        id: "1",
+        numero: 1,
+        portadorId: STATE.eu.id,
+        portadoresCompartilhados: true,
+        rascunho: { "0": "p1", "1": "p2", "2": "p3", "3": "p4" }
+      }
+    ];
+
+    STATE.v5.ofertas = [
+      { id: "of_1", vendedorId: "p2_herdeira", vendedorNome: "Herdeira", pistaId: "p5", preco: 4, faixaPreco: "Média (4 moedas)", status: "aberta", criadaMs: Date.now() - 25000 },
+      { id: "of_2", vendedorId: "p3_morador", vendedorNome: "Morador", pistaId: "p6", preco: 6, faixaPreco: "Alta (6 moedas)", status: "aberta", criadaMs: Date.now() - 45000 },
+      { id: "of_3", vendedorId: "p2_herdeira", vendedorNome: "Herdeira", pistaId: "p1", preco: 2, faixaPreco: "Baixa (2 moedas)", status: "aberta", criadaMs: Date.now() - 65000 }
+    ];
+
+    window.irParaFaseTeste3D(fase);
+  };
+
+  if(!CASO_PRONTO){
+    fetch("casos/casa-da-costa.json?v=" + (window.MOSAICO_VERSAO||"dev"))
+      .then(function(r){ return r.json(); })
+      .then(function(c){
+        aplicarCaso(c);
+        CASO_PRONTO = true;
+        executarConfig();
+      })
+      .catch(function(e){
+        console.warn("Usando fallback de caso para teste 3D", e);
+        CASO_PRONTO = true;
+        executarConfig();
+      });
+  } else {
+    executarConfig();
+  }
+};
+
+window.irParaFaseTeste3D = function(fase){
+  if(!STATE.modoTeste3D){
+    window.iniciarTeste3D(fase);
+    return;
+  }
+  STATE.tela = fase;
+  STATE.doc = STATE.doc || {};
+  STATE.doc.fase = fase;
+  STATE.doc.mosaicoAbertoMs = STATE.doc.mosaicoAbertoMs || (Date.now() - 60000);
+  STATE.doc.mercadoAbertoMs = STATE.doc.mercadoAbertoMs || (Date.now() - 30000);
+  STATE.doc.deducaoAbertaMs = STATE.doc.deducaoAbertaMs || (Date.now() - 10000);
+  STATE.doc.nucleosLiberados = true;
+  STATE.doc.fragmentosLiberados = true;
+  STATE.doc.encerramentoConcluido = true;
+  if(fase === 'resultado'){
+    STATE.doc.revelacaoEtapa = 4;
+    STATE.resultadoVista = "podio";
+  } else {
+    STATE.doc.revelacaoEtapa = 0;
+  }
+  render(true);
+};
+
+window.sairTeste3D = function(){
+  STATE.modoTeste3D = false;
+  var dock = document.getElementById("m3d-dock-teste");
+  if(dock) dock.remove();
+  var gate = document.getElementById("dragonRoomGate");
+  if(gate) gate.style.display = "";
+  location.href = location.pathname;
+};
+
+function atualizarDockTeste3D(){
+  var dock = document.getElementById("m3d-dock-teste");
+  if(!STATE.modoTeste3D){
+    if(dock) dock.remove();
+    return;
+  }
+  var faseAtual = (STATE.doc && STATE.doc.fase) || STATE.tela || "mosaico";
+  var html = '<div class="m3d-dock-header">' +
+      '<span>⚡ MODO DE TESTE 3D · A CASA DA COSTA</span>' +
+      '<button class="btn-fechar-teste" onclick="sairTeste3D()">Sair</button>' +
+    '</div>' +
+    '<div class="m3d-dock-botoes">' +
+      '<button class="m3d-dock-btn '+(faseAtual==='mosaico'?'on':'')+'" onclick="irParaFaseTeste3D(\'mosaico\')">🌀 Mosaico 3D</button>' +
+      '<button class="m3d-dock-btn '+(faseAtual==='mercado'?'on':'')+'" onclick="irParaFaseTeste3D(\'mercado\')">💰 Mercado 3D</button>' +
+      '<button class="m3d-dock-btn '+(faseAtual==='deducao'?'on':'')+'" onclick="irParaFaseTeste3D(\'deducao\')">📌 Dedução 3D</button>' +
+      '<button class="m3d-dock-btn '+(faseAtual==='resultado'?'on':'')+'" onclick="irParaFaseTeste3D(\'resultado\')">🏆 Pódio 3D</button>' +
+    '</div>';
+  if(!dock){
+    dock = document.createElement("div");
+    dock.id = "m3d-dock-teste";
+    dock.className = "m3d-dock-teste";
+    document.body.appendChild(dock);
+  }
+  dock.innerHTML = html;
+}
+
+function atualizarBotaoFlutuanteTeste(){
+  var btn = document.getElementById("m3d-atalho-teste");
+  if(STATE.modoTeste3D){
+    if(btn) btn.style.display = "none";
+    return;
+  }
+  if(!btn){
+    btn = document.createElement("div");
+    btn.id = "m3d-atalho-teste";
+    btn.className = "m3d-badge-launch";
+    btn.innerHTML = '<span class="m3d-pulse-gold"></span><span>⚡ Testar 3D</span>';
+    btn.onclick = function(){ window.iniciarTeste3D('mosaico'); };
+    document.body.appendChild(btn);
+  } else {
+    btn.style.display = "flex";
+  }
+}
+
+if(typeof window !== "undefined"){
+  window.addEventListener("DOMContentLoaded", function(){
+    atualizarBotaoFlutuanteTeste();
+  });
+  window.addEventListener("load", function(){
+    atualizarBotaoFlutuanteTeste();
+  });
+  setTimeout(atualizarBotaoFlutuanteTeste, 400);
+  setTimeout(atualizarBotaoFlutuanteTeste, 1200);
+
+  var paramsTeste = null;
+  try { paramsTeste = new URLSearchParams(location.search); } catch(e){}
+  var faseParam = (paramsTeste && paramsTeste.get("teste")) || "";
+  if(faseParam || location.hash === "#teste"){
+    setTimeout(function(){
+      var f = (faseParam && faseParam !== "1" && faseParam !== "true" && faseParam !== "3d") ? faseParam : "mosaico";
+      window.iniciarTeste3D(f);
+    }, 250);
+  }
+}
+
 </script>
 
 <script type="module">
