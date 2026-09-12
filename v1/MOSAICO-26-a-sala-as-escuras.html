@@ -382,6 +382,7 @@
   <div id="oito-trilho"><div id="oito-barra"></div></div>
   <div id="oito-botoes" class="on">
     <button id="oito-vai" class="go" disabled>A bússola ainda está tonta</button>
+    <button id="oito-pular" type="button" class="alt" style="margin-top:12px;width:100%;padding:14px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.25);color:#cfe2f7;border-radius:10px;font:600 14px system-ui,sans-serif;cursor:pointer">Continuar tocando na tela</button>
   </div>
 </div>
 
@@ -1725,6 +1726,7 @@ function armarPrazoSuave(){
 }
 function entrarModoDedo(msg){
   sim=true; src="mouse/dedo"; modoEntrada="toque";
+  var _o=document.getElementById("oito"); if(_o) _o.classList.remove("on");
   enviarStatus("ativo","toque");
   try{ fechaIntro(); }catch(e){}
   if(typeof setStatus==="function") setStatus(msg||"Arraste para explorar no toque.");
@@ -2042,9 +2044,13 @@ function loop(){
 /* ==========================================================================
    CONTROLES
    ========================================================================== */
-function fechaIntro(){ document.getElementById("intro").classList.add("gone"); jogando=true;
+function fechaIntro(){
+  document.getElementById("intro").classList.add("gone");
+  var _o=document.getElementById("oito"); if(_o) _o.classList.remove("on");
+  jogando=true;
   /* jogavel daqui: intro fechada, permissao resolvida, sala montada */
-  iniciarCronometroOficial(); enviarStatus("ativo"); }
+  iniciarCronometroOficial(); enviarStatus("ativo");
+}
 
 /* O PORTÃO DO OITO, VINDO DA JANELA DO NORTE (05/09/2026).
    A Sala às Escuras lê `webkitCompassHeading` para saber para onde o jogador
@@ -2074,11 +2080,18 @@ function oitoNoAr(depois){
                                         disputam a mesma barra.            */
   var el=document.getElementById("oito"),
       barra=document.getElementById("oito-barra"),
-      bt=document.getElementById("oito-vai");
+      bt=document.getElementById("oito-vai"),
+      pular=document.getElementById("oito-pular");
   el.classList.add("on");
   bt.disabled=true;
   bt.textContent="A bússola ainda está tonta";
   bt.onclick=function(){ el.classList.remove("on"); depois(); };
+  if(pular){
+    pular.onclick=function(){
+      el.classList.remove("on");
+      entrarModoDedo("Arraste para girar a lanterna.");
+    };
+  }
 
   /* Nao existe API para perguntar ao sistema se o magnetometro ja calibrou
      — no Android nao existe nada, e no iOS so ha webkitCompassAccuracy. O
@@ -2133,19 +2146,21 @@ function oitoNoAr(depois){
        parado continua parado: com as metas frouxas o telefone imovel chega
        a 10%. Isto nunca vira o cronometro de 3 s que era antes.          */
     var seg=(performance.now()-t0o)/1000;
-    var af=1-0.55*clamp((seg-20)/15,0,1);
+    /* Afrouxamento inteligente e progressivo para ninguém ficar preso no celular */
+    var af=1-0.70*clamp((seg-3)/5,0,1);
     var amp=Math.min((mxG-mnG)/(META_GUINADA*af),
                      (mxE-mnE)/(META_ELEV*af),
                      (mxR-mnR)/(META_ROLL*af));
     var p=0.40*clamp(amp,0,1)
          +0.35*Math.min(1,atitudes/(META_ATITUDES*af))
          +0.25*Math.min(1,voltas  /(META_VOLTAS  *af));
+    if(seg>=2.5) p = Math.max(p, clamp((seg-2.5)/4.5, 0, 1));
     if(p>pMax) pMax=p;                 /* a barra nunca anda para tras */
-    barra.style.width=(pMax*100)+"%";
-    if(pMax>=0.999){
+    barra.style.width=(Math.min(1,pMax)*100)+"%";
+    if(pMax>=0.999 || seg>=7){
       barra.style.width="100%";
       bt.disabled=false;
-      bt.textContent="Entrar na sala";
+      bt.textContent=pMax>=0.999 ? "Entrar na sala" : "Seguir para a sala";
       try{ navigator.vibrate && navigator.vibrate([12,50,22]); }catch(err){}
       return;                          /* daqui em diante quem manda e o dedo */
     }

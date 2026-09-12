@@ -34,7 +34,7 @@ function walk(dir, pred, acc = []) {
     const caminho = join(dir, nome);
     const st = statSync(caminho);
     if (st.isDirectory()) walk(caminho, pred, acc);
-    else if (pred(nome, caminho)) acc.push(caminho.slice(root.length + 1));
+    else if (pred(nome, caminho)) acc.push(caminho.slice(root.length + 1).replace(/\\/g, "/"));
   }
   return acc;
 }

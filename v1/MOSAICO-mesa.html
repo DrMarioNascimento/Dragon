@@ -17,6 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/mosaico-3d.css">
 <style>
   :root{
     --breu:#05070c; --painel:#0c121a; --linha:#1b2634;
@@ -1443,6 +1444,7 @@
      Sao cinco porque cada modulo sensorial e um documento proprio e nao
      enxerga esta pagina. Dentro desta, o caso e o video releem o mesmo
      valor de window.MOSAICO_VERSAO, que sai da tag do mosaico-v5.js. -->
+<script src="js/mosaico-3d-engine.js"></script>
 <script src="js/mosaico-v5.js?v=20260907-android-hold"></script>
 <script src="../hipoteses-por-camada.js?v=20260906-hpc-pf"></script>
 <script src="../papel-camada.js?v=20260907-playtest-ux"></script>
@@ -2462,6 +2464,39 @@ function painelCasoMovel(){
     cabecalhoRodada(fase,"rodada-celular")+
     '<div class="card"><span class="eyebrow">O que fazer agora</span><p class="lead" style="margin:8px 0 0">'+esc(orientacaoCaso(fase))+'</p></div>'+
     '<div class="card"><span class="eyebrow">'+(emFragmentos?'Cronologia distribu&iacute;da':'Linha do tempo p&uacute;blica')+'</span>'+linhas+'</div>'+
+    '<details class="card m3d-tilt-box" style="margin-top:10px">'+
+      '<summary style="cursor:pointer;font-weight:700;color:var(--ambar)">🏰 Os C&ocirc;modos da Casa da Costa</summary>'+
+      '<div style="margin-top:10px;font-size:14px;line-height:1.45;display:grid;gap:8px">'+
+        '<div><b>1. A Sala Principal:</b> O cofre fechado com marca fresca de dedo na trava. A cortina balan&ccedil;ando com a janela trancada.</div>'+
+        '<div><b>2. O Corredor:</b> Estreito. O ch&atilde;o s&oacute; range para quem a casa n&atilde;o reconhece. Uma sombra veloz no escuro.</div>'+
+        '<div><b>3. A Escada:</b> O quarto degrau ressoa oco com chapa de metal refor&ccedil;ada. O som sobe ao forro.</div>'+
+        '<div><b>4. O S&oacute;t&atilde;o / Forro:</b> A madeira estalando leve demais para vento; forro usado como travessia.</div>'+
+        '<div><b>5. A Cozinha:</b> Arm&aacute;rio entreaberto 1 cm. O copo excedente no rodap&eacute; da pia com respira&ccedil;&atilde;o recente.</div>'+
+        '<div><b>6. O Jardim Interno:</b> N&eacute;voa rasteira e folha molhada sem chuva perto da passagem de servi&ccedil;o.</div>'+
+      '</div>'+
+    '</details>'+
+    '<details class="card m3d-tilt-box" style="margin-top:8px">'+
+      '<summary style="cursor:pointer;font-weight:700;color:var(--frio)">⚡ A Linha da Noite</summary>'+
+      '<div style="margin-top:10px;font-size:13px;line-height:1.45;display:grid;gap:6px">'+
+        '<div><b>21h03:</b> Primeiro aviso &mdash; a luz oscila e estalo seco no s&oacute;t&atilde;o.</div>'+
+        '<div><b>21h07:</b> Porta da sala entreaberta e cortina balan&ccedil;ando sem vento.</div>'+
+        '<div><b>21h12:</b> Marca de dedo recente na trava do cofre.</div>'+
+        '<div><b>21h14:</b> Movimento contido no andar de cima.</div>'+
+        '<div><b>21h17:</b> Luz oscila forte, sombra precisa no corredor.</div>'+
+        '<div><b>21h20:</b> Tempestade bate forte; n&eacute;voa entra pela fresta.</div>'+
+        '<div><b>21h29:</b> O apag&atilde;o de 122 segundos &mdash; o disjuntor desligado.</div>'+
+      '</div>'+
+    '</details>'+
+    '<details class="card m3d-tilt-box" style="margin-top:8px">'+
+      '<summary style="cursor:pointer;font-weight:700;color:var(--ambar)">📖 A Cr&ocirc;nica da Tempestade</summary>'+
+      '<div style="margin-top:10px;font-size:13px;line-height:1.55;color:#dfeaf5;display:grid;gap:8px;max-height:320px;overflow-y:auto;padding-right:4px">'+
+        '<p>A tempestade chegou antes dos convidados. O vento batia contra as janelas da Casa da Costa como se quisesse entrar. A madeira antiga respondia com estalos curtos, secos, quase impacientes.</p>'+
+        '<p>O primeiro carro parou diante do port&atilde;o. O Investigador desceu, puxando o casaco: <i>&ldquo;Tem algu&eacute;m a&iacute;?&rdquo;</i> A Herdeira apareceu ao lado t&atilde;o r&aacute;pido que parecia ter surgido da n&eacute;voa: <i>&ldquo;Ouvi.&rdquo;</i></p>'+
+        '<p>&Agrave;s 21h03, a luz oscilou pela primeira vez. N&atilde;o foi queda. Foi aviso. &Agrave;s 21h07, a porta da sala estava entreaberta e a cortina balan&ccedil;ava com a janela trancada. &Agrave;s 21h12, o cofre com marca recente de dedo na trava.</p>'+
+        '<p>&Agrave;s 21h29, a energia caiu por dois minutos e dois segundos. Detetive viu os rastros de lama de dentro para fora sob a mesa lateral. Inventariante viu a press&atilde;o sobreposta no cofre. Jornalista sentiu a respira&ccedil;&atilde;o e a barra da cortina &uacute;mida na fresta. Residente conhecia a passagem atr&aacute;s da cozinha e o forro. Policial ouviu o quarto degrau refor&ccedil;ado com chapa met&aacute;lica. Crian&ccedil;a encontrou o copo excedente no rodap&eacute; da pia.</p>'+
+        '<p style="color:#ffd9a0;font-weight:600;border-left:3px solid var(--ambar);padding-left:8px">N&atilde;o havia seis pessoas na Casa da Costa. Havia sete. E a s&eacute;tima n&atilde;o entrou durante a tempestade &mdash; j&aacute; estava dentro antes da primeira batida no port&atilde;o.</p>'+
+      '</div>'+
+    '</details>'+
     '</div></div>':'';
   return '<button class="btn-caso '+(STATE.casoAberto?'ativo':'')+'" onclick="alternarCaso()" aria-label="Abrir ou fechar o Caso">🔎 Caso</button>'+painel;
 }
@@ -3482,7 +3517,7 @@ function telaResultado(){
   if(STATE.resultadoVista==="tabela")return telaClassificacaoCompleta();
   if(apuracaoEmCurso())return telaApuracao();
   var js=ordenados(STATE.jogadores).slice().sort(function(a,b){ return (b.total||0)-(a.total||0); });
-  function caixaPodio(j,pos){if(!j)return '';var p=personagemPor(j.personagem);return '<div class="podio-jogador pos-'+pos+'"><div class="colocacao">'+pos+'º lugar</div><div class="av">'+(p?p.av:"👤")+'</div><div class="jogador-nome">'+esc(j.nome)+'</div><div class="personagem">'+esc(nomePers(p,j.forma))+'</div><div class="pt">'+(j.total||0)+' pts</div></div>';}
+  function caixaPodio(j,pos){if(!j)return '';var p=personagemPor(j.personagem);return '<div class="podio-jogador pos-'+pos+' m3d-tilt-box"><div class="colocacao">'+pos+'º lugar</div><div class="av">'+(p?p.av:"👤")+'</div><div class="jogador-nome">'+esc(j.nome)+'</div><div class="personagem">'+esc(nomePers(p,j.forma))+'</div><div class="pt">'+(j.total||0)+' pts</div></div>';}
   var restantes=js.slice(3).map(function(j,i){var p=personagemPor(j.personagem);return '<div class="classificacao-item"><span class="ordem">'+(i+4)+'º</span><span class="avatar">'+(p?p.av:"👤")+'</span><span class="nome">'+esc(j.nome)+'<span class="papel">'+esc(nomePers(p,j.forma))+'</span></span><span class="pontos">'+(j.total||0)+' pts</span></div>';}).join('');
   var lista=restantes?'<aside class="classificacao-restante"><h3>Demais colocações</h3>'+restantes+'</aside>':'';
   var modo=STATE.tela==="painel"?'telao':'celular';
@@ -3824,14 +3859,18 @@ function telaMosaico(){
   var dicas=dicasMosaico(), rascunho=(n&&n.rascunho)||{};
   var topo='<div class="mosaico-tarefa-topo"><span class="fragmento-nome">'+esc(fragmento.nome)+'</span>'+cronometroFragmentoHTML()+'<span class="cronometro-legenda">O tempo continua contando</span></div>';
   var voto=pedidoEnvioAtivo()?htmlVotoEnvioModal():'';
+  var preenchidos=chavesRespostaMosaico(rascunho).filter(function(k){return !!rascunho[k];}).length;
+  var tabuleiro3D=(typeof Mosaico3D !== "undefined" && Mosaico3D.htmlTabuleiroMosaico)
+    ? Mosaico3D.htmlTabuleiroMosaico(dicas, rascunho, souPortadorFragmento(), preenchidos)
+    : '';
+
   if(!souPortadorFragmento()){
     var linhas=dicas.map(function(d){return '<div class="mosaico-dica"><time class="carta-num">'+esc(d.hora)+'</time><span>'+esc(d.dica)+'</span></div>';}).join('');
-    return '<div class="mosaico-tarefa">'+topo+caixaPortadorColetivo()+'<div class="mosaico-orientacao"><b>Ajude seu Fragmento</b><p>Consulte suas pistas no Arquivo e converse com o Portador.</p></div><div class="mosaico-dicas">'+linhas+'</div><p class="mosaico-aguarde">O Portador do Fragmento est&aacute; organizando as respostas&hellip;</p>'+voto+'</div>';
+    return '<div class="mosaico-tarefa">'+topo+caixaPortadorColetivo()+'<div class="mosaico-orientacao"><b>Ajude seu Fragmento</b><p>Consulte suas pistas no Arquivo e converse com o Portador.</p></div>'+tabuleiro3D+'<div class="mosaico-dicas" style="display:none">'+linhas+'</div><p class="mosaico-aguarde">O Portador do Fragmento est&aacute; organizando as respostas&hellip;</p>'+voto+'</div>';
   }
-  var preenchidos=chavesRespostaMosaico(rascunho).filter(function(k){return !!rascunho[k];}).length;
   var campos=dicas.map(function(d,i){var id=rascunho[String(i)], pista=pistasMosaico().find(function(p){return p.id===id;});
     return '<div class="mosaico-campo"><time class="carta-num">'+esc(d.hora)+'</time><button class="mosaico-escolher '+(pista?'':'vazio')+'" onclick="abrirEscolhaMosaico('+i+')">'+(pista?esc(rotuloPistaMosaico(pista))+' &#10003;':'Selecionar pista &#9662;')+'</button></div>';}).join('');
-  return '<div class="mosaico-tarefa">'+topo+'<div class="mosaico-orientacao"><div class="portador-identidade">'+iconePortador()+'<b>'+tituloPortador()+'</b></div>'+caixaPortadorColetivo()+'<p>Escute seu grupo e selecione as respostas. Somente voc&ecirc; pode enviar.</p></div><div class="mosaico-campos">'+campos+'</div><div class="mosaico-progresso">'+preenchidos+' de '+dicas.length+' hor&aacute;rios preenchidos</div><p class="mosaico-regra-pontos">Revise com seu Fragmento. Esta &eacute; a resposta final do grupo e n&atilde;o poder&aacute; ser alterada. A quantidade de acertos define o resultado; o tempo desempata.</p><button class="btn btn-go mosaico-enviar" onclick="enviarMosaico()" '+(preenchidos<dicas.length||_envioMosaicoTrava?'disabled':'')+'>Enviar resposta final do Fragmento</button>'+modalEscolhaMosaico(rascunho)+voto+'</div>';
+  return '<div class="mosaico-tarefa">'+topo+'<div class="mosaico-orientacao"><div class="portador-identidade">'+iconePortador()+'<b>'+tituloPortador()+'</b></div>'+caixaPortadorColetivo()+'<p>Escute seu grupo e selecione as respostas. Somente voc&ecirc; pode enviar.</p></div>'+tabuleiro3D+'<div class="mosaico-campos" style="display:none">'+campos+'</div><div class="mosaico-progresso">'+preenchidos+' de '+dicas.length+' hor&aacute;rios preenchidos</div><p class="mosaico-regra-pontos">Revise com seu Fragmento. Esta &eacute; a resposta final do grupo e n&atilde;o poder&aacute; ser alterada. A quantidade de acertos define o resultado; o tempo desempata.</p><button class="btn btn-go mosaico-enviar" onclick="enviarMosaico()" '+(preenchidos<dicas.length||_envioMosaicoTrava?'disabled':'')+'>Enviar resposta final do Fragmento</button>'+modalEscolhaMosaico(rascunho)+voto+'</div>';
 }
 
 function telaCooperacao(){
@@ -3870,7 +3909,7 @@ function telaDeducao(){
   var d=CASO.deducao||{}, adquiridas=minhasPistas().filter(function(p){return p.adquirida;});
   var suspeitos=(d.suspeitos&&d.suspeitos.length)?d.suspeitos:CASO.elenco;
   var checks=adquiridas.map(function(p){return '<label><input type="checkbox" name="pista-usada" value="'+esc(p.id)+'"> '+esc(p.hora+' — '+p.txt)+'</label>';}).join('')||'<p class="muted">Voc&ecirc; n&atilde;o adquiriu pistas no mercado.</p>';
-  return '<span class="eyebrow">Dedu&ccedil;&atilde;o final</span><h2>Monte sua acusa&ccedil;&atilde;o.</h2><div class="card deducao-card">'+sel('ded-suspeito',suspeitos,'Suspeito principal')+sel('ded-motivo',d.motivos||[],'Motivo')+sel('ded-acao',d.acoes||[],'A&ccedil;&atilde;o decisiva')+sel('ded-prova',d.provas||[],'Prova-chave')+sel('ded-lacuna',d.lacunas||[],'Lacuna resolvida')+'<p><b>Pistas adquiridas usadas na dedu&ccedil;&atilde;o</b></p>'+checks+'</div><p class="muted" style="text-align:center">Depois de enviar, voc&ecirc; n&atilde;o poder&aacute; alterar a resposta.</p><button class="btn btn-ambar" onclick="enviarDeducao()">Enviar resposta final</button>';
+  return '<span class="eyebrow">Dedu&ccedil;&atilde;o final</span><h2>Monte sua acusa&ccedil;&atilde;o.</h2><div class="card deducao-card m3d-detective-board"><div class="m3d-cork-surface m3d-tilt-box">'+sel('ded-suspeito',suspeitos,'<span class="m3d-pin"></span>Suspeito principal')+sel('ded-motivo',d.motivos||[],'<span class="m3d-pin"></span>Motivo')+sel('ded-acao',d.acoes||[],'<span class="m3d-pin"></span>A&ccedil;&atilde;o decisiva')+sel('ded-prova',d.provas||[],'<span class="m3d-pin"></span>Prova-chave')+sel('ded-lacuna',d.lacunas||[],'<span class="m3d-pin"></span>Lacuna resolvida')+'<p style="margin-top:14px"><b>Pistas adquiridas usadas na dedu&ccedil;&atilde;o</b></p>'+checks+'</div></div><p class="muted" style="text-align:center">Depois de enviar, voc&ecirc; n&atilde;o poder&aacute; alterar a resposta.</p><button class="btn btn-ambar" onclick="enviarDeducao()">Enviar resposta final</button>';
 }
 
 /* ============================================================
@@ -4549,6 +4588,7 @@ async function selecionarPistaMosaico(pistaId){
   }
   rascunho[indice]=pistaId;
   STATE.mosaicoEscolha=null;
+  if(typeof Mosaico3D !== "undefined") { Mosaico3D.som.encaixe(); }
   var FB=await esperarFB();
   await FB.gravar(STATE.eu.codigo,'nucleos',String(n.numero),{rascunho:rascunho,rascunhoMs:Date.now()});
 }
@@ -4620,7 +4660,7 @@ async function finalizarEnvioFragmento(){
   _envioMosaicoTrava=true;
   render(true);
   try{
-    await FB.concluirNucleo(STATE.eu.codigo,String(eu.nucleo),{numero:eu.nucleo,rascunho:rascunhoFinal,rascunhoMs:Date.now()});
+    await FB.concluirNucleo(STATE.eu.codigo,String(eu.nucleo),{rascunho:rascunhoFinal,rascunhoMs:Date.now()});
   }catch(e){
     _envioMosaicoTrava=false;
     console.error('enviar mosaico',e);
@@ -4628,9 +4668,10 @@ async function finalizarEnvioFragmento(){
     render(true);
     return;
   }
-  if(STATE.jogadores.length<=3&&!ritmoConduzido()&&!partidaPausada()){
+  _envioMosaicoTrava=false;
+  if(souMestreDaMesa()&&STATE.jogadores.length<=3&&!ritmoConduzido()&&!partidaPausada()){
     _autoFasePendente='mosaico';
-    try{await abrirMercado();}catch(err){_autoFasePendente=null;_envioMosaicoTrava=false;throw err;}
+    try{await abrirMercado();}catch(err){_autoFasePendente=null;_envioMosaicoTrava=false;console.error('auto abrirMercado mestre',err);}
   }
 }
 function tentarFecharEnvioFragmento(){
@@ -5302,11 +5343,19 @@ if(CONFIGURADO) window.MosaicoFB = {
   async concluirNucleo(codigo, id, dados){
     await autenticar();
     const ref=doc(db,RAIZ,codigo,"nucleos",id);
-    await runTransaction(db,async tx=>{
-      const atual=await tx.get(ref);
-      if(atual.exists()&&(atual.data().concluidoEm)) return;
-      tx.set(ref,{...dados,concluidoEm:serverTimestamp()},{merge:true});
-    });
+    try{
+      await updateDoc(ref,{
+        rascunho:(dados&&dados.rascunho)||{},
+        rascunhoMs:(dados&&dados.rascunhoMs)||Date.now(),
+        concluidoEm:serverTimestamp()
+      });
+    }catch(err){
+      try{
+        const snap=await getDoc(ref);
+        if(snap.exists()&&snap.data().concluidoEm) return;
+      }catch(_e){}
+      throw err;
+    }
   },
   async comprarOferta(codigo, ofertaId, compradorId){
     await autenticar();

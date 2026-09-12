@@ -217,6 +217,7 @@
       return avisa("Essa já foi levada. Escolha outra.");
     }
     if (await pedir("mercadoComprar", { frag: cod, origem: painel.tipo === "repassada" ? "balaio" : "nova" })) {
+      if (typeof Mosaico3D !== "undefined") { Mosaico3D.som.moeda(); Mosaico3D.som.lacre(); }
       avisa("Pedido enviado à mesa.");
     }
     render();
@@ -257,6 +258,7 @@
        Mestre — o acerto vai junto para ele não precisar do gabarito duas
        vezes, e ele reconfere antes de aplicar. */
     await pedir("mercadoArriscar", { campo: campoId, resposta: valor, ok: certo });
+    if (typeof Mosaico3D !== "undefined") { Mosaico3D.som.encaixe(); }
     render();
   };
 
@@ -453,9 +455,11 @@
       return '<div class="mkt-travado ' + (v.ok ? 'ok' : 'erro') + '"><b>' + esc0(c.rotulo) + '</b><span>' + esc0(v.resposta) + '</span></div>';
     }).join('');
     var m = monte().length, b = balaio().length, moeda = moedas();
+    var moedas3D = (typeof Mosaico3D !== "undefined" && Mosaico3D.htmlMoedas) ? Mosaico3D.htmlMoedas(moeda) : "";
 
     return (typeof cronometroMercadoHTML === "function" ? cronometroMercadoHTML() : '') +
       '<span class="eyebrow">Mercado</span><h2>' + moeda + ' moedas</h2>' +
+      moedas3D +
       '<p class="muted">' + (tetoAcoes() - acoesUsadas()) + ' de ' + tetoAcoes() + ' ações restantes</p>' +
       '<p class="lead">Nova nunca esteve com ninguém. Repassada alguém decidiu não querer.</p>' +
       '<div class="mkt-linha">' +
