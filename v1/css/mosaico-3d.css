@@ -702,3 +702,329 @@ body.modo-teste-3d #dragonRoomGate {
   display: none !important;
   pointer-events: none !important;
 }
+
+/* ============================================================
+   RA INVESTIGAÇÃO — HUD FORENSE
+   ============================================================ */
+.ra-hud-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.ra-clue-counter {
+  position: absolute;
+  top: 66px;
+  right: 14px;
+  background: rgba(6, 12, 20, 0.90);
+  border: 1.5px solid rgba(247, 201, 74, 0.55);
+  color: #f7c94a;
+  font: 700 17px/1 'IBM Plex Mono', 'Courier New', monospace;
+  padding: 7px 14px;
+  border-radius: 22px;
+  letter-spacing: 0.12em;
+  pointer-events: none;
+  box-shadow: 0 0 14px rgba(247, 201, 74, 0.18);
+  transition: color 0.4s ease;
+}
+
+.ra-scan-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 118px;
+  height: 118px;
+  border-radius: 50%;
+  border: 2.5px solid rgba(77, 252, 186, 0.35);
+  transform: translate(-50%, -50%) scale(1);
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease, border-color 0.25s ease;
+  box-shadow: 0 0 24px rgba(77, 252, 186, 0.12), inset 0 0 24px rgba(77, 252, 186, 0.05);
+}
+.ra-scan-ring::before {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border-radius: 50%;
+  border: 1px dashed rgba(77, 252, 186, 0.22);
+  animation: ra-scan-rotate 4s linear infinite;
+}
+.ra-scan-ring::after {
+  content: '+';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  color: rgba(77, 252, 186, 0.4);
+  font-size: 18px;
+  line-height: 1;
+  font-weight: 300;
+}
+
+.ra-proximity-label {
+  position: absolute;
+  top: calc(50% + 72px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(4, 6, 10, 0.88);
+  border: 1px solid rgba(77, 252, 186, 0.5);
+  color: #4dfcba;
+  font: 600 12px/1 'IBM Plex Mono', monospace;
+  padding: 7px 18px;
+  border-radius: 22px;
+  letter-spacing: 0.07em;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 0 12px rgba(77, 252, 186, 0.2);
+  min-width: 40px;
+  text-align: center;
+  min-height: 26px;
+}
+
+.ra-instruction {
+  position: absolute;
+  bottom: 108px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(4, 6, 10, 0.75);
+  border: 1px solid rgba(77, 252, 186, 0.18);
+  color: rgba(77, 252, 186, 0.65);
+  font: 500 12px/1.4 var(--font-sans, sans-serif);
+  padding: 8px 18px;
+  border-radius: 22px;
+  white-space: nowrap;
+  pointer-events: none;
+  backdrop-filter: blur(4px);
+}
+
+/* Discovery flash */
+.ra-discovery-flash {
+  position: absolute;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at center, rgba(77, 252, 186, 0.22) 0%, rgba(4, 6, 10, 0.6) 70%);
+  font: 700 14px/1.3 'IBM Plex Mono', monospace;
+  color: #4dfcba;
+  text-align: center;
+  padding: 24px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  pointer-events: none;
+  animation: ra-flash-in 0.35s cubic-bezier(0.22, 1, 0.36, 1), ra-flash-out 0.5s ease 1.5s forwards;
+  border: 1px solid rgba(77, 252, 186, 0.3);
+  box-shadow: inset 0 0 60px rgba(77, 252, 186, 0.08);
+}
+
+/* ============================================================
+   RA INVESTIGAÇÃO — MODAL FULLSCREEN CINEMATOGRÁFICO
+   ============================================================ */
+.ra-investigation-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 300001;
+  background: rgba(2, 4, 8, 0.97);
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+  overflow: hidden;
+}
+
+.ra-inv-wrapper {
+  width: 100%;
+  max-height: 96vh;
+  background: linear-gradient(180deg, #0c1520 0%, #06101a 100%);
+  border-top: 1.5px solid rgba(77, 252, 186, 0.38);
+  border-radius: 22px 22px 0 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: max(env(safe-area-inset-bottom), 20px);
+  animation: ra-slide-up 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ra-inv-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px 12px;
+  border-bottom: 1px solid rgba(77, 252, 186, 0.1);
+  position: sticky;
+  top: 0;
+  background: linear-gradient(180deg, #0c1520 85%, transparent 100%);
+  z-index: 2;
+}
+
+.ra-inv-eyebrow {
+  font: 700 11px/1 'IBM Plex Mono', monospace;
+  letter-spacing: 0.2em;
+  color: rgba(77, 252, 186, 0.65);
+  text-transform: uppercase;
+}
+
+.ra-inv-close {
+  background: rgba(220, 38, 38, 0.20);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+  font: 600 12px/1 sans-serif;
+  padding: 7px 14px;
+  border-radius: 18px;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+  transition: background 0.18s ease;
+}
+.ra-inv-close:active { background: rgba(220, 38, 38, 0.38); }
+
+.ra-inv-stage-wrap {
+  position: relative;
+  width: 100%;
+  height: 210px;
+  background: linear-gradient(180deg, #04080e 0%, #020510 100%);
+  overflow: hidden;
+}
+
+.ra-inv-stage {
+  width: 100% !important;
+  height: 210px !important;
+  display: block;
+}
+
+.ra-inv-obj-icon {
+  position: absolute;
+  top: 12px;
+  left: 16px;
+  font-size: 30px;
+  filter: drop-shadow(0 0 10px rgba(77, 252, 186, 0.55));
+  pointer-events: none;
+}
+
+.ra-inv-body {
+  padding: 18px 18px 10px;
+}
+
+.ra-inv-titulo {
+  font: 700 1.3rem/1.2 Cinzel, 'Times New Roman', serif;
+  color: #f7c94a;
+  margin: 0 0 13px;
+  letter-spacing: 0.07em;
+}
+
+.ra-typewriter {
+  font: 400 13.5px/1.75 'IBM Plex Mono', 'Courier New', monospace;
+  color: #8fa3b8;
+  margin: 0 0 16px;
+  min-height: 88px;
+  white-space: pre-line;
+  word-break: break-word;
+}
+
+.ra-evidence-card {
+  background: rgba(77, 252, 186, 0.055);
+  border: 1.5px solid rgba(77, 252, 186, 0.3);
+  border-radius: 14px;
+  padding: 13px 15px;
+  margin-bottom: 14px;
+  animation: ra-reveal-evidence 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ra-evidence-label {
+  font: 700 10px/1 'IBM Plex Mono', monospace;
+  letter-spacing: 0.22em;
+  color: #4dfcba;
+  margin-bottom: 9px;
+  text-transform: uppercase;
+}
+
+.ra-evidence-text {
+  font: 500 14px/1.6 var(--font-sans, sans-serif);
+  color: #f1f5f9;
+}
+
+.ra-register-btn {
+  width: 100%;
+  padding: 15px 18px;
+  background: linear-gradient(135deg, #4dfcba, #00c48a);
+  color: #04060a;
+  font: 700 13.5px/1 'IBM Plex Mono', monospace;
+  border: none;
+  border-radius: 13px;
+  cursor: pointer;
+  letter-spacing: 0.07em;
+  box-shadow: 0 5px 22px rgba(77, 252, 186, 0.32);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  margin-bottom: 4px;
+}
+.ra-register-btn:active { transform: scale(0.97); box-shadow: 0 2px 10px rgba(77, 252, 186, 0.18); }
+.ra-register-btn:disabled { opacity: 0.75; }
+
+.ra-already-collected {
+  text-align: center;
+  color: #4dfcba;
+  font: 600 13px/1 'IBM Plex Mono', monospace;
+  padding: 12px;
+  letter-spacing: 0.06em;
+}
+
+/* Celebração */
+.ra-celebracao {
+  position: absolute;
+  inset: 0;
+  z-index: 500;
+  background: rgba(2, 8, 4, 0.97);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: ra-flash-in 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ra-cel-conteudo {
+  text-align: center;
+  max-width: 380px;
+}
+
+.ra-cel-conteudo h2 {
+  font: 700 1.55rem/1.2 Cinzel, serif;
+  color: #4dfcba;
+  margin: 0 0 13px;
+  letter-spacing: 0.09em;
+  text-shadow: 0 0 30px rgba(77, 252, 186, 0.4);
+}
+
+.ra-cel-conteudo p {
+  color: #8fa3b8;
+  font-size: 14px;
+  line-height: 1.65;
+  margin: 0;
+}
+
+/* ============================================================
+   ANIMAÇÕES RA
+   ============================================================ */
+@keyframes ra-scan-rotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes ra-flash-in {
+  from { opacity: 0; transform: scale(0.94) translateY(6px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes ra-flash-out {
+  from { opacity: 1; }
+  to   { opacity: 0; pointer-events: none; }
+}
+
+@keyframes ra-slide-up {
+  from { transform: translateY(40px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes ra-reveal-evidence {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

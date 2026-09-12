@@ -1,22 +1,163 @@
 /**
  * ============================================================
- * MOSAICO RA & 3D ENGINE — MOTOR VOLUMÉTRICO E REALIDADE AUMENTADA
+ * MOSAICO RA & 3D ENGINE v2 — INVESTIGAÇÃO IMERSIVA
  * A Casa da Costa — Dragon Games
  * ============================================================
- * Integra 3 vivências imersivas no celular:
- *  1. "sala3d": Sala volumétrica realista Three.js com lanterna cônica,
- *     sombras dinâmicas e inspeção tátil 360° dos 9 objetos canônicos.
- *  2. "camera-ra": Visor espectral com câmera real do smartphone,
- *     filtro de luz negra UV forense e pistas luminescentes no quarto físico.
- *  3. "anamorfose": Fragmentos espaciais 3D suspensos que só se alinham
- *     e revelam o horário/código no ponto de vista exato ("A Marca Partida").
+ * 3 modos de vivência:
+ *  1. "sala3d"     — Sala volumétrica Three.js com 9 objetos canônicos,
+ *                    lanterna cônica, inspeção tátil 360° e pêndulo.
+ *  2. "camera-ra"  — RA INVESTIGATIVA: 6 hologramas 3D flutuando no seu
+ *                    ambiente real. Giroscópio ancora os objetos. Radar forense
+ *                    detecta proximidade. Coleta de 6 pistas reais do caso.
+ *  3. "anamorfose" — Fragmentos suspensos que só formam "21:29" no ângulo exato.
  */
 (function (global) {
   "use strict";
 
+  /* ============================================================
+     CATÁLOGO DOS 6 OBJETOS HOLOGRÁFICOS RA
+     ============================================================ */
+  var RA_CATALOGO = [
+    {
+      id: "vela",
+      nome: "Vela Apagada",
+      icone: "🕯️",
+      azimute: 0,
+      distancia: 1.9,
+      altura: 1.28,
+      corAura: 0xffecd0,
+      corGlow: 0xff8c42,
+      narrativaLinhas: [
+        "A vela da sala de visitas estava sobre a escrivaninha.",
+        "",
+        "Quando os socorristas chegaram, a cera tinha escorrido na diagonal.",
+        "",
+        "Não havia corrente de ar naquela noite.",
+        "A janela estava fechada por dentro.",
+        "",
+        "Alguém a apagou antes de sair."
+      ],
+      pista: "21:29 — Chama extinta de dentro. Cera escorreu na direção do cofre. Sem brisa registrada.",
+      pistaId: "ra_vela",
+      descoberta: false
+    },
+    {
+      id: "envelope",
+      nome: "Carta Interceptada",
+      icone: "📋",
+      azimute: 60,
+      distancia: 2.3,
+      altura: 1.15,
+      corAura: 0x4dfcba,
+      corGlow: 0x00e5a0,
+      narrativaLinhas: [
+        "A carta chegou na tarde do crime.",
+        "",
+        "O invólucro foi rasgado com força — não com abridor.",
+        "Quem rasgou sabia o que estava escrito.",
+        "",
+        "A tinta ultravioleta revela texto oculto:",
+        "assinado apenas pela inicial A."
+      ],
+      pista: "Carta interceptada — 'Se o cofre já estiver aberto, não entre.' — A.",
+      pistaId: "ra_carta",
+      descoberta: false
+    },
+    {
+      id: "chave",
+      nome: "Chave Mestra",
+      icone: "🗝️",
+      azimute: 140,
+      distancia: 1.6,
+      altura: 0.78,
+      corAura: 0xf7c94a,
+      corGlow: 0xe8a44c,
+      narrativaLinhas: [
+        "A chave estava no casaco do sr. Costa.",
+        "",
+        "Não na escrivaninha, como o protocolo exige.",
+        "",
+        "Alguém moveu o casaco antes de sair.",
+        "Impressão de luva nitrílica detectada no metal."
+      ],
+      pista: "Chave mestra do cofre — bolso esquerdo do casaco de Costa. Impressão de luva nitrílica.",
+      pistaId: "ra_chave",
+      descoberta: false
+    },
+    {
+      id: "marca",
+      nome: "Rastro no Chão",
+      icone: "👣",
+      azimute: 215,
+      distancia: 1.1,
+      altura: 0.01,
+      corAura: 0xff3a3a,
+      corGlow: 0xff6b6b,
+      narrativaLinhas: [
+        "Dois pares de calçado identificados.",
+        "",
+        "Tamanho 42 — solado liso.",
+        "Tamanho 38 — bico fino, feminino.",
+        "",
+        "Objeto pesado (~40 kg) arrastado.",
+        "Trajetória: cofre → janela norte."
+      ],
+      pista: "Dois indivíduos. Peso ~40 kg arrastado do cofre à janela. Janela aberta por dentro.",
+      pistaId: "ra_marca",
+      descoberta: false
+    },
+    {
+      id: "gravador",
+      nome: "Gravador Oculto",
+      icone: "📼",
+      azimute: 280,
+      distancia: 2.1,
+      altura: 1.55,
+      corAura: 0xff5555,
+      corGlow: 0xff1111,
+      narrativaLinhas: [
+        "A gravação começa às 21h18.",
+        "Onze minutos antes do silêncio total.",
+        "",
+        "Duas vozes — uma agitada, outra calma.",
+        "",
+        "O gravador estava escondido",
+        "atrás da fileira de livros de direito."
+      ],
+      pista: "Fragmento: '...não é hora de hesitar. A janela fica aberta até meia-noite...'",
+      pistaId: "ra_gravador",
+      descoberta: false
+    },
+    {
+      id: "espelho_ra",
+      nome: "Espelho Partido",
+      icone: "🔮",
+      azimute: 330,
+      distancia: 1.45,
+      altura: 1.72,
+      corAura: 0x7fd4ff,
+      corGlow: 0x44aaff,
+      narrativaLinhas: [
+        "O espelho foi quebrado após as 21h29.",
+        "",
+        "O fragmento maior preserva o reflexo do relógio.",
+        "O ponteiro indica a posição de 21h.",
+        "",
+        "Mas o relógio estava adiantado 8 minutos.",
+        "A hora real do crime: 21:21."
+      ],
+      pista: "Espelho reflete '21:21'. Relógio adiantado 8 min — hora real do crime: 21:21, não 21:29.",
+      pistaId: "ra_espelho",
+      descoberta: false
+    }
+  ];
+
+  /* ============================================================
+     ESTADO PRINCIPAL DO MOTOR
+     ============================================================ */
   var MosaicoRA = {
     ativo: false,
-    modo: "sala3d", // "sala3d" | "camera-ra" | "anamorfose"
+    modo: "sala3d",
     container: null,
     renderer: null,
     scene: null,
@@ -24,7 +165,6 @@
     spotlight: null,
     ambientLight: null,
     videoElement: null,
-    videoTexture: null,
     animId: null,
     orientacao: { yaw: 0, pitch: 0, targetYaw: 0, targetPitch: 0 },
     objetos3D: {},
@@ -32,16 +172,32 @@
     anamorfoseTracos: [],
     anamorfoseAlvo: { yaw: 137, pitch: 11 },
     anamorfoseAlinhada: false,
-    emCopa: false
+    emCopa: false,
+    salaGroup: null,
+    anamorfoseGroup: null,
+    pistasUVGroup: null,
+    // RA Investigação
+    raObjetos: [],
+    raObjetosGroup: null,
+    raParticulasCanvas: null,
+    raParticulas: [],
+    raParticulasAnimId: null,
+    raPistasColetadas: {},
+    raProximoId: null,
+    raProximidadeMs: 0,
+    // Inspeção e investigação
+    inspectAnimId: null,
+    invAnimId: null,
+    invRenderer: null
   };
 
-  /* ------------------------------------------------------------
-     1. INICIALIZAÇÃO DO MOTOR E CONTAINER
-     ------------------------------------------------------------ */
+  /* ============================================================
+     1. INICIALIZAÇÃO
+     ============================================================ */
   MosaicoRA.iniciar = function (containerId, modoInicial) {
     document.body.classList.add("modo-ra-ativo");
     var gate = document.getElementById("dragonRoomGate");
-    if(gate) { gate.style.display = "none"; try{ gate.remove(); }catch(e){} }
+    if (gate) { gate.style.display = "none"; try { gate.remove(); } catch (e) {} }
 
     var cont = typeof containerId === "string" ? document.getElementById(containerId) : containerId;
     if (!cont) {
@@ -56,29 +212,32 @@
 
     MosaicoRA.modo = (modoInicial === "ra" || modoInicial === "camera-ra") ? "camera-ra" : (modoInicial || "sala3d");
     MosaicoRA.ativo = true;
+    MosaicoRA.raObjetos = RA_CATALOGO.map(function (c) {
+      return { id: c.id, nome: c.nome, icone: c.icone, azimute: c.azimute, distancia: c.distancia,
+        altura: c.altura, corAura: c.corAura, corGlow: c.corGlow, narrativaLinhas: c.narrativaLinhas,
+        pista: c.pista, pistaId: c.pistaId, descoberta: false, mesh: null, luz: null, baseY: c.altura };
+    });
+    MosaicoRA.raPistasColetadas = {};
+    MosaicoRA.raObjetosGroup = null;
+    MosaicoRA.raParticulasCanvas = null;
 
     if (typeof THREE === "undefined") {
-      console.warn("Aguardando Three.js...");
-      setTimeout(function(){ MosaicoRA.iniciar(containerId, modoInicial); }, 50);
+      setTimeout(function () { MosaicoRA.iniciar(containerId, modoInicial); }, 50);
       return;
     }
 
-    var w = window.innerWidth;
-    var h = window.innerHeight;
+    var w = window.innerWidth, h = window.innerHeight;
 
-    // Vídeo de fundo com Câmera Real (Visor RA)
+    // Vídeo de fundo (câmera real)
     var vid = document.createElement("video");
     vid.id = "mosaico-ra-video-bg";
-    vid.autoplay = true;
-    vid.playsInline = true;
-    vid.muted = true;
-    vid.setAttribute("playsinline", "");
-    vid.setAttribute("webkit-playsinline", "");
-    vid.style.cssText = "position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;display:none;filter:contrast(1.2) hue-rotate(240deg) saturate(1.4);";
+    vid.autoplay = true; vid.playsInline = true; vid.muted = true;
+    vid.setAttribute("playsinline", ""); vid.setAttribute("webkit-playsinline", "");
+    vid.style.cssText = "position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;display:none;";
     cont.appendChild(vid);
     MosaicoRA.videoElement = vid;
 
-    // Renderer WebGL com transparência alpha para sobrepor à câmera
+    // Renderer WebGL com alpha
     MosaicoRA.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
     MosaicoRA.renderer.setSize(w, h);
     MosaicoRA.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -87,27 +246,23 @@
     MosaicoRA.renderer.domElement.style.cssText = "position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:auto;";
     cont.appendChild(MosaicoRA.renderer.domElement);
 
-    // Camera
-    MosaicoRA.camera = new THREE.PerspectiveCamera(65, w / h, 0.1, 50);
+    // Camera perspective
+    MosaicoRA.camera = new THREE.PerspectiveCamera(65, w / h, 0.05, 50);
     MosaicoRA.camera.position.set(0, 1.55, 0);
 
-    // Scene
+    // Cena
     MosaicoRA.scene = new THREE.Scene();
     MosaicoRA.scene.background = new THREE.Color(0x04060a);
 
     // Iluminação
-    MosaicoRA.ambientLight = new THREE.AmbientLight(0x1a2634, 0.4);
+    MosaicoRA.ambientLight = new THREE.AmbientLight(0x1a2634, 0.45);
     MosaicoRA.scene.add(MosaicoRA.ambientLight);
 
-    // Lanterna Cônica (Spotlight) presa à câmera
-    MosaicoRA.spotlight = new THREE.SpotLight(0xffecd0, 2.2, 16, Math.PI / 6.5, 0.4, 1.2);
-    MosaicoRA.spotlight.position.set(0, 0, 0.1);
+    // Lanterna cônica presa à câmera
+    MosaicoRA.spotlight = new THREE.SpotLight(0xffecd0, 2.4, 16, Math.PI / 6.5, 0.42, 1.1);
     MosaicoRA.spotlight.castShadow = true;
     MosaicoRA.spotlight.shadow.mapSize.width = 1024;
     MosaicoRA.spotlight.shadow.mapSize.height = 1024;
-    MosaicoRA.spotlight.shadow.camera.near = 0.2;
-    MosaicoRA.spotlight.shadow.camera.far = 18;
-
     var spotTarget = new THREE.Object3D();
     spotTarget.position.set(0, 0, -3);
     MosaicoRA.camera.add(spotTarget);
@@ -115,7 +270,6 @@
     MosaicoRA.camera.add(MosaicoRA.spotlight);
     MosaicoRA.scene.add(MosaicoRA.camera);
 
-    // Montar Cenário
     MosaicoRA.construirSala3D();
     MosaicoRA.construirAnamorfose();
     MosaicoRA.montarHUD();
@@ -131,9 +285,9 @@
     MosaicoRA.animar();
   };
 
-  /* ------------------------------------------------------------
-     2. CONSTRUÇÃO DA SALA 3D E OBJETOS CANÔNICOS
-     ------------------------------------------------------------ */
+  /* ============================================================
+     2. SALA 3D — 9 OBJETOS CANÔNICOS
+     ============================================================ */
   MosaicoRA.construirSala3D = function () {
     var s = MosaicoRA.scene;
     var salaGroup = new THREE.Group();
@@ -141,420 +295,666 @@
     MosaicoRA.salaGroup = salaGroup;
     s.add(salaGroup);
 
-    // Textura procedural de tábuas de cedro para o chão
-    var floorCanvas = document.createElement("canvas");
-    floorCanvas.width = 512; floorCanvas.height = 512;
-    var fctx = floorCanvas.getContext("2d");
+    // Textura de tábuas para o chão
+    var fCanvas = document.createElement("canvas");
+    fCanvas.width = 512; fCanvas.height = 512;
+    var fctx = fCanvas.getContext("2d");
     fctx.fillStyle = "#160e08"; fctx.fillRect(0, 0, 512, 512);
-    fctx.strokeStyle = "rgba(42, 22, 12, 0.8)";
-    fctx.lineWidth = 4;
-    for (var i = 0; i < 512; i += 64) {
-      fctx.beginPath(); fctx.moveTo(0, i); fctx.lineTo(512, i); fctx.stroke();
+    fctx.strokeStyle = "rgba(40, 20, 10, 0.9)"; fctx.lineWidth = 4;
+    for (var qi = 0; qi < 512; qi += 64) { fctx.beginPath(); fctx.moveTo(0, qi); fctx.lineTo(512, qi); fctx.stroke(); }
+    for (var qj = 0; qj < 512; qj += 16) {
+      fctx.strokeStyle = "rgba(255,200,150,0.025)"; fctx.lineWidth = 1;
+      fctx.beginPath(); fctx.moveTo(0, qj); fctx.lineTo(512, qj); fctx.stroke();
     }
-    for (var j = 0; j < 512; j += 16) {
-      fctx.strokeStyle = "rgba(255, 200, 150, 0.03)";
-      fctx.lineWidth = 1;
-      fctx.beginPath(); fctx.moveTo(0, j); fctx.lineTo(512, j); fctx.stroke();
-    }
-    var floorTexture = new THREE.CanvasTexture(floorCanvas);
-    floorTexture.wrapS = THREE.RepeatWrapping;
-    floorTexture.wrapT = THREE.RepeatWrapping;
-    floorTexture.repeat.set(6, 6);
-
-    // Chão
-    var floorGeo = new THREE.PlaneGeometry(10, 10);
-    var floorMat = new THREE.MeshStandardMaterial({
-      map: floorTexture,
-      roughness: 0.72,
-      metalness: 0.1
-    });
-    var floor = new THREE.Mesh(floorGeo, floorMat);
-    floor.rotation.x = -Math.PI / 2;
-    floor.position.y = 0;
-    floor.receiveShadow = true;
-    salaGroup.add(floor);
-
-    // Teto com Vigas
-    var ceilGeo = new THREE.PlaneGeometry(10, 10);
+    var floorTex = new THREE.CanvasTexture(fCanvas);
+    floorTex.wrapS = THREE.RepeatWrapping; floorTex.wrapT = THREE.RepeatWrapping; floorTex.repeat.set(6, 6);
+    var floor = new THREE.Mesh(new THREE.PlaneGeometry(10, 10), new THREE.MeshStandardMaterial({ map: floorTex, roughness: 0.72, metalness: 0.1 }));
+    floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; salaGroup.add(floor);
     var ceilMat = new THREE.MeshStandardMaterial({ color: 0x070b10, roughness: 0.9 });
-    var ceiling = new THREE.Mesh(ceilGeo, ceilMat);
-    ceiling.rotation.x = Math.PI / 2;
-    ceiling.position.y = 3.2;
-    salaGroup.add(ceiling);
-
-    // Paredes de Alvenaria Escura
+    var ceiling = new THREE.Mesh(new THREE.PlaneGeometry(10, 10), ceilMat);
+    ceiling.rotation.x = Math.PI / 2; ceiling.position.y = 3.2; salaGroup.add(ceiling);
     var wallMat = new THREE.MeshStandardMaterial({ color: 0x0c131c, roughness: 0.85 });
-    var wallNorth = new THREE.Mesh(new THREE.PlaneGeometry(10, 3.2), wallMat);
-    wallNorth.position.set(0, 1.6, -5); wallNorth.receiveShadow = true; salaGroup.add(wallNorth);
+    var wallN = new THREE.Mesh(new THREE.PlaneGeometry(10, 3.2), wallMat);
+    wallN.position.set(0, 1.6, -5); wallN.receiveShadow = true; salaGroup.add(wallN);
+    var wallS = new THREE.Mesh(new THREE.PlaneGeometry(10, 3.2), wallMat.clone());
+    wallS.rotation.y = Math.PI; wallS.position.set(0, 1.6, 5); salaGroup.add(wallS);
+    var wallE = new THREE.Mesh(new THREE.PlaneGeometry(10, 3.2), wallMat.clone());
+    wallE.rotation.y = -Math.PI / 2; wallE.position.set(5, 1.6, 0); salaGroup.add(wallE);
+    var wallW = new THREE.Mesh(new THREE.PlaneGeometry(10, 3.2), wallMat.clone());
+    wallW.rotation.y = Math.PI / 2; wallW.position.set(-5, 1.6, 0); salaGroup.add(wallW);
 
-    var wallSouth = new THREE.Mesh(new THREE.PlaneGeometry(10, 3.2), wallMat);
-    wallSouth.rotation.y = Math.PI; wallSouth.position.set(0, 1.6, 5); wallSouth.receiveShadow = true; salaGroup.add(wallSouth);
-
-    var wallEast = new THREE.Mesh(new THREE.PlaneGeometry(10, 3.2), wallMat);
-    wallEast.rotation.y = -Math.PI / 2; wallEast.position.set(5, 1.6, 0); wallEast.receiveShadow = true; salaGroup.add(wallEast);
-
-    var wallWest = new THREE.Mesh(new THREE.PlaneGeometry(10, 3.2), wallMat);
-    wallWest.rotation.y = Math.PI / 2; wallWest.position.set(-5, 1.6, 0); wallWest.receiveShadow = true; salaGroup.add(wallWest);
-
-    // ------------------------------------------------------------
-    // OS 9 OBJETOS CANÔNICOS DA CASA DA COSTA EM 3D
-    // ------------------------------------------------------------
-
-    // 1. O Quadro Torto & 8. O Cofre Embutido (Parede Norte)
+    // --- QUADRO + COFRE ---
     var quadroGroup = new THREE.Group();
     quadroGroup.position.set(-1.2, 1.68, -4.96);
-
-    // Moldura Dourada
-    var moldura = new THREE.Mesh(
-      new THREE.BoxGeometry(0.9, 1.1, 0.04),
-      new THREE.MeshStandardMaterial({ color: 0xaa7828, metalness: 0.6, roughness: 0.4 })
-    );
-    moldura.castShadow = true;
-    quadroGroup.add(moldura);
-
-    // Tela da Marinha com Farol
-    var telaCanvas = document.createElement("canvas");
-    telaCanvas.width = 256; telaCanvas.height = 320;
-    var tctx = telaCanvas.getContext("2d");
+    quadroGroup.add(new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.1, 0.04), new THREE.MeshStandardMaterial({ color: 0xaa7828, metalness: 0.6, roughness: 0.4 })));
+    var telaC = document.createElement("canvas"); telaC.width = 256; telaC.height = 320;
+    var tctx = telaC.getContext("2d");
     tctx.fillStyle = "#06101a"; tctx.fillRect(0, 0, 256, 320);
-    tctx.fillStyle = "#ffb266"; tctx.beginPath(); tctx.arc(128, 120, 18, 0, Math.PI*2); tctx.fill();
-    tctx.fillStyle = "#0c1824"; tctx.fillRect(0, 200, 256, 120);
-    var telaMat = new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(telaCanvas) });
-    var tela = new THREE.Mesh(new THREE.PlaneGeometry(0.76, 0.96), telaMat);
-    tela.position.z = 0.025;
-    quadroGroup.add(tela);
+    tctx.fillStyle = "#ffb266"; tctx.beginPath(); tctx.arc(128, 120, 18, 0, Math.PI * 2); tctx.fill();
+    var tela = new THREE.Mesh(new THREE.PlaneGeometry(0.76, 0.96), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(telaC) }));
+    tela.position.z = 0.025; quadroGroup.add(tela);
 
-    // O Cofre atrás do quadro (embutido na parede)
     var cofreGroup = new THREE.Group();
     cofreGroup.position.set(-1.2, 1.68, -4.97);
-    var cofreBody = new THREE.Mesh(
-      new THREE.BoxGeometry(0.56, 0.52, 0.12),
-      new THREE.MeshStandardMaterial({ color: 0x182c22, metalness: 0.8, roughness: 0.3 })
-    );
-    cofreGroup.add(cofreBody);
-
-    var dial = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.09, 0.09, 0.04, 24),
-      new THREE.MeshStandardMaterial({ color: 0xe8a44c, metalness: 0.9, roughness: 0.2 })
-    );
-    dial.rotation.x = Math.PI / 2;
-    dial.position.z = 0.07;
-    cofreGroup.add(dial);
-
-    salaGroup.add(cofreGroup);
-    salaGroup.add(quadroGroup);
+    cofreGroup.add(new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.52, 0.12), new THREE.MeshStandardMaterial({ color: 0x182c22, metalness: 0.8, roughness: 0.3 })));
+    var dial = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.04, 24), new THREE.MeshStandardMaterial({ color: 0xe8a44c, metalness: 0.9, roughness: 0.2 }));
+    dial.rotation.x = Math.PI / 2; dial.position.z = 0.07; cofreGroup.add(dial);
+    salaGroup.add(cofreGroup); salaGroup.add(quadroGroup);
     MosaicoRA.objetos3D["quadro"] = quadroGroup;
     MosaicoRA.objetos3D["cofre"] = cofreGroup;
 
-    // 2. O Vaso de Plantas (Chão, Canto Norte-Oeste)
+    // --- VASO ---
     var vasoGroup = new THREE.Group();
     vasoGroup.position.set(-3.2, 0, -4.2);
-
-    var vasoMesh = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.24, 0.16, 0.65, 20),
-      new THREE.MeshStandardMaterial({ color: 0x224838, roughness: 0.3, metalness: 0.2 })
-    );
-    vasoMesh.position.y = 0.325;
-    vasoMesh.castShadow = true;
-    vasoGroup.add(vasoMesh);
-
-    // Folhagens escuras
-    for (var f = 0; f < 6; f++) {
-      var folha = new THREE.Mesh(
-        new THREE.SphereGeometry(0.12, 8, 8),
-        new THREE.MeshStandardMaterial({ color: 0x143224, roughness: 0.6 })
-      );
+    var vasoMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.16, 0.65, 20), new THREE.MeshStandardMaterial({ color: 0x224838, roughness: 0.3, metalness: 0.2 }));
+    vasoMesh.position.y = 0.325; vasoMesh.castShadow = true; vasoGroup.add(vasoMesh);
+    for (var fi = 0; fi < 6; fi++) {
+      var folha = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), new THREE.MeshStandardMaterial({ color: 0x143224, roughness: 0.6 }));
       folha.scale.set(1.5, 0.3, 0.8);
-      folha.position.set(Math.cos(f) * 0.18, 0.68 + (f * 0.03), Math.sin(f) * 0.18);
-      folha.rotation.z = Math.sin(f) * 0.4;
-      vasoGroup.add(folha);
+      folha.position.set(Math.cos(fi) * 0.18, 0.68 + fi * 0.03, Math.sin(fi) * 0.18);
+      folha.rotation.z = Math.sin(fi) * 0.4; vasoGroup.add(folha);
     }
-    salaGroup.add(vasoGroup);
-    MosaicoRA.objetos3D["vaso"] = vasoGroup;
+    salaGroup.add(vasoGroup); MosaicoRA.objetos3D["vaso"] = vasoGroup;
 
-    // 3. A Escrivaninha de Jacarandá & 9. Secretária com Fita (Parede Leste)
+    // --- ESCRIVANINHA + GAVETA + SECRETARIA ---
     var escrivGroup = new THREE.Group();
-    escrivGroup.position.set(4.3, 0, -1.5);
-    escrivGroup.rotation.y = -Math.PI / 2;
-
-    // Tampo da mesa
-    var tampo = new THREE.Mesh(
-      new THREE.BoxGeometry(1.4, 0.08, 0.75),
-      new THREE.MeshStandardMaterial({ color: 0x2a160c, roughness: 0.5, metalness: 0.1 })
-    );
-    tampo.position.y = 0.76;
-    tampo.castShadow = true;
-    escrivGroup.add(tampo);
-
-    // Pernas esculpidas
+    escrivGroup.position.set(4.3, 0, -1.5); escrivGroup.rotation.y = -Math.PI / 2;
+    var tampo = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.08, 0.75), new THREE.MeshStandardMaterial({ color: 0x2a160c, roughness: 0.5, metalness: 0.1 }));
+    tampo.position.y = 0.76; tampo.castShadow = true; escrivGroup.add(tampo);
     var pernaMat = new THREE.MeshStandardMaterial({ color: 0x1c0e07, roughness: 0.6 });
     [[-0.6, -0.3], [0.6, -0.3], [-0.6, 0.3], [0.6, 0.3]].forEach(function (p) {
       var perna = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.76, 0.08), pernaMat);
-      perna.position.set(p[0], 0.38, p[1]);
-      perna.castShadow = true;
-      escrivGroup.add(perna);
+      perna.position.set(p[0], 0.38, p[1]); perna.castShadow = true; escrivGroup.add(perna);
     });
-
-    // Gaveta funcional (que desliza ao toque)
     var gavetaGroup = new THREE.Group();
     gavetaGroup.position.set(0, 0.64, 0.1);
-    var gavetaCorpo = new THREE.Mesh(
-      new THREE.BoxGeometry(0.58, 0.14, 0.52),
-      new THREE.MeshStandardMaterial({ color: 0x361d10, roughness: 0.7 })
-    );
-    gavetaGroup.add(gavetaCorpo);
-
-    var puxador = new THREE.Mesh(
-      new THREE.BoxGeometry(0.12, 0.03, 0.04),
-      new THREE.MeshStandardMaterial({ color: 0xcca050, metalness: 0.8, roughness: 0.2 })
-    );
-    puxador.position.set(0, 0, 0.28);
-    gavetaGroup.add(puxador);
-
-    // Secretária / Gravador no fundo da gaveta
-    var secretariaMesh = new THREE.Mesh(
-      new THREE.BoxGeometry(0.24, 0.06, 0.18),
-      new THREE.MeshStandardMaterial({ color: 0x1a1a1a, metalness: 0.5, roughness: 0.4 })
-    );
-    secretariaMesh.position.set(0, 0.05, -0.05);
-    gavetaGroup.add(secretariaMesh);
-
-    // LED vermelho piscante
-    var led = new THREE.Mesh(
-      new THREE.SphereGeometry(0.015, 8, 8),
-      new THREE.MeshBasicMaterial({ color: 0xff2222 })
-    );
-    led.position.set(0.08, 0.09, 0.02);
-    gavetaGroup.add(led);
-
+    gavetaGroup.add(new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.14, 0.52), new THREE.MeshStandardMaterial({ color: 0x361d10, roughness: 0.7 })));
+    var puxador = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.03, 0.04), new THREE.MeshStandardMaterial({ color: 0xcca050, metalness: 0.8, roughness: 0.2 }));
+    puxador.position.set(0, 0, 0.28); gavetaGroup.add(puxador);
+    var secretariaMesh = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.06, 0.18), new THREE.MeshStandardMaterial({ color: 0x1a1a1a, metalness: 0.5, roughness: 0.4 }));
+    secretariaMesh.position.set(0, 0.05, -0.05); gavetaGroup.add(secretariaMesh);
+    var ledSec = new THREE.Mesh(new THREE.SphereGeometry(0.015, 8, 8), new THREE.MeshBasicMaterial({ color: 0xff2222 }));
+    ledSec.position.set(0.08, 0.09, 0.02); gavetaGroup.add(ledSec);
     escrivGroup.add(gavetaGroup);
     salaGroup.add(escrivGroup);
     MosaicoRA.objetos3D["escrivaninha"] = escrivGroup;
     MosaicoRA.objetos3D["gaveta"] = gavetaGroup;
     MosaicoRA.objetos3D["secretaria"] = secretariaMesh;
 
-    // 4. O Espelho Oval (Parede Sul)
+    // --- ESPELHO OVAL ---
     var espelhoGroup = new THREE.Group();
-    espelhoGroup.position.set(0.8, 1.7, 4.96);
-    espelhoGroup.rotation.y = Math.PI;
+    espelhoGroup.position.set(0.8, 1.7, 4.96); espelhoGroup.rotation.y = Math.PI;
+    espelhoGroup.add(new THREE.Mesh(new THREE.TorusGeometry(0.38, 0.04, 12, 32), new THREE.MeshStandardMaterial({ color: 0xb8860b, metalness: 0.8, roughness: 0.25 })));
+    var eVidro = new THREE.Mesh(new THREE.CircleGeometry(0.36, 32), new THREE.MeshStandardMaterial({ color: 0xc6e4ff, metalness: 0.95, roughness: 0.05 }));
+    eVidro.position.z = 0.01; espelhoGroup.add(eVidro);
+    salaGroup.add(espelhoGroup); MosaicoRA.objetos3D["espelho"] = espelhoGroup;
 
-    var espelhoMoldura = new THREE.Mesh(
-      new THREE.TorusGeometry(0.38, 0.04, 12, 32),
-      new THREE.MeshStandardMaterial({ color: 0xb8860b, metalness: 0.8, roughness: 0.25 })
-    );
-    espelhoMoldura.scale.set(0.85, 1.25, 1);
-    espelhoGroup.add(espelhoMoldura);
-
-    var espelhoVidro = new THREE.Mesh(
-      new THREE.CircleGeometry(0.36, 32),
-      new THREE.MeshStandardMaterial({ color: 0xc6e4ff, metalness: 0.95, roughness: 0.05 })
-    );
-    espelhoVidro.scale.set(0.85, 1.25, 1);
-    espelhoVidro.position.z = 0.01;
-    espelhoGroup.add(espelhoVidro);
-    salaGroup.add(espelhoGroup);
-    MosaicoRA.objetos3D["espelho"] = espelhoGroup;
-
-    // 5. A Janela do Mar (Norte)
+    // --- JANELA ---
     var janelaGroup = new THREE.Group();
     janelaGroup.position.set(1.4, 1.7, -4.95);
+    janelaGroup.add(new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.5, 0.08), new THREE.MeshStandardMaterial({ color: 0x111b24, roughness: 0.7 })));
+    var vidroJ = new THREE.Mesh(new THREE.PlaneGeometry(1.05, 1.35), new THREE.MeshStandardMaterial({ color: 0x7fd4ff, transparent: true, opacity: 0.45, roughness: 0.1, metalness: 0.1 }));
+    vidroJ.position.z = 0.01; janelaGroup.add(vidroJ);
+    salaGroup.add(janelaGroup); MosaicoRA.objetos3D["janela"] = janelaGroup;
 
-    var janelaMoldura = new THREE.Mesh(
-      new THREE.BoxGeometry(1.2, 1.5, 0.08),
-      new THREE.MeshStandardMaterial({ color: 0x111b24, roughness: 0.7 })
-    );
-    janelaGroup.add(janelaMoldura);
-
-    var vidroJanela = new THREE.Mesh(
-      new THREE.PlaneGeometry(1.05, 1.35),
-      new THREE.MeshPhysicalMaterial({
-        color: 0x7fd4ff,
-        transparent: true,
-        opacity: 0.45,
-        roughness: 0.1,
-        metalness: 0.1,
-        transmission: 0.85,
-        ior: 1.5
-      })
-    );
-    vidroJanela.position.z = 0.01;
-    janelaGroup.add(vidroJanela);
-    salaGroup.add(janelaGroup);
-    MosaicoRA.objetos3D["janela"] = janelaGroup;
-
-    // 6. O Relógio de Pêndulo (Parede Oeste)
+    // --- RELÓGIO DE PÊNDULO ---
     var relogioGroup = new THREE.Group();
-    relogioGroup.position.set(-4.96, 1.82, 0);
-    relogioGroup.rotation.y = Math.PI / 2;
-
-    var caixaRelogio = new THREE.Mesh(
-      new THREE.BoxGeometry(0.46, 0.95, 0.16),
-      new THREE.MeshStandardMaterial({ color: 0x221208, roughness: 0.45 })
-    );
-    caixaRelogio.castShadow = true;
-    relogioGroup.add(caixaRelogio);
-
-    // Mostrador com 21h29
-    var mostrador = new THREE.Mesh(
-      new THREE.CircleGeometry(0.16, 24),
-      new THREE.MeshStandardMaterial({ color: 0xfff4e0, roughness: 0.3 })
-    );
-    mostrador.position.set(0, 0.22, 0.085);
-    relogioGroup.add(mostrador);
-
-    // Pêndulo de Latão
+    relogioGroup.position.set(-4.96, 1.82, 0); relogioGroup.rotation.y = Math.PI / 2;
+    var caixaR = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.95, 0.16), new THREE.MeshStandardMaterial({ color: 0x221208, roughness: 0.45 }));
+    caixaR.castShadow = true; relogioGroup.add(caixaR);
+    var mostrador = new THREE.Mesh(new THREE.CircleGeometry(0.16, 24), new THREE.MeshStandardMaterial({ color: 0xfff4e0, roughness: 0.3 }));
+    mostrador.position.set(0, 0.22, 0.085); relogioGroup.add(mostrador);
     var penduloGroup = new THREE.Group();
     penduloGroup.position.set(0, 0.08, 0.06);
     var haste = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.32, 0.01), new THREE.MeshStandardMaterial({ color: 0xffc46b, metalness: 0.9 }));
-    haste.position.y = -0.16;
-    penduloGroup.add(haste);
+    haste.position.y = -0.16; penduloGroup.add(haste);
     var peso = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.02, 16), new THREE.MeshStandardMaterial({ color: 0xffc46b, metalness: 0.9 }));
-    peso.rotation.x = Math.PI / 2;
-    peso.position.y = -0.32;
-    penduloGroup.add(peso);
+    peso.rotation.x = Math.PI / 2; peso.position.y = -0.32; penduloGroup.add(peso);
     relogioGroup.add(penduloGroup);
-
     salaGroup.add(relogioGroup);
     MosaicoRA.objetos3D["relogio"] = relogioGroup;
     MosaicoRA.objetos3D["pendulo"] = penduloGroup;
 
-    // 7. A Luminária / Abajur de Pé (Canto Sul-Leste)
+    // --- LUMINÁRIA ---
     var abajurGroup = new THREE.Group();
     abajurGroup.position.set(3.8, 0, 3.8);
-
-    var hasteAbajur = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.02, 0.025, 1.6, 12),
-      new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.85, roughness: 0.25 })
-    );
-    hasteAbajur.position.y = 0.8;
-    hasteAbajur.castShadow = true;
-    abajurGroup.add(hasteAbajur);
-
-    var cupula = new THREE.Mesh(
-      new THREE.ConeGeometry(0.28, 0.32, 18, 1, true),
-      new THREE.MeshStandardMaterial({ color: 0xffe8c8, roughness: 0.6, side: THREE.DoubleSide })
-    );
-    cupula.position.y = 1.55;
-    cupula.rotation.x = Math.PI;
-    abajurGroup.add(cupula);
-
-    salaGroup.add(abajurGroup);
-    MosaicoRA.objetos3D["luminaria"] = abajurGroup;
+    var hasteA = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.025, 1.6, 12), new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.85, roughness: 0.25 }));
+    hasteA.position.y = 0.8; hasteA.castShadow = true; abajurGroup.add(hasteA);
+    var cupula = new THREE.Mesh(new THREE.ConeGeometry(0.28, 0.32, 18, 1, true), new THREE.MeshStandardMaterial({ color: 0xffe8c8, roughness: 0.6, side: THREE.DoubleSide }));
+    cupula.position.y = 1.55; cupula.rotation.x = Math.PI; abajurGroup.add(cupula);
+    salaGroup.add(abajurGroup); MosaicoRA.objetos3D["luminaria"] = abajurGroup;
   };
 
-  /* ------------------------------------------------------------
-     3. MECÂNICA DE ANAMORFOSE 3D ("A MARCA PARTIDA")
-     ------------------------------------------------------------ */
+  /* ============================================================
+     3. ANAMORFOSE ("A MARCA PARTIDA")
+     ============================================================ */
   MosaicoRA.construirAnamorfose = function () {
     var grupoAnamorfose = new THREE.Group();
     grupoAnamorfose.name = "anamorfoseGroup";
-
-    // Posição canônica do alvo de anamorfose: 137° azimute, 11° elevação
-    var alvoRadYaw = (137 * Math.PI) / 180;
-    var alvoRadPitch = (11 * Math.PI) / 180;
-
-    // Segmentos que formam a data/hora "21:29" quando alinhados
-    // Definidos em coordenadas normalizadas de tela projetadas em raios 3D
-    var traços2D = [
-      // Número 2
+    var alvoYaw = (137 * Math.PI) / 180;
+    var alvoPitch = (11 * Math.PI) / 180;
+    var tracos2D = [
       [-0.45, 0.3, -0.32, 0.3], [-0.32, 0.3, -0.32, 0.15], [-0.32, 0.15, -0.45, 0.0], [-0.45, 0.0, -0.32, 0.0],
-      // Número 1
       [-0.18, 0.25, -0.15, 0.3], [-0.15, 0.3, -0.15, 0.0],
-      // Dois pontos :
       [-0.02, 0.22, -0.02, 0.20], [-0.02, 0.08, -0.02, 0.06],
-      // Número 2
       [0.08, 0.3, 0.21, 0.3], [0.21, 0.3, 0.21, 0.15], [0.21, 0.15, 0.08, 0.0], [0.08, 0.0, 0.21, 0.0],
-      // Número 9
       [0.32, 0.3, 0.45, 0.3], [0.32, 0.3, 0.32, 0.15], [0.32, 0.15, 0.45, 0.15], [0.45, 0.3, 0.45, 0.0], [0.32, 0.0, 0.45, 0.0]
     ];
-
-    var matTraço = new THREE.LineBasicMaterial({
-      color: 0xffd97d,
-      linewidth: 3,
-      transparent: true,
-      opacity: 0.9
-    });
-
-    traços2D.forEach(function (t, idx) {
-      // Cada segmento é posicionado ao longo do raio de visão do alvo,
-      // mas em profundidades DIVERSAS (de 1.4m até 3.6m), para só se juntar no ângulo correto!
+    var matTraco = new THREE.LineBasicMaterial({ color: 0xffd97d, transparent: true, opacity: 0.9 });
+    tracos2D.forEach(function (t, idx) {
       var distA = 1.4 + ((idx * 7) % 19) * 0.11;
       var distB = 1.4 + ((idx * 11) % 17) * 0.12;
-
-      // Calcular posição 3D no raio
-      function projetaRaio(u, v, dist) {
-        var dirX = Math.sin(alvoRadYaw) * Math.cos(alvoRadPitch) + u * 0.35;
-        var dirY = Math.sin(alvoRadPitch) + v * 0.35;
-        var dirZ = -Math.cos(alvoRadYaw) * Math.cos(alvoRadPitch);
-        return new THREE.Vector3(dirX * dist, 1.55 + dirY * dist, dirZ * dist);
+      function projetarRaio(u, v, dist) {
+        var dx = Math.sin(alvoYaw) * Math.cos(alvoPitch) + u * 0.35;
+        var dy = Math.sin(alvoPitch) + v * 0.35;
+        var dz = -Math.cos(alvoYaw) * Math.cos(alvoPitch);
+        return new THREE.Vector3(dx * dist, 1.55 + dy * dist, dz * dist);
       }
-
-      var pA = projetaRaio(t[0], t[1], distA);
-      var pB = projetaRaio(t[2], t[3], distB);
-
-      var geo = new THREE.BufferGeometry().setFromPoints([pA, pB]);
-      var linha = new THREE.Line(geo, matTraço);
-      grupoAnamorfose.add(linha);
+      var pA = projetarRaio(t[0], t[1], distA);
+      var pB = projetarRaio(t[2], t[3], distB);
+      grupoAnamorfose.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([pA, pB]), matTraco));
     });
-
     MosaicoRA.scene.add(grupoAnamorfose);
     MosaicoRA.anamorfoseGroup = grupoAnamorfose;
   };
 
-  /* ------------------------------------------------------------
-     4. CONTROLE DE CÂMERA REAL (VISOR ESPECTRAL UV FORENSE)
-     ------------------------------------------------------------ */
+  /* ============================================================
+     4. MUNDO RA — 6 HOLOGRAMAS 3D INVESTIGATIVOS
+     ============================================================ */
+  MosaicoRA.construirMundoRA = function () {
+    if (MosaicoRA.raObjetosGroup) {
+      MosaicoRA.raObjetosGroup.visible = true;
+      return;
+    }
+    var grupo = new THREE.Group();
+    grupo.name = "raObjetosGroup";
+    MosaicoRA.raObjetosGroup = grupo;
+    MosaicoRA.scene.add(grupo);
+
+    // Grade forense no chão
+    var gradeTex = MosaicoRA._criarTexturaGrade();
+    var gradeFloor = new THREE.Mesh(
+      new THREE.CircleGeometry(5, 48),
+      new THREE.MeshBasicMaterial({ map: gradeTex, transparent: true, opacity: 0.1, side: THREE.DoubleSide, depthWrite: false })
+    );
+    gradeFloor.rotation.x = -Math.PI / 2; gradeFloor.position.y = 0.008; grupo.add(gradeFloor);
+
+    MosaicoRA.raObjetos.forEach(function (obj, i) {
+      var az = (obj.azimute * Math.PI) / 180;
+      var x = Math.sin(az) * obj.distancia;
+      var z = -Math.cos(az) * obj.distancia;
+
+      var objGroup = new THREE.Group();
+      objGroup.position.set(x, obj.baseY, z);
+      objGroup._phase = i * (Math.PI * 2 / 6);
+      objGroup._rotSpeed = 0.006 + i * 0.0015;
+
+      // Luz pontual de aura
+      var luzPonto = new THREE.PointLight(obj.corGlow, 0, 2.5);
+      objGroup.add(luzPonto);
+      obj.luz = luzPonto;
+
+      // Geometria específica do holograma
+      MosaicoRA._criarHologramaObjeto(obj.id, objGroup, obj.corAura);
+
+      obj.mesh = objGroup;
+      grupo.add(objGroup);
+    });
+  };
+
+  MosaicoRA._criarTexturaGrade = function () {
+    var c = document.createElement("canvas"); c.width = 512; c.height = 512;
+    var ctx = c.getContext("2d");
+    ctx.strokeStyle = "rgba(77, 252, 186, 0.9)"; ctx.lineWidth = 1;
+    for (var k = 0; k <= 512; k += 32) {
+      ctx.beginPath(); ctx.moveTo(k, 0); ctx.lineTo(k, 512); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, k); ctx.lineTo(512, k); ctx.stroke();
+    }
+    for (var r = 64; r <= 256; r += 64) {
+      ctx.beginPath(); ctx.arc(256, 256, r, 0, Math.PI * 2); ctx.stroke();
+    }
+    return new THREE.CanvasTexture(c);
+  };
+
+  MosaicoRA._criarHologramaObjeto = function (id, grupo, cor) {
+    var matBase = new THREE.MeshStandardMaterial({
+      color: cor, emissive: new THREE.Color(cor), emissiveIntensity: 0.4,
+      transparent: true, opacity: 0.9, metalness: 0.25, roughness: 0.45
+    });
+    var matGlow = new THREE.MeshBasicMaterial({ color: cor, transparent: true, opacity: 0.14, side: THREE.BackSide });
+
+    function addGlow(geo) {
+      var g = new THREE.Mesh(geo.clone(), matGlow.clone());
+      g.scale.multiplyScalar(1.28); grupo.add(g);
+    }
+
+    if (id === "vela") {
+      var corpo = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.035, 0.22, 16), matBase.clone());
+      corpo.position.y = 0.11; grupo.add(corpo); addGlow(corpo.geometry);
+      var pavioGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0.22, 0), new THREE.Vector3(0, 0.26, 0)]);
+      grupo.add(new THREE.Line(pavioGeo, new THREE.LineBasicMaterial({ color: 0x333333 })));
+      var chamaCore = new THREE.Mesh(new THREE.SphereGeometry(0.018, 8, 8), new THREE.MeshBasicMaterial({ color: 0xfff0a0 }));
+      chamaCore.position.y = 0.28; chamaCore.scale.set(1, 1.7, 1); grupo.add(chamaCore);
+      var chamaOuter = new THREE.Mesh(new THREE.SphereGeometry(0.028, 8, 8), new THREE.MeshBasicMaterial({ color: 0xff8800, transparent: true, opacity: 0.6 }));
+      chamaOuter.position.y = 0.28; chamaOuter.scale.set(1, 1.5, 1); grupo.add(chamaOuter);
+      grupo._chama = chamaCore; grupo._chamaOuter = chamaOuter;
+
+    } else if (id === "envelope") {
+      var baseEnv = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.20, 0.01), matBase.clone());
+      grupo.add(baseEnv); addGlow(baseEnv.geometry);
+      grupo.add(new THREE.LineSegments(new THREE.EdgesGeometry(baseEnv.geometry), new THREE.LineBasicMaterial({ color: 0x4dfcba })));
+      var uvC = document.createElement("canvas"); uvC.width = 256; uvC.height = 192;
+      var uvCtx = uvC.getContext("2d");
+      uvCtx.fillStyle = "rgba(0,18,12,0.94)"; uvCtx.fillRect(0, 0, 256, 192);
+      uvCtx.fillStyle = "#4dfcba"; uvCtx.font = "bold 13px monospace";
+      uvCtx.fillText("Se o cofre já estiver", 14, 72);
+      uvCtx.fillText("aberto, não entre.", 14, 94);
+      uvCtx.fillStyle = "rgba(77,252,186,0.55)"; uvCtx.font = "11px monospace";
+      uvCtx.fillText("— A.", 14, 120);
+      var uvPlane = new THREE.Mesh(new THREE.PlaneGeometry(0.26, 0.18), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(uvC), transparent: true, opacity: 0.92 }));
+      uvPlane.position.z = 0.007; grupo.add(uvPlane);
+
+    } else if (id === "chave") {
+      var matChv = new THREE.MeshStandardMaterial({ color: 0xb8860b, metalness: 0.93, roughness: 0.11, emissive: 0x3a2800, emissiveIntensity: 0.25 });
+      var anel = new THREE.Mesh(new THREE.TorusGeometry(0.042, 0.009, 8, 24), matChv);
+      anel.rotation.z = Math.PI / 5; grupo.add(anel); addGlow(new THREE.BoxGeometry(0.1, 0.1, 0.02));
+      var hasteChv = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.17, 8), matChv);
+      hasteChv.position.set(0.02, -0.12, 0); grupo.add(hasteChv);
+      [0, 0.035, 0.07].forEach(function (off) {
+        var dente = new THREE.Mesh(new THREE.BoxGeometry(0.015, 0.022 + off * 0.25, 0.007), matChv);
+        dente.position.set(-0.009, -0.17 - off * 0.8, 0); grupo.add(dente);
+      });
+
+    } else if (id === "marca") {
+      var mkC = document.createElement("canvas"); mkC.width = 512; mkC.height = 768;
+      var mkCtx = mkC.getContext("2d");
+      mkCtx.clearRect(0, 0, 512, 768);
+      mkCtx.fillStyle = "rgba(200, 50, 50, 0.18)"; mkCtx.fillRect(110, 80, 300, 620);
+      var desenhoPegada = function (px, py, ang, sc) {
+        mkCtx.save(); mkCtx.translate(px, py); mkCtx.rotate(ang); mkCtx.scale(sc, sc);
+        mkCtx.fillStyle = "rgba(255, 70, 70, 0.78)";
+        mkCtx.beginPath(); mkCtx.ellipse(0, 0, 22, 38, 0, 0, Math.PI * 2); mkCtx.fill();
+        mkCtx.restore();
+      };
+      desenhoPegada(165, 145, 0.3, 1); desenhoPegada(215, 235, -0.2, 1);
+      desenhoPegada(160, 330, 0.25, 0.88); desenhoPegada(210, 420, -0.15, 0.88);
+      desenhoPegada(162, 510, 0.2, 0.80); desenhoPegada(208, 600, -0.1, 0.80);
+      mkCtx.strokeStyle = "rgba(255,120,120,0.9)"; mkCtx.lineWidth = 3;
+      mkCtx.setLineDash([12, 8]);
+      mkCtx.beginPath(); mkCtx.moveTo(256, 80); mkCtx.lineTo(256, 700); mkCtx.stroke();
+      mkCtx.font = "bold 18px monospace"; mkCtx.fillStyle = "rgba(255,200,200,0.88)";
+      mkCtx.fillText("RASTRO DE ARRASTAMENTO", 60, 745);
+      var mkPlane = new THREE.Mesh(new THREE.PlaneGeometry(0.65, 0.9), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(mkC), transparent: true, opacity: 0.92, side: THREE.DoubleSide, depthWrite: false }));
+      mkPlane.rotation.x = -Math.PI / 2; grupo.add(mkPlane);
+      var borderRing = new THREE.Mesh(new THREE.RingGeometry(0.4, 0.46, 32), new THREE.MeshBasicMaterial({ color: 0xff3a3a, transparent: true, opacity: 0.5, side: THREE.DoubleSide }));
+      borderRing.rotation.x = -Math.PI / 2; grupo.add(borderRing); grupo._borderRing = borderRing;
+
+    } else if (id === "gravador") {
+      var matGrav = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.65, metalness: 0.35 });
+      var corpoG = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.10, 0.26), matGrav);
+      grupo.add(corpoG); addGlow(corpoG.geometry);
+      [[-0.04, 0], [0, 0], [0.04, 0]].forEach(function (bp) {
+        var btn = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.01, 12), new THREE.MeshStandardMaterial({ color: 0x333333 }));
+        btn.rotation.x = Math.PI / 2; btn.position.set(bp[0], 0, 0.133); grupo.add(btn);
+      });
+      var reelMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.7 });
+      var reel1 = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.01, 20), reelMat);
+      reel1.rotation.x = Math.PI / 2; reel1.position.set(-0.048, 0.02, 0.118); grupo.add(reel1);
+      var reel2 = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.01, 20), reelMat);
+      reel2.rotation.x = Math.PI / 2; reel2.position.set(0.048, 0.02, 0.118); grupo.add(reel2);
+      grupo._reel1 = reel1; grupo._reel2 = reel2;
+      var ledG = new THREE.Mesh(new THREE.SphereGeometry(0.008, 8, 8), new THREE.MeshBasicMaterial({ color: 0xff0000 }));
+      ledG.position.set(0.078, 0.033, 0.133); grupo.add(ledG); grupo._led = ledG;
+
+    } else if (id === "espelho_ra") {
+      var matShrd = new THREE.MeshStandardMaterial({ color: 0xc6e4ff, metalness: 0.96, roughness: 0.04, side: THREE.DoubleSide, emissive: 0x224466, emissiveIntensity: 0.28 });
+      [
+        { pos: [0, 0, 0], rot: [0, 0, 0], sc: [0.28, 0.38, 1] },
+        { pos: [0.17, 0.12, 0.02], rot: [0.15, 0.2, 0.1], sc: [0.16, 0.22, 1] },
+        { pos: [-0.14, -0.15, 0.016], rot: [-0.12, -0.16, 0.08], sc: [0.18, 0.2, 1] },
+        { pos: [0.05, -0.2, 0.01], rot: [0.05, 0.1, -0.12], sc: [0.1, 0.14, 1] }
+      ].forEach(function (sd) {
+        var shard = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), matShrd.clone());
+        shard.position.set(sd.pos[0], sd.pos[1], sd.pos[2]);
+        shard.rotation.set(sd.rot[0], sd.rot[1], sd.rot[2]);
+        shard.scale.set(sd.sc[0], sd.sc[1], sd.sc[2]);
+        grupo.add(shard);
+      });
+      var espC = document.createElement("canvas"); espC.width = 256; espC.height = 256;
+      var espCtx = espC.getContext("2d");
+      espCtx.fillStyle = "rgba(190,210,230,0.75)"; espCtx.fillRect(0, 0, 256, 256);
+      espCtx.save(); espCtx.translate(256, 0); espCtx.scale(-1, 1);
+      espCtx.fillStyle = "rgba(20,40,80,0.88)"; espCtx.font = "bold 54px serif";
+      espCtx.fillText("21:29", 28, 144); espCtx.restore();
+      var espPlane = new THREE.Mesh(new THREE.PlaneGeometry(0.22, 0.22), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(espC), transparent: true, opacity: 0.72 }));
+      espPlane.position.z = 0.001; grupo.add(espPlane);
+      addGlow(new THREE.PlaneGeometry(0.28, 0.38));
+    }
+
+    // Indicador pulsante de "toque aqui"
+    var indicadorMat = new THREE.MeshBasicMaterial({ color: cor, transparent: true, opacity: 0.65, side: THREE.DoubleSide });
+    var indicador = new THREE.Mesh(new THREE.RingGeometry(0.055, 0.075, 32), indicadorMat);
+    indicador.rotation.x = -Math.PI / 2;
+    indicador.position.y = (id === "marca") ? -0.5 : -0.22;
+    grupo.add(indicador); grupo._indicador = indicador;
+  };
+
+  /* ============================================================
+     5. RADAR FORENSE — DETECÇÃO ANGULAR DE OBJETOS
+     ============================================================ */
+  MosaicoRA.radarDeteccao = function () {
+    if (!MosaicoRA.raObjetosGroup || !MosaicoRA.camera) return;
+    var fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(MosaicoRA.camera.quaternion);
+    var menorAng = Infinity;
+    var objetoMaisProximo = null;
+
+    MosaicoRA.raObjetos.forEach(function (obj) {
+      if (obj.descoberta || !obj.mesh) return;
+      var dir = obj.mesh.position.clone().sub(MosaicoRA.camera.position).normalize();
+      var dot = Math.min(1, Math.max(-1, dir.dot(fwd)));
+      var ang = Math.acos(dot) * (180 / Math.PI);
+      if (ang < menorAng) { menorAng = ang; objetoMaisProximo = obj; }
+      // Luz de aura proporcional à proximidade
+      if (obj.luz) obj.luz.intensity = Math.max(0, 1 - ang / 40) * 1.6;
+    });
+
+    var CONE_DESCOBERTA = 15, CONE_ALERTA = 32;
+
+    if (objetoMaisProximo && menorAng < CONE_ALERTA) {
+      MosaicoRA.raProximoId = objetoMaisProximo.id;
+      MosaicoRA.raProximidadeMs += 16;
+      MosaicoRA._atualizarHudProximidade(objetoMaisProximo, menorAng);
+      // Vibração de proximidade
+      if (MosaicoRA.raProximidadeMs % 900 < 16 && navigator.vibrate) {
+        navigator.vibrate(menorAng < CONE_DESCOBERTA ? [30, 20, 60] : [12]);
+      }
+      // Descoberta: 1.5s no cone central
+      if (menorAng < CONE_DESCOBERTA && MosaicoRA.raProximidadeMs > 1500 && !objetoMaisProximo.descoberta) {
+        MosaicoRA._descobrirObjetoRA(objetoMaisProximo);
+      }
+    } else {
+      MosaicoRA.raProximoId = null;
+      MosaicoRA.raProximidadeMs = 0;
+      MosaicoRA._atualizarHudProximidade(null, 999);
+    }
+  };
+
+  MosaicoRA._descobrirObjetoRA = function (obj) {
+    obj.descoberta = true;
+    if (navigator.vibrate) navigator.vibrate([60, 30, 120, 30, 200]);
+    // Flash de descoberta na tela
+    var flash = document.createElement("div");
+    flash.className = "ra-discovery-flash";
+    flash.innerHTML = '<span style="font-size:2.2rem;display:block;margin-bottom:8px">' + obj.icone + '</span>' +
+      '<span style="letter-spacing:0.14em">' + obj.nome.toUpperCase() + '</span><br>' +
+      '<span style="font-size:12px;opacity:0.7;margin-top:4px;display:block">EVIDÊNCIA ENCONTRADA</span>';
+    if (MosaicoRA.container) MosaicoRA.container.appendChild(flash);
+    setTimeout(function () { if (flash.parentNode) flash.remove(); }, 2200);
+    // Abrir modal de investigação
+    setTimeout(function () { MosaicoRA.abrirInvestigacao(obj); }, 700);
+  };
+
+  MosaicoRA._atualizarHudProximidade = function (obj, angulo) {
+    var scanRing = document.getElementById("ra-scan-ring");
+    var proximLabel = document.getElementById("ra-proximity-label");
+    if (!scanRing) return;
+    if (obj && angulo < 32) {
+      var prox = Math.max(0, Math.min(1, (32 - angulo) / 32));
+      scanRing.style.opacity = (0.25 + prox * 0.75).toFixed(2);
+      scanRing.style.transform = "translate(-50%, -50%) scale(" + (1 + prox * 0.45) + ")";
+      scanRing.style.borderColor = angulo < 15 ? "#4dfcba" : "rgba(247,201,74,0.85)";
+      if (proximLabel) proximLabel.textContent = obj.icone + "  " + obj.nome;
+    } else {
+      scanRing.style.opacity = "0.18";
+      scanRing.style.transform = "translate(-50%, -50%) scale(1)";
+      scanRing.style.borderColor = "rgba(77,252,186,0.35)";
+      if (proximLabel) proximLabel.textContent = "";
+    }
+  };
+
+  /* ============================================================
+     6. PARTÍCULAS FORENSES — NÉVOA E FAÍSCAS
+     ============================================================ */
+  MosaicoRA.particulasForenses = function () {
+    if (MosaicoRA.raParticulasCanvas) {
+      MosaicoRA.raParticulasCanvas.style.display = "block";
+      return;
+    }
+    var cvs = document.createElement("canvas");
+    cvs.id = "ra-particulas-canvas";
+    cvs.style.cssText = "position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none;";
+    if (MosaicoRA.container) MosaicoRA.container.appendChild(cvs);
+    MosaicoRA.raParticulasCanvas = cvs;
+    cvs.width = window.innerWidth; cvs.height = window.innerHeight;
+    var ctx = cvs.getContext("2d");
+
+    MosaicoRA.raParticulas = [];
+    for (var k = 0; k < 55; k++) {
+      MosaicoRA.raParticulas.push({
+        x: Math.random() * cvs.width, y: Math.random() * cvs.height,
+        vx: (Math.random() - 0.5) * 0.45, vy: -(Math.random() * 0.75 + 0.2),
+        r: Math.random() * 2.2 + 0.7, alpha: Math.random() * 0.55 + 0.2,
+        cor: Math.random() < 0.65 ? "#4dfcba" : "#f7c94a",
+        fase: Math.random() * Math.PI * 2
+      });
+    }
+
+    (function loop() {
+      if (!MosaicoRA.raParticulasCanvas) return;
+      MosaicoRA.raParticulasAnimId = requestAnimationFrame(loop);
+      ctx.clearRect(0, 0, cvs.width, cvs.height);
+      var t = Date.now() * 0.001;
+      MosaicoRA.raParticulas.forEach(function (p) {
+        p.x += p.vx + Math.sin(t * 0.4 + p.fase) * 0.28;
+        p.y += p.vy;
+        p.alpha *= 0.9985;
+        if (p.y < -12 || p.alpha < 0.025) {
+          p.x = Math.random() * cvs.width;
+          p.y = cvs.height + 12;
+          p.alpha = Math.random() * 0.5 + 0.18;
+        }
+        ctx.save();
+        ctx.globalAlpha = p.alpha;
+        ctx.fillStyle = p.cor;
+        ctx.shadowColor = p.cor;
+        ctx.shadowBlur = 7;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+      });
+    })();
+  };
+
+  /* ============================================================
+     7. MODAL DE INVESTIGAÇÃO — FULLSCREEN CINEMATIC
+     ============================================================ */
+  MosaicoRA.abrirInvestigacao = function (obj) {
+    var modal = document.getElementById("ra-investigation-modal");
+    if (!modal) {
+      modal = document.createElement("div");
+      modal.id = "ra-investigation-modal";
+      modal.className = "ra-investigation-modal";
+      document.body.appendChild(modal);
+    }
+    var jaColetada = MosaicoRA.raPistasColetadas[obj.id];
+    modal.innerHTML =
+      '<div class="ra-inv-wrapper">' +
+        '<div class="ra-inv-header">' +
+          '<div class="ra-inv-eyebrow">EVIDÊNCIA FORENSE · A CASA DA COSTA</div>' +
+          '<button class="ra-inv-close" onclick="MosaicoRA.fecharInvestigacao()">✕ Fechar</button>' +
+        '</div>' +
+        '<div class="ra-inv-stage-wrap">' +
+          '<canvas id="ra-inv-stage" class="ra-inv-stage"></canvas>' +
+          '<div class="ra-inv-obj-icon">' + obj.icone + '</div>' +
+        '</div>' +
+        '<div class="ra-inv-body">' +
+          '<h2 class="ra-inv-titulo">' + obj.nome + '</h2>' +
+          '<div id="ra-typewriter" class="ra-typewriter"></div>' +
+          '<div id="ra-evidence-card" class="ra-evidence-card" style="display:none;">' +
+            '<div class="ra-evidence-label">⚠ PISTA FORENSE REVELADA</div>' +
+            '<div class="ra-evidence-text" id="ra-evidence-text"></div>' +
+          '</div>' +
+          (jaColetada
+            ? '<div class="ra-already-collected">✓ Evidência já registrada no seu dossiê</div>'
+            : '<button id="ra-register-btn" class="ra-register-btn" style="display:none;" onclick="MosaicoRA.registrarPistaRA(\'' + obj.id + '\')">📌 Registrar como Evidência no Dossiê</button>'
+          ) +
+        '</div>' +
+      '</div>';
+    modal.style.display = "flex";
+
+    // Stage 3D do objeto dentro do modal
+    MosaicoRA._iniciarStageRA(obj, "ra-inv-stage");
+
+    // Typewriter effect
+    var twEl = document.getElementById("ra-typewriter");
+    var texto = (obj.narrativaLinhas || ["Evidência encontrada."]).join("\n");
+    MosaicoRA._typewriter(twEl, texto, 32, function () {
+      setTimeout(function () {
+        var evCard = document.getElementById("ra-evidence-card");
+        var evText = document.getElementById("ra-evidence-text");
+        var regBtn = document.getElementById("ra-register-btn");
+        if (evCard) evCard.style.display = "block";
+        if (evText) evText.textContent = obj.pista;
+        if (regBtn && !MosaicoRA.raPistasColetadas[obj.id]) regBtn.style.display = "block";
+      }, 350);
+    });
+  };
+
+  MosaicoRA.fecharInvestigacao = function () {
+    var modal = document.getElementById("ra-investigation-modal");
+    if (modal) modal.style.display = "none";
+    if (MosaicoRA.invAnimId) { cancelAnimationFrame(MosaicoRA.invAnimId); MosaicoRA.invAnimId = null; }
+    if (MosaicoRA.invRenderer) { try { MosaicoRA.invRenderer.dispose(); } catch (e) {} MosaicoRA.invRenderer = null; }
+  };
+
+  MosaicoRA.registrarPistaRA = function (objId) {
+    MosaicoRA.raPistasColetadas[objId] = true;
+    var total = Object.keys(MosaicoRA.raPistasColetadas).length;
+    var regBtn = document.getElementById("ra-register-btn");
+    if (regBtn) { regBtn.disabled = true; regBtn.textContent = "✓ Registrado no Dossiê!"; regBtn.style.cssText += "background:#4dfcba;color:#04060a;"; }
+    if (navigator.vibrate) navigator.vibrate([50, 30, 100, 30, 200]);
+    MosaicoRA._atualizarContador();
+    if (total >= 6) {
+      setTimeout(function () { MosaicoRA.fecharInvestigacao(); MosaicoRA._celebracaoFinal(); }, 900);
+    }
+  };
+
+  MosaicoRA._atualizarContador = function () {
+    var total = Object.keys(MosaicoRA.raPistasColetadas).length;
+    var contEl = document.getElementById("ra-clue-counter");
+    if (contEl) { contEl.textContent = total + "/6"; contEl.style.color = total >= 6 ? "#4dfcba" : "#f7c94a"; }
+  };
+
+  MosaicoRA._celebracaoFinal = function () {
+    var cel = document.createElement("div");
+    cel.className = "ra-celebracao";
+    cel.innerHTML = '<div class="ra-cel-conteudo">' +
+      '<div style="font-size:3.5rem;margin-bottom:14px">🔍</div>' +
+      '<h2>INVESTIGAÇÃO CONCLUÍDA!</h2>' +
+      '<p>Você coletou todas as 6 evidências forenses da Cena da Costa.</p>' +
+      '<p style="color:#f7c94a;font-size:13px;margin-top:10px">As pistas estão registradas no seu dossiê.</p>' +
+      '<button onclick="this.closest(\'.ra-celebracao\').remove()" style="margin-top:20px;padding:14px 28px;background:#4dfcba;color:#04060a;border:none;border-radius:10px;font-weight:700;font-size:15px;cursor:pointer;letter-spacing:0.06em">Continuar Investigação</button>' +
+    '</div>';
+    if (MosaicoRA.container) MosaicoRA.container.appendChild(cel);
+    if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 300, 100, 500]);
+  };
+
+  MosaicoRA._typewriter = function (el, text, speed, callback) {
+    if (!el) { if (callback) callback(); return; }
+    var i = 0; el.textContent = ""; el.style.borderRight = "2px solid #4dfcba";
+    (function next() {
+      if (!MosaicoRA.ativo) return;
+      if (i < text.length) { el.textContent += text[i++]; setTimeout(next, speed); }
+      else { el.style.borderRight = "none"; if (callback) callback(); }
+    })();
+  };
+
+  MosaicoRA._iniciarStageRA = function (obj, stageId) {
+    var stage = document.getElementById(stageId);
+    if (!stage) return;
+    var w = stage.offsetWidth || 320, h = stage.offsetHeight || 210;
+    stage.width = w; stage.height = h;
+    if (MosaicoRA.invRenderer) { try { MosaicoRA.invRenderer.dispose(); } catch (e) {} }
+    var ren = new THREE.WebGLRenderer({ canvas: stage, antialias: true, alpha: false });
+    ren.setSize(w, h);
+    MosaicoRA.invRenderer = ren;
+    var scn = new THREE.Scene(); scn.background = new THREE.Color(0x050c15);
+    var cam = new THREE.PerspectiveCamera(50, w / h, 0.1, 10);
+    cam.position.set(0, 0, 1.5);
+    scn.add(new THREE.PointLight(0xfff0d0, 2.5, 8)); scn.add(new THREE.AmbientLight(0x223344, 0.9));
+    var rimLight = new THREE.PointLight(obj.corGlow || 0x4dfcba, 1.4, 5);
+    rimLight.position.set(-1.2, 0.8, -0.5); scn.add(rimLight);
+    var gridH = new THREE.GridHelper(3, 16, obj.corAura || 0x4dfcba, 0x112233);
+    gridH.position.y = -0.42; scn.add(gridH);
+    var previewGroup = new THREE.Group();
+    MosaicoRA._criarHologramaObjeto(obj.id, previewGroup, obj.corAura || 0x4dfcba);
+    scn.add(previewGroup);
+    var dragging = false, prevX = 0, prevY = 0;
+    stage.addEventListener("mousedown", function (e) { dragging = true; prevX = e.clientX; prevY = e.clientY; });
+    stage.addEventListener("touchstart", function (e) { dragging = true; prevX = e.touches[0].clientX; prevY = e.touches[0].clientY; }, { passive: true });
+    var onMove = function (cx, cy) {
+      if (!dragging) return;
+      previewGroup.rotation.y += (cx - prevX) * 0.018;
+      previewGroup.rotation.x += (cy - prevY) * 0.012;
+      prevX = cx; prevY = cy;
+    };
+    window.addEventListener("mousemove", function (e) { onMove(e.clientX, e.clientY); });
+    window.addEventListener("touchmove", function (e) { onMove(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
+    window.addEventListener("mouseup", function () { dragging = false; });
+    window.addEventListener("touchend", function () { dragging = false; });
+    (function loopInv() {
+      if (!MosaicoRA.invRenderer) return;
+      MosaicoRA.invAnimId = requestAnimationFrame(loopInv);
+      if (!dragging) previewGroup.rotation.y += 0.008;
+      ren.render(scn, cam);
+    })();
+  };
+
+  /* ============================================================
+     8. CÂMERA REAL — ATIVAÇÃO E DESATIVAÇÃO
+     ============================================================ */
   MosaicoRA.ativarCameraRA = function () {
     MosaicoRA.modo = "camera-ra";
-    MosaicoRA.atualizarBotoesModo();
-
     if (MosaicoRA.salaGroup) MosaicoRA.salaGroup.visible = false;
     if (MosaicoRA.anamorfoseGroup) MosaicoRA.anamorfoseGroup.visible = false;
     if (MosaicoRA.scene) MosaicoRA.scene.background = null;
     if (MosaicoRA.renderer) MosaicoRA.renderer.setClearColor(0x000000, 0);
+    MosaicoRA.atualizarBotoesModo();
 
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      console.warn("navigator.mediaDevices.getUserMedia indisponível.");
-      MosaicoRA.mostrarPromptCamera(false, "Câmera indisponível no navegador atual ou conexão insegura (HTTPS obrigatório para câmera no iOS/Android).");
+      MosaicoRA.mostrarPromptCamera(false, "Câmera indisponível neste dispositivo ou contexto.");
       return;
     }
-
-    navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } }
-    }).then(function (stream) {
-      if (!MosaicoRA.videoElement) {
-        var vid = document.getElementById("mosaico-ra-video-bg");
-        if (!vid && MosaicoRA.container) {
-          vid = document.createElement("video");
-          vid.id = "mosaico-ra-video-bg";
-          vid.autoplay = true;
-          vid.playsInline = true;
-          vid.muted = true;
-          vid.setAttribute("playsinline", "");
-          vid.setAttribute("webkit-playsinline", "");
-          vid.style.cssText = "position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;filter:contrast(1.2) hue-rotate(240deg) saturate(1.4);";
-          MosaicoRA.container.insertBefore(vid, MosaicoRA.container.firstChild);
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } } })
+      .then(function (stream) {
+        var vid = document.getElementById("mosaico-ra-video-bg") || MosaicoRA.videoElement;
+        if (vid) {
+          vid.srcObject = stream; vid.style.display = "block";
+          var p = vid.play(); if (p && p.catch) p.catch(function (e) { console.warn("video.play:", e); });
         }
-        MosaicoRA.videoElement = vid;
-      }
-      if (MosaicoRA.videoElement) {
-        MosaicoRA.videoElement.srcObject = stream;
-        MosaicoRA.videoElement.style.display = "block";
-        var playPromise = MosaicoRA.videoElement.play();
-        if (playPromise && playPromise.catch) {
-          playPromise.catch(function(e){ console.warn("Video play:", e); });
+        MosaicoRA.removerPromptCamera();
+        MosaicoRA.construirMundoRA();
+        MosaicoRA.criarPistasUV();
+        MosaicoRA.particulasForenses();
+        MosaicoRA.atualizarBotoesModo();
+        // Solicitar permissão de giroscópio iOS 13+
+        if (typeof DeviceOrientationEvent !== "undefined" && typeof DeviceOrientationEvent.requestPermission === "function") {
+          DeviceOrientationEvent.requestPermission().then(function (state) {
+            if (state === "granted") {
+              window.addEventListener("deviceorientation", function (e) {
+                if (e.alpha != null && e.beta != null) {
+                  MosaicoRA.orientacao.targetYaw = (-e.alpha * Math.PI) / 180;
+                  MosaicoRA.orientacao.targetPitch = Math.max(-1.1, Math.min(1.1, ((e.beta - 90) * Math.PI) / 180));
+                }
+              });
+            }
+          }).catch(function (e) { console.warn("DeviceOrientationEvent:", e); });
         }
-      }
-
-      MosaicoRA.removerPromptCamera();
-      MosaicoRA.criarPistasUV();
-      MosaicoRA.modo = "camera-ra";
-      MosaicoRA.atualizarBotoesModo();
-      if (typeof Mosaico3D !== "undefined") Mosaico3D.som.encaixe();
-    }).catch(function (err) {
-      console.warn("Falha ao abrir câmera RA:", err);
-      MosaicoRA.mostrarPromptCamera(true, "Para projetar as pistas em Realidade Aumentada, toque abaixo para permitir a câmera no Safari.");
-    });
+        if (typeof Mosaico3D !== "undefined") Mosaico3D.som.encaixe();
+      })
+      .catch(function (err) {
+        console.warn("Câmera RA:", err);
+        MosaicoRA.mostrarPromptCamera(true, "Aponte a câmera para o ambiente e procure as 6 evidências ocultas do caso Costa.");
+      });
   };
 
   MosaicoRA.desativarCameraRA = function () {
@@ -562,33 +962,33 @@
     if (MosaicoRA.videoElement) {
       MosaicoRA.videoElement.style.display = "none";
       if (MosaicoRA.videoElement.srcObject) {
-        try {
-          MosaicoRA.videoElement.srcObject.getTracks().forEach(function (track) { track.stop(); });
-        } catch(e){}
+        try { MosaicoRA.videoElement.srcObject.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {}
         MosaicoRA.videoElement.srcObject = null;
       }
     }
+    if (MosaicoRA.raObjetosGroup) MosaicoRA.raObjetosGroup.visible = false;
+    if (MosaicoRA.raParticulasCanvas) MosaicoRA.raParticulasCanvas.style.display = "none";
     if (MosaicoRA.salaGroup) MosaicoRA.salaGroup.visible = true;
-    if (MosaicoRA.scene) MosaicoRA.scene.background = new THREE.Color(0x04060a);
+    if (MosaicoRA.scene) { MosaicoRA.scene.background = new THREE.Color(0x04060a); MosaicoRA.renderer.setClearColor(0x04060a, 1); }
     if (MosaicoRA.pistasUVGroup) MosaicoRA.pistasUVGroup.visible = false;
+    var raOverlay = document.getElementById("ra-hud-overlay");
+    if (raOverlay) raOverlay.style.display = "none";
   };
 
-  MosaicoRA.mostrarPromptCamera = function (permitirTentarNovamente, msg) {
+  MosaicoRA.mostrarPromptCamera = function (podetentar, msg) {
     var p = document.getElementById("mosaico-ra-prompt");
     if (!p) {
-      p = document.createElement("div");
-      p.id = "mosaico-ra-prompt";
-      p.className = "mosaico-ra-prompt";
+      p = document.createElement("div"); p.id = "mosaico-ra-prompt"; p.className = "mosaico-ra-prompt";
       if (MosaicoRA.container) MosaicoRA.container.appendChild(p);
       else document.body.appendChild(p);
     }
     p.style.display = "flex";
     p.innerHTML = '<div class="mosaico-ra-prompt-card">' +
-      '<div style="font-size:44px;margin-bottom:8px">📷</div>' +
-      '<h3 style="font-family:Cinzel,serif;color:#ffe889;margin:0 0 8px;font-size:1.35rem">Visor RA (Câmera do Celular)</h3>' +
-      '<p style="color:#c9bba3;font-size:14px;line-height:1.5;margin:0 0 16px">' + (msg || "Aponte a câmera para a sua sala para ver pegadas e pistas luminescentes.") + '</p>' +
-      (permitirTentarNovamente ? '<button class="btn btn-gold" style="width:100%;margin-bottom:10px;background:#4dfcba;color:#04060a;font-weight:700;border:none;padding:12px 18px;border-radius:8px;font-size:14px;cursor:pointer" onclick="MosaicoRA.ativarCameraRA()">Abrir Câmera Agora</button>' : '') +
-      '<button class="btn btn-ghost" style="width:100%;background:rgba(255,255,255,0.08);color:#f3d078;border:1px solid rgba(243,208,120,0.3);padding:10px 16px;border-radius:8px;font-size:13px;cursor:pointer" onclick="MosaicoRA.trocarModo(\'sala3d\')">🕯️ Continuar na Sala 3D Virtual</button>' +
+      '<div style="font-size:52px;margin-bottom:12px">🔍</div>' +
+      '<h3 style="font-family:Cinzel,serif;color:#4dfcba;margin:0 0 10px;font-size:1.25rem;letter-spacing:0.06em">MODO INVESTIGAÇÃO RA</h3>' +
+      '<p style="color:#94a3b8;font-size:13px;line-height:1.65;margin:0 0 18px">' + (msg || "Ative a câmera para explorar o ambiente e encontrar as 6 evidências do crime.") + '</p>' +
+      (podetentar ? '<button onclick="MosaicoRA.ativarCameraRA()" style="width:100%;margin-bottom:10px;padding:14px;background:linear-gradient(135deg,#4dfcba,#00c48a);color:#04060a;font-weight:700;border:none;border-radius:10px;font-size:15px;cursor:pointer;letter-spacing:0.05em">📷 Ativar Câmera de Investigação</button>' : '') +
+      '<button onclick="MosaicoRA.trocarModo(\'sala3d\')" style="width:100%;padding:11px;background:rgba(255,255,255,0.07);color:#f3d078;border:1px solid rgba(243,208,120,0.28);border-radius:8px;font-size:13px;cursor:pointer">🕯️ Usar Sala 3D Virtual</button>' +
     '</div>';
   };
 
@@ -597,84 +997,46 @@
     if (p) p.style.display = "none";
   };
 
+  /* ============================================================
+     9. PISTAS UV — PRESERVADAS (TESTES)
+     ============================================================ */
   MosaicoRA.criarPistasUV = function () {
-    if (MosaicoRA.pistasUVGroup) {
-      MosaicoRA.pistasUVGroup.visible = true;
-      return;
-    }
+    if (MosaicoRA.pistasUVGroup) { MosaicoRA.pistasUVGroup.visible = true; return; }
     var uvGroup = new THREE.Group();
-
-    // Pegadas luminescentes projetadas no chão à frente
-    var pegadaMat = new THREE.MeshBasicMaterial({
-      color: 0x4dfcba,
-      transparent: true,
-      opacity: 0.75,
-      side: THREE.DoubleSide
-    });
-
-    [[-0.4, -1.2], [0.2, -1.8], [-0.3, -2.4], [0.3, -3.0]].forEach(function (pos, i) {
-      var footprint = new THREE.Mesh(new THREE.PlaneGeometry(0.18, 0.35), pegadaMat);
+    var pegadaMat = new THREE.MeshBasicMaterial({ color: 0x4dfcba, transparent: true, opacity: 0.62, side: THREE.DoubleSide });
+    [[-0.35, -1.1], [0.25, -1.7], [-0.3, -2.3], [0.3, -2.9]].forEach(function (pos, i) {
+      var footprint = new THREE.Mesh(new THREE.PlaneGeometry(0.16, 0.30), pegadaMat);
       footprint.rotation.x = -Math.PI / 2;
       footprint.rotation.z = i % 2 === 0 ? 0.2 : -0.2;
       footprint.position.set(pos[0], 0.02, pos[1]);
       uvGroup.add(footprint);
     });
-
-    // Envelope confidencial flutuante com lacre de cera no espaço real
-    var env = new THREE.Mesh(
-      new THREE.BoxGeometry(0.35, 0.24, 0.02),
-      new THREE.MeshStandardMaterial({ color: 0xfdfaf2, roughness: 0.4 })
-    );
-    env.position.set(0.6, 1.4, -2.0);
-    env.rotation.y = -0.4;
-    uvGroup.add(env);
-
-    var selo = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.04, 0.04, 0.01, 16),
-      new THREE.MeshStandardMaterial({ color: 0xd92626, roughness: 0.3 })
-    );
-    selo.rotation.x = Math.PI / 2;
-    selo.position.set(0.6, 1.4, -1.98);
-    uvGroup.add(selo);
-
+    var env = new THREE.Mesh(new THREE.BoxGeometry(0.33, 0.22, 0.02), new THREE.MeshStandardMaterial({ color: 0xfdfaf2, roughness: 0.4 }));
+    env.position.set(0.55, 1.35, -1.9); env.rotation.y = -0.4; uvGroup.add(env);
+    var selo = new THREE.Mesh(new THREE.CylinderGeometry(0.038, 0.038, 0.01, 16), new THREE.MeshStandardMaterial({ color: 0xd92626, roughness: 0.3 }));
+    selo.rotation.x = Math.PI / 2; selo.position.set(0.55, 1.35, -1.87); uvGroup.add(selo);
     MosaicoRA.scene.add(uvGroup);
     MosaicoRA.pistasUVGroup = uvGroup;
   };
 
-  /* ------------------------------------------------------------
-     5. INSPEÇÃO TÁTIL 360° (INSPECT MODE)
-     ------------------------------------------------------------ */
+  /* ============================================================
+     10. INSPEÇÃO TÁTIL 360° (SALA 3D)
+     ============================================================ */
   MosaicoRA.examinarObjeto = function (id) {
     var obj = MosaicoRA.objetos3D[id];
     if (!obj) return;
-
     if (id === "quadro") {
-      // Animação da dobradiça do quadro abrindo para revelar o cofre
-      if (!obj.aberto) {
-        obj.rotation.y = Math.PI / 2.8;
-        obj.aberto = true;
-        if (typeof Mosaico3D !== "undefined") Mosaico3D.som.encaixe();
-      } else {
-        obj.rotation.y = 0;
-        obj.aberto = false;
-      }
+      obj.rotation.y = obj.aberto ? 0 : Math.PI / 2.8;
+      obj.aberto = !obj.aberto;
+      if (typeof Mosaico3D !== "undefined") Mosaico3D.som.encaixe();
       return;
     }
-
     if (id === "gaveta") {
-      // Animação de abrir a gaveta da escrivaninha
-      if (!obj.aberto) {
-        obj.position.z = 0.42;
-        obj.aberto = true;
-        if (typeof Mosaico3D !== "undefined") Mosaico3D.som.encaixe();
-      } else {
-        obj.position.z = 0.1;
-        obj.aberto = false;
-      }
+      obj.position.z = obj.aberto ? 0.1 : 0.42;
+      obj.aberto = !obj.aberto;
+      if (typeof Mosaico3D !== "undefined") Mosaico3D.som.encaixe();
       return;
     }
-
-    // Modal de Inspeção 3D em Primeiro Plano
     var modal = document.getElementById("mosaico-ra-inspect-modal");
     if (!modal) {
       modal = document.createElement("div");
@@ -682,142 +1044,102 @@
       modal.className = "mosaico-ra-modal";
       document.body.appendChild(modal);
     }
-
     var nomes = {
-      relogio: "O Relógio de Parede (Parado às 21h29)",
-      cofre: "O Cofre Embutido (Disco de Latão)",
-      escrivaninha: "A Escrivaninha (Gaveta com Gravador)",
-      vaso: "O Vaso de Plantas (Cerâmica Trincada)",
-      espelho: "O Espelho Oval (Moldura Dourada)",
-      janela: "A Janela do Mar (Tempestade Lá Fora)",
+      relogio: "O Relógio de Parede (Parado às 21h29)", cofre: "O Cofre Embutido (Disco de Latão)",
+      escrivaninha: "A Escrivaninha (Gaveta com Gravador)", vaso: "O Vaso de Plantas (Cerâmica Trincada)",
+      espelho: "O Espelho Oval (Moldura Dourada)", janela: "A Janela do Mar (Tempestade Lá Fora)",
       luminaria: "O Abajur de Pé (Latão e Linho)"
     };
-
-    modal.innerHTML = '<div class="mosaico-ra-modal-card m3d-tilt-box">' +
-      '<div class="mosaico-ra-modal-header">' +
-        '<h3>' + (nomes[id] || "Objeto da Casa da Costa") + '</h3>' +
-        '<button class="mosaico-ra-modal-close" onclick="MosaicoRA.fecharInspecao()">✕</button>' +
-      '</div>' +
-      '<p class="lead" style="font-size:13px;color:#8fa3b8;margin:6px 0 14px">Arraste para girar em 360° e examinar detalhes forenses.</p>' +
-      '<div id="mosaico-ra-inspect-stage" style="width:100%;height:260px;background:#030508;border-radius:12px;overflow:hidden"></div>' +
-      '<button class="btn btn-ambar" style="width:100%;margin-top:14px" onclick="MosaicoRA.fecharInspecao()">Retornar à Investigação</button>' +
-    '</div>';
+    modal.innerHTML =
+      '<div class="mosaico-ra-modal-card m3d-tilt-box">' +
+        '<div class="mosaico-ra-modal-header">' +
+          '<h3>' + (nomes[id] || "Objeto da Casa da Costa") + '</h3>' +
+          '<button class="mosaico-ra-modal-close" onclick="MosaicoRA.fecharInspecao()">✕</button>' +
+        '</div>' +
+        '<p class="lead" style="font-size:13px;color:#8fa3b8;margin:6px 0 14px">Arraste para girar em 360° e examinar detalhes forenses.</p>' +
+        '<div id="mosaico-ra-inspect-stage" style="width:100%;height:260px;background:#030508;border-radius:12px;overflow:hidden"></div>' +
+        '<button class="btn btn-ambar" style="width:100%;margin-top:14px" onclick="MosaicoRA.fecharInspecao()">Retornar à Investigação</button>' +
+      '</div>';
     modal.style.display = "flex";
-
     MosaicoRA.iniciarStageInspecao(id, "mosaico-ra-inspect-stage");
   };
 
   MosaicoRA.fecharInspecao = function () {
     var modal = document.getElementById("mosaico-ra-inspect-modal");
     if (modal) modal.style.display = "none";
-    if (MosaicoRA.inspectAnimId) {
-      cancelAnimationFrame(MosaicoRA.inspectAnimId);
-      MosaicoRA.inspectAnimId = null;
-    }
+    if (MosaicoRA.inspectAnimId) { cancelAnimationFrame(MosaicoRA.inspectAnimId); MosaicoRA.inspectAnimId = null; }
   };
 
   MosaicoRA.iniciarStageInspecao = function (id, stageId) {
     var stage = document.getElementById(stageId);
     if (!stage) return;
-
     var w = stage.clientWidth || 300, h = stage.clientHeight || 260;
     var ren = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    ren.setSize(w, h);
-    stage.innerHTML = "";
-    stage.appendChild(ren.domElement);
-
-    var scn = new THREE.Scene();
-    scn.background = new THREE.Color(0x080e16);
+    ren.setSize(w, h); stage.innerHTML = ""; stage.appendChild(ren.domElement);
+    var scn = new THREE.Scene(); scn.background = new THREE.Color(0x080e16);
     var cam = new THREE.PerspectiveCamera(45, w / h, 0.1, 10);
     cam.position.set(0, 0, 2.2);
-
-    var lgt = new THREE.PointLight(0xfff0d0, 1.8, 10);
-    lgt.position.set(2, 2, 2);
-    scn.add(lgt);
-    scn.add(new THREE.AmbientLight(0x223344, 0.8));
-
-    // Clonar malha representativa para exame isolado
+    scn.add(new THREE.PointLight(0xfff0d0, 1.8, 10)); scn.add(new THREE.AmbientLight(0x223344, 0.8));
     var geom = new THREE.BoxGeometry(0.8, 0.8, 0.8);
     var mat = new THREE.MeshStandardMaterial({ color: 0xcca050, metalness: 0.5, roughness: 0.3 });
     if (id === "relogio") geom = new THREE.CylinderGeometry(0.45, 0.45, 0.15, 32);
     if (id === "vaso") geom = new THREE.CylinderGeometry(0.35, 0.22, 0.8, 24);
     if (id === "cofre") geom = new THREE.BoxGeometry(0.7, 0.7, 0.4);
-
-    var previewMesh = new THREE.Mesh(geom, mat);
-    scn.add(previewMesh);
-
-    // Rotação por toque/arraste
+    var previewMesh = new THREE.Mesh(geom, mat); scn.add(previewMesh);
     var dragging = false, prevX = 0, prevY = 0;
     stage.onmousedown = stage.ontouchstart = function (e) {
-      dragging = true;
-      var pt = e.touches ? e.touches[0] : e;
-      prevX = pt.clientX; prevY = pt.clientY;
+      dragging = true; var pt = e.touches ? e.touches[0] : e; prevX = pt.clientX; prevY = pt.clientY;
     };
     window.onmousemove = window.ontouchmove = function (e) {
-      if (!dragging) return;
-      var pt = e.touches ? e.touches[0] : e;
-      var dx = pt.clientX - prevX, dy = pt.clientY - prevY;
-      previewMesh.rotation.y += dx * 0.015;
-      previewMesh.rotation.x += dy * 0.015;
+      if (!dragging) return; var pt = e.touches ? e.touches[0] : e;
+      previewMesh.rotation.y += (pt.clientX - prevX) * 0.015;
+      previewMesh.rotation.x += (pt.clientY - prevY) * 0.015;
       prevX = pt.clientX; prevY = pt.clientY;
     };
     window.onmouseup = window.ontouchend = function () { dragging = false; };
-
-    function loopInspect() {
+    (function loopInspect() {
       MosaicoRA.inspectAnimId = requestAnimationFrame(loopInspect);
       if (!dragging) previewMesh.rotation.y += 0.005;
       ren.render(scn, cam);
-    }
-    loopInspect();
+    })();
   };
 
-  /* ------------------------------------------------------------
-     6. CONTROLES DE ORIENTAÇÃO (GIROSCÓPIO & ARRASTE)
-     ------------------------------------------------------------ */
+  /* ============================================================
+     11. CONTROLES DE ORIENTAÇÃO
+     ============================================================ */
   MosaicoRA.ligarControles = function () {
-    // Giroscópio Mobile
-    if (window.DeviceOrientationEvent) {
+    // Giroscópio (desktop / Android — iOS pede permissão ao abrir câmera)
+    if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission !== "function") {
       window.addEventListener("deviceorientation", function (e) {
         if (e.alpha != null && e.beta != null && e.gamma != null) {
-          // Converter orientação do aparelho para yaw/pitch
-          var yaw = (-e.alpha * Math.PI) / 180;
-          var pitch = ((e.beta - 90) * Math.PI) / 180;
-          MosaicoRA.orientacao.targetYaw = yaw;
-          MosaicoRA.orientacao.targetPitch = Math.max(-1.1, Math.min(1.1, pitch));
+          MosaicoRA.orientacao.targetYaw = (-e.alpha * Math.PI) / 180;
+          MosaicoRA.orientacao.targetPitch = Math.max(-1.1, Math.min(1.1, ((e.beta - 90) * Math.PI) / 180));
         }
       });
     }
-
-    // Arraste por Toque/Mouse na tela
+    // Arraste por toque / mouse
     var arrastando = false, ultX = 0, ultY = 0;
     var dom = MosaicoRA.renderer.domElement;
-
-    dom.addEventListener("mousedown", function (e) {
-      arrastando = true; ultX = e.clientX; ultY = e.clientY;
-    });
+    dom.addEventListener("mousedown", function (e) { arrastando = true; ultX = e.clientX; ultY = e.clientY; });
     dom.addEventListener("touchstart", function (e) {
       arrastando = true; ultX = e.touches[0].clientX; ultY = e.touches[0].clientY;
-    });
-
+    }, { passive: true });
     window.addEventListener("mousemove", function (e) {
       if (!arrastando) return;
-      var dx = e.clientX - ultX, dy = e.clientY - ultY;
-      MosaicoRA.orientacao.targetYaw -= dx * 0.004;
-      MosaicoRA.orientacao.targetPitch = Math.max(-1.1, Math.min(1.1, MosaicoRA.orientacao.targetPitch - dy * 0.004));
+      MosaicoRA.orientacao.targetYaw -= (e.clientX - ultX) * 0.004;
+      MosaicoRA.orientacao.targetPitch = Math.max(-1.1, Math.min(1.1, MosaicoRA.orientacao.targetPitch - (e.clientY - ultY) * 0.004));
       ultX = e.clientX; ultY = e.clientY;
     });
     window.addEventListener("touchmove", function (e) {
       if (!arrastando) return;
-      var dx = e.touches[0].clientX - ultX, dy = e.touches[0].clientY - ultY;
-      MosaicoRA.orientacao.targetYaw -= dx * 0.004;
-      MosaicoRA.orientacao.targetPitch = Math.max(-1.1, Math.min(1.1, MosaicoRA.orientacao.targetPitch - dy * 0.004));
+      MosaicoRA.orientacao.targetYaw -= (e.touches[0].clientX - ultX) * 0.004;
+      MosaicoRA.orientacao.targetPitch = Math.max(-1.1, Math.min(1.1, MosaicoRA.orientacao.targetPitch - (e.touches[0].clientY - ultY) * 0.004));
       ultX = e.touches[0].clientX; ultY = e.touches[0].clientY;
-    });
-
+    }, { passive: true });
     window.addEventListener("mouseup", function () { arrastando = false; });
     window.addEventListener("touchend", function () { arrastando = false; });
 
-    // Raycaster para tocar em objetos 3D
+    // Raycaster — cliques em objetos 3D
     dom.addEventListener("click", function (e) {
       var rect = dom.getBoundingClientRect();
       var mouse = new THREE.Vector2(
@@ -826,99 +1148,113 @@
       );
       var raycaster = new THREE.Raycaster();
       raycaster.setFromCamera(mouse, MosaicoRA.camera);
-
       var inter = raycaster.intersectObjects(MosaicoRA.scene.children, true);
-      if (inter.length > 0) {
-        var topMesh = inter[0].object;
-        // Identificar qual objeto canônico foi tocado
-        Object.keys(MosaicoRA.objetos3D).forEach(function (chave) {
-          var grp = MosaicoRA.objetos3D[chave];
-          if (grp === topMesh || grp.children.includes(topMesh)) {
-            MosaicoRA.examinarObjeto(chave);
-          }
+      if (!inter.length) return;
+      var topMesh = inter[0].object;
+      // Sala 3D
+      Object.keys(MosaicoRA.objetos3D).forEach(function (chave) {
+        var grp = MosaicoRA.objetos3D[chave];
+        if (grp === topMesh || (grp.children && grp.children.indexOf(topMesh) !== -1)) {
+          MosaicoRA.examinarObjeto(chave);
+        }
+      });
+      // Objetos holográficos RA
+      if (MosaicoRA.modo === "camera-ra") {
+        MosaicoRA.raObjetos.forEach(function (obj) {
+          if (!obj.mesh) return;
+          var found = false;
+          obj.mesh.traverse(function (child) { if (child === topMesh) found = true; });
+          if (found) MosaicoRA.abrirInvestigacao(obj);
         });
       }
     });
   };
 
-  /* ------------------------------------------------------------
-     7. HUD E SELETOR DE MODALIDADE
-     ------------------------------------------------------------ */
+  /* ============================================================
+     12. HUD E SELETOR DE MODALIDADE
+     ============================================================ */
   MosaicoRA.montarHUD = function () {
     var hud = document.createElement("div");
-    hud.id = "mosaico-ra-hud";
-    hud.className = "mosaico-ra-hud";
-    hud.innerHTML = '<div class="mosaico-ra-topbar">' +
-      '<div class="mosaico-ra-tabs">' +
-        '<button class="mosaico-ra-tab ' + (MosaicoRA.modo === "sala3d" ? "active" : "") + '" onclick="MosaicoRA.trocarModo(\'sala3d\')">🕯️ Sala 3D</button>' +
-        '<button class="mosaico-ra-tab ' + (MosaicoRA.modo === "camera-ra" ? "active" : "") + '" onclick="MosaicoRA.trocarModo(\'camera-ra\')">📷 Visor RA</button>' +
-        '<button class="mosaico-ra-tab ' + (MosaicoRA.modo === "anamorfose" ? "active" : "") + '" onclick="MosaicoRA.trocarModo(\'anamorfose\')">✨ Anamorfose</button>' +
+    hud.id = "mosaico-ra-hud"; hud.className = "mosaico-ra-hud";
+    hud.innerHTML =
+      '<div class="mosaico-ra-topbar">' +
+        '<div class="mosaico-ra-tabs">' +
+          '<button class="mosaico-ra-tab ' + (MosaicoRA.modo === "sala3d" ? "active" : "") + '" onclick="MosaicoRA.trocarModo(\'sala3d\')">🕯️ Sala 3D</button>' +
+          '<button class="mosaico-ra-tab ' + (MosaicoRA.modo === "camera-ra" ? "active" : "") + '" onclick="MosaicoRA.trocarModo(\'camera-ra\')">🔍 Investigar</button>' +
+          '<button class="mosaico-ra-tab ' + (MosaicoRA.modo === "anamorfose" ? "active" : "") + '" onclick="MosaicoRA.trocarModo(\'anamorfose\')">✨ Anamorfose</button>' +
+        '</div>' +
+        '<button class="mosaico-ra-btn-fechar" onclick="MosaicoRA.encerrar()">✕ Sair</button>' +
       '</div>' +
-      '<button class="mosaico-ra-btn-fechar" onclick="MosaicoRA.encerrar()">✕ Sair</button>' +
-    '</div>' +
-    '<div class="mosaico-ra-footer">' +
-      '<div id="mosaico-ra-dica-texto" class="mosaico-ra-dica">Mova o celular para iluminar a sala. Toque nos objetos para inspecionar em 360°.</div>' +
-      '<div id="mosaico-ra-anamorfose-bar" class="mosaico-ra-prog-bar" style="display:none">' +
-        '<div id="mosaico-ra-anamorfose-fill" class="mosaico-ra-prog-fill"></div>' +
+      '<div id="ra-hud-overlay" class="ra-hud-overlay" style="display:none">' +
+        '<div id="ra-clue-counter" class="ra-clue-counter">0/6</div>' +
+        '<div id="ra-scan-ring" class="ra-scan-ring"></div>' +
+        '<div id="ra-proximity-label" class="ra-proximity-label"></div>' +
+        '<div class="ra-instruction">🔍 Gire lentamente — 6 evidências ocultas no ambiente</div>' +
       '</div>' +
-    '</div>';
+      '<div class="mosaico-ra-footer">' +
+        '<div id="mosaico-ra-dica-texto" class="mosaico-ra-dica">Mova o celular para iluminar a sala. Toque nos objetos para inspecionar em 360°.</div>' +
+        '<div id="mosaico-ra-anamorfose-bar" class="mosaico-ra-prog-bar" style="display:none">' +
+          '<div id="mosaico-ra-anamorfose-fill" class="mosaico-ra-prog-fill"></div>' +
+        '</div>' +
+      '</div>';
     MosaicoRA.container.appendChild(hud);
   };
 
   MosaicoRA.trocarModo = function (novoModo) {
     if (novoModo === MosaicoRA.modo) return;
-    if (MosaicoRA.modo === "camera-ra" && novoModo !== "camera-ra") {
-      MosaicoRA.desativarCameraRA();
-    }
-
+    if (MosaicoRA.modo === "camera-ra" && novoModo !== "camera-ra") MosaicoRA.desativarCameraRA();
     MosaicoRA.modo = novoModo;
+    var overlay = document.getElementById("ra-hud-overlay");
     if (novoModo === "camera-ra") {
+      if (overlay) overlay.style.display = "block";
       MosaicoRA.ativarCameraRA();
     } else if (novoModo === "anamorfose") {
+      if (overlay) overlay.style.display = "none";
       if (MosaicoRA.videoElement) MosaicoRA.videoElement.style.display = "none";
       if (MosaicoRA.salaGroup) MosaicoRA.salaGroup.visible = false;
+      if (MosaicoRA.raObjetosGroup) MosaicoRA.raObjetosGroup.visible = false;
       if (MosaicoRA.scene) MosaicoRA.scene.background = new THREE.Color(0x020408);
+      if (MosaicoRA.renderer) MosaicoRA.renderer.setClearColor(0x020408, 1);
       if (MosaicoRA.anamorfoseGroup) MosaicoRA.anamorfoseGroup.visible = true;
       if (MosaicoRA.pistasUVGroup) MosaicoRA.pistasUVGroup.visible = false;
     } else {
-      // sala3d
+      if (overlay) overlay.style.display = "none";
       if (MosaicoRA.videoElement) MosaicoRA.videoElement.style.display = "none";
       if (MosaicoRA.salaGroup) MosaicoRA.salaGroup.visible = true;
+      if (MosaicoRA.raObjetosGroup) MosaicoRA.raObjetosGroup.visible = false;
       if (MosaicoRA.scene) MosaicoRA.scene.background = new THREE.Color(0x04060a);
+      if (MosaicoRA.renderer) MosaicoRA.renderer.setClearColor(0x04060a, 1);
       if (MosaicoRA.anamorfoseGroup) MosaicoRA.anamorfoseGroup.visible = false;
       if (MosaicoRA.pistasUVGroup) MosaicoRA.pistasUVGroup.visible = false;
     }
-
     MosaicoRA.atualizarBotoesModo();
   };
 
   MosaicoRA.atualizarBotoesModo = function () {
-    var tabs = document.querySelectorAll(".mosaico-ra-tab");
-    tabs.forEach(function (tab) {
-      tab.classList.toggle("active", tab.getAttribute("onclick").includes("'" + MosaicoRA.modo + "'"));
+    document.querySelectorAll(".mosaico-ra-tab").forEach(function (tab) {
+      var oc = tab.getAttribute("onclick") || "";
+      var isActive = oc.indexOf("'" + MosaicoRA.modo + "'") !== -1;
+      tab.classList.toggle("active", isActive);
     });
-
     var dica = document.getElementById("mosaico-ra-dica-texto");
     var bar = document.getElementById("mosaico-ra-anamorfose-bar");
-
-    if (dica && bar) {
-      if (MosaicoRA.modo === "sala3d") {
-        dica.textContent = "Mova o celular para iluminar com a lanterna. Toque nos móveis para inspecionar em 360°.";
-        bar.style.display = "none";
-      } else if (MosaicoRA.modo === "camera-ra") {
-        dica.textContent = "Visor Espectral UV: aponte para o chão e paredes da sua sala para ver pegadas e pistas luminescentes.";
-        bar.style.display = "none";
-      } else if (MosaicoRA.modo === "anamorfose") {
-        dica.textContent = "Gire o celular devagar pelo quarto até encontrar o ponto de vista onde os traços formam a hora.";
-        bar.style.display = "block";
-      }
+    if (dica) {
+      if (MosaicoRA.modo === "sala3d") dica.textContent = "Mova o celular para iluminar com a lanterna. Toque nos objetos para inspecionar em 360°.";
+      else if (MosaicoRA.modo === "camera-ra") dica.textContent = "🔍 Gire lentamente — 6 evidências forenses estão ocultas no ambiente. Aproxime para revelar.";
+      else dica.textContent = "Gire o celular até os traços de luz formarem a hora do crime.";
     }
+    if (bar) bar.style.display = MosaicoRA.modo === "anamorfose" ? "block" : "none";
   };
 
+  /* ============================================================
+     13. ENCERRAR
+     ============================================================ */
   MosaicoRA.encerrar = function () {
     MosaicoRA.ativo = false;
     if (MosaicoRA.animId) cancelAnimationFrame(MosaicoRA.animId);
+    if (MosaicoRA.raParticulasAnimId) cancelAnimationFrame(MosaicoRA.raParticulasAnimId);
     MosaicoRA.desativarCameraRA();
+    MosaicoRA.fecharInvestigacao();
     if (MosaicoRA.container) {
       MosaicoRA.container.innerHTML = "";
       if (MosaicoRA.container.id === "mosaico-ra-viewport" && MosaicoRA.container.parentNode) {
@@ -932,49 +1268,76 @@
     if (typeof render === "function") render(true);
   };
 
-  /* ------------------------------------------------------------
-     8. LOOP DE RENDERIZAÇÃO & CÁLCULO DE ANAMORFOSE
-     ------------------------------------------------------------ */
+  /* ============================================================
+     14. LOOP DE RENDERIZAÇÃO
+     ============================================================ */
   MosaicoRA.animar = function () {
     if (!MosaicoRA.ativo) return;
     MosaicoRA.animId = requestAnimationFrame(MosaicoRA.animar);
+    var t = Date.now() * 0.001;
 
     // Interpolação suave de orientação
     MosaicoRA.orientacao.yaw += (MosaicoRA.orientacao.targetYaw - MosaicoRA.orientacao.yaw) * 0.12;
     MosaicoRA.orientacao.pitch += (MosaicoRA.orientacao.targetPitch - MosaicoRA.orientacao.pitch) * 0.12;
-
     MosaicoRA.camera.rotation.set(MosaicoRA.orientacao.pitch, MosaicoRA.orientacao.yaw, 0, "YXZ");
 
-    // Oscilação suave do pêndulo do relógio
+    // Pêndulo
     if (MosaicoRA.objetos3D["pendulo"]) {
-      MosaicoRA.objetos3D["pendulo"].rotation.z = Math.sin(Date.now() * 0.003) * 0.18;
+      MosaicoRA.objetos3D["pendulo"].rotation.z = Math.sin(t * 3) * 0.18;
     }
 
-    // Conferência da Anamorfose (Verificar se a pessoa achou o ângulo alvo)
+    // RA INVESTIGAÇÃO — animações dos 6 hologramas
+    if (MosaicoRA.modo === "camera-ra" && MosaicoRA.raObjetosGroup && MosaicoRA.raObjetosGroup.visible) {
+      MosaicoRA.raObjetos.forEach(function (obj) {
+        if (!obj.mesh) return;
+        var ph = obj.mesh._phase || 0;
+        // Levitação sinusoidal
+        obj.mesh.position.y = obj.baseY + Math.sin(t * 0.85 + ph) * 0.08;
+        // Rotação contínua
+        obj.mesh.rotation.y += obj.mesh._rotSpeed || 0.008;
+        // Pulsação de escala após descoberta
+        if (obj.descoberta) obj.mesh.scale.setScalar(1 + Math.sin(t * 4.5) * 0.06);
+        // Aura de luz
+        if (obj.luz) obj.luz.intensity = (0.35 + Math.sin(t * 2.2 + ph) * 0.28) * (obj.descoberta ? 2.2 : 1);
+        // Animações específicas
+        if (obj.id === "vela" && obj.mesh._chama) {
+          obj.mesh._chama.scale.set(1 + Math.sin(t * 9.3) * 0.18, 1.7 + Math.sin(t * 12.5) * 0.25, 1 + Math.sin(t * 8.7) * 0.14);
+          if (obj.mesh._chamaOuter) obj.mesh._chamaOuter.scale.set(1 + Math.sin(t * 7.1) * 0.12, 1.5 + Math.sin(t * 10.8) * 0.2, 1 + Math.sin(t * 8.2) * 0.1);
+        }
+        if (obj.id === "gravador") {
+          if (obj.mesh._reel1) obj.mesh._reel1.rotation.z += 0.05;
+          if (obj.mesh._reel2) obj.mesh._reel2.rotation.z -= 0.05;
+          if (obj.mesh._led) obj.mesh._led.material.color.setHex(Math.sin(t * 4.5) > 0 ? 0xff0000 : 0x3a0000);
+        }
+        if (obj.id === "marca" && obj.mesh._borderRing) {
+          obj.mesh._borderRing.material.opacity = 0.28 + Math.sin(t * 2.8 + ph) * 0.28;
+          obj.mesh._borderRing.scale.setScalar(1 + Math.sin(t * 1.4) * 0.14);
+        }
+        // Indicador pulsante
+        if (obj.mesh._indicador && !obj.descoberta) {
+          obj.mesh._indicador.material.opacity = 0.45 + Math.sin(t * 3.2 + ph) * 0.35;
+          obj.mesh._indicador.scale.setScalar(1 + Math.sin(t * 2.2 + ph) * 0.25);
+        }
+      });
+      MosaicoRA.radarDeteccao();
+    }
+
+    // Anamorfose — verificação de alinhamento
     if (MosaicoRA.modo === "anamorfose" && MosaicoRA.anamorfoseGroup) {
-      var yawAtualGraus = ((-MosaicoRA.orientacao.yaw * 180) / Math.PI + 360) % 360;
-      var pitchAtualGraus = ((MosaicoRA.orientacao.pitch * 180) / Math.PI);
-
-      var diffYaw = Math.abs(yawAtualGraus - MosaicoRA.anamorfoseAlvo.yaw);
+      var yawGraus = ((-MosaicoRA.orientacao.yaw * 180) / Math.PI + 360) % 360;
+      var pitchGraus = (MosaicoRA.orientacao.pitch * 180) / Math.PI;
+      var diffYaw = Math.abs(yawGraus - MosaicoRA.anamorfoseAlvo.yaw);
       if (diffYaw > 180) diffYaw = 360 - diffYaw;
-      var diffPitch = Math.abs(pitchAtualGraus - MosaicoRA.anamorfoseAlvo.pitch);
-
+      var diffPitch = Math.abs(pitchGraus - MosaicoRA.anamorfoseAlvo.pitch);
       var desvioTotal = Math.sqrt(diffYaw * diffYaw + diffPitch * diffPitch);
       var proximidade = Math.max(0, Math.min(1, (25 - desvioTotal) / 25));
-
       var fill = document.getElementById("mosaico-ra-anamorfose-fill");
       if (fill) fill.style.width = (proximidade * 100).toFixed(1) + "%";
-
       if (desvioTotal < 3.2 && !MosaicoRA.anamorfoseAlinhada) {
         MosaicoRA.anamorfoseAlinhada = true;
-        if (typeof Mosaico3D !== "undefined") {
-          Mosaico3D.som.sucesso();
-          Mosaico3D.vibrar([50, 60, 120]);
-        }
+        if (typeof Mosaico3D !== "undefined") { Mosaico3D.som.sucesso(); Mosaico3D.vibrar([50, 60, 120]); }
         var dicaEl = document.getElementById("mosaico-ra-dica-texto");
-        if (dicaEl) {
-          dicaEl.innerHTML = "<b style='color:#ffe889'>ANAMORFOSE ALINHADA (21:29) &#10003;</b> Pista registrada no caso!";
-        }
+        if (dicaEl) dicaEl.innerHTML = "<b style='color:#ffe889'>ANAMORFOSE ALINHADA (21:29) &#10003;</b> Pista registrada no caso!";
       } else if (desvioTotal >= 3.2) {
         MosaicoRA.anamorfoseAlinhada = false;
       }
@@ -985,11 +1348,14 @@
 
   MosaicoRA.redimensionar = function () {
     if (!MosaicoRA.container || !MosaicoRA.renderer || !MosaicoRA.camera) return;
-    var w = MosaicoRA.container.clientWidth || window.innerWidth;
-    var h = MosaicoRA.container.clientHeight || window.innerHeight;
+    var w = window.innerWidth, h = window.innerHeight;
     MosaicoRA.camera.aspect = w / h;
     MosaicoRA.camera.updateProjectionMatrix();
     MosaicoRA.renderer.setSize(w, h);
+    if (MosaicoRA.raParticulasCanvas) {
+      MosaicoRA.raParticulasCanvas.width = w;
+      MosaicoRA.raParticulasCanvas.height = h;
+    }
   };
 
   global.MosaicoRA = MosaicoRA;
