@@ -255,11 +255,11 @@
     MosaicoRA.scene.background = new THREE.Color(0x04060a);
 
     // Iluminação
-    MosaicoRA.ambientLight = new THREE.AmbientLight(0x1a2634, 0.45);
+    MosaicoRA.ambientLight = new THREE.AmbientLight(0x1a2634, 0.35);
     MosaicoRA.scene.add(MosaicoRA.ambientLight);
 
-    // Lanterna cônica presa à câmera
-    MosaicoRA.spotlight = new THREE.SpotLight(0xffecd0, 2.4, 16, Math.PI / 6.5, 0.42, 1.1);
+    // BUG5-FIX: Lanterna cônica mais estreita e curta para efeito de lanterna real
+    MosaicoRA.spotlight = new THREE.SpotLight(0xffecd0, 2.8, 6.5, Math.PI / 8, 0.55, 1.4);
     MosaicoRA.spotlight.castShadow = true;
     MosaicoRA.spotlight.shadow.mapSize.width = 1024;
     MosaicoRA.spotlight.shadow.mapSize.height = 1024;
@@ -275,8 +275,18 @@
     MosaicoRA.montarHUD();
     MosaicoRA.ligarControles();
 
+    // BUG2-FIX: esconder anamorfoseGroup se o modo inicial não for anamorfose
+    if (MosaicoRA.anamorfoseGroup) {
+      MosaicoRA.anamorfoseGroup.visible = (MosaicoRA.modo === "anamorfose");
+    }
+
     if (MosaicoRA.modo === "camera-ra") {
-      MosaicoRA.ativarCameraRA();
+      // BUG1-FIX: iOS requer gesto do usuário para camera/giroscópio.
+      // Mostrar prompt primeiro em vez de chamar getUserMedia diretamente.
+      MosaicoRA.mostrarPromptCamera(true, "Toque abaixo para ativar a câmera e explorar o ambiente em busca das 6 evidências.");
+      // Aplicar visual de modo RA sem iniciar câmera ainda
+      if (MosaicoRA.salaGroup) MosaicoRA.salaGroup.visible = false;
+      if (MosaicoRA.scene) MosaicoRA.scene.background = new THREE.Color(0x030810);
     } else if (MosaicoRA.modo === "anamorfose") {
       MosaicoRA.trocarModo("anamorfose");
     }
@@ -431,6 +441,11 @@
   MosaicoRA.construirAnamorfose = function () {
     var grupoAnamorfose = new THREE.Group();
     grupoAnamorfose.name = "anamorfoseGroup";
+    // alvoYaw: camera.rotation.y = -alpha*π/180, então para alpha=137 → yaw=-2.39rad
+    // camera forward com yaw=-2.39: (sin(2.39), 0, cos(2.39)≈-0.73) → (+x, 0, +z)... 
+    // projetarRaio deve usar o mesmo vetor: sin(-alvoRadYaw) = -sin(alvoRadYaw) para X
+    // NOTA: a fórmula original era correta para o mapeamento deviceorientation iOS
+    // (targetYaw = -alpha*π/180). Mantida igual ao original pré-rewrite.
     var alvoYaw = (137 * Math.PI) / 180;
     var alvoPitch = (11 * Math.PI) / 180;
     var tracos2D = [
@@ -440,7 +455,9 @@
       [0.08, 0.3, 0.21, 0.3], [0.21, 0.3, 0.21, 0.15], [0.21, 0.15, 0.08, 0.0], [0.08, 0.0, 0.21, 0.0],
       [0.32, 0.3, 0.45, 0.3], [0.32, 0.3, 0.32, 0.15], [0.32, 0.15, 0.45, 0.15], [0.45, 0.3, 0.45, 0.0], [0.32, 0.0, 0.45, 0.0]
     ];
-    var matTraco = new THREE.LineBasicMaterial({ color: 0xffd97d, transparent: true, opacity: 0.9 });
+    // BUG2-FIX: usar TubeGeometry em vez de Line para visibilidade em todos os GPUs
+    var matTubo = new THREE.MeshBasicMaterial({ color: 0xffd97d, transparent: true, opacity: 0.92 });
+    var matGlowTubo = new THREE.MeshBasicMaterial({ color: 0xff8c00, transparent: true, opacity: 0.28 });
     tracos2D.forEach(function (t, idx) {
       var distA = 1.4 + ((idx * 7) % 19) * 0.11;
       var distB = 1.4 + ((idx * 11) % 17) * 0.12;
@@ -452,10 +469,18 @@
       }
       var pA = projetarRaio(t[0], t[1], distA);
       var pB = projetarRaio(t[2], t[3], distB);
-      grupoAnamorfose.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([pA, pB]), matTraco));
+      // Usar TubeGeometry (cilindro fino) — visível em qualquer GPU/iOS Safari
+      var curve = new THREE.LineCurve3(pA, pB);
+      var tuboGeo = new THREE.TubeGeometry(curve, 1, 0.006, 5, false);
+      grupoAnamorfose.add(new THREE.Mesh(tuboGeo, matTubo));
+      // Halo exterior (glow)
+      var glowGeo = new THREE.TubeGeometry(curve, 1, 0.014, 5, false);
+      grupoAnamorfose.add(new THREE.Mesh(glowGeo, matGlowTubo));
     });
     MosaicoRA.scene.add(grupoAnamorfose);
     MosaicoRA.anamorfoseGroup = grupoAnamorfose;
+    // BUG2-FIX: inicialmente oculto — visível só em modo anamorfose
+    grupoAnamorfose.visible = false;
   };
 
   /* ============================================================
@@ -916,44 +941,57 @@
     MosaicoRA.modo = "camera-ra";
     if (MosaicoRA.salaGroup) MosaicoRA.salaGroup.visible = false;
     if (MosaicoRA.anamorfoseGroup) MosaicoRA.anamorfoseGroup.visible = false;
+    if (MosaicoRA.pistasUVGroup) MosaicoRA.pistasUVGroup.visible = false;
     if (MosaicoRA.scene) MosaicoRA.scene.background = null;
     if (MosaicoRA.renderer) MosaicoRA.renderer.setClearColor(0x000000, 0);
+    var overlay = document.getElementById("ra-hud-overlay");
+    if (overlay) overlay.style.display = "block";
     MosaicoRA.atualizarBotoesModo();
 
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      MosaicoRA.mostrarPromptCamera(false, "Câmera indisponível neste dispositivo ou contexto.");
+      // BUG1-FIX: podetentar=false + fallback para sala3d como opção
+      MosaicoRA.mostrarPromptCamera(false, "Câmera não disponível neste navegador. Use Chrome/Safari em HTTPS.");
       return;
     }
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } } })
-      .then(function (stream) {
+    // Mostrar indicador de carregamento no scan ring
+    var dicaEl = document.getElementById("mosaico-ra-dica-texto");
+    if (dicaEl) dicaEl.textContent = "🔄 Iniciando câmera de investigação...";
+
+    navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } }
+    }).then(function (stream) {
         var vid = document.getElementById("mosaico-ra-video-bg") || MosaicoRA.videoElement;
         if (vid) {
-          vid.srcObject = stream; vid.style.display = "block";
-          var p = vid.play(); if (p && p.catch) p.catch(function (e) { console.warn("video.play:", e); });
+          vid.srcObject = stream;
+          vid.style.display = "block";
+          var p = vid.play();
+          if (p && p.catch) p.catch(function (e) { console.warn("video.play:", e); });
         }
         MosaicoRA.removerPromptCamera();
         MosaicoRA.construirMundoRA();
         MosaicoRA.criarPistasUV();
         MosaicoRA.particulasForenses();
         MosaicoRA.atualizarBotoesModo();
-        // Solicitar permissão de giroscópio iOS 13+
-        if (typeof DeviceOrientationEvent !== "undefined" && typeof DeviceOrientationEvent.requestPermission === "function") {
+        // Solicitar permissão de giroscópio iOS 13+ (encadeado após câmera, já é gesto do usuário)
+        if (typeof DeviceOrientationEvent !== "undefined" &&
+            typeof DeviceOrientationEvent.requestPermission === "function") {
           DeviceOrientationEvent.requestPermission().then(function (state) {
             if (state === "granted") {
-              window.addEventListener("deviceorientation", function (e) {
-                if (e.alpha != null && e.beta != null) {
-                  MosaicoRA.orientacao.targetYaw = (-e.alpha * Math.PI) / 180;
-                  MosaicoRA.orientacao.targetPitch = Math.max(-1.1, Math.min(1.1, ((e.beta - 90) * Math.PI) / 180));
+              window.addEventListener("deviceorientation", function (ev) {
+                if (ev.alpha != null && ev.beta != null) {
+                  MosaicoRA.orientacao.targetYaw = (-ev.alpha * Math.PI) / 180;
+                  MosaicoRA.orientacao.targetPitch = Math.max(-1.1, Math.min(1.1, ((ev.beta - 90) * Math.PI) / 180));
                 }
               });
             }
-          }).catch(function (e) { console.warn("DeviceOrientationEvent:", e); });
+          }).catch(function (ex) { console.warn("DeviceOrientationEvent:", ex); });
         }
         if (typeof Mosaico3D !== "undefined") Mosaico3D.som.encaixe();
       })
       .catch(function (err) {
         console.warn("Câmera RA:", err);
-        MosaicoRA.mostrarPromptCamera(true, "Aponte a câmera para o ambiente e procure as 6 evidências ocultas do caso Costa.");
+        // BUG1-FIX: prompt com botão de retry claramente visível
+        MosaicoRA.mostrarPromptCamera(true, "Permissão de câmera negada ou indisponível. Toque para tentar novamente.");
       });
   };
 
@@ -983,18 +1021,26 @@
       else document.body.appendChild(p);
     }
     p.style.display = "flex";
+    // BUG1-FIX: canvas deixa de interceptar eventos enquanto prompt estiver visível
+    if (MosaicoRA.renderer && MosaicoRA.renderer.domElement) {
+      MosaicoRA.renderer.domElement.style.pointerEvents = "none";
+    }
     p.innerHTML = '<div class="mosaico-ra-prompt-card">' +
       '<div style="font-size:52px;margin-bottom:12px">🔍</div>' +
       '<h3 style="font-family:Cinzel,serif;color:#4dfcba;margin:0 0 10px;font-size:1.25rem;letter-spacing:0.06em">MODO INVESTIGAÇÃO RA</h3>' +
-      '<p style="color:#94a3b8;font-size:13px;line-height:1.65;margin:0 0 18px">' + (msg || "Ative a câmera para explorar o ambiente e encontrar as 6 evidências do crime.") + '</p>' +
-      (podetentar ? '<button onclick="MosaicoRA.ativarCameraRA()" style="width:100%;margin-bottom:10px;padding:14px;background:linear-gradient(135deg,#4dfcba,#00c48a);color:#04060a;font-weight:700;border:none;border-radius:10px;font-size:15px;cursor:pointer;letter-spacing:0.05em">📷 Ativar Câmera de Investigação</button>' : '') +
-      '<button onclick="MosaicoRA.trocarModo(\'sala3d\')" style="width:100%;padding:11px;background:rgba(255,255,255,0.07);color:#f3d078;border:1px solid rgba(243,208,120,0.28);border-radius:8px;font-size:13px;cursor:pointer">🕯️ Usar Sala 3D Virtual</button>' +
+      '<p style="color:#94a3b8;font-size:13px;line-height:1.65;margin:0 0 18px">' + (msg || 'Ative a câmera para explorar o ambiente e encontrar as 6 evidências do crime.') + '</p>' +
+      (podetentar ? '<button onclick="MosaicoRA.ativarCameraRA()" style="width:100%;margin-bottom:10px;padding:16px;background:linear-gradient(135deg,#4dfcba,#00c48a);color:#04060a;font-weight:700;border:none;border-radius:12px;font-size:16px;cursor:pointer;letter-spacing:0.05em;box-shadow:0 6px 20px rgba(77,252,186,0.35)">📷 Ativar Câmera de Investigação</button>' : '') +
+      '<button onclick="MosaicoRA.trocarModo(\'sala3d\')" style="width:100%;padding:12px;background:rgba(255,255,255,0.07);color:#f3d078;border:1px solid rgba(243,208,120,0.28);border-radius:10px;font-size:14px;cursor:pointer">🕯️ Usar Sala 3D Virtual</button>' +
     '</div>';
   };
 
   MosaicoRA.removerPromptCamera = function () {
     var p = document.getElementById("mosaico-ra-prompt");
     if (p) p.style.display = "none";
+    // BUG1-FIX: restaurar pointer-events do canvas
+    if (MosaicoRA.renderer && MosaicoRA.renderer.domElement) {
+      MosaicoRA.renderer.domElement.style.pointerEvents = "auto";
+    }
   };
 
   /* ============================================================
@@ -1139,8 +1185,13 @@
     window.addEventListener("mouseup", function () { arrastando = false; });
     window.addEventListener("touchend", function () { arrastando = false; });
 
-    // Raycaster — cliques em objetos 3D
+    // BUG3-FIX: Raycaster com traverse recursivo para objetos aninhados
     dom.addEventListener("click", function (e) {
+      // Ignorar cliques se um modal estiver aberto
+      if (document.getElementById("mosaico-ra-inspect-modal") &&
+          document.getElementById("mosaico-ra-inspect-modal").style.display !== "none") return;
+      if (document.getElementById("ra-investigation-modal") &&
+          document.getElementById("ra-investigation-modal").style.display !== "none") return;
       var rect = dom.getBoundingClientRect();
       var mouse = new THREE.Vector2(
         ((e.clientX - rect.left) / rect.width) * 2 - 1,
@@ -1151,12 +1202,14 @@
       var inter = raycaster.intersectObjects(MosaicoRA.scene.children, true);
       if (!inter.length) return;
       var topMesh = inter[0].object;
-      // Sala 3D
+      // BUG3-FIX: traverse recursivo para encontrar o grupo pai correto
       Object.keys(MosaicoRA.objetos3D).forEach(function (chave) {
         var grp = MosaicoRA.objetos3D[chave];
-        if (grp === topMesh || (grp.children && grp.children.indexOf(topMesh) !== -1)) {
-          MosaicoRA.examinarObjeto(chave);
+        var found = (grp === topMesh);
+        if (!found && grp.traverse) {
+          grp.traverse(function (child) { if (child === topMesh) found = true; });
         }
+        if (found) MosaicoRA.examinarObjeto(chave);
       });
       // Objetos holográficos RA
       if (MosaicoRA.modo === "camera-ra") {
@@ -1207,23 +1260,29 @@
     var overlay = document.getElementById("ra-hud-overlay");
     if (novoModo === "camera-ra") {
       if (overlay) overlay.style.display = "block";
+      // BUG1-FIX: ativarCameraRA já lida corretamente com a sequência
       MosaicoRA.ativarCameraRA();
     } else if (novoModo === "anamorfose") {
       if (overlay) overlay.style.display = "none";
       if (MosaicoRA.videoElement) MosaicoRA.videoElement.style.display = "none";
       if (MosaicoRA.salaGroup) MosaicoRA.salaGroup.visible = false;
       if (MosaicoRA.raObjetosGroup) MosaicoRA.raObjetosGroup.visible = false;
+      if (MosaicoRA.raParticulasCanvas) MosaicoRA.raParticulasCanvas.style.display = "none";
       if (MosaicoRA.scene) MosaicoRA.scene.background = new THREE.Color(0x020408);
       if (MosaicoRA.renderer) MosaicoRA.renderer.setClearColor(0x020408, 1);
+      // BUG2-FIX: só torna visível aqui
       if (MosaicoRA.anamorfoseGroup) MosaicoRA.anamorfoseGroup.visible = true;
       if (MosaicoRA.pistasUVGroup) MosaicoRA.pistasUVGroup.visible = false;
     } else {
+      // sala3d
       if (overlay) overlay.style.display = "none";
       if (MosaicoRA.videoElement) MosaicoRA.videoElement.style.display = "none";
       if (MosaicoRA.salaGroup) MosaicoRA.salaGroup.visible = true;
       if (MosaicoRA.raObjetosGroup) MosaicoRA.raObjetosGroup.visible = false;
+      if (MosaicoRA.raParticulasCanvas) MosaicoRA.raParticulasCanvas.style.display = "none";
       if (MosaicoRA.scene) MosaicoRA.scene.background = new THREE.Color(0x04060a);
       if (MosaicoRA.renderer) MosaicoRA.renderer.setClearColor(0x04060a, 1);
+      // BUG2-FIX: garantir que anamorfose fique oculta na sala
       if (MosaicoRA.anamorfoseGroup) MosaicoRA.anamorfoseGroup.visible = false;
       if (MosaicoRA.pistasUVGroup) MosaicoRA.pistasUVGroup.visible = false;
     }
@@ -1239,9 +1298,21 @@
     var dica = document.getElementById("mosaico-ra-dica-texto");
     var bar = document.getElementById("mosaico-ra-anamorfose-bar");
     if (dica) {
-      if (MosaicoRA.modo === "sala3d") dica.textContent = "Mova o celular para iluminar com a lanterna. Toque nos objetos para inspecionar em 360°.";
-      else if (MosaicoRA.modo === "camera-ra") dica.textContent = "🔍 Gire lentamente — 6 evidências forenses estão ocultas no ambiente. Aproxime para revelar.";
-      else dica.textContent = "Gire o celular até os traços de luz formarem a hora do crime.";
+      if (MosaicoRA.modo === "sala3d") {
+        dica.textContent = "Mova o celular para iluminar com a lanterna. Toque nos objetos para inspecionar.";
+      } else if (MosaicoRA.modo === "camera-ra") {
+        dica.textContent = "🔍 Gire lentamente — 6 evidências do crime estão ocultas no ambiente.";
+      } else {
+        // BUG4-FIX: mostrar direção para o ângulo alvo
+        var yawAtual = ((-MosaicoRA.orientacao.yaw * 180) / Math.PI + 360) % 360;
+        var diffAlvo = MosaicoRA.anamorfoseAlvo.yaw - yawAtual;
+        if (diffAlvo > 180) diffAlvo -= 360;
+        if (diffAlvo < -180) diffAlvo += 360;
+        var seta = Math.abs(diffAlvo) < 5 ? "✓ Ângulo encontrado!" :
+                   diffAlvo > 0 ? "→ Gire para a direita " + Math.round(Math.abs(diffAlvo)) + "°" :
+                                  "← Gire para a esquerda " + Math.round(Math.abs(diffAlvo)) + "°";
+        dica.textContent = "✨ " + seta + " — os traços vão revelar a hora.";
+      }
     }
     if (bar) bar.style.display = MosaicoRA.modo === "anamorfose" ? "block" : "none";
   };

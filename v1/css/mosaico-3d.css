@@ -678,15 +678,18 @@
 .mosaico-ra-prompt {
   position: absolute;
   inset: 0;
-  z-index: 50;
-  background: rgba(4, 6, 10, 0.88);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  /* BUG1-FIX: z-index muito acima do canvas (z-index:2) E do HUD (z-index:100000) */
+  z-index: 300;
+  background: rgba(4, 6, 10, 0.94);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
+  /* BUG1-FIX: garantir que os toques passem pelo canvas e cheguem ao prompt */
   pointer-events: auto;
+  touch-action: auto;
 }
 .mosaico-ra-prompt-card {
   width: min(92vw, 400px);
