@@ -673,3 +673,8 @@
   cursor: pointer;
   padding: 4px;
 }
+
+body.modo-teste-3d #dragonRoomGate {
+  display: none !important;
+  pointer-events: none !important;
+}

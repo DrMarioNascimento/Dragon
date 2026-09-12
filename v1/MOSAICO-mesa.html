@@ -2804,7 +2804,7 @@ function telaInicio(){
     avisoLocal()+
     '<button class="btn btn-ambar" onclick="pedirSenha()">Abrir uma mesa</button>'+
     '<button class="btn btn-frio" onclick="irPara(\'entrar\')">Entrar em uma mesa</button>'+
-    '<button class="btn btn-sm" style="margin-top:14px;border:1px solid #f7c94a;color:#ffe889;background:rgba(247,201,74,0.12)" onclick="iniciarTeste3D(\'mosaico\')">⚡ Modo de Teste 3D (Sem Sala)</button>'+
+    '<button class="btn btn-sm" style="margin-top:14px;border:1px solid #f7c94a;color:#ffe889;background:rgba(247,201,74,0.12)" onclick="iniciarTeste3D(\'sala3d\')">⚡ Modo de Teste 3D &amp; RA (Sem Sala)</button>'+
     '<p class="muted" style="margin-top:24px">O telão, se houver, entra pela porta Telão do hub com o código da sala. O ensaio local fica na porta Solo.</p>'+
     modalSenha();
 }
@@ -5120,9 +5120,10 @@ async function voltarParaSala(){
    sem depender de sala, segundo jogador ou login Firebase.
    ============================================================ */
 window.iniciarTeste3D = function(fase){
-  fase = fase || 'mosaico';
+  fase = fase || 'sala3d';
+  document.body.classList.add("modo-teste-3d");
   var gate = document.getElementById('dragonRoomGate');
-  if(gate) gate.style.display = 'none';
+  if(gate) { gate.style.display = 'none'; try{ gate.remove(); }catch(e){} }
   var app = document.getElementById('app');
   if(app) app.hidden = false;
 
@@ -5259,6 +5260,7 @@ window.irParaFaseTeste3D = function(fase){
 
 window.sairTeste3D = function(){
   STATE.modoTeste3D = false;
+  document.body.classList.remove("modo-teste-3d");
   if(window.MosaicoRA && window.MosaicoRA.ativo) window.MosaicoRA.encerrar();
   var dock = document.getElementById("m3d-dock-teste");
   if(dock) dock.remove();
@@ -5304,8 +5306,8 @@ function atualizarBotaoFlutuanteTeste(){
     btn = document.createElement("div");
     btn.id = "m3d-atalho-teste";
     btn.className = "m3d-badge-launch";
-    btn.innerHTML = '<span class="m3d-pulse-gold"></span><span>⚡ Testar 3D</span>';
-    btn.onclick = function(){ window.iniciarTeste3D('mosaico'); };
+    btn.innerHTML = '<span class="m3d-pulse-gold"></span><span>⚡ Testar 3D & RA</span>';
+    btn.onclick = function(){ window.iniciarTeste3D('sala3d'); };
     document.body.appendChild(btn);
   } else {
     btn.style.display = "flex";
@@ -5325,9 +5327,9 @@ if(typeof window !== "undefined"){
   var paramsTeste = null;
   try { paramsTeste = new URLSearchParams(location.search); } catch(e){}
   var faseParam = (paramsTeste && paramsTeste.get("teste")) || "";
-  if(faseParam || location.hash === "#teste"){
+  if(faseParam || location.hash === "#teste" || location.hash === "#sala3d" || location.hash === "#ra"){
     setTimeout(function(){
-      var f = (faseParam && faseParam !== "1" && faseParam !== "true" && faseParam !== "3d") ? faseParam : "mosaico";
+      var f = (faseParam === "mosaico" || faseParam === "mercado" || faseParam === "deducao" || faseParam === "resultado") ? faseParam : "sala3d";
       window.iniciarTeste3D(f);
     }, 250);
   }
