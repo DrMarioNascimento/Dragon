@@ -3,6 +3,7 @@ import { readFileSync, statSync, existsSync } from "node:fs";
 import { describe, it } from "node:test";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import vm from 'node:vm';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const ler = (p) => readFileSync(join(root, p), "utf8").replace(/\r\n/g, "\n");
@@ -13,6 +14,20 @@ describe("Mosaico RA & Sala 3D Volumétrica · Motor e Integração", () => {
   const mesaHtml = ler("v1/MOSAICO-mesa.html");
   const salaHtml = ler("v1/MOSAICO-26-a-sala-as-escuras.html");
   const cssSrc = ler("v1/css/mosaico-3d.css");
+
+  it('girar por mouse ou toque não abre inspeção; um clique seguinte continua funcionando',()=>{
+    const events={},globalEvents={};let raycasts=0;
+    const window={addEventListener:(name,fn)=>{globalEvents[name]=fn;}};
+    const dom={addEventListener:(name,fn)=>{events[name]=fn;},getBoundingClientRect:()=>({left:0,top:0,width:100,height:100})};
+    const THREE={Vector2:class{},Raycaster:class{setFromCamera(){}intersectObjects(){raycasts++;return [];}}};
+    vm.runInNewContext(engineSrc,{window,document:{getElementById:()=>null},THREE,console});
+    const engine=window.MosaicoRA;engine.renderer={domElement:dom};engine.scene={children:[]};engine.ligarControles();
+    events.mousedown({clientX:20,clientY:20});globalEvents.mousemove({clientX:80,clientY:20});globalEvents.mouseup();events.click({clientX:80,clientY:20});
+    assert.equal(raycasts,0,'soltar arrasto não investiga o objeto sob o cursor');
+    events.mousedown({clientX:80,clientY:20});globalEvents.mouseup();events.click({clientX:80,clientY:20});assert.equal(raycasts,1);
+    events.touchstart({touches:[{clientX:20,clientY:20}]});globalEvents.touchmove({touches:[{clientX:20,clientY:70}]});globalEvents.touchend();events.click({clientX:20,clientY:70});assert.equal(raycasts,1);
+    events.touchstart({touches:[{clientX:20,clientY:20}]});globalEvents.touchend();events.click({clientX:20,clientY:20});assert.equal(raycasts,2,'toque curto continua selecionando');
+  });
 
   it("Three.js local offline está presente e tem tamanho adequado (> 500 KB)", () => {
     assert.ok(existsSync(threePath), "v1/js/three.min.js deve existir");
@@ -39,7 +54,7 @@ describe("Mosaico RA & Sala 3D Volumétrica · Motor e Integração", () => {
       "gaveta", "secretaria", "espelho", "janela", "relogio"
     ];
     for (const obj of objetos) {
-      assert.match(engineSrc, new RegExp(`objetos3D\\["${obj}"\\]`), `Objeto canônico 3D ausente: ${obj}`);
+      assert.match(ler("v1/js/ac-room.js").replaceAll("objects[", "objetos3D["), new RegExp(`objetos3D\\["${obj}"\\]`), `Objeto canônico 3D ausente: ${obj}`);
     }
   });
 

@@ -209,6 +209,11 @@
   };
 
   Mosaico3D.loopParallax = function () {
+    if (document.hidden || (global.matchMedia && global.matchMedia('(prefers-reduced-motion: reduce)').matches)) {
+      document.querySelectorAll('.m3d-tilt-box').forEach(function (el) { el.style.transform = 'none'; });
+      Mosaico3D.parallaxFrame = requestAnimationFrame(Mosaico3D.loopParallax);
+      return;
+    }
     // Interpolação suave (Lerp)
     var k = 0.12;
     Mosaico3D.tilt.x += (Mosaico3D.tilt.targetX - Mosaico3D.tilt.x) * k;
@@ -232,7 +237,7 @@
       el.style.transform = "rotateX(" + rotX + "deg) rotateY(" + rotY + "deg)";
     });
 
-    requestAnimationFrame(Mosaico3D.loopParallax);
+    Mosaico3D.parallaxFrame = requestAnimationFrame(Mosaico3D.loopParallax);
   };
 
   /* ------------------------------------------------------------
@@ -341,19 +346,18 @@
 
   // Cartão 3D de Personagem ou Evidência com Flip Interativo
   Mosaico3D.htmlCartao3D = function (id, frenteHtml, versoHtml, seloEmoji) {
-    return '<div class="m3d-card-stage" onclick="Mosaico3D.flipCartao(\'' + id + '\')">' +
-      '<div class="m3d-card-3d m3d-tilt-box" id="card-3d-' + id + '">' +
-        '<div class="m3d-card-face m3d-card-front">' +
+    return '<div class="m3d-card-stage">' +
+      '<div class="m3d-card-tilt m3d-tilt-box"><div class="m3d-card-3d" id="card-3d-' + id + '">' +
+        '<div class="m3d-card-face m3d-card-front" aria-hidden="false">' +
           '<div class="m3d-hologram-seal">' + (seloEmoji || '🔍') + '</div>' +
           frenteHtml +
-          '<span class="muted" style="font-size:11px;text-align:center;margin-top:8px">Toque para virar o cartão e inspecionar</span>' +
         '</div>' +
-        '<div class="m3d-card-face m3d-card-back">' +
+        '<div class="m3d-card-face m3d-card-back" aria-hidden="true">' +
           '<span class="m3d-stamp">Confidencial</span>' +
           versoHtml +
-          '<span class="muted" style="font-size:11px;text-align:center;margin-top:8px">Toque para voltar à frente</span>' +
         '</div>' +
-      '</div>' +
+      '</div></div>' +
+      '<button type="button" class="m3d-card-turn" id="turn-3d-' + id + '" aria-controls="card-3d-' + id + '" aria-pressed="false" onclick="Mosaico3D.flipCartao(\'' + id + '\')">Virar fragmento</button>' +
     '</div>';
   };
 
@@ -361,6 +365,12 @@
     var el = document.getElementById("card-3d-" + id);
     if (el) {
       el.classList.toggle("flipped");
+      var flipped = el.classList.contains('flipped');
+      var button = document.getElementById('turn-3d-' + id);
+      if (button) { button.setAttribute('aria-pressed', String(flipped)); button.textContent = flipped ? 'Ver frente' : 'Virar fragmento'; }
+      var front = el.querySelector('.m3d-card-front'), back = el.querySelector('.m3d-card-back');
+      if (front) front.setAttribute('aria-hidden', String(flipped));
+      if (back) back.setAttribute('aria-hidden', String(!flipped));
       Mosaico3D.som.lacre();
     }
   };
@@ -438,6 +448,7 @@
      INICIALIZAÇÃO AUTOMÁTICA
      ------------------------------------------------------------ */
   function iniciar() {
+    if (document.documentElement.hasAttribute('data-ac-workbench')) return;
     Mosaico3D.iniciarGiroscopio();
     Mosaico3D.iniciarAtmosfera();
   }

@@ -59,6 +59,16 @@
     padding:max(16px,env(safe-area-inset-top)) 16px
             calc(env(safe-area-inset-bottom,0px) + 22px);}
   #topo{text-align:center}
+  .busca-caixa{max-width:560px;margin:10px auto 0;padding:12px 18px;border:1px solid #70978a66;border-radius:14px;background:linear-gradient(145deg,#183d35ee,#091b18ee);box-shadow:inset 0 1px 0 #c1dbc62b,inset 0 -3px 8px #0005,0 8px 20px #0007;text-align:left;width:100%;box-sizing:border-box}
+  .busca-caixa h2{margin:0;color:#dfc18a;font:700 14px/1.3 var(--sans);letter-spacing:.04em}
+  .busca-caixa #enigma,.busca-caixa #status,.busca-caixa #dica{max-width:none;text-align:left;margin:6px 0 0;min-height:0}
+  .busca-caixa #dica{font-size:15px}
+  body.ac-sala-visual #hud{z-index:200001;padding-top:max(76px,env(safe-area-inset-top));}
+  body.ac-sala-visual #card,body.ac-sala-visual #carta{z-index:300005}
+  body.ac-sala-visual #mosaico-ra-hud,body.ac-sala-visual .mosaico-ra-dica{display:none}
+  body.ac-xr-active{background:transparent!important}
+  body.ac-xr-active #c,body.ac-xr-active #veil,body.ac-xr-active #mosaico-ra-viewport canvas{visibility:hidden}
+  @media(max-height:600px){.busca-caixa{padding:7px 12px;margin-top:4px}.busca-caixa #enigma{font-size:17px}body.ac-sala-visual #hud{padding-top:12px}#local{display:none}}
   #local{font-size:clamp(12px,3.2vw,15px);letter-spacing:.18em;text-transform:uppercase;
     color:var(--t-max);font-weight:600;text-shadow:var(--scrim-strong)}
   /* o enigma é o objetivo, então é ele que manda na hierarquia. O status
@@ -317,18 +327,17 @@
 <div id="hud">
   <div id="topo">
     <div id="local">A Casa da Costa — a sala do térreo</div>
-    <div id="enigma">—</div>
+    <section class="busca-caixa" aria-labelledby="investigacao-titulo"><h2 id="investigacao-titulo">Investigação:</h2><div id="enigma">—</div></section>
     <div id="conta">1 DE 8</div>
-    <div id="status">A lanterna acende pouco.</div>
   </div>
   <div id="base">
     <div id="medidor"><div id="medidor-i"></div></div>
     <div id="firme"><div id="firme-i"></div></div>
-    <div id="dica">Gire o corpo devagar. O feixe encontra uma coisa de cada vez.</div>
+    <section class="busca-caixa" aria-labelledby="orientacoes-titulo"><h2 id="orientacoes-titulo">Orientações:</h2><div id="status" role="status">A lanterna acende pouco.</div><div id="dica">Gire o corpo devagar. O feixe encontra uma coisa de cada vez.</div></section>
     <div id="marcas"></div>
     <div id="botoes">
       <button id="b-luz" class="acc">Lanterna</button>
-      <button id="b-ra" type="button" style="border-color:#7fd4ff;color:#c6ecff;">3D / RA</button>
+      <button id="b-ra" type="button" style="border-color:#7fd4ff;color:#c6ecff;">Alternar visual</button>
       <button id="b-mestre">Mestre</button>
     </div>
   </div>
@@ -371,7 +380,9 @@
       As luzes caíram e você está no escuro. Acenda a lanterna e ache os objetos até preencher a barrinha. São <b id="sala-explica-n">9</b> pistas para achar.
     </div>
   </div>
-  <button class="go" id="b-entrar">Entrar na sala</button>
+  <button class="go" id="b-entrar-ra" type="button">Entrar em RA</button>
+  <p class="small" id="ra-disponibilidade" role="status">Verificando a disponibilidade de RA…</p>
+  <button class="alt" id="b-entrar" type="button">Prefiro jogar sem RA</button>
   <button class="alt" id="b-sim">Estou no computador</button>
   <div id="rodada">RODADA <b id="cod-rodada">----</b></div>
   <div id="nota">Confiram: o código tem de ser o mesmo em todos os aparelhos.</div>
@@ -396,7 +407,7 @@
 </div>
 
 <script src="js/three.min.js"></script>
-<script src="js/mosaico-ra-engine.js"></script>
+<script src="js/vendor/GLTFLoader.js"></script><script src="js/ac-desk.js"></script><script src="js/ac-room-layout.js"></script><script src="js/ac-room-art.js"></script><script src="js/ac-room.js"></script><script src="js/mosaico-ra-engine.js"></script>
 <!-- Protocolo com a Mesa e ativacao de sensor: um so arquivo para as tres tarefas. -->
 <script src="js/tarefa-sensor.js?v=20260907-android-hold"></script>
 <script>
@@ -473,14 +484,14 @@ var OBJETOS = [
     obs:"O vaso foi arrastado. A marca no assoalho ainda tem terra dentro." },
 
   { id:"escrivaninha", enigma:"Tem pernas que não andam e uma gaveta que fala.", nome:"A escrivaninha", tipo:"Chão", hora:"21:26",
-    alt:0, larg:1.18, altura:0.79, chao:true,
+    alt:0, larg:1.28, altura:0.765, chao:true,
     txt:"A gaveta de cima está aberta um palmo. Papéis empilhados com esmero, e um deles fora do lugar, atravessado. O tinteiro está tampado. A gaveta é funda — vai muito além dos papéis.",
     obs:"Quem mexeu aqui teve tempo de empilhar de novo. Mas não de conferir. E a gaveta não acaba onde os papéis acabam." },
 
   { id:"espelho", enigma:"Só diz a verdade — e ainda assim ao contrário.", nome:"O espelho oval", tipo:"Parede", hora:"21:27",
     alt:1.70, larg:0.52, altura:0.74, chao:false,
     txt:"Moldura de madeira clara, vidro com a prata comendo as bordas. Ele devolve a sua lanterna na cara, e por um segundo você não vê mais nada.",
-    obs:"Deste ponto, o espelho mostra a porta. Quem estava aqui viu quem entrou." },
+    obs:"A prata gasta distorce as bordas, mas o centro ainda devolve a luz da sala." },
 
   { id:"janela", enigma:"Está fechada, e mesmo assim a tempestade entra por ela.", nome:"A janela do mar", tipo:"Parede", hora:"21:28",
     alt:1.50, larg:1.05, altura:1.30, chao:false,
@@ -537,7 +548,7 @@ var EMBED=false, SEMENTE_URL="", RUN_ID="", DEV=false;
 try{
   var _q=new URLSearchParams(location.search);
   EMBED       = _q.get("embed")==="1";
-  SEMENTE_URL = (_q.get("s")||"").trim().toUpperCase();
+  SEMENTE_URL = (_q.get("s")||_q.get("cenario")||"").trim().toUpperCase();
   RUN_ID      = (_q.get("run")||"").trim();
   /* ?dev=1 — modo de teste. O botao de computador nao existe para o jogador:
      a tarefa e exclusiva de celular. Ele so aparece com dev=1, para nos
@@ -752,57 +763,15 @@ var olho=[0,0,CFG.OLHO];
 
 function montaSala(seedStr){
   SEED=seedStr;
-  var rnd=rngFrom(hashStr(seedStr));
-
-  /* os rumos: um por setor de 45°, embaralhados, com um empurrãozinho
-     dentro do setor. Assim nunca há dois objetos colados — a sala fica
-     legível e o grupo consegue dizer "o cofre está a nordeste".        */
-  var setores=[0,1,2,3,4,5,6,7];
-  for(var i=setores.length-1;i>0;i--){
-    var j=(rnd()*(i+1))|0, t=setores[i]; setores[i]=setores[j]; setores[j]=t;
+  var layout=ACRoom.layout(seedStr);
+  olho=layout.eye.slice();
+  for(var i=0;i<OBJETOS.length;i++){
+    var o=OBJETOS[i],pose=layout.objects[o.id];
+    o.visto=false;o.abre=0;o.anunciado=false;o.oculto=!!o.escondeAtras;
+    o.bearing=pose.bearing;o.d=pose.d;o.alt=pose.alt;
+    posicionaEm(o);
   }
-  /* SÓ O QUE SE PROCURA GANHA SETOR. Os escondidos herdam o rumo da capa
-     logo abaixo, então gastar um setor com eles desperdiçava direção — e,
-     com o nono objeto, `setores[8]` seria undefined e o rumo viraria NaN. */
-  var aoRedor=OBJETOS.filter(function(o){ return !o.escondeAtras; });
-  for(i=0;i<OBJETOS.length;i++){ OBJETOS[i].visto=false; OBJETOS[i].abre=0; OBJETOS[i].anunciado=false; }
-  for(i=0;i<aoRedor.length;i++){
-    var o=aoRedor[i];
-    o.bearing = wrap360(setores[i]*45 + (rnd()-0.5)*17);
-    posiciona(o);
-  }
-  /* CADA ESCONDIDO FICA ATRÁS DA SUA CAPA, no mesmo rumo: o cofre atrás do
-     quadro — é por isso que o retângulo limpo na parede é maior que a
-     moldura — e a secretária no fundo da gaveta da escrivaninha. Só existem
-     depois que a capa for lida.
-     A altura é herdada quando os dois ocupam o mesmo ponto da parede, e NÃO
-     quando o escondido tem lugar próprio dentro do móvel (a gaveta fica bem
-     abaixo do tampo). Por isso `herdaAlt`. */
-  var pares=OBJETOS.filter(function(o){ return !!o.escondeAtras; });
-  for(i=0;i<pares.length;i++){
-    var h=pares[i], cv=acha_id(h.escondeAtras);
-    h.bearing=cv.bearing;
-    if(h.herdaAlt!==false && !cv.chao) h.alt=cv.alt;
-    h.oculto=true;
-    posiciona(h);
-  }
-
-  /* a pessoa não fica exatamente no meio da sala */
-  olho=[ (rnd()-0.5)*0.7, (rnd()-0.5)*0.5, CFG.OLHO ];
-  for(i=0;i<OBJETOS.length;i++) posiciona(OBJETOS[i]);
-
-  /* O AFASTAMENTO DE PROFUNDIDADE VEM POR ÚLTIMO.
-     Estava antes do laço acima — e `posiciona()` recalcula o.d do zero,
-     então o laço apagava o afastamento e deixava quadro e cofre EXATAMENTE
-     coincidentes. Com d igual, a ordenação por profundidade empatava e o
-     cofre podia ser pintado por cima da moldura, matando a revelação da
-     dobradiça.                                                          */
-  for(i=0;i<pares.length;i++){
-    var hh=pares[i], cc=acha_id(hh.escondeAtras);
-    cc.d*=0.955;              /* a capa vem para a frente */
-    hh.d=cc.d*1.042;          /* e o escondido fica atrás dela */
-    posicionaEm(cc); posicionaEm(hh);
-  }
+  ACRoom.remember(seedStr);
   /* pose de origem do quadro, para a descida ao chao poder interpolar */
   var qd=acha_id("quadro");
   qdRumo0=qd.bearing; qdDist0=qd.d; qdAlt0=qd.alt;
@@ -1048,513 +1017,16 @@ function desenhaObjeto(o){
 /* ruído determinístico: a mesma entrada dá sempre o mesmo valor. Textura
    sorteada com Math.random() cintila de um quadro para o outro e denuncia
    na hora que aquilo é desenho.                                        */
-function rnd1(n){ var x=Math.sin(n*127.1+311.7)*43758.5453; return x-Math.floor(x); }
-
-/* veio de madeira dentro de um retângulo, em metros */
-function veioMadeira(x0,y0,larg,alt,n,sem,forca){
-  sc.save();
-  sc.beginPath(); sc.rect(x0,y0,larg,alt); sc.clip();
-  for(var i=0;i<n;i++){
-    var t=rnd1(sem+i*3.7);
-    var y=y0+t*alt;
-    var amp=alt*0.045*(0.35+rnd1(sem+i*7.1));
-    sc.strokeStyle="rgba(26,14,7,"+((0.12+rnd1(sem+i*2.3)*0.26)*forca).toFixed(3)+")";
-    sc.lineWidth=0.0022+rnd1(sem+i*5.3)*0.0032;
-    sc.beginPath();
-    for(var k=0;k<=7;k++){
-      var xx=x0+larg*k/7, yy=y+Math.sin(k*0.95+t*11)*amp;
-      if(k) sc.lineTo(xx,yy); else sc.moveTo(xx,yy);
-    }
-    sc.stroke();
-  }
-  /* dois nós, que é o que faz o olho aceitar como madeira */
-  for(var m=0;m<2;m++){
-    var nx=x0+larg*(0.18+rnd1(sem+m*11.3)*0.64);
-    var ny=y0+alt*(0.22+rnd1(sem+m*13.7)*0.56);
-    var nr=Math.min(larg,alt)*(0.06+rnd1(sem+m*17.1)*0.07);
-    sc.strokeStyle="rgba(26,14,7,"+(0.26*forca).toFixed(3)+")";
-    for(var a=1;a<=3;a++){
-      sc.lineWidth=0.0022;
-      sc.beginPath(); sc.ellipse(nx,ny,nr*a*0.45,nr*a*0.24,0.35,0,TAU); sc.stroke();
-    }
-  }
-  /* luz rasante em cima, para a superfície não ficar chapada */
-  var lg=sc.createLinearGradient(x0,y0+alt,x0,y0);
-  lg.addColorStop(0,"rgba(255,226,186,"+(0.07*forca).toFixed(3)+")");
-  lg.addColorStop(0.45,"rgba(255,226,186,0)");
-  sc.fillStyle=lg; sc.fillRect(x0,y0,larg,alt);
-  sc.restore();
-}
-
-function sombraChao(larg,prof){
-  var g=sc.createRadialGradient(0,0,0,0,0,larg);
-  g.addColorStop(0,"rgba(0,0,0,.62)"); g.addColorStop(1,"rgba(0,0,0,0)");
-  sc.fillStyle=g;
-  sc.save(); sc.scale(1,prof/larg);
-  sc.beginPath(); sc.arc(0,0,larg,0,TAU); sc.fill();
-  sc.restore();
-}
-function sombraParede(l,a){
-  sc.fillStyle="rgba(0,0,0,.5)";
-  sc.beginPath(); sc.rect(-l/2+0.025,-a/2-0.025,l,a); sc.fill();
-}
-
-/* --- o quadro torto ---------------------------------------------------- */
-function dQuadro(o){
-  var l=o.larg, a=o.altura, ab=o.abre||0;
-  /* o retângulo limpo, MAIOR que a moldura — a pista visual de que o quadro
-     saiu do lugar. Some quando a moldura abre e o cofre aparece.       */
-  if(ab<0.99){
-    sc.fillStyle="rgba(255,240,220,"+(0.055*(1-ab)).toFixed(3)+")";
-    sc.fillRect(-l*0.60,-a*0.60,l*1.20,a*1.20);
-  }
-
-  sc.save();
-  if(ab>0.001){
-    /* NO CHÃO, ESCORADO NO RODAPÉ.
-       Quadro em prego não abre como porta — é retirado e apoiado. Visto de
-       pé, um quadro encostado na parede aparece encurtado na vertical (ele
-       tomba para trás) e desalinhado, porque ninguém apoia no esquadro. */
-    sombraChao(l*0.62, 0.10*ab);           /* contato com o assoalho */
-    sc.rotate(-0.10*ab);                   /* fora de esquadro, para a esquerda */
-    sc.scale(1, 1-ab*0.30);                /* tombado para trás */
-    sc.translate(0, a*0.03*ab);
-  } else {
-    sc.rotate(-0.045);                     /* na parede: torto para a direita */
-  }
-  sombraParede(l,a);
-  /* moldura dourada */
-  var mg=sc.createLinearGradient(-l/2,a/2,l/2,-a/2);
-  mg.addColorStop(0,"#6b5323"); mg.addColorStop(0.42,"#c9a45c");
-  mg.addColorStop(0.55,"#f0d79a"); mg.addColorStop(1,"#5c471f");
-  sc.fillStyle=mg; sc.fillRect(-l/2,-a/2,l,a);
-  /* friso interno */
-  sc.strokeStyle="#3a2c13"; sc.lineWidth=0.006;
-  sc.strokeRect(-l/2+0.045,-a/2+0.045,l-0.09,a-0.09);
-  /* a tela: marinha */
-  var tl=l-0.11, ta=a-0.11;
-  var cg=sc.createLinearGradient(0,ta/2,0,-ta/2);
-  cg.addColorStop(0,"#1d2a36"); cg.addColorStop(0.52,"#243544"); cg.addColorStop(1,"#0d1620");
-  sc.fillStyle=cg; sc.fillRect(-tl/2,-ta/2,tl,ta);
-  /* horizonte e ondas */
-  sc.strokeStyle="rgba(180,205,230,.30)"; sc.lineWidth=0.004;
-  sc.beginPath(); sc.moveTo(-tl/2,0.01); sc.lineTo(tl/2,0.01); sc.stroke();
-  for(var i=1;i<=4;i++){
-    sc.strokeStyle="rgba(170,198,225,"+(0.18-i*0.03)+")";
-    sc.beginPath();
-    for(var xx=-tl/2; xx<=tl/2; xx+=0.02)
-      sc.lineTo(xx, 0.005-i*0.026+Math.sin(xx*22+i)*0.004);
-    sc.stroke();
-  }
-  /* o farol que não ilumina */
-  sc.fillStyle="rgba(220,232,245,.5)";
-  sc.fillRect(tl*0.29,0.012,0.016,0.075);
-  sc.fillStyle="rgba(255,214,150,.35)";
-  sc.beginPath(); sc.arc(tl*0.29+0.008,0.090,0.012,0,TAU); sc.fill();
-  /* verniz */
-  var vg=sc.createLinearGradient(-tl/2,ta/2,tl/2,-ta/2);
-  vg.addColorStop(0,"rgba(255,255,255,.07)"); vg.addColorStop(0.5,"rgba(255,255,255,0)");
-  sc.fillStyle=vg; sc.fillRect(-tl/2,-ta/2,tl,ta);
-  sc.restore();
-  /* poeira na borda de cima */
-  sc.fillStyle="rgba(230,220,200,.10)";
-  sc.fillRect(-l/2,a/2-0.008,l,0.008);
-}
-
-/* --- o abajur de pé (emite luz própria) --------------------------------- */
-function dLuminaria(o){
-  var A=o.altura;
-  sombraChao(0.34,0.13);
-  /* pés */
-  sc.strokeStyle="#8a6a33"; sc.lineWidth=0.016;
-  for(var i=0;i<3;i++){
-    var a=i/3*TAU+0.5;
-    sc.beginPath(); sc.moveTo(0,0.02);
-    sc.lineTo(Math.cos(a)*0.19, 0.005);
-    sc.stroke();
-  }
-  /* haste */
-  var hg=sc.createLinearGradient(-0.012,0,0.012,0);
-  hg.addColorStop(0,"#6b5223"); hg.addColorStop(0.4,"#d8b567");
-  hg.addColorStop(0.6,"#f2dda6"); hg.addColorStop(1,"#5d471d");
-  sc.fillStyle=hg; sc.fillRect(-0.012,0.02,0.024,A-0.30);
-  /* nó decorativo */
-  sc.fillStyle="#e0c079";
-  sc.beginPath(); sc.ellipse(0,A*0.45,0.022,0.030,0,0,TAU); sc.fill();
-  /* cúpula */
-  var cy0=A-0.30, ct=0.13, cb=0.23, ch=0.28;
-  var cg=sc.createLinearGradient(-cb,0,cb,0);
-  cg.addColorStop(0,"#7d6a4e"); cg.addColorStop(0.35,"#e6d5b4");
-  cg.addColorStop(0.55,"#fff2d8"); cg.addColorStop(1,"#6f5e45");
-  sc.fillStyle=cg;
-  sc.beginPath();
-  sc.moveTo(-cb,cy0); sc.lineTo(cb,cy0); sc.lineTo(ct,cy0+ch); sc.lineTo(-ct,cy0+ch);
-  sc.closePath(); sc.fill();
-  /* costuras */
-  sc.strokeStyle="rgba(90,70,45,.35)"; sc.lineWidth=0.004;
-  for(var k=-2;k<=2;k++){
-    sc.beginPath(); sc.moveTo(cb*k/2.4,cy0); sc.lineTo(ct*k/2.4,cy0+ch); sc.stroke();
-  }
-  /* brilho quente por dentro (fica visível mesmo fora do feixe) */
-  sc.save();
-  sc.globalCompositeOperation="lighter";
-  var lg=sc.createRadialGradient(0,cy0+ch*0.4,0,0,cy0+ch*0.4,0.42);
-  lg.addColorStop(0,"rgba(255,196,120,.30)");
-  lg.addColorStop(0.45,"rgba(255,170,90,.10)");
-  lg.addColorStop(1,"rgba(255,160,80,0)");
-  sc.fillStyle=lg;
-  sc.beginPath(); sc.arc(0,cy0+ch*0.4,0.42,0,TAU); sc.fill();
-  sc.restore();
-  /* cordinha */
-  sc.strokeStyle="rgba(230,215,185,.55)"; sc.lineWidth=0.004;
-  sc.beginPath(); sc.moveTo(cb*0.62,cy0+0.02); sc.lineTo(cb*0.66,cy0-0.16); sc.stroke();
-  sc.fillStyle="#d8b567";
-  sc.beginPath(); sc.arc(cb*0.66,cy0-0.175,0.012,0,TAU); sc.fill();
-}
-
-/* --- o vaso de plantas -------------------------------------------------- */
-function dVaso(o){
-  sombraChao(0.30,0.11);
-  var A=0.34, rb=0.11, rt=0.155;
-  /* corpo */
-  var vg=sc.createLinearGradient(-rt,0,rt,0);
-  vg.addColorStop(0,"#4a3428"); vg.addColorStop(0.32,"#8d6449");
-  vg.addColorStop(0.5,"#a8795a"); vg.addColorStop(1,"#3e2b21");
-  sc.fillStyle=vg;
-  sc.beginPath();
-  sc.moveTo(-rb,0); sc.lineTo(rb,0);
-  sc.bezierCurveTo(rt*1.12,A*0.45, rt,A*0.8, rt,A);
-  sc.lineTo(-rt,A);
-  sc.bezierCurveTo(-rt,A*0.8, -rt*1.12,A*0.45, -rb,0);
-  sc.closePath(); sc.fill();
-  /* borda */
-  sc.fillStyle="#b7855f";
-  sc.beginPath(); sc.ellipse(0,A,rt,0.028,0,0,TAU); sc.fill();
-  sc.fillStyle="#2b1d16";
-  sc.beginPath(); sc.ellipse(0,A,rt-0.017,0.019,0,0,TAU); sc.fill();
-  /* a trinca */
-  sc.strokeStyle="rgba(30,18,12,.75)"; sc.lineWidth=0.005;
-  sc.beginPath(); sc.moveTo(rt*0.30,A-0.01);
-  sc.lineTo(rt*0.18,A*0.62); sc.lineTo(rt*0.30,A*0.34); sc.stroke();
-  /* terra */
-  sc.fillStyle="#241a12";
-  sc.beginPath(); sc.ellipse(0,A-0.004,rt-0.020,0.016,0,0,TAU); sc.fill();
-  /* folhas */
-  var folhas=[[-0.9,0.30,-0.5],[-0.35,0.40,-0.15],[0.15,0.44,0.1],[0.7,0.34,0.5],
-              [1.15,0.22,0.95],[-1.25,0.20,-0.9]];
-  for(var i=0;i<folhas.length;i++){
-    var incl=folhas[i][0], comp=folhas[i][1], curva=folhas[i][2];
-    var tom=["#3f5c33","#4a6b3a","#365029","#527040"][i%4];
-    sc.save(); sc.translate(0,A+0.005); sc.rotate(incl*0.45);
-    var g=sc.createLinearGradient(0,0,0,comp);
-    g.addColorStop(0,"#22331b"); g.addColorStop(0.5,tom); g.addColorStop(1,"#5d7d49");
-    sc.fillStyle=g;
-    sc.beginPath(); sc.moveTo(0,0);
-    sc.bezierCurveTo(0.055+curva*0.03,comp*0.42, 0.030,comp*0.82, curva*0.05,comp);
-    sc.bezierCurveTo(-0.030,comp*0.82, -0.055+curva*0.03,comp*0.42, 0,0);
-    sc.fill();
-    sc.strokeStyle="rgba(20,32,14,.5)"; sc.lineWidth=0.003;
-    sc.beginPath(); sc.moveTo(0,0.01); sc.lineTo(curva*0.045,comp*0.94); sc.stroke();
-    sc.restore();
-  }
-  /* as duas folhas caídas, cortadas */
-  sc.fillStyle="#46613a";
-  for(var f=0;f<2;f++){
-    sc.save(); sc.translate(0.20+f*0.11,0.006); sc.rotate(0.9-f*1.7); sc.scale(1,0.30);
-    sc.beginPath(); sc.ellipse(0,0,0.055,0.020,0,0,TAU); sc.fill();
-    sc.restore();
-  }
-}
-
-/* --- o relógio parado --------------------------------------------------- */
-function dRelogio(o){
-  var r=0.245;
-  /* o pêndulo puxava a massa visual para baixo do ponto de mira: a pessoa
-     centralizava o conjunto e errava o alvo por uns 3°. Sobe o desenho
-     para que o que se vê e o que se acerta sejam a mesma coisa.      */
-  sc.translate(0,0.12);
-  sombraParede(r*2.1,o.altura);
-  /* caixa */
-  var cg=sc.createLinearGradient(-r,r,r,-r);
-  cg.addColorStop(0,"#241812"); cg.addColorStop(0.45,"#4a3122");
-  cg.addColorStop(0.6,"#5c3e2b"); cg.addColorStop(1,"#1d130e");
-  sc.fillStyle=cg;
-  sc.beginPath(); sc.arc(0,0,r,0,TAU); sc.fill();
-  /* veio da madeira do aro, recortado no próprio aro */
-  sc.save();
-  sc.beginPath(); sc.arc(0,0,r,0,TAU);
-  sc.arc(0,0,r*0.84,0,TAU,true);
-  sc.clip("evenodd");
-  veioMadeira(-r,-r,r*2,r*2,12,71,0.9);
-  sc.restore();
-  /* mostrador */
-  var mg=sc.createRadialGradient(-r*0.3,r*0.3,0,0,0,r*0.84);
-  mg.addColorStop(0,"#efe3c6"); mg.addColorStop(0.7,"#d8c9a5"); mg.addColorStop(1,"#a8977a");
-  sc.fillStyle="#e6d9ba";
-  sc.beginPath(); sc.arc(0,0,r*0.84,0,TAU); sc.fill();
-  sc.fillStyle=mg; sc.globalAlpha=0.5;
-  sc.beginPath(); sc.arc(0,0,r*0.84,0,TAU); sc.fill(); sc.globalAlpha=1;
-  /* traços das horas */
-  sc.strokeStyle="#3a2a1a";
-  for(var i=0;i<12;i++){
-    var a=i/12*TAU, g=(i%3===0);
-    sc.lineWidth=g?0.008:0.004;
-    sc.beginPath();
-    sc.moveTo(Math.cos(a)*r*0.74, Math.sin(a)*r*0.74);
-    sc.lineTo(Math.cos(a)*(g?r*0.60:r*0.66), Math.sin(a)*(g?r*0.60:r*0.66));
-    sc.stroke();
-  }
-  /* 21h29 — ponteiros, o segundo em que a casa apagou */
-  function ponteiro(ang,comp,esp){
-    sc.save(); sc.rotate(PI/2-ang);
-    sc.strokeStyle="#2a1c10"; sc.lineWidth=esp;
-    sc.beginPath(); sc.moveTo(0,-0.012); sc.lineTo(0,comp); sc.stroke();
-    sc.restore();
-  }
-  ponteiro((9+14/60)/12*TAU, r*0.44, 0.011);   /* horas */
-  ponteiro(14/60*TAU,        r*0.68, 0.007);   /* minutos */
-  sc.fillStyle="#c9a45c";
-  sc.beginPath(); sc.arc(0,0,0.011,0,TAU); sc.fill();
-  /* vidro */
-  var vg=sc.createLinearGradient(-r,r,r*0.2,-r*0.2);
-  vg.addColorStop(0,"rgba(255,255,255,.16)"); vg.addColorStop(0.5,"rgba(255,255,255,0)");
-  sc.fillStyle=vg;
-  sc.beginPath(); sc.arc(0,0,r*0.84,0,TAU); sc.fill();
-  /* pêndulo parado, fora de prumo */
-  sc.save(); sc.rotate(0.16);
-  sc.strokeStyle="#8a6a33"; sc.lineWidth=0.005;
-  sc.beginPath(); sc.moveTo(0,-r*0.9); sc.lineTo(0,-r*1.85); sc.stroke();
-  var pg=sc.createRadialGradient(-0.01,-r*1.9,0,0,-r*1.92,0.045);
-  pg.addColorStop(0,"#f0d79a"); pg.addColorStop(1,"#7d6128");
-  sc.fillStyle=pg;
-  sc.beginPath(); sc.arc(0,-r*1.92,0.042,0,TAU); sc.fill();
-  sc.restore();
-}
-
-/* --- a escrivaninha ----------------------------------------------------- */
-function dEscrivaninha(o){
-  var l=o.larg, A=o.altura, prof=0.16;
-  sombraChao(l*0.62,0.16);
-  /* pernas torneadas */
-  sc.fillStyle="#2a1d14";
-  sc.fillRect(-l/2+0.03,0,0.045,A-0.10);
-  sc.fillRect( l/2-0.075,0,0.045,A-0.10);
-  veioMadeira(-l/2+0.03,0,0.045,A-0.10,5,17,0.7);
-  veioMadeira( l/2-0.075,0,0.045,A-0.10,5,29,0.7);
-  /* anéis do torneado */
-  sc.strokeStyle="rgba(20,12,6,.45)"; sc.lineWidth=0.004;
-  for(var an=0;an<3;an++){
-    var ay=(A-0.10)*(0.22+an*0.26);
-    sc.beginPath(); sc.moveTo(-l/2+0.028,ay); sc.lineTo(-l/2+0.077,ay); sc.stroke();
-    sc.beginPath(); sc.moveTo( l/2-0.077,ay); sc.lineTo( l/2-0.028,ay); sc.stroke();
-  }
-  /* corpo/gavetas */
-  var bg=sc.createLinearGradient(0,A-0.30,0,A);
-  bg.addColorStop(0,"#33241a"); bg.addColorStop(0.55,"#553b28"); bg.addColorStop(1,"#3d2a1d");
-  sc.fillStyle=bg;
-  sc.fillRect(-l/2,A-0.30,l,0.30);
-  veioMadeira(-l/2,A-0.30,l,0.30,14,43,1);
-  /* tampo, com o veio correndo no comprimento e o topo mais claro */
-  var tg=sc.createLinearGradient(0,A,0,A+0.045);
-  tg.addColorStop(0,"#6b4a32"); tg.addColorStop(1,"#412d1e");
-  sc.fillStyle=tg;
-  sc.fillRect(-l/2-0.03,A,l+0.06,0.042);
-  veioMadeira(-l/2-0.03,A,l+0.06,0.042,9,61,1);
-  /* fio de luz na quina do tampo */
-  sc.fillStyle="rgba(255,228,190,.16)";
-  sc.fillRect(-l/2-0.03,A+0.040,l+0.06,0.004);
-  /* gaveta de cima, aberta um palmo */
-  sc.fillStyle="#20160f";
-  sc.fillRect(-l/2+0.05,A-0.145,l-0.10,0.105);
-  var gg=sc.createLinearGradient(0,A-0.145,0,A-0.04);
-  gg.addColorStop(0,"#4a3222"); gg.addColorStop(1,"#63452e");
-  sc.fillStyle=gg;
-  sc.fillRect(-l/2+0.05,A-0.135,l-0.10,0.085);
-  veioMadeira(-l/2+0.05,A-0.135,l-0.10,0.085,8,89,1);
-  sc.fillStyle="#c9a45c";
-  sc.fillRect(-0.055,A-0.100,0.11,0.014);
-  /* papéis no tampo, um atravessado */
-  var papeis=[[-0.20,0.0,0.0],[-0.17,0.006,0.04],[-0.22,0.012,-0.03],[0.16,0.004,0.38]];
-  for(var i=0;i<papeis.length;i++){
-    sc.save();
-    sc.translate(papeis[i][0], A+0.044+papeis[i][1]);
-    sc.rotate(papeis[i][2]);
-    sc.fillStyle=i===3?"#d8cdb4":"#e5dcc6";
-    sc.fillRect(-0.105,-0.001,0.21,0.145);
-    sc.strokeStyle="rgba(90,75,50,.28)"; sc.lineWidth=0.0025;
-    for(var r=0;r<5;r++){
-      sc.beginPath(); sc.moveTo(-0.085,0.026+r*0.024); sc.lineTo(0.085,0.026+r*0.024); sc.stroke();
-    }
-    sc.restore();
-  }
-  /* tinteiro tampado */
-  sc.fillStyle="#171b22";
-  sc.beginPath(); sc.rect(0.36,A+0.044,0.070,0.058); sc.fill();
-  sc.fillStyle="#c9a45c";
-  sc.fillRect(0.362,A+0.100,0.066,0.012);
-}
-
-/* --- o espelho oval (devolve a lanterna) -------------------------------- */
-function dEspelho(o){
-  var rx=o.larg/2, ry=o.altura/2;
-  sombraParede(o.larg,o.altura);
-  /* moldura */
-  var fg=sc.createLinearGradient(-rx,ry,rx,-ry);
-  fg.addColorStop(0,"#4d3a26"); fg.addColorStop(0.45,"#9c7a4e");
-  fg.addColorStop(0.58,"#c2a06d"); fg.addColorStop(1,"#3d2d1d");
-  sc.fillStyle=fg;
-  sc.beginPath(); sc.ellipse(0,0,rx,ry,0,0,TAU); sc.fill();
-  /* vidro */
-  var gg=sc.createLinearGradient(-rx,ry,rx,-ry);
-  gg.addColorStop(0,"#2b3947"); gg.addColorStop(0.45,"#44586a");
-  gg.addColorStop(0.62,"#586f83"); gg.addColorStop(1,"#232e39");
-  sc.fillStyle=gg;
-  sc.beginPath(); sc.ellipse(0,0,rx-0.035,ry-0.035,0,0,TAU); sc.fill();
-  /* prata comida nas bordas */
-  sc.save();
-  sc.beginPath(); sc.ellipse(0,0,rx-0.035,ry-0.035,0,0,TAU); sc.clip();
-  sc.fillStyle="rgba(70,60,50,.55)";
-  for(var i=0;i<14;i++){
-    var a=i/14*TAU, rr=0.02+((i*37)%9)*0.004;
-    sc.beginPath();
-    sc.arc(Math.cos(a)*(rx-0.05), Math.sin(a)*(ry-0.05), rr, 0, TAU);
-    sc.fill();
-  }
-  /* o reflexo da porta, ao fundo */
-  sc.fillStyle="rgba(12,16,22,.75)";
-  sc.fillRect(-rx*0.30,-ry*0.75,rx*0.60,ry*1.25);
-  sc.strokeStyle="rgba(200,215,235,.16)"; sc.lineWidth=0.005;
-  sc.strokeRect(-rx*0.30,-ry*0.75,rx*0.60,ry*1.25);
-  sc.restore();
-  /* o clarão de volta */
-  sc.save();
-  sc.globalCompositeOperation="lighter";
-  var bg=sc.createRadialGradient(-rx*0.12,ry*0.10,0,-rx*0.12,ry*0.10,rx*1.5);
-  bg.addColorStop(0,"rgba(255,252,245,.55)");
-  bg.addColorStop(0.28,"rgba(210,230,255,.18)");
-  bg.addColorStop(1,"rgba(180,215,255,0)");
-  sc.fillStyle=bg;
-  sc.beginPath(); sc.arc(-rx*0.12,ry*0.10,rx*1.5,0,TAU); sc.fill();
-  sc.restore();
-}
-
-/* --- a janela do mar ---------------------------------------------------- */
-function dJanela(o){
-  var l=o.larg, a=o.altura;
-  /* vão escuro */
-  var ng=sc.createLinearGradient(0,a/2,0,-a/2);
-  ng.addColorStop(0,"#101c28"); ng.addColorStop(0.6,"#16232f"); ng.addColorStop(1,"#0a121a");
-  sc.fillStyle=ng; sc.fillRect(-l/2,-a/2,l,a);
-  /* chuva descendo por fora */
-  sc.strokeStyle="rgba(180,210,235,.30)"; sc.lineWidth=0.004;
-  for(var i=0;i<26;i++){
-    var rx=-l/2+((i*97)%100)/100*l, ry=-a/2+((i*53)%100)/100*a;
-    sc.beginPath(); sc.moveTo(rx,ry); sc.lineTo(rx-0.008,ry-0.055); sc.stroke();
-  }
-  /* caixilho */
-  sc.fillStyle="#33261a";
-  sc.fillRect(-l/2,-a/2,l,0.045); sc.fillRect(-l/2,a/2-0.045,l,0.045);
-  sc.fillRect(-l/2,-a/2,0.045,a); sc.fillRect(l/2-0.045,-a/2,0.045,a);
-  sc.fillRect(-0.020,-a/2,0.040,a); sc.fillRect(-l/2,-0.020,l,0.040);
-  sc.strokeStyle="rgba(255,226,190,.10)"; sc.lineWidth=0.004;
-  sc.strokeRect(-l/2+0.045,-a/2+0.045,l-0.09,a-0.09);
-  /* trinco fechado */
-  sc.fillStyle="#c9a45c";
-  sc.fillRect(-0.030,-0.075,0.060,0.020);
-  sc.beginPath(); sc.arc(0.030,-0.065,0.016,0,TAU); sc.fill();
-  /* peitoril molhado */
-  sc.fillStyle="#3d2d1d"; sc.fillRect(-l/2-0.035,-a/2-0.055,l+0.07,0.055);
-  sc.save();
-  sc.globalCompositeOperation="lighter";
-  sc.fillStyle="rgba(170,205,235,.18)";
-  sc.fillRect(-l/2-0.02,-a/2-0.050,l+0.04,0.016);
-  sc.restore();
-  /* cortina de um lado */
-  sc.fillStyle="rgba(30,26,22,.88)";
-  sc.beginPath();
-  sc.moveTo(-l/2-0.02,a/2+0.02);
-  sc.lineTo(-l/2+0.20,a/2+0.02);
-  for(var y=a/2; y>=-a/2-0.06; y-=0.06)
-    sc.lineTo(-l/2+0.20+Math.sin(y*7)*0.022, y);
-  sc.lineTo(-l/2-0.02,-a/2-0.06);
-  sc.closePath(); sc.fill();
-}
-
-/* --- o cofre ------------------------------------------------------------ */
-function dCofre(o){
-  var l=o.larg, a=o.altura;
-  sombraParede(l,a);
-  /* corpo */
-  var bg=sc.createLinearGradient(-l/2,a/2,l/2,-a/2);
-  bg.addColorStop(0,"#12211c"); bg.addColorStop(0.4,"#22392f");
-  bg.addColorStop(0.55,"#2c4739"); bg.addColorStop(1,"#0e1a15");
-  sc.fillStyle=bg; sc.fillRect(-l/2,-a/2,l,a);
-  /* chanfro */
-  sc.strokeStyle="rgba(255,240,215,.13)"; sc.lineWidth=0.007;
-  sc.strokeRect(-l/2+0.020,-a/2+0.020,l-0.04,a-0.04);
-  sc.strokeStyle="rgba(0,0,0,.5)"; sc.lineWidth=0.006;
-  sc.strokeRect(-l/2+0.038,-a/2+0.038,l-0.076,a-0.076);
-  /* dobradiças */
-  sc.fillStyle="#7d6a4a";
-  sc.fillRect(l/2-0.030,a/2-0.115,0.022,0.070);
-  sc.fillRect(l/2-0.030,-a/2+0.045,0.022,0.070);
-  /* disco de latão */
-  var dr=0.105, dx=-l*0.10;
-  var dg=sc.createRadialGradient(dx-0.025,0.025,0.005,dx,0,dr);
-  dg.addColorStop(0,"#f6e2ab"); dg.addColorStop(0.45,"#c9a45c");
-  dg.addColorStop(0.8,"#8a6a33"); dg.addColorStop(1,"#5c471f");
-  sc.fillStyle=dg;
-  sc.beginPath(); sc.arc(dx,0,dr,0,TAU); sc.fill();
-  /* serrilha */
-  sc.strokeStyle="rgba(50,38,16,.6)"; sc.lineWidth=0.0035;
-  for(var i=0;i<36;i++){
-    var an=i/36*TAU;
-    sc.beginPath();
-    sc.moveTo(dx+Math.cos(an)*dr, Math.sin(an)*dr);
-    sc.lineTo(dx+Math.cos(an)*dr*0.90, Math.sin(an)*dr*0.90);
-    sc.stroke();
-  }
-  /* números */
-  sc.fillStyle="#3a2c13";
-  for(var n=0;n<12;n++){
-    var a2=n/12*TAU-PI/2;
-    sc.beginPath();
-    sc.arc(dx+Math.cos(a2)*dr*0.70, Math.sin(a2)*dr*0.70, 0.006, 0, TAU);
-    sc.fill();
-  }
-  /* seta e miolo */
-  sc.fillStyle="#2a1f0d";
-  sc.beginPath();
-  sc.moveTo(dx,dr+0.022); sc.lineTo(dx-0.016,dr+0.001); sc.lineTo(dx+0.016,dr+0.001);
-  sc.closePath(); sc.fill();
-  sc.fillStyle="#e8cf92";
-  sc.beginPath(); sc.arc(dx,0,0.020,0,TAU); sc.fill();
-  /* trava e a marca de dedo */
-  var tx=l*0.30;
-  sc.fillStyle="#8a6a33"; sc.fillRect(tx-0.020,-0.085,0.040,0.170);
-  sc.fillStyle="#c9a45c"; sc.fillRect(tx-0.013,-0.070,0.026,0.140);
-  sc.save();
-  sc.globalCompositeOperation="lighter";
-  sc.fillStyle="rgba(190,215,240,.14)";
-  sc.beginPath(); sc.ellipse(tx+0.004,0.030,0.014,0.020,0.3,0,TAU); sc.fill();
-  sc.restore();
-  /* plaquinha do fabricante */
-  sc.fillStyle="rgba(190,165,110,.55)";
-  sc.fillRect(-l*0.10-0.045,-a/2+0.052,0.090,0.020);
-  /* riscos */
-  sc.strokeStyle="rgba(255,255,255,.05)"; sc.lineWidth=0.003;
-  for(var s=0;s<7;s++){
-    var yy=-a/2+0.09+s*0.045;
-    sc.beginPath(); sc.moveTo(-l/2+0.06,yy); sc.lineTo(-l/2+0.06+0.05+(s%3)*0.04,yy+0.006); sc.stroke();
-  }
-  /* o nicho aberto no reboco onde o cofre foi embutido */
-  sc.strokeStyle="rgba(0,0,0,.55)"; sc.lineWidth=0.012;
-  sc.strokeRect(-l/2-0.012,-a/2-0.012,l+0.024,a+0.024);
-  sc.strokeStyle="rgba(240,232,215,.10)"; sc.lineWidth=0.006;
-  sc.beginPath();
-  sc.moveTo(-l/2-0.014,-a/2-0.014); sc.lineTo(-l/2-0.014,a/2+0.014);
-  sc.lineTo(l/2+0.014,a/2+0.014); sc.stroke();
-}
+function rnd1(n){var x=Math.sin(n*127.1+311.7)*43758.5453;return x-Math.floor(x);}
+var roomArt=ACRoomArt(sc);
+function dQuadro(o){roomArt.quadro(o);}
+function dLuminaria(o){roomArt.luminaria(o);}
+function dVaso(o){roomArt.vaso(o);}
+function dRelogio(o){roomArt.relogio(o);}
+function dEscrivaninha(o){roomArt.escrivaninha(o);}
+function dEspelho(o){roomArt.espelho(o);}
+function dJanela(o){roomArt.janela(o);}
+function dCofre(o){roomArt.cofre(o);}
 
 /* ==========================================================================
    PÓ NO FEIXE
@@ -1786,6 +1258,7 @@ function tolerancia(o){
 function alvo(){ return iAlvo<ordem.length ? ordem[iAlvo] : null; }
 
 function alinhamento(){
+  if(window.MosaicoRA&&MosaicoRA.xrSession)return alinhamentoRA();
   /* o mais próximo do feixe entre TUDO que ainda não foi lido — serve para
      o "está quente" e para avisar quando você mira a coisa errada.     */
   var melhor=null, mDist=1e9, mTol=null, mDaz=0, mDel=0;
@@ -1883,8 +1356,9 @@ function pintaRodada(){
 /* ==========================================================================
    LAÇO
    ========================================================================== */
-function loop(){
-  requestAnimationFrame(loop);
+function loop(xrFrame){
+  if(xrFrame!==true)requestAnimationFrame(loop);
+  if(window.MosaicoRA&&MosaicoRA.xrSession&&xrFrame!==true)return;
   /* Pausado: nada avança e tPrev acompanha o relógio, para que a retomada
      não receba um dt do tamanho da pausa e teleporte a cena.            */
   if(PAUSADO){ tPrev=performance.now(); return; }
@@ -1922,6 +1396,14 @@ function loop(){
   view.elev+=(raw.elev-view.elev)*k;
   view.roll+=(wrap180(raw.roll-view.roll))*k*0.85;
 
+  // The task reads the orientation actually rendered by the 3D camera.
+  // A second invisible 2D view must never discover a different object.
+  if(window.MosaicoRA&&MosaicoRA.ativo){
+    if(MosaicoRA.modo!=='sala3d'){holdAcc=0;return;}
+    raw.bearing=view.bearing=wrap360(-MosaicoRA.orientacao.yaw/D2R);
+    raw.elev=view.elev=MosaicoRA.orientacao.pitch/D2R;
+    raw.roll=view.roll=0;
+  }
   pulso*=Math.pow(0.25,dt);
   aproxima*=Math.pow(0.12,dt);
 
@@ -2172,7 +1654,7 @@ function oitoNoAr(depois){
   })();
 }
 
-document.getElementById("b-entrar").addEventListener("click",ativaSensor);
+document.getElementById("b-entrar").addEventListener("click",entrarSemRA);
 document.getElementById("b-sim").addEventListener("click",function(){
   sim=true; src="mouse/dedo"; raw.elev=0; modoEntrada="toque"; fechaIntro();
   setStatus("Arraste para girar o corpo.");
@@ -2268,6 +1750,7 @@ window.addEventListener("resize",resize);
 window.addEventListener("orientationchange",function(){ setTimeout(resize,250); });
 
 function alternarModo3DRA(){
+  if(window.MosaicoRA&&MosaicoRA.xrSession){MosaicoRA.xrSession.end();return;}
   if(window.MosaicoRA && window.MosaicoRA.ativo){
     window.MosaicoRA.encerrar();
     var raCont = document.getElementById("mosaico-ra-viewport");
@@ -2283,8 +1766,75 @@ function alternarModo3DRA(){
       document.body.appendChild(raCont);
     }
     window.MosaicoRA.iniciar("mosaico-ra-viewport", "sala3d");
+    document.body.classList.add('ac-sala-visual');
+    MosaicoRA.orientacao.yaw=MosaicoRA.orientacao.targetYaw=-view.bearing*D2R;
+    MosaicoRA.orientacao.pitch=MosaicoRA.orientacao.targetPitch=view.elev*D2R;
   }
 }
+
+function entrarSemRA(){
+  entrarModoDedo('Arraste para explorar a sala e centralize o objeto procurado.');
+  if(!MosaicoRA.ativo)alternarModo3DRA();
+}
+var raPose=null,raOriginReady=false,raBusy=false;
+function alinhamentoRA(){
+  var empty={obj:null,tol:null,n:9,dAz:0,dEl:0,dRo:0,dentro:false,ok:false};
+  if(!raPose||!luzOn)return empty;
+  var ray=new THREE.Raycaster(raPose.position,raPose.direction,0.05,6.5);
+  var hits=ray.intersectObject(MosaicoRA.salaGroup,true).filter(function(hit){for(var n=hit.object;n;n=n.parent){if(n.visible===false)return false;}return true;});
+  if(!hits.length)return empty;
+  var mesh=hits[0].object,found=null;
+  for(var node=mesh;node&&!found;node=node.parent){
+    for(var o of OBJETOS){if(MosaicoRA.objetos3D[o.id]===node&&!o.visto&&!o.oculto){found=o;break;}}
+  }
+  if(!found)return empty;
+  return {obj:found,tol:{az:0,el:0},n:0,dAz:0,dEl:0,dRo:0,dentro:true,ok:found===alvo()};
+}
+async function entrarRA(){
+  if(raBusy)return;raBusy=true;
+  var button=document.getElementById('b-entrar-ra'),message=document.getElementById('ra-disponibilidade');button.disabled=true;
+  var session=null;
+  try{
+    if(!navigator.xr)throw Error('unsupported');
+    session=await navigator.xr.requestSession('immersive-ar',{requiredFeatures:['local-floor','dom-overlay'],domOverlay:{root:document.body}});
+    if(!MosaicoRA.ativo)alternarModo3DRA();
+    var engine=MosaicoRA,renderer=engine.renderer;renderer.xr.enabled=true;renderer.xr.setReferenceSpaceType('local-floor');
+    await renderer.xr.setSession(session);engine.xrSession=session;raPose=null;raOriginReady=false;document.body.classList.add('ac-xr-active');document.getElementById('b-ra').textContent='Sair da RA';
+    engine.scene.background=null;engine.container.style.background='transparent';
+    // Keep the canonical furniture; real surroundings replace opaque virtual walls.
+    var visibleBefore=new Map();
+    engine.salaGroup.children.forEach(child=>{visibleBefore.set(child,child.visible);if(!Object.values(engine.objetos3D).includes(child))child.visible=false;});
+    engine.xrUpdate=function(time,frame){
+      if(!frame)return;var pose=frame.getViewerPose(renderer.xr.getReferenceSpace());if(!pose){raPose=null;holdAcc=0;return;}
+      var p=pose.transform.position,q=pose.transform.orientation,position=new THREE.Vector3(p.x,p.y,p.z),quaternion=new THREE.Quaternion(q.x,q.y,q.z,q.w);
+      if(!raOriginReady){var eye=engine.roomModel.layout.eye;engine.salaGroup.position.set(p.x-eye[0],0,p.z+eye[1]);raOriginReady=true;}
+      raPose={position:position,direction:new THREE.Vector3(0,0,-1).applyQuaternion(quaternion)};
+      engine.camera.position.copy(position);engine.camera.quaternion.copy(quaternion);
+      var euler=new THREE.Euler().setFromQuaternion(quaternion,'YXZ');engine.orientacao.yaw=engine.orientacao.targetYaw=euler.y;engine.orientacao.pitch=engine.orientacao.targetPitch=euler.x;
+      engine.spotlight.intensity=luzOn?2.8:0;
+      if(acha_id('quadro').visto)engine.objetos3D.quadro.visible=false;
+      if(acha_id('escrivaninha').visto){var drawer=engine.objetos3D.gaveta;if(drawer)drawer.position.z=(drawer.userData.closedZ||.286)+.20;}
+      engine.salaGroup.updateMatrixWorld(true);loop(true);
+    };
+    session.addEventListener('end',function(){
+      document.body.classList.remove('ac-xr-active');engine.xrSession=null;engine.xrUpdate=null;raPose=null;engine.salaGroup.position.set(0,0,0);visibleBefore.forEach((visible,child)=>child.visible=visible);
+      engine.scene.background=new THREE.Color(0x04060a);engine.container.style.background='#04060a';var eye=engine.roomModel.layout.eye;engine.camera.position.set(eye[0],eye[2],-eye[1]);engine.spotlight.intensity=2.8;
+      setStatus('RA encerrada. Continue em 3D, sem perder as pistas.');holdAcc=0;
+      document.getElementById('b-ra').textContent='Alternar visual';
+    },{once:true});
+    entrarModoDedo('Mova o celular para procurar os objetos ao seu redor.');
+    setStatus('RA ativa. Explore o espaço com cuidado.');
+  }catch(error){
+    if(session)await session.end().catch(()=>{});
+    message.textContent='Não foi possível iniciar a RA. Você pode tentar novamente ou jogar sem RA.';
+    if(MosaicoRA.ativo&&!MosaicoRA.xrSession)MosaicoRA.encerrar();
+  }finally{raBusy=false;button.disabled=false;}
+}
+document.getElementById('b-entrar-ra').addEventListener('click',entrarRA);
+(async function(){
+  var button=document.getElementById('b-entrar-ra'),message=document.getElementById('ra-disponibilidade');
+  try{var supported=!!navigator.xr&&await navigator.xr.isSessionSupported('immersive-ar');button.disabled=!supported;message.textContent=supported?'A RA usa a câmera. Autorize ao entrar ou escolha jogar sem RA.':'RA não disponível neste navegador. Escolha jogar sem RA para continuar.';}catch(_){button.disabled=true;message.textContent='Não foi possível verificar a RA. Você pode jogar sem RA.';}
+})();
 
 var bRa = document.getElementById("b-ra");
 if(bRa){

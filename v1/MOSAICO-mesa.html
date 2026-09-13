@@ -1445,7 +1445,7 @@
      enxerga esta pagina. Dentro desta, o caso e o video releem o mesmo
      valor de window.MOSAICO_VERSAO, que sai da tag do mosaico-v5.js. -->
 <script src="js/three.min.js"></script>
-<script src="js/mosaico-ra-engine.js"></script>
+<script src="js/vendor/GLTFLoader.js"></script><script src="js/ac-desk.js"></script><script src="js/ac-room-layout.js"></script><script src="js/ac-room-art.js"></script><script src="js/ac-room.js"></script><script src="js/mosaico-ra-engine.js"></script>
 <script src="js/mosaico-3d-engine.js"></script>
 <script src="js/mosaico-v5.js?v=20260907-android-hold"></script>
 <script src="../hipoteses-por-camada.js?v=20260906-hpc-pf"></script>
@@ -5281,6 +5281,7 @@ function atualizarDockTeste3D(){
       '<button class="btn-fechar-teste" onclick="sairTeste3D()">Sair</button>' +
     '</div>' +
     '<div class="m3d-dock-botoes">' +
+      '<a class="m3d-dock-btn" href="AC-escrivaninha.html">🕯️ Sob outra luz · Escrivaninha</a>' +
       '<button class="m3d-dock-btn '+(faseAtual==='ra'?'on':'')+'" onclick="irParaFaseTeste3D(\'ra\')">📷 Câmera RA</button>' +
       '<button class="m3d-dock-btn '+((faseAtual==='sala3d')?'on':'')+'" onclick="irParaFaseTeste3D(\'sala3d\')">🕯️ Sala 3D & RA</button>' +
       '<button class="m3d-dock-btn '+(faseAtual==='mosaico'?'on':'')+'" onclick="irParaFaseTeste3D(\'mosaico\')">🌀 Mosaico 3D</button>' +
@@ -5328,7 +5329,11 @@ if(typeof window !== "undefined"){
   var paramsTeste = null;
   try { paramsTeste = new URLSearchParams(location.search); } catch(e){}
   var faseParam = (paramsTeste && paramsTeste.get("teste")) || "";
-  if(faseParam || location.hash === "#teste" || location.hash === "#sala3d" || location.hash === "#ra"){
+  if(faseParam === "ra" || faseParam === "sala3d" || location.hash === "#sala3d" || location.hash === "#ra"){
+    var entradaAC = new URL("MOSAICO-26-a-sala-as-escuras.html", location.href);
+    entradaAC.searchParams.set("cenario", (paramsTeste && paramsTeste.get("cenario")) || "AC-COSTA");
+    location.replace(entradaAC.href);
+  }else if(faseParam || location.hash === "#teste"){
     setTimeout(function(){
       var f = (faseParam === "mosaico" || faseParam === "mercado" || faseParam === "deducao" || faseParam === "resultado" || faseParam === "ra") ? faseParam : (location.hash === "#ra" ? "ra" : "sala3d");
       window.iniciarTeste3D(f);
