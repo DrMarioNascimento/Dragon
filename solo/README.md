@@ -43,12 +43,12 @@ Ao iniciar uma execução, a pergunta fica congelada até a revelação. A próx
 
 ## Fluxo
 
-`Pergunta → preparação/encenação → duas atividades sensoriais → fragmentos e fatos → Mosaico → contraponto/cooperação → Mercado → relações e inferências → planta de 1867 → decisão → revelação`
+`Pergunta → preparação/encenação → percurso 3D/RA (escrivaninha, vela, etiqueta, maquete e três chaves) → duas atividades sensoriais → fragmentos e fatos → Mosaico → contraponto/cooperação → Mercado → relações e inferências → planta de 1867 → decisão → revelação`
 
 ## Solo integral assistido
 
 O modo solo não elimina tarefas por falta de outros participantes. Ele preserva
-as duas atividades sensoriais escolhidas para a pergunta, a reconstrução do
+o percurso 3D/RA completo, as duas atividades sensoriais escolhidas para a pergunta, a reconstrução do
 Mosaico, a revisão cooperativa, as três decisões do Mercado e a conclusão.
 Somente a ação social é convertida: o sistema distribui arquivos, apresenta o
 contraponto e ocupa os lugares necessários no Mercado. Não há IA externa nem
