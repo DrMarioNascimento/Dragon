@@ -151,9 +151,24 @@ function prontoLocal(){
   window.dispatchEvent(new CustomEvent("mosaico-cloud-ready",{detail:{user:null,firestoreOk:false,experience}}));
 }
 let handled=false;
+/* No Safari o SDK pode voltar do Google sem emitir o primeiro estado de auth.
+   O Solo não pode ficar atrás desse evento: após uma espera curta, libera o
+   jogo localmente. Se a conta chegar depois, ready() ativa a nuvem sem recarregar. */
+const localFallback=experience.includes("solo")?setTimeout(()=>{
+  if(!handled){handled=true;prontoLocal();}
+},1200):null;
 onAuthStateChanged(auth,user=>{
   if(handled&&user===currentUser)return;
-  if(user){handled=true;ready(user)}
-  else if(!handled){handled=true;prontoLocal()}
-  else{currentUser=null;convite()}
+  if(user){
+    handled=true;
+    if(localFallback)clearTimeout(localFallback);
+    ready(user);
+  }else if(!handled){
+    handled=true;
+    if(localFallback)clearTimeout(localFallback);
+    prontoLocal();
+  }else{
+    currentUser=null;
+    convite();
+  }
 });
