@@ -2,17 +2,41 @@
 (function(global){
   global.ACCooperation = async function(onState,onStatus,options={}){
     let params=new URLSearchParams(location.search),tokens;
-    // Demonstracao isolada: nenhum convite, API, pontuacao ou sala real.
-    if(params.get('demo')==='solo'&&!params.has('sala')&&!options.maquette){
-      let stage='iluminar';
-      const snapshot=()=>({stage,online:['luz','conhecimento'],started:true,elapsed:0,bonus:0,beam:{origin:[.47,.025,.25],target:[.47,.098,.10],age:0}});
+    // Percurso solo integral: os dois papeis continuam existindo, mas o mesmo
+    // aparelho alterna entre eles. Estado local, sem API e sem cortar 3D/RA.
+    if(params.get('demo')==='solo'&&!params.has('sala')){
+      const KEY='ac:solo-integral:v1';
+      const chapters=[
+        {name:'Exterior',explorer:'luz',target:'rosa',clue:'Na entrada, procure o desenho que conhece todas as direções, mas nunca sai do lugar. A primeira chave repousa no centro dele.'},
+        {name:'Piso 1 · Térreo',explorer:'conhecimento',target:'relogio',clue:'Na sala do apagão há um guardião parado às 21h29. Procure abaixo de seu mostrador.'},
+        {name:'Piso 2 · Primeiro andar',explorer:'luz',target:'armario-oeste',clue:'No quarto onde o sol termina o dia, a madeira guarda mais do que roupas. Examine o armário junto à parede oeste.'}
+      ];
+      let saved=null;try{saved=JSON.parse(sessionStorage.getItem(KEY)||'null')}catch(_){ }
+      let local=saved&&saved.version===1?saved:{version:1,stage:'posicionar',started:Date.now(),maquete:null,keyMotion:null};
+      const persist=()=>{try{sessionStorage.setItem(KEY,JSON.stringify(local))}catch(_){ }};
+      const soloRole=()=>{
+        if(!local.maquete)return ['posicionar','castical'].includes(local.stage)?'luz':'conhecimento';
+        const c=chapters[local.maquete.level];if(!c)return 'conhecimento';return local.maquete.ready?c.explorer:(c.explorer==='luz'?'conhecimento':'luz');
+      };
+      const maquetteView=()=>{if(!local.maquete)return null;const m=local.maquete,c=chapters[m.level];return {...m,complete:!c,name:c?.name||'A passagem revelada',explorer:c?.explorer||null,clue:c&&soloRole()!==c.explorer?c.clue:null};};
+      const snapshot=()=>({stage:local.stage,soloRole:soloRole(),online:['luz','conhecimento'],started:true,elapsed:Math.max(0,(Date.now()-local.started)/1000),bonus:0,
+        beam:['iluminar','encontrado','registrado'].includes(local.stage)?{origin:[.47,.025,.25],target:[.47,.098,.10],age:0}:null,keyMotion:local.keyMotion,maquete:maquetteView()});
       const tick=setInterval(()=>onState(snapshot()),200);
       setTimeout(()=>{onStatus(true);onState(snapshot());},0);
-      return {role:'conhecimento',invite:null,demo:true,close(){clearInterval(tick);},async send(type){
-        if(type==='descobrir'&&stage==='iluminar')stage='encontrado';
-        else if(type==='registrar'&&stage==='encontrado')stage='registrado';
-        else return false;
-        onState(snapshot());return true;
+      return {role:soloRole(),invite:null,demo:true,close(){clearInterval(tick);},async send(type,extra={}){
+        let ok=false;
+        if(type==='iniciar')ok=true;
+        else if(type==='posicionar'&&local.stage==='posicionar'){local.stage='castical';ok=true;}
+        else if(type==='encaixar'&&local.stage==='castical'){local.stage='iluminar';ok=true;}
+        else if(type==='feixe'&&local.stage==='iluminar')ok=true;
+        else if(type==='descobrir'&&local.stage==='iluminar'){local.stage='encontrado';ok=true;}
+        else if(type==='registrar'&&local.stage==='encontrado'){local.stage='registrado';ok=true;}
+        else if(type==='iniciar_maquete'&&local.stage==='registrado'&&!local.maquete){local.maquete={level:0,ready:false,key:false,mistakes:0,score:0,evidence:[],lastAttempt:0};ok=true;}
+        else if(type==='maquete_orientar'&&local.maquete){const m=local.maquete,c=chapters[m.level];if(c&&!m.ready&&soloRole()!==c.explorer){m.ready=true;ok=true;}}
+        else if(type==='maquete_examinar'&&local.maquete){const m=local.maquete,c=chapters[m.level];if(c&&m.ready&&!m.key&&soloRole()===c.explorer){if(extra.object===c.target)m.key=true;else m.mistakes++;ok=true;}}
+        else if(type==='maquete_mover'&&local.maquete&&local.maquete.key){local.keyMotion={tip:extra.tip,age:0};ok=true;}
+        else if(type==='maquete_encaixar'&&local.maquete&&local.maquete.key){const m=local.maquete;m.score+=Math.max(2,8-Math.min(6,m.mistakes));m.evidence.push(['chave-exterior','chave-terreo','passagem-sob-despensa'][m.level]);m.level++;m.ready=false;m.key=false;m.mistakes=0;m.lastAttempt=0;local.keyMotion=null;ok=true;}
+        if(ok)persist();onState(snapshot());return ok;
       }};
     }
 
