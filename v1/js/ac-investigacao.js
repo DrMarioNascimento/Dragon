@@ -340,6 +340,7 @@
   on(window,'pageshow',e=>{if(e.persisted&&!disposed){clock.getDelta();renderer.setAnimationLoop(render);}});
   let lastSnapshot=0;
   ACCooperation(snapshot=>{
+    if(snapshot.soloRole)role=snapshot.soloRole;
     if(snapshot.maquete&&!new URLSearchParams(location.search).has('rever')){location.replace('AC-maquete.html'+location.search);return;}
     const previous=state.stage;shared=snapshot;lastSnapshot=performance.now();
     state={...state,stage:snapshot.stage,evidence:snapshot.stage==='registrado'?['ac-etiqueta-maquete']:[]};
@@ -355,9 +356,7 @@
     if(new URLSearchParams(location.search).get('percurso')==='1'){$('restart').hidden=true;document.querySelector('.brand').removeAttribute('href');}
     if(connection.demo){
       $('accessible').checked=true;
-      document.querySelector('.edition').textContent='DEMONSTRAÇÃO INDIVIDUAL';
-      $('follow-clue').hidden=true;
-      $('follow-clue').disabled=true;
+      document.querySelector('.edition').textContent='MODO SOLO · PERCURSO COMPLETO';
     }
     if(connection.invite){$('invite').href=connection.invite;$('invite-wrap').hidden=false;}
     updateUI();if(!startWithoutInstructions&&!connection.demo)$('instructions').showModal();
