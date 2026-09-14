@@ -19,3 +19,5 @@ Versão isolada no branch codex/ac-release-integrada. Não publicada.
 6. Publicar regras e backend antes de habilitar novos percursos no frontend. Validar duas sessões reais no endereço público, expiração, reconexão, pontos e fallback sem RA. RA física requer homologação em aparelhos.
 
 Não foram copiados logs, checkpoints de jogadores, credenciais ou alterações da análise bíblica para esta release. Nenhum push em main realizado.
+
+Atualizacao: usuario confirmou manutencao do endereco GitHub Pages. Caminho em avaliacao: Firebase ja usado pelo Dragon para backend separado. Login CLI iniciado e aguardando conclusao pelo usuario. Apos autenticar, verificar projeto/plano e preparar backend duravel; nenhuma implantacao efetuada.
