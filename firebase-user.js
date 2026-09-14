@@ -92,15 +92,30 @@ async function sync(force){
 }
 function startSync(){clearInterval(syncTimer);syncTimer=setInterval(()=>sync(false),900);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")sync(true)});window.addEventListener("pagehide",()=>sync(true));}
 async function entrarGoogle(){
-  /* Sem `prompt:"select_account"`: ele obrigava a escolher a conta mesmo com
-     sessão viva no Google, e era o que fazia parecer que o login não colava.
-     Quem já entrou uma vez volta direto. */
-  const status=document.querySelector("#mosaico-login .ml-status"),provider=new GoogleAuthProvider();if(status)status.textContent="Abrindo o Google…";
-  try{await signInWithPopup(auth,provider)}catch(e){const code=e&&e.code||"";if(code==="auth/popup-blocked"||code==="auth/operation-not-supported-in-this-environment"){if(status)status.textContent="Redirecionando para o Google…";await signInWithRedirect(auth,provider);return}if(status)status.textContent=(code==="auth/unauthorized-domain"?"Este domínio ainda não está autorizado no Firebase.":code==="auth/operation-not-allowed"?"Ative o provedor Google no projeto Firebase deste modo.":"Não foi possível entrar com Google.")}}
+  /* Safari/iOS não recebe popup com estabilidade. Usar redirect diretamente
+     evita a janela órfã e o ciclo em que a página volta sem reconhecer a conta. */
+  const status=document.querySelector("#mosaico-login .ml-status"),provider=new GoogleAuthProvider();
+  const iphone=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+  if(status)status.textContent=iphone?"Redirecionando para o Google…":"Abrindo o Google…";
+  try{
+    if(iphone){await signInWithRedirect(auth,provider);return}
+    await signInWithPopup(auth,provider);
+  }catch(e){
+    const code=e&&e.code||"";
+    if(code==="auth/popup-blocked"||code==="auth/operation-not-supported-in-this-environment"){
+      if(status)status.textContent="Redirecionando para o Google…";
+      await signInWithRedirect(auth,provider);return;
+    }
+    if(status)status.textContent=(code==="auth/unauthorized-domain"?"Este domínio ainda não está autorizado no Firebase.":code==="auth/operation-not-allowed"?"Ative o provedor Google no projeto Firebase deste modo.":"Não foi possível entrar com Google.");
+  }
+}
 async function sair(){try{await sync(true)}catch(e){}clearInterval(syncTimer);try{await signOut(auth)}catch(e){}location.reload();}
 async function ready(user){currentUser=user;await restore(user);hideGate();accountChip(user);startSync();window.MosaicoUserCloud={user,entrarGoogle,sair,sincronizarAgora:()=>sync(true),get firestoreOk(){return firestoreOk}};window.dispatchEvent(new CustomEvent("mosaico-cloud-ready",{detail:{user,firestoreOk,experience}}));}
 css();gate("Verificando sua conta…");
-try{await getRedirectResult(auth)}catch(e){}
+/* A recuperação do redirect não pode bloquear a instalação do observador.
+   No Safari ela pode demorar ou não produzir credencial; o Solo deve continuar
+   disponível localmente enquanto o Firebase resolve a sessão. */
+getRedirectResult(auth).catch(e=>console.warn("MOSAICO: retorno do Google indisponível",e));
 /* O SOLO NÃO PEDE MAIS LOGIN PARA COMEÇAR (03/09/2026).
    Isto era um portão: sem conta Google, a tela de entrada ficava para sempre e
    o jogo nunca carregava. Num modo de UMA pessoa, a conta serve para levar o
