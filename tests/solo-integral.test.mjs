@@ -7,7 +7,7 @@ const html=readFileSync(new URL('../solo/index.html',import.meta.url),'utf8');
 const cloud=readFileSync(new URL('../solo/solo-cloud-state.js',import.meta.url),'utf8');
 
 test('Solo Casa preserva as etapas da experiência da Mesa',()=>{
-  for(const fase of ['briefing','sensor','mosaico','cooperacao','mercado','relations','decision','result'])
+  for(const fase of ['briefing','percurso3d','sensor','mosaico','cooperacao','mercado','relations','decision','result'])
     assert.ok(js.includes("'"+fase+"'"),fase);
   for(const tarefa of ['MOSAICO-26-a-janela-do-norte.html','MOSAICO-26-vidro-embacado.html','MOSAICO-26-a-sala-as-escuras.html'])
     assert.ok(js.includes(tarefa),tarefa);
@@ -18,6 +18,18 @@ test('Solo Casa preserva as etapas da experiência da Mesa',()=>{
 test('checkpoint e carimbo incluem o Solo integral',()=>{
   for(const campo of ['atividades','atividadeI','sensorPronto','mosaico','mercadoEtapa','mercadoEscolhas','contraponto'])
     assert.ok(cloud.includes(campo),campo);
-  assert.match(html,/solo-auto\.js\?v=20260914-solo-integral/);
-  assert.match(html,/solo-cloud-state\.js\?v=20260914-solo-integral/);
+  assert.match(html,/solo-auto\.js\?v=20260914-solo-integral-ra/);
+  assert.match(html,/solo-cloud-state\.js\?v=20260914-solo-integral-ra/);
+});
+
+test('percurso solo mantém 3D, RA, escrivaninha, vela, maquete e três chaves',()=>{
+  const coop=readFileSync(new URL('../v1/js/ac-cooperacao.js',import.meta.url),'utf8');
+  const desk=readFileSync(new URL('../v1/js/ac-investigacao.js',import.meta.url),'utf8');
+  const maquete=readFileSync(new URL('../v1/js/ac-maquete.js',import.meta.url),'utf8');
+  assert.match(js,/AC-escrivaninha\.html\?demo=solo/);
+  assert.match(js,/xr-spatial-tracking/);
+  for(const acao of ['posicionar','encaixar','descobrir','registrar','iniciar_maquete','maquete_orientar','maquete_examinar','maquete_mover','maquete_encaixar'])
+    assert.ok(coop.includes(acao),acao);
+  assert.match(desk,/MODO SOLO · PERCURSO COMPLETO/);
+  assert.match(maquete,/ac-solo-completo/);
 });
