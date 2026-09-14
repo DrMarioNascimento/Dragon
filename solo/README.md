@@ -43,7 +43,17 @@ Ao iniciar uma execução, a pergunta fica congelada até a revelação. A próx
 
 ## Fluxo
 
-`Pergunta → imagem em quatro fragmentos → Fato → Relação → Inferência → planta de 1867 → Decisão → Revelação`
+`Pergunta → preparação/encenação → duas atividades sensoriais → fragmentos e fatos → Mosaico → contraponto/cooperação → Mercado → relações e inferências → planta de 1867 → decisão → revelação`
+
+## Solo integral assistido
+
+O modo solo não elimina tarefas por falta de outros participantes. Ele preserva
+as duas atividades sensoriais escolhidas para a pergunta, a reconstrução do
+Mosaico, a revisão cooperativa, as três decisões do Mercado e a conclusão.
+Somente a ação social é convertida: o sistema distribui arquivos, apresenta o
+contraponto e ocupa os lugares necessários no Mercado. Não há IA externa nem
+respostas livres geradas por servidor; a execução é determinística, auditável e
+continua funcionando como página estática.
 
 Cada evidência é remontada em quatro partes. Depois de montar, o jogador precisa separar o que o fato demonstra diretamente de interpretações que ainda não estão autorizadas. As relações entre fatos aparecem antes da decisão final.
 
