@@ -83,7 +83,8 @@ function conjunto(k){
  return dentro;
 }
 
-const state={phase:'home',caso:null,key:null,i:0,order:[0,1,2,3],pick:null,seen:[],facts:{},answers:{},scoreFacts:0};
+const state={phase:'home',caso:null,key:null,i:0,order:[0,1,2,3],pick:null,seen:[],facts:{},answers:{},scoreFacts:0,
+  atividades:[],atividadeI:0,sensorPronto:false,mosaico:[],mosaicoPick:null,mercadoEtapa:0,mercadoEscolhas:[],contraponto:null};
 const app=document.getElementById('app');
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
@@ -101,7 +102,7 @@ function header(){
   return '<div class="shell"><div class="top"><div class="brand">MOSAICO · MODO SOLO</div><div class="badge">A Casa da Costa · 1867</div>'+chip+'</div>';
 }
 async function load(){try{const r=await fetch('../v1/casos/casa-da-costa.json?v=20260902-banco');if(!r.ok)throw Error();state.caso=await r.json();state.key=proxima();}catch(e){app.innerHTML=header()+'<div class="hero pf-card"><span class="k">Falha de carregamento</span><h2>O caso não pôde ser aberto.</h2><p class="muted">Recarregue a página quando a conexão estiver disponível.</p></div></div>';return;}render();}
-function render(){if(!state.caso)return;let h=header();if(state.phase==='home')h+=home();if(state.phase==='puzzle')h+=puzzle();if(state.phase==='fact')h+=fact();if(state.phase==='relations')h+=relations();if(state.phase==='map')h+=map();if(state.phase==='decision')h+=decision();if(state.phase==='result')h+=result();
+function render(){if(!state.caso)return;let h=header();if(state.phase==='home')h+=home();if(state.phase==='briefing')h+=briefing();if(state.phase==='sensor')h+=sensor();if(state.phase==='puzzle')h+=puzzle();if(state.phase==='fact')h+=fact();if(state.phase==='mosaico')h+=mosaico();if(state.phase==='cooperacao')h+=cooperacao();if(state.phase==='mercado')h+=mercado();if(state.phase==='relations')h+=relations();if(state.phase==='map')h+=map();if(state.phase==='decision')h+=decision();if(state.phase==='result')h+=result();
   try{
     if(window.MosaicoPapelCamada && state.phase!=='home'){
       var e=window.MosaicoPapelCamada.carregar('casa-da-costa');
@@ -112,9 +113,26 @@ function render(){if(!state.caso)return;let h=header();if(state.phase==='home')h
   try{ if(window.MosaicoPapelCamada) window.MosaicoPapelCamada.ligarAndaime(app,'casa-da-costa',null,{partidaId:state.key,state:{selecionados:state.answers||{}}}); }catch(err){}
 }
 function home(){let p=state.caso.partidas[state.key];return '<section class="hero pf-card"><span class="k">Uma verdade · uma nova pergunta</span><h1>A verdade é um fragmento.</h1><p class="lead">Reconstrua sozinho as evidências da Casa da Costa. O MOSAICO escolheu automaticamente o problema desta execução.</p><div class="question pf-inset"><b>'+esc(p.natureza)+' · pergunta-mãe</b><p>'+esc(p.pergunta)+'</p></div><button class="btn pf-btn-gold" onclick="start()">Começar reconstrução</button><p class="muted small" style="margin-top:16px">Ao concluir, a próxima execução avançará automaticamente para outra pergunta da mesma realidade.</p></section>';}
+function parAtividades(){
+ const pref={sete:['janela','salaEscura'],cinco:['vidro','salaEscura'],apagao:['janela','salaEscura'],nome:['vidro','salaEscura'],corpo:['salaEscura','janela'],perceber:['vidro','salaEscura']};
+ return (pref[state.key]||pref.sete).slice();
+}
+const ATIVIDADE={
+ janela:{titulo:'A Janela do Norte',arquivo:'../v1/MOSAICO-26-a-janela-do-norte.html?embed=1'},
+ vidro:{titulo:'O Vidro Embaçado',arquivo:'../v1/MOSAICO-26-vidro-embacado.html?embed=1'},
+ salaEscura:{titulo:'A Sala às Escuras',arquivo:'../v1/MOSAICO-26-a-sala-as-escuras.html?embed=1'}
+};
+function briefing(){let p=state.caso.partidas[state.key];return '<span class="k">ENCENAÇÃO · PREPARAÇÃO</span><h2>A casa distribui os papéis.</h2><p class="lead">Você fará todas as tarefas da experiência. O sistema alternará a perspectiva cognitiva e assumirá somente as ações que dependeriam de outras pessoas.</p><div class="role-grid"><div class="relation pf-inset"><b>Você investiga</b><p class="muted">Observa, executa as atividades, organiza fatos e decide.</p></div><div class="relation pf-inset"><b>O sistema contrapõe</b><p class="muted">Distribui arquivos, oferece alternativas no Mercado e testa sua interpretação.</p></div></div><div class="question pf-inset"><b>'+esc(p.natureza)+'</b><p>'+esc(p.pergunta)+'</p></div><button class="btn" onclick="abrirAtividades()">Entrar na casa</button>';}
+function abrirAtividades(){state.atividades=parAtividades();state.atividadeI=0;state.sensorPronto=false;state.phase='sensor';render();}
+function sensor(){let id=state.atividades[state.atividadeI],a=ATIVIDADE[id];return '<span class="k">ATIVIDADE SENSORIAL '+(state.atividadeI+1)+' DE '+state.atividades.length+'</span><h2>'+esc(a.titulo)+'</h2><p class="lead">A tarefa permanece completa no modo solo. Conclua-a dentro do quadro para liberar a próxima etapa.</p><div class="sensor-shell pf-inset"><iframe id="solo-sensor" title="'+esc(a.titulo)+'" src="'+esc(a.arquivo)+'"></iframe></div><button class="btn ghost" onclick="confirmarSensor()" '+(state.sensorPronto?'':'disabled')+'>'+(state.sensorPronto?'Atividade concluída · continuar':'Conclua a tarefa no quadro')+'</button>';
+}
+function confirmarSensor(){if(!state.sensorPronto)return;if(state.atividadeI<state.atividades.length-1){state.atividadeI++;state.sensorPronto=false;render();return;}state.i=0;state.phase='puzzle';newPuzzle();render();}
+window.addEventListener('message',function(ev){if(ev.origin!==location.origin||!ev.data||ev.data.mosaico!=='tarefa-ok'||state.phase!=='sensor')return;state.sensorPronto=true;render();});
 function start(){
   function go(){
-    marcarUsada();state.i=0;state.seen=[];state.facts={};state.answers={};state.scoreFacts=0;state.phase='puzzle';newPuzzle();render();
+    marcarUsada();state.i=0;state.seen=[];state.facts={};state.answers={};state.scoreFacts=0;
+    state.atividades=[];state.atividadeI=0;state.sensorPronto=false;state.mosaico=[];state.mosaicoPick=null;state.mercadoEtapa=0;state.mercadoEscolhas=[];state.contraponto=null;
+    state.phase='briefing';render();
     try{
       if(window.MosaicoPapelCamada){
         var e=window.MosaicoPapelCamada.carregar('casa-da-costa');
@@ -139,9 +157,36 @@ function newPuzzle(){state.order=shuffle([0,1,2,3]);if(state.order.every((v,i)=>
 function puzzle(){let id=currentId(),e=evid(id),p=state.caso.partidas[state.key],pct=Math.round(state.i/conjunto(state.key).length*100);let pieces=state.order.map((n,i)=>'<button class="piece '+(state.pick===i?'sel ':'')+(n===i?'ok':'')+'" data-mark="'+esc(e.icon)+'" onclick="tap('+i+')"><span style="position:absolute;left:7px;top:5px;font-size:10px;opacity:.6">'+(n+1)+'</span></button>').join('');return '<div class="stage"><div><span class="k">'+esc(p.titulo)+'</span><h2>Evidência '+(state.i+1)+' de '+conjunto(state.key).length+'</h2></div><div class="badge">'+pct+'%</div></div><div class="progress"><i style="width:'+pct+'%"></i></div><div class="evidence"><div class="meta"><span>Arquivo fragmentado</span><span>'+esc(e.hora||'—')+'</span></div><h3>'+esc(e.title)+'</h3><div class="puzzle">'+pieces+'</div><p class="muted" style="color:#59452e">Toque em duas peças para trocar suas posições.</p></div>';}
 function tap(i){if(state.pick===null){state.pick=i;render();return;}if(state.pick===i){state.pick=null;render();return;}let a=state.pick;[state.order[a],state.order[i]]=[state.order[i],state.order[a]];state.pick=null;if(state.order.every((v,n)=>v===n))state.phase='fact';render();}
 function factOptions(e){return shuffle([e.fact,'Esse fato sozinho identifica quem estava na casa.','Esse fato prova que houve crime.','Esse fato já explica toda a noite.']);}
-function fact(){let id=currentId(),e=evid(id);if(!state.facts[id])state.facts[id]={opts:factOptions(e),chosen:null};let f=state.facts[id];let opts=f.opts.map((o,i)=>'<button class="opt pf-cell '+(f.chosen===i?(o===e.fact?'good':'bad'):'')+'" onclick="chooseFact('+i+')">'+esc(o)+'</button>').join('');return '<span class="k">FATO</span><h2>O que esta evidência permite afirmar diretamente?</h2><div class="factbox pf-inset"><b>'+esc(e.title)+'</b><span>Evite transformar pista em conclusão.</span></div><div class="opts pf-inset">'+opts+'</div>'+(f.chosen!==null?'<button class="btn" onclick="nextEvidence()">'+(state.i<conjunto(state.key).length-1?'Próxima evidência':'Relacionar fatos')+'</button>':'');}
+function fact(){let id=currentId(),e=evid(id);if(!state.facts[id])state.facts[id]={opts:factOptions(e),chosen:null};let f=state.facts[id];let opts=f.opts.map((o,i)=>'<button class="opt pf-cell '+(f.chosen===i?(o===e.fact?'good':'bad'):'')+'" onclick="chooseFact('+i+')">'+esc(o)+'</button>').join('');return '<span class="k">FATO</span><h2>O que esta evidência permite afirmar diretamente?</h2><div class="factbox pf-inset"><b>'+esc(e.title)+'</b><span>Evite transformar pista em conclusão.</span></div><div class="opts pf-inset">'+opts+'</div>'+(f.chosen!==null?'<button class="btn" onclick="nextEvidence()">'+(state.i<conjunto(state.key).length-1?'Próxima evidência':'Abrir o Mosaico')+'</button>':'');}
 function chooseFact(i){let id=currentId(),e=evid(id),f=state.facts[id];if(f.chosen!==null)return;f.chosen=i;if(f.opts[i]===e.fact)state.scoreFacts++;render();}
-function nextEvidence(){let id=currentId();if(!state.seen.includes(id))state.seen.push(id);if(state.i<conjunto(state.key).length-1){state.i++;newPuzzle();state.phase='puzzle';}else state.phase='relations';render();}
+function nextEvidence(){let id=currentId();if(!state.seen.includes(id))state.seen.push(id);if(state.i<conjunto(state.key).length-1){state.i++;newPuzzle();state.phase='puzzle';}else{prepararMosaico();state.phase='mosaico';}render();}
+
+function itensMosaico(){
+ const ids=(state.caso.mosaico&&state.caso.mosaico.ordemCorreta)||[];
+ return ids.map(id=>({id:id,rot:(state.caso.mosaico.rotulos||{})[id]||id,dica:(state.caso.mosaico.dicas||{})[id]||''}));
+}
+function prepararMosaico(){state.mosaico=shuffle(itensMosaico());if(state.mosaico.every((x,i)=>x.id===itensMosaico()[i].id))state.mosaico.reverse();state.mosaicoPick=null;}
+function mosaico(){
+ let certo=itensMosaico(),ok=state.mosaico.length&&state.mosaico.every((x,i)=>x.id===certo[i].id);
+ let linhas=state.mosaico.map((x,i)=>'<button class="mosaico-item '+(state.mosaicoPick===i?'sel':'')+'" onclick="tocarMosaico('+i+')"><span>'+(i+1)+'</span><b>'+esc(x.rot)+'</b><small>'+esc(x.dica)+'</small></button>').join('');
+ return '<span class="k">MOSAICO · RECONSTRUÇÃO COLETIVA ADAPTADA</span><h2>Coloque a noite em ordem.</h2><p class="lead">No modo solo, você ocupa o lugar do Fragmento inteiro. Toque em dois acontecimentos para trocá-los.</p><div class="mosaico-lista">'+linhas+'</div>'+(ok?'<div class="factbox pf-inset"><b>Linha factual validada</b><span>A sequência está coerente. Agora ela será submetida ao contraponto.</span></div><button class="btn" onclick="state.phase=\'cooperacao\';render()">Abrir contraponto</button>':'<p class="muted">A etapa só avança quando todos os acontecimentos estiverem na ordem factual.</p>');
+}
+function tocarMosaico(i){if(state.mosaicoPick===null){state.mosaicoPick=i;render();return;}if(state.mosaicoPick===i){state.mosaicoPick=null;render();return;}let a=state.mosaicoPick;[state.mosaico[a],state.mosaico[i]]=[state.mosaico[i],state.mosaico[a]];state.mosaicoPick=null;render();}
+function cooperacao(){
+ const opts=['Uma sequência coerente ainda pode admitir mais de uma interpretação.','A ordem correta transforma automaticamente todo indício em prova.','Uma pista isolada basta para fechar a pergunta-mãe.'];
+ let botoes=opts.map((o,i)=>'<button class="opt pf-cell '+(state.contraponto===i?(i===0?'good':'bad'):'')+'" onclick="responderContraponto('+i+')">'+esc(o)+'</button>').join('');
+ return '<span class="k">JOGADOR COM JOGADOR · CONTRAPONTO DO SISTEMA</span><h2>O que ainda precisa permanecer em dúvida?</h2><p class="lead">Esta tarefa substitui o diálogo e o voto interno, sem retirar a revisão coletiva da experiência.</p><div class="opts pf-inset">'+botoes+'</div>'+(state.contraponto!==null?'<button class="btn" onclick="state.phase=\'mercado\';render()">Entrar no Mercado</button>':'');
+}
+function responderContraponto(i){if(state.contraponto!==null)return;state.contraponto=i;render();}
+function ofertaMercado(){return conjunto(state.key).slice(0,3).map(evid).filter(Boolean);}
+function mercado(){
+ let etapa=state.mercadoEtapa,ofertas=ofertaMercado();
+ if(etapa===0)return '<span class="k">MERCADO DE PISTAS · AÇÃO 1 DE 3</span><h2>Adquirir uma pista lacrada.</h2><p class="lead">O sistema assume os demais participantes e oferece três arquivos. Escolha um para aprofundar.</p><div class="mercado-grid">'+ofertas.map((e,i)=>'<button class="mkt-card" onclick="acaoMercado(\'adquirir\','+i+')"><b>Arquivo lacrado '+(i+1)+'</b><span>'+esc(e.hora)+'</span></button>').join('')+'</div>';
+ if(etapa===1)return '<span class="k">MERCADO DE PISTAS · AÇÃO 2 DE 3</span><h2>Avaliar a confiança.</h2><p class="lead">Na Mesa, outra pessoa poderia receber sua pista. Aqui o sistema registra se você a manteria ou a consignaria.</p><div class="opts pf-inset"><button class="opt" onclick="acaoMercado(\'manter\')">Manter: ela parece central</button><button class="opt" onclick="acaoMercado(\'consignar\')">Consignar: ela parece secundária</button></div>';
+ if(etapa===2)return '<span class="k">MERCADO DE PISTAS · AÇÃO 3 DE 3</span><h2>Comprar informação ou preservar recursos?</h2><p class="lead">O parceiro automático oferece um contraponto sem revelar a resposta.</p><div class="relation pf-inset"><b>Oferta do sistema</b><p class="muted">“Os fatos explicam presença, mas ainda não necessariamente entrada ou culpa.”</p></div><div class="opts pf-inset"><button class="opt" onclick="acaoMercado(\'comprar contraponto\')">Comprar o contraponto</button><button class="opt" onclick="acaoMercado(\'preservar recursos\')">Preservar os recursos</button></div>';
+ return '<span class="k">MERCADO ENCERRADO</span><h2>Suas decisões foram registradas.</h2><div class="relation pf-inset">'+state.mercadoEscolhas.map(x=>'<p>• '+esc(x)+'</p>').join('')+'</div><button class="btn" onclick="state.phase=\'relations\';render()">Relacionar os fatos</button>';
+}
+function acaoMercado(tipo,i){let txt=tipo;if(tipo==='adquirir'){let e=ofertaMercado()[i];txt='Adquiriu: '+(e?e.title:'arquivo')}state.mercadoEscolhas.push(txt);state.mercadoEtapa++;render();}
 /* Um fragmento pode servir a MAIS DE UMA relação. O agrupamento antigo
    perguntava a cada fragmento "de que relação você é?" e ficava com a primeira,
    então a peça compartilhada nunca contava para a segunda — em "nome", R10 tinha
