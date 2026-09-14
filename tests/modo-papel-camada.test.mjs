@@ -23,7 +23,7 @@ const CEL = ler("carro-forte/celular.html");
 const ROOM = ler("firebase-room.js");
 const MPC = ler("papel-camada.js");
 const SOLO = ler("solo/index.html");
-const SOLO_JS = ler("solo/solo-auto.js");
+const SOLO_JS = ler("solo/mesa-solo.js");
 const GAME = ler("carro-forte/game.js");
 const DOC = ler("MOSAICO-ACESSIBILIDADE-PAPEIS.md");
 const README = ler("README.md");
@@ -192,7 +192,7 @@ describe("profundidade 1+1 · tokens compartilhados", () => {
     assert.match(ler("carro-forte/noite/index.html"), /modal-card depth-card pf-card/);
     assert.match(ler("carro-forte/noite/index.html"), /drawer-card depth-card pf-card/);
     assert.match(ler("carro-forte/celular.html"), /drawer-card depth-card pf-card/);
-    assert.match(ler("solo/index.html"), /solo-auto\.css\?v=20260914-solo-integral-podio/);
+    assert.match(ler("solo/index.html"), /solo-auto\.css\?v=20260914-reconstrucao-individual1/);
     assert.match(ler("abertura-casa.js"), /cartao pf-card/);
     assert.match(ler("abertura-casa.js"), /cartao-inset pf-inset/);
   });
