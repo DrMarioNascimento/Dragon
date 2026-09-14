@@ -1,8 +1,8 @@
 (function(){
   'use strict';
-  const $=id=>document.getElementById(id),role=new URLSearchParams(location.search).get('papel')||'luz';
+  const $=id=>document.getElementById(id);let role=new URLSearchParams(location.search).get('papel')||'luz';
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let coop=null,online=false,data=null,fallback=false,disposed=false,readStart=null,readingSent=false;
+  let coop=null,online=false,data=null,fallback=false,disposed=false,readStart=null,readingSent=false,soloConcluido=false;
   let xr=null,hitSource=null,placed=false,hasHit=false,dragging=false,nearLock=false,pending=false,lastLevel=-1,lastReady=null,noticeTimer;
   const handlers=[];function on(el,type,fn){el.addEventListener(type,fn);handlers.push(()=>el.removeEventListener(type,fn));}
   const scene=new THREE.Scene();scene.background=new THREE.Color(0x091515);
@@ -178,6 +178,7 @@
     renderer.render(scene,camera);
   }
   ACCooperation(snapshot=>{
+    if(snapshot.soloRole)role=snapshot.soloRole;
     motion=snapshot.keyMotion;motionTime=performance.now();
     const old=data,wasOnline=online;data=snapshot.maquete;online=(snapshot.percurso?.fragmento?.membros.map(m=>m.papel)||['luz','conhecimento']).every(r=>snapshot.online.includes(r));$('coop-status').textContent=online?'Dupla conectada':'Aguardando seu colega';
     if(old&&data&&data.mistakes>old.mistakes)notify('Esse detalhe não corresponde à orientação. Converse com seu colega.');
@@ -188,6 +189,10 @@
       const origin=source?model.root.worldToLocal(source.getWorldPosition(new THREE.Vector3())):model.key.position.clone();
       goldDust.burst(origin);goldDust.resetTrail();
       if(!reduced){keyFlight={from:origin.clone(),to:new THREE.Vector3(.30,.25,.91),elapsed:0};model.key.position.copy(origin);}
+    }
+    if(data&&data.complete&&!soloConcluido&&new URLSearchParams(location.search).get('demo')==='solo'){
+      soloConcluido=true;
+      try{parent.postMessage({mosaico:'ac-solo-completo',score:data.score,evidence:data.evidence},location.origin)}catch(_){ }
     }
   },connected=>{if(!connected){online=false;$('coop-status').textContent='Reconectando…';update();}},{maquette:true}).then(c=>{coop=c;if(new URLSearchParams(location.search).get('percurso')==='1')document.querySelector('.brand').removeAttribute('href');const backParams=new URLSearchParams(location.search);backParams.set('rever','1');$('return-desk').href='AC-escrivaninha.html?'+backParams;if(c.invite){$('invite').href=c.invite;$('invite').hidden=false;}$('instructions').showModal();}).catch(e=>{$('description').textContent=e.message;});
   on(window,'resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);if(!xr)frame();});
