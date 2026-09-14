@@ -13,13 +13,18 @@ test('Solo Casa preserva as etapas da experiência da Mesa',()=>{
     assert.ok(js.includes(tarefa),tarefa);
   assert.match(js,/disabled.*sensorPronto|sensorPronto.*disabled/s);
   assert.match(js,/MERCADO DE PISTAS · AÇÃO 3 DE 3/);
+  for(const categoria of ['Encenação','Jogador contra Jogador','Jogador com Jogador — Fragmentos','Mercado de pistas','Jogador contra o caso'])
+    assert.ok(js.includes(categoria),categoria);
+  assert.match(js,/APURAÇÃO FINAL/);
+  assert.match(js,/PÓDIO · RESULTADO FINAL/);
+  assert.match(js,/setTimeout/);
 });
 
 test('checkpoint e carimbo incluem o Solo integral',()=>{
-  for(const campo of ['atividades','atividadeI','sensorPronto','mosaico','mercadoEtapa','mercadoEscolhas','contraponto'])
+  for(const campo of ['atividades','atividadeI','sensorPronto','sensorTempos','mosaico','mercadoEtapa','mercadoEscolhas','contraponto','pontuacao','resultadoVista','apuracaoEtapa'])
     assert.ok(cloud.includes(campo),campo);
-  assert.match(html,/solo-auto\.js\?v=20260914-solo-integral-ra/);
-  assert.match(html,/solo-cloud-state\.js\?v=20260914-solo-integral-ra/);
+  assert.match(html,/solo-auto\.js\?v=20260914-solo-integral-podio/);
+  assert.match(html,/solo-cloud-state\.js\?v=20260914-solo-integral-podio/);
 });
 
 test('percurso solo mantém 3D, RA, escrivaninha, vela, maquete e três chaves',()=>{
