@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const html = readFileSync(join(root, "solo/index.html"), "utf8");
-const jogo = readFileSync(join(root, "solo/solo-auto.js"), "utf8");
+const jogo = readFileSync(join(root, "solo/mesa-solo.js"), "utf8");
 
 describe("modo solo", () => {
   it("a página publicada carrega o jogo modular", () => {
