@@ -164,7 +164,7 @@
                  (global.STATE && STATE.eu && STATE.eu.codigo) || "MOSAICO";
     var campo = tipo === "inclinacao" ? "inclinacaoAbertaMs" : "constelacaoAbertaMs";
     var aberta = Number(global.STATE && STATE.doc && STATE.doc[campo]) || 0;
-    var runId = [codigo, at, aberta].join("-");
+    var runId = (at==='salaEscura'&&STATE.doc.acElencoAtividade?.fase===tipo&&STATE.doc.acElencoAtividade.runId)||[codigo, at, aberta].join("-");
     return { runId: runId, semente: runId };
   };
 
@@ -217,7 +217,8 @@
       if(!STATE.doc||STATE.doc.percursoAC!==1||atividadeDaFase(item[0])!=='salaEscura')return anterior.apply(this,arguments);
       var elenco=STATE.jogadores.map(function(j){return {id:j.id,nome:j.nome};});
       if(elenco.length<2){avisa('Esta atividade cooperativa precisa de pelo menos dois jogadores. Para testar sozinho, use a demonstração individual.');return;}
-      var FB=await esperarFB(),dados={fase:item[0],acElencoAtividade:{fase:item[0],jogadores:elenco}};dados[item[2]]=Date.now();
+      var FB=await esperarFB(),dados={fase:item[0],acElencoAtividade:{fase:item[0],jogadores:elenco}};dados[item[2]]=Date.now();dados.acElencoAtividade.runId=[STATE.mesa.codigo,'salaEscura',dados[item[2]]].join('-');
+      if(global.ACPrepareGroups&&!/^(localhost|127\.0\.0\.1)$/.test(location.hostname))await ACPrepareGroups(STATE.mesa.codigo,[STATE.mesa.codigo,'salaEscura',dados[item[2]]].join('-'),elenco,item[0],limiteTarefaSensorMs(item[0]));
       await FB.atualizarMesa(STATE.mesa.codigo,dados);
     };
   });

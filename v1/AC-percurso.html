@@ -10,7 +10,7 @@ body.fragment-themed #scene{box-sizing:border-box;border:var(--fragment-edge) so
 body.fragment-themed #block{background:var(--fragment-dark);border:var(--fragment-edge) solid var(--fragment-color);box-sizing:border-box}
 @media(max-width:480px){body.fragment-themed{--fragment-edge:6px}body.fragment-themed>header{padding:6px 10px}}
 #sync-status{position:fixed;bottom:12px;left:12px;right:12px;z-index:30;background:#28230e;color:#ffe14a;border:1px solid #ffe14a;border-radius:12px;padding:12px;box-shadow:0 4px 14px #0009;font-size:14px}
-</style></head><body>
+</style><script src="js/ac-cloud.js"></script></head><body>
 <header><span id="fragment-identity" hidden></span><span id="stage">A Casa · Investigação em dupla</span><button id="help">🤝 Dupla</button></header>
 <main id="setup"><h1>Dois olhares, uma investigação.</h1><p>Um de vocês cria a dupla. O outro cola o convite abaixo, dentro da sua própria mesa.</p><button id="create">Criar dupla · 💡</button><label for="join-link">Convite do colega</label><input id="join-link" type="url" placeholder="Cole o link recebido"><button id="join">Entrar na dupla · 📜</button><p id="error" role="alert"></p></main>
 <iframe id="scene" hidden allow="camera; xr-spatial-tracking; accelerometer; gyroscope; magnetometer" title="Etapa da investigação"></iframe>

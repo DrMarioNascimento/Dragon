@@ -20,7 +20,7 @@ import {
   initializeTestEnvironment, assertSucceeds, assertFails
 } from "@firebase/rules-unit-testing";
 import {
-  doc, getDoc, setDoc, updateDoc
+  doc, getDoc, setDoc, updateDoc, serverTimestamp, collection, getDocs, query, where
 } from "firebase/firestore";
 
 const SALA = "MESA01";
@@ -490,4 +490,72 @@ test("o Mestre lê o que o telão anunciou, e é ele quem manda tocar", async ()
   await assertSucceeds(updateDoc(doc(como(MESTRE), "mosaico", SALA), {
     "opening.command": "start", "opening.token": Date.now()
   }));
+});
+
+
+test('AC grupos do mestre, eventos do proprio papel e imutabilidade',async()=>{
+ const master=env.authenticatedContext(MESTRE).firestore(),a=env.authenticatedContext(ANA).firestore(),b=env.authenticatedContext(BIA).firestore(),stranger=env.authenticatedContext('fora').firestore();
+ const path=['mosaico',SALA,'acGrupos','g1'];
+ const group={id:'g1',runId:'run1',phase:'inclinacao',master:MESTRE,players:{luz:ANA,conhecimento:BIA},fragmento:{membros:[]},endsAt:Date.now()+600000,createdAt:serverTimestamp()};
+ await assertFails(setDoc(doc(a,...path),group));await assertSucceeds(setDoc(doc(master,...path),group));
+ await assertFails(updateDoc(doc(master,...path),{players:{luz:BIA,conhecimento:ANA}}));
+ await assertSucceeds(updateDoc(doc(master,'mosaico',SALA),{fase:'inclinacao',acElencoAtividade:{runId:'run1'}}));
+ const event={uid:ANA,role:'luz',event:{type:'sala_progresso',objetos:4,total:9},at:serverTimestamp()};
+ await assertSucceeds(setDoc(doc(a,...path,'eventos','e1'),event));
+ await assertFails(setDoc(doc(b,...path,'eventos','e2'),event));
+ await assertFails(setDoc(doc(a,...path,'eventos','e1'),event));
+ await assertFails(setDoc(doc(a,...path,'eventos','e3'),{...event,event:{type:'registrar'}}));
+ await assertFails(setDoc(doc(a,...path,'eventos','e4'),{...event,event:{type:'sala_progresso',objetos:99,total:9}}));
+ await assertFails(setDoc(doc(a,...path,'eventos','e5'),{...event,event:{type:'sala_progresso',pontos:99}}));
+ await assertFails(getDoc(doc(stranger,...path)));
+ await assertSucceeds(getDocs(query(collection(a,'mosaico',SALA,'acGrupos'),where('runId','==','run1'))));
+ await assertSucceeds(getDocs(collection(master,...path,'eventos')));
+ await assertSucceeds(setDoc(doc(a,...path,'presenca',ANA),{uid:ANA,role:'luz',at:serverTimestamp()}));
+ await assertFails(setDoc(doc(b,...path,'presenca',ANA),{uid:ANA,role:'luz',at:serverTimestamp()}));
+ await updateDoc(doc(master,'mosaico',SALA),{fase:'mosaico'});
+ await assertFails(setDoc(doc(a,...path,'eventos','e6'),event));
+});
+
+test('AC Firestore: trio percorre nove objetos, vela e tres chaves com resultados convergentes',async()=>{
+ const {receipts}=await import('../v1/js/ac-replay.mjs');
+ const master=env.authenticatedContext(MESTRE).firestore(),users={luz:ANA,conhecimento:BIA,apoio:'uid-caio'};
+ await env.withSecurityRulesDisabled(ctx=>setDoc(doc(ctx.firestore(),'mosaico',SALA,'jogadores',users.apoio),{nome:'Caio'}));
+ const clients=Object.fromEntries(Object.entries(users).map(([role,uid])=>[role,env.authenticatedContext(uid).firestore()]));
+ const path=['mosaico',SALA,'acGrupos','trio'];
+ const g={id:'trio',runId:'run-trio',phase:'inclinacao',master:MESTRE,players:users,fragmento:{membros:Object.entries(users).map(([papel,id])=>({papel,id,nome:id}))},endsAt:Date.now()+600000,createdAt:serverTimestamp()};
+ await setDoc(doc(master,...path),g);await updateDoc(doc(master,'mosaico',SALA),{fase:'inclinacao',acElencoAtividade:{runId:'run-trio'}});
+ let i=0;const send=async(role,event)=>assertSucceeds(setDoc(doc(clients[role],...path,'eventos',String(++i).padStart(3,'0')),{uid:users[role],role,event,at:serverTimestamp()}));
+ for(const role of Object.keys(users)){await send(role,{type:'sala_progresso',objetos:4,total:9});await send(role,{type:'sala_concluida',objetos:9,total:9,tempoMs:1000});}
+ await send('luz',{type:'posicionar'});await send('luz',{type:'encaixar'});await send('luz',{type:'feixe',origin:[0,0,1],target:[0,0,0]});await send('conhecimento',{type:'descobrir'});await send('conhecimento',{type:'registrar'});await send('conhecimento',{type:'iniciar_maquete'});
+ for(const [level,object] of ['rosa','relogio','armario-oeste'].entries()){
+  const explorer=level===1?'conhecimento':'luz',guide=level===1?'luz':'conhecimento';
+  await send(guide,{type:'maquete_orientar'});await send(explorer,{type:'maquete_examinar',object});await send(explorer,{type:'maquete_mover',tip:[.48,-.13,.888]});await send(explorer,{type:'maquete_encaixar'});
+ }
+ const results=[];for(const db of Object.values(clients)){const s=await getDocs(collection(db,...path,'eventos'));results.push(receipts(g,s.docs.map(d=>({...d.data(),id:d.id,at:d.data().at.toMillis()}))));}
+ const assert=(await import('node:assert/strict')).default;
+ assert.deepEqual(results[0],results[1]);assert.deepEqual(results[1],results[2]);assert.equal(results[0][1].chaves,24);assert.equal(results[0][1].salaIndividual.apoio.pontos,9);
+});
+
+
+test('AC adaptador Firebase executa entrada e progresso sem API Node',async()=>{
+ const fs=await import('node:fs'),url=await import('node:url');
+ const dir=new URL('../.ac-ensaio/',import.meta.url);fs.mkdirSync(dir,{recursive:true});
+ const source=fs.readFileSync(new URL('../v1/js/ac-firestore.mjs',import.meta.url),'utf8').replace('https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js','firebase/firestore').replace("'./ac-replay.mjs'",JSON.stringify(new URL('../v1/js/ac-replay.mjs',import.meta.url).href));
+ const file=new URL('adapter-test.mjs',dir);fs.writeFileSync(file,source);
+ const master=env.authenticatedContext(MESTRE).firestore(),a=env.authenticatedContext(ANA).firestore();
+ const previousWindow=globalThis.window,previousLocation=globalThis.location;
+ const select=(db,uid)=>{globalThis.window={DragonSala:{db,root:'mosaico',codigo:SALA,auth:{currentUser:{uid}}}};};
+ globalThis.location={href:'http://localhost/v1/AC-percurso.html'};
+ try{
+  const m=await import(file.href+'?v='+Date.now());select(master,MESTRE);
+  await m.prepare(SALA,'adapter-run',[{id:ANA,nome:'Ana'},{id:BIA,nome:'Bia'}],'inclinacao',600000);
+  await updateDoc(doc(master,'mosaico',SALA),{fase:'inclinacao',acElencoAtividade:{runId:'adapter-run'}});
+  select(a,ANA);const entry=await m.request('/api/ac/fragmentos/entrar',{body:JSON.stringify({run:'adapter-run',jogador:'forjado'})});
+  const assert=(await import('node:assert/strict')).default;assert.equal(entry.ok,true);const c=await entry.json();assert.ok(c.sala);
+  const q=new URLSearchParams({sala:c.sala,papel:c.papel,chave:c.chave});
+  const sent=await m.request('/api/ac/action?'+q,{body:JSON.stringify({type:'sala_progresso',objetos:5,total:9})});assert.equal(sent.status,200);
+  const state=await(await m.request('/api/ac/state?'+q)).json();assert.equal(state.percurso.salaIndividual[c.papel].pontos,5);
+  const wrong=new URLSearchParams(q);wrong.set('papel',c.papel==='luz'?'conhecimento':'luz');assert.equal((await m.request('/api/ac/state?'+wrong)).status,403);
+  select(master,MESTRE);const rows=await(await m.request('/api/ac/individual?run=adapter-run')).json();assert.equal(rows[0].salaIndividual[c.papel].pontos,5);
+ }finally{globalThis.window=previousWindow;globalThis.location=previousLocation;}
 });

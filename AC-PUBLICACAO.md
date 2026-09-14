@@ -1,23 +1,27 @@
-# AC — preparação da publicação integrada
+# AC — versão preparada para Firebase gratuito
 
-Base pública: 1e846149ae6903e2ab810702e696a659bb5de3d9.
-Versão isolada no branch codex/ac-release-integrada. Não publicada.
+Destino: GitHub Pages existente (DrMarioNascimento/Dragon) e Firestore do projeto mosaico-game, banco (default).
+Plano gratuito preservado. Sem Functions, Cloud Run, servidor pago ou ativação de faturamento.
 
-## Incluído e validado
-- Percurso sala escura, escrivaninha/vela e maquete; papéis cooperativos por Fragmento e trio quando necessário.
-- Identidade visual por cor, diálogos padronizados, pontuação individual/parcial e recompensas cooperativas por etapa.
-- Fila de envios pendentes na sessão da aba e recuperação de confirmação perdida.
-- 444 testes aprovados nesta versão isolada. 47 testes das mesmas regras aprovados no emulador na árvore de desenvolvimento.
-- CI prepara o emulador Firestore antes de executar o teste, usando o comando oficial setup:emulators:firestore.
+## Implementação
+- Motor compartilhado entre ensaio Node e navegador: ac-core.mjs e ac-maquete-state.mjs.
+- Grupos criados somente pelo mestre. Identidade do jogador vem da sessão Firebase da mesa, não dos parâmetros declarados na URL.
+- Eventos imutáveis com horário do servidor, papel vinculado ao grupo e rodada ativa. Estado e pontos reconstruídos pelo mesmo motor; não há campo de pontuação aceito do jogador.
+- Leituras/gravações autenticadas; participante não grava pelo colega. Somente mestre define o grupo, que não pode ser alterado após criado.
+- Presença a cada15s e movimento no máximo2envios/s por tipo. Encaixe confirma a posição final da ponta. Uso sujeito às cotas gratuitas do Firestore; não habilita cobrança.
+- A pausa conserva o identificador da rodada. Encerramento da fase impede novos eventos. Grupos têm limite técnico de24h; a duração do jogo segue a mesa.
+- Ensaio local existente preservado; páginas públicas usam o transporte Firebase.
 
-## Bloqueadores da publicação completa
-1. Hospedagem atual confirmada: GitHub Pages, main, raiz. Também há deploys Production/Preview registrados, mas nenhum servidor AC acessível/configurado foi identificado.
-2. Servidor atual ferramentas/ac-cooperacao.mjs é de ensaio: estado em memória com checkpoint local e SSE. Exige backend persistente; publicar somente HTML não disponibiliza /api/ac/*.
-3. Definir provedor e acesso de implantação. Firebase CLI não possui conta autenticada neste computador.
-4. Implementar/verificar identidade de produção com Firebase, vínculo canônico jogador/mesa, autorização dos resultados e elenco vindo da mesa. Hoje a entrada automática confia no elenco e jogador declarados pelo cliente; tokens de convite não substituem essa verificação.
-5. Adaptar persistência ao provedor, preservar resultados após reinício e ligar frontend/backend sob origem autorizada com HTTPS. Não presumir que disco de função serverless é persistente.
-6. Publicar regras e backend antes de habilitar novos percursos no frontend. Validar duas sessões reais no endereço público, expiração, reconexão, pontos e fallback sem RA. RA física requer homologação em aparelhos.
+## Validação
+- 445 testes gerais aprovados.
+- 50 testes de regras/integração aprovados no emulador.
+- Trio completa sala escura, vela e três chaves com recibos iguais.
+- Adaptador real executado contra o SDK/emulador: entrada usa identidade autenticada; progresso persistido; outro papel recusado; mestre recupera resultados.
+- Publicação e verificação pública ainda não realizadas. RA física depende de ensaio em aparelhos.
 
-Não foram copiados logs, checkpoints de jogadores, credenciais ou alterações da análise bíblica para esta release. Nenhum push em main realizado.
-
-Atualizacao: usuario confirmou manutencao do endereco GitHub Pages. Caminho em avaliacao: Firebase ja usado pelo Dragon para backend separado. Login CLI iniciado e aguardando conclusao pelo usuario. Apos autenticar, verificar projeto/plano e preparar backend duravel; nenhuma implantacao efetuada.
+## Confirmação pendente da revisão automática
+Comando bloqueado: npx -y firebase-tools@latest deploy --only firestore:rules --project mosaico-game --non-interactive.
+A revisão automática exige confirmação específica para alterar as regras do projeto existente. Nenhuma tentativa alternativa de alteração foi feita.
+Escopo: incluir acGrupos/eventos/presenca com restrições acima e aceitar a fase constelacao nas tarefas, preservando as outras regras do repositório. Não altera plano nem exclui dados.
+Risco: uma regra incompatível com clientes existentes pode impedir leitura/gravação. Mitigação: matriz do emulador passou; validar regras publicadas e duas/três sessões no endereço público após implantação.
+A autorização deve cobrir publicar este firestore.rules no mosaico-game e, depois, publicar os arquivos desta versão no Dragon.

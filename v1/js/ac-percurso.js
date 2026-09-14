@@ -11,7 +11,7 @@
   function tell(data){if(parent!==window)parent.postMessage({...data,runId:run},location.origin);}
   function query(){return new URLSearchParams(credentials);}
   async function action(type,extra={}){
-    const r=await fetch('/api/ac/action?'+query(),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type,...extra})});
+    const r=await (globalThis.ACFetch||fetch)('/api/ac/action?'+query(),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type,...extra})});
     if(!r.ok){const error=Error('A ação não foi confirmada. Confira a conexão e tente novamente.');error.status=r.status;throw error;}
   }
   function showScene(name){
@@ -48,12 +48,12 @@
     showScene(!p.ready.includes(credentials.papel)?'sala':s.maquete?'maquete':'mesa');
   }
   async function connect(c){
-    const r=await fetch('/api/ac/state?'+new URLSearchParams(c));if(!r.ok)throw Error('Convite inválido ou expirado.');
+    const r=await (globalThis.ACFetch||fetch)('/api/ac/state?'+new URLSearchParams(c));if(!r.ok)throw Error('Convite inválido ou expirado.');
     const s=await r.json();if(s.percurso?.runId!==run)throw Error('Este convite pertence a outra rodada. Use o convite desta mesa.');
     credentials=c;
     if(player!=='visitante')await action('percurso_identificar',{jogador:player});
     save();for(const [k,v]of Object.entries(c))params.set(k,v);history.replaceState(null,'','?'+params);$('setup').hidden=true;receive(s);
-    stream?.close();stream=new EventSource('/api/ac/events?'+query());stream.onmessage=e=>receive(JSON.parse(e.data));
+    stream?.close();stream=new (globalThis.ACEvents||EventSource)('/api/ac/events?'+query());stream.onmessage=e=>receive(JSON.parse(e.data));
     stream.onerror=()=>{$('block').hidden=false;$('block').textContent='Reconectando… seu progresso está preservado.';};
     if(!s.percurso?.fragmento)$('identity').textContent=c.papel==='luz'?'Você é o portador da luz.':'Você é o portador do conhecimento.';
     if(!s.percurso?.fragmento&&c.papel==='conhecimento'){$('invite').textContent='Você entrou pelo convite do colega.';$('invite').removeAttribute('href');}
@@ -73,7 +73,7 @@
     if(sending||!credentials||!pending.length)return;sending=true;
     try{
       while(pending.length){
-        const e=pending[0],r=await fetch('/api/ac/state?'+query());if(!r.ok)throw Error('Reconectando para guardar suas descobertas.');
+        const e=pending[0],r=await (globalThis.ACFetch||fetch)('/api/ac/state?'+query());if(!r.ok)throw Error('Reconectando para guardar suas descobertas.');
         const s=await r.json();
         if(!acknowledged(e,s))await action(e.type,e);
         pending.shift();persistPending();
@@ -95,7 +95,7 @@
   $('create').onclick=()=>attempt(async()=>{
     $('create').disabled=true;
     try{
-      const r=await fetch('/api/ac/rooms?'+new URLSearchParams({run}),{method:'POST'});if(!r.ok)throw Error('Não foi possível criar a dupla. Verifique o servidor da AC.');
+      const r=await (globalThis.ACFetch||fetch)('/api/ac/rooms?'+new URLSearchParams({run}),{method:'POST'});if(!r.ok)throw Error('Não foi possível criar a dupla. Verifique o servidor da AC.');
       const room=await r.json(),c={sala:room.id,papel:'luz',chave:room.tokens.luz};
       const q=new URLSearchParams({run,cenario:params.get('cenario')||'AC-COSTA',sala:room.id,papel:'conhecimento',chave:room.tokens.conhecimento});
       const invite=new URL('AC-percurso.html?'+q,location.href).href;
@@ -128,7 +128,7 @@
   });
   $('finish').onclick=()=>attempt(async()=>{
     if(finished||paused)return;
-    const r=await fetch('/api/ac/state?'+query());if(!r.ok)throw Error('Aguarde a reconexão para concluir.');
+    const r=await (globalThis.ACFetch||fetch)('/api/ac/state?'+query());if(!r.ok)throw Error('Aguarde a reconexão para concluir.');
     const s=await r.json();if(!s.maquete?.complete||s.percurso?.runId!==run||s.percurso.paused.length)throw Error('A investigação ainda não foi concluída.');
     if(parent===window){$('result').textContent='Percurso concluído. Este ensaio foi aberto fora de uma mesa; não altera a pontuação de uma partida.';return;}
     finished=true;tell({mosaico:'tarefa-ok',tempoMs:Math.max(1,Math.min(3600000,Date.now()-started))});
@@ -138,7 +138,7 @@
   attempt(async()=>{
     if(params.get('auto')==='1'){
       $('create').hidden=true;$('join').hidden=true;$('join-link').hidden=true;
-      const response=await fetch('/api/ac/fragmentos/entrar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({run,roster:JSON.parse(params.get('elenco')),jogador:player})});
+      const response=await (globalThis.ACFetch||fetch)('/api/ac/fragmentos/entrar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({run,roster:JSON.parse(params.get('elenco')),jogador:player})});
       const entry=await response.json();if(!response.ok)throw Error(entry.error||'Não foi possível formar os Fragmentos. Reabra pela mesa.');
       $('invite').textContent='Grupo definido pela mesa para esta atividade. Na próxima atividade, os integrantes podem mudar.';$('invite').removeAttribute('href');
       await connect({sala:entry.sala,papel:entry.papel,chave:entry.chave});return;

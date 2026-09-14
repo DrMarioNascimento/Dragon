@@ -79,6 +79,51 @@ service cloud.firestore {
       allow update: if (master(versao,roomId) && request.resource.data.mestreUid == resource.data.mestreUid && (!request.resource.data.keys().hasAny(['partidaId']) || validPartida(request.resource.data.partidaId)) && (!request.resource.data.keys().hasAny(['fase']) || faseConhecida(request.resource.data.fase))) || actorAdvance(versao,roomId);
       allow delete: if false;
 
+      // AC: grupos definidos pelo mestre; eventos imutaveis do proprio papel.
+      match /acGrupos/{groupId} {
+        function group() { return get(/databases/$(database)/documents/$(versao)/$(roomId)/acGrupos/$(groupId)).data; }
+        function validGroup() {
+          let d=request.resource.data;
+          return d.keys().hasOnly(['id','runId','phase','master','players','fragmento','endsAt','createdAt'])
+            && d.id == groupId && d.runId is string && d.runId.size() <= 180
+            && d.phase in ['inclinacao','constelacao'] && d.master == request.auth.uid
+            && d.players is map && d.players.keys().hasAll(['luz','conhecimento'])
+            && d.players.keys().hasOnly(['luz','conhecimento','apoio'])
+            && d.fragmento is map && d.endsAt is number && d.endsAt > request.time.toMillis()
+            && d.endsAt <= request.time.toMillis()+86400000 && d.createdAt == request.time;
+        }
+        function ownRole(d) { return d.role in group().players && group().players[d.role] == request.auth.uid && d.uid == request.auth.uid; }
+        function validEvent() {
+          let d=request.resource.data;
+          return d.keys().hasOnly(['uid','role','event','at']) && ownRole(d) && d.at == request.time
+            && request.time.toMillis() <= group().endsAt && room(versao,roomId).fase == group().phase && room(versao,roomId).acElencoAtividade.runId == group().runId
+            && d.event is map && d.event.keys().hasOnly(['type','acao','objetos','total','tempoMs','origin','target','tip','object'])
+            && d.event.type in ['sala_progresso','sala_concluida','sala_encerrar','percurso_controle','iniciar','posicionar','encaixar','feixe','descobrir','registrar','iniciar_maquete','maquete_orientar','maquete_examinar','maquete_mover','maquete_encaixar']
+            && (!(d.event.type in ['iniciar','posicionar','encaixar','feixe']) || d.role == 'luz')
+            && (!(d.event.type in ['descobrir','registrar','iniciar_maquete']) || d.role == 'conhecimento')
+            && (!('objetos' in d.event) || (d.event.objetos is int && d.event.objetos >= 0 && d.event.objetos <= 9))
+            && (!('total' in d.event) || d.event.total == 9)
+            && (!('tempoMs' in d.event) || (d.event.tempoMs is number && d.event.tempoMs > 0 && d.event.tempoMs <= 3600000))
+            && (!('object' in d.event) || (d.event.object is string && d.event.object.size() <= 40))
+            && (!('origin' in d.event) || (d.event.origin is list && d.event.origin.size() == 3))
+            && (!('target' in d.event) || (d.event.target is list && d.event.target.size() == 3))
+            && (!('tip' in d.event) || (d.event.tip is list && d.event.tip.size() == 3));
+        }
+        allow read: if inside(versao,roomId);
+        allow create: if master(versao,roomId) && active(versao,roomId) && validGroup();
+        allow update,delete: if false;
+        match /eventos/{eventId} {
+          allow read: if inside(versao,roomId);
+          allow create: if active(versao,roomId) && signedIn() && validEvent();
+          allow update,delete: if false;
+        }
+        match /presenca/{uid} {
+          function validPresence(){let d=request.resource.data;return d.keys().hasOnly(['uid','role','at']) && uid==request.auth.uid && ownRole(d) && d.at==request.time;}
+          allow read: if inside(versao,roomId);
+          allow create,update: if active(versao,roomId) && signedIn() && validPresence();
+          allow delete: if false;
+        }
+      }
       match /jogadores/{playerId} {
         allow read: if signedIn() && active(versao,roomId);
         allow create: if signedIn() && active(versao,roomId) && playerId == request.auth.uid && request.resource.data.nome is string && request.resource.data.nome.size() >= 1 && request.resource.data.nome.size() <= 60;
