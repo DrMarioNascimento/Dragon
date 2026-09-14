@@ -84,7 +84,7 @@ function conjunto(k){
 }
 
 const state={phase:'home',caso:null,key:null,i:0,order:[0,1,2,3],pick:null,seen:[],facts:{},answers:{},scoreFacts:0,
-  atividades:[],atividadeI:0,sensorPronto:false,mosaico:[],mosaicoPick:null,mercadoEtapa:0,mercadoEscolhas:[],contraponto:null};
+  percursoPronto:false,percursoResultado:null,atividades:[],atividadeI:0,sensorPronto:false,mosaico:[],mosaicoPick:null,mercadoEtapa:0,mercadoEscolhas:[],contraponto:null};
 const app=document.getElementById('app');
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
@@ -102,7 +102,7 @@ function header(){
   return '<div class="shell"><div class="top"><div class="brand">MOSAICO · MODO SOLO</div><div class="badge">A Casa da Costa · 1867</div>'+chip+'</div>';
 }
 async function load(){try{const r=await fetch('../v1/casos/casa-da-costa.json?v=20260902-banco');if(!r.ok)throw Error();state.caso=await r.json();state.key=proxima();}catch(e){app.innerHTML=header()+'<div class="hero pf-card"><span class="k">Falha de carregamento</span><h2>O caso não pôde ser aberto.</h2><p class="muted">Recarregue a página quando a conexão estiver disponível.</p></div></div>';return;}render();}
-function render(){if(!state.caso)return;let h=header();if(state.phase==='home')h+=home();if(state.phase==='briefing')h+=briefing();if(state.phase==='sensor')h+=sensor();if(state.phase==='puzzle')h+=puzzle();if(state.phase==='fact')h+=fact();if(state.phase==='mosaico')h+=mosaico();if(state.phase==='cooperacao')h+=cooperacao();if(state.phase==='mercado')h+=mercado();if(state.phase==='relations')h+=relations();if(state.phase==='map')h+=map();if(state.phase==='decision')h+=decision();if(state.phase==='result')h+=result();
+function render(){if(!state.caso)return;let h=header();if(state.phase==='home')h+=home();if(state.phase==='briefing')h+=briefing();if(state.phase==='percurso3d')h+=percurso3d();if(state.phase==='sensor')h+=sensor();if(state.phase==='puzzle')h+=puzzle();if(state.phase==='fact')h+=fact();if(state.phase==='mosaico')h+=mosaico();if(state.phase==='cooperacao')h+=cooperacao();if(state.phase==='mercado')h+=mercado();if(state.phase==='relations')h+=relations();if(state.phase==='map')h+=map();if(state.phase==='decision')h+=decision();if(state.phase==='result')h+=result();
   try{
     if(window.MosaicoPapelCamada && state.phase!=='home'){
       var e=window.MosaicoPapelCamada.carregar('casa-da-costa');
@@ -122,16 +122,19 @@ const ATIVIDADE={
  vidro:{titulo:'O Vidro Embaçado',arquivo:'../v1/MOSAICO-26-vidro-embacado.html?embed=1'},
  salaEscura:{titulo:'A Sala às Escuras',arquivo:'../v1/MOSAICO-26-a-sala-as-escuras.html?embed=1'}
 };
-function briefing(){let p=state.caso.partidas[state.key];return '<span class="k">ENCENAÇÃO · PREPARAÇÃO</span><h2>A casa distribui os papéis.</h2><p class="lead">Você fará todas as tarefas da experiência. O sistema alternará a perspectiva cognitiva e assumirá somente as ações que dependeriam de outras pessoas.</p><div class="role-grid"><div class="relation pf-inset"><b>Você investiga</b><p class="muted">Observa, executa as atividades, organiza fatos e decide.</p></div><div class="relation pf-inset"><b>O sistema contrapõe</b><p class="muted">Distribui arquivos, oferece alternativas no Mercado e testa sua interpretação.</p></div></div><div class="question pf-inset"><b>'+esc(p.natureza)+'</b><p>'+esc(p.pergunta)+'</p></div><button class="btn" onclick="abrirAtividades()">Entrar na casa</button>';}
+function briefing(){let p=state.caso.partidas[state.key];return '<span class="k">ENCENAÇÃO · PREPARAÇÃO</span><h2>A casa distribui os papéis.</h2><p class="lead">Você fará todas as tarefas da experiência. O sistema alternará a perspectiva cognitiva e assumirá somente as ações que dependeriam de outras pessoas.</p><div class="role-grid"><div class="relation pf-inset"><b>Você investiga</b><p class="muted">Observa, executa as atividades, organiza fatos e decide.</p></div><div class="relation pf-inset"><b>O sistema contrapõe</b><p class="muted">Distribui arquivos, oferece alternativas no Mercado e testa sua interpretação.</p></div></div><div class="question pf-inset"><b>'+esc(p.natureza)+'</b><p>'+esc(p.pergunta)+'</p></div><button class="btn" onclick="abrirPercurso3D()">Entrar na casa</button>';}
+function abrirPercurso3D(){try{sessionStorage.removeItem('ac:solo-integral:v1')}catch(_){ }state.percursoPronto=false;state.percursoResultado=null;state.phase='percurso3d';render();}
+function percurso3d(){let quadro=state.percursoPronto?'<div class="result pf-inset"><div class="score">'+esc((state.percursoResultado&&state.percursoResultado.score)||0)+'</div><p class="lead">Escrivaninha investigada, etiqueta registrada e três chaves encaixadas. A passagem sob a despensa foi revelada.</p></div>':'<div class="sensor-shell percurso-shell pf-inset"><iframe id="solo-percurso" title="Percurso 3D e RA da Casa da Costa" src="../v1/AC-escrivaninha.html?demo=solo" allow="xr-spatial-tracking; fullscreen" allowfullscreen></iframe></div>';return '<span class="k">PERCURSO 3D E RA · COMPLETO</span><h2>Da escrivaninha à passagem.</h2><p class="lead">Alterne entre os papéis, posicione a escrivaninha, use a vela, leia a etiqueta e abra a maquete com as três chaves. A RA permanece disponível nos aparelhos compatíveis.</p>'+quadro+'<button class="btn ghost" onclick="abrirAtividades()" '+(state.percursoPronto?'':'disabled')+'>'+(state.percursoPronto?'Passagem revelada · continuar':'Conclua a maquete e as três chaves')+'</button>';}
 function abrirAtividades(){state.atividades=parAtividades();state.atividadeI=0;state.sensorPronto=false;state.phase='sensor';render();}
 function sensor(){let id=state.atividades[state.atividadeI],a=ATIVIDADE[id];return '<span class="k">ATIVIDADE SENSORIAL '+(state.atividadeI+1)+' DE '+state.atividades.length+'</span><h2>'+esc(a.titulo)+'</h2><p class="lead">A tarefa permanece completa no modo solo. Conclua-a dentro do quadro para liberar a próxima etapa.</p><div class="sensor-shell pf-inset"><iframe id="solo-sensor" title="'+esc(a.titulo)+'" src="'+esc(a.arquivo)+'"></iframe></div><button class="btn ghost" onclick="confirmarSensor()" '+(state.sensorPronto?'':'disabled')+'>'+(state.sensorPronto?'Atividade concluída · continuar':'Conclua a tarefa no quadro')+'</button>';
 }
 function confirmarSensor(){if(!state.sensorPronto)return;if(state.atividadeI<state.atividades.length-1){state.atividadeI++;state.sensorPronto=false;render();return;}state.i=0;state.phase='puzzle';newPuzzle();render();}
 window.addEventListener('message',function(ev){if(ev.origin!==location.origin||!ev.data||ev.data.mosaico!=='tarefa-ok'||state.phase!=='sensor')return;state.sensorPronto=true;render();});
+window.addEventListener('message',function(ev){if(ev.origin!==location.origin||!ev.data||ev.data.mosaico!=='ac-solo-completo'||state.phase!=='percurso3d')return;state.percursoPronto=true;state.percursoResultado={score:Number(ev.data.score)||0,evidence:Array.isArray(ev.data.evidence)?ev.data.evidence:[]};render();});
 function start(){
   function go(){
     marcarUsada();state.i=0;state.seen=[];state.facts={};state.answers={};state.scoreFacts=0;
-    state.atividades=[];state.atividadeI=0;state.sensorPronto=false;state.mosaico=[];state.mosaicoPick=null;state.mercadoEtapa=0;state.mercadoEscolhas=[];state.contraponto=null;
+    state.percursoPronto=false;state.percursoResultado=null;state.atividades=[];state.atividadeI=0;state.sensorPronto=false;state.mosaico=[];state.mosaicoPick=null;state.mercadoEtapa=0;state.mercadoEscolhas=[];state.contraponto=null;
     state.phase='briefing';render();
     try{
       if(window.MosaicoPapelCamada){
