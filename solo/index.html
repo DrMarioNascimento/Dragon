@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../v1/css/profundidade-1mais1.css?v=20260907-playtest-ux">
-<link rel="stylesheet" href="solo-auto.css?v=20260914-solo-integral-ra">
+<link rel="stylesheet" href="solo-auto.css?v=20260914-solo-integral-podio">
 <script src="../hipoteses-por-camada.js?v=20260906-hpc-pf"></script>
 <script src="../papel-camada.js?v=20260907-playtest-ux"></script>
 </head>
@@ -37,10 +37,10 @@
   }
   function carregarJogo(){
     var jogo=document.createElement('script');
-    jogo.src='solo-auto.js?v=20260914-solo-integral-ra';
+    jogo.src='solo-auto.js?v=20260914-solo-integral-podio';
     jogo.onload=function(){
       var ponte=document.createElement('script');
-      ponte.src='solo-cloud-state.js?v=20260914-solo-integral-ra';
+      ponte.src='solo-cloud-state.js?v=20260914-solo-integral-podio';
       document.body.appendChild(ponte);
     };
     document.body.appendChild(jogo);
