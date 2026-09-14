@@ -126,6 +126,8 @@
       var porJogador = {};
       (STATE.v5.tarefas || []).forEach(function (t) {
         if (!tarefaConcluida(t) || !t.prontoEm || !t.concluidoEm) return;
+        // O percurso tem recompensa cooperativa propria; nao disputar duracao contra tarefas individuais.
+        if(STATE.doc&&STATE.doc.percursoAC===1&&String(t.runId||'').includes('-salaEscura-'))return;
         var d = ms(t.concluidoEm) - ms(t.prontoEm);
         if (!(d > 0)) return;
         (porJogador[t.jogadorId] = porJogador[t.jogadorId] || []).push(d);

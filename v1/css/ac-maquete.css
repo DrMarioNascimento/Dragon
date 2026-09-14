@@ -1,0 +1,45 @@
+.instruction{width:min(350px,35vw)}#manuscript{position:fixed;right:5vw;bottom:118px;width:300px;padding:25px;background:linear-gradient(140deg,#e6d4ae,#bda478);color:#34291e;border:1px solid #f0deb8;border-radius:5px 18px 6px 13px;box-shadow:inset 0 0 24px #74562c30,0 8px 0 #5b472d,0 24px 45px #0006;touch-action:none;user-select:none;cursor:pointer}#manuscript .eyebrow{color:#6b512d}#manuscript p{font-size:17px;line-height:1.6}#manuscript:focus-visible{outline:3px solid #e6c185;outline-offset:5px}#reading{height:3px;background:#80643b44}#reading span{display:block;background:#5e4f32;height:3px;width:0}#score{font-size:11px;color:#dabc85;margin-bottom:0}#object-list{display:grid;gap:10px;margin-bottom:15px}#objects button{width:100%}#key-grip{border:1px solid #e8cc8c77;background:#c8a86e12;box-shadow:0 0 20px #c8a86e22}#return-desk{color:#edd4a5;text-decoration:underline}.in-ar #alternative{display:none!important}.in-ar #manuscript{background:#e5d3b2ed}.instruction a{pointer-events:auto;color:#ead2a1}
+@media(max-width:700px){.chapter{top:103px}.chapter h1{font-size:30px}.chapter p{font-size:12px;max-width:270px}.instruction{width:auto;bottom:65px;padding:13px 17px}.instruction h2{font-size:19px}#manuscript{right:16px;left:16px;bottom:235px;width:auto;padding:16px 21px}#manuscript p{font-size:15px;margin:10px 0}#manuscript .eyebrow{font-size:9px}}
+
+.chapter{text-shadow:0 2px 12px #000,0 1px 3px #000}.chapter p{color:#cfdbcd}#follow-clue{margin-top:12px;width:100%}
+
+/* A busca ocupa a area livre entre a narrativa e as instrucoes. */
+.chapter,.instruction{transition:opacity .18s ease}
+.manipulating .chapter{opacity:.12}
+.manipulating .instruction{opacity:.18}
+.tools{bottom:max(20px,env(safe-area-inset-bottom))}
+@media(max-width:700px){
+  .chapter{top:100px;right:18px}
+  .chapter h1{font-size:27px;line-height:1.15}
+  .chapter .eyebrow{font-size:8px}
+  .investigating .chapter h1{font-size:22px;margin:4px 0}
+  .investigating .chapter p,.investigating .chapter>.eyebrow{display:none}
+  .instruction{bottom:calc(68px + env(safe-area-inset-bottom));padding:12px 16px}
+  .instruction h2{font-size:18px;margin:5px 0}
+  .instruction p{font-size:12px;line-height:1.45;margin-bottom:8px}
+  [data-role-mode="guide"] .instruction{bottom:calc(62px + env(safe-area-inset-bottom));padding:8px 14px}
+  [data-role-mode="guide"] .instruction h2,[data-role-mode="guide"] .instruction #description{display:none}
+  [data-role-mode="guide"] #manuscript{top:155px;bottom:auto;max-height:calc(100dvh - 285px);overflow:auto;padding:14px 19px}
+  [data-role-mode="guide"] #manuscript p{line-height:1.45}
+  .in-ar .instruction{bottom:calc(70px + env(safe-area-inset-bottom))}
+  .in-ar[data-role-mode="guide"] #manuscript{top:110px}
+}
+@media(max-height:500px) and (orientation:landscape){
+  .chapter{top:85px;left:18px}.chapter h1{font-size:22px}.chapter p,.chapter>.eyebrow{display:none}
+  .instruction{left:18px;bottom:65px;width:230px;padding:10px 14px}.instruction h2{font-size:17px}.instruction p{font-size:11px}
+  #manuscript{right:18px;bottom:65px;width:245px;padding:12px 16px}#manuscript p{font-size:13px}
+}
+
+@media(min-width:701px) and (min-height:501px){
+  [data-role-mode="guide"] #manuscript{left:7vw;right:auto;bottom:130px;width:min(350px,35vw)}
+  [data-role-mode="guide"] .instruction{bottom:38px;padding:12px 20px}
+  [data-role-mode="guide"] .instruction h2,[data-role-mode="guide"] .instruction #description{display:none}
+}
+@media(max-width:700px){
+  [data-role-mode="guide"] .chapter h1{font-size:22px;margin:4px 0}
+  [data-role-mode="guide"] .chapter p,[data-role-mode="guide"] .chapter>.eyebrow{display:none}
+}
+
+#key-grip.gesture-point{width:76px;height:76px;border:1px solid #f2cf7880;box-shadow:0 0 22px #e3b45535;background:#c8a86e08}
+#key-grip.gesture-point span{opacity:1;font-size:11px;font-weight:600;color:#ffe4a2;background:#102a23f2;border:1px solid #e5bc6255;padding:7px 10px}
+#key-grip.gesture-point.ready{border-color:#baf4c9;box-shadow:0 0 24px #baf4c955}

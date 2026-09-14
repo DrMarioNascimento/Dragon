@@ -1385,6 +1385,7 @@
      especificidade, quem vem por ultimo vence, e o padrao tem de vencer. -->
 <link rel="stylesheet" href="css/profundidade.css?v=20260902-profundidade">
 <link rel="stylesheet" href="css/profundidade-1mais1.css?v=20260907-playtest-ux">
+<link rel="stylesheet" href="css/ac-janelas.css">
 </head>
 <body>
 <div id="arte">
@@ -1447,6 +1448,7 @@
 <script src="js/three.min.js"></script>
 <script src="js/vendor/GLTFLoader.js"></script><script src="js/ac-desk.js"></script><script src="js/ac-room-layout.js"></script><script src="js/ac-room-art.js"></script><script src="js/ac-room.js"></script><script src="js/mosaico-ra-engine.js"></script>
 <script src="js/mosaico-3d-engine.js"></script>
+<script src="js/ac-pontuacao.js"></script>
 <script src="js/mosaico-v5.js?v=20260907-android-hold"></script>
 <script src="../hipoteses-por-camada.js?v=20260906-hpc-pf"></script>
 <script src="../papel-camada.js?v=20260907-playtest-ux"></script>
@@ -1729,7 +1731,7 @@ function abrirDialogo(texto, opcoes){
       '<button class="btn '+(opcoes.perigo?"btn-perigo":"btn-ambar")+'" data-resposta="sim">'+esc(opcoes.aceitar||"Confirmar")+'</button>'
     : '<button class="btn btn-ambar" data-resposta="sim">'+esc(opcoes.aceitar||"Entendi")+'</button>';
 
-  raiz.innerHTML='<div class="dialogo-card'+(opcoes.perigo?" perigo":"")+'">'+
+  raiz.innerHTML='<div data-ac-priority="'+(opcoes.pergunta?7:9)+'" class="dialogo-card'+(opcoes.perigo?" perigo":"")+'">'+
     '<p class="dialogo-texto">'+esc(texto)+'</p>'+
     '<div class="dialogo-botoes">'+botoes+'</div></div>';
 
@@ -1840,21 +1842,21 @@ function ordenados(lista){
 function avisoLocal(){
   var loc=window.location||{}, p=loc.protocol||"", h=loc.hostname||"";
   if(p!=="http:" && p!=="https:"){
-    return '<div class="aviso"><b>Esta p&aacute;gina est&aacute; aberta como arquivo local.</b> '+
+    return '<div data-ac-priority="9" class="aviso"><b>Esta p&aacute;gina est&aacute; aberta como arquivo local.</b> '+
            'O QR e o link apontam para um endere&ccedil;o que s&oacute; existe neste aparelho. '+
            'Publique no GitHub Pages antes de usar com a mesa.</div>';
   }
   /* localhost tambem quebra o QR: no celular, "localhost" e o PROPRIO celular.
      Este era o caso mais comum de "le o QR e nao entra".                      */
   if(h==="localhost" || h==="127.0.0.1" || h==="[::1]"){
-    return '<div class="aviso"><b>O endere&ccedil;o &eacute; localhost.</b> '+
+    return '<div data-ac-priority="9" class="aviso"><b>O endere&ccedil;o &eacute; localhost.</b> '+
            'Ao ler o QR, o celular tenta abrir <i>o pr&oacute;prio celular</i> &mdash; '+
            'e n&atilde;o acha nada. Publique no GitHub Pages para a mesa funcionar.</div>';
   }
   /* IP de rede local funciona entre aparelhos no mesmo Wi-Fi, mas nao fora dele
      e o Firebase exige o dominio autorizado. */
   if(/^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(h)){
-    return '<div class="aviso"><b>Endere&ccedil;o de rede local.</b> '+
+    return '<div data-ac-priority="9" class="aviso"><b>Endere&ccedil;o de rede local.</b> '+
            'S&oacute; funciona para quem estiver no mesmo Wi-Fi, e o Firebase pode recusar '+
            'o login por dom&iacute;nio n&atilde;o autorizado.</div>';
   }
@@ -2356,8 +2358,8 @@ function controlesMestreMovel(){
 function dadosAutomacao(){
   var fase=(STATE.doc&&STATE.doc.fase)||"", cfg=(CASO.configuracao&&CASO.configuracao.limitesSegundos)||{};
   if(fase==="votacao") return {fase:fase,recebidos:STATE.votos.length,total:STATE.jogadores.length,inicio:STATE.doc.votacaoAbertaMs||0,limite:(cfg.performance||60)*1000,acao:abrirInclinacao};
-  if(fase==="inclinacao") return {fase:fase,recebidos:tarefasConcluidas('inclinacao').length,total:STATE.jogadores.length,inicio:STATE.doc.inclinacaoAbertaMs||0,limite:(cfg.inclinacao||180)*1000,acao:abrirConstelacao};
-  if(fase==="constelacao") return {fase:fase,recebidos:tarefasConcluidas('constelacao').length,total:STATE.jogadores.length,inicio:STATE.doc.constelacaoAbertaMs||0,limite:(cfg.constelacao||180)*1000,acao:prepararMosaico};
+  if(fase==="inclinacao") return {fase:fase,recebidos:tarefasConcluidas('inclinacao').length,total:STATE.jogadores.length,inicio:STATE.doc.inclinacaoAbertaMs||0,limite:(typeof limiteTarefaSensorMs==="function"?limiteTarefaSensorMs("inclinacao"):(cfg.inclinacao||180)*1000),acao:abrirConstelacao};
+  if(fase==="constelacao") return {fase:fase,recebidos:tarefasConcluidas('constelacao').length,total:STATE.jogadores.length,inicio:STATE.doc.constelacaoAbertaMs||0,limite:(typeof limiteTarefaSensorMs==="function"?limiteTarefaSensorMs("constelacao"):(cfg.constelacao||180)*1000),acao:prepararMosaico};
   if(fase==="mercado") return {fase:fase,recebidos:0,total:1,inicio:STATE.doc.mercadoAbertoMs||0,limite:(cfg.mercado||480)*1000,acao:abrirDeducao,somentePrazo:true};
   if(fase==="deducao") return {fase:fase,recebidos:STATE.v5.deducoes.length,total:STATE.jogadores.length,inicio:STATE.doc.deducaoAbertaMs||0,limite:(cfg.deducao||300)*1000,acao:finalizarPartida};
   return null;
@@ -2746,6 +2748,7 @@ function render(forcar){
      os devolvia — o mestre perdia a pausa e os controles justamente na
      rodada em que o celular esta sendo sacudido.                     */
   limparBarraInferior();
+  app.dataset.acScreen=STATE.tela;
   app.innerHTML=h;
   if((STATE.tela === "sala3d" || STATE.tela === "ra") && window.MosaicoRA){
     var modoRA = (STATE.tela === "ra") ? "camera-ra" : "sala3d";
@@ -2812,7 +2815,7 @@ function telaInicio(){
 function modalSenha(){
   if(!STATE.senhaAberta) return "";
   return '<div class="modal-fundo" onclick="if(event.target===this) fecharSenha()">'+
-    '<div class="modal">'+
+    '<div data-ac-priority="2" class="modal">'+
       '<span class="eyebrow">&Aacute;rea do mestre</span>'+
       '<h2 style="font-size:clamp(26px,7vw,34px);margin-bottom:18px">Como as rodadas devem avan&ccedil;ar?</h2>'+
       '<span class="eyebrow ritmo-titulo">Ritmo</span>'+
@@ -2835,7 +2838,7 @@ function fecharOrientacaoMestre(){
 }
 function modalOrientacaoMestre(){
   if(!STATE.orientacaoMestreAberta) return "";
-  return '<div class="modal-fundo orientacao-mestre-fundo"><div class="modal orientacao-mestre">'+
+  return '<div class="modal-fundo orientacao-mestre-fundo"><div data-ac-priority="2" class="modal orientacao-mestre">'+
     '<span class="eyebrow">&Aacute;rea do mestre</span>'+
     '<h2>Voc&ecirc; &eacute; o mestre da sala</h2>'+
     '<p class="lead">Ative o som do celular e fique atento ao bot&atilde;o <b>Sala</b>.</p>'+
@@ -2948,7 +2951,7 @@ function fecharOrientacaoParticipante(){
 }
 function modalOrientacaoParticipante(){
   if(!STATE.orientacaoParticipanteAberta) return "";
-  return '<div class="modal-fundo orientacao-participante-fundo"><div class="modal orientacao-participante">'+
+  return '<div class="modal-fundo orientacao-participante-fundo"><div data-ac-priority="2" class="modal orientacao-participante">'+
     '<span class="eyebrow">Antes de come&ccedil;ar</span>'+
     '<h2>O objetivo do jogo</h2>'+
     '<p class="lead">Realize tarefas, conquiste pistas e reconstrua o caso final.</p>'+
@@ -3128,7 +3131,7 @@ function modalQr(){
   if(!m) return "";
   var qr=qrSvg(m.link,"QR da mesa "+m.codigo);
   return '<div class="modal-fundo'+(STATE.qrAberto?"":" hidden")+'" '+
-    'onclick="if(event.target===this) fecharQr()"><div class="modal">'+
+    'onclick="if(event.target===this) fecharQr()"><div data-ac-priority="2" class="modal">'+
     '<span class="eyebrow">C&oacute;digo da mesa</span>'+
     '<div class="codigo-grande">'+esc(m.codigo)+'</div>'+
     '<span class="selo '+(m.fb?"ok":"esperando")+'">'+(m.fb?"Firestore · ao vivo":"Conectando…")+'</span>'+
@@ -3619,7 +3622,7 @@ function telaTarefaSensor(tipo, preservarQuadro){
     '<p class="lead">Mantenha a tela voltada para voc&ecirc; e conclua a tarefa no quadro abaixo.</p></div>';
   var quadro=preservarQuadro
     ? '<div class="sensor-play" id="mosaic"></div>'
-    : '<div class="sensor-play" id="mosaic"><iframe class="tarefa-frame" data-tarefa="'+esc(tipo)+'" src="'+esc(urlTarefaSensor(cfg,tipo))+'" onload="this.dataset.controle=\'\';sincronizarControleTarefa(this,\''+esc(tipo)+'\')" allow="accelerometer; gyroscope; magnetometer" title="'+esc(cfg.titulo||tipo)+'"></iframe></div>';
+    : '<div class="sensor-play" id="mosaic"><iframe class="tarefa-frame" data-tarefa="'+esc(tipo)+'" src="'+esc(urlTarefaSensor(cfg,tipo))+'" onload="this.dataset.controle=\'\';sincronizarControleTarefa(this,\''+esc(tipo)+'\')" allow="camera; xr-spatial-tracking; accelerometer; gyroscope; magnetometer" title="'+esc(cfg.titulo||tipo)+'"></iframe></div>';
   return '<span class="eyebrow">Rodada sensorial</span><h2>'+esc(cfg.titulo||tipo)+'</h2>'+copy+
     quadro+
     '<p class="muted" style="text-align:center">Se o sensor n&atilde;o responder, aguarde o fim do prazo. A partida continuar&aacute; automaticamente.</p>';
@@ -5714,5 +5717,5 @@ if(CONFIGURADO) window.MosaicoFB = {
 window.dispatchEvent(new Event("mosaicofb-ready"));
 console.log("MosaicoFB ready");
 </script>
-</body>
+<script src="js/ac-janelas.js"></script></body>
 </html>

@@ -57,7 +57,7 @@ service cloud.firestore {
           )
         );
     }
-    function validTarefa() { return request.resource.data.tarefa in ['inclinacao','janela','vidro','sala','salaescura','escuro','cor','mosaico','encaixe','cooperacao','palimpsesto','espelho','planta','mercado','oleo']; }
+    function validTarefa() { return request.resource.data.tarefa in ['inclinacao','constelacao','janela','vidro','sala','salaescura','escuro','cor','mosaico','encaixe','cooperacao','palimpsesto','espelho','planta','mercado','oleo']; }
     function actorAdvance(v,id) {
       return signedIn() && active(v,id) && participant(v,id)
         && resource.data.fase == 'encenacao'

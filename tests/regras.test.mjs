@@ -315,6 +315,13 @@ test("tarefa inventada é recusada", async () => {
   ));
 });
 
+test('AC grava pronto e conclusao de constelacao somente no proprio jogador', async()=>{
+  const ref=doc(como(ANA),'mosaico',SALA,'tarefas',ANA+'_constelacao');
+  await assertSucceeds(setDoc(ref,{tarefa:'constelacao',jogadorId:ANA,runId:'AC-salaEscura-123',prontoEm:Date.now()}));
+  await assertSucceeds(updateDoc(ref,{concluidoEm:Date.now()}));
+  await assertFails(setDoc(doc(como(BIA),'mosaico',SALA,'tarefas',ANA+'_constelacao'),{tarefa:'constelacao',jogadorId:ANA,concluidoEm:Date.now()}));
+});
+
 test("em mesa v3 qualquer integrante do Fragmento grava a carta", async () => {
   await env.withSecurityRulesDisabled(async ctx => {
     await updateDoc(doc(ctx.firestore(), "mosaico", SALA), { v3: true });

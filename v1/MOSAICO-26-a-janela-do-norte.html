@@ -325,6 +325,7 @@
      especificidade, quem vem por ultimo vence, e o padrao tem de vencer. -->
 <link rel="stylesheet" href="css/profundidade.css?v=20260902-profundidade">
 <link rel="stylesheet" href="css/profundidade-1mais1.css?v=20260906-pf-all">
+<link rel="stylesheet" href="css/ac-janelas.css">
 </head>
 <body>
 <canvas id="c"></canvas>
@@ -379,7 +380,7 @@
   </div>
 </div>
 
-<div id="card"><div id="card-in">
+<div id="card"><div id="card-in" data-ac-priority="3">
   <div id="c-meta"><span id="c-tipo">Registro anterior da noite</span><span id="c-hora">21:07</span></div>
   <div id="c-txt"></div>
   <div id="c-dir"></div>
@@ -387,7 +388,7 @@
   <button id="c-close">Fechar</button>
 </div></div>
 
-<div id="intro">
+<div id="intro" data-ac-priority="10">
   <div id="kicker">A noite da tempestade</div>
   <div id="title">A Casa<br><b>da Costa</b></div>
   <div id="sub">A janela do segundo andar</div>
@@ -399,7 +400,7 @@
   <div id="round-note">Confiram: o código tem de ser o mesmo em todos os aparelhos.</div>
 </div>
 
-<div id="falha" role="alertdialog" aria-live="polite">
+<div id="falha" data-ac-priority="9" role="alertdialog" aria-live="polite">
   <div id="falha-tit">Sem sensor</div>
   <div id="falha-msg"></div>
   <button id="falha-retry" aria-label="Tentar ativar o sensor novamente">Tentar novamente</button>
@@ -2707,5 +2708,5 @@ if(EMBED && !DEV){
 
 })();
 </script>
-</body>
+<script src="js/ac-janelas.js"></script></body>
 </html>

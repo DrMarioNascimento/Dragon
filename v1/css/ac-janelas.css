@@ -1,0 +1,48 @@
+/* AC: a mesma ancora para ajuda, pistas e descobertas. */
+:root{--ac-window-top:max(16px,env(safe-area-inset-top,0px));--ac-window-width:480px}
+@media(min-width:701px){:root{--ac-window-top:max(48px,env(safe-area-inset-top,0px))}}
+dialog{position:fixed;inset:var(--ac-window-top) 0 auto;margin:0 auto;width:min(var(--ac-window-width),calc(100vw - 32px));max-height:calc(100dvh - var(--ac-window-top) - max(16px,env(safe-area-inset-bottom,0px)));overflow:auto;overscroll-behavior:contain;padding-top:64px;box-shadow:inset 0 1px #ffffff20,0 8px 0 #061410,0 25px 80px #0009}
+dialog>.close{position:sticky;top:0;float:right;margin:-52px -4px 8px 12px;width:44px;min-height:44px;padding:0;background:#142e28;border:1px solid #789083;border-radius:10px;z-index:5}
+body #carta{justify-content:flex-start;padding-top:var(--ac-window-top)}
+body #carta::before,body #carta::after{display:none}
+body #carta-in{max-width:var(--ac-window-width)}
+
+/* Cor e simbolo pertencem ao tipo, nao ao texto da pista. */
+[data-ac-priority]{border-color:var(--ac-accent)!important;border-top:4px solid var(--ac-accent)!important;background:linear-gradient(145deg,#18352f,#091b18)!important;color:#f4f1e6!important;box-shadow:inset 0 1px #ffffff22,0 6px 0 #04110e,0 18px 40px #0006!important}
+[data-ac-priority]::before{content:attr(data-ac-symbol);display:inline-flex!important;align-items:center;justify-content:center;width:52px;height:52px;border:2px solid var(--ac-accent);border-radius:12px;font:36px/1 'Apple Color Emoji','Segoe UI Emoji',sans-serif;vertical-align:middle;margin:0 10px 12px 0;flex:none!important}
+[data-ac-priority]::after{content:attr(data-ac-title);display:block;color:var(--ac-accent);font:700 18px/1.3 system-ui;margin:0 0 12px;order:-1}
+/* Cabecalho fixo de identidade, separado do conteudo dinamico. */
+[data-ac-priority]{position:relative}
+[data-ac-priority]::after{position:absolute;top:22px;left:86px;right:48px}
+.busca-caixa h2{display:none}
+.ac-panel-stack{position:fixed;z-index:12;left:24px;top:155px;bottom:86px;width:min(350px,32vw);display:flex;flex-direction:column;gap:12px;overflow-y:auto;padding:0 8px 12px;pointer-events:none;overscroll-behavior:contain}
+body .ac-panel-stack>#manuscript,body .ac-panel-stack>.instruction,body .ac-panel-stack>#coop-status{position:relative!important;inset:auto!important;transform:none!important;margin:0!important;width:100%!important;max-width:none!important;max-height:none!important;flex:none;padding:16px!important;pointer-events:auto;text-align:left}
+.ac-panel-stack #manuscript p{color:#f4f1e6}.ac-panel-stack #manuscript .eyebrow{color:#FF9638}
+body .modal-fundo:has(>[data-ac-priority]){align-items:flex-start;padding-top:var(--ac-window-top);overflow:auto}
+body .modal[data-ac-priority]{width:min(480px,calc(100vw - 32px));max-height:calc(100dvh - 64px);overflow:auto;margin:0 auto}
+@media(max-width:700px){.ac-panel-stack{left:8px;top:auto;bottom:80px;width:calc(100vw - 16px);max-height:46dvh}.ac-panel-stack [data-ac-priority]::before{width:44px;height:44px;font-size:32px}.ac-panel-stack [data-ac-priority]::after{left:78px;font-size:16px}}
+
+body [data-ac-priority],body .ac-panel-stack>[data-ac-priority]{padding-top:84px!important}
+body [data-ac-priority]::before{position:absolute;left:16px;top:14px;margin:0!important}
+body [data-ac-priority]::after{top:28px;left:82px;right:50px;text-align:left}
+body dialog[data-ac-priority]>.close{margin:-70px -4px 8px 12px;top:0}
+body #intro[data-ac-priority]::before{flex:none;margin:0}
+
+body .mosaico-ra-modal:has(>[data-ac-priority]){align-items:flex-start;padding-top:var(--ac-window-top);overflow:auto}body .mosaico-ra-modal-card[data-ac-priority]{max-width:480px;max-height:calc(100dvh - 80px);overflow:auto;transform:none!important}
+
+/* Mesmo ponto de abertura para confirmacoes, alertas e cartas dos sensores. */
+body .dialogo-fundo{align-items:flex-start;padding-top:var(--ac-window-top);overflow:auto}
+body .dialogo-card[data-ac-priority]{width:min(480px,calc(100vw - 32px));margin:0 auto;max-height:calc(100dvh - var(--ac-window-top) - 24px);overflow:auto}
+body #card:has(>#card-in),body #cartao:has(>#cartao-inner){justify-content:flex-start;padding-top:var(--ac-window-top)}
+body #card:has(>#card-in)::before,body #card:has(>#card-in)::after,body #cartao:has(>#cartao-inner)::before,body #cartao:has(>#cartao-inner)::after{display:none}
+body #card-in[data-ac-priority],body #cartao-inner[data-ac-priority]{max-width:480px;width:100%}
+body #pistas[data-ac-priority]{padding-left:20px;padding-right:20px;overflow:auto}
+body .ra-inv-wrapper[data-ac-priority]{max-width:480px;margin:var(--ac-window-top) auto 16px;transform:none!important}
+body details[data-ac-priority]:not([open]){min-height:110px}
+body [data-ac-priority] .dialogo-botoes{position:sticky;bottom:0;background:#0c211c;padding:12px 0 4px;z-index:2}
+
+/* IDs dos paineis tinham prioridade sobre o espacamento do cabecalho. */
+body .ac-panel-stack>#coop-status[data-ac-priority],
+body .ac-panel-stack>#manuscript[data-ac-priority],
+body .ac-panel-stack>.instruction[data-ac-priority]{padding:84px 16px 16px!important;min-height:112px;border-radius:14px;line-height:1.5}
+body .ac-panel-stack>#coop-status[data-ac-priority]{font:14px/1.5 system-ui,sans-serif}

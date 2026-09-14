@@ -112,10 +112,26 @@
 
   /* ── Substituições ───────────────────────────────────────────────────── */
 
+  global.limiteTarefaSensorMs = function(tipo) {
+    var doc=(global.STATE&&STATE.doc)||{},cfg=(global.CASO&&CASO.configuracao&&CASO.configuracao.limitesSegundos)||{};
+    if(doc.percursoAC===1&&atividadeDaFase(tipo)==='salaEscura'){
+      var segundos=Number(doc.percursoLimiteSegundos);
+      return (Number.isFinite(segundos)&&segundos>=300&&segundos<=1800?segundos:720)*1000;
+    }
+    return (Number(cfg[tipo])||180)*1000;
+  };
+
   global.configTarefaSensor = function (tipo) {
     var at = atividadeDaFase(tipo);
     var t = (global.CASO && CASO.tarefas) || {};
-    return (at && t[TAREFA[at]]) || t[tipo] || {};
+    var cfg=(at && t[TAREFA[at]]) || t[tipo] || {};
+    if(at==='salaEscura' && global.STATE && STATE.doc && STATE.doc.percursoAC===1){
+      var jogador=(STATE.eu&&STATE.eu.id)||'visitante';
+      var elenco=STATE.doc.acElencoAtividade;
+      var extra=elenco&&elenco.fase===tipo?'&auto=1&elenco='+encodeURIComponent(JSON.stringify(elenco.jogadores)):'';
+      return Object.assign({},cfg,{titulo:'A investigação da casa',arquivo:'AC-percurso.html?embed=1&jogador='+encodeURIComponent(jogador)+extra});
+    }
+    return cfg;
   };
 
   /* tarefaInteriorAtual sobrevive porque outras partes do arquivo ainda a
@@ -156,6 +172,10 @@
      a tela anunciaria "A Janela do Norte" com O Vidro Embaçado dentro. */
   function alinharRotulos() {
     var c = global.CASO; if (!c) return;
+    if(global.CATEGORIAS_APURACAO){
+      var extras=[{id:'salaEscura',curto:'Investigação',titulo:'Individual · sala escura'},{id:'vela',curto:'Vela',titulo:'Cooperação · vela'},{id:'chaves',curto:'Chaves',titulo:'Cooperação · chaves'}];
+      extras.forEach(function(e){var i=CATEGORIAS_APURACAO.findIndex(function(x){return x.id===e.id;});if(STATE.doc&&STATE.doc.percursoAC===1){if(i<0)CATEGORIAS_APURACAO.push(e);}else if(i>=0)CATEGORIAS_APURACAO.splice(i,1);});
+    }
     ["inclinacao", "constelacao"].forEach(function (fase) {
       var at = atividadeDaFase(fase); if (!at) return;
       var cfg = (c.tarefas && c.tarefas[TAREFA[at]]) || {};
@@ -179,16 +199,28 @@
   global.criarMesa = async function (modo) {
     await criarBase(modo);
     var par = proximoPar(partidaId());
-    if (global.STATE && STATE.doc) STATE.doc.atividades = par;
+    if (global.STATE && STATE.doc) { STATE.doc.atividades = par; STATE.doc.percursoAC=1; STATE.doc.percursoLimiteSegundos=720; }
     if (global.STATE && STATE.mesa && STATE.mesa.fb && STATE.mesa.codigo) {
       try {
         var FB = await esperarFB();
-        await FB.atualizarMesa(STATE.mesa.codigo, { atividades: par });
+        await FB.atualizarMesa(STATE.mesa.codigo, { atividades: par, percursoAC: 1, percursoLimiteSegundos: 720 });
       } catch (e) { console.error("atividades da mesa", e); }
     }
     alinharRotulos();
     render(true);
   };
+
+  // Cada abertura fixa o elenco daquela atividade em uma unica escrita da mesa.
+  [['inclinacao','abrirInclinacao','inclinacaoAbertaMs'],['constelacao','abrirConstelacao','constelacaoAbertaMs']].forEach(function(item){
+    var anterior=global[item[1]];
+    global[item[1]]=async function(){
+      if(!STATE.doc||STATE.doc.percursoAC!==1||atividadeDaFase(item[0])!=='salaEscura')return anterior.apply(this,arguments);
+      var elenco=STATE.jogadores.map(function(j){return {id:j.id,nome:j.nome};});
+      if(elenco.length<2){avisa('Esta atividade cooperativa precisa de pelo menos dois jogadores. Para testar sozinho, use a demonstração individual.');return;}
+      var FB=await esperarFB(),dados={fase:item[0],acElencoAtividade:{fase:item[0],jogadores:elenco}};dados[item[2]]=Date.now();
+      await FB.atualizarMesa(STATE.mesa.codigo,dados);
+    };
+  });
 
   global.MosaicoAtividadesCasa = {
     preferencia: PREFERENCIA, pares: pares, atividades: atividades,

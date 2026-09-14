@@ -35,6 +35,8 @@ jobs:
           distribution: temurin
           java-version: "17"   # o emulador do Firestore roda em Java
       - run: npm install --no-audit --no-fund
+      - name: Preparar emulador Firestore
+        run: npx firebase setup:emulators:firestore
       - name: Matriz de segurança
         run: npm run test:regras
 

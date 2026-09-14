@@ -178,7 +178,9 @@
     if(STATE.jogadores.length<=3){var inicio=Number(STATE.doc&&STATE.doc.mosaicoAbertoMs)||0,dur=concluidos.length&&inicio?Math.max(0,msNucleo(concluidos[0])-inicio):Infinity,bonus=dur<=150000?2:dur<=300000?1:0,pontosAbs=Math.min(20,(concluidos[0]?acertosMosaico(concluidos[0]):0)*3+bonus);STATE.jogadores.forEach(function(j){coletivo[j.id]=pontosAbs;});}
     else STATE.jogadores.forEach(function(j){var pos=concluidos.findIndex(function(n){return Number(n.id)===Number(j.nucleo);});coletivo[j.id]=pos<0?0:(escala[pos]==null?4:escala[pos]);});
     var negociacoes=STATE.v5.negociacoes.map(function(n){var pistaObj=Object.keys(CASO.pistas||{}).map(function(k){return CASO.pistas[k];}).find(function(x){return x.id===n.pistaId;});return Object.assign({},n,{qualidade:(pistaObj&&pistaObj.qualidade)||'mediana'});});
+    var pontosPercurso=await ACPontuacao.carregar(STATE.v5.tarefas||[],STATE.doc&&STATE.doc.percursoAC===1);
     var placar=MosaicoV5.calcular({jogadores:STATE.jogadores,deducoes:deducoes,negociacoes:negociacoes,coopColetiva:coletivo,coopIndividual:coopInd,performance:perf});
+    placar=ACPontuacao.aplicar(placar,pontosPercurso);
     /* Aplique o placar no STATE local ANTES de publicar a fase resultado.
        Sem isto, telao-publica.js / o pódio leem j.total ainda zerado no mesmo
        ciclo de render e o telão anuncia zeros até o próximo snapshot.

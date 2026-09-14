@@ -396,6 +396,7 @@
      especificidade, quem vem por ultimo vence, e o padrao tem de vencer. -->
 <link rel="stylesheet" href="css/profundidade.css?v=20260902-profundidade">
 <link rel="stylesheet" href="css/profundidade-1mais1.css?v=20260906-pf-all">
+<link rel="stylesheet" href="css/ac-janelas.css">
 </head>
 <body>
 <canvas id="c"></canvas>
@@ -424,7 +425,7 @@
 
 <div id="aviso"></div>
 
-<div id="cartao"><div id="cartao-inner">
+<div id="cartao"><div id="cartao-inner" data-ac-priority="3">
   <div id="c-meta"><span id="c-tipo">Registro anterior da noite</span><span id="c-hora"></span></div>
   <div id="c-txt"></div>
   <div id="c-tempo"></div>
@@ -442,12 +443,12 @@
   <p>Solte o punho. A casa não tem pressa.</p>
 </div>
 
-<div id="final">
+<div id="final" data-ac-priority="8">
   <div id="final-frase">Às 22h40, sete xícaras secavam na pia.<br>Seis pessoas beberam chá naquela noite.</div>
   <button class="btn" id="btn-again">Recomeçar</button>
 </div>
 
-<div id="intro">
+<div id="intro" data-ac-priority="10">
   <div id="titulo">A Casa da Costa</div>
   <div id="nome-jogo">O Vidro<br>Embaçado</div>
   <div id="sub">A janela que não deveria abrir</div>
@@ -457,7 +458,7 @@
   <button id="alt">Sem sensor &mdash; usar o dedo</button>
 </div>
 
-<div id="falha" role="alertdialog" aria-live="polite">
+<div id="falha" data-ac-priority="9" role="alertdialog" aria-live="polite">
   <div id="falha-tit">Sem sensor</div>
   <div id="falha-msg"></div>
   <button id="falha-retry" aria-label="Tentar ativar o sensor novamente">Tentar novamente</button>
@@ -1374,5 +1375,5 @@ resize(); semeiaGotas(); semeiaChuva(); marcas();
 requestAnimationFrame(passo);
 })();
 </script>
-</body>
+<script src="js/ac-janelas.js"></script></body>
 </html>
