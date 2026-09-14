@@ -4,7 +4,7 @@
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
 import {
   getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup,
-  signInWithRedirect, getRedirectResult, signOut
+  getRedirectResult, signOut
 } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
 import {
   getFirestore, doc, getDoc, setDoc, serverTimestamp
@@ -92,21 +92,27 @@ async function sync(force){
 }
 function startSync(){clearInterval(syncTimer);syncTimer=setInterval(()=>sync(false),900);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")sync(true)});window.addEventListener("pagehide",()=>sync(true));}
 async function entrarGoogle(){
-  /* Safari/iOS não recebe popup com estabilidade. Usar redirect diretamente
-     evita a janela órfã e o ciclo em que a página volta sem reconhecer a conta. */
+  /* No Solo a conta é opcional. Quando a pessoa decide sincronizar, o popup
+     nasce diretamente no toque; redirecionar para outro domínio no Safari pode
+     perder o estado e produzir o ciclo de volta ao portão. */
   const status=document.querySelector("#mosaico-login .ml-status"),provider=new GoogleAuthProvider();
-  const iphone=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
-  if(status)status.textContent=iphone?"Redirecionando para o Google…":"Abrindo o Google…";
+  if(auth.currentUser&&!auth.currentUser.isAnonymous&&auth.currentUser.email){
+    await ready(auth.currentUser);return;
+  }
+  if(status)status.textContent="Abrindo o Google…";
   try{
-    if(iphone){await signInWithRedirect(auth,provider);return}
     await signInWithPopup(auth,provider);
   }catch(e){
     const code=e&&e.code||"";
-    if(code==="auth/popup-blocked"||code==="auth/operation-not-supported-in-this-environment"){
-      if(status)status.textContent="Redirecionando para o Google…";
-      await signInWithRedirect(auth,provider);return;
-    }
-    if(status)status.textContent=(code==="auth/unauthorized-domain"?"Este domínio ainda não está autorizado no Firebase.":code==="auth/operation-not-allowed"?"Ative o provedor Google no projeto Firebase deste modo.":"Não foi possível entrar com Google.");
+    if(status)status.textContent=code==="auth/popup-blocked"
+      ?"O navegador bloqueou a janela. Libere pop-ups ou continue sem conta."
+      :code==="auth/popup-closed-by-user"||code==="auth/cancelled-popup-request"
+        ?"A janela foi fechada. Você pode continuar sem conta."
+        :code==="auth/unauthorized-domain"
+          ?"Este domínio ainda não está autorizado no Firebase."
+          :code==="auth/operation-not-allowed"
+            ?"Ative o provedor Google no projeto Firebase deste modo."
+            :"Não foi possível entrar com Google. Você pode continuar sem conta.";
   }
 }
 async function sair(){try{await sync(true)}catch(e){}clearInterval(syncTimer);try{await signOut(auth)}catch(e){}location.reload();}
