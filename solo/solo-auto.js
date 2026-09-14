@@ -105,7 +105,10 @@ function header(){
 async function load(){try{const r=await fetch('../v1/casos/casa-da-costa.json?v=20260902-banco');if(!r.ok)throw Error();state.caso=await r.json();state.key=proxima();}catch(e){app.innerHTML=header()+'<div class="hero pf-card"><span class="k">Falha de carregamento</span><h2>O caso não pôde ser aberto.</h2><p class="muted">Recarregue a página quando a conexão estiver disponível.</p></div></div>';return;}render();}
 function render(){if(!state.caso)return;let h=header();if(state.phase==='home')h+=home();if(state.phase==='briefing')h+=briefing();if(state.phase==='percurso3d')h+=percurso3d();if(state.phase==='sensor')h+=sensor();if(state.phase==='puzzle')h+=puzzle();if(state.phase==='fact')h+=fact();if(state.phase==='mosaico')h+=mosaico();if(state.phase==='cooperacao')h+=cooperacao();if(state.phase==='mercado')h+=mercado();if(state.phase==='relations')h+=relations();if(state.phase==='map')h+=map();if(state.phase==='decision')h+=decision();if(state.phase==='result')h+=result();
   try{
-    if(window.MosaicoPapelCamada && state.phase!=='home'){
+    /* O andaime de hipóteses pertence à análise/dedução. Na Mesa ele só
+       aparece depois da coleta; no Solo deve obedecer à mesma sequência. */
+    var fasesComHipoteses=['relations','map','decision'];
+    if(window.MosaicoPapelCamada && fasesComHipoteses.indexOf(state.phase)>=0){
       var e=window.MosaicoPapelCamada.carregar('casa-da-costa');
       if(e.camada!=='livre') h+=window.MosaicoPapelCamada.htmlAndaime('casa-da-costa',e,{partidaId:state.key,state:{selecionados:state.answers||{}}});
     }
