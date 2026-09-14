@@ -15,7 +15,7 @@ const DOC = ler("MOSAICO-ACESSIBILIDADE-PAPEIS.md");
 const README = ler("README.md");
 const GAME = ler("carro-forte/game.js");
 const ROOM = ler("firebase-room.js");
-const SOLO = ler("solo/solo-auto.js");
+const SOLO = ler("solo/mesa-solo.js");
 const MESA = ler("v1/MOSAICO-mesa.html");
 
 function loadApis(storage = {}) {
