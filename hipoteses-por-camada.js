@@ -900,7 +900,7 @@
       ".hpc-prog button{border:1px solid #3d6a55;background:#102820;color:#bde8d0;border-radius:7px;padding:6px 10px;font-weight:700;cursor:pointer;font-size:12px}",
       ".hpc-coerencia{margin-top:8px;color:#8aa89a;font-size:12px}",
       ".hpc-processo{margin-top:12px}",
-      "@media(max-width:640px){.hpc-compare,.hpc-buckets{grid-template-columns:1fr}}"
+      "@media(max-width:640px){.hpc-compare,.hpc-buckets{grid-template-columns:1fr}.hpc-painel{padding:11px}.hpc-head{position:sticky;top:0;z-index:3;margin:-2px -2px 8px;padding:8px 2px;background:linear-gradient(180deg,#1a3348 75%,rgba(26,51,72,0))}.hpc-lista{max-height:52dvh;overflow-y:auto;overscroll-behavior:contain;scroll-snap-type:y proximity}.hpc-hip{padding:11px 12px;scroll-snap-align:start}.hpc-hip:not(.on) small,.hpc-hip:not(.on) .hpc-unex-btn{display:none}.hpc-hip:not(.on) strong{font-size:13px}.hpc-hip.on small{font-size:14px;line-height:1.5}.hpc-unex-btn{min-height:38px;padding:7px 10px}.hpc-enfase{width:100%;font-size:12px}.hpc-socratic{max-height:42dvh;overflow:auto}}"
     ].join("");
   }
 
