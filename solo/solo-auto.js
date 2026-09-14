@@ -84,7 +84,8 @@ function conjunto(k){
 }
 
 const state={phase:'home',caso:null,key:null,i:0,order:[0,1,2,3],pick:null,seen:[],facts:{},answers:{},scoreFacts:0,
-  percursoPronto:false,percursoResultado:null,atividades:[],atividadeI:0,sensorPronto:false,mosaico:[],mosaicoPick:null,mercadoEtapa:0,mercadoEscolhas:[],contraponto:null};
+  percursoPronto:false,percursoResultado:null,atividades:[],atividadeI:0,sensorPronto:false,sensorTempos:[],mosaico:[],mosaicoPick:null,mercadoEtapa:0,mercadoEscolhas:[],contraponto:null,
+  pontuacao:null,resultadoVista:'apuracao',apuracaoEtapa:0,apuracaoTimer:null};
 const app=document.getElementById('app');
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
@@ -111,6 +112,7 @@ function render(){if(!state.caso)return;let h=header();if(state.phase==='home')h
   }catch(err){}
   app.innerHTML=h+'</div>';
   try{ if(window.MosaicoPapelCamada) window.MosaicoPapelCamada.ligarAndaime(app,'casa-da-costa',null,{partidaId:state.key,state:{selecionados:state.answers||{}}}); }catch(err){}
+  if(state.phase==='result'&&state.resultadoVista==='apuracao')agendarApuracao();
 }
 function home(){let p=state.caso.partidas[state.key];return '<section class="hero pf-card"><span class="k">Uma verdade · uma nova pergunta</span><h1>A verdade é um fragmento.</h1><p class="lead">Reconstrua sozinho as evidências da Casa da Costa. O MOSAICO escolheu automaticamente o problema desta execução.</p><div class="question pf-inset"><b>'+esc(p.natureza)+' · pergunta-mãe</b><p>'+esc(p.pergunta)+'</p></div><button class="btn pf-btn-gold" onclick="start()">Começar reconstrução</button><p class="muted small" style="margin-top:16px">Ao concluir, a próxima execução avançará automaticamente para outra pergunta da mesma realidade.</p></section>';}
 function parAtividades(){
@@ -129,12 +131,13 @@ function abrirAtividades(){state.atividades=parAtividades();state.atividadeI=0;s
 function sensor(){let id=state.atividades[state.atividadeI],a=ATIVIDADE[id];return '<span class="k">ATIVIDADE SENSORIAL '+(state.atividadeI+1)+' DE '+state.atividades.length+'</span><h2>'+esc(a.titulo)+'</h2><p class="lead">A tarefa permanece completa no modo solo. Conclua-a dentro do quadro para liberar a próxima etapa.</p><div class="sensor-shell pf-inset"><iframe id="solo-sensor" title="'+esc(a.titulo)+'" src="'+esc(a.arquivo)+'"></iframe></div><button class="btn ghost" onclick="confirmarSensor()" '+(state.sensorPronto?'':'disabled')+'>'+(state.sensorPronto?'Atividade concluída · continuar':'Conclua a tarefa no quadro')+'</button>';
 }
 function confirmarSensor(){if(!state.sensorPronto)return;if(state.atividadeI<state.atividades.length-1){state.atividadeI++;state.sensorPronto=false;render();return;}state.i=0;state.phase='puzzle';newPuzzle();render();}
-window.addEventListener('message',function(ev){if(ev.origin!==location.origin||!ev.data||ev.data.mosaico!=='tarefa-ok'||state.phase!=='sensor')return;state.sensorPronto=true;render();});
+window.addEventListener('message',function(ev){if(ev.origin!==location.origin||!ev.data||ev.data.mosaico!=='tarefa-ok'||state.phase!=='sensor')return;state.sensorPronto=true;state.sensorTempos[state.atividadeI]=Math.max(0,Number(ev.data.tempoMs)||0);render();});
 window.addEventListener('message',function(ev){if(ev.origin!==location.origin||!ev.data||ev.data.mosaico!=='ac-solo-completo'||state.phase!=='percurso3d')return;state.percursoPronto=true;state.percursoResultado={score:Number(ev.data.score)||0,evidence:Array.isArray(ev.data.evidence)?ev.data.evidence:[]};render();});
 function start(){
   function go(){
+    if(state.apuracaoTimer){clearTimeout(state.apuracaoTimer);state.apuracaoTimer=null;}
     marcarUsada();state.i=0;state.seen=[];state.facts={};state.answers={};state.scoreFacts=0;
-    state.percursoPronto=false;state.percursoResultado=null;state.atividades=[];state.atividadeI=0;state.sensorPronto=false;state.mosaico=[];state.mosaicoPick=null;state.mercadoEtapa=0;state.mercadoEscolhas=[];state.contraponto=null;
+    state.percursoPronto=false;state.percursoResultado=null;state.atividades=[];state.atividadeI=0;state.sensorPronto=false;state.sensorTempos=[];state.mosaico=[];state.mosaicoPick=null;state.mercadoEtapa=0;state.mercadoEscolhas=[];state.contraponto=null;state.pontuacao=null;state.resultadoVista='apuracao';state.apuracaoEtapa=0;
     state.phase='briefing';render();
     try{
       if(window.MosaicoPapelCamada){
@@ -223,9 +226,19 @@ function finish(){
       if(!gate.ok){alert(gate.reason);return;}
     }
   }catch(err){}
-  let p=state.caso.partidas[state.key],all=true,correct=0;state.answers={};p.campos.forEach(f=>{let el=document.getElementById('f-'+f.id),v=el?el.value:'';if(!v)all=false;state.answers[f.id]=v;if(v===f.resposta)correct++});if(!all){alert('Preencha todos os campos antes de fechar a conclusão.');return;}state.correct=correct;state.phase='result';render();
+  let p=state.caso.partidas[state.key],all=true,correct=0;state.answers={};p.campos.forEach(f=>{let el=document.getElementById('f-'+f.id),v=el?el.value:'';if(!v)all=false;state.answers[f.id]=v;if(v===f.resposta)correct++});if(!all){alert('Preencha todos os campos antes de fechar a conclusão.');return;}state.correct=correct;prepararPontuacao();state.resultadoVista='apuracao';state.apuracaoEtapa=0;state.phase='result';render();
 }
-function result(){let p=state.caso.partidas[state.key],total=p.campos.length,fieldPct=Math.round(100*state.correct/total),factPct=Math.round(100*state.scoreFacts/conjunto(state.key).length),score=Math.round(fieldPct*.7+factPct*.3);let rows=p.campos.map(f=>'<div class="relation pf-inset"><span class="k">'+esc(f.rotulo)+'</span><p style="margin:.35rem 0"><b>Sua resposta:</b> '+esc(state.answers[f.id])+'</p><p class="muted" style="margin:0"><b>Canônica:</b> '+esc(f.resposta)+'</p></div>').join('');
+const CATEGORIAS_SOLO=[['performance','Encenação'],['tempo','Jogador contra Jogador'],['cooperacao','Jogador com Jogador — Fragmentos'],['economia','Mercado de pistas'],['qualidade','Jogador contra o caso']];
+function prepararPontuacao(){
+ let p=state.caso.partidas[state.key],rota=Math.min(20,Math.round((((state.percursoResultado&&state.percursoResultado.score)||0)/24)*20));
+ let tempo=(state.sensorTempos||[]).slice(0,2).reduce((s,ms)=>s+(ms<=60000?10:ms<=120000?8:ms<=180000?6:4),0);
+ let coop=15+(state.contraponto===0?5:0),economia=Math.min(20,(state.mercadoEscolhas||[]).length*7),qualidade=Math.round(20*state.correct/Math.max(1,p.campos.length));
+ state.pontuacao={performance:rota,tempo:tempo,cooperacao:coop,economia:economia,qualidade:qualidade};
+}
+function totalSolo(){return CATEGORIAS_SOLO.reduce((s,c)=>s+Number((state.pontuacao||{})[c[0]]||0),0);}
+function agendarApuracao(){if(state.apuracaoTimer)return;state.apuracaoTimer=setTimeout(function(){state.apuracaoTimer=null;if(state.phase!=='result'||state.resultadoVista!=='apuracao')return;if(state.apuracaoEtapa<CATEGORIAS_SOLO.length){state.apuracaoEtapa++;render();}else{state.resultadoVista='podio';render();}},1500);}
+function apuracao(){let vis=state.apuracaoEtapa;let cols=CATEGORIAS_SOLO.map((c,i)=>'<div class="apuracao-cat '+(i<vis?'visivel':'')+'"><span>'+esc(c[1])+'</span><b>'+(i<vis?esc(state.pontuacao[c[0]])+' pts':'—')+'</b></div>').join('');return '<span class="k">APURAÇÃO FINAL</span><h2>A investigação será recomposta.</h2><p class="lead">As categorias aparecem automaticamente, na mesma ordem do placar da Mesa.</p><div class="apuracao-grid">'+cols+'</div><div class="apuracao-total"><span>Total parcial</span><b>'+CATEGORIAS_SOLO.slice(0,vis).reduce((s,c)=>s+Number(state.pontuacao[c[0]]||0),0)+'</b></div>';}
+function podio(){let p=state.caso.partidas[state.key],rows=p.campos.map(f=>'<div class="relation pf-inset"><span class="k">'+esc(f.rotulo)+'</span><p style="margin:.35rem 0"><b>Sua resposta:</b> '+esc(state.answers[f.id])+'</p><p class="muted" style="margin:0"><b>Canônica:</b> '+esc(f.resposta)+'</p></div>').join('');
   let processo='';
   try{
     if(window.MosaicoHipotesesCamada){
@@ -233,7 +246,8 @@ function result(){let p=state.caso.partidas[state.key],total=p.campos.length,fie
       processo=window.MosaicoHipotesesCamada.htmlRelatorioProcesso(sc,{caso:'casa-da-costa'})||'';
     }
   }catch(err){}
-  return '<span class="k">REVELAÇÃO</span><h2>'+esc(p.titulo)+'</h2><div class="result pf-inset"><div class="score">'+score+'</div><p class="muted">Índice desta execução · 30% leitura factual + 70% decisão</p><p class="lead">'+esc(p.revelacao)+'</p></div>'+processo+rows+'<div class="factbox pf-inset"><b>Realidade canônica</b><span>'+esc(state.caso.realidadeCanonica.sintese)+'</span></div><button class="btn" onclick="nextRun()">Nova partida</button>';
+  return '<span class="k">PÓDIO · RESULTADO FINAL</span><div class="podio-solo"><div class="podio-degrau"><span>1º</span><b>Investigador solo</b><strong>'+totalSolo()+' pts</strong></div></div><h2>'+esc(p.titulo)+'</h2><div class="result pf-inset"><div class="score">'+totalSolo()+'</div><p class="muted">Pontuação total da experiência completa</p><p class="lead">'+esc(p.revelacao)+'</p></div>'+processo+rows+'<div class="factbox pf-inset"><b>Realidade canônica</b><span>'+esc(state.caso.realidadeCanonica.sintese)+'</span></div><button class="btn" onclick="nextRun()">Nova partida</button>';
 }
-function nextRun(){state.key=proxima();state.phase='home';state.i=0;state.seen=[];state.facts={};state.answers={};state.scoreFacts=0;render();}
+function result(){if(!state.pontuacao)prepararPontuacao();return state.resultadoVista==='podio'?podio():apuracao();}
+function nextRun(){if(state.apuracaoTimer){clearTimeout(state.apuracaoTimer);state.apuracaoTimer=null;}state.key=proxima();state.phase='home';state.i=0;state.seen=[];state.facts={};state.answers={};state.scoreFacts=0;state.sensorTempos=[];state.pontuacao=null;state.resultadoVista='apuracao';state.apuracaoEtapa=0;render();}
 load();
