@@ -1,65 +1,32 @@
-# MOSAICO — Modo Solo · A Casa da Costa
+# MOSAICO · A Casa da Costa · Solo
 
-O Modo Solo é a terceira experiência do mesmo caso canônico:
+O Solo é uma adaptação individual da sequência canônica publicada na Mesa.
 
-- **A Mesa (`v1/`)**: verdade distribuída entre pessoas.
-- **A Noite (`v2/`)**: fechamento do dossiê e sustentação da conclusão.
-- **Modo Solo (`solo/`)**: verdade fragmentada reconstruída cognitivamente por uma pessoa.
+## Fonte única
 
-## Fonte canônica
+- Caso, fragmentos, relações, perguntas e respostas: `../v1/casos/casa-da-costa.json`.
+- Ordem pedagógica: Mesa publicada em `../v1/MOSAICO-mesa.html`.
+- O Solo não mantém uma segunda realidade factual.
 
-O Solo lê `../v1/casos/casa-da-costa.json`. A realidade factual é única e não deve ser duplicada nesta pasta.
+## Sequência individual
 
-Até 02/09/2026 essa regra estava escrita aqui e desmentida no código: `solo-auto.js` tinha a própria tabela `EVID`, com dezenove fatos reescritos, e um `SETS` com a seleção por pergunta. Duas listas da mesma verdade, sem nada que obrigasse as duas a mudarem juntas — o mesmo arranjo que deixou o cânone antigo sobreviver meses dentro dos módulos sensoriais.
+1. abertura e preparação;
+2. percurso da escrivaninha e maquete;
+3. atividades sensoriais;
+4. coleta e organização dos fatos;
+5. Mosaico individual;
+6. Mercado de pistas adaptado;
+7. relações e hipóteses;
+8. decisão;
+9. apuração e pódio.
 
-Hoje tudo sai do banco: título e fato de `fragmentos`, agrupamento e inferência de `relacoes`, e o que entra em cada partida de `selecao`. O único dado local é o ÍCONE de cada fragmento, que é decoração e não fato.
+Não existem sala, votação interna, divisão em Fragmentos ou ação “Jogador com Jogador”. Quando uma ação da Mesa depende de várias pessoas, ela é convertida em decisão, revisão ou execução individual — nunca antecipada nem removida.
 
-**Os códigos do banco (F01, H3, R7) não aparecem na tela**, aqui nem nos outros dois jogos: na tela eles viram atalho de memória entre partidas.
+## Arquivos publicados
 
-## Conta e Firebase
+- `index.html`: entrada, autenticação e abertura.
+- `mesa-solo.js`: orquestração individual.
+- `mesa-solo.css`: apresentação responsiva.
+- `estado-solo.js`: retomada vinculada ao usuário.
 
-O Modo Solo exige **login Google** antes de iniciar. A autenticação e a sincronização usam o projeto Firebase `mosaico-noite`, separado da Mesa.
-
-O progresso pessoal é salvo em:
-
-`usuarios/{uid}/experiencias/casa-da-costa-solo`
-
-`firebase-user.js` sincroniza a rotação e o snapshot local. `solo-cloud-state.js` transforma o estado em memória do jogo em um snapshot que pode ser retomado em outro aparelho com a mesma conta.
-
-Para a gravação no Firestore funcionar, o projeto `mosaico-noite` precisa ter publicada a regra de `FIRESTORE-USUARIOS.rules.snippet`.
-
-## Rotação automática das partidas
-
-O usuário não escolhe a pergunta. O MOSAICO alterna automaticamente, em sequência, uma pergunta-mãe diferente sobre a mesma realidade:
-
-1. Sete dentro da casa
-2. Cinco meses
-3. Os 2 minutos e 2 segundos
-4. O nome
-5. Casa, corpo ou assombração?
-6. Quem deveria ter percebido?
-
-Ao iniciar uma execução, a pergunta fica congelada até a revelação. A próxima partida avança para a pergunta seguinte e, depois da sexta, a sequência recomeça.
-
-## Fluxo
-
-`Pergunta → preparação/encenação → percurso 3D/RA (escrivaninha, vela, etiqueta, maquete e três chaves) → duas atividades sensoriais → fragmentos e fatos → Mosaico → contraponto/cooperação → Mercado → relações e inferências → planta de 1867 → decisão → apuração por categorias → pódio → revelação`
-
-## Solo integral assistido
-
-O modo solo não elimina tarefas por falta de outros participantes. Ele preserva
-o percurso 3D/RA completo, as duas atividades sensoriais escolhidas para a pergunta, a reconstrução do
-Mosaico, a revisão cooperativa, as três decisões do Mercado, a apuração progressiva
-nas cinco categorias da Mesa, o pódio e a conclusão.
-Somente a ação social é convertida: o sistema distribui arquivos, apresenta o
-contraponto e ocupa os lugares necessários no Mercado. Não há IA externa nem
-respostas livres geradas por servidor; a execução é determinística, auditável e
-continua funcionando como página estática.
-
-Cada evidência é remontada em quatro partes. Depois de montar, o jogador precisa separar o que o fato demonstra diretamente de interpretações que ainda não estão autorizadas. As relações entre fatos aparecem antes da decisão final.
-
-A planta `v1/img/casa-da-costa-planta-1867.svg` funciona como síntese espacial antes da resposta.
-
-O modelo antigo de `suspeito + motivo + ação + prova + lacuna`, assim como a continuidade de Nuno/Caseiro, testamento, chave e abertura criminosa do cofre, está supersedido.
-
-**Jogar:** https://drmarionascimento.github.io/Dragon/solo/
+A versão anterior está preservada apenas na branch técnica `backup/solo-antes-reconstrucao-20260914`.
