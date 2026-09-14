@@ -181,7 +181,7 @@ describe("números de carta · mínimo 22px", () => {
 
 describe("portas sem este padrão", () => {
   it("Casa Solo não tem elenco+pista privada (reconstrução factual)", () => {
-    const solo = ler("solo/solo-auto.js");
+    const solo = ler("solo/mesa-solo.js");
     assert.equal(/avisoElencoAntesJanela/.test(solo), false);
     assert.equal(/telaRevelacao/.test(solo), false);
   });
