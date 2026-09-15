@@ -11,7 +11,6 @@
     document.querySelectorAll('[data-ac-priority]').forEach(el=>{
       const n=Number(el.dataset.acPriority),t=types[n];if(!t)return;
       el.style.setProperty('--ac-accent',t[2]);if(el.parentElement?.classList.contains('ac-panel-stack'))el.style.order=n;
-      // Pseudo-elementos nao alteram o texto usado pelos controladores existentes.
       el.dataset.acSymbol=t[0];el.dataset.acTitle=t[1];
     });
   }
@@ -28,8 +27,6 @@
     const parents=new Set(Array.from(document.querySelectorAll('[data-ac-priority]')).map(e=>e.parentElement));
     for(const parent of parents)if(parent&&parent!==document.body&&!parent.closest('dialog,[role=dialog],[role=alertdialog],.modal-fundo,.dialogo-fundo')&&!parent.classList.contains('ac-panel-stack'))sortRuns(parent);
   }
-  /* A pilha de painéis precisa saber onde começam as ferramentas, que mudam de
-     altura quando quebram em duas linhas ou quando botões aparecem/somem. */
   function medirFerramentas(){
     const tools=document.querySelector('.tools');if(!tools)return;
     const aplicar=()=>{
@@ -43,11 +40,26 @@
     new MutationObserver(aplicar).observe(tools,{attributes:true,subtree:true,childList:true});
     window.addEventListener('resize',aplicar);
   }
-  /* No Solo, a marca AC não pode levar o quadro para fora do percurso. */
   function travarMarcaNoSolo(){
     if(new URLSearchParams(location.search).get('demo')!=='solo')return;
     const brand=document.querySelector('.topbar .brand');
     if(brand){brand.removeAttribute('href');brand.addEventListener('click',e=>e.preventDefault());}
+  }
+  function botaoCena(){
+    if(!document.querySelector('.ac-panel-stack')||document.getElementById('ac-ver-cena'))return;
+    if(!document.getElementById('ac-cena-css')){
+      const css=document.createElement('style');css.id='ac-cena-css';
+      css.textContent='#ac-ver-cena{flex:none;min-height:44px;padding:8px 12px;border-radius:22px;border:1px solid #c9a66c;background:#241a08;color:#ffe1ac;font:700 12px/1 system-ui}body.ac-cena-livre .ac-panel-stack,body.ac-cena-livre .chapter{opacity:0!important;pointer-events:none!important;visibility:hidden}body.ac-cena-livre #ac-ver-cena{position:fixed;z-index:30;right:10px;top:max(10px,env(safe-area-inset-top));visibility:visible;opacity:1}@media(max-width:700px){.ac-panel-stack{max-height:22dvh!important}}';
+      document.head.appendChild(css);
+    }
+    const b=document.createElement('button');
+    b.id='ac-ver-cena';b.type='button';b.textContent='Ver a cena';
+    b.addEventListener('click',()=>{
+      const on=document.body.classList.toggle('ac-cena-livre');
+      b.textContent=on?'Mostrar cart\u00f5es':'Ver a cena';
+    });
+    const tools=document.querySelector('.tools');
+    if(tools) tools.appendChild(b); else document.body.appendChild(b);
   }
   function start(){
     travarMarcaNoSolo();
@@ -56,6 +68,7 @@
       const stack=document.createElement('section');stack.className='ac-panel-stack';stack.setAttribute('aria-label','Investigação e orientações');document.body.append(stack);
       for(const el of [document.getElementById('manuscript'),desk,document.getElementById('coop-status')].filter(Boolean))stack.append(el);
     }
+    botaoCena();
     medirFerramentas();decorate();orderPanels();new MutationObserver(records=>{if(records.some(r=>r.addedNodes.length)){decorate();orderPanels();}}).observe(document.body,{childList:true,subtree:true});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
