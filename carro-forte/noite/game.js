@@ -9,7 +9,7 @@
     s.onload = () => depois?.();
     document.head.appendChild(s);
   };
-  carregar('opening-flow.js?v=20260901-ios2', () => {
+  carregar('opening-flow.js?v=20260915-audio-cta', () => {
     carregar('game-fixed.js?v=20260906-captura-frag', () => {
       carregar('layout-compacto.js?v=20260901-toque3', () => {
         carregar('touch-router.js?v=20260901-toque1', () => {

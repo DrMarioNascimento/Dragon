@@ -107,12 +107,13 @@
   }
 
   async function comecar() {
-    document.getElementById('abPrep').hidden = true;
-    document.getElementById('abControles').hidden = false;
     audio.src = AUDIO;
     audio.currentTime = 0;
     try {
       await audio.play();
+      const prep=document.getElementById('abPrep');
+      if(prep)prep.remove();
+      document.getElementById('abControles').hidden = false;
     } catch (e) {
       console.error('MOSAICO: a narração da abertura não pôde tocar.', e);
       document.getElementById('abPlay').hidden = true;

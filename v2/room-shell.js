@@ -188,7 +188,7 @@ function comAbertura(seguir){
   const conduzo=!sala||!sala.online||sala.role==='master';
   if(!conduzo){aguardarAbertura(seguir);return}
   const a=document.createElement('script');
-  a.src='../abertura-casa.js?v=20260903-abertura2';
+  a.src='../abertura-casa.js?v=20260915-audio-cta';
   a.onload=()=>window.MosaicoAberturaCasa.mostrar(()=>{marcarAberturaConcluida();seguir()});
   a.onerror=()=>{console.error('MOSAICO: abertura não carregou.');marcarAberturaConcluida();seguir()};
   document.head.appendChild(a);

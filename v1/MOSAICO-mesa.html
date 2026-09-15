@@ -238,6 +238,16 @@
   .elenco-intro .ts-pf-seu{padding:14px;text-align:center;font:700 clamp(18px,4.8vw,22px)/1.3 var(--sans);color:#ffc46b;margin-bottom:8px}
   .elenco-voce{display:block;text-align:center;margin:0 0 10px;font:700 14px/1.3 var(--sans);color:var(--go-face);letter-spacing:.04em}
   .mosaico-portador-box{margin:10px 0 14px;padding:14px 16px;border-radius:10px;background:#25190e;box-shadow:inset 0 0 0 2px #e8a94a,inset 0 2px 8px rgba(0,0,0,.45);color:#ffe2b4;font:600 16px/1.4 var(--sans);text-align:center}
+  /* O aviso que substitui a janela de envio quando ela e encolhida. Fica
+     embaixo porque a barra-jogo mora no topo desde 05/09; e ele e o unico
+     elemento fixo do rodape nesta tela. */
+  .voto-envio-aviso{position:fixed;z-index:46;left:50%;transform:translateX(-50%);
+    bottom:max(12px,env(safe-area-inset-bottom));min-height:44px;max-width:calc(100vw - 28px);
+    padding:10px 16px;border:1px solid rgba(127,212,255,.34);border-radius:999px;
+    background:rgba(3,6,11,.94);color:#dbe8f2;font:700 13px/1.2 Inter,system-ui,sans-serif;
+    box-shadow:inset 0 1px rgba(255,255,255,.08),0 4px 0 #04101a,0 12px 28px rgba(0,0,0,.5);
+    cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .voto-envio-aviso:active{transform:translateX(-50%) translateY(2px);box-shadow:0 1px 0 #04101a}
   .voto-envio-fundo{position:fixed;inset:0;z-index:80;background:rgba(2,6,10,.86);display:flex;align-items:center;justify-content:center;padding:22px}
   .voto-envio-card{width:min(440px,94vw);padding:22px 18px;text-align:center}
   .voto-envio-card h2{font-size:clamp(22px,6vw,32px);color:var(--titulo)}
@@ -1397,7 +1407,7 @@
      especificidade, quem vem por ultimo vence, e o padrao tem de vencer. -->
 <link rel="stylesheet" href="css/profundidade.css?v=20260902-profundidade">
 <link rel="stylesheet" href="css/profundidade-1mais1.css?v=20260907-playtest-ux">
-<link rel="stylesheet" href="css/ac-janelas.css">
+<link rel="stylesheet" href="css/ac-janelas.css?v=20260915-ordem-chegada">
 <script src="js/ac-cloud.js"></script></head>
 <body>
 <div id="arte">
@@ -1461,11 +1471,11 @@
 <script src="js/vendor/GLTFLoader.js"></script><script src="js/ac-desk.js"></script><script src="js/ac-room-layout.js"></script><script src="js/ac-room-art.js"></script><script src="js/ac-room.js"></script><script src="js/mosaico-ra-engine.js"></script>
 <script src="js/mosaico-3d-engine.js"></script>
 <script src="js/ac-pontuacao.js"></script>
-<script src="js/mosaico-v5.js?v=20260907-android-hold"></script>
+<script src="js/mosaico-v5.js?v=20260915-ordem-chegada"></script>
 <script src="../hipoteses-por-camada.js?v=20260906-hpc-pf"></script>
 <script src="../papel-camada.js?v=20260907-playtest-ux"></script>
-<script src="js/qr.js?v=20260907-android-hold"></script>
-<script src="js/casa-firebase-room-bridge.js?v=20260907-android-hold"></script>
+<script src="js/qr.js?v=20260915-ordem-chegada"></script>
+<script src="js/casa-firebase-room-bridge.js?v=20260915-ordem-chegada"></script>
 <script type="module" src="../firebase-room.js?v=20260907-playtest-ux"
         data-project="mesa"
         data-root="mosaico"
@@ -3861,10 +3871,21 @@ function htmlVotoEnvioModal(){
   var corpo=recusa
     ? '<p class="lead">Alguém do Fragmento não concordou. Conversem e tentem de novo.</p>'
     : '<p class="lead">Você concorda com o envio das hipóteses do seu Fragmento?</p>';
+  /* "Aguardando o grupo" era a ÚNICA janela da Mesa sem saída: tela cheia,
+     z-index 80, sem botão e sem fechar no fundo. Quem votasse Sim ficava
+     trancado atrás dela até o resto do Fragmento votar — sem Caso, sem
+     Arquivo, sem tabuleiro. Se um colega não votasse, não saía mais.
+     Agora ela encolhe num aviso. O VOTO NÃO MUDA: continua Sim. E se
+     alguém recusar, a janela volta inteira, com o "Entendi". */
+  if(meuVoto===true && !recusa && STATE.votoEnvioMinimizado===v.rodada){
+    return '<button class="voto-envio-aviso" onclick="reabrirVotoEnvio()" '+
+      'aria-label="Reabrir o envio do Fragmento">⏳ Envio do Fragmento · '+v.sim+' de '+v.total+'</button>';
+  }
   var botoes=recusa
     ? '<button class="btn btn-go" onclick="cancelarVotoEnvioFragmento()">Entendi</button>'
     : (meuVoto===true
-      ? '<p class="voto-contagem">Você já votou Sim. Aguardando o grupo…</p>'
+      ? '<p class="voto-contagem">Você já votou Sim. Aguardando o grupo…</p>'+
+        '<button class="btn btn-fantasma" onclick="minimizarVotoEnvio()">Continuar na mesa</button>'
       : '<div class="voto-envio-botoes">'+
           '<button class="btn btn-go" onclick="votarEnvioFragmento(true)">Sim</button>'+
           '<button class="btn btn-fantasma" onclick="votarEnvioFragmento(false)">Não</button></div>');
@@ -3874,6 +3895,8 @@ function htmlVotoEnvioModal(){
     '<p class="voto-contagem">'+v.sim+' de '+v.total+' concordaram</p>'+
     botoes+'</div></div>';
 }
+function minimizarVotoEnvio(){ STATE.votoEnvioMinimizado=votosEnvioDoGrupo().rodada; render(); }
+function reabrirVotoEnvio(){ STATE.votoEnvioMinimizado=null; render(); }
 function caixaPortadorColetivo(){
   if(fragmentoCompartilhado()){
     return '<div class="mosaico-portador-box pf-inset">Conversem. Com até 3 na mesa o Fragmento é compartilhado; o envio só sai depois que todos concordarem.</div>';
@@ -5729,5 +5752,5 @@ if(CONFIGURADO) window.MosaicoFB = {
 window.dispatchEvent(new Event("mosaicofb-ready"));
 console.log("MosaicoFB ready");
 </script>
-<script src="js/ac-janelas.js"></script></body>
+<script src="js/ac-janelas.js?v=20260915-ordem-chegada"></script></body>
 </html>

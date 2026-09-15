@@ -18,9 +18,9 @@
     if(current===name)return;current=name;
     const q=new URLSearchParams(params);q.set('run',run);q.set('embed','1');q.set('cenario',params.get('cenario')||'AC-COSTA');
     if(name!=='sala'){q.set('percurso','1');for(const [k,v]of Object.entries(credentials))q.set(k,v);}
-    const path={sala:'MOSAICO-26-a-sala-as-escuras.html',mesa:'AC-escrivaninha.html',maquete:'AC-maquete.html'}[name];
+    const path={janela:'MOSAICO-26-a-janela-do-norte.html',mesa:'AC-escrivaninha.html',maquete:'AC-maquete.html'}[name];
     frame.src=path+'?'+q;frame.hidden=false;
-    $('stage').textContent={sala:'1 / 3 · A sala às escuras',mesa:'2 / 3 · Sob outra luz',maquete:'3 / 3 · O lar em miniatura'}[name];
+    $('stage').textContent={janela:'1 / 3 · Chegada pela estrada',maquete:'2 / 3 · O lar em miniatura',mesa:'3 / 3 · Sob outra luz'}[name];
   }
   function applyFragmentTheme(hex){
     if(!/^#[0-9a-f]{6}$/i.test(hex))return;
@@ -44,8 +44,10 @@
     const waiting=p.ready.includes(credentials.papel)&&p.ready.length<(p.fragmento?.membros.length||2);
     $('block').hidden=!p.paused.length&&!waiting;
     $('block').textContent=p.paused.length?'A partida está pausada. Aguarde a retomada.':'Você concluiu a sala. Aguarde os demais integrantes terminarem a investigação.';
-    if(s.maquete?.complete){$('points-sala').textContent=(p.salaIndividual?.[credentials.papel]?.pontos??0)+' pontos';$('points-candle').textContent=s.bonus+' pontos';$('points-keys').textContent=s.maquete.score+' pontos';frame.hidden=true;$('summary').hidden=false;$('stage').textContent='Investigação concluída';return;}
-    showScene(!p.ready.includes(credentials.papel)?'sala':s.maquete?'maquete':'mesa');
+    if(s.maquete?.complete&&s.stage==='registrado'){$('points-sala').textContent=(p.salaIndividual?.[credentials.papel]?.pontos??0)+' pontos';$('points-candle').textContent=s.bonus+' pontos';$('points-keys').textContent=s.maquete.score+' pontos';frame.hidden=true;$('summary').hidden=false;$('stage').textContent='Investigação concluída';return;}
+    if(!p.ready.includes(credentials.papel)){showScene('janela');return;}
+    if(!s.maquete){if(credentials.papel==='conhecimento')attempt(()=>action('iniciar_maquete'));return;}
+    showScene(s.maquete.complete?'mesa':'maquete');
   }
   async function connect(c){
     const r=await (globalThis.ACFetch||fetch)('/api/ac/state?'+new URLSearchParams(c));if(!r.ok)throw Error('Convite inválido ou expirado.');
@@ -122,14 +124,14 @@
       if(credentials)attempt(()=>action('percurso_controle',{acao:paused?'pausar':'retomar'}));return;
     }
     if(e.source!==frame.contentWindow||paused)return;
-    if(e.data.mosaico==='ac-sala-progresso'&&current==='sala')queueProgress('sala_progresso',{objetos:e.data.objetos,total:e.data.total});
+    if(e.data.mosaico==='ac-sala-progresso'&&current==='janela')queueProgress('sala_progresso',{objetos:e.data.objetos,total:e.data.total});
     if(e.data.mosaico==='tarefa-status')tell(e.data);
-    if(e.data.mosaico==='tarefa-ok'&&current==='sala'&&Number(e.data.tempoMs)>0)queueProgress('sala_concluida',{tempoMs:e.data.tempoMs,objetos:e.data.objetosEncontrados,total:e.data.objetosTotal});
+    if(e.data.mosaico==='tarefa-ok'&&current==='janela'&&Number(e.data.tempoMs)>0)queueProgress('sala_concluida',{tempoMs:e.data.tempoMs,objetos:e.data.objetosEncontrados,total:e.data.objetosTotal});
   });
   $('finish').onclick=()=>attempt(async()=>{
     if(finished||paused)return;
     const r=await (globalThis.ACFetch||fetch)('/api/ac/state?'+query());if(!r.ok)throw Error('Aguarde a reconexão para concluir.');
-    const s=await r.json();if(!s.maquete?.complete||s.percurso?.runId!==run||s.percurso.paused.length)throw Error('A investigação ainda não foi concluída.');
+    const s=await r.json();    if(!s.maquete?.complete||s.stage!=='registrado'||s.percurso?.runId!==run||s.percurso.paused.length)throw Error('A investigação ainda não foi concluída.');
     if(parent===window){$('result').textContent='Percurso concluído. Este ensaio foi aberto fora de uma mesa; não altera a pontuação de uma partida.';return;}
     finished=true;tell({mosaico:'tarefa-ok',tempoMs:Math.max(1,Math.min(3600000,Date.now()-started))});
     $('result').textContent='Conclusão enviada à mesa.';

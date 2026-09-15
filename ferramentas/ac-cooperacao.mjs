@@ -83,7 +83,8 @@ export function createServer(root,{stateFile=null}={}) {
     if (!['GET','HEAD'].includes(req.method)) return json(405,{error:'Metodo invalido'});
     if(url.pathname==='/'){res.writeHead(302,{Location:'/v1/AC-escrivaninha.html'+url.search,'Cache-Control':'no-store'});res.end();return;}
     let path;try{path=resolve(root,'.'+decodeURIComponent(url.pathname === '/' ? '/v1/AC-escrivaninha.html' : url.pathname));}catch{return json(400,{error:'Caminho invalido'});}
-    if (!path.startsWith(root+sep) || path.split(sep).some(part=>part.startsWith('.'))) return json(403,{error:'Caminho restrito'});
+    const relative=path.slice(root.length+1);
+    if (!path.startsWith(root+sep) || relative.split(sep).some(part=>part.startsWith('.'))) return json(403,{error:'Caminho restrito'});
     const publicCase=url.pathname==='/v1/casos/casa-da-costa.json';
     const mime=publicCase?'application/json; charset=utf-8':{'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.glb':'model/gltf-binary','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml'}[extname(path)];
     if(!mime)return json(403,{error:'Tipo restrito'});

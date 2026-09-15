@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../v1/css/profundidade-1mais1.css?v=20260907-playtest-ux">
-<link rel="stylesheet" href="mesa-solo.css?v=20260915-iphone-imersivo">
+<link rel="stylesheet" href="mesa-solo.css?v=20260915-solo-flow2">
 <script src="../hipoteses-por-camada.js?v=20260914-mobile-reading"></script>
 <script src="../papel-camada.js?v=20260907-playtest-ux"></script>
 </head>
@@ -22,21 +22,25 @@
         data-storage-keys="mosaico_casa_ultima_partida_solo,mosaico_solo_costa_cloud"></script>
 <script>
 (function(){
+  /* A abertura vem ANTES do jogo carregar, não depois: se carregasse junto, a
+     primeira tela do Solo apareceria por baixo dela e o jogador já teria lido
+     a pergunta quando a casa começasse a falar. Se o arquivo da abertura não
+     chegar, `onerror` segue direto — o Solo nunca fica preso esperando. */
   function iniciar(){
     if(window.__mosaicoSoloIniciado)return;
     window.__mosaicoSoloIniciado=true;
     var ab=document.createElement('script');
-    ab.src='../abertura-casa.js?v=20260915-abertura3d';
+    ab.src='../abertura-casa.js?v=20260915-audio-cta';
     ab.onload=function(){window.MosaicoAberturaCasa.mostrar(carregarJogo)};
     ab.onerror=function(){console.error('MOSAICO: abertura não carregou.');carregarJogo()};
     document.head.appendChild(ab);
   }
   function carregarJogo(){
     var jogo=document.createElement('script');
-    jogo.src='mesa-solo.js?v=20260915-iphone-imersivo';
+    jogo.src='mesa-solo.js?v=20260915-solo-flow2';
     jogo.onload=function(){
       var ponte=document.createElement('script');
-      ponte.src='estado-solo.js?v=20260914-reconstrucao-individual1';
+      ponte.src='estado-solo.js?v=20260915-solo-flow2';
       document.body.appendChild(ponte);
     };
     document.body.appendChild(jogo);

@@ -19,10 +19,11 @@
   const dragPlane = new THREE.Plane(), dragRay = new THREE.Raycaster(), dragPoint = new THREE.Vector3();
   const cleanup = [];
   const on = (target, type, fn, options) => { target.addEventListener(type, fn, options); cleanup.push(() => target.removeEventListener(type, fn, options)); };
+  const entrarAtividade=()=>window.ACJanelas?.entrarAtividade();
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   function notify(message) { $('notice').textContent = message; $('notice').style.display = 'block'; clearTimeout(noticeTimer); noticeTimer = setTimeout(() => { $('notice').style.display = 'none'; }, 5000); }
   function dispatch(type) { if(!connected||!coop)return;coop.send(type).catch(()=>notify('Conexão interrompida. Aguarde a reconexão.')); }
-  function beginAction(){if(role==='luz'&&shared&&!shared.started)dispatch('iniciar');}
+  function beginAction(){entrarAtividade();if(role==='luz'&&shared&&!shared.started)dispatch('iniciar');}
   function setFallback(reason){fallback=true;$('accessible').closest('label').hidden=false;$('fallback-description').textContent=reason+' O modo 3D permite arrastar para explorar; os botões são opcionais.';updateUI();}
 
   const descriptions = {
@@ -107,7 +108,16 @@
     const [step,heading,description,label]=descriptions[state.stage];
     $('step').textContent=step;$('heading').textContent=heading;$('description').textContent=description;$('primary').textContent=label;
     $('primary').disabled=!modelReady || state.stage==='iluminar';
-    $('primary').hidden=!(fallback&&$('accessible').checked)||role!=='luz'||['iluminar','encontrado','registrado'].includes(state.stage);
+    const solo=new URLSearchParams(location.search).get('demo')==='solo';
+    const soloNext=solo&&role==='conhecimento'&&['iluminar','encontrado'].includes(state.stage);
+    $('primary').hidden=(!(fallback&&$('accessible').checked)&&!soloNext)||(role!=='luz'&&!soloNext)||state.stage==='registrado';
+    if(solo&&role==='conhecimento'&&state.stage==='iluminar'){
+      $('primary').textContent='Procurar bilhete sob as gavetas';
+      $('primary').disabled=!connected;
+    }else if(solo&&role==='conhecimento'&&state.stage==='encontrado'){
+      $('primary').textContent='Ler e guardar bilhete';
+      $('primary').disabled=!connected;
+    }
     for(const id of ['orbit','below','motion'])$(id).hidden=!fallback||!!xrSession;
     $('ar').hidden=!arSupported;
     $('ar-ios').hidden=!(quickLook&&!arSupported&&!xrSession&&role==='luz'&&state.stage==='posicionar');
@@ -183,6 +193,10 @@
   }
   on($('primary'),'click',()=>{
     if(xrSession&&!xrPlaced){placeAtHit();return;}
+    if(new URLSearchParams(location.search).get('demo')==='solo'&&role==='conhecimento'){
+      if(state.stage==='iluminar'){entrarAtividade();dispatch('descobrir');return;}
+      if(state.stage==='encontrado'){entrarAtividade();openFragment();return;}
+    }
     if(role!=='luz'||!fallback)return;beginAction();
     if(state.stage==='apagao')dispatch('energia');
     else if(state.stage==='posicionar'){
@@ -197,11 +211,11 @@
     if(event.data!=='_apple_ar_quicklook_button_tapped')return;
     if(role==='luz'&&state.stage==='posicionar'&&connected){beginAction();dispatch('posicionar');notify('Escrivaninha posicionada. Agora leve a vela até o castiçal.');}
   });
-  on($('follow-clue'),'click',()=>{if(shared?.maquete)location.href='AC-maquete.html'+location.search;else dispatch('iniciar_maquete');});
+  on($('follow-clue'),'click',()=>{entrarAtividade();if(shared?.maquete)location.href='AC-maquete.html'+location.search;else dispatch('iniciar_maquete');});
   on($('register'),'click',async()=>{
     if(registerPending||state.stage!=='encontrado')return;
     if(!connected||!coop){notify('Aguarde a reconexão para guardar a pista.');return;}
-    registerPending=true;openFragment();
+    entrarAtividade();registerPending=true;openFragment();
     try{const accepted=await coop.send('registrar');if(!accepted&&state.stage!=='registrado')notify('A pista ainda não foi registrada. Aguarde a atualização da dupla e tente novamente.');}
     catch(_){notify('Não foi possível confirmar o registro. Aguarde a reconexão e tente novamente.');}
     finally{registerPending=false;if($('fragment').open)openFragment();}
@@ -376,7 +390,7 @@
   let lastSnapshot=0;
   ACCooperation(snapshot=>{
     if(snapshot.soloRole)role=snapshot.soloRole;
-    if(snapshot.maquete&&!new URLSearchParams(location.search).has('rever')){location.replace('AC-maquete.html'+location.search);return;}
+    if(snapshot.maquete&&!snapshot.maquete.complete&&!new URLSearchParams(location.search).has('rever')){location.replace('AC-maquete.html'+location.search);return;}
     const previous=state.stage;shared=snapshot;lastSnapshot=performance.now();
     state={...state,stage:snapshot.stage,evidence:snapshot.stage==='registrado'?['ac-etiqueta-maquete']:[]};
     if(previous==='encontrado'&&state.stage==='registrado')notify('Fragmento guardado no dossiê deste estudo.');
@@ -386,6 +400,7 @@
     $('coop-status').textContent=snapshot.online.includes(other)?'Dupla conectada':role==='luz'?'Aguardando o portador do conhecimento · convite na ajuda':'Aguardando o portador da luz';
     if(new URLSearchParams(location.search).get('demo')==='solo'&&!new URLSearchParams(location.search).has('sala')){$('timer').textContent='Demonstração · sem pontuação';$('coop-status').textContent='Colega automático: a etiqueta está iluminada. Use Ver por baixo.';}
     if(previous!==state.stage){hold=0;updateUI();if(role==='conhecimento'&&(state.stage==='encontrado'||(state.stage==='registrado'&&$('fragment').open)))openFragment();}
+    if(new URLSearchParams(location.search).get('demo')==='solo'&&snapshot.maquete?.complete&&snapshot.stage==='registrado')parent.postMessage({mosaico:'ac-solo-completo',score:snapshot.maquete.score,evidence:snapshot.maquete.evidence},location.origin);
   },online=>{connected=online;if(!online){hold=0;$('coop-status').textContent='Reconectando… a luz compartilhada está suspensa.';}updateUI();}).then(connection=>{
     coop=connection;role=connection.role;
     if(new URLSearchParams(location.search).get('percurso')==='1'){$('restart').hidden=true;document.querySelector('.brand').removeAttribute('href');}

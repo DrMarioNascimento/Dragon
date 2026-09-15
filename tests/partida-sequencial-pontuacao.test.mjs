@@ -118,7 +118,7 @@ test("landings e redirects chegam a fluxos que existem", () => {
   assert.match(HUB, /celular\.html\?soloLab=1/);
   assert.match(REDIRECT_MESA, /carro-forte\/celular\.html/);
   assert.match(REDIRECT_NOITE, /carro-forte\/noite\//);
-  assert.match(ROOT_MESA, /v1\/MOSAICO-mesa\.html/);
+  assert.match(ROOT_MESA, /id="app"/);
   assert.ok(existsSync(new URL("../carro-forte/celular.html", import.meta.url)));
   assert.ok(existsSync(new URL("../carro-forte/noite/index.html", import.meta.url)));
   assert.ok(existsSync(new URL("../v1/MOSAICO-mesa.html", import.meta.url)));

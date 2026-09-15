@@ -192,7 +192,7 @@ describe("profundidade 1+1 · tokens compartilhados", () => {
     assert.match(ler("carro-forte/noite/index.html"), /modal-card depth-card pf-card/);
     assert.match(ler("carro-forte/noite/index.html"), /drawer-card depth-card pf-card/);
     assert.match(ler("carro-forte/celular.html"), /drawer-card depth-card pf-card/);
-    assert.match(ler("solo/index.html"), /solo-auto\.css\?v=20260914-reconstrucao-individual1/);
+    assert.match(ler("solo/index.html"), /mesa-solo\.css\?v=20260915-solo-flow2/);
     assert.match(ler("abertura-casa.js"), /cartao pf-card/);
     assert.match(ler("abertura-casa.js"), /cartao-inset pf-inset/);
   });

@@ -21,6 +21,8 @@ const PADRAO = ler("PADRAO-SALA-MULTIPLAYER.md");
 const CEL = ler("carro-forte/celular.html");
 const GAME = ler("carro-forte/game.js");
 const OPEN = ler("carro-forte/opening-flow.js");
+const OPEN_NOITE = ler("carro-forte/noite/opening-flow.js");
+const OPEN_CASA = ler("abertura-casa.js");
 const HUB = ler("index.html");
 const SOLO_CASA = ler("solo/index.html");
 
@@ -45,6 +47,19 @@ describe("abertura · roteamento", () => {
 });
 
 describe("abertura · Carro Celular / Solo / Telão wiring", () => {
+  it("remove o CTA de áudio após a reprodução iniciar", () => {
+    for (const source of [OPEN_CASA, OPEN, OPEN_NOITE]) {
+      assert.match(source, /await audio\.play\(\)[\s\S]{0,120}?prep\.remove\(\)/,
+        "o CTA de ativação de áudio deve sair do DOM após o play confirmar");
+    }
+  });
+
+  it("limpa orientação e cooperação enquanto a escrivaninha prepara", () => {
+    const windows = ler("v1/js/ac-janelas.js");
+    assert.match(windows, /getElementById\('loading'\)[\s\S]{0,100}?entrarAtividade\(\)/);
+    assert.match(windows, /function entrarAtividade\(\)[\s\S]{0,300}?recolher\(\)/);
+  });
+
   it("Celular carrega opening-flow antes de game.js e chama abertura no boot", () => {
     const iOpen = CEL.indexOf("carregar('opening-flow.js");
     const iGame = CEL.indexOf("carregar('game.js");

@@ -15,6 +15,7 @@
     document.querySelectorAll('[data-ac-priority]').forEach(el=>{
       const n=Number(el.dataset.acPriority),t=types[n];if(!t)return;
       el.style.setProperty('--ac-accent',t[2]);if(el.parentElement?.classList.contains('ac-panel-stack'))el.style.order=n;
+      // Pseudo-elementos nao alteram o texto usado pelos controladores existentes.
       el.dataset.acSymbol=t[0];el.dataset.acTitle=t[1];
     });
   }
@@ -31,6 +32,8 @@
     const parents=new Set(Array.from(document.querySelectorAll('[data-ac-priority]')).map(e=>e.parentElement));
     for(const parent of parents)if(parent&&parent!==document.body&&!parent.closest('dialog,[role=dialog],[role=alertdialog],.modal-fundo,.dialogo-fundo')&&!parent.classList.contains('ac-panel-stack'))sortRuns(parent);
   }
+  /* A pilha de painéis precisa saber onde começam as ferramentas, que mudam de
+     altura quando quebram em duas linhas ou quando botões aparecem/somem. */
   function medirFerramentas(){
     const tools=document.querySelector('.tools');if(!tools)return;
     const aplicar=()=>{
@@ -44,6 +47,7 @@
     new MutationObserver(aplicar).observe(tools,{attributes:true,subtree:true,childList:true});
     window.addEventListener('resize',aplicar);
   }
+  /* No Solo, a marca AC não pode levar o quadro para fora do percurso. */
   function travarMarcaNoSolo(){
     if(new URLSearchParams(location.search).get('demo')!=='solo')return;
     const brand=document.querySelector('.topbar .brand');
@@ -67,14 +71,12 @@
     clearTimeout(n._t);
     n._t=setTimeout(function(){ n.hidden=true; }, 4000);
   }
-  function botaoCena(){
-    if(document.getElementById('ac-ver-cena'))return;
-    const b=document.createElement('button');
-    b.id='ac-ver-cena';b.type='button';b.setAttribute('aria-label','O que fazer agora');
-    b.textContent='i';
-    b.style.cssText='position:fixed;z-index:40;right:10px;top:max(8px,env(safe-area-inset-top));width:44px;height:44px;border-radius:22px;border:1px solid #c9a66c;background:#241a08;color:#ffe1ac;font:800 18px/1 Georgia,serif';
-    b.addEventListener('click',function(ev){ ev.stopPropagation(); frase(); });
-    document.body.appendChild(b);
+  function entrarAtividade(){
+    recolher();
+    document.body.classList.add('ac-atividade-iniciada');
+    document.querySelectorAll('dialog[data-ac-priority="10"][open]').forEach(dialog=>dialog.close());
+    document.querySelectorAll('[data-ac-priority="10"]:not(dialog)').forEach(panel=>panel.hidden=true);
+    document.querySelectorAll('#coop-status').forEach(status=>status.hidden=true);
   }
   function start(){
     travarMarcaNoSolo();
@@ -84,8 +86,13 @@
       for(const el of [document.getElementById('manuscript'),desk,document.getElementById('coop-status')].filter(Boolean))stack.append(el);
     }
     if(telefone()) document.body.classList.add('ac-cena-livre');
-    botaoCena();
-    medirFerramentas();decorate();orderPanels();new MutationObserver(records=>{if(records.some(r=>r.addedNodes.length)){decorate();orderPanels();}}).observe(document.body,{childList:true,subtree:true});
+    if(document.getElementById('loading')&&!document.getElementById('loading').hidden)entrarAtividade();
+    medirFerramentas();decorate();orderPanels();new MutationObserver(records=>{
+      if(records.some(r=>r.type==='attributes'&&r.target.matches('#intro.out,#intro.gone')))entrarAtividade();
+      if(records.some(r=>r.addedNodes.length)){decorate();orderPanels();}
+    }).observe(document.body,{attributes:true,attributeFilter:['class'],childList:true,subtree:true});
   }
+  window.ACJanelas={entrarAtividade};
+  window.addEventListener('ac-atividade-iniciada',entrarAtividade);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();

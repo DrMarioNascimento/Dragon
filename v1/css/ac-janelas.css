@@ -1,7 +1,7 @@
 /* AC: a mesma ancora para ajuda, pistas e descobertas. */
-:root{--ac-window-top:max(16px,env(safe-area-inset-top,0px));--ac-window-width:480px}
+:root{--ac-window-top:max(16px,env(safe-area-inset-top,0px));--ac-window-width:480px;--ac-window-box:min(var(--ac-window-width),calc(100vw - 32px))}
 @media(min-width:701px){:root{--ac-window-top:max(48px,env(safe-area-inset-top,0px))}}
-dialog{position:fixed;inset:var(--ac-window-top) 0 auto;margin:0 auto;width:min(var(--ac-window-width),calc(100vw - 32px));max-height:calc(100dvh - var(--ac-window-top) - max(16px,env(safe-area-inset-bottom,0px)));overflow:auto;overscroll-behavior:contain;padding-top:64px;box-shadow:inset 0 1px #ffffff20,0 8px 0 #061410,0 25px 80px #0009}
+dialog{position:fixed;inset:var(--ac-window-top) 0 auto;margin:0 auto;width:var(--ac-window-box);max-height:calc(100dvh - var(--ac-window-top) - max(16px,env(safe-area-inset-bottom,0px)));overflow:auto;overscroll-behavior:contain;padding-top:64px;box-shadow:inset 0 1px #ffffff20,0 8px 0 #061410,0 25px 80px #0009}
 dialog>.close{position:sticky;top:0;float:right;margin:-52px -4px 8px 12px;width:44px;min-height:44px;padding:0;background:#142e28;border:1px solid #789083;border-radius:10px;z-index:5}
 body #carta{justify-content:flex-start;padding-top:var(--ac-window-top)}
 body #carta::before,body #carta::after{display:none}
@@ -46,6 +46,7 @@ body .ac-panel-stack>#coop-status[data-ac-priority],
 body .ac-panel-stack>#manuscript[data-ac-priority],
 body .ac-panel-stack>.instruction[data-ac-priority]{padding:84px 16px 16px!important;min-height:112px;border-radius:14px;line-height:1.5}
 body .ac-panel-stack>#coop-status[data-ac-priority]{font:14px/1.5 system-ui,sans-serif}
+body.ac-atividade-iniciada .ac-panel-stack>#coop-status{display:none!important}
 
 /* ===== Telefone (20260915) =====
    1. Cabeçalho: "A CASA / DA COSTA" quebrava palavra por palavra e o subtítulo
@@ -60,7 +61,20 @@ body .ac-panel-stack>#coop-status[data-ac-priority]{font:14px/1.5 system-ui,sans
 .brand span{white-space:nowrap}
 #help{flex:none}
 .edition{flex:1 1 auto;min-width:0;text-align:center;line-height:1.35}
-body dialog>.close,body dialog[data-ac-priority]>.close{position:absolute;top:14px;right:14px;margin:0;float:none}
+/* O x fica na FAIXA de cabecalho da janela (os 84px onde moram o simbolo
+   e o titulo), e nao pode rolar junto com o texto: estas janelas nao fecham
+   por Esc num telefone nem por toque no fundo, entao um x fora da tela
+   prende o jogador dentro do dialogo.
+   `sticky` nao resolve: os dois motores prendem o grude no CONTENT box, ou
+   seja 84px abaixo do topo — medido em 15/09/2026, o x parava exatamente
+   sobre a primeira linha do texto. E `absolute` rola com o conteudo.
+   Fixo, ancorado em --ac-window-box, que e a MESMA largura do dialogo.
+   A largura leva !important porque na maquete existe um seletor de ID
+   (`#objects button` com largura 100%) que ganha de qualquer classe: com o
+   x fixo, esses 100% viravam a largura da TELA e o glifo saia dela. */
+body dialog>.close,body dialog[data-ac-priority]>.close{position:fixed;float:none;margin:0;
+  top:calc(var(--ac-window-top) + 14px);right:calc((100vw - var(--ac-window-box))/2 + 14px);
+  display:grid;place-items:center;padding:0;width:44px!important;min-width:44px}
 @media(max-width:700px){
   .edition{font-size:8px;letter-spacing:.1em}
   .ac-panel-stack{bottom:calc(var(--ac-tools-space,80px) + 8px);max-height:min(40dvh,calc(100dvh - var(--ac-tools-space,80px) - 150px));overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}

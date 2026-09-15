@@ -12,13 +12,13 @@
         {name:'Piso 2 · Primeiro andar',explorer:'luz',target:'armario-oeste',clue:'No quarto onde o sol termina o dia, a madeira guarda mais do que roupas. Examine o armário junto à parede oeste.'}
       ];
       let saved=null;try{saved=JSON.parse(sessionStorage.getItem(KEY)||'null')}catch(_){ }
-      let local=saved&&saved.version===1?saved:{version:1,stage:'posicionar',started:Date.now(),maquete:null,keyMotion:null};
+      let local=saved&&saved.version===1?saved:{version:1,stage:'posicionar',started:Date.now(),janelaConcluida:false,maquete:null,keyMotion:null};
       const persist=()=>{try{sessionStorage.setItem(KEY,JSON.stringify(local))}catch(_){ }};
       const soloRole=()=>{
         if(!local.maquete)return ['posicionar','castical'].includes(local.stage)?'luz':'conhecimento';
         const c=chapters[local.maquete.level];if(!c)return 'conhecimento';return local.maquete.ready?c.explorer:(c.explorer==='luz'?'conhecimento':'luz');
       };
-      const maquetteView=()=>{if(!local.maquete)return null;const m=local.maquete,c=chapters[m.level];return {...m,complete:!c,name:c?.name||'A passagem revelada',explorer:c?.explorer||null,clue:c&&soloRole()!==c.explorer?c.clue:null};};
+      const maquetteView=()=>{if(!local.maquete)return null;const m=local.maquete,c=chapters[m.level];return {...m,complete:!c,name:c?.name||'A passagem revelada',explorer:c?.explorer||null,target:c?.target||null,targetLabel:c?.target==='rosa'?'rosa dos ventos':c?.target==='relogio'?'relógio parado às 21h29':c?.target==='armario-oeste'?'armário junto à parede oeste':null,clue:c&&soloRole()!==c.explorer?c.clue:null};};
       const snapshot=()=>({stage:local.stage,soloRole:soloRole(),online:['luz','conhecimento'],started:true,elapsed:Math.max(0,(Date.now()-local.started)/1000),bonus:0,
         beam:['iluminar','encontrado','registrado'].includes(local.stage)?{origin:[.47,.025,.25],target:[.47,.098,.10],age:0}:null,keyMotion:local.keyMotion,maquete:maquetteView()});
       const tick=setInterval(()=>onState(snapshot()),200);
@@ -31,7 +31,7 @@
         else if(type==='feixe'&&local.stage==='iluminar')ok=true;
         else if(type==='descobrir'&&local.stage==='iluminar'){local.stage='encontrado';ok=true;}
         else if(type==='registrar'&&local.stage==='encontrado'){local.stage='registrado';ok=true;}
-        else if(type==='iniciar_maquete'&&local.stage==='registrado'&&!local.maquete){local.maquete={level:0,ready:false,key:false,mistakes:0,score:0,evidence:[],lastAttempt:0};ok=true;}
+        else if(type==='iniciar_maquete'&&local.janelaConcluida&&!local.maquete){local.maquete={level:0,ready:false,key:false,mistakes:0,score:0,evidence:[],lastAttempt:0};ok=true;}
         else if(type==='maquete_orientar'&&local.maquete){const m=local.maquete,c=chapters[m.level];if(c&&!m.ready&&soloRole()!==c.explorer){m.ready=true;ok=true;}}
         else if(type==='maquete_examinar'&&local.maquete){const m=local.maquete,c=chapters[m.level];if(c&&m.ready&&!m.key&&soloRole()===c.explorer){if(extra.object===c.target)m.key=true;else m.mistakes++;ok=true;}}
         else if(type==='maquete_mover'&&local.maquete&&local.maquete.key){local.keyMotion={tip:extra.tip,age:0};ok=true;}
