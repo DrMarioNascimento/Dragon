@@ -108,7 +108,16 @@
     const [step,heading,description,label]=descriptions[state.stage];
     $('step').textContent=step;$('heading').textContent=heading;$('description').textContent=description;$('primary').textContent=label;
     $('primary').disabled=!modelReady || state.stage==='iluminar';
-    $('primary').hidden=!(fallback&&$('accessible').checked)||role!=='luz'||['iluminar','encontrado','registrado'].includes(state.stage);
+    const solo=new URLSearchParams(location.search).get('demo')==='solo';
+    const soloNext=solo&&role==='conhecimento'&&['iluminar','encontrado'].includes(state.stage);
+    $('primary').hidden=(!(fallback&&$('accessible').checked)&&!soloNext)||(role!=='luz'&&!soloNext)||state.stage==='registrado';
+    if(solo&&role==='conhecimento'&&state.stage==='iluminar'){
+      $('primary').textContent='Procurar bilhete sob as gavetas';
+      $('primary').disabled=!connected;
+    }else if(solo&&role==='conhecimento'&&state.stage==='encontrado'){
+      $('primary').textContent='Ler e guardar bilhete';
+      $('primary').disabled=!connected;
+    }
     for(const id of ['orbit','below','motion'])$(id).hidden=!fallback||!!xrSession;
     $('ar').hidden=!arSupported;
     $('ar-ios').hidden=!(quickLook&&!arSupported&&!xrSession&&role==='luz'&&state.stage==='posicionar');
