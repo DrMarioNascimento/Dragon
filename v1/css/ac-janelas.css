@@ -46,3 +46,76 @@ body .ac-panel-stack>#coop-status[data-ac-priority],
 body .ac-panel-stack>#manuscript[data-ac-priority],
 body .ac-panel-stack>.instruction[data-ac-priority]{padding:84px 16px 16px!important;min-height:112px;border-radius:14px;line-height:1.5}
 body .ac-panel-stack>#coop-status[data-ac-priority]{font:14px/1.5 system-ui,sans-serif}
+
+/* ===== Telefone (20260915) =====
+   1. Cabeçalho: "A CASA / DA COSTA" quebrava palavra por palavra e o subtítulo
+      encostava no botão i.
+   2. Botão × das janelas: o WebKit mede o `sticky` a partir do padding do
+      diálogo, então a margem negativa não subia e o × caía sobre o texto.
+   3. Painéis: a instrução rolava dentro de uma pilha que também rolava, e os
+      botões de ferramentas (que quebram em duas linhas) cobriam a pilha. A
+      pilha agora nasce acima da altura MEDIDA das ferramentas (ac-janelas.js). */
+.topbar{gap:10px}
+.brand{flex:none}
+.brand span{white-space:nowrap}
+#help{flex:none}
+.edition{flex:1 1 auto;min-width:0;text-align:center;line-height:1.35}
+body dialog>.close,body dialog[data-ac-priority]>.close{position:absolute;top:14px;right:14px;margin:0;float:none}
+@media(max-width:700px){
+  .edition{font-size:8px;letter-spacing:.1em}
+  .ac-panel-stack{bottom:calc(var(--ac-tools-space,80px) + 8px);max-height:min(40dvh,calc(100dvh - var(--ac-tools-space,80px) - 150px));overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+  body .ac-panel-stack>.instruction[data-ac-priority]{max-height:none!important;overflow:visible!important}
+  .tools{bottom:max(14px,env(safe-area-inset-bottom,0px))}
+}
+@media(max-width:380px){
+  .brand{font-size:24px;gap:8px}.brand span{font-size:9px;padding-left:8px}
+  .tools button{padding:9px 10px}
+}
+@media(max-width:700px){
+  /* Sombra longa recortada pela pilha rolável virava um retângulo escuro. */
+  body .ac-panel-stack>#coop-status[data-ac-priority],
+  body .ac-panel-stack>#manuscript[data-ac-priority],
+  body .ac-panel-stack>.instruction[data-ac-priority]{box-shadow:inset 0 1px #ffffff20,0 5px 0 #061410!important}
+  .ac-panel-stack>.instruction #primary{box-shadow:0 -10px 14px #0c201d,0 4px 0 #071612}
+}
+
+/* Telas baixas (quadro da Mesa, iPhone com barras do Safari): menos cabeçalho
+   de card e título de capítulo compacto, para a cena 3D continuar visível. */
+@media(max-width:700px) and (max-height:760px){
+  .chapter{top:74px!important}
+  .chapter h1{font-size:24px!important;margin:2px 0!important}
+  .chapter p{display:none}
+  .topbar{padding:10px 14px}
+  .brand{font-size:24px}
+  .topbar #help{width:38px;min-height:38px;font-size:21px}
+  .ac-panel-stack{max-height:min(42dvh,calc(100dvh - var(--ac-tools-space,80px) - 120px))}
+  body .ac-panel-stack>[data-ac-priority],body .ac-panel-stack>#coop-status[data-ac-priority],body .ac-panel-stack>#manuscript[data-ac-priority],html body .ac-panel-stack>.instruction[data-ac-priority]{padding:52px 14px 12px!important;min-height:0}
+  body .ac-panel-stack>[data-ac-priority]::before{width:32px!important;height:32px!important;font-size:21px!important;top:10px!important;left:14px!important;border-radius:9px}
+  body .ac-panel-stack>[data-ac-priority]::after{top:15px!important;left:56px!important;font-size:14px!important}
+  .ac-panel-stack #timer{font-size:10px;margin-bottom:2px}
+  .ac-panel-stack>.instruction h2{font-size:19px;margin:2px 0 4px}
+  #coop-status:not(.ac-panel-stack>*){top:56px}
+}
+
+/* Card de instrução no telefone: a ação logo abaixo do título, sem botão
+   "sticky" cobrindo a explicação. A pilha rola como um bloco só. */
+@media(max-width:700px){
+  body .ac-panel-stack>.instruction[data-ac-priority]{display:flex;flex-direction:column}
+  .ac-panel-stack>.instruction #timer{order:1}.ac-panel-stack>.instruction #step{order:2}
+  .ac-panel-stack>.instruction #heading{order:3}.ac-panel-stack>.instruction #primary{order:4;position:static!important;margin:4px 0 10px;box-shadow:inset 0 1px #ffffff18,0 4px 0 #071612}
+  .ac-panel-stack>.instruction #description{order:5;margin-bottom:4px}.ac-panel-stack>.instruction #progress{order:6}
+  .ac-panel-stack>.instruction #score{order:7}
+  .tools{gap:6px}
+}
+
+/* Durante um gesto (vela, chave) os painéis saem do caminho do dedo. */
+.manipulating .ac-panel-stack{opacity:.15;pointer-events:none!important;transition:opacity .15s}
+.manipulating .ac-panel-stack *{pointer-events:none!important}
+.gesture-point{z-index:14}
+
+/* RA do iPhone pelo Quick Look: o <a rel="ar"> só pode ter a imagem como filho,
+   então o rótulo vem do CSS. */
+#ar-ios{display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:9px 14px;border-radius:30px;
+  border:1px solid #c9a66c;background:linear-gradient(#3a2c10,#241a08);color:#ffe1ac;font:700 12px/1.2 system-ui,sans-serif;text-decoration:none;white-space:nowrap}
+#ar-ios::after{content:attr(data-label)}
+#ar-ios[hidden]{display:none!important}

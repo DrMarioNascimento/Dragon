@@ -10,6 +10,10 @@
   const clueText='Procure pelo lar onde o telhado não protege da chuva, os móveis nunca mudam de lugar e os moradores são pequenos demais. É lá onde todos os projetos se iniciam, é lá que o segredo repousa.';
   let disposed = false, modelReady = false, orbiting = false, hold = 0, noticeTimer;
   let xrSession = null, hitSource = null, xrGeneration = 0, hasHit = false, xrPlaced = false;
+  /* iPhone: o Safari não tem RA por WebXR, mas abre o Quick Look do sistema
+     (a mesma técnica do lab-ra). Lá dentro não roda JavaScript: serve para
+     posicionar e circular a escrivaninha na sala real; vela e luz seguem aqui. */
+  const quickLook=(()=>{try{const a=document.createElement('a');return !!(a.relList&&a.relList.supports&&a.relList.supports('ar'));}catch(_){return false;}})();
   let motionEnabled = false, motionOrigin = null, lightTransfer = 0;
   let draggingCandle = false, snapReady = false, draggingDesk = false;
   const dragPlane = new THREE.Plane(), dragRay = new THREE.Raycaster(), dragPoint = new THREE.Vector3();
@@ -104,11 +108,13 @@
     $('step').textContent=step;$('heading').textContent=heading;$('description').textContent=description;$('primary').textContent=label;
     $('primary').disabled=!modelReady || state.stage==='iluminar';
     $('primary').hidden=!(fallback&&$('accessible').checked)||role!=='luz'||['iluminar','encontrado','registrado'].includes(state.stage);
-    for(const id of ['orbit','below','motion'])$(id).hidden=!(fallback&&$('accessible').checked);
+    for(const id of ['orbit','below','motion'])$(id).hidden=!fallback||!!xrSession;
     $('ar').hidden=!arSupported;
+    $('ar-ios').hidden=!(quickLook&&!arSupported&&!xrSession&&role==='luz'&&state.stage==='posicionar');
     $('dossier').hidden=role!=='conhecimento'||!['encontrado','registrado'].includes(state.stage);
     if(role==='conhecimento'&&['posicionar','castical','iluminar'].includes(state.stage)){ $('step').textContent='PORTADOR DO CONHECIMENTO';$('heading').textContent=state.stage==='iluminar'?'O que só você pode ver.':'Um não vê sem o outro.';$('description').textContent=['posicionar','castical'].includes(state.stage)?'Seu colega precisa achar um lugar para segurar a vela, só assim a tarefa dará seguimento!':'A vela pode iluminar com segurança algo escondido que pode estar nessa escrivaninha, ela ilumina o que só você pode ver!'; }
     if(role==='apoio'){$('step').textContent='LEITURA E ORIENTAÇÃO';$('heading').textContent='Ajude seu Fragmento.';$('description').textContent='Acompanhe as instruções e oriente os colegas. Um posiciona e ilumina; o outro examina a etiqueta. Na maquete, você também poderá ler o manuscrito.';}
+    if(fallback&&!xrSession&&!$('accessible').checked&&role==='luz'&&['posicionar','castical'].includes(state.stage))$('description').textContent=$('description').textContent.replace(/[.!]?$/,'.')+(state.stage==='posicionar'?(quickLook&&!arSupported?' Coloque a escrivaninha na sua sala, ou toque no chão aqui.':' Toque no chão para posicionar a escrivaninha.'):' Arraste a vela até o castiçal sobre a escrivaninha.');
     if(xrSession&&!xrPlaced){$('heading').textContent='Posicione a escrivaninha.';$('description').textContent='Aponte para uma superfície e confirme quando o círculo aparecer.';$('primary').textContent='Posicionar escrivaninha';$('primary').disabled=!hasHit||!modelReady;}
     for(const id of ['step','heading','description','primary']){
       const element=$(id),words=element.textContent;
@@ -123,12 +129,36 @@
     $('orbit').disabled=!!xrSession;$('below').disabled=!!xrSession || !modelReady;
     placement.visible=role==='luz'&&!xrSession&&state.stage==='posicionar';
     holder.visible=role==='luz'&&state.stage==='castical'; candle.visible=role==='luz'&&['posicionar','castical'].includes(state.stage);
-    if(candle.visible){ camera.add(candle); candle.position.set(0,-.08,-.55); candle.scale.setScalar(.5); candle.rotation.set(0,0,-.06); }
+    if(candle.visible&&!draggingCandle){ camera.add(candle); candle.position.set(0,candleRestY(),-.55); candle.scale.setScalar(.5); candle.rotation.set(0,0,-.06); }
     torch.visible=searching||state.stage==='encontrado'||state.stage==='registrado';
     const dark=state.stage==='apagao'; ambient.intensity=dark?.08:.32; windowLight.intensity=dark?.1:.8; rim.intensity=dark?.1:.4;
     if(role!=='conhecimento')clue.material.opacity=0;
     $('candle-grip').hidden=role!=='luz'||state.stage!=='castical'||(!!xrSession&&!xrPlaced)||!connected;
     $('socket').hidden=true; // Encontrar o castical faz parte do desafio: sem marcador que entregue o lugar.
+  }
+  /* No telefone a pilha de instruções ocupa a parte de baixo da tela. A vela
+     "na mão" nascia ali atrás e o gesto de arrastar ficava impossível. */
+  function candleRestY(){
+    const st=document.querySelector('.ac-panel-stack');
+    if(!st||innerWidth>700||!st.getBoundingClientRect().height)return -.08;
+    const top=st.getBoundingClientRect().top,ch=document.querySelector('.chapter')?.getBoundingClientRect().bottom||0;
+    const px=Math.max(ch+70,Math.min(top-70,innerHeight*.55));
+    const halfH=Math.tan(THREE.MathUtils.degToRad(camera.fov/2))*.55;
+    const off=camera.view&&camera.view.enabled?camera.view.offsetY:0;
+    return (1-2*(px+off)/innerHeight)*halfH-.05;
+  }
+  /* Mesmo princípio da maquete: o centro da imagem vai para o vão livre entre
+     o título e a pilha de painéis, senão a etiqueta aparece atrás do card. */
+  let lastViewOffset=null;
+  function syncViewOffset(){
+    if(xrSession){if(lastViewOffset!==0){camera.clearViewOffset();lastViewOffset=0;}return;}
+    const st=document.querySelector('.ac-panel-stack');let off=0;
+    if(st&&innerWidth<=700&&st.getBoundingClientRect().height){
+      const top=(document.querySelector('.chapter')?.getBoundingClientRect().bottom||60),bottom=st.getBoundingClientRect().top;
+      off=Math.max(0,Math.round(innerHeight/2-(top+bottom)/2));
+    }
+    if(off===lastViewOffset)return;lastViewOffset=off;
+    if(off)camera.setViewOffset(innerWidth,innerHeight,0,off,innerWidth,innerHeight);else camera.clearViewOffset();
   }
   function dockCandle(){
     if(role!=='luz'||state.stage!=='castical'||!connected)return;
@@ -162,6 +192,10 @@
       dockCandle();
     } else if(state.stage==='iluminar'){return;}
     else openFragment();
+  });
+  on($('ar-ios'),'message',event=>{
+    if(event.data!=='_apple_ar_quicklook_button_tapped')return;
+    if(role==='luz'&&state.stage==='posicionar'&&connected){beginAction();dispatch('posicionar');notify('Escrivaninha posicionada. Agora leve a vela até o castiçal.');}
   });
   on($('follow-clue'),'click',()=>{if(shared?.maquete)location.href='AC-maquete.html'+location.search;else dispatch('iniciar_maquete');});
   on($('register'),'click',async()=>{
@@ -208,7 +242,7 @@
   }
   on($('candle-grip'),'pointerdown',event=>{
     if(role!=='luz'||!connected||state.stage!=='castical'||!modelReady||(!fallback&&!xrSession))return;beginAction();
-    event.preventDefault();event.stopPropagation();draggingCandle=true;controls.enabled=false;
+    event.preventDefault();event.stopPropagation();draggingCandle=true;controls.enabled=false;document.body.classList.add('manipulating');
     $('candle-grip').setPointerCapture(event.pointerId);
     const active=xrSession?renderer.xr.getCamera(camera).cameras[0]:camera;
     const socketWorld=holder.localToWorld(new THREE.Vector3(0,.153,0));
@@ -225,7 +259,7 @@
     $('socket').classList.toggle('ready',snapReady);$('socket').firstElementChild.textContent=snapReady?'Solte para encaixar':'Castiçal';
   });
   function endDrag(event){
-    if(!draggingCandle)return;draggingCandle=false;
+    if(!draggingCandle)return;draggingCandle=false;document.body.classList.remove('manipulating');
     if($('candle-grip').hasPointerCapture(event.pointerId))$('candle-grip').releasePointerCapture(event.pointerId);
     if(snapReady&&event.type!=='pointercancel')dockCandle();else {snapReady=false;updateUI();notify('Aproxime a base da vela do castiçal e solte no encaixe.');}
     $('socket').classList.remove('ready');$('socket').firstElementChild.textContent='Castiçal';
@@ -294,6 +328,7 @@
       $('candle-grip').style.left=cp.x+'px';$('candle-grip').style.top=cp.y+'px';$('candle-grip').hidden=!cp.visible;
       $('socket').style.left=sp.x+'px';$('socket').style.top=sp.y+'px';$('socket').hidden=!sp.visible;
     }
+    if(candle.parent===camera&&!draggingCandle&&!xrSession)candle.position.y=candleRestY();
     if(!reduced){flame.scale.set(1+Math.sin(t*9)*.04,1+Math.sin(t*7)*.08,1);flameMaterial.uniforms.time.value=t;}
     const flameCameraPosition=new THREE.Vector3();(xrSession?renderer.xr.getCamera(camera):camera).getWorldPosition(flameCameraPosition);flamePlane.lookAt(flameCameraPosition);
     if(lightTransfer>0){lightTransfer=Math.max(0,lightTransfer-dt);const s=Math.min(1,lightTransfer*2);holder.scale.setScalar(Math.max(.001,s));if(!lightTransfer){holder.visible=false;candle.visible=false;holder.scale.setScalar(1);}}
@@ -330,11 +365,11 @@
     }
     // O painel so acompanha o ponteiro enquanto esta sendo inspecionado; o giro usa outro no.
     if($('fragment').open&&!reduced){const tilt=$('fragment-card').querySelector('.m3d-card-tilt');if(tilt)tilt.style.transform=`rotateX(${-pointer.y*3}deg) rotateY(${pointer.x*4}deg)`;}
-    renderer.render(scene,camera);lastTime=time;
+    syncViewOffset();renderer.render(scene,camera);lastTime=time;
   }
   function disposeObject(root){const textures=new Set(),materials=new Set(),geometries=new Set();root.traverse(o=>{if(o.geometry)geometries.add(o.geometry);for(const m of o.material?(Array.isArray(o.material)?o.material:[o.material]):[]){materials.add(m);Object.values(m).forEach(v=>{if(v&&v.isTexture)textures.add(v);});}});textures.forEach(x=>x.dispose());materials.forEach(x=>x.dispose());geometries.forEach(x=>x.dispose());}
   function dispose(){if(disposed)return;disposed=true;xrGeneration++;clearTimeout(noticeTimer);renderer.setAnimationLoop(null);coop?.close();cleanup.forEach(fn=>fn());hitSource?.cancel();xrSession?.end().catch(()=>{});controls.dispose();disposeObject(scene);renderer.dispose();}
-  on(window,'resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);if(!xrSession)frameDesk();});
+  on(window,'resize',()=>{camera.aspect=innerWidth/innerHeight;lastViewOffset=null;camera.clearViewOffset();camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);if(!xrSession)frameDesk();});
   on(document,'visibilitychange',()=>{hold=0;clock.getDelta();});
   on(window,'pagehide',e=>{if(!e.persisted)dispose();else{hold=0;renderer.setAnimationLoop(null);}});
   on(window,'pageshow',e=>{if(e.persisted&&!disposed){clock.getDelta();renderer.setAnimationLoop(render);}});
@@ -355,7 +390,6 @@
     coop=connection;role=connection.role;
     if(new URLSearchParams(location.search).get('percurso')==='1'){$('restart').hidden=true;document.querySelector('.brand').removeAttribute('href');}
     if(connection.demo){
-      $('accessible').checked=true;
       document.querySelector('.edition').textContent='MODO SOLO · PERCURSO COMPLETO';
     }
     if(connection.invite){$('invite').href=connection.invite;$('invite-wrap').hidden=false;}
