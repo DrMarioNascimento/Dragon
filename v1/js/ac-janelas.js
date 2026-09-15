@@ -1,6 +1,10 @@
-/* Identidade e ordem das caixas de A Casa. */
+/* Identidade e ordem das caixas de A Casa.
+   No telefone o cartão instrui e sai: a cena 3D fica com a tela. */
 (function(){
   const types={1:['🔎','Investigação','#FF9638'],2:['🧭','Orientações','#45ADFF'],3:['🧩','Pista encontrada','#42DA8B'],4:['❔','Dica da pista','#B18AFF'],5:['🗂️','Dossiê','#DCC9A3'],6:['🤝','Cooperação','#A2DCD5'],7:['☑️','Confirmação de ação','#F2C3AD'],8:['🏆','Resultado da tarefa','#EEC4DC'],9:['⚠️','Atenção / aviso técnico','#FFE14A'],10:['📖','Como jogar','#CAD7E8']};
+  function telefone(){
+    try { return matchMedia('(max-width:700px)').matches; } catch (e) { return innerWidth <= 700; }
+  }
   function decorate(){
     for(const [selector,n] of [['#mosaico-ra-inspect-modal .mosaico-ra-modal-card',2],['#mosaico-ra-prompt .mosaico-ra-prompt-card',2],['#oito',2],['#ra-investigation-modal .ra-inv-wrapper',3],['#pistas',5],['#master',2],['#mestre',2],['#dragonRoomGate',2],['#portao',10],['.partida-pausada',9],['.fragmento-confirmado',3]])document.querySelectorAll(selector).forEach(el=>el.dataset.acPriority=n);
     const screen=document.getElementById('app')?.dataset.acScreen;
@@ -45,6 +49,17 @@
     const brand=document.querySelector('.topbar .brand');
     if(brand){brand.removeAttribute('href');brand.addEventListener('click',e=>e.preventDefault());}
   }
+  function recolher(){
+    document.body.classList.add('ac-cena-livre');
+    const b=document.getElementById('ac-ver-cena');
+    if(b) b.textContent='Instruções';
+    document.querySelectorAll('dialog[open]').forEach(function(d){ try { d.close(); } catch (e) {} });
+  }
+  function mostrarCartoes(){
+    document.body.classList.remove('ac-cena-livre');
+    const b=document.getElementById('ac-ver-cena');
+    if(b) b.textContent='Ver a cena';
+  }
   function botaoCena(){
     if(!document.querySelector('.ac-panel-stack')||document.getElementById('ac-ver-cena'))return;
     if(!document.getElementById('ac-cena-css')){
@@ -54,12 +69,20 @@
     }
     const b=document.createElement('button');
     b.id='ac-ver-cena';b.type='button';b.textContent='Ver a cena';
-    b.addEventListener('click',()=>{
-      const on=document.body.classList.toggle('ac-cena-livre');
-      b.textContent=on?'Mostrar cart\u00f5es':'Ver a cena';
+    b.addEventListener('click',function(){
+      if(document.body.classList.contains('ac-cena-livre')) mostrarCartoes();
+      else recolher();
     });
     const tools=document.querySelector('.tools');
     if(tools) tools.appendChild(b); else document.body.appendChild(b);
+  }
+  function cenaPrimeiro(){
+    if(!telefone() || !document.querySelector('.ac-panel-stack')) return;
+    setTimeout(recolher, 3500);
+    document.addEventListener('pointerdown', function(ev){
+      if(ev.target.closest('.ac-panel-stack,dialog,.tools,#ac-ver-cena,.topbar,#help,#abCasa,.btn')) return;
+      recolher();
+    }, {passive:true});
   }
   function start(){
     travarMarcaNoSolo();
@@ -69,6 +92,7 @@
       for(const el of [document.getElementById('manuscript'),desk,document.getElementById('coop-status')].filter(Boolean))stack.append(el);
     }
     botaoCena();
+    cenaPrimeiro();
     medirFerramentas();decorate();orderPanels();new MutationObserver(records=>{if(records.some(r=>r.addedNodes.length)){decorate();orderPanels();}}).observe(document.body,{childList:true,subtree:true});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
