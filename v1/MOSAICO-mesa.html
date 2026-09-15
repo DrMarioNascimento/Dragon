@@ -1378,6 +1378,18 @@
 .carregando-caso p{color:var(--dim,#9fb0bd);line-height:1.55;margin:0 0 .9rem}
 .carregando-caso .detalhe{font:12px/1.5 ui-monospace,monospace;color:#6d7f90;
   word-break:break-word;margin-bottom:1.4rem}
+
+  /* PERCURSO DA CASA (sala escura, escrivaninha, maquete) — 15/09/2026.
+     O percurso tem cabeçalho próprio ("2 / 3 · Sob outra luz") e as cenas 3D
+     usam painéis e botões fixos. Com o card da rodada, a pergunta e a linha de
+     orientação por cima, sobravam ~360×360 px no iPhone e tudo se sobrepunha.
+     Durante o percurso fica só a barra Caso | Arquivo; a pergunta continua no Caso. */
+  body.fase-sensor:has(.tarefa-frame[src*="AC-percurso.html"]) .rodada-celular,
+  body.fase-sensor:has(.tarefa-frame[src*="AC-percurso.html"]) .rodada-telao.topo-jogo,
+  body.fase-sensor:has(.tarefa-frame[src*="AC-percurso.html"]) .sensor-copy{display:none}
+  body.fase-sensor:has(.tarefa-frame[src*="AC-percurso.html"]) #app{padding:4px 4px 0;width:100%;box-sizing:border-box}
+  body.fase-sensor:has(.tarefa-frame[src*="AC-percurso.html"]) .tarefa-frame{border-radius:10px 10px 0 0}
+  body.fase-sensor:has(.tarefa-frame[src*="AC-percurso.html"]) .sensor-play{align-self:stretch;width:100%}
 </style>
 
 <!-- O volume dos botoes mora num arquivo so, lido por esta pagina e pelas
