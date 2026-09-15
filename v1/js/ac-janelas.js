@@ -28,13 +28,35 @@
     const parents=new Set(Array.from(document.querySelectorAll('[data-ac-priority]')).map(e=>e.parentElement));
     for(const parent of parents)if(parent&&parent!==document.body&&!parent.closest('dialog,[role=dialog],[role=alertdialog],.modal-fundo,.dialogo-fundo')&&!parent.classList.contains('ac-panel-stack'))sortRuns(parent);
   }
+  /* A pilha de painéis precisa saber onde começam as ferramentas, que mudam de
+     altura quando quebram em duas linhas ou quando botões aparecem/somem. */
+  function medirFerramentas(){
+    const tools=document.querySelector('.tools');if(!tools)return;
+    const aplicar=()=>{
+      const vis=Array.from(tools.children).some(b=>!b.hidden&&getComputedStyle(b).display!=='none');
+      const r=tools.getBoundingClientRect();
+      const espaco=vis&&r.height?Math.max(0,Math.round(window.innerHeight-r.top)):16;
+      document.documentElement.style.setProperty('--ac-tools-space',espaco+'px');
+    };
+    aplicar();
+    if(window.ResizeObserver)new ResizeObserver(aplicar).observe(tools);
+    new MutationObserver(aplicar).observe(tools,{attributes:true,subtree:true,childList:true});
+    window.addEventListener('resize',aplicar);
+  }
+  /* No Solo, a marca AC não pode levar o quadro para fora do percurso. */
+  function travarMarcaNoSolo(){
+    if(new URLSearchParams(location.search).get('demo')!=='solo')return;
+    const brand=document.querySelector('.topbar .brand');
+    if(brand){brand.removeAttribute('href');brand.addEventListener('click',e=>e.preventDefault());}
+  }
   function start(){
+    travarMarcaNoSolo();
     const desk=document.querySelector('.instruction');
     if(desk){
       const stack=document.createElement('section');stack.className='ac-panel-stack';stack.setAttribute('aria-label','Investigação e orientações');document.body.append(stack);
       for(const el of [document.getElementById('manuscript'),desk,document.getElementById('coop-status')].filter(Boolean))stack.append(el);
     }
-    decorate();orderPanels();new MutationObserver(records=>{if(records.some(r=>r.addedNodes.length)){decorate();orderPanels();}}).observe(document.body,{childList:true,subtree:true});
+    medirFerramentas();decorate();orderPanels();new MutationObserver(records=>{if(records.some(r=>r.addedNodes.length)){decorate();orderPanels();}}).observe(document.body,{childList:true,subtree:true});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
