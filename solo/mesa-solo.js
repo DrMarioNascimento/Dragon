@@ -102,6 +102,27 @@ function header(){
   return '<div class="shell"><div class="top"><div class="brand">MOSAICO · MODO SOLO</div><div class="badge">A Casa da Costa · 1867</div>'+chip+'</div>';
 }
 async function load(){try{const r=await fetch('../v1/casos/casa-da-costa.json?v=20260902-banco');if(!r.ok)throw Error();state.caso=await r.json();state.key=proxima();}catch(e){app.innerHTML=header()+'<div class="hero pf-card"><span class="k">Falha de carregamento</span><h2>O caso não pôde ser aberto.</h2><p class="muted">Recarregue a página quando a conexão estiver disponível.</p></div></div>';return;}render();}
+/* A pilula de conta (#mosaico-account, de firebase-user.js) e position:fixed
+   no canto superior direito, com z-index 99990. O cabecalho do Solo poe a
+   badge do caso e os chips de papel/camada exatamente ali: medido a 375px,
+   ela cobria a badge de x=154 a 177 e a metade de cima dos chips.
+   O cabecalho passa a comecar ABAIXO dela. A altura e medida, nao chutada:
+   ela cresce quando o e-mail da conta e longo. */
+function medirPilulaDaConta(){
+  var aplicar=function(){
+    /* offsetParent e SEMPRE null num elemento position:fixed — nao serve para
+       saber se ele esta na tela. Vale o retangulo e o display. */
+    var c=document.getElementById('mosaico-account');
+    var r=c&&getComputedStyle(c).display!=='none'?c.getBoundingClientRect():null;
+    var alto=r&&r.height?Math.ceil(r.bottom+8):0;
+    document.documentElement.style.setProperty('--solo-conta',alto+'px');
+  };
+  aplicar();
+  if(window.ResizeObserver)try{new ResizeObserver(aplicar).observe(document.body)}catch(_){ }
+  new MutationObserver(aplicar).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['style','class','hidden']});
+  window.addEventListener('resize',aplicar);
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',medirPilulaDaConta,{once:true});else medirPilulaDaConta();
 function render(){if(!state.caso)return;let h=header();if(state.phase==='home')h+=home();if(state.phase==='briefing')h+=briefing();if(state.phase==='percurso3d')h+=percurso3d();if(state.phase==='sensor')h+=sensor();if(state.phase==='puzzle')h+=puzzle();if(state.phase==='fact')h+=fact();if(state.phase==='mosaico')h+=mosaico();if(state.phase==='mercado')h+=mercado();if(state.phase==='relations')h+=relations();if(state.phase==='map')h+=map();if(state.phase==='decision')h+=decision();if(state.phase==='result')h+=result();
   try{
     /* O andaime de hipóteses pertence à análise/dedução. Na Mesa ele só
@@ -129,10 +150,34 @@ const ATIVIDADE={
 function briefing(){let p=state.caso.partidas[state.key];return '<span class="k">ENCENAÇÃO · PREPARAÇÃO</span><h2>A casa distribui os papéis.</h2><p class="lead">Você fará todas as tarefas da experiência. O sistema alternará a perspectiva cognitiva e assumirá somente as ações que dependeriam de outras pessoas.</p><div class="role-grid"><div class="relation pf-inset"><b>Você investiga</b><p class="muted">Observa, executa as atividades, organiza fatos e decide.</p></div><div class="relation pf-inset"><b>O sistema contrapõe</b><p class="muted">Distribui arquivos, oferece alternativas no Mercado e testa sua interpretação.</p></div></div><div class="question pf-inset"><b>'+esc(p.natureza)+'</b><p>'+esc(p.pergunta)+'</p></div><button class="btn" onclick="abrirPercurso3D()">Entrar na casa</button>';}
 function abrirPercurso3D(){try{sessionStorage.removeItem('ac:solo-integral:v1')}catch(_){ }state.percursoPronto=false;state.percursoResultado=null;state.phase='percurso3d';render();}
 /* As etapas 3D e sensoriais são páginas de tela inteira (topbar, painéis e
-   botões em position:fixed). Dentro de uma caixa de ~330×480 no meio da página
+   botões em position:fixed). Dentro de uma caixa de ~343×585 no meio da página
    elas se sobrepunham no iPhone. Agora ocupam o aparelho inteiro, como na Mesa,
-   com uma barra mínima dizendo em que etapa do Solo o jogador está. */
-function imersivo(rotulo,iframe){return '<div class="solo-imersivo" role="region" aria-label="'+esc(rotulo)+'"><div class="solo-imersivo-barra"><span>MOSAICO · Solo</span><b>'+esc(rotulo)+'</b></div><div class="solo-imersivo-quadro">'+iframe+'</div></div>';}
+   com uma barra mínima dizendo em que etapa do Solo o jogador está.
+
+   A barra CARREGA a saída, em vez de escondê-la. É o mesmo desenho da Mesa:
+   lá a `barra-jogo` fica POR CIMA da tarefa justamente para o jogador nunca
+   ficar preso dentro do módulo. Uma janela que cobre a tela inteira e não
+   fecha só sai recarregando a página — e recarregar perde a partida. */
+function imersivo(rotulo,iframe){
+  var cheia=state.telaCheia!==false;
+  return '<div class="solo-imersivo'+(cheia?'':' encolhido')+'" role="region" aria-label="'+esc(rotulo)+'">'+
+    '<div class="solo-imersivo-barra"><span>MOSAICO · Solo</span><b>'+esc(rotulo)+'</b>'+
+    '<button type="button" class="solo-imersivo-sair" onclick="alternarTelaCheia(this)" '+
+      'aria-pressed="'+(cheia?'true':'false')+'">'+(cheia?'⤡ Sair da tela cheia':'⤢ Tela cheia')+'</button>'+
+    '</div><div class="solo-imersivo-quadro">'+iframe+'</div></div>';
+}
+/* Alterna SEM passar por render(): recriar o HTML recarregaria o iframe e o
+   jogador perderia o que ja fez dentro da etapa. */
+function alternarTelaCheia(btn){
+  var caixa=btn.closest('.solo-imersivo');if(!caixa)return;
+  var cheia=caixa.classList.toggle('encolhido')===false;
+  state.telaCheia=cheia;
+  btn.textContent=cheia?'⤡ Sair da tela cheia':'⤢ Tela cheia';
+  btn.setAttribute('aria-pressed',cheia?'true':'false');
+  /* Ao sair, mostrar a PAGINA — cabecalho, texto da etapa e o botao de
+     continuar —, nao o mesmo quadro de novo no topo da tela. */
+  if(!cheia)window.scrollTo({top:0});
+}
 function percurso3d(){let quadro=state.percursoPronto?'<div class="result pf-inset"><div class="score">'+esc((state.percursoResultado&&state.percursoResultado.score)||0)+'</div><p class="lead">Escrivaninha investigada, etiqueta registrada e três chaves encaixadas. A passagem sob a despensa foi revelada.</p></div>':imersivo('Percurso 3D e RA','<iframe id="solo-percurso" title="Percurso 3D e RA da Casa da Costa" src="../v1/AC-escrivaninha.html?demo=solo" allow="camera; xr-spatial-tracking; accelerometer; gyroscope; magnetometer; fullscreen" allowfullscreen></iframe>');return '<span class="k">PERCURSO 3D E RA · COMPLETO</span><h2>Da escrivaninha à passagem.</h2><p class="lead">Alterne entre os papéis, posicione a escrivaninha, use a vela, leia a etiqueta e abra a maquete com as três chaves. A RA permanece disponível nos aparelhos compatíveis.</p>'+quadro+'<button class="btn ghost" onclick="abrirAtividades()" '+(state.percursoPronto?'':'disabled')+'>'+(state.percursoPronto?'Passagem revelada · continuar':'Conclua a maquete e as três chaves')+'</button>';}
 function abrirAtividades(){state.atividades=parAtividades();state.atividadeI=0;state.sensorPronto=false;state.phase='sensor';render();}
 function sensor(){let id=state.atividades[state.atividadeI],a=ATIVIDADE[id];return '<span class="k">ATIVIDADE SENSORIAL '+(state.atividadeI+1)+' DE '+state.atividades.length+'</span><h2>'+esc(a.titulo)+'</h2><p class="lead">A tarefa permanece completa no modo solo. Conclua-a dentro do quadro para liberar a próxima etapa.</p>'+(state.sensorPronto?'<div class="result pf-inset"><p class="lead">Atividade concluída. A próxima etapa foi liberada.</p></div>':imersivo('Atividade '+(state.atividadeI+1)+' de '+state.atividades.length+' · '+a.titulo,'<iframe id="solo-sensor" title="'+esc(a.titulo)+'" src="'+esc(a.arquivo)+'" allow="camera; xr-spatial-tracking; accelerometer; gyroscope; magnetometer"></iframe>'))+'<button class="btn ghost" onclick="confirmarSensor()" '+(state.sensorPronto?'':'disabled')+'>'+(state.sensorPronto?'Atividade concluída · continuar':'Conclua a tarefa no quadro')+'</button>';
