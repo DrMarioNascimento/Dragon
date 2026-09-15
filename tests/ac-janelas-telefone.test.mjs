@@ -16,7 +16,16 @@ const ler = (p) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8").rep
 
 const JANELAS = ler("v1/css/ac-janelas.css");
 const MAQUETE_CSS = ler("v1/css/ac-maquete.css");
-const PAGINAS = ["v1/AC-escrivaninha.html", "v1/AC-maquete.html", "v1/AC-percurso.html"];
+const PAGINAS = [
+  "v1/AC-escrivaninha.html",
+  "v1/AC-maquete.html",
+  "v1/AC-percurso.html",
+  "v1/MOSAICO-mesa.html",
+  "v1/MOSAICO-26-a-janela-do-norte.html",
+  "v1/MOSAICO-26-a-sala-as-escuras.html",
+  "v1/MOSAICO-26-vidro-embacado.html"
+];
+const JANELAS_JS = ler("v1/js/ac-janelas.js");
 
 /** A última declaração de `position` que a cascata aplica ao × das janelas. */
 function posicaoFinalDoX() {
@@ -76,12 +85,21 @@ describe("A Casa · janelas no telefone", () => {
         .map((m) => ({ pagina: p, arquivo: m[1], versao: m[2] }));
     });
     assert.equal(achados.length, PAGINAS.length * 2,
-      "alguma das três telas parou de carimbar ac-janelas.css ou ac-janelas.js:\n" +
+      "alguma tela de A Casa parou de carimbar ac-janelas.css ou ac-janelas.js:\n" +
       achados.map((a) => `  ${a.pagina} → ${a.arquivo}`).join("\n") +
       "\nSem carimbo, o aparelho serve a folha antiga do cache ao lado do HTML novo.");
     const versoes = [...new Set(achados.map((a) => a.versao))];
     assert.equal(versoes.length, 1,
       `os carimbos de ac-janelas divergiram (${versoes.join(", ")}):\n` +
       achados.map((a) => `  ${a.pagina} → ${a.arquivo} = ${a.versao}`).join("\n"));
+  });
+
+  it("ao começar, remove orientações e cooperação sem deixar espaço ocupado", () => {
+    assert.match(JANELAS_JS, /function entrarAtividade\(\)/);
+    assert.match(JANELAS_JS, /data-ac-priority="10"/);
+    assert.match(JANELAS_JS, /#coop-status/);
+    assert.match(JANELAS_JS, /panel\.hidden=true/);
+    assert.match(JANELAS, /ac-atividade-iniciada[\s\S]*#coop-status\{display:none!important\}/);
+    assert.match(JANELAS_JS, /#intro\.out,#intro\.gone/);
   });
 });

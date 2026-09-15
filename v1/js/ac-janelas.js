@@ -80,6 +80,13 @@
     b.addEventListener('click',function(ev){ ev.stopPropagation(); frase(); });
     document.body.appendChild(b);
   }
+  function entrarAtividade(){
+    recolher();
+    document.body.classList.add('ac-atividade-iniciada');
+    document.querySelectorAll('dialog[data-ac-priority="10"][open]').forEach(dialog=>dialog.close());
+    document.querySelectorAll('[data-ac-priority="10"]:not(dialog)').forEach(panel=>panel.hidden=true);
+    document.querySelectorAll('#coop-status').forEach(status=>status.hidden=true);
+  }
   function start(){
     travarMarcaNoSolo();
     const desk=document.querySelector('.instruction');
@@ -89,7 +96,12 @@
     }
     if(telefone()) document.body.classList.add('ac-cena-livre');
     botaoCena();
-    medirFerramentas();decorate();orderPanels();new MutationObserver(records=>{if(records.some(r=>r.addedNodes.length)){decorate();orderPanels();}}).observe(document.body,{childList:true,subtree:true});
+    medirFerramentas();decorate();orderPanels();new MutationObserver(records=>{
+      if(records.some(r=>r.type==='attributes'&&r.target.matches('#intro.out,#intro.gone')))entrarAtividade();
+      if(records.some(r=>r.addedNodes.length)){decorate();orderPanels();}
+    }).observe(document.body,{attributes:true,attributeFilter:['class'],childList:true,subtree:true});
   }
+  window.ACJanelas={entrarAtividade};
+  window.addEventListener('ac-atividade-iniciada',entrarAtividade);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();

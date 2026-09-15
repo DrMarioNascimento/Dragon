@@ -19,10 +19,11 @@
   const dragPlane = new THREE.Plane(), dragRay = new THREE.Raycaster(), dragPoint = new THREE.Vector3();
   const cleanup = [];
   const on = (target, type, fn, options) => { target.addEventListener(type, fn, options); cleanup.push(() => target.removeEventListener(type, fn, options)); };
+  const entrarAtividade=()=>window.ACJanelas?.entrarAtividade();
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   function notify(message) { $('notice').textContent = message; $('notice').style.display = 'block'; clearTimeout(noticeTimer); noticeTimer = setTimeout(() => { $('notice').style.display = 'none'; }, 5000); }
   function dispatch(type) { if(!connected||!coop)return;coop.send(type).catch(()=>notify('Conexão interrompida. Aguarde a reconexão.')); }
-  function beginAction(){if(role==='luz'&&shared&&!shared.started)dispatch('iniciar');}
+  function beginAction(){entrarAtividade();if(role==='luz'&&shared&&!shared.started)dispatch('iniciar');}
   function setFallback(reason){fallback=true;$('accessible').closest('label').hidden=false;$('fallback-description').textContent=reason+' O modo 3D permite arrastar para explorar; os botões são opcionais.';updateUI();}
 
   const descriptions = {
@@ -183,6 +184,10 @@
   }
   on($('primary'),'click',()=>{
     if(xrSession&&!xrPlaced){placeAtHit();return;}
+    if(new URLSearchParams(location.search).get('demo')==='solo'&&role==='conhecimento'){
+      if(state.stage==='iluminar'){entrarAtividade();dispatch('descobrir');return;}
+      if(state.stage==='encontrado'){entrarAtividade();openFragment();return;}
+    }
     if(role!=='luz'||!fallback)return;beginAction();
     if(state.stage==='apagao')dispatch('energia');
     else if(state.stage==='posicionar'){
@@ -197,11 +202,11 @@
     if(event.data!=='_apple_ar_quicklook_button_tapped')return;
     if(role==='luz'&&state.stage==='posicionar'&&connected){beginAction();dispatch('posicionar');notify('Escrivaninha posicionada. Agora leve a vela até o castiçal.');}
   });
-  on($('follow-clue'),'click',()=>{if(shared?.maquete)location.href='AC-maquete.html'+location.search;else dispatch('iniciar_maquete');});
+  on($('follow-clue'),'click',()=>{entrarAtividade();if(shared?.maquete)location.href='AC-maquete.html'+location.search;else dispatch('iniciar_maquete');});
   on($('register'),'click',async()=>{
     if(registerPending||state.stage!=='encontrado')return;
     if(!connected||!coop){notify('Aguarde a reconexão para guardar a pista.');return;}
-    registerPending=true;openFragment();
+    entrarAtividade();registerPending=true;openFragment();
     try{const accepted=await coop.send('registrar');if(!accepted&&state.stage!=='registrado')notify('A pista ainda não foi registrada. Aguarde a atualização da dupla e tente novamente.');}
     catch(_){notify('Não foi possível confirmar o registro. Aguarde a reconexão e tente novamente.');}
     finally{registerPending=false;if($('fragment').open)openFragment();}

@@ -46,6 +46,7 @@ body .ac-panel-stack>#coop-status[data-ac-priority],
 body .ac-panel-stack>#manuscript[data-ac-priority],
 body .ac-panel-stack>.instruction[data-ac-priority]{padding:84px 16px 16px!important;min-height:112px;border-radius:14px;line-height:1.5}
 body .ac-panel-stack>#coop-status[data-ac-priority]{font:14px/1.5 system-ui,sans-serif}
+body.ac-atividade-iniciada .ac-panel-stack>#coop-status{display:none!important}
 
 /* ===== Telefone (20260915) =====
    1. Cabeçalho: "A CASA / DA COSTA" quebrava palavra por palavra e o subtítulo

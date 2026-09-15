@@ -5,6 +5,7 @@
   let coop=null,online=false,data=null,fallback=false,disposed=false,readStart=null,readingSent=false,soloConcluido=false;
   let xr=null,hitSource=null,placed=false,hasHit=false,dragging=false,nearLock=false,pending=false,lastLevel=-1,lastReady=null,noticeTimer;
   const handlers=[];function on(el,type,fn){el.addEventListener(type,fn);handlers.push(()=>el.removeEventListener(type,fn));}
+  const entrarAtividade=()=>window.ACJanelas?.entrarAtividade();
   const scene=new THREE.Scene();scene.background=new THREE.Color(0x091515);
   const camera=new THREE.PerspectiveCamera(40,innerWidth/innerHeight,.015,25);scene.add(camera);
   let renderer;try{renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});}catch{$('description').textContent='Este navegador não conseguiu abrir o modelo 3D.';return;}
@@ -70,7 +71,8 @@
   async function send(type,extra={}){if(!online||!coop||pending)return false;pending=true;try{return await coop.send(type,extra);}catch{notify('Aguarde a reconexão da dupla.');return false;}finally{pending=false;}}
   function update(){
     if(!data){$('heading').textContent='Siga a pista da escrivaninha.';$('description').textContent='Encontre e registre a etiqueta com seu colega para liberar esta investigação.';return;}
-    $('step').textContent=data.name;$('score').textContent='Chaves '+data.evidence.length+' · '+data.score+' pontos de ensaio';
+    $('step').textContent=data.complete?'Percurso concluído':`Chave ${data.evidence.length+1} de 3 · ${data.name}`;
+    $('score').textContent='Chaves '+data.evidence.length+' de 3 · '+data.score+' pontos de ensaio';
     const explore=data.explorer===role;
     model.lock.visible=!explore&&!data.complete;
     document.body.dataset.roleMode=data.complete?'complete':explore?'explorer':'guide';
@@ -80,7 +82,7 @@
     $('manuscript').hidden=explore||data.complete;
     $('clue').textContent=data.ready?(data.clue||'Oriente seu colega pela voz.'):'Segure o manuscrito para ler e orientar seu colega.';
     $('heading').textContent=data.complete?'O espaço que faltava.':explore?'Seu olhar encontra o caminho.':'Sua leitura orienta o caminho.';
-    $('description').textContent=data.complete?'A fundação revelou uma passagem sob a despensa. A descoberta foi guardada.':explore?(data.ready?(data.key?'Você encontrou a chave. Só seu colega vê a fechadura. Siga a orientação dele e leve a ponta da chave até ela.':'Ouça a orientação do colega. Aproxime-se e toque no detalhe correspondente.'):'Aguarde seu colega ler o manuscrito.'):data.ready?'Compartilhe a orientação com seu colega. Só ele pode manipular a chave deste piso.':'Mantenha o dedo no manuscrito por um instante.';
+    $('description').textContent=data.complete?'A fundação revelou uma passagem sob a despensa. A descoberta foi guardada.':explore?(data.ready?(data.key?'Você encontrou a chave. Só seu colega vê a fechadura. Siga a orientação dele e leve a ponta da chave até ela.':'Ouça a orientação do colega. Aproxime-se e toque no detalhe correspondente.'):'Aguarde seu colega ler o manuscrito.'):data.ready?'Compartilhe a orientação com seu colega. Só ele pode manipular a chave deste piso.':'Leia a orientação para liberar a chave '+(data.evidence.length+1)+' de 3.';
     $('alternative').hidden=!fallback||!explore||data.complete||data.key;
     if(!canExplore()){keyFlight=null;goldDust.resetTrail();dragging=false;nearLock=false;readStart=null;controls.enabled=!xr;$('key-grip').classList.remove('ready');}
     $('key-grip').hidden=!canExplore()||!data.key;
@@ -95,7 +97,7 @@
     if(xr&&!placed){$('heading').textContent='Posicione a maquete.';$('description').textContent='Aponte para uma superfície e toque no círculo. Depois, examine a casa de perto.';}
     if(!online)$('description').textContent='A dupla precisa estar conectada para continuar. O progresso está preservado neste servidor.';
   }
-  function inspect(object){if(!canExplore()||data.key)return;lastInspected=object;send('maquete_examinar',{object});}
+  function inspect(object){if(!canExplore()||data.key)return;entrarAtividade();lastInspected=object;send('maquete_examinar',{object});}
   on(renderer.domElement,'pointerdown',e=>{pressPoint={x:e.clientX,y:e.clientY};});
   on(renderer.domElement,'pointerup',e=>{
     if(!pressPoint||Math.hypot(e.clientX-pressPoint.x,e.clientY-pressPoint.y)>8)return;pressPoint=null;
@@ -110,9 +112,9 @@
   on(controls,'start',()=>document.body.classList.add('manipulating'));
   on(controls,'end',()=>document.body.classList.remove('manipulating'));
   on(window,'blur',()=>document.body.classList.remove('manipulating'));
-  on($('manuscript'),'pointerdown',e=>{if(!online||data?.ready)return;e.preventDefault();readStart=performance.now();$('manuscript').setPointerCapture(e.pointerId);});
+  on($('manuscript'),'pointerdown',e=>{if(!online||data?.ready)return;entrarAtividade();e.preventDefault();readStart=performance.now();$('manuscript').setPointerCapture(e.pointerId);});
   for(const event of ['pointerup','pointercancel','blur'])on($('manuscript'),event,()=>{readStart=null;});
-  on($('manuscript'),'keydown',e=>{if(e.key==='Enter'&&!e.repeat){e.preventDefault();send('maquete_orientar');}else if(e.key===' '&&!e.repeat){e.preventDefault();readStart=performance.now();}});on($('manuscript'),'keyup',()=>readStart=null);
+  on($('manuscript'),'keydown',e=>{if(e.key==='Enter'&&!e.repeat){entrarAtividade();e.preventDefault();send('maquete_orientar');}else if(e.key===' '&&!e.repeat){entrarAtividade();e.preventDefault();readStart=performance.now();}});on($('manuscript'),'keyup',()=>readStart=null);
   on($('key-grip'),'pointerdown',e=>{if(!canExplore()||!data.key||keyFlight||finishing)return;e.preventDefault();dragging=true;goldDust.resetTrail();goldDust.trace(model.key.position);controls.enabled=false;$('key-grip').setPointerCapture(e.pointerId);const offset=model.keyTip.getWorldPosition(new THREE.Vector3()).sub(model.key.getWorldPosition(new THREE.Vector3()));const world=model.keySocket.getWorldPosition(new THREE.Vector3()).sub(offset);dragPlane.setFromNormalAndCoplanarPoint(cameraNow().getWorldDirection(new THREE.Vector3()),world);});
   on($('key-grip'),'pointermove',e=>{if(!dragging)return;ray.setFromCamera(new THREE.Vector2(e.clientX/innerWidth*2-1,1-e.clientY/innerHeight*2),cameraNow());if(ray.ray.intersectPlane(dragPlane,point))model.key.position.copy(model.root.worldToLocal(point.clone()));goldDust.trace(model.key.position);nearLock=ACMaquetteSpatial.keyFits(model);publishMotion();});
   function tipLocal(){return model.root.worldToLocal(model.keyTip.getWorldPosition(new THREE.Vector3())).toArray();}
@@ -187,7 +189,7 @@
     motion=snapshot.keyMotion;motionTime=performance.now();
     const old=data,wasOnline=online;data=snapshot.maquete;online=(snapshot.percurso?.fragmento?.membros.map(m=>m.papel)||['luz','conhecimento']).every(r=>snapshot.online.includes(r));$('coop-status').textContent=online?'Dupla conectada':'Aguardando seu colega';
     if(old&&data&&data.mistakes>old.mistakes)notify('Esse detalhe não corresponde à orientação. Converse com seu colega.');
-    if(old&&data&&data.level>old.level){keyFlight=null;goldDust.resetTrail();goldDust.burst(model.root.worldToLocal(model.lock.getWorldPosition(new THREE.Vector3())));}
+    if(old&&data&&data.level>old.level){keyFlight=null;goldDust.resetTrail();goldDust.burst(model.root.worldToLocal(model.lock.getWorldPosition(new THREE.Vector3())));if(!data.complete)notify('Chave '+data.evidence.length+' encaixada. Agora leia a orientação para liberar a próxima chave.');}
     if(!old||wasOnline!==online||JSON.stringify(old)!==JSON.stringify(data))update();
     if(old&&data&&!old.key&&data.key&&data.explorer===role){
       const source=model.targets.find(o=>o.userData.object===lastInspected);
@@ -199,7 +201,7 @@
       soloConcluido=true;
       try{parent.postMessage({mosaico:'ac-solo-completo',score:data.score,evidence:data.evidence},location.origin)}catch(_){ }
     }
-  },connected=>{if(!connected){online=false;$('coop-status').textContent='Reconectando…';update();}},{maquette:true}).then(c=>{coop=c;if(new URLSearchParams(location.search).get('percurso')==='1')document.querySelector('.brand').removeAttribute('href');const backParams=new URLSearchParams(location.search);backParams.set('rever','1');$('return-desk').href='AC-escrivaninha.html?'+backParams;if(c.invite){$('invite').href=c.invite;$('invite').hidden=false;}$('instructions').showModal();}).catch(e=>{$('description').textContent=e.message;});
+  },connected=>{if(!connected){online=false;$('coop-status').textContent='Reconectando…';update();}},{maquette:true}).then(c=>{coop=c;if(new URLSearchParams(location.search).get('percurso')==='1')document.querySelector('.brand').removeAttribute('href');const backParams=new URLSearchParams(location.search);backParams.set('rever','1');$('return-desk').href='AC-escrivaninha.html?'+backParams;if(c.invite){$('invite').href=c.invite;$('invite').hidden=false;}if(!c.demo)$('instructions').showModal();}).catch(e=>{$('description').textContent=e.message;});
   // A pilha de painéis nasce depois deste script e muda de altura entre os capítulos.
   if(window.ResizeObserver){let lastStackH=-1;const watch=()=>{const st=document.querySelector('.ac-panel-stack');if(!st)return setTimeout(watch,120);new ResizeObserver(()=>{const h=Math.round(st.getBoundingClientRect().height);if(h!==lastStackH){lastStackH=h;if(!xr)frame();}}).observe(st);};watch();}
   on(window,'resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);if(!xr)frame();});
