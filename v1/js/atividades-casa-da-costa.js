@@ -71,18 +71,9 @@
      posições na preferência ordena. A Janela, quando entra, fica na primeira
      vaga — ela é a chegada à casa, e vem antes do que se descobre dentro. */
   function pares(id) {
-    var lista = PREFERENCIA[id] || PREFERENCIA.sete, out = [];
-    for (var i = 0; i < lista.length; i++)
-      for (var j = i + 1; j < lista.length; j++) {
-        var a = lista[i], b = lista[j];
-        out.push({
-          peso: i + j,
-          par: (a === "janela" || b !== "janela")
-            ? { inclinacao: a, constelacao: b }
-            : { inclinacao: b, constelacao: a }
-        });
-      }
-    return out.sort(function (x, y) { return x.peso - y.peso; }).map(function (x) { return x.par; });
+    var lista = PREFERENCIA[id] || PREFERENCIA.sete;
+    return lista.filter(function (atividade) { return atividade !== "janela"; })
+      .map(function (atividade) { return { inclinacao: "janela", constelacao: atividade }; });
   }
 
   function proximoPar(id) {

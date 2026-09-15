@@ -390,7 +390,7 @@
   let lastSnapshot=0;
   ACCooperation(snapshot=>{
     if(snapshot.soloRole)role=snapshot.soloRole;
-    if(snapshot.maquete&&!new URLSearchParams(location.search).has('rever')){location.replace('AC-maquete.html'+location.search);return;}
+    if(snapshot.maquete&&!snapshot.maquete.complete&&!new URLSearchParams(location.search).has('rever')){location.replace('AC-maquete.html'+location.search);return;}
     const previous=state.stage;shared=snapshot;lastSnapshot=performance.now();
     state={...state,stage:snapshot.stage,evidence:snapshot.stage==='registrado'?['ac-etiqueta-maquete']:[]};
     if(previous==='encontrado'&&state.stage==='registrado')notify('Fragmento guardado no dossiê deste estudo.');
@@ -400,6 +400,7 @@
     $('coop-status').textContent=snapshot.online.includes(other)?'Dupla conectada':role==='luz'?'Aguardando o portador do conhecimento · convite na ajuda':'Aguardando o portador da luz';
     if(new URLSearchParams(location.search).get('demo')==='solo'&&!new URLSearchParams(location.search).has('sala')){$('timer').textContent='Demonstração · sem pontuação';$('coop-status').textContent='Colega automático: a etiqueta está iluminada. Use Ver por baixo.';}
     if(previous!==state.stage){hold=0;updateUI();if(role==='conhecimento'&&(state.stage==='encontrado'||(state.stage==='registrado'&&$('fragment').open)))openFragment();}
+    if(new URLSearchParams(location.search).get('demo')==='solo'&&snapshot.maquete?.complete&&snapshot.stage==='registrado')parent.postMessage({mosaico:'ac-solo-completo',score:snapshot.maquete.score,evidence:snapshot.maquete.evidence},location.origin);
   },online=>{connected=online;if(!online){hold=0;$('coop-status').textContent='Reconectando… a luz compartilhada está suspensa.';}updateUI();}).then(connection=>{
     coop=connection;role=connection.role;
     if(new URLSearchParams(location.search).get('percurso')==='1'){$('restart').hidden=true;document.querySelector('.brand').removeAttribute('href');}

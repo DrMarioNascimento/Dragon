@@ -271,7 +271,7 @@ async function camadaAtividades() {
   return win;
 }
 
-test("toda pergunta pode receber as três atividades, em três pares distintos", async () => {
+test("toda pergunta começa pela Janela do Norte e alterna só a atividade interna", async () => {
   const win = await camadaAtividades();
   const A = win.MosaicoAtividadesCasa;
   const c = caso();
@@ -284,17 +284,15 @@ test("toda pergunta pode receber as três atividades, em três pares distintos",
       `${id}: a preferência precisa ordenar as três, não excluir — excluir deixa a pergunta sem variação`);
 
     const pares = A.pares(id);
-    assert.equal(pares.length, 3, `${id}: deveriam sair três pares distintos`);
+    assert.equal(pares.length, 2, `${id}: Janela deve abrir sempre; só as duas atividades internas alternam`);
     const vistos = new Set();
     for (const p of pares) {
       assert.ok(validos.has(p.inclinacao) && validos.has(p.constelacao), `${id}: atividade desconhecida`);
-      assert.notEqual(p.inclinacao, p.constelacao, `${id}: par com a mesma atividade duas vezes`);
-      /* A Janela é a chegada à casa: quando entra, vem antes do que se
-         descobre dentro dela. */
-      assert.notEqual(p.constelacao, "janela", `${id}: A Janela do Norte caiu na segunda vaga`);
-      vistos.add([p.inclinacao, p.constelacao].sort().join("+"));
+      assert.equal(p.inclinacao, "janela", `${id}: A Janela do Norte precisa ser a primeira atividade`);
+      assert.notEqual(p.constelacao, "janela", `${id}: a chegada não pode repetir como atividade interna`);
+      vistos.add(p.constelacao);
     }
-    assert.equal(vistos.size, 3, `${id}: o rodízio repete par antes de esgotar os três`);
+    assert.equal(vistos.size, 2, `${id}: o rodízio interno repete antes de esgotar as duas opções`);
   }
 });
 

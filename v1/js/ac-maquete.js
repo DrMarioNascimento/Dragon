@@ -29,8 +29,8 @@
     camera.setViewOffset(innerWidth,innerHeight,innerWidth/2-centerX,innerHeight/2-centerY,innerWidth,innerHeight);
     controls.target.copy(model.root.localToWorld(new THREE.Vector3(0,data?.complete?.95:data?.level===2?.65:.52,0)));
     const distance=Math.max(3,2.3/(2*Math.tan(Math.PI/9)*camera.aspect)*(innerWidth/usableWidth),
-      (data?.complete?2.7:1.9)/(2*Math.tan(Math.PI/9))*(innerHeight/usableHeight));
-    camera.position.copy(new THREE.Vector3(1.2,1.2,1.8).normalize().multiplyScalar(distance*(mobile?1.05:1.25)).add(controls.target));controls.update();
+      (data?.complete?2.9:2.15)/(2*Math.tan(Math.PI/9))*(innerHeight/usableHeight));
+    camera.position.copy(new THREE.Vector3(1.2,1.2,1.8).normalize().multiplyScalar(distance*(mobile?1.18:1.35)).add(controls.target));controls.update();
   }
   scene.add(new THREE.HemisphereLight(0xbed2e4,0x33251b,.60));const sun=new THREE.DirectionalLight(0xffe1b5,1.45);sun.position.set(-2,4,3);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);scene.add(sun);scene.add(new THREE.AmbientLight(0xffffff,.10));const coastFill=new THREE.DirectionalLight(0x9ebed5,.6);coastFill.position.set(3,2,-2);scene.add(coastFill);
   const floor=new THREE.Mesh(new THREE.PlaneGeometry(30,30),new THREE.MeshStandardMaterial({color:0x071014,roughness:.95}));floor.rotation.x=-Math.PI/2;floor.position.y=-.385;floor.receiveShadow=true;scene.add(floor);
@@ -211,9 +211,9 @@
     }
     if(data&&data.complete&&!soloConcluido&&new URLSearchParams(location.search).get('demo')==='solo'){
       soloConcluido=true;
-      try{parent.postMessage({mosaico:'ac-solo-completo',score:data.score,evidence:data.evidence},location.origin)}catch(_){ }
+      try{parent.postMessage({mosaico:'ac-solo-maquete-completa',score:data.score,evidence:data.evidence},location.origin)}catch(_){ }
     }
-  },connected=>{if(!connected){online=false;$('coop-status').textContent='Reconectando…';update();}},{maquette:true}).then(c=>{coop=c;if(new URLSearchParams(location.search).get('percurso')==='1')document.querySelector('.brand').removeAttribute('href');const backParams=new URLSearchParams(location.search);backParams.set('rever','1');$('return-desk').href='AC-escrivaninha.html?'+backParams;if(c.invite){$('invite').href=c.invite;$('invite').hidden=false;}if(!c.demo)$('instructions').showModal();}).catch(e=>{$('description').textContent=e.message;});
+  },connected=>{if(!connected){online=false;$('coop-status').textContent='Reconectando…';update();}},{maquette:true}).then(c=>{coop=c;if(c.demo)c.send('iniciar_maquete');if(new URLSearchParams(location.search).get('percurso')==='1')document.querySelector('.brand').removeAttribute('href');const backParams=new URLSearchParams(location.search);backParams.set('rever','1');$('return-desk').href='AC-escrivaninha.html?'+backParams;if(c.invite){$('invite').href=c.invite;$('invite').hidden=false;}if(!c.demo)$('instructions').showModal();}).catch(e=>{$('description').textContent=e.message;});
   // A pilha de painéis nasce depois deste script e muda de altura entre os capítulos.
   if(window.ResizeObserver){let lastStackH=-1;const watch=()=>{const st=document.querySelector('.ac-panel-stack');if(!st)return setTimeout(watch,120);new ResizeObserver(()=>{const h=Math.round(st.getBoundingClientRect().height);if(h!==lastStackH){lastStackH=h;if(!xr)frame();}}).observe(st);};watch();}
   on(window,'resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);if(!xr)frame();});
