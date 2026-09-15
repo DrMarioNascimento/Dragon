@@ -1,5 +1,5 @@
 /* Identidade e ordem das caixas de A Casa.
-   No telefone a cena ganha a tela. Cartões e botões saem. */
+   No telefone: cena livre. O i fala uma frase e some. */
 (function(){
   const types={1:['🔎','Investigação','#FF9638'],2:['🧭','Orientações','#45ADFF'],3:['🧩','Pista encontrada','#42DA8B'],4:['❔','Dica da pista','#B18AFF'],5:['🗂️','Dossiê','#DCC9A3'],6:['🤝','Cooperação','#A2DCD5'],7:['☑️','Confirmação de ação','#F2C3AD'],8:['🏆','Resultado da tarefa','#EEC4DC'],9:['⚠️','Atenção / aviso técnico','#FFE14A'],10:['📖','Como jogar','#CAD7E8']};
   function telefone(){
@@ -51,55 +51,30 @@
   }
   function recolher(){
     document.body.classList.add('ac-cena-livre');
-    const b=document.getElementById('ac-ver-cena');
-    if(b) b.textContent='i';
     document.querySelectorAll('dialog[open]').forEach(function(d){ try { d.close(); } catch (e) {} });
   }
-  function mostrarCartoes(){
-    document.body.classList.remove('ac-cena-livre');
-    const b=document.getElementById('ac-ver-cena');
-    if(b) b.textContent='Ver a cena';
+  function frase(){
+    const h=document.getElementById('heading');
+    const p=document.getElementById('description');
+    let n=document.getElementById('ac-frase');
+    if(!n){
+      n=document.createElement('p');n.id='ac-frase';
+      n.style.cssText='position:fixed;left:12px;right:12px;bottom:max(18px,env(safe-area-inset-bottom));z-index:45;margin:0;padding:12px 14px;border-radius:14px;background:#1a1408f2;color:#ffe9c4;font:600 15px/1.35 system-ui;text-align:center;pointer-events:none';
+      document.body.appendChild(n);
+    }
+    n.textContent=(h&&h.textContent?h.textContent+' ':'')+(p&&p.textContent?p.textContent:'');
+    n.hidden=false;
+    clearTimeout(n._t);
+    n._t=setTimeout(function(){ n.hidden=true; }, 4000);
   }
   function botaoCena(){
     if(document.getElementById('ac-ver-cena'))return;
-    if(!document.getElementById('ac-cena-css')){
-      const css=document.createElement('style');css.id='ac-cena-css';
-      css.textContent=[
-        '#ac-ver-cena{position:fixed;z-index:40;right:10px;top:max(8px,env(safe-area-inset-top));width:44px;height:44px;border-radius:22px;border:1px solid #c9a66c;background:#241a08;color:#ffe1ac;font:800 18px/1 Georgia,serif}',
-        '@media(max-width:700px){',
-        'body.ac-cena-livre .ac-panel-stack,',
-        'body.ac-cena-livre .chapter,',
-        'body.ac-cena-livre .tools,',
-        'body.ac-cena-livre .caption,',
-        'body.ac-cena-livre .topbar,',
-        'body.ac-cena-livre #coop-status,',
-        'body.ac-cena-livre #notice,',
-        'body.ac-cena-livre #loading,',
-        'body.ac-cena-livre #ar-ios{opacity:0!important;pointer-events:none!important;visibility:hidden!important}',
-        'body.ac-cena-livre #candle-grip,body.ac-cena-livre #socket{visibility:visible;opacity:1;pointer-events:auto}',
-        '}',
-        'body.ac-cena-livre #ac-ver-cena{visibility:visible!important;opacity:1!important;pointer-events:auto!important}'
-      ].join('');
-      document.head.appendChild(css);
-    }
     const b=document.createElement('button');
-    b.id='ac-ver-cena';b.type='button';b.setAttribute('aria-label','Instruções');
+    b.id='ac-ver-cena';b.type='button';b.setAttribute('aria-label','O que fazer agora');
     b.textContent='i';
-    b.addEventListener('click',function(ev){
-      ev.stopPropagation();
-      if(document.body.classList.contains('ac-cena-livre')) mostrarCartoes();
-      else recolher();
-    });
+    b.style.cssText='position:fixed;z-index:40;right:10px;top:max(8px,env(safe-area-inset-top));width:44px;height:44px;border-radius:22px;border:1px solid #c9a66c;background:#241a08;color:#ffe1ac;font:800 18px/1 Georgia,serif';
+    b.addEventListener('click',function(ev){ ev.stopPropagation(); frase(); });
     document.body.appendChild(b);
-  }
-  function cenaPrimeiro(){
-    if(!telefone()) return;
-    recolher();
-    document.addEventListener('pointerdown', function(ev){
-      if(ev.target.closest('#ac-ver-cena,.instruction,#primary,dialog,#help,#candle-grip')) return;
-      if(ev.target.closest('.ac-panel-stack') && !document.body.classList.contains('ac-cena-livre')) return;
-      recolher();
-    }, {passive:true});
   }
   function start(){
     travarMarcaNoSolo();
@@ -108,8 +83,8 @@
       const stack=document.createElement('section');stack.className='ac-panel-stack';stack.setAttribute('aria-label','Investigação e orientações');document.body.append(stack);
       for(const el of [document.getElementById('manuscript'),desk,document.getElementById('coop-status')].filter(Boolean))stack.append(el);
     }
+    if(telefone()) document.body.classList.add('ac-cena-livre');
     botaoCena();
-    cenaPrimeiro();
     medirFerramentas();decorate();orderPanels();new MutationObserver(records=>{if(records.some(r=>r.addedNodes.length)){decorate();orderPanels();}}).observe(document.body,{childList:true,subtree:true});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
