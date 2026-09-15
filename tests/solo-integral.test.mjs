@@ -30,6 +30,7 @@ test('checkpoint e carimbo incluem o Solo integral',()=>{
 test('percurso solo mantém 3D, RA, escrivaninha, vela, maquete e três chaves',()=>{
   const coop=readFileSync(new URL('../v1/js/ac-cooperacao.js',import.meta.url),'utf8');
   const desk=readFileSync(new URL('../v1/js/ac-investigacao.js',import.meta.url),'utf8');
+  const escrivaninha=readFileSync(new URL('../v1/AC-escrivaninha.html',import.meta.url),'utf8');
   const maquete=readFileSync(new URL('../v1/js/ac-maquete.js',import.meta.url),'utf8');
   assert.match(js,/AC-escrivaninha\.html\?demo=solo/);
   assert.match(js,/xr-spatial-tracking/);
@@ -41,4 +42,6 @@ test('percurso solo mantém 3D, RA, escrivaninha, vela, maquete e três chaves',
   assert.match(desk,/iniciar_maquete/);
   assert.match(maquete,/ac-solo-completo/);
   assert.match(coop,/chave-exterior','chave-terreo','passagem-sob-despensa/);
+  assert.match(escrivaninha, /id="ar-ios"/,
+    'o controle Quick Look exigido por ac-investigacao deve existir para a inicialização não abortar');
 });
