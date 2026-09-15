@@ -71,15 +71,6 @@
     clearTimeout(n._t);
     n._t=setTimeout(function(){ n.hidden=true; }, 4000);
   }
-  function botaoCena(){
-    if(document.getElementById('ac-ver-cena'))return;
-    const b=document.createElement('button');
-    b.id='ac-ver-cena';b.type='button';b.setAttribute('aria-label','O que fazer agora');
-    b.textContent='i';
-    b.style.cssText='position:fixed;z-index:40;right:10px;top:max(8px,env(safe-area-inset-top));width:44px;height:44px;border-radius:22px;border:1px solid #c9a66c;background:#241a08;color:#ffe1ac;font:800 18px/1 Georgia,serif';
-    b.addEventListener('click',function(ev){ ev.stopPropagation(); frase(); });
-    document.body.appendChild(b);
-  }
   function entrarAtividade(){
     recolher();
     document.body.classList.add('ac-atividade-iniciada');
@@ -95,7 +86,7 @@
       for(const el of [document.getElementById('manuscript'),desk,document.getElementById('coop-status')].filter(Boolean))stack.append(el);
     }
     if(telefone()) document.body.classList.add('ac-cena-livre');
-    botaoCena();
+    if(document.getElementById('loading')&&!document.getElementById('loading').hidden)entrarAtividade();
     medirFerramentas();decorate();orderPanels();new MutationObserver(records=>{
       if(records.some(r=>r.type==='attributes'&&r.target.matches('#intro.out,#intro.gone')))entrarAtividade();
       if(records.some(r=>r.addedNodes.length)){decorate();orderPanels();}

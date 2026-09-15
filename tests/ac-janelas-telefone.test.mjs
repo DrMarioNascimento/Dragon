@@ -101,5 +101,7 @@ describe("A Casa · janelas no telefone", () => {
     assert.match(JANELAS_JS, /panel\.hidden=true/);
     assert.match(JANELAS, /ac-atividade-iniciada[\s\S]*#coop-status\{display:none!important\}/);
     assert.match(JANELAS_JS, /#intro\.out,#intro\.gone/);
+    assert.doesNotMatch(JANELAS_JS, /ac-ver-cena/,
+      "a ajuda nativa #help é a única affordance: não crie um segundo botão i.");
   });
 });

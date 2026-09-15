@@ -54,17 +54,16 @@
   async function comecar() {
     if (started || finished) return;
     started = true;
-    prep.classList.remove('on');
-    opening.classList.add('on');
     audio.muted = false;
     audio.volume = 1;
     audio.currentTime = 0;
     try {
       await audio.play();
+      prep.remove();
+      opening.classList.add('on');
     } catch (e) {
       console.error('MOSAICO: áudio da abertura bloqueado.', e);
       started = false;
-      opening.classList.remove('on');
       prep.classList.add('on');
       renderPrep();
     }
