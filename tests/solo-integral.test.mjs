@@ -18,8 +18,8 @@ test('Solo Casa preserva as etapas da experiência da Mesa',()=>{
   assert.match(js,/APURAÇÃO FINAL/);
   assert.match(js,/PÓDIO · RESULTADO FINAL/);
   assert.match(js,/setTimeout/);
-  assert.match(js,/return \['janela',interior\[state\.key\]\|\|interior\.sete\]/,
-    'a chegada pela Janela do Norte é sempre a primeira atividade Solo');
+  assert.match(js,/return \['salaEscura'\]/,
+    'a etapa sensorial fixa do Solo deve ser A Sala às Escuras');
 });
 
 test('checkpoint e carimbo incluem o Solo integral',()=>{
@@ -29,13 +29,12 @@ test('checkpoint e carimbo incluem o Solo integral',()=>{
   assert.match(html,/estado-solo\.js\?v=20260915-solo-flow2/);
 });
 
-test('percurso solo mantém 3D, RA, escrivaninha, vela, maquete e três chaves',()=>{
+test('percurso solo mantém 3D, RA, escrivaninha e maquete com três chaves',()=>{
   const coop=readFileSync(new URL('../v1/js/ac-cooperacao.js',import.meta.url),'utf8');
   const desk=readFileSync(new URL('../v1/js/ac-investigacao.js',import.meta.url),'utf8');
   const escrivaninha=readFileSync(new URL('../v1/AC-escrivaninha.html',import.meta.url),'utf8');
   const maquete=readFileSync(new URL('../v1/js/ac-maquete.js',import.meta.url),'utf8');
   assert.match(js,/MOSAICO-26-a-janela-do-norte\.html\?embed=1/);
-  assert.match(js,/AC-maquete\.html\?demo=solo/);
   assert.match(js,/AC-escrivaninha\.html\?demo=solo/);
   assert.match(js,/xr-spatial-tracking/);
   for(const acao of ['posicionar','encaixar','descobrir','registrar','iniciar_maquete','maquete_orientar','maquete_examinar','maquete_mover','maquete_encaixar'])
@@ -44,6 +43,7 @@ test('percurso solo mantém 3D, RA, escrivaninha, vela, maquete e três chaves',
   assert.match(desk,/Procurar bilhete sob as gavetas/);
   assert.match(desk,/Ler e guardar bilhete/);
   assert.match(desk,/iniciar_maquete/);
+  assert.match(desk,/location\.replace\('AC-maquete\.html'/);
   assert.match(maquete,/ac-solo-maquete-completa/);
   for(const cta of ['Ler orientação da chave','Encontrar chave','Confirmar encaixe da chave'])
     assert.ok(maquete.includes(cta),cta);
