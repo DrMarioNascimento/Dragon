@@ -11,7 +11,7 @@ const jogo = readFileSync(join(root, "solo/mesa-solo.js"), "utf8");
 describe("modo solo", () => {
   it("a página publicada carrega o jogo modular", () => {
     assert.match(html, /id="app"/);
-    assert.match(html, /solo-auto\.js/);
+    assert.match(html, /mesa-solo\.js/);
     assert.match(html, /mosaico-cloud-ready/);
     assert.match(jogo, /function tap\(/);
     assert.match(jogo, /function load\(/);

@@ -13,7 +13,7 @@ test('Solo Casa preserva as etapas da experiência da Mesa',()=>{
     assert.ok(js.includes(tarefa),tarefa);
   assert.match(js,/disabled.*sensorPronto|sensorPronto.*disabled/s);
   assert.match(js,/MERCADO DE PISTAS · AÇÃO 3 DE 3/);
-  for(const categoria of ['Encenação','Jogador contra Jogador','Jogador com Jogador — Fragmentos','Mercado de pistas','Jogador contra o caso'])
+  for(const categoria of ['Percurso individual','Investigações cronometradas','Mosaico e revisão crítica','Mercado de pistas','Decisão contra o caso'])
     assert.ok(js.includes(categoria),categoria);
   assert.match(js,/APURAÇÃO FINAL/);
   assert.match(js,/PÓDIO · RESULTADO FINAL/);
@@ -23,8 +23,8 @@ test('Solo Casa preserva as etapas da experiência da Mesa',()=>{
 test('checkpoint e carimbo incluem o Solo integral',()=>{
   for(const campo of ['atividades','atividadeI','sensorPronto','sensorTempos','mosaico','mercadoEtapa','mercadoEscolhas','pontuacao','resultadoVista','apuracaoEtapa'])
     assert.ok(cloud.includes(campo),campo);
-  assert.match(html,/solo-auto\.js\?v=20260914-reconstrucao-individual1/);
-  assert.match(html,/solo-cloud-state\.js\?v=20260914-reconstrucao-individual1/);
+  assert.match(html,/mesa-solo\.js\?v=20260915-solo-flow2/);
+  assert.match(html,/estado-solo\.js\?v=20260915-solo-flow2/);
 });
 
 test('percurso solo mantém 3D, RA, escrivaninha, vela, maquete e três chaves',()=>{
@@ -36,5 +36,9 @@ test('percurso solo mantém 3D, RA, escrivaninha, vela, maquete e três chaves',
   for(const acao of ['posicionar','encaixar','descobrir','registrar','iniciar_maquete','maquete_orientar','maquete_examinar','maquete_mover','maquete_encaixar'])
     assert.ok(coop.includes(acao),acao);
   assert.match(desk,/MODO SOLO · PERCURSO COMPLETO/);
+  assert.match(desk,/Procurar bilhete sob as gavetas/);
+  assert.match(desk,/Ler e guardar bilhete/);
+  assert.match(desk,/iniciar_maquete/);
   assert.match(maquete,/ac-solo-completo/);
+  assert.match(coop,/chave-exterior','chave-terreo','passagem-sob-despensa/);
 });

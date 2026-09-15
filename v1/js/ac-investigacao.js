@@ -103,7 +103,16 @@
     const [step,heading,description,label]=descriptions[state.stage];
     $('step').textContent=step;$('heading').textContent=heading;$('description').textContent=description;$('primary').textContent=label;
     $('primary').disabled=!modelReady || state.stage==='iluminar';
-    $('primary').hidden=!(fallback&&$('accessible').checked)||role!=='luz'||['iluminar','encontrado','registrado'].includes(state.stage);
+    const solo=new URLSearchParams(location.search).get('demo')==='solo';
+    const soloNext=solo&&role==='conhecimento'&&['iluminar','encontrado'].includes(state.stage);
+    $('primary').hidden=!(fallback&&$('accessible').checked)&&!soloNext||role!=='luz'&&!soloNext||['registrado'].includes(state.stage);
+    if(solo&&role==='conhecimento'&&state.stage==='iluminar'){
+      $('primary').textContent='Procurar bilhete sob as gavetas';
+      $('primary').disabled=!connected;
+    }else if(solo&&role==='conhecimento'&&state.stage==='encontrado'){
+      $('primary').textContent='Ler e guardar bilhete';
+      $('primary').disabled=!connected;
+    }
     for(const id of ['orbit','below','motion'])$(id).hidden=!(fallback&&$('accessible').checked);
     $('ar').hidden=!arSupported;
     $('dossier').hidden=role!=='conhecimento'||!['encontrado','registrado'].includes(state.stage);
@@ -153,6 +162,10 @@
   }
   on($('primary'),'click',()=>{
     if(xrSession&&!xrPlaced){placeAtHit();return;}
+    if(new URLSearchParams(location.search).get('demo')==='solo'&&role==='conhecimento'){
+      if(state.stage==='iluminar'){dispatch('descobrir');return;}
+      if(state.stage==='encontrado'){openFragment();return;}
+    }
     if(role!=='luz'||!fallback)return;beginAction();
     if(state.stage==='apagao')dispatch('energia');
     else if(state.stage==='posicionar'){
