@@ -41,6 +41,9 @@ test('percurso solo mantém 3D, RA, escrivaninha, vela, maquete e três chaves',
   assert.match(desk,/Ler e guardar bilhete/);
   assert.match(desk,/iniciar_maquete/);
   assert.match(maquete,/ac-solo-completo/);
+  for(const cta of ['Ler orientação da chave','Encontrar chave','Confirmar encaixe da chave'])
+    assert.ok(maquete.includes(cta),cta);
+  assert.match(coop,/targetLabel/);
   assert.match(coop,/chave-exterior','chave-terreo','passagem-sob-despensa/);
   assert.match(escrivaninha, /id="ar-ios"/,
     'o controle Quick Look exigido por ac-investigacao deve existir para a inicialização não abortar');

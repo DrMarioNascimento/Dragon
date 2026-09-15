@@ -1,6 +1,7 @@
 (function(){
   'use strict';
   const $=id=>document.getElementById(id);let role=new URLSearchParams(location.search).get('papel')||'luz';
+  const solo=new URLSearchParams(location.search).get('demo')==='solo'&&!new URLSearchParams(location.search).has('sala');
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
   let coop=null,online=false,data=null,fallback=false,disposed=false,readStart=null,readingSent=false,soloConcluido=false;
   let xr=null,hitSource=null,placed=false,hasHit=false,dragging=false,nearLock=false,pending=false,lastLevel=-1,lastReady=null,noticeTimer;
@@ -79,11 +80,15 @@
     document.body.classList.toggle('investigating',data.ready||data.level>0);
     $('reposition').hidden=!xr||!placed;
     $('scale-note').textContent=preparation()?'Em RA, use dois dedos para ajustar o tamanho antes da primeira leitura.':'O tamanho está fixo para esta investigação. Você pode reposicionar a maquete nas instruções.';
-    $('manuscript').hidden=explore||data.complete;
+    $('manuscript').hidden=explore||data.complete||solo;
     $('clue').textContent=data.ready?(data.clue||'Oriente seu colega pela voz.'):'Segure o manuscrito para ler e orientar seu colega.';
-    $('heading').textContent=data.complete?'O espaço que faltava.':explore?'Seu olhar encontra o caminho.':'Sua leitura orienta o caminho.';
-    $('description').textContent=data.complete?'A fundação revelou uma passagem sob a despensa. A descoberta foi guardada.':explore?(data.ready?(data.key?'Você encontrou a chave. Só seu colega vê a fechadura. Siga a orientação dele e leve a ponta da chave até ela.':'Ouça a orientação do colega. Aproxime-se e toque no detalhe correspondente.'):'Aguarde seu colega ler o manuscrito.'):data.ready?'Compartilhe a orientação com seu colega. Só ele pode manipular a chave deste piso.':'Leia a orientação para liberar a chave '+(data.evidence.length+1)+' de 3.';
-    $('alternative').hidden=!fallback||!explore||data.complete||data.key;
+    $('heading').textContent=data.complete?'O espaço que faltava.':solo?'A próxima chave está na maquete.':explore?'Seu olhar encontra o caminho.':'Sua leitura orienta o caminho.';
+    $('description').textContent=data.complete?'A fundação revelou uma passagem sob a despensa. A descoberta foi guardada.':solo?(!data.ready?'Leia a orientação para liberar a chave '+(data.evidence.length+1)+' de 3. '+(data.clue||''):data.key?'A chave foi encontrada. Confirme o encaixe para avançar automaticamente.':'Encontre a chave '+(data.evidence.length+1)+' de 3: '+(data.targetLabel||'o detalhe indicado')+'.'):explore?(data.ready?(data.key?'Você encontrou a chave. Só seu colega vê a fechadura. Siga a orientação dele e leve a ponta da chave até ela.':'Ouça a orientação do colega. Aproxime-se e toque no detalhe correspondente.'):'Aguarde seu colega ler o manuscrito.'):data.ready?'Compartilhe a orientação com seu colega. Só ele pode manipular a chave deste piso.':'Leia a orientação para liberar a chave '+(data.evidence.length+1)+' de 3.';
+    $('alternative').hidden=!(fallback||solo)||!explore||data.complete||data.key;
+    const soloAction=$('solo-action');
+    soloAction.hidden=!solo||data.complete;
+    soloAction.disabled=!online;
+    if(solo&&!data.complete)soloAction.textContent=!data.ready?'Ler orientação da chave '+(data.evidence.length+1):data.key?'Confirmar encaixe da chave '+(data.evidence.length+1):'Encontrar chave '+(data.evidence.length+1);
     if(!canExplore()){keyFlight=null;goldDust.resetTrail();dragging=false;nearLock=false;readStart=null;controls.enabled=!xr;$('key-grip').classList.remove('ready');}
     $('key-grip').hidden=!canExplore()||!data.key;
     model.key.visible=data.key&&explore;
@@ -138,6 +143,13 @@
   });
   on($('alternative'),'click',()=>{
     $('object-list').replaceChildren();for(const obj of activeTargets()){const button=document.createElement('button');button.textContent=obj.userData.label;button.onclick=()=>{inspect(obj.userData.object);$('objects').close();};$('object-list').appendChild(button);}$('objects').showModal();
+  });
+  on($('solo-action'),'click',async()=>{
+    if(!solo||!data||data.complete)return;
+    entrarAtividade();
+    if(!data.ready){await send('maquete_orientar');return;}
+    if(!data.key){inspect(data.target);return;}
+    if(await send('maquete_mover',{tip:tipLocal()}))await send('maquete_encaixar');
   });
 
   on($('help'),'click',()=>$('instructions').showModal());document.querySelectorAll('[data-close]').forEach(el=>on(el,'click',()=>el.closest('dialog').close()));

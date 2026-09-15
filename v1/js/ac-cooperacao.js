@@ -18,7 +18,7 @@
         if(!local.maquete)return ['posicionar','castical'].includes(local.stage)?'luz':'conhecimento';
         const c=chapters[local.maquete.level];if(!c)return 'conhecimento';return local.maquete.ready?c.explorer:(c.explorer==='luz'?'conhecimento':'luz');
       };
-      const maquetteView=()=>{if(!local.maquete)return null;const m=local.maquete,c=chapters[m.level];return {...m,complete:!c,name:c?.name||'A passagem revelada',explorer:c?.explorer||null,clue:c&&soloRole()!==c.explorer?c.clue:null};};
+      const maquetteView=()=>{if(!local.maquete)return null;const m=local.maquete,c=chapters[m.level];return {...m,complete:!c,name:c?.name||'A passagem revelada',explorer:c?.explorer||null,target:c?.target||null,targetLabel:c?.target==='rosa'?'rosa dos ventos':c?.target==='relogio'?'relógio parado às 21h29':c?.target==='armario-oeste'?'armário junto à parede oeste':null,clue:c&&soloRole()!==c.explorer?c.clue:null};};
       const snapshot=()=>({stage:local.stage,soloRole:soloRole(),online:['luz','conhecimento'],started:true,elapsed:Math.max(0,(Date.now()-local.started)/1000),bonus:0,
         beam:['iluminar','encontrado','registrado'].includes(local.stage)?{origin:[.47,.025,.25],target:[.47,.098,.10],age:0}:null,keyMotion:local.keyMotion,maquete:maquetteView()});
       const tick=setInterval(()=>onState(snapshot()),200);
