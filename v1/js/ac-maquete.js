@@ -14,10 +14,15 @@
     const mobile=innerWidth<=700,guide=data&&!data.complete&&data.explorer!==role;
     const panel=document.querySelector('.instruction').getBoundingClientRect();
     const manuscript=document.getElementById('manuscript').getBoundingClientRect();
-    const top=mobile?(guide?Math.max(190,manuscript.bottom+16):data?.ready||data?.level>0?142:210):115;
-    const bottom=mobile?(guide?Math.max(top+160,panel.top-28):Math.max(top+160,panel.top-16)):innerHeight-85;
+    // No telefone os painéis vivem na pilha fixa (ac-janelas.js): a casa é
+    // enquadrada no vão real entre o título do capítulo e o topo da pilha.
+    const stack=document.querySelector('.ac-panel-stack'),chapterBox=document.querySelector('.chapter')?.getBoundingClientRect();
+    const stackTop=stack&&stack.getBoundingClientRect().height?stack.getBoundingClientRect().top:panel.top;
+    let top=115,bottom=innerHeight-85;
+    if(mobile&&stack){bottom=stackTop-10;top=Math.max(60,(chapterBox?chapterBox.bottom:100)+6);if(bottom-top<130)top=Math.max(48,bottom-130);}
+    else if(mobile){top=guide?Math.max(190,manuscript.bottom+16):data?.ready||data?.level>0?142:210;bottom=guide?Math.max(top+160,panel.top-28):Math.max(top+160,panel.top-16);}
     const left=mobile?18:Math.min(panel.right+32,innerWidth*.4),right=innerWidth-(mobile?18:35);
-    const usableWidth=Math.max(160,right-left),usableHeight=Math.max(160,bottom-top);
+    const usableWidth=Math.max(160,right-left),usableHeight=Math.max(110,bottom-top);
     const centerX=(left+right)/2,centerY=(top+bottom)/2;
     camera.setViewOffset(innerWidth,innerHeight,innerWidth/2-centerX,innerHeight/2-centerY,innerWidth,innerHeight);
     controls.target.copy(model.root.localToWorld(new THREE.Vector3(0,data?.complete?.95:data?.level===2?.65:.52,0)));
@@ -195,6 +200,8 @@
       try{parent.postMessage({mosaico:'ac-solo-completo',score:data.score,evidence:data.evidence},location.origin)}catch(_){ }
     }
   },connected=>{if(!connected){online=false;$('coop-status').textContent='Reconectando…';update();}},{maquette:true}).then(c=>{coop=c;if(new URLSearchParams(location.search).get('percurso')==='1')document.querySelector('.brand').removeAttribute('href');const backParams=new URLSearchParams(location.search);backParams.set('rever','1');$('return-desk').href='AC-escrivaninha.html?'+backParams;if(c.invite){$('invite').href=c.invite;$('invite').hidden=false;}$('instructions').showModal();}).catch(e=>{$('description').textContent=e.message;});
+  // A pilha de painéis nasce depois deste script e muda de altura entre os capítulos.
+  if(window.ResizeObserver){let lastStackH=-1;const watch=()=>{const st=document.querySelector('.ac-panel-stack');if(!st)return setTimeout(watch,120);new ResizeObserver(()=>{const h=Math.round(st.getBoundingClientRect().height);if(h!==lastStackH){lastStackH=h;if(!xr)frame();}}).observe(st);};watch();}
   on(window,'resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);if(!xr)frame();});
   on(document,'visibilitychange',()=>readStart=null);
   on(window,'pagehide',e=>{if(e.persisted){renderer.setAnimationLoop(null);return;}disposed=true;goldDust.dispose();clearTimeout(noticeTimer);coop?.close();hitSource?.cancel();xr?.end().catch(()=>{});handlers.forEach(fn=>fn());controls.dispose();renderer.setAnimationLoop(null);const geometries=new Set(),materials=new Set();scene.traverse(o=>{if(o.geometry)geometries.add(o.geometry);if(o.material)materials.add(o.material);});geometries.forEach(g=>g.dispose());materials.forEach(m=>{m.map?.dispose();m.bumpMap?.dispose();m.dispose();});renderer.dispose();});

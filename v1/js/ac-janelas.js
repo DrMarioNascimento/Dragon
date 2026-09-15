@@ -1,6 +1,10 @@
-/* Identidade e ordem das caixas de A Casa. */
+/* Identidade e ordem das caixas de A Casa.
+   No telefone: cena livre. O i fala uma frase e some. */
 (function(){
   const types={1:['🔎','Investigação','#FF9638'],2:['🧭','Orientações','#45ADFF'],3:['🧩','Pista encontrada','#42DA8B'],4:['❔','Dica da pista','#B18AFF'],5:['🗂️','Dossiê','#DCC9A3'],6:['🤝','Cooperação','#A2DCD5'],7:['☑️','Confirmação de ação','#F2C3AD'],8:['🏆','Resultado da tarefa','#EEC4DC'],9:['⚠️','Atenção / aviso técnico','#FFE14A'],10:['📖','Como jogar','#CAD7E8']};
+  function telefone(){
+    try { return matchMedia('(max-width:700px)').matches; } catch (e) { return innerWidth <= 700; }
+  }
   function decorate(){
     for(const [selector,n] of [['#mosaico-ra-inspect-modal .mosaico-ra-modal-card',2],['#mosaico-ra-prompt .mosaico-ra-prompt-card',2],['#oito',2],['#ra-investigation-modal .ra-inv-wrapper',3],['#pistas',5],['#master',2],['#mestre',2],['#dragonRoomGate',2],['#portao',10],['.partida-pausada',9],['.fragmento-confirmado',3]])document.querySelectorAll(selector).forEach(el=>el.dataset.acPriority=n);
     const screen=document.getElementById('app')?.dataset.acScreen;
@@ -49,6 +53,33 @@
     const brand=document.querySelector('.topbar .brand');
     if(brand){brand.removeAttribute('href');brand.addEventListener('click',e=>e.preventDefault());}
   }
+  function recolher(){
+    document.body.classList.add('ac-cena-livre');
+    document.querySelectorAll('dialog[open]').forEach(function(d){ try { d.close(); } catch (e) {} });
+  }
+  function frase(){
+    const h=document.getElementById('heading');
+    const p=document.getElementById('description');
+    let n=document.getElementById('ac-frase');
+    if(!n){
+      n=document.createElement('p');n.id='ac-frase';
+      n.style.cssText='position:fixed;left:12px;right:12px;bottom:max(18px,env(safe-area-inset-bottom));z-index:45;margin:0;padding:12px 14px;border-radius:14px;background:#1a1408f2;color:#ffe9c4;font:600 15px/1.35 system-ui;text-align:center;pointer-events:none';
+      document.body.appendChild(n);
+    }
+    n.textContent=(h&&h.textContent?h.textContent+' ':'')+(p&&p.textContent?p.textContent:'');
+    n.hidden=false;
+    clearTimeout(n._t);
+    n._t=setTimeout(function(){ n.hidden=true; }, 4000);
+  }
+  function botaoCena(){
+    if(document.getElementById('ac-ver-cena'))return;
+    const b=document.createElement('button');
+    b.id='ac-ver-cena';b.type='button';b.setAttribute('aria-label','O que fazer agora');
+    b.textContent='i';
+    b.style.cssText='position:fixed;z-index:40;right:10px;top:max(8px,env(safe-area-inset-top));width:44px;height:44px;border-radius:22px;border:1px solid #c9a66c;background:#241a08;color:#ffe1ac;font:800 18px/1 Georgia,serif';
+    b.addEventListener('click',function(ev){ ev.stopPropagation(); frase(); });
+    document.body.appendChild(b);
+  }
   function start(){
     travarMarcaNoSolo();
     const desk=document.querySelector('.instruction');
@@ -56,6 +87,8 @@
       const stack=document.createElement('section');stack.className='ac-panel-stack';stack.setAttribute('aria-label','Investigação e orientações');document.body.append(stack);
       for(const el of [document.getElementById('manuscript'),desk,document.getElementById('coop-status')].filter(Boolean))stack.append(el);
     }
+    if(telefone()) document.body.classList.add('ac-cena-livre');
+    botaoCena();
     medirFerramentas();decorate();orderPanels();new MutationObserver(records=>{if(records.some(r=>r.addedNodes.length)){decorate();orderPanels();}}).observe(document.body,{childList:true,subtree:true});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
