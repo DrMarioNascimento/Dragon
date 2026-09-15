@@ -1,5 +1,5 @@
 /* Identidade e ordem das caixas de A Casa.
-   No telefone o cartão instrui e sai: a cena 3D fica com a tela. */
+   No telefone a cena ganha a tela. Cartões e botões saem. */
 (function(){
   const types={1:['🔎','Investigação','#FF9638'],2:['🧭','Orientações','#45ADFF'],3:['🧩','Pista encontrada','#42DA8B'],4:['❔','Dica da pista','#B18AFF'],5:['🗂️','Dossiê','#DCC9A3'],6:['🤝','Cooperação','#A2DCD5'],7:['☑️','Confirmação de ação','#F2C3AD'],8:['🏆','Resultado da tarefa','#EEC4DC'],9:['⚠️','Atenção / aviso técnico','#FFE14A'],10:['📖','Como jogar','#CAD7E8']};
   function telefone(){
@@ -52,7 +52,7 @@
   function recolher(){
     document.body.classList.add('ac-cena-livre');
     const b=document.getElementById('ac-ver-cena');
-    if(b) b.textContent='Instruções';
+    if(b) b.textContent='i';
     document.querySelectorAll('dialog[open]').forEach(function(d){ try { d.close(); } catch (e) {} });
   }
   function mostrarCartoes(){
@@ -61,26 +61,43 @@
     if(b) b.textContent='Ver a cena';
   }
   function botaoCena(){
-    if(!document.querySelector('.ac-panel-stack')||document.getElementById('ac-ver-cena'))return;
+    if(document.getElementById('ac-ver-cena'))return;
     if(!document.getElementById('ac-cena-css')){
       const css=document.createElement('style');css.id='ac-cena-css';
-      css.textContent='#ac-ver-cena{flex:none;min-height:44px;padding:8px 12px;border-radius:22px;border:1px solid #c9a66c;background:#241a08;color:#ffe1ac;font:700 12px/1 system-ui}body.ac-cena-livre .ac-panel-stack,body.ac-cena-livre .chapter{opacity:0!important;pointer-events:none!important;visibility:hidden}body.ac-cena-livre #ac-ver-cena{position:fixed;z-index:30;right:10px;top:max(10px,env(safe-area-inset-top));visibility:visible;opacity:1}@media(max-width:700px){.ac-panel-stack{max-height:22dvh!important}}';
+      css.textContent=[
+        '#ac-ver-cena{position:fixed;z-index:40;right:10px;top:max(8px,env(safe-area-inset-top));width:44px;height:44px;border-radius:22px;border:1px solid #c9a66c;background:#241a08;color:#ffe1ac;font:800 18px/1 Georgia,serif}',
+        '@media(max-width:700px){',
+        'body.ac-cena-livre .ac-panel-stack,',
+        'body.ac-cena-livre .chapter,',
+        'body.ac-cena-livre .tools,',
+        'body.ac-cena-livre .caption,',
+        'body.ac-cena-livre .topbar,',
+        'body.ac-cena-livre #coop-status,',
+        'body.ac-cena-livre #notice,',
+        'body.ac-cena-livre #loading,',
+        'body.ac-cena-livre #ar-ios{opacity:0!important;pointer-events:none!important;visibility:hidden!important}',
+        'body.ac-cena-livre #candle-grip,body.ac-cena-livre #socket{visibility:visible;opacity:1;pointer-events:auto}',
+        '}',
+        'body.ac-cena-livre #ac-ver-cena{visibility:visible!important;opacity:1!important;pointer-events:auto!important}'
+      ].join('');
       document.head.appendChild(css);
     }
     const b=document.createElement('button');
-    b.id='ac-ver-cena';b.type='button';b.textContent='Ver a cena';
-    b.addEventListener('click',function(){
+    b.id='ac-ver-cena';b.type='button';b.setAttribute('aria-label','Instruções');
+    b.textContent='i';
+    b.addEventListener('click',function(ev){
+      ev.stopPropagation();
       if(document.body.classList.contains('ac-cena-livre')) mostrarCartoes();
       else recolher();
     });
-    const tools=document.querySelector('.tools');
-    if(tools) tools.appendChild(b); else document.body.appendChild(b);
+    document.body.appendChild(b);
   }
   function cenaPrimeiro(){
-    if(!telefone() || !document.querySelector('.ac-panel-stack')) return;
-    setTimeout(recolher, 3500);
+    if(!telefone()) return;
+    recolher();
     document.addEventListener('pointerdown', function(ev){
-      if(ev.target.closest('.ac-panel-stack,dialog,.tools,#ac-ver-cena,.topbar,#help,#abCasa,.btn')) return;
+      if(ev.target.closest('#ac-ver-cena,.instruction,#primary,dialog,#help,#candle-grip')) return;
+      if(ev.target.closest('.ac-panel-stack') && !document.body.classList.contains('ac-cena-livre')) return;
       recolher();
     }, {passive:true});
   }
