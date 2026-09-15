@@ -46,3 +46,35 @@ body .ac-panel-stack>#coop-status[data-ac-priority],
 body .ac-panel-stack>#manuscript[data-ac-priority],
 body .ac-panel-stack>.instruction[data-ac-priority]{padding:84px 16px 16px!important;min-height:112px;border-radius:14px;line-height:1.5}
 body .ac-panel-stack>#coop-status[data-ac-priority]{font:14px/1.5 system-ui,sans-serif}
+
+/* ===== Telefone (20260915) =====
+   1. Cabeçalho: "A CASA / DA COSTA" quebrava palavra por palavra e o subtítulo
+      encostava no botão i.
+   2. Botão × das janelas: o WebKit mede o `sticky` a partir do padding do
+      diálogo, então a margem negativa não subia e o × caía sobre o texto.
+   3. Painéis: a instrução rolava dentro de uma pilha que também rolava, e os
+      botões de ferramentas (que quebram em duas linhas) cobriam a pilha. A
+      pilha agora nasce acima da altura MEDIDA das ferramentas (ac-janelas.js). */
+.topbar{gap:10px}
+.brand{flex:none}
+.brand span{white-space:nowrap}
+#help{flex:none}
+.edition{flex:1 1 auto;min-width:0;text-align:center;line-height:1.35}
+body dialog>.close,body dialog[data-ac-priority]>.close{position:absolute;top:14px;right:14px;margin:0;float:none}
+@media(max-width:700px){
+  .edition{font-size:8px;letter-spacing:.1em}
+  .ac-panel-stack{bottom:calc(var(--ac-tools-space,80px) + 8px);max-height:min(40dvh,calc(100dvh - var(--ac-tools-space,80px) - 150px));overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+  body .ac-panel-stack>.instruction[data-ac-priority]{max-height:none!important;overflow:visible!important}
+  .tools{bottom:max(14px,env(safe-area-inset-bottom,0px))}
+}
+@media(max-width:380px){
+  .brand{font-size:24px;gap:8px}.brand span{font-size:9px;padding-left:8px}
+  .tools button{padding:9px 10px}
+}
+@media(max-width:700px){
+  /* Sombra longa recortada pela pilha rolável virava um retângulo escuro. */
+  body .ac-panel-stack>#coop-status[data-ac-priority],
+  body .ac-panel-stack>#manuscript[data-ac-priority],
+  body .ac-panel-stack>.instruction[data-ac-priority]{box-shadow:inset 0 1px #ffffff20,0 5px 0 #061410!important}
+  .ac-panel-stack>.instruction #primary{box-shadow:0 -10px 14px #0c201d,0 4px 0 #071612}
+}
