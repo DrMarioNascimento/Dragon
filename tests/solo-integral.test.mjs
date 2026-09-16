@@ -20,6 +20,11 @@ test('Solo Casa preserva as etapas da experiência da Mesa',()=>{
   assert.match(js,/setTimeout/);
   assert.match(js,/return \['salaEscura'\]/,
     'a etapa sensorial fixa do Solo deve ser A Sala às Escuras');
+  assert.match(js,/1 \/ 4 · Chegada pela estrada/);
+  assert.match(js,/2 \/ 4 · /);
+  assert.match(js,/3 \/ 4 · Sob outra luz/);
+  assert.match(js,/if\(ev\.data\.mosaico==='tarefa-ok'&&state\.percursoEtapa==='janela'\)[\s\S]*abrirAtividades\(\)/);
+  assert.match(js,/if\(state\.percursoEtapa==='janela'\)\{state\.percursoEtapa='escrivaninha'/);
 });
 
 test('checkpoint e carimbo incluem o Solo integral',()=>{
