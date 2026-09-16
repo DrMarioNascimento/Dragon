@@ -139,4 +139,9 @@ test('escrivaninha e maquete publicadas não expõem RA de ensaio', () => {
   assert.doesNotMatch(ler('v1/js/ac-percurso.js'), /Este ensaio foi aberto/);
   assert.match(desk, /if\(ar\) ar\.hidden=true/);
   assert.match(maqueteJs, /if\(\$\('ar'\)\)\$\('ar'\)\.hidden=true/);
+  const sala = ler('v1/MOSAICO-26-a-sala-as-escuras.html');
+  assert.doesNotMatch(sala, /id="b-ra"/);
+  assert.doesNotMatch(sala, /id="b-entrar-ra"/);
+  assert.doesNotMatch(sala, />Entrar em RA</);
+  assert.doesNotMatch(sala, />Alternar visual</);
 });

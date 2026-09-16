@@ -287,4 +287,14 @@ describe("produção · escrivaninha/maquete sem RA de ensaio", () => {
     assert.match(solo, /PERCURSO 3D · /);
     assert.match(solo, /AC-escrivaninha\.html\?demo=solo/);
   });
+
+  it("a Sala às Escuras publicada não expõe Alternar visual / Entrar em RA", () => {
+    const sala = ler("v1/MOSAICO-26-a-sala-as-escuras.html");
+    assert.equal(/id="b-ra"/.test(sala), false);
+    assert.equal(/id="b-entrar-ra"/.test(sala), false);
+    assert.equal(/>Entrar em RA</.test(sala), false);
+    assert.equal(/>Alternar visual</.test(sala), false);
+    assert.equal(/Prefiro jogar sem RA/.test(sala), false);
+    assert.match(sala, />Entrar na sala</);
+  });
 });

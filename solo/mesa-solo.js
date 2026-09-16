@@ -144,7 +144,7 @@ function parAtividades(){
 const ATIVIDADE={
  janela:{titulo:'A Janela do Norte',arquivo:'../v1/MOSAICO-26-a-janela-do-norte.html?embed=1'},
  vidro:{titulo:'O Vidro Embaçado',arquivo:'../v1/MOSAICO-26-vidro-embacado.html?embed=1'},
- salaEscura:{titulo:'A Sala às Escuras',arquivo:'../v1/MOSAICO-26-a-sala-as-escuras.html?embed=1'}
+ salaEscura:{titulo:'A Sala às Escuras',arquivo:'../v1/MOSAICO-26-a-sala-as-escuras.html?embed=1&v=20260916-sala-3d'}
 };
 function briefing(){let p=state.caso.partidas[state.key];return '<span class="k">ENCENAÇÃO · PREPARAÇÃO</span><h2>A casa distribui os papéis.</h2><p class="lead">Você fará todas as tarefas da experiência. O sistema alternará a perspectiva cognitiva e assumirá somente as ações que dependeriam de outras pessoas.</p><div class="role-grid"><div class="relation pf-inset"><b>Você investiga</b><p class="muted">Observa, executa as atividades, organiza fatos e decide.</p></div><div class="relation pf-inset"><b>O sistema contrapõe</b><p class="muted">Distribui arquivos, oferece alternativas no Mercado e testa sua interpretação.</p></div></div><div class="question pf-inset"><b>'+esc(p.natureza)+'</b><p>'+esc(p.pergunta)+'</p></div><button class="btn" onclick="abrirPercurso3D()">Entrar na casa</button>';}
 function abrirPercurso3D(){try{sessionStorage.removeItem('ac:solo-integral:v1')}catch(_){ }state.percursoPronto=false;state.percursoResultado=null;state.percursoEtapa='janela';state.phase='percurso3d';render();}

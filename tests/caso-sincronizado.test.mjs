@@ -299,7 +299,7 @@ test("as três atividades têm configuração e arquivo no caso", async () => {
     const cfg = c.tarefas[chave];
     assert.ok(cfg, `${atividade}: CASO.tarefas.${chave} sumiu`);
     assert.ok(cfg.titulo, `${atividade}: sem título para anunciar na fase`);
-    assert.match(cfg.arquivo || "", /\.html\?embed=1$/, `${atividade}: sem arquivo integrado`);
+    assert.match(cfg.arquivo || "", /\.html\?embed=1/, `${atividade}: sem arquivo integrado`);
   }
   /* Sala antiga, com Vidro na constelacao ou sem o campo, alinha ao percurso AC. */
   /* O objeto vem do contexto do vm e tem outro protótipo: espalhar traz

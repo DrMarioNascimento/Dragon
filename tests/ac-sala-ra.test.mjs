@@ -19,10 +19,19 @@ test('mira RA ignora paredes ocultas, exige lanterna e respeita a pista atual',(
   object.oculto=false;context.alvo=()=>({id:'espelho'});assert.equal(context.alinhamentoRA().dentro,true);assert.equal(context.alinhamentoRA().ok,false);
   hits=[{object:{visible:true}},{object:mesh}];assert.equal(context.alinhamentoRA().obj,null,'objeto atrás de obstáculo visível não é descoberto');
 });
-test('recusa de RA conserva a entrada e libera nova tentativa sem iniciar a partida',async()=>{
+test('recusa de RA não inicia a partida',async()=>{
   const nodes={'b-entrar-ra':{disabled:false},'ra-disponibilidade':{textContent:''}};let started=0;
   const context=vm.createContext({raBusy:false,navigator:{xr:{requestSession:async()=>{throw Error('NotAllowedError');}}},document:{getElementById:id=>nodes[id]},MosaicoRA:{ativo:false},alternarModo3DRA:()=>started++,entrarModoDedo:()=>started++});
-  const start=html.indexOf('async function entrarRA(){'),end=html.indexOf("document.getElementById('b-entrar-ra').addEventListener",start);
+  const start=html.indexOf('async function entrarRA(){'),end=html.indexOf('var entrarRaBtn=',start);
+  assert.ok(start>0&&end>start,'não achei entrarRA');
   vm.runInContext(html.slice(start,end),context);await context.entrarRA();
   assert.equal(started,0);assert.equal(nodes['b-entrar-ra'].disabled,false);assert.match(nodes['ra-disponibilidade'].textContent,/jogar sem RA/);
+});
+test('a Sala publicada não expõe Entrar em RA nem Alternar visual',()=>{
+  assert.doesNotMatch(html,/id="b-entrar-ra"/);
+  assert.doesNotMatch(html,/id="b-ra"/);
+  assert.doesNotMatch(html,/>Entrar em RA</);
+  assert.doesNotMatch(html,/>Alternar visual</);
+  assert.doesNotMatch(html,/Prefiro jogar sem RA/);
+  assert.match(html,/>Entrar na sala</);
 });

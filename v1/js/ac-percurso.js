@@ -18,7 +18,7 @@
   }
   function showScene(name){
     if(current===name)return;current=name;
-    const q=new URLSearchParams(params);q.set('run',run);q.set('embed','1');q.set('cenario',params.get('cenario')||'AC-COSTA');
+    const q=new URLSearchParams(params);q.set('run',run);q.set('embed','1');q.set('cenario',params.get('cenario')||'AC-COSTA');q.set('v','20260916-sala-3d');
     if(name!=='sala'){q.set('percurso','1');for(const [k,v]of Object.entries(credentials))q.set(k,v);}
     /* Ordem canônica das primeiras atividades (Mesa e Solo):
        1. Janela do Norte (fase inclinacao, fora deste iframe)
