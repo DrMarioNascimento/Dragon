@@ -20,13 +20,18 @@ test('Solo Casa preserva as etapas da experiência da Mesa',()=>{
   assert.match(js,/setTimeout/);
   assert.match(js,/return \['salaEscura'\]/,
     'a etapa sensorial fixa do Solo deve ser A Sala às Escuras');
+  assert.match(js,/1 \/ 4 · Chegada pela estrada/);
+  assert.match(js,/2 \/ 4 · /);
+  assert.match(js,/3 \/ 4 · Sob outra luz/);
+  assert.match(js,/if\(ev\.data\.mosaico==='tarefa-ok'&&state\.percursoEtapa==='janela'\)[\s\S]*abrirAtividades\(\)/);
+  assert.match(js,/if\(state\.percursoEtapa==='janela'\)\{state\.percursoEtapa='escrivaninha'/);
 });
 
 test('checkpoint e carimbo incluem o Solo integral',()=>{
   for(const campo of ['percursoEtapa','atividades','atividadeI','sensorPronto','sensorTempos','mosaico','mercadoEtapa','mercadoEscolhas','pontuacao','resultadoVista','apuracaoEtapa'])
     assert.ok(cloud.includes(campo),campo);
-  assert.match(html,/mesa-solo\.js\?v=20260915-solo-flow2/);
-  assert.match(html,/estado-solo\.js\?v=20260915-solo-flow2/);
+  assert.match(html,/mesa-solo\.js\?v=20260916-solo-janela-ra/);
+  assert.match(html,/estado-solo\.js\?v=20260916-solo-janela-ra/);
 });
 
 test('percurso solo mantém 3D, RA, escrivaninha e maquete com três chaves',()=>{
@@ -49,6 +54,7 @@ test('percurso solo mantém 3D, RA, escrivaninha e maquete com três chaves',()=
     assert.ok(maquete.includes(cta),cta);
   assert.match(coop,/targetLabel/);
   assert.match(coop,/chave-exterior','chave-terreo','passagem-sob-despensa/);
-  assert.match(escrivaninha, /id="ar-ios"/,
-    'o controle Quick Look exigido por ac-investigacao deve existir para a inicialização não abortar');
+  assert.match(escrivaninha, /id="ar-ios"[^>]*rel="ar"/);
+  assert.match(escrivaninha, /id="ar-ios"[^>]*>\s*<img /);
+  assert.match(desk, /AC-ar-ios\.html/);
 });

@@ -11,14 +11,15 @@ O Solo é uma adaptação individual da sequência canônica publicada na Mesa.
 ## Sequência individual
 
 1. abertura e preparação;
-2. percurso da escrivaninha e maquete;
-3. atividades sensoriais;
-4. coleta e organização dos fatos;
-5. Mosaico individual;
-6. Mercado de pistas adaptado;
-7. relações e hipóteses;
-8. decisão;
-9. apuração e pódio.
+2. Janela do Norte;
+3. Sala às Escuras;
+4. escrivaninha, vela e maquete;
+5. coleta e organização dos fatos;
+6. Mosaico individual;
+7. Mercado de pistas adaptado;
+8. relações e hipóteses;
+9. decisão;
+10. apuração e pódio.
 
 Não existem sala, votação interna, divisão em Fragmentos ou ação “Jogador com Jogador”. Quando uma ação da Mesa depende de várias pessoas, ela é convertida em decisão, revisão ou execução individual — nunca antecipada nem removida.
 

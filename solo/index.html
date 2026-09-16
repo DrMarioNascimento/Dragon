@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../v1/css/profundidade-1mais1.css?v=20260907-playtest-ux">
-<link rel="stylesheet" href="mesa-solo.css?v=20260915-solo-flow2">
+<link rel="stylesheet" href="mesa-solo.css?v=20260916-solo-janela-ra">
 <script src="../hipoteses-por-camada.js?v=20260914-mobile-reading"></script>
 <script src="../papel-camada.js?v=20260907-playtest-ux"></script>
 </head>
@@ -37,10 +37,10 @@
   }
   function carregarJogo(){
     var jogo=document.createElement('script');
-    jogo.src='mesa-solo.js?v=20260915-solo-flow2';
+    jogo.src='mesa-solo.js?v=20260916-solo-janela-ra';
     jogo.onload=function(){
       var ponte=document.createElement('script');
-      ponte.src='estado-solo.js?v=20260915-solo-flow2';
+      ponte.src='estado-solo.js?v=20260916-solo-janela-ra';
       document.body.appendChild(ponte);
     };
     document.body.appendChild(jogo);

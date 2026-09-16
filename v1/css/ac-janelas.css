@@ -48,6 +48,20 @@ body .ac-panel-stack>.instruction[data-ac-priority]{padding:84px 16px 16px!impor
 body .ac-panel-stack>#coop-status[data-ac-priority]{font:14px/1.5 system-ui,sans-serif}
 body.ac-atividade-iniciada .ac-panel-stack>#coop-status{display:none!important}
 
+/* Cena livre / atividade iniciada: as janelas informativas somem de verdade.
+   Sem isto, `ac-cena-livre` era só uma classe no body e os cartões
+   continuavam cobrindo a cena. Ficam a topbar (botão i) e as ferramentas. */
+body.ac-cena-livre .ac-panel-stack,
+body.ac-cena-livre .chapter,
+body.ac-cena-livre #coop-status,
+body.ac-cena-livre #loading,
+body.ac-cena-livre .caption,
+body.ac-atividade-iniciada .ac-panel-stack,
+body.ac-atividade-iniciada .chapter,
+body.ac-atividade-iniciada #loading,
+body.ac-atividade-iniciada .caption{display:none!important}
+#ac-frase[hidden]{display:none!important}
+
 /* ===== Telefone (20260915) =====
    1. Cabeçalho: "A CASA / DA COSTA" quebrava palavra por palavra e o subtítulo
       encostava no botão i.
@@ -128,8 +142,9 @@ body dialog>.close,body dialog[data-ac-priority]>.close{position:fixed;float:non
 .gesture-point{z-index:14}
 
 /* RA do iPhone pelo Quick Look: o <a rel="ar"> só pode ter a imagem como filho,
-   então o rótulo vem do CSS. */
+   então o rótulo vem do CSS. Texto dentro do <a> faz o Safari BAIXAR o .usdz. */
 #ar-ios{display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:9px 14px;border-radius:30px;
   border:1px solid #c9a66c;background:linear-gradient(#3a2c10,#241a08);color:#ffe1ac;font:700 12px/1.2 system-ui,sans-serif;text-decoration:none;white-space:nowrap}
+#ar-ios>img{width:18px;height:18px;object-fit:cover;border-radius:4px;flex:none;pointer-events:none}
 #ar-ios::after{content:attr(data-label)}
 #ar-ios[hidden]{display:none!important}
