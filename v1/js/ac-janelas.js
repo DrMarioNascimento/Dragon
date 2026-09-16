@@ -53,9 +53,14 @@
     const brand=document.querySelector('.topbar .brand');
     if(brand){brand.removeAttribute('href');brand.addEventListener('click',e=>e.preventDefault());}
   }
+  function fecharDialogos(){
+    document.querySelectorAll('dialog[open]').forEach(function(d){ try { d.close(); } catch (e) {} });
+  }
   function recolher(){
     document.body.classList.add('ac-cena-livre');
-    document.querySelectorAll('dialog[open]').forEach(function(d){ try { d.close(); } catch (e) {} });
+    fecharDialogos();
+    document.querySelectorAll('[data-ac-priority="10"]:not(dialog)').forEach(panel=>panel.hidden=true);
+    document.querySelectorAll('#coop-status').forEach(status=>status.hidden=true);
   }
   function frase(){
     const h=document.getElementById('heading');
@@ -71,12 +76,14 @@
     clearTimeout(n._t);
     n._t=setTimeout(function(){ n.hidden=true; }, 4000);
   }
+  function ajuda(ev){
+    if(ev){ev.preventDefault();ev.stopImmediatePropagation();}
+    recolher();
+    frase();
+  }
   function entrarAtividade(){
     recolher();
     document.body.classList.add('ac-atividade-iniciada');
-    document.querySelectorAll('dialog[data-ac-priority="10"][open]').forEach(dialog=>dialog.close());
-    document.querySelectorAll('[data-ac-priority="10"]:not(dialog)').forEach(panel=>panel.hidden=true);
-    document.querySelectorAll('#coop-status').forEach(status=>status.hidden=true);
   }
   function start(){
     travarMarcaNoSolo();
@@ -87,12 +94,23 @@
     }
     if(telefone()) document.body.classList.add('ac-cena-livre');
     if(document.getElementById('loading')&&!document.getElementById('loading').hidden)entrarAtividade();
+    document.addEventListener('click',function(ev){
+      if(ev.target.closest('#help'))ajuda(ev);
+      else if(ev.target.closest('[data-close]')){const d=ev.target.closest('dialog');if(d){try{d.close();}catch(e){}}recolher();}
+      else if(ev.target.matches&&ev.target.matches('dialog[open]')){try{ev.target.close();}catch(e){}recolher();}
+    },true);
+    document.addEventListener('cancel',function(ev){
+      if(ev.target&&ev.target.matches&&ev.target.matches('dialog'))recolher();
+    },true);
+    document.addEventListener('close',function(ev){
+      if(ev.target&&ev.target.matches&&ev.target.matches('dialog[data-ac-priority]'))recolher();
+    },true);
     medirFerramentas();decorate();orderPanels();new MutationObserver(records=>{
       if(records.some(r=>r.type==='attributes'&&r.target.matches('#intro.out,#intro.gone')))entrarAtividade();
       if(records.some(r=>r.addedNodes.length)){decorate();orderPanels();}
     }).observe(document.body,{attributes:true,attributeFilter:['class'],childList:true,subtree:true});
   }
-  window.ACJanelas={entrarAtividade};
+  window.ACJanelas={entrarAtividade,recolher,ajuda};
   window.addEventListener('ac-atividade-iniciada',entrarAtividade);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();

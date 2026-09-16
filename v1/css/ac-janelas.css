@@ -48,6 +48,20 @@ body .ac-panel-stack>.instruction[data-ac-priority]{padding:84px 16px 16px!impor
 body .ac-panel-stack>#coop-status[data-ac-priority]{font:14px/1.5 system-ui,sans-serif}
 body.ac-atividade-iniciada .ac-panel-stack>#coop-status{display:none!important}
 
+/* Cena livre / atividade iniciada: as janelas informativas somem de verdade.
+   Sem isto, `ac-cena-livre` era só uma classe no body e os cartões
+   continuavam cobrindo a cena. Ficam a topbar (botão i) e as ferramentas. */
+body.ac-cena-livre .ac-panel-stack,
+body.ac-cena-livre .chapter,
+body.ac-cena-livre #coop-status,
+body.ac-cena-livre #loading,
+body.ac-cena-livre .caption,
+body.ac-atividade-iniciada .ac-panel-stack,
+body.ac-atividade-iniciada .chapter,
+body.ac-atividade-iniciada #loading,
+body.ac-atividade-iniciada .caption{display:none!important}
+#ac-frase[hidden]{display:none!important}
+
 /* ===== Telefone (20260915) =====
    1. Cabeçalho: "A CASA / DA COSTA" quebrava palavra por palavra e o subtítulo
       encostava no botão i.

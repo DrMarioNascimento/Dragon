@@ -124,7 +124,7 @@
         const size = new THREE.Vector3();
         alvoBox.getCenter(alvo);
         alvoBox.getSize(size);
-        const dist = Math.max(5, Math.min(16, Math.max(size.x, size.z) * 1.8));
+        const dist = Math.max(8, Math.min(22, Math.max(size.x, size.z) * 2.4));
         controls.target.copy(alvo);
         camera.position.set(alvo.x + dist * 0.15, alvo.y + size.y * 0.35, alvo.z + dist);
         controls.minDistance = dist * 0.7;

@@ -104,4 +104,15 @@ describe("A Casa · janelas no telefone", () => {
     assert.doesNotMatch(JANELAS_JS, /ac-ver-cena/,
       "a ajuda nativa #help é a única affordance: não crie um segundo botão i.");
   });
+
+  it("cena livre esconde as janelas informativas e o i só fala uma frase", () => {
+    assert.match(JANELAS, /body\.ac-cena-livre \.ac-panel-stack/);
+    assert.match(JANELAS, /body\.ac-atividade-iniciada \.ac-panel-stack/);
+    assert.match(JANELAS, /display:none!important/);
+    assert.match(JANELAS_JS, /function ajuda\(/);
+    assert.match(JANELAS_JS, /closest\('#help'\)/);
+    assert.match(JANELAS_JS, /function frase\(/);
+    assert.match(JANELAS_JS, /dialog\[open\]/);
+    assert.match(JANELAS_JS, /data-close/);
+  });
 });

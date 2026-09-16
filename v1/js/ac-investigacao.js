@@ -221,7 +221,7 @@
     finally{registerPending=false;if($('fragment').open)openFragment();}
   });
   on($('dossier'),'click',()=>{if(state.stage==='encontrado'||state.stage==='registrado')openFragment();else notify('O dossiê está vazio. Investigue a borda inferior da escrivaninha.');});
-  on($('help'),'click',()=>$('instructions').showModal());
+  on($('help'),'click',ev=>{if(window.ACJanelas){window.ACJanelas.ajuda(ev);return;}$('instructions').showModal();});
   on($('accessible'),'change',updateUI);
   function moveDeskOnFloor(event){
     if(xrSession)return false;
@@ -408,7 +408,7 @@
       document.querySelector('.edition').textContent='MODO SOLO · PERCURSO COMPLETO';
     }
     if(connection.invite){$('invite').href=connection.invite;$('invite-wrap').hidden=false;}
-    updateUI();if(!startWithoutInstructions&&!connection.demo)$('instructions').showModal();
+    updateUI();if(!startWithoutInstructions&&!connection.demo&&!matchMedia('(max-width:700px)').matches)$('instructions').showModal();
   }).catch(error=>{$('coop-status').textContent=error.message;$('loading').textContent='A cooperação exige o servidor local da AC.';$('loading').hidden=false;});
   updateUI();renderer.setAnimationLoop(render);
 
