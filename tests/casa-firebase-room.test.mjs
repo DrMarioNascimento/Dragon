@@ -138,10 +138,23 @@ describe("docs · gap estrutural fechado", () => {
 });
 
 describe("ponte · contrato de clique (estático)", () => {
-  it("AntesDeIniciar devolve encenacao + tarefaInterior + abertura", () => {
+  it("AntesDeIniciar devolve encenacao + percurso AC canônico", () => {
     assert.match(BRIDGE, /encenacaoIntroducaoConcluida:\s*false/);
     assert.match(BRIDGE, /aberturaIniciadaMs/);
-    assert.match(BRIDGE, /tarefaInterior/);
+    assert.match(BRIDGE, /tarefaInterior:\s*"sala-escura"/);
+    assert.match(BRIDGE, /percursoAC:\s*1/);
+    assert.match(BRIDGE, /inclinacao:\s*"janela"/);
+    assert.match(BRIDGE, /constelacao:\s*"salaEscura"/);
+  });
+
+  it("o hub firebase-room não chama criarMesa; o par AC nasce em AntesDeIniciar / montarPartida", () => {
+    const plain = stripComments(ROOM);
+    assert.equal(/criarMesa\s*\(/.test(plain), false,
+      "firebase-room passou a criar a mesa pelo wrapper da Casa — este teste precisa mudar junto");
+    assert.match(ROOM, /DragonSalaAntesDeIniciar/);
+    assert.match(ROOM, /await setDoc\(roomRef\(code\)/);
+    assert.match(BRIDGE, /patchPercursoAC/);
+    assert.match(BRIDGE, /atualizarMesa\(codigo, canon\.patch\)/);
   });
 
   it("AoEntrar devolve personagem e moedas no create", () => {

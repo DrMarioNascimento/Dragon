@@ -30,8 +30,8 @@ test('Solo Casa preserva as etapas da experiência da Mesa',()=>{
 test('checkpoint e carimbo incluem o Solo integral',()=>{
   for(const campo of ['percursoEtapa','atividades','atividadeI','sensorPronto','sensorTempos','mosaico','mercadoEtapa','mercadoEscolhas','pontuacao','resultadoVista','apuracaoEtapa'])
     assert.ok(cloud.includes(campo),campo);
-  assert.match(html,/mesa-solo\.js\?v=20260916-solo-janela-ra/);
-  assert.match(html,/estado-solo\.js\?v=20260916-solo-janela-ra/);
+  assert.match(html,/mesa-solo\.js\?v=20260916-sala-3d/);
+  assert.match(html,/estado-solo\.js\?v=20260916-solo-janela/);
 });
 
 test('percurso solo mantém 3D, RA, escrivaninha e maquete com três chaves',()=>{
@@ -54,7 +54,5 @@ test('percurso solo mantém 3D, RA, escrivaninha e maquete com três chaves',()=
     assert.ok(maquete.includes(cta),cta);
   assert.match(coop,/targetLabel/);
   assert.match(coop,/chave-exterior','chave-terreo','passagem-sob-despensa/);
-  assert.match(escrivaninha, /id="ar-ios"[^>]*rel="ar"/);
-  assert.match(escrivaninha, /id="ar-ios"[^>]*>\s*<img /);
-  assert.match(desk, /AC-ar-ios\.html/);
+  assert.doesNotMatch(escrivaninha, /id="ar"|id="ar-ios"|Colocar em RA|Ver em RA|teste=sala3d/);
 });

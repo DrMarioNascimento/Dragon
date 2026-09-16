@@ -1,38 +1,28 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { createContext, runInContext } from 'node:vm';
-import { resolve } from 'node:path';
-import { createServer } from '../ferramentas/ac-cooperacao.mjs';
 
 const ler = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8').replace(/\r\n/g, '\n');
+const KEY = 'mosaico_solo_costa_cloud';
 
-test('checkpoint incompleto do Solo recomeça na Janela do Norte, não na escrivaninha', () => {
-  const cloud = ler('solo/estado-solo.js');
-  assert.doesNotMatch(cloud, /percursoEtapa==='janela'\?'janela':'escrivaninha'/,
-    'o default "qualquer coisa → escrivaninha" voltou: snapshot antigo abre a mesa como 1ª atividade');
-  assert.match(cloud, /intro&&!state\.percursoPronto/);
-  assert.match(cloud, /state\.percursoEtapa="janela"/);
-  assert.match(ler('solo/mesa-solo.js'), /abrirPercurso3D\(\)\{[\s\S]*percursoEtapa='janela'/);
-  assert.match(ler('solo/mesa-solo.js'), /MOSAICO-26-a-janela-do-norte\.html\?embed=1/);
-});
+function estadoBase() {
+  return {
+    caso: { partidas: { sete: {} } }, phase: 'home', key: 'sete',
+    percursoPronto: false, percursoResultado: null, percursoEtapa: 'janela',
+    atividades: [], atividadeI: 0, sensorPronto: false, sensorTempos: [],
+    i: 0, order: [0, 1, 2, 3], pick: null, seen: [], facts: {}, answers: {},
+    scoreFacts: 0, correct: 0, mosaico: [], mosaicoPick: null,
+    mercadoEtapa: 0, mercadoEscolhas: [], contraponto: null, pontuacao: null,
+    resultadoVista: 'apuracao', apuracaoEtapa: 0
+  };
+}
 
-test('restaurar snapshot antigo em percurso3d não salta a janela', () => {
-  const store = new Map();
-  store.set('mosaico_solo_costa_cloud', JSON.stringify({
-    phase: 'percurso3d', key: 'sete', percursoEtapa: 'escrivaninha', percursoPronto: false
-  }));
+function carregarPonte(store) {
+  const listeners = {};
   let tick;
   const ctx = createContext({
-    state: {
-      caso: { partidas: { sete: {} } }, phase: 'home', key: 'sete',
-      percursoPronto: false, percursoResultado: null, percursoEtapa: 'janela',
-      atividades: [], atividadeI: 0, sensorPronto: false, sensorTempos: [],
-      i: 0, order: [0, 1, 2, 3], pick: null, seen: [], facts: {}, answers: {},
-      scoreFacts: 0, correct: 0, mosaico: [], mosaicoPick: null,
-      mercadoEtapa: 0, mercadoEscolhas: [], contraponto: null, pontuacao: null,
-      resultadoVista: 'apuracao', apuracaoEtapa: 0
-    },
+    state: estadoBase(),
     localStorage: { getItem: (k) => store.get(k) || null, setItem: (k, v) => store.set(k, v) },
     sessionStorage: { removeItem() {}, getItem() { return null; }, setItem() {} },
     document: { addEventListener() {} },
@@ -42,8 +32,31 @@ test('restaurar snapshot antigo em percurso3d não salta a janela', () => {
     setInterval(fn) { tick = fn; return 1; }
   });
   ctx.window = ctx;
-  ctx.addEventListener = () => {};
+  ctx.addEventListener = (type, fn) => {
+    (listeners[type] || (listeners[type] = [])).push(fn);
+  };
   runInContext(ler('solo/estado-solo.js'), ctx);
+  return { ctx, tick, listeners };
+}
+
+test('checkpoint incompleto do Solo recomeça na Janela do Norte, não na escrivaninha', () => {
+  const cloud = ler('solo/estado-solo.js');
+  assert.doesNotMatch(cloud, /percursoEtapa==='janela'\?'janela':'escrivaninha'/,
+    'o default "qualquer coisa → escrivaninha" voltou: snapshot antigo abre a mesa como 1ª atividade');
+  assert.match(cloud, /intro&&!state\.percursoPronto/);
+  assert.match(cloud, /state\.percursoEtapa="janela"/);
+  assert.match(cloud, /mosaico-cloud-ready/);
+  assert.match(ler('solo/mesa-solo.js'), /abrirPercurso3D\(\)\{[\s\S]*percursoEtapa='janela'/);
+  assert.match(ler('solo/mesa-solo.js'), /MOSAICO-26-a-janela-do-norte\.html\?embed=1/);
+  assert.doesNotMatch(ler('solo/mesa-solo.js'), /PERCURSO 3D E RA/);
+});
+
+test('restaurar snapshot antigo em percurso3d não salta a janela', () => {
+  const store = new Map();
+  store.set(KEY, JSON.stringify({
+    phase: 'percurso3d', key: 'sete', percursoEtapa: 'escrivaninha', percursoPronto: false
+  }));
+  const { ctx, tick } = carregarPonte(store);
   assert.equal(typeof tick, 'function');
   tick();
   assert.equal(ctx.state.percursoEtapa, 'janela');
@@ -51,38 +64,84 @@ test('restaurar snapshot antigo em percurso3d não salta a janela', () => {
   assert.equal(ctx.state.percursoPronto, false);
 });
 
-test('Quick Look iOS: usdz real, só imagem no <a rel=ar>, MIME certo, iframe não baixa', async () => {
-  const html = ler('v1/AC-escrivaninha.html');
-  const desk = ler('v1/js/ac-investigacao.js');
-  const helper = ler('v1/AC-ar-ios.html');
-  const css = ler('v1/css/ac-janelas.css');
-  const coop = ler('ferramentas/ac-cooperacao.mjs');
-  assert.match(html, /id="ar-ios"[^>]*rel="ar"/);
-  assert.match(html, /href="assets\/ac\/escrivaninha\.usdz"/);
-  assert.match(html, /id="ar-ios"[^>]*>\s*<img /);
-  assert.doesNotMatch(html, /id="ar-ios"[^>]*>Ver em RA</);
-  assert.doesNotMatch(html, /\sdownload=/);
-  assert.match(css, /#ar-ios>img/);
-  assert.match(desk, /AC-ar-ios\.html/);
-  assert.match(desk, /window\.top===window/);
-  assert.match(helper, /rel="ar"/);
-  assert.match(helper, /escrivaninha\.usdz/);
-  assert.match(helper, /<img /);
-  assert.match(coop, /\.usdz':'model\/vnd\.usdz\+zip'/);
-  assert.equal(existsSync(new URL('../v1/assets/ac/escrivaninha.usdz', import.meta.url)), true);
-  assert.equal(existsSync(new URL('../v1/assets/ac/escrivaninha-ar.png', import.meta.url)), true);
+test('storage vazio do Solo não abre a escrivaninha', () => {
+  const { ctx } = carregarPonte(new Map());
+  assert.equal(ctx.state.phase, 'home');
+  assert.equal(ctx.state.percursoEtapa, 'janela');
+  assert.equal(ctx.state.atividades.length, 0);
+});
 
-  const server = createServer(resolve('.'));
-  await new Promise((r) => server.listen(0, '127.0.0.1', r));
-  const base = 'http://127.0.0.1:' + server.address().port;
-  try {
-    const r = await fetch(base + '/v1/assets/ac/escrivaninha.usdz', { method: 'HEAD' });
-    assert.equal(r.status, 200);
-    assert.match(r.headers.get('content-type') || '', /model\/vnd\.usdz\+zip/);
-    const page = await fetch(base + '/v1/AC-ar-ios.html');
-    assert.equal(page.status, 200);
-  } finally {
-    server.closeAllConnections();
-    await new Promise((r) => server.close(r));
+test('snapshot sem percursoEtapa recomeça na janela', () => {
+  const store = new Map();
+  store.set(KEY, JSON.stringify({ phase: 'percurso3d', key: 'sete', percursoPronto: false }));
+  const { ctx } = carregarPonte(store);
+  assert.equal(ctx.state.percursoEtapa, 'janela');
+  assert.equal(ctx.state.phase, 'percurso3d');
+});
+
+test('snapshot na sala sem atividades não cai na escrivaninha', () => {
+  const store = new Map();
+  store.set(KEY, JSON.stringify({
+    phase: 'sensor', key: 'sete', percursoEtapa: 'escrivaninha', percursoPronto: false
+  }));
+  const { ctx } = carregarPonte(store);
+  assert.equal(ctx.state.percursoEtapa, 'janela');
+  assert.equal(ctx.state.phase, 'percurso3d');
+});
+
+test('Firebase tardio com snapshot incompleto também recomeça na janela', () => {
+  const store = new Map();
+  const { ctx, listeners } = carregarPonte(store);
+  assert.equal(ctx.state.phase, 'home');
+  store.set(KEY, JSON.stringify({
+    phase: 'percurso3d', key: 'sete', percursoEtapa: 'escrivaninha', percursoPronto: false
+  }));
+  const handlers = listeners['mosaico-cloud-ready'] || [];
+  assert.ok(handlers.length, 'estado-solo deve ouvir mosaico-cloud-ready para o restore do Firebase');
+  handlers.forEach((fn) => fn());
+  assert.equal(ctx.state.percursoEtapa, 'janela');
+  assert.equal(ctx.state.phase, 'percurso3d');
+  assert.notEqual(ctx.state.percursoEtapa, 'escrivaninha');
+});
+
+test('escrivaninha só retoma depois da sala ter sido aberta', () => {
+  const store = new Map();
+  store.set(KEY, JSON.stringify({
+    phase: 'percurso3d', key: 'sete', percursoEtapa: 'escrivaninha',
+    percursoPronto: false, atividades: ['salaEscura']
+  }));
+  const { ctx } = carregarPonte(store);
+  assert.equal(ctx.state.percursoEtapa, 'escrivaninha');
+  assert.equal(ctx.state.phase, 'percurso3d');
+});
+
+test('escrivaninha e maquete publicadas não expõem RA de ensaio', () => {
+  const html = ler('v1/AC-escrivaninha.html');
+  const maquete = ler('v1/AC-maquete.html');
+  const percurso = ler('v1/AC-percurso.html');
+  const desk = ler('v1/js/ac-investigacao.js');
+  const maqueteJs = ler('v1/js/ac-maquete.js');
+  for (const [nome, src] of [['escrivaninha', html], ['maquete', maquete], ['percurso', percurso]]) {
+    assert.doesNotMatch(src, /ENSAIO EM DUPLA/, nome);
+    assert.doesNotMatch(src, /Bônus experimental/, nome);
+    assert.doesNotMatch(src, /Colocar em RA/, nome);
+    assert.doesNotMatch(src, /Ver em RA/, nome);
+    assert.doesNotMatch(src, /Explorar em RA/, nome);
+    assert.doesNotMatch(src, /teste=sala3d/, nome);
+    assert.doesNotMatch(src, /sem alterar a partida publicada/, nome);
+    assert.doesNotMatch(src, /Criar novo ensaio/, nome);
+    assert.doesNotMatch(src, /id="ar"/, nome);
+    assert.doesNotMatch(src, /id="ar-ios"/, nome);
   }
+  assert.doesNotMatch(html, /href="MOSAICO-mesa\.html\?teste=/);
+  assert.doesNotMatch(maquete, /pontos de ensaio/);
+  assert.doesNotMatch(maqueteJs, /pontos de ensaio/);
+  assert.doesNotMatch(ler('v1/js/ac-percurso.js'), /Este ensaio foi aberto/);
+  assert.match(desk, /if\(ar\) ar\.hidden=true/);
+  assert.match(maqueteJs, /if\(\$\('ar'\)\)\$\('ar'\)\.hidden=true/);
+  const sala = ler('v1/MOSAICO-26-a-sala-as-escuras.html');
+  assert.doesNotMatch(sala, /id="b-ra"/);
+  assert.doesNotMatch(sala, /id="b-entrar-ra"/);
+  assert.doesNotMatch(sala, />Entrar em RA</);
+  assert.doesNotMatch(sala, />Alternar visual</);
 });

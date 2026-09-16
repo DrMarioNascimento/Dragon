@@ -251,3 +251,50 @@ describe("produção · v2 não é porta do playtest", () => {
     assert.equal(/href=["'][^"']*v2\//.test(hub), false);
   });
 });
+
+describe("produção · escrivaninha/maquete sem RA de ensaio", () => {
+  const PROIBIDO = [
+    /ENSAIO EM DUPLA/i,
+    /Bônus experimental/,
+    /Colocar em RA/,
+    /Ver em RA/,
+    /Explorar em RA/,
+    /teste=sala3d/,
+    /sem alterar a partida publicada/,
+    /Criar novo ensaio/,
+    /id="ar"/,
+    /id="ar-ios"/,
+  ];
+
+  it("HTML publicado da escrivaninha, maquete e percurso não traz controles de ensaio RA", () => {
+    for (const p of ["v1/AC-escrivaninha.html", "v1/AC-maquete.html", "v1/AC-percurso.html"]) {
+      const src = ler(p);
+      for (const re of PROIBIDO) {
+        assert.equal(re.test(src), false, `${p} ainda contém ${re}`);
+      }
+    }
+  });
+
+  it("a marca da escrivaninha não abre o atalho ?teste=sala3d", () => {
+    const html = ler("v1/AC-escrivaninha.html");
+    assert.equal(/MOSAICO-mesa\.html\?teste=/.test(html), false);
+    assert.match(html, /class="brand"/);
+  });
+
+  it("o Solo publicado não rotula o percurso como ensaio RA", () => {
+    const solo = ler("solo/mesa-solo.js");
+    assert.equal(/PERCURSO 3D E RA/.test(solo), false);
+    assert.match(solo, /PERCURSO 3D · /);
+    assert.match(solo, /AC-escrivaninha\.html\?demo=solo/);
+  });
+
+  it("a Sala às Escuras publicada não expõe Alternar visual / Entrar em RA", () => {
+    const sala = ler("v1/MOSAICO-26-a-sala-as-escuras.html");
+    assert.equal(/id="b-ra"/.test(sala), false);
+    assert.equal(/id="b-entrar-ra"/.test(sala), false);
+    assert.equal(/>Entrar em RA</.test(sala), false);
+    assert.equal(/>Alternar visual</.test(sala), false);
+    assert.equal(/Prefiro jogar sem RA/.test(sala), false);
+    assert.match(sala, />Entrar na sala</);
+  });
+});

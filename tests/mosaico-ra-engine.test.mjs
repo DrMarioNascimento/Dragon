@@ -72,16 +72,22 @@ describe("Mosaico RA & Sala 3D Volumétrica · Motor e Integração", () => {
 
   it("MOSAICO-mesa.html integra Three.js e motor RA sem quebrar cache stamps", () => {
     assert.match(mesaHtml, /<script src="js\/three\.min\.js"><\/script>/);
-    assert.match(mesaHtml, /<script src="js\/mosaico-ra-engine\.js"><\/script>/);
+    assert.match(mesaHtml, /mosaico-ra-engine\.js/);
     assert.match(mesaHtml, /irParaFaseTeste3D\(\\?['"]sala3d\\?['"]\)/);
     assert.match(mesaHtml, /🕯️ Sala 3D & RA/);
   });
 
-  it("MOSAICO-26-a-sala-as-escuras.html integra Three.js, RA e botão seletor mantendo canônico", () => {
+  it("MOSAICO-26-a-sala-as-escuras.html integra Three.js sem expor RA de ensaio", () => {
     assert.match(salaHtml, /<script src="js\/three\.min\.js"><\/script>/);
-    assert.match(salaHtml, /<script src="js\/mosaico-ra-engine\.js"><\/script>/);
-    assert.match(salaHtml, /id="b-ra"/);
+    assert.match(salaHtml, /mosaico-ra-engine\.js/);
     assert.match(salaHtml, /alternarModo3DRA/);
+    assert.equal(/id="b-ra"/.test(salaHtml), false);
+    assert.equal(/id="b-entrar-ra"/.test(salaHtml), false);
+    assert.equal(/>Entrar em RA</.test(salaHtml), false);
+    assert.equal(/>Alternar visual</.test(salaHtml), false);
+    assert.equal(/Prefiro jogar sem RA/.test(salaHtml), false);
+    assert.match(salaHtml, /id="b-entrar"/);
+    assert.match(salaHtml, />Entrar na sala</);
   });
 
   it("mosaico-3d.css contém estilos para HUD, visor RA, abas e modal de inspeção 360°", () => {

@@ -11,7 +11,7 @@
   const AUDIO = url('v1/audio/A-Casa-da-Costa-Abertura.mp3');
   const IMG_LARGA = url('v1/img/Orizontal.jpg');
   const IMG_ALTA = url('v1/img/Vertical.jpg');
-  const PAISAGEM_JS = url('v1/js/ac-paisagem.js?v=20260916-solo-janela-ra');
+  const PAISAGEM_JS = url('v1/js/ac-paisagem.js?v=20260916-publicado-ac');
   const PAISAGEM_GLB = url('v1/assets/ac/casa-da-costa-noturna.glb');
   const larga = () => {
     try { return matchMedia('(min-aspect-ratio: 1/1)').matches; } catch (e) { return false; }
