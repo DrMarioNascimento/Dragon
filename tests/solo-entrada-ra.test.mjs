@@ -1,9 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { createContext, runInContext } from 'node:vm';
-import { resolve } from 'node:path';
-import { createServer } from '../ferramentas/ac-cooperacao.mjs';
 
 const ler = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8').replace(/\r\n/g, '\n');
 
@@ -51,38 +49,27 @@ test('restaurar snapshot antigo em percurso3d não salta a janela', () => {
   assert.equal(ctx.state.percursoPronto, false);
 });
 
-test('Quick Look iOS: usdz real, só imagem no <a rel=ar>, MIME certo, iframe não baixa', async () => {
+test('escrivaninha e maquete publicadas não expõem RA de ensaio', () => {
   const html = ler('v1/AC-escrivaninha.html');
+  const maquete = ler('v1/AC-maquete.html');
+  const percurso = ler('v1/AC-percurso.html');
   const desk = ler('v1/js/ac-investigacao.js');
-  const helper = ler('v1/AC-ar-ios.html');
-  const css = ler('v1/css/ac-janelas.css');
-  const coop = ler('ferramentas/ac-cooperacao.mjs');
-  assert.match(html, /id="ar-ios"[^>]*rel="ar"/);
-  assert.match(html, /href="assets\/ac\/escrivaninha\.usdz"/);
-  assert.match(html, /id="ar-ios"[^>]*>\s*<img /);
-  assert.doesNotMatch(html, /id="ar-ios"[^>]*>Ver em RA</);
-  assert.doesNotMatch(html, /\sdownload=/);
-  assert.match(css, /#ar-ios>img/);
-  assert.match(desk, /AC-ar-ios\.html/);
-  assert.match(desk, /window\.top===window/);
-  assert.match(helper, /rel="ar"/);
-  assert.match(helper, /escrivaninha\.usdz/);
-  assert.match(helper, /<img /);
-  assert.match(coop, /\.usdz':'model\/vnd\.usdz\+zip'/);
-  assert.equal(existsSync(new URL('../v1/assets/ac/escrivaninha.usdz', import.meta.url)), true);
-  assert.equal(existsSync(new URL('../v1/assets/ac/escrivaninha-ar.png', import.meta.url)), true);
-
-  const server = createServer(resolve('.'));
-  await new Promise((r) => server.listen(0, '127.0.0.1', r));
-  const base = 'http://127.0.0.1:' + server.address().port;
-  try {
-    const r = await fetch(base + '/v1/assets/ac/escrivaninha.usdz', { method: 'HEAD' });
-    assert.equal(r.status, 200);
-    assert.match(r.headers.get('content-type') || '', /model\/vnd\.usdz\+zip/);
-    const page = await fetch(base + '/v1/AC-ar-ios.html');
-    assert.equal(page.status, 200);
-  } finally {
-    server.closeAllConnections();
-    await new Promise((r) => server.close(r));
+  const maqueteJs = ler('v1/js/ac-maquete.js');
+  for (const [nome, src] of [['escrivaninha', html], ['maquete', maquete], ['percurso', percurso]]) {
+    assert.doesNotMatch(src, /ENSAIO EM DUPLA/, nome);
+    assert.doesNotMatch(src, /Bônus experimental/, nome);
+    assert.doesNotMatch(src, /Colocar em RA/, nome);
+    assert.doesNotMatch(src, /Ver em RA/, nome);
+    assert.doesNotMatch(src, /Explorar em RA/, nome);
+    assert.doesNotMatch(src, /teste=sala3d/, nome);
+    assert.doesNotMatch(src, /sem alterar a partida publicada/, nome);
+    assert.doesNotMatch(src, /Criar novo ensaio/, nome);
+    assert.doesNotMatch(src, /id="ar"/, nome);
+    assert.doesNotMatch(src, /id="ar-ios"/, nome);
   }
+  assert.doesNotMatch(html, /href="MOSAICO-mesa\.html\?teste=/);
+  assert.doesNotMatch(maquete, /pontos de ensaio/);
+  assert.doesNotMatch(maqueteJs, /pontos de ensaio/);
+  assert.match(desk, /if\(ar\) ar\.hidden=true/);
+  assert.match(maqueteJs, /if\(\$\('ar'\)\)\$\('ar'\)\.hidden=true/);
 });

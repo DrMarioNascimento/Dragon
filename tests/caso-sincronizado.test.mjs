@@ -271,28 +271,19 @@ async function camadaAtividades() {
   return win;
 }
 
-test("toda pergunta começa pela Janela do Norte e alterna só a atividade interna", async () => {
+test("toda pergunta da Mesa usa Janela do Norte e depois o percurso da Sala às Escuras", async () => {
   const win = await camadaAtividades();
   const A = win.MosaicoAtividadesCasa;
   const c = caso();
-  const validos = new Set(["janela", "vidro", "salaEscura"]);
 
   for (const id of Object.keys(c.partidas)) {
-    const pref = A.preferencia[id];
-    assert.ok(Array.isArray(pref), `a partida ${id} não declara preferência de atividade`);
-    assert.deepEqual([...pref].sort(), ["janela", "salaEscura", "vidro"],
-      `${id}: a preferência precisa ordenar as três, não excluir — excluir deixa a pergunta sem variação`);
-
     const pares = A.pares(id);
-    assert.equal(pares.length, 2, `${id}: Janela deve abrir sempre; só as duas atividades internas alternam`);
-    const vistos = new Set();
-    for (const p of pares) {
-      assert.ok(validos.has(p.inclinacao) && validos.has(p.constelacao), `${id}: atividade desconhecida`);
-      assert.equal(p.inclinacao, "janela", `${id}: A Janela do Norte precisa ser a primeira atividade`);
-      assert.notEqual(p.constelacao, "janela", `${id}: a chegada não pode repetir como atividade interna`);
-      vistos.add(p.constelacao);
-    }
-    assert.equal(vistos.size, 2, `${id}: o rodízio interno repete antes de esgotar as duas opções`);
+    assert.equal(pares.length, 1, `${id}: a Mesa publicada não sorteia um segundo par`);
+    assert.deepEqual({ ...pares[0] }, { inclinacao: "janela", constelacao: "salaEscura" },
+      `${id}: o par canônico é Janela + Sala às Escuras`);
+    assert.deepEqual({ ...A.proximoPar(id) }, { inclinacao: "janela", constelacao: "salaEscura" });
+    assert.deepEqual({ ...A.proximoPar(id) }, { inclinacao: "janela", constelacao: "salaEscura" },
+      `${id}: chamar proximoPar de novo não pode devolver Vidro`);
   }
 });
 
@@ -310,19 +301,24 @@ test("as três atividades têm configuração e arquivo no caso", async () => {
     assert.ok(cfg.titulo, `${atividade}: sem título para anunciar na fase`);
     assert.match(cfg.arquivo || "", /\.html\?embed=1$/, `${atividade}: sem arquivo integrado`);
   }
-  /* Sala antiga, sem o campo `atividades`, tem de cair no comportamento de
-     antes — senão uma mesa em andamento troca de atividade no meio da noite. */
+  /* Sala antiga, com Vidro na constelacao ou sem o campo, alinha ao percurso AC. */
   /* O objeto vem do contexto do vm e tem outro protótipo: espalhar traz
      o valor para o realm do teste, senão deepStrictEqual reprova dois objetos
      idênticos. */
   win.STATE.doc = { tarefaInterior: "sala-escura" };
   assert.deepEqual({ ...win.MosaicoAtividadesCasa.atividades() },
     { inclinacao: "janela", constelacao: "salaEscura" },
-    "sala antiga deixou de cair no comportamento anterior");
+    "sala antiga com tarefaInterior sala-escura saiu do par canônico");
+  win.STATE.doc = { atividades: { inclinacao: "janela", constelacao: "vidro" }, percursoAC: 0 };
+  assert.deepEqual({ ...win.MosaicoAtividadesCasa.atividades() },
+    { inclinacao: "janela", constelacao: "salaEscura" },
+    "mesa antiga com Vidro na constelacao não foi normalizada");
+  assert.equal(win.STATE.doc.percursoAC, 1);
+  assert.equal(win.STATE.doc.tarefaInterior, "sala-escura");
   win.STATE.doc = null;
   assert.deepEqual({ ...win.MosaicoAtividadesCasa.atividades() },
-    { inclinacao: "janela", constelacao: "vidro" },
-    "sem documento de sala, o padrão mudou");
+    { inclinacao: "janela", constelacao: "salaEscura" },
+    "sem documento de sala, o padrão da Mesa publicada mudou");
 });
 
 /* ── O Mosaico coletivo embaralha (02/09/2026) ───────────────────────────

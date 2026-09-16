@@ -1,22 +1,19 @@
-/* MOSAICO — A Casa da Costa · duas atividades por partida
-   V4 §17 (31/08/2026): "Essas atividades são um banco reutilizável de
-   mecânicas sensoriais, não uma sequência obrigatória. O conteúdo revelado e
-   a função cognitiva mudam conforme a partida."
+/* MOSAICO — A Casa da Costa · sequência canônica da Mesa
+   A partida publicada (Mesa via AC-percurso, e o Solo alinhado a ela) usa
+   sempre as quatro primeiras atividades nesta ordem:
 
-   Antes: a fase `inclinacao` era SEMPRE A Janela do Norte, e a `constelacao`
-   alternava entre O Vidro Embaçado e A Sala às Escuras — que devolviam a
-   mesma pista, com o mesmo id `tarefa-interior`, o que as tornava
-   intercambiáveis. Uma das três nunca variava e duas não se distinguiam.
+     1. Janela do Norte          → fase inclinacao
+     2. Sala às Escuras          ┐
+     3. Escrivaninha e vela      ├ percurso AC (constelacao + percursoAC=1)
+     4. Maquete                  ┘
 
-   Agora as duas fases são VAGAS, e a partida diz quais das três mecânicas as
-   ocupam. A escolha filtra pela função cognitiva antes de sortear: sorteio
-   puro poria O Vidro — que é de números e documentos — numa partida sobre os
-   dois minutos e dois segundos.
+   O Vidro Embaçado continua no banco de mecânicas, mas NÃO entra no caminho
+   canônico: `pares` / `proximoPar` / `atividades` devolvem só
+   `{ inclinacao: "janela", constelacao: "salaEscura" }`.
 
-   A escolha é da SALA, nunca do aparelho: gravada no documento junto da
-   pergunta, congelada para todos os telefones daquela mesa, como manda o
-   PADRAO-SALA-MULTIPLAYER §5. Sala antiga, sem o campo, continua rodando no
-   comportamento de antes. */
+   Mesas antigas no Firebase: ao reabrir, o JS alinha o documento local a
+   esse par. O Mestre grava o patch (criar mesa, Iniciar partida, remontar).
+   Convidados jogam o par canônico mesmo antes do documento remoto atualizar. */
 (function (global) {
   "use strict";
 
@@ -58,7 +55,8 @@
   /* A hora do capítulo segue a ATIVIDADE, não a vaga: A Janela é o apagão das
      21h29, O Vidro é a contagem das xícaras às 22h40, A Sala é a travessia. */
   var HORA   = { janela: "21:29", vidro: "22:40", salaEscura: "21:31" };
-  var CHAVE  = "mosaico_casa_ultimas_atividades";
+  var PAR_CANONICO = { inclinacao: "janela", constelacao: "salaEscura" };
+  var PERCURSO_LIMITE = 720;
 
   function partidaId() {
     var c = global.CASO;
@@ -67,34 +65,60 @@
     return (c && c.partidas && c.partidas[id]) ? id : "sete";
   }
 
-  /* Os pares de uma pergunta, do mais adequado para o menos: a soma das
-     posições na preferência ordena. A Janela, quando entra, fica na primeira
-     vaga — ela é a chegada à casa, e vem antes do que se descobre dentro. */
+  function parCanonico() {
+    return { inclinacao: PAR_CANONICO.inclinacao, constelacao: PAR_CANONICO.constelacao };
+  }
+
+  /* Mesa publicada: um par só. A tabela PREFERENCIA fica como catálogo da
+     função cognitiva; não escolhe mais a vaga interna. */
   function pares(id) {
-    var lista = PREFERENCIA[id] || PREFERENCIA.sete;
-    return lista.filter(function (atividade) { return atividade !== "janela"; })
-      .map(function (atividade) { return { inclinacao: "janela", constelacao: atividade }; });
+    return [parCanonico()];
   }
 
   function proximoPar(id) {
-    var opcoes = pares(id), n = 0;
-    try { n = parseInt(localStorage.getItem(CHAVE + "_" + id) || "0", 10) || 0; } catch (e) {}
-    var escolhido = opcoes[n % opcoes.length];
-    try { localStorage.setItem(CHAVE + "_" + id, String((n + 1) % opcoes.length)); } catch (e) {}
-    return escolhido;
+    return parCanonico();
   }
 
-  /* Sala antiga não tem `atividades`. Cair no comportamento de antes é o que
-     deixa uma mesa em andamento atravessar a atualização sem trocar de
-     atividade no meio da noite. */
-  function atividades() {
-    var doc = (global.STATE && STATE.doc) || {};
-    var a = doc.atividades;
-    if (a && TAREFA[a.inclinacao] && TAREFA[a.constelacao]) return a;
+  function limitePercursoSegundos(doc) {
+    var segundos = Number(doc && doc.percursoLimiteSegundos);
+    return (Number.isFinite(segundos) && segundos >= 300 && segundos <= 1800) ? segundos : PERCURSO_LIMITE;
+  }
+
+  /* Alinha o documento local ao par canônico. Salas antigas com Vidro na
+     constelacao, ou sem `atividades`/`percursoAC`, passam a carregar
+     AC-percurso (sala → escrivaninha → maquete). */
+  function alinharDocumento(doc) {
+    if (!doc) return parCanonico();
+    var par = parCanonico();
+    doc.atividades = par;
+    doc.percursoAC = 1;
+    doc.tarefaInterior = "sala-escura";
+    doc.percursoLimiteSegundos = limitePercursoSegundos(doc);
+    return par;
+  }
+
+  function patchSalaPublicada() {
     return {
-      inclinacao: "janela",
-      constelacao: (doc.tarefaInterior === "sala-escura") ? "salaEscura" : "vidro"
+      atividades: parCanonico(),
+      percursoAC: 1,
+      percursoLimiteSegundos: limitePercursoSegundos((global.STATE && STATE.doc) || {}),
+      tarefaInterior: "sala-escura"
     };
+  }
+
+  async function gravarSalaPublicada() {
+    alinharDocumento((global.STATE && STATE.doc) || null);
+    var patch = patchSalaPublicada();
+    if (!(global.STATE && STATE.mesa && STATE.mesa.fb && STATE.mesa.codigo)) return patch;
+    try {
+      var FB = await esperarFB();
+      await FB.atualizarMesa(STATE.mesa.codigo, patch);
+    } catch (e) { console.error("percurso AC da mesa", e); }
+    return patch;
+  }
+
+  function atividades() {
+    return alinharDocumento((global.STATE && STATE.doc) || null);
   }
   function atividadeDaFase(fase) {
     var a = atividades();
@@ -105,6 +129,7 @@
 
   global.limiteTarefaSensorMs = function(tipo) {
     var doc=(global.STATE&&STATE.doc)||{},cfg=(global.CASO&&CASO.configuracao&&CASO.configuracao.limitesSegundos)||{};
+    atividades();
     if(doc.percursoAC===1&&atividadeDaFase(tipo)==='salaEscura'){
       var segundos=Number(doc.percursoLimiteSegundos);
       return (Number.isFinite(segundos)&&segundos>=300&&segundos<=1800?segundos:720)*1000;
@@ -189,14 +214,7 @@
   var criarBase = global.criarMesa;
   global.criarMesa = async function (modo) {
     await criarBase(modo);
-    var par = proximoPar(partidaId());
-    if (global.STATE && STATE.doc) { STATE.doc.atividades = par; STATE.doc.percursoAC=1; STATE.doc.percursoLimiteSegundos=720; }
-    if (global.STATE && STATE.mesa && STATE.mesa.fb && STATE.mesa.codigo) {
-      try {
-        var FB = await esperarFB();
-        await FB.atualizarMesa(STATE.mesa.codigo, { atividades: par, percursoAC: 1, percursoLimiteSegundos: 720 });
-      } catch (e) { console.error("atividades da mesa", e); }
-    }
+    await gravarSalaPublicada();
     alinharRotulos();
     render(true);
   };
@@ -216,7 +234,9 @@
 
   global.MosaicoAtividadesCasa = {
     preferencia: PREFERENCIA, pares: pares, atividades: atividades,
-    atividadeDaFase: atividadeDaFase, partidaId: partidaId
+    atividadeDaFase: atividadeDaFase, partidaId: partidaId,
+    parCanonico: parCanonico, proximoPar: proximoPar,
+    patchSalaPublicada: patchSalaPublicada, alinharSala: gravarSalaPublicada
   };
 
   alinharRotulos();

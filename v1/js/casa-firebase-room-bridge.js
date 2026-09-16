@@ -82,9 +82,7 @@
   }
 
   function tarefaInteriorNova() {
-    var ultima = "";
-    try { ultima = localStorage.getItem("mosaico_ultima_tarefa_interior") || ""; } catch (e) {}
-    return ultima === "vidro" ? "sala-escura" : "vidro";
+    return "sala-escura";
   }
 
   function linkDaSala(codigo) {
@@ -149,6 +147,25 @@
     return FB.listarJogadores(codigo);
   }
 
+  function patchPercursoAC(room) {
+    var par = { inclinacao: "janela", constelacao: "salaEscura" };
+    var segundos = Number(room && room.percursoLimiteSegundos);
+    var limite = Number.isFinite(segundos) && segundos >= 300 && segundos <= 1800 ? segundos : 720;
+    var atual = room && room.atividades;
+    var alinhado = atual && atual.inclinacao === "janela" && atual.constelacao === "salaEscura"
+      && room.percursoAC === 1 && room.tarefaInterior === "sala-escura"
+      && Number(room.percursoLimiteSegundos) === limite;
+    return {
+      alinhado: !!alinhado,
+      patch: {
+        atividades: par,
+        percursoAC: 1,
+        percursoLimiteSegundos: limite,
+        tarefaInterior: "sala-escura"
+      }
+    };
+  }
+
   global.DragonSalaAntesDeIniciar = async function (ctx) {
     await esperarCaso();
     var codigo = (ctx && ctx.code) || (global.DragonSala && global.DragonSala.codigo);
@@ -157,16 +174,15 @@
     await FB.pronto();
     await completarLacunasMestre(FB, codigo, (ctx && ctx.players) || []);
     var room = (ctx && ctx.room) || {};
-    var tarefa = room.tarefaInterior || tarefaInteriorNova();
-    try { localStorage.setItem("mosaico_ultima_tarefa_interior", tarefa); } catch (e) {}
-    return {
+    var canon = patchPercursoAC(room).patch;
+    try { localStorage.setItem("mosaico_ultima_tarefa_interior", canon.tarefaInterior); } catch (e) {}
+    return Object.assign({
       fase: "encenacao",
       vez: 0,
       encenacaoIntroducaoConcluida: false,
       aberturaIniciadaMs: Date.now(),
-      tarefaInterior: tarefa,
-      caseId: "casa-da-costa",
-    };
+      caseId: "casa-da-costa"
+    }, canon);
   };
 
   async function montarPartida(detail) {
@@ -197,6 +213,11 @@
 
     var modo = mesaDoc.modo || "com-telao";
     var ritmo = mesaDoc.ritmo || "automatico";
+    var canon = patchPercursoAC(mesaDoc);
+    Object.assign(mesaDoc, canon.patch);
+    if ((detail.role === "master" || (global.DragonSala && global.DragonSala.papel === "master")) && !canon.alinhado) {
+      try { await FB.atualizarMesa(codigo, canon.patch); } catch (e) { console.error("percurso AC da mesa", e); }
+    }
     global.STATE.mesa = {
       codigo: codigo,
       link: linkDaSala(codigo),

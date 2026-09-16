@@ -1407,7 +1407,7 @@
      especificidade, quem vem por ultimo vence, e o padrao tem de vencer. -->
 <link rel="stylesheet" href="css/profundidade.css?v=20260902-profundidade">
 <link rel="stylesheet" href="css/profundidade-1mais1.css?v=20260907-playtest-ux">
-<link rel="stylesheet" href="css/ac-janelas.css?v=20260916-solo-janela-ra">
+<link rel="stylesheet" href="css/ac-janelas.css?v=20260916-publicado-ac">
 <script src="js/ac-cloud.js"></script></head>
 <body>
 <div id="arte">
@@ -1471,11 +1471,11 @@
 <script src="js/vendor/GLTFLoader.js"></script><script src="js/ac-desk.js"></script><script src="js/ac-room-layout.js"></script><script src="js/ac-room-art.js"></script><script src="js/ac-room.js"></script><script src="js/mosaico-ra-engine.js"></script>
 <script src="js/mosaico-3d-engine.js"></script>
 <script src="js/ac-pontuacao.js"></script>
-<script src="js/mosaico-v5.js?v=20260916-solo-janela-ra"></script>
+<script src="js/mosaico-v5.js?v=20260916-publicado-ac"></script>
 <script src="../hipoteses-por-camada.js?v=20260906-hpc-pf"></script>
 <script src="../papel-camada.js?v=20260907-playtest-ux"></script>
-<script src="js/qr.js?v=20260916-solo-janela-ra"></script>
-<script src="js/casa-firebase-room-bridge.js?v=20260916-solo-janela-ra"></script>
+<script src="js/qr.js?v=20260916-publicado-ac"></script>
+<script src="js/casa-firebase-room-bridge.js?v=20260916-publicado-ac"></script>
 <script type="module" src="../firebase-room.js?v=20260907-playtest-ux"
         data-project="mesa"
         data-root="mosaico"
@@ -4177,8 +4177,7 @@ async function criarMesa(modo){
   var codigo=gerarCodigoDiferente(anterior);
   STATE.modoMesa=modo;
   var ritmo=STATE.ritmoMesa==="conduzido"?"conduzido":"automatico";
-  var ultimaInterior="";try{ultimaInterior=localStorage.getItem("mosaico_ultima_tarefa_interior")||"";}catch(e){}
-  var tarefaInterior=ultimaInterior==="vidro"?"sala-escura":"vidro";
+  var tarefaInterior="sala-escura";
   STATE.ritmoMesa=ritmo;
   /* O CÓDIGO NÃO APARECE ANTES DA SALA EXISTIR.
      Aqui a tela do painel era montada na hora, com `fb:false`, e só o selo
@@ -5752,5 +5751,5 @@ if(CONFIGURADO) window.MosaicoFB = {
 window.dispatchEvent(new Event("mosaicofb-ready"));
 console.log("MosaicoFB ready");
 </script>
-<script src="js/ac-janelas.js?v=20260916-solo-janela-ra"></script></body>
+<script src="js/ac-janelas.js?v=20260916-publicado-ac"></script></body>
 </html>

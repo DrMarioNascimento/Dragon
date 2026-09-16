@@ -18,7 +18,7 @@
   let draggingCandle = false, snapReady = false, draggingDesk = false;
   const dragPlane = new THREE.Plane(), dragRay = new THREE.Raycaster(), dragPoint = new THREE.Vector3();
   const cleanup = [];
-  const on = (target, type, fn, options) => { target.addEventListener(type, fn, options); cleanup.push(() => target.removeEventListener(type, fn, options)); };
+  const on = (target, type, fn, options) => { if(!target) return; target.addEventListener(type, fn, options); cleanup.push(() => target.removeEventListener(type, fn, options)); };
   const entrarAtividade=()=>window.ACJanelas?.entrarAtividade();
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   function notify(message) { $('notice').textContent = message; $('notice').style.display = 'block'; clearTimeout(noticeTimer); noticeTimer = setTimeout(() => { $('notice').style.display = 'none'; }, 5000); }
@@ -119,13 +119,13 @@
       $('primary').disabled=!connected;
     }
     for(const id of ['orbit','below','motion'])$(id).hidden=!fallback||!!xrSession;
-    $('ar').hidden=!arSupported;
-    prepararArIos();
-    $('ar-ios').hidden=!(quickLook&&!arSupported&&!xrSession&&role==='luz'&&state.stage==='posicionar');
+    const ar=$('ar'), arIos=$('ar-ios');
+    if(ar) ar.hidden=true;
+    if(arIos) arIos.hidden=true;
     $('dossier').hidden=role!=='conhecimento'||!['encontrado','registrado'].includes(state.stage);
     if(role==='conhecimento'&&['posicionar','castical','iluminar'].includes(state.stage)){ $('step').textContent='PORTADOR DO CONHECIMENTO';$('heading').textContent=state.stage==='iluminar'?'O que só você pode ver.':'Um não vê sem o outro.';$('description').textContent=['posicionar','castical'].includes(state.stage)?'Seu colega precisa achar um lugar para segurar a vela, só assim a tarefa dará seguimento!':'A vela pode iluminar com segurança algo escondido que pode estar nessa escrivaninha, ela ilumina o que só você pode ver!'; }
     if(role==='apoio'){$('step').textContent='LEITURA E ORIENTAÇÃO';$('heading').textContent='Ajude seu Fragmento.';$('description').textContent='Acompanhe as instruções e oriente os colegas. Um posiciona e ilumina; o outro examina a etiqueta. Na maquete, você também poderá ler o manuscrito.';}
-    if(fallback&&!xrSession&&!$('accessible').checked&&role==='luz'&&['posicionar','castical'].includes(state.stage))$('description').textContent=$('description').textContent.replace(/[.!]?$/,'.')+(state.stage==='posicionar'?(quickLook&&!arSupported?' Coloque a escrivaninha na sua sala, ou toque no chão aqui.':' Toque no chão para posicionar a escrivaninha.'):' Arraste a vela até o castiçal sobre a escrivaninha.');
+    if(fallback&&!xrSession&&!$('accessible').checked&&role==='luz'&&['posicionar','castical'].includes(state.stage))$('description').textContent=$('description').textContent.replace(/[.!]?$/,'.')+(state.stage==='posicionar'?' Toque no chão para posicionar a escrivaninha.':' Arraste a vela até o castiçal sobre a escrivaninha.');
     if(xrSession&&!xrPlaced){$('heading').textContent='Posicione a escrivaninha.';$('description').textContent='Aponte para uma superfície e confirme quando o círculo aparecer.';$('primary').textContent='Posicionar escrivaninha';$('primary').disabled=!hasHit||!modelReady;}
     for(const id of ['step','heading','description','primary']){
       const element=$(id),words=element.textContent;
@@ -339,19 +339,19 @@
       if(disposed||generation!==xrGeneration){await session.end();return;}
       fallback=false;xrSession=session;xrPlaced=false;deskRoot.visible=false;$('accessible').checked=false;$('accessible').closest('label').hidden=true;beginAction();
       session.addEventListener('select',()=>{if(!xrPlaced)placeAtHit();});
-      session.addEventListener('end',()=>{hitSource?.cancel();hitSource=null;xrSession=null;hasHit=false;reticle.visible=false;environment.visible=true;deskRoot.visible=true;scene.background=new THREE.Color(0x091515);scene.fog=new THREE.Fog(0x091515,6,14);document.body.classList.remove('in-ar');$('ar').textContent='Colocar em RA';deskRoot.position.set(0,0,0);deskRoot.quaternion.identity();frameDesk();setFallback('A sessão de RA foi encerrada.');},{once:true});
+      session.addEventListener('end',()=>{hitSource?.cancel();hitSource=null;xrSession=null;hasHit=false;reticle.visible=false;environment.visible=true;deskRoot.visible=true;scene.background=new THREE.Color(0x091515);scene.fog=new THREE.Fog(0x091515,6,14);document.body.classList.remove('in-ar');if($('ar'))$('ar').textContent='Colocar em RA';deskRoot.position.set(0,0,0);deskRoot.quaternion.identity();frameDesk();setFallback('A sessão de RA foi encerrada.');},{once:true});
       renderer.xr.setReferenceSpaceType('local');await renderer.xr.setSession(session);
       const viewer=await session.requestReferenceSpace('viewer');
       if(disposed||xrSession!==session)return;
       hitSource=await session.requestHitTestSource({space:viewer});
       if(disposed||xrSession!==session){hitSource.cancel();hitSource=null;return;}
-      scene.background=null;scene.fog=null;environment.visible=false;document.body.classList.add('in-ar');$('ar').textContent='Sair da RA';
+      scene.background=null;scene.fog=null;environment.visible=false;document.body.classList.add('in-ar');if($('ar'))$('ar').textContent='Sair da RA';
       // A posicao fisica nao persiste entre sessoes. O dossie permanece intacto.
       if(state.stage==='apagao')dispatch('energia');
       notify('Aponte para o chão e toque no círculo para posicionar a escrivaninha.');updateUI();
     }catch(_){notify('RA não autorizada ou indisponível. Continue em 3D.');if(xrSession)await xrSession.end();setFallback('RA não autorizada ou indisponível.');}
   });
-  if(navigator.xr)navigator.xr.isSessionSupported('immersive-ar').then(supported=>{if(disposed)return;arSupported=supported;if(!supported)setFallback('RA não disponível neste navegador.');else updateUI();}).catch(()=>setFallback('Não foi possível verificar a RA.'));else setFallback('RA não disponível neste navegador.');
+  setFallback('Investigue por movimento e arrasto.');
 
   ACDesk.load(model=>{
     if(disposed){disposeObject(model);return;}
@@ -423,7 +423,7 @@
     if(snapshot.maquete&&!snapshot.maquete.complete&&!new URLSearchParams(location.search).has('rever')){location.replace('AC-maquete.html'+location.search);return;}
     const previous=state.stage;shared=snapshot;lastSnapshot=performance.now();
     state={...state,stage:snapshot.stage,evidence:snapshot.stage==='registrado'?['ac-etiqueta-maquete']:[]};
-    if(previous==='encontrado'&&state.stage==='registrado')notify('Fragmento guardado no dossiê deste estudo.');
+    if(previous==='encontrado'&&state.stage==='registrado')notify('Fragmento guardado no dossiê.');
     const minutes=Math.floor(snapshot.elapsed/60),seconds=Math.floor(snapshot.elapsed%60);
     $('timer').textContent=String(minutes).padStart(2,'0')+':'+String(seconds).padStart(2,'0')+' · Bônus '+snapshot.bonus+' pontos';
     const other=role==='luz'?'conhecimento':'luz';

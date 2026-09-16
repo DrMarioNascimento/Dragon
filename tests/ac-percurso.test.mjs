@@ -9,7 +9,8 @@ import {readFileSync} from 'node:fs';
 test('percurso da Mesa segue sala escura, escrivaninha e maquete depois da Janela do Norte',()=>{
  const src=readFileSync('v1/js/ac-percurso.js','utf8');
  const atividades=readFileSync('v1/js/atividades-casa-da-costa.js','utf8');
- assert.match(atividades,/inclinacao:\s*"janela"/);
+ assert.match(atividades,/PAR_CANONICO = \{ inclinacao: "janela", constelacao: "salaEscura" \}/);
+ assert.doesNotMatch(atividades,/\bn % opcoes\.length\b/);
  assert.match(src,/sala:'MOSAICO-26-a-sala-as-escuras\.html'/);
  assert.match(src,/mesa:'AC-escrivaninha\.html'/);
  assert.match(src,/maquete:'AC-maquete\.html'/);
@@ -26,7 +27,8 @@ test('prazo de doze minutos vale somente para percurso novo e segue o documento 
  assert.equal(c.limiteTarefaSensorMs('inclinacao'),150000);
  c.STATE.doc.percursoLimiteSegundos=900;assert.equal(c.limiteTarefaSensorMs('constelacao'),900000);
  c.STATE.doc.percursoLimiteSegundos=-1;assert.equal(c.limiteTarefaSensorMs('constelacao'),720000);
- delete c.STATE.doc.percursoAC;assert.equal(c.limiteTarefaSensorMs('constelacao'),180000);
+ delete c.STATE.doc.percursoAC;assert.equal(c.limiteTarefaSensorMs('constelacao'),720000);
+ assert.equal(c.STATE.doc.percursoAC,1);
 });
 
 test('navegador encaminha etapas e devolve apenas conclusao final da rodada correta',async()=>{

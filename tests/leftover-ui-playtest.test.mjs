@@ -251,3 +251,33 @@ describe("produção · v2 não é porta do playtest", () => {
     assert.equal(/href=["'][^"']*v2\//.test(hub), false);
   });
 });
+
+describe("produção · escrivaninha/maquete sem RA de ensaio", () => {
+  const PROIBIDO = [
+    /ENSAIO EM DUPLA/i,
+    /Bônus experimental/,
+    /Colocar em RA/,
+    /Ver em RA/,
+    /Explorar em RA/,
+    /teste=sala3d/,
+    /sem alterar a partida publicada/,
+    /Criar novo ensaio/,
+    /id="ar"/,
+    /id="ar-ios"/,
+  ];
+
+  it("HTML publicado da escrivaninha, maquete e percurso não traz controles de ensaio RA", () => {
+    for (const p of ["v1/AC-escrivaninha.html", "v1/AC-maquete.html", "v1/AC-percurso.html"]) {
+      const src = ler(p);
+      for (const re of PROIBIDO) {
+        assert.equal(re.test(src), false, `${p} ainda contém ${re}`);
+      }
+    }
+  });
+
+  it("a marca da escrivaninha não abre o atalho ?teste=sala3d", () => {
+    const html = ler("v1/AC-escrivaninha.html");
+    assert.equal(/MOSAICO-mesa\.html\?teste=/.test(html), false);
+    assert.match(html, /class="brand"/);
+  });
+});

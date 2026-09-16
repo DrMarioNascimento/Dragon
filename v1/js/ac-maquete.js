@@ -5,7 +5,7 @@
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
   let coop=null,online=false,data=null,fallback=false,disposed=false,readStart=null,readingSent=false,soloConcluido=false;
   let xr=null,hitSource=null,placed=false,hasHit=false,dragging=false,nearLock=false,pending=false,lastLevel=-1,lastReady=null,noticeTimer;
-  const handlers=[];function on(el,type,fn){el.addEventListener(type,fn);handlers.push(()=>el.removeEventListener(type,fn));}
+  const handlers=[];function on(el,type,fn){if(!el)return;el.addEventListener(type,fn);handlers.push(()=>el.removeEventListener(type,fn));}
   const entrarAtividade=()=>window.ACJanelas?.entrarAtividade();
   const scene=new THREE.Scene();scene.background=new THREE.Color(0x091515);
   const camera=new THREE.PerspectiveCamera(40,innerWidth/innerHeight,.015,40);scene.add(camera);
@@ -75,18 +75,19 @@
   function update(){
     if(!data){$('heading').textContent='Siga a pista da escrivaninha.';$('description').textContent='Encontre e registre a etiqueta com seu colega para liberar esta investigação.';return;}
     $('step').textContent=data.complete?'Percurso concluído':`Chave ${data.evidence.length+1} de 3 · ${data.name}`;
-    $('score').textContent='Chaves '+data.evidence.length+' de 3 · '+data.score+' pontos de ensaio';
+    $('score').textContent='Chaves '+data.evidence.length+' de 3 · '+data.score+' pontos';
     const explore=data.explorer===role;
     model.lock.visible=!explore&&!data.complete;
     document.body.dataset.roleMode=data.complete?'complete':explore?'explorer':'guide';
     document.body.classList.toggle('investigating',data.ready||data.level>0);
     $('reposition').hidden=!xr||!placed;
-    $('scale-note').textContent=preparation()?'Em RA, use dois dedos para ajustar o tamanho antes da primeira leitura.':'O tamanho está fixo para esta investigação. Você pode reposicionar a maquete nas instruções.';
+    $('scale-note').textContent='O tamanho está fixo para esta investigação.';
     $('manuscript').hidden=explore||data.complete||solo;
     $('clue').textContent=data.ready?(data.clue||'Oriente seu colega pela voz.'):'Segure o manuscrito para ler e orientar seu colega.';
     $('heading').textContent=data.complete?'O espaço que faltava.':solo?'A próxima chave está na maquete.':explore?'Seu olhar encontra o caminho.':'Sua leitura orienta o caminho.';
     $('description').textContent=data.complete?'A fundação revelou uma passagem sob a despensa. A descoberta foi guardada.':solo?(!data.ready?'Leia a orientação para liberar a chave '+(data.evidence.length+1)+' de 3. '+(data.clue||''):data.key?'A chave foi encontrada. Confirme o encaixe para avançar automaticamente.':'Encontre a chave '+(data.evidence.length+1)+' de 3: '+(data.targetLabel||'o detalhe indicado')+'.'):explore?(data.ready?(data.key?'Você encontrou a chave. Só seu colega vê a fechadura. Siga a orientação dele e leve a ponta da chave até ela.':'Ouça a orientação do colega. Aproxime-se e toque no detalhe correspondente.'):'Aguarde seu colega ler o manuscrito.'):data.ready?'Compartilhe a orientação com seu colega. Só ele pode manipular a chave deste piso.':'Leia a orientação para liberar a chave '+(data.evidence.length+1)+' de 3.';
     $('alternative').hidden=!(fallback||solo)||!explore||data.complete||data.key;
+    if($('ar'))$('ar').hidden=true;
     const soloAction=$('solo-action');
     soloAction.hidden=!solo||data.complete;
     soloAction.disabled=!online;
@@ -99,7 +100,7 @@
     const changed=lastLevel!==data.level;
     if(changed){model.key.position.set(.30,.25,.91);lastLevel=data.level;readingSent=false;readStart=null;}
     if(changed||lastReady!==data.ready){lastReady=data.ready;if(!xr)frame();}
-    if(data.complete&&changed){$('final-score').textContent='3 chaves · '+data.score+' pontos de ensaio. Nenhuma acusação foi concluída.';$('discovery').showModal();}
+    if(data.complete&&changed){$('final-score').textContent='3 chaves · '+data.score+' pontos. Nenhuma acusação foi concluída.';$('discovery').showModal();}
 
     if(xr&&!placed){$('heading').textContent='Posicione a maquete.';$('description').textContent='Aponte para uma superfície e toque no círculo. Depois, examine a casa de perto.';}
     if(!online)$('description').textContent='A dupla precisa estar conectada para continuar. O progresso está preservado neste servidor.';
@@ -165,12 +166,12 @@
       const session=await navigator.xr.requestSession('immersive-ar',{requiredFeatures:['hit-test','dom-overlay'],domOverlay:{root:document.body}});if(disposed){await session.end();return;}
       camera.clearViewOffset();xr=session;placed=false;hasHit=false;touches.clear();pinchDistance=0;controls.enabled=false;model.root.visible=false;
       session.addEventListener('select',place);
-      session.addEventListener('end',()=>{hitSource?.cancel();hitSource=null;xr=null;placed=false;reticle.visible=false;floor.visible=true;model.root.visible=true;model.root.position.set(0,0,0);model.root.quaternion.identity();model.root.scale.setScalar(1);hasHit=false;touches.clear();scene.background=new THREE.Color(0x091515);document.body.classList.remove('in-ar');$('ar').textContent='Explorar em RA';controls.enabled=true;frame();enableFallback('A sessão de RA foi encerrada.');},{once:true});
+      session.addEventListener('end',()=>{hitSource?.cancel();hitSource=null;xr=null;placed=false;reticle.visible=false;floor.visible=true;model.root.visible=true;model.root.position.set(0,0,0);model.root.quaternion.identity();model.root.scale.setScalar(1);hasHit=false;touches.clear();scene.background=new THREE.Color(0x091515);document.body.classList.remove('in-ar');if($('ar'))$('ar').textContent='Explorar em RA';controls.enabled=true;frame();enableFallback('A sessão de RA foi encerrada.');},{once:true});
       renderer.xr.setReferenceSpaceType('local');await renderer.xr.setSession(session);if(xr!==session||disposed)return;const viewer=await session.requestReferenceSpace('viewer');if(xr!==session||disposed)return;const source=await session.requestHitTestSource({space:viewer});if(xr!==session||disposed){source.cancel();return;}hitSource=source;
-      fallback=false;floor.visible=false;scene.background=null;document.body.classList.add('in-ar');$('ar').textContent='Sair da RA';update();
+      fallback=false;floor.visible=false;scene.background=null;document.body.classList.add('in-ar');if($('ar'))$('ar').textContent='Sair da RA';update();
     }catch{if(xr)await xr.end().catch(()=>{});enableFallback('RA indisponível ou não autorizada.');}finally{startingAR=false;}
   });
-  if(navigator.xr)navigator.xr.isSessionSupported('immersive-ar').then(supported=>{if(disposed)return;$('ar').hidden=!supported;if(!supported)enableFallback('Este navegador não oferece RA.');}).catch(()=>enableFallback('Não foi possível iniciar RA.'));else enableFallback('Este navegador não oferece RA.');
+  enableFallback('A exploração continua em 3D, com uma alternativa por nomes de objetos.');
   let lastTime=0;
   function render(time,frameXR){
     if(disposed)return;const dt=Math.min(.1,(time-lastTime)/1000||0);lastTime=time;
