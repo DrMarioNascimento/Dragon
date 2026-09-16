@@ -37,10 +37,10 @@
   }
   function carregarJogo(){
     var jogo=document.createElement('script');
-    jogo.src='mesa-solo.js?v=20260916-publicado-ac';
+    jogo.src='mesa-solo.js?v=20260916-solo-janela';
     jogo.onload=function(){
       var ponte=document.createElement('script');
-      ponte.src='estado-solo.js?v=20260916-publicado-ac';
+      ponte.src='estado-solo.js?v=20260916-solo-janela';
       document.body.appendChild(ponte);
     };
     document.body.appendChild(jogo);

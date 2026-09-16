@@ -16,20 +16,51 @@
     try{localStorage.setItem(KEY,txt)}catch(e){}
     if(force&&window.MosaicoUserCloud&&window.MosaicoUserCloud.sincronizarAgora)window.MosaicoUserCloud.sincronizarAgora();
   }
-  function restore(){
-    if(restaurado||typeof state==="undefined"||!state||!state.caso)return false;
+  /* Snapshot antigo sem percursoEtapa (ou com lixo) caía em escrivaninha:
+     a primeira tela jogável virava a mesa. Só retoma a escrivaninha quando o
+     checkpoint prova que janela + sala já passaram (atividades preenchidas). */
+  function passouSala(x){
+    return !!(x&&Array.isArray(x.atividades)&&x.atividades.length);
+  }
+  function aplicarIntroIncompleta(x){
+    var etapa=x.percursoEtapa;
+    if(x.phase==="sensor"&&passouSala(x)){
+      state.phase="sensor";
+      state.percursoEtapa="janela";
+      state.atividades=x.atividades;
+      state.atividadeI=Number(x.atividadeI)||0;
+      state.sensorPronto=!!x.sensorPronto;
+      state.sensorTempos=Array.isArray(x.sensorTempos)?x.sensorTempos:[];
+      return;
+    }
+    if(x.phase==="percurso3d"&&etapa==="escrivaninha"&&passouSala(x)){
+      state.phase="percurso3d";
+      state.percursoEtapa="escrivaninha";
+      state.atividades=x.atividades;
+      state.atividadeI=Number(x.atividadeI)||0;
+      state.sensorPronto=false;
+      state.sensorTempos=Array.isArray(x.sensorTempos)?x.sensorTempos:[];
+      return;
+    }
+    try{sessionStorage.removeItem("ac:solo-integral:v1")}catch(e){}
+    state.phase=x.phase==="briefing"?"briefing":"percurso3d";
+    state.percursoEtapa="janela";
+    state.atividades=[];
+    state.atividadeI=0;
+    state.sensorPronto=false;
+    state.sensorTempos=[];
+  }
+  function restore(force){
+    if(typeof state==="undefined"||!state||!state.caso)return false;
+    if(restaurado&&!force)return false;
     restaurado=true;var x=null;try{x=JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){}
     if(!x||!x.key||!state.caso.partidas||!state.caso.partidas[x.key])return false;
       if(x.phase&&x.phase!=="home"){
       state.phase=x.phase;state.key=x.key;state.i=Number(x.i)||0;state.order=Array.isArray(x.order)?x.order:[0,1,2,3];state.pick=x.pick==null?null:x.pick;state.seen=Array.isArray(x.seen)?x.seen:[];state.facts=x.facts||{};state.answers=x.answers||{};state.scoreFacts=Number(x.scoreFacts)||0;state.correct=Number(x.correct)||0;
-      /* Snapshot antigo sem percursoEtapa (ou com lixo) caía em escrivaninha:
-         a primeira tela jogável virava a mesa. Caminho incompleto sempre
-         recomeça na Janela do Norte. */
       var intro=x.phase==="briefing"||x.phase==="percurso3d"||x.phase==="sensor";
       state.percursoPronto=!!x.percursoPronto;state.percursoResultado=x.percursoResultado||null;
       if(intro&&!state.percursoPronto){
-        try{sessionStorage.removeItem("ac:solo-integral:v1")}catch(e){}
-        state.phase="percurso3d";state.percursoEtapa="janela";state.atividades=[];state.atividadeI=0;state.sensorPronto=false;state.sensorTempos=[];
+        aplicarIntroIncompleta(x);
       }else{
         state.percursoEtapa=state.percursoPronto&&x.percursoEtapa==="escrivaninha"?"escrivaninha":"janela";
         state.atividades=Array.isArray(x.atividades)?x.atividades:parAtividades();state.atividadeI=Number(x.atividadeI)||0;state.sensorPronto=!!x.sensorPronto;state.sensorTempos=Array.isArray(x.sensorTempos)?x.sensorTempos:[];
@@ -41,6 +72,13 @@
     }
     return false;
   }
+  function ouvirNuvem(){
+    restaurado=false;
+    restore(true);
+  }
+  restore();
+  if(window.MosaicoUserCloud)ouvirNuvem();
+  window.addEventListener("mosaico-cloud-ready",ouvirNuvem);
   setInterval(function(){restore();save(false)},800);
   document.addEventListener("visibilitychange",function(){if(document.visibilityState==="hidden")save(true)});
   window.addEventListener("pagehide",function(){save(true)});

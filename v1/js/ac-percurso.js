@@ -4,7 +4,7 @@
 (()=>{
   'use strict';
   const $=id=>document.getElementById(id),params=new URLSearchParams(location.search);
-  const run=params.get('run')||('ensaio-'+crypto.randomUUID()),player=params.get('jogador')||'visitante';
+  const run=params.get('run')||('percurso-'+crypto.randomUUID()),player=params.get('jogador')||'visitante';
   params.set('run',run);history.replaceState(null,'','?'+params);
   const key='ac:percurso:'+run+':'+player;
   let credentials=null,stream=null,current='',state=null,paused=false,finished=false,started=Date.now(),control='retomar';
@@ -137,7 +137,7 @@
     if(finished||paused)return;
     const r=await (globalThis.ACFetch||fetch)('/api/ac/state?'+query());if(!r.ok)throw Error('Aguarde a reconexão para concluir.');
     const s=await r.json();if(!s.maquete?.complete||s.percurso?.runId!==run||s.percurso.paused.length)throw Error('A investigação ainda não foi concluída.');
-    if(parent===window){$('result').textContent='Percurso concluído. Este ensaio foi aberto fora de uma mesa; não altera a pontuação de uma partida.';return;}
+    if(parent===window){$('result').textContent='Percurso concluído. Esta página foi aberta fora de uma mesa; não altera a pontuação de uma partida.';return;}
     finished=true;tell({mosaico:'tarefa-ok',tempoMs:Math.max(1,Math.min(3600000,Date.now()-started))});
     $('result').textContent='Conclusão enviada à mesa.';
   });

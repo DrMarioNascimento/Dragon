@@ -280,4 +280,11 @@ describe("produção · escrivaninha/maquete sem RA de ensaio", () => {
     assert.equal(/MOSAICO-mesa\.html\?teste=/.test(html), false);
     assert.match(html, /class="brand"/);
   });
+
+  it("o Solo publicado não rotula o percurso como ensaio RA", () => {
+    const solo = ler("solo/mesa-solo.js");
+    assert.equal(/PERCURSO 3D E RA/.test(solo), false);
+    assert.match(solo, /PERCURSO 3D · /);
+    assert.match(solo, /AC-escrivaninha\.html\?demo=solo/);
+  });
 });
