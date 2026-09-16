@@ -147,7 +147,7 @@ const ATIVIDADE={
  salaEscura:{titulo:'A Sala às Escuras',arquivo:'../v1/MOSAICO-26-a-sala-as-escuras.html?embed=1&v=20260916-sala-3d'}
 };
 function briefing(){let p=state.caso.partidas[state.key];return '<span class="k">ENCENAÇÃO · PREPARAÇÃO</span><h2>A casa distribui os papéis.</h2><p class="lead">Você fará todas as tarefas da experiência. O sistema alternará a perspectiva cognitiva e assumirá somente as ações que dependeriam de outras pessoas.</p><div class="role-grid"><div class="relation pf-inset"><b>Você investiga</b><p class="muted">Observa, executa as atividades, organiza fatos e decide.</p></div><div class="relation pf-inset"><b>O sistema contrapõe</b><p class="muted">Distribui arquivos, oferece alternativas no Mercado e testa sua interpretação.</p></div></div><div class="question pf-inset"><b>'+esc(p.natureza)+'</b><p>'+esc(p.pergunta)+'</p></div><button class="btn" onclick="abrirPercurso3D()">Entrar na casa</button>';}
-function abrirPercurso3D(){try{sessionStorage.removeItem('ac:solo-integral:v1')}catch(_){ }state.percursoPronto=false;state.percursoResultado=null;state.percursoEtapa='janela';state.phase='percurso3d';render();}
+function abrirPercurso3D(){try{sessionStorage.removeItem('ac:solo-integral:v1')}catch(_){ }state._partidaNova=true;state.percursoPronto=false;state.percursoResultado=null;state.percursoEtapa='janela';state.phase='percurso3d';render();}
 /* As etapas 3D e sensoriais são páginas de tela inteira (topbar, painéis e
    botões em position:fixed). Dentro de uma caixa de ~343×585 no meio da página
    elas se sobrepunham no iPhone. Agora ocupam o aparelho inteiro, como na Mesa,
@@ -195,20 +195,8 @@ function start(){
   function go(){
     if(state.apuracaoTimer){clearTimeout(state.apuracaoTimer);state.apuracaoTimer=null;}
     marcarUsada();state.i=0;state.seen=[];state.facts={};state.answers={};state.scoreFacts=0;
-    state.percursoPronto=false;state.percursoResultado=null;state.percursoEtapa='janela';state.atividades=[];state.atividadeI=0;state.sensorPronto=false;state.sensorTempos=[];state.mosaico=[];state.mosaicoPick=null;state.mercadoEtapa=0;state.mercadoEscolhas=[];state.pontuacao=null;state.resultadoVista='apuracao';state.apuracaoEtapa=0;
+    state._partidaNova=true;state.percursoPronto=false;state.percursoResultado=null;state.percursoEtapa='janela';state.atividades=[];state.atividadeI=0;state.sensorPronto=false;state.sensorTempos=[];state.mosaico=[];state.mosaicoPick=null;state.mercadoEtapa=0;state.mercadoEscolhas=[];state.pontuacao=null;state.resultadoVista='apuracao';state.apuracaoEtapa=0;
     state.phase='briefing';render();
-    try{
-      if(window.MosaicoPapelCamada){
-        var e=window.MosaicoPapelCamada.carregar('casa-da-costa');
-        if(e.camada!=='livre' && !document.querySelector('[data-mpc-andaime]')){
-          var shell=document.querySelector('.shell');
-          if(shell){
-            shell.insertAdjacentHTML('beforeend', window.MosaicoPapelCamada.htmlAndaime('casa-da-costa',e,{partidaId:state.key,state:{selecionados:state.answers||{}}}));
-            window.MosaicoPapelCamada.ligarAndaime(shell,'casa-da-costa',e,{partidaId:state.key,state:{selecionados:state.answers||{}}});
-          }
-        }
-      }
-    }catch(err){}
   }
   if(window.MosaicoPapelCamada && !state._papelOk){
     window.MosaicoPapelCamada.mostrarSeletor({caso:'casa-da-costa'}).then(function(){state._papelOk=true;go();});

@@ -43,7 +43,9 @@ test('checkpoint incompleto do Solo recomeça na Janela do Norte, não na escriv
   const cloud = ler('solo/estado-solo.js');
   assert.doesNotMatch(cloud, /percursoEtapa==='janela'\?'janela':'escrivaninha'/,
     'o default "qualquer coisa → escrivaninha" voltou: snapshot antigo abre a mesa como 1ª atividade');
-  assert.match(cloud, /intro&&!state\.percursoPronto/);
+  assert.match(cloud, /chegouPelaJanela/);
+  assert.match(cloud, /faseOrdenacaoFatos/);
+  assert.match(cloud, /state\._partidaNova/);
   assert.match(cloud, /state\.percursoEtapa="janela"/);
   assert.match(cloud, /mosaico-cloud-ready/);
   assert.match(ler('solo/mesa-solo.js'), /abrirPercurso3D\(\)\{[\s\S]*percursoEtapa='janela'/);
@@ -102,6 +104,60 @@ test('Firebase tardio com snapshot incompleto também recomeça na janela', () =
   assert.equal(ctx.state.percursoEtapa, 'janela');
   assert.equal(ctx.state.phase, 'percurso3d');
   assert.notEqual(ctx.state.percursoEtapa, 'escrivaninha');
+});
+
+test('checkpoint em mosaico/puzzle sem chegada pela Janela recomeça na Janela do Norte', () => {
+  for (const phase of ['mosaico', 'puzzle', 'fact', 'mercado']) {
+    const store = new Map();
+    store.set(KEY, JSON.stringify({
+      phase, key: 'sete', percursoPronto: false
+    }));
+    const { ctx } = carregarPonte(store);
+    assert.equal(ctx.state.phase, 'percurso3d', phase);
+    assert.equal(ctx.state.percursoEtapa, 'janela', phase);
+  }
+});
+
+test('percursoPronto do caminho velho (escrivaninha primeiro) não abre a ordenação de fatos', () => {
+  const store = new Map();
+  store.set(KEY, JSON.stringify({
+    phase: 'mosaico', key: 'sete', percursoPronto: true,
+    atividades: ['janela', 'salaEscura']
+  }));
+  const { ctx } = carregarPonte(store);
+  assert.equal(ctx.state.phase, 'percurso3d');
+  assert.equal(ctx.state.percursoEtapa, 'janela');
+  assert.equal(ctx.state.percursoPronto, false,
+    'senão a Janela abre já concluída e o botão pula para o puzzle');
+});
+
+test('só retoma mosaico depois de Janela → Sala → escrivaninha/maquete', () => {
+  const store = new Map();
+  store.set(KEY, JSON.stringify({
+    phase: 'mosaico', key: 'sete', percursoPronto: true,
+    percursoEtapa: 'escrivaninha', atividades: ['salaEscura'],
+    mosaico: [{ id: 'F01' }]
+  }));
+  const { ctx } = carregarPonte(store);
+  assert.equal(ctx.state.phase, 'mosaico');
+  assert.equal(ctx.state.percursoEtapa, 'escrivaninha');
+});
+
+test('Começar / Entrar na casa ignora snapshot da nuvem (não volta à ordenação)', () => {
+  const store = new Map();
+  store.set(KEY, JSON.stringify({
+    phase: 'mosaico', key: 'sete', percursoPronto: true,
+    percursoEtapa: 'escrivaninha', atividades: ['salaEscura']
+  }));
+  const { ctx, listeners } = carregarPonte(store);
+  ctx.state._partidaNova = true;
+  ctx.state.phase = 'percurso3d';
+  ctx.state.percursoEtapa = 'janela';
+  ctx.state.percursoPronto = false;
+  const handlers = listeners['mosaico-cloud-ready'] || [];
+  handlers.forEach((fn) => fn());
+  assert.equal(ctx.state.phase, 'percurso3d');
+  assert.equal(ctx.state.percursoEtapa, 'janela');
 });
 
 test('escrivaninha só retoma depois da sala ter sido aberta', () => {

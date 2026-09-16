@@ -25,13 +25,19 @@ test('Solo Casa preserva as etapas da experiência da Mesa',()=>{
   assert.match(js,/3 \/ 4 · Sob outra luz/);
   assert.match(js,/if\(ev\.data\.mosaico==='tarefa-ok'&&state\.percursoEtapa==='janela'\)[\s\S]*abrirAtividades\(\)/);
   assert.match(js,/if\(state\.percursoEtapa==='janela'\)\{state\.percursoEtapa='escrivaninha'/);
+  const startFn=js.slice(js.indexOf('function start()'),js.indexOf('function currentId()'));
+  assert.doesNotMatch(startFn,/htmlAndaime/,
+    'o andaime Guiada (ordem nos fatos) não pode nascer no briefing após Começar');
+  assert.match(startFn,/state\._partidaNova=true/);
+  assert.match(js,/abrirPercurso3D\(\)\{[\s\S]*state\._partidaNova=true/);
+  assert.match(js,/fasesComHipoteses=\['relations','map','decision'\]/);
 });
 
 test('checkpoint e carimbo incluem o Solo integral',()=>{
   for(const campo of ['percursoEtapa','atividades','atividadeI','sensorPronto','sensorTempos','mosaico','mercadoEtapa','mercadoEscolhas','pontuacao','resultadoVista','apuracaoEtapa'])
     assert.ok(cloud.includes(campo),campo);
-  assert.match(html,/mesa-solo\.js\?v=20260916-sala-3d/);
-  assert.match(html,/estado-solo\.js\?v=20260916-solo-janela/);
+  assert.match(html,/mesa-solo\.js\?v=20260916-janela-1/);
+  assert.match(html,/estado-solo\.js\?v=20260916-janela-1/);
 });
 
 test('percurso solo mantém 3D, RA, escrivaninha e maquete com três chaves',()=>{
