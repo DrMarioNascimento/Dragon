@@ -86,7 +86,7 @@ export function createServer(root,{stateFile=null}={}) {
     const relative=path.slice(root.length+1);
     if (!path.startsWith(root+sep) || relative.split(sep).some(part=>part.startsWith('.'))) return json(403,{error:'Caminho restrito'});
     const publicCase=url.pathname==='/v1/casos/casa-da-costa.json';
-    const mime=publicCase?'application/json; charset=utf-8':{'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.glb':'model/gltf-binary','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml'}[extname(path)];
+    const mime=publicCase?'application/json; charset=utf-8':{'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.glb':'model/gltf-binary','.usdz':'model/vnd.usdz+zip','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml'}[extname(path)];
     if(!mime)return json(403,{error:'Tipo restrito'});
     try{const content=await readFile(path);res.writeHead(200,{'Content-Type':mime,'Cache-Control':'no-store'});res.end(req.method==='HEAD'?undefined:content);}catch{json(404,{error:'Arquivo ausente'});}
   });

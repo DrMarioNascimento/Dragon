@@ -142,8 +142,9 @@ body dialog>.close,body dialog[data-ac-priority]>.close{position:fixed;float:non
 .gesture-point{z-index:14}
 
 /* RA do iPhone pelo Quick Look: o <a rel="ar"> só pode ter a imagem como filho,
-   então o rótulo vem do CSS. */
+   então o rótulo vem do CSS. Texto dentro do <a> faz o Safari BAIXAR o .usdz. */
 #ar-ios{display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:9px 14px;border-radius:30px;
   border:1px solid #c9a66c;background:linear-gradient(#3a2c10,#241a08);color:#ffe1ac;font:700 12px/1.2 system-ui,sans-serif;text-decoration:none;white-space:nowrap}
+#ar-ios>img{width:18px;height:18px;object-fit:cover;border-radius:4px;flex:none;pointer-events:none}
 #ar-ios::after{content:attr(data-label)}
 #ar-ios[hidden]{display:none!important}

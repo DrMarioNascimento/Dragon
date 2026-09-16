@@ -120,6 +120,7 @@
     }
     for(const id of ['orbit','below','motion'])$(id).hidden=!fallback||!!xrSession;
     $('ar').hidden=!arSupported;
+    prepararArIos();
     $('ar-ios').hidden=!(quickLook&&!arSupported&&!xrSession&&role==='luz'&&state.stage==='posicionar');
     $('dossier').hidden=role!=='conhecimento'||!['encontrado','registrado'].includes(state.stage);
     if(role==='conhecimento'&&['posicionar','castical','iluminar'].includes(state.stage)){ $('step').textContent='PORTADOR DO CONHECIMENTO';$('heading').textContent=state.stage==='iluminar'?'O que só você pode ver.':'Um não vê sem o outro.';$('description').textContent=['posicionar','castical'].includes(state.stage)?'Seu colega precisa achar um lugar para segurar a vela, só assim a tarefa dará seguimento!':'A vela pode iluminar com segurança algo escondido que pode estar nessa escrivaninha, ela ilumina o que só você pode ver!'; }
@@ -207,6 +208,35 @@
     } else if(state.stage==='iluminar'){return;}
     else openFragment();
   });
+  /* Quick Look: <a rel="ar"> só com <img>. Texto no link faz o iPhone baixar o
+     arquivo. Dentro do iframe do Solo o Safari também não dispara QL — abre
+     uma página irmã no topo, com o mesmo padrão. */
+  let arIosPronto=false;
+  function prepararArIos(){
+    const a=$('ar-ios'); if(!a)return;
+    const usdz=new URL('assets/ac/escrivaninha.usdz', location.href).href;
+    const preview=new URL('assets/ac/escrivaninha-ar.png', location.href).href;
+    a.setAttribute('rel','ar'); a.removeAttribute('download'); a.dataset.label=a.dataset.label||'Ver em RA';
+    a.href=usdz;
+    Array.from(a.childNodes).forEach(n=>{if(n.nodeType===3||(n.nodeName&&n.nodeName!=='IMG'))n.remove();});
+    let img=a.querySelector('img');
+    if(!img){img=document.createElement('img');a.appendChild(img);}
+    img.src=preview; img.alt='Ver em RA'; img.width=44; img.height=44;
+    if(arIosPronto)return; arIosPronto=true;
+    a.addEventListener('click',function(ev){
+      if(!quickLook){
+        ev.preventDefault();
+        notify('Este aparelho não abre Realidade Aumentada. No iPhone, use o Safari.');
+        return;
+      }
+      if(window.top===window)return;
+      ev.preventDefault();
+      const helper=new URL('AC-ar-ios.html', location.href);
+      helper.searchParams.set('modelo', usdz);
+      const w=window.open(helper.href, '_blank', 'noopener');
+      if(!w) notify('O Safari bloqueou a RA. Permita pop-ups para este site, ou abra a escrivaninha fora do quadro Solo.');
+    }, true);
+  }
   on($('ar-ios'),'message',event=>{
     if(event.data!=='_apple_ar_quicklook_button_tapped')return;
     if(role==='luz'&&state.stage==='posicionar'&&connected){beginAction();dispatch('posicionar');notify('Escrivaninha posicionada. Agora leve a vela até o castiçal.');}
