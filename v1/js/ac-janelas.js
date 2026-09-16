@@ -85,6 +85,48 @@
     recolher();
     document.body.classList.add('ac-atividade-iniciada');
   }
+  function introAberta(){
+    const intro=document.getElementById('intro');
+    if(!intro||intro.hidden||intro.classList.contains('gone')||intro.classList.contains('out'))return null;
+    return intro;
+  }
+  function dispararEntradaDaIntro(){
+    const intro=introAberta();
+    if(!intro)return false;
+    const go=intro.querySelector('.go');
+    if(go){go.click();return true;}
+    intro.classList.add('gone');intro.hidden=true;recolher();
+    return true;
+  }
+  function portaDaIntro(){
+    const intro=document.getElementById('intro');
+    if(!intro||intro.tagName==='DIALOG')return;
+    if(intro.querySelector(':scope > .close'))return;
+    const x=document.createElement('button');
+    x.type='button';x.className='close';x.dataset.close='';
+    x.setAttribute('aria-label','Fechar e entrar');x.textContent='×';
+    intro.prepend(x);
+  }
+  function ancorarCtaDaIntro(){
+    const intro=document.getElementById('intro');
+    if(!intro||intro.querySelector('#intro-corpo'))return;
+    const go=intro.querySelector('.go');
+    if(!go)return;
+    const corpo=document.createElement('div');corpo.id='intro-corpo';
+    const keep=new Set();
+    intro.querySelectorAll(':scope > .close, :scope > .go, :scope > .alt').forEach(el=>keep.add(el));
+    Array.from(intro.childNodes).forEach(n=>{if(!keep.has(n))corpo.appendChild(n);});
+    intro.insertBefore(corpo,go);
+  }
+  function recolherIntroCorpo(){
+    const intro=document.getElementById('intro');
+    const corpo=intro&&intro.querySelector('#intro-corpo');
+    if(!intro||!corpo)return;
+    Array.from(intro.children).forEach(el=>{
+      if(el===corpo||el.classList.contains('close')||el.classList.contains('go')||el.classList.contains('alt'))return;
+      corpo.appendChild(el);
+    });
+  }
   function start(){
     travarMarcaNoSolo();
     const desk=document.querySelector('.instruction');
@@ -92,13 +134,19 @@
       const stack=document.createElement('section');stack.className='ac-panel-stack';stack.setAttribute('aria-label','Investigação e orientações');document.body.append(stack);
       for(const el of [document.getElementById('manuscript'),desk,document.getElementById('coop-status')].filter(Boolean))stack.append(el);
     }
+    portaDaIntro();ancorarCtaDaIntro();
     if(telefone()) document.body.classList.add('ac-cena-livre');
     if(document.getElementById('loading')&&!document.getElementById('loading').hidden)entrarAtividade();
     document.addEventListener('click',function(ev){
       /* Só o i (páginas com #instructions). No percurso #help é Dupla/Fragmento. */
       if(ev.target.closest('#help')&&document.getElementById('instructions'))ajuda(ev);
+      else if(ev.target.closest('#intro > .close, #intro [data-close]')){if(dispararEntradaDaIntro())return;}
       else if(ev.target.closest('[data-close]')){const d=ev.target.closest('dialog');if(d){try{d.close();}catch(e){}}recolher();}
+      else if(ev.target.id==='intro'){if(dispararEntradaDaIntro())return;}
       else if(ev.target.matches&&ev.target.matches('dialog[open]')){try{ev.target.close();}catch(e){}recolher();}
+    },true);
+    document.addEventListener('keydown',function(ev){
+      if(ev.key==='Escape'&&dispararEntradaDaIntro()){ev.preventDefault();}
     },true);
     document.addEventListener('cancel',function(ev){
       if(ev.target&&ev.target.matches&&ev.target.matches('dialog'))recolher();
@@ -108,7 +156,7 @@
     },true);
     medirFerramentas();decorate();orderPanels();new MutationObserver(records=>{
       if(records.some(r=>r.type==='attributes'&&r.target.matches('#intro.out,#intro.gone')))entrarAtividade();
-      if(records.some(r=>r.addedNodes.length)){decorate();orderPanels();}
+      if(records.some(r=>r.addedNodes.length)){recolherIntroCorpo();decorate();orderPanels();}
     }).observe(document.body,{attributes:true,attributeFilter:['class'],childList:true,subtree:true});
   }
   window.ACJanelas={entrarAtividade,recolher,ajuda};

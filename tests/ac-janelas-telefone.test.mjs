@@ -129,4 +129,30 @@ describe("A Casa · janelas no telefone", () => {
     assert.match(JANELAS_JS, /closest\('#help'\)&&document\.getElementById\('instructions'\)/,
       "sem este filtro, ajuda() faz stopImmediatePropagation no #help do percurso e o convite da dupla nunca abre.");
   });
+
+  it("overlays de tela cheia das tarefas não recebem o chrome de 84px", () => {
+    assert.match(JANELAS, /\[data-ac-priority\]:not\(#intro\):not\(#oito\):not\(#falha\):not\(\.busca-caixa\)/,
+      "o chrome de identidade voltou a pintar #intro/#oito/#falha/.busca-caixa.\n" +
+      "Medido em 16/09/2026 no iframe do Solo a 390×700: o padding de 84px + o\n" +
+      "símbolo vazio + a nota canônica deixavam «Entrar na sala» fora da tela.");
+    assert.doesNotMatch(JANELAS, /body #intro\[data-ac-priority\]::before\{flex:none/,
+      "a regra que desligava o espaçador flex do #intro voltou: ela empurrava o CTA.");
+    assert.match(JANELAS, /#intro-corpo\{/,
+      "sem #intro-corpo o CTA volta a rolar junto com os cartões e some da dobra.");
+    assert.match(JANELAS, /body #intro:has\(#intro-corpo\)\{[^}]*overflow:hidden/,
+      "o #intro inteiro voltou a rolar: o botão de entrar some outra vez.");
+    assert.match(JANELAS, /\.busca-caixa\{pointer-events:none\}/,
+      "as caixas de Investigação/Orientações voltaram a interceptar o toque na lanterna.");
+  });
+
+  it("×, fundo e Esc da intro disparam o CTA de entrar, não só escondem o cartão", () => {
+    assert.match(JANELAS_JS, /function dispararEntradaDaIntro\(/);
+    assert.match(JANELAS_JS, /function ancorarCtaDaIntro\(/);
+    assert.match(JANELAS_JS, /intro\.querySelector\('\.go'\)/);
+    assert.match(JANELAS_JS, /go\.click\(\)/);
+    assert.match(JANELAS_JS, /ev\.key==='Escape'&&dispararEntradaDaIntro/);
+    assert.match(JANELAS_JS, /#intro > \.close/);
+    assert.match(JANELAS, /body #intro>\.close/,
+      "o × da intro precisa de regra própria: o × das dialogs ancora em --ac-window-box.");
+  });
 });
