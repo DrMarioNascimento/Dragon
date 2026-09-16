@@ -59,7 +59,7 @@
     padding:max(16px,env(safe-area-inset-top)) 16px
             calc(env(safe-area-inset-bottom,0px) + 22px);}
   #topo{text-align:center}
-  .busca-caixa{max-width:560px;margin:10px auto 0;padding:12px 18px;border:1px solid #70978a66;border-radius:14px;background:linear-gradient(145deg,#183d35ee,#091b18ee);box-shadow:inset 0 1px 0 #c1dbc62b,inset 0 -3px 8px #0005,0 8px 20px #0007;text-align:left;width:100%;box-sizing:border-box}
+  .busca-caixa{max-width:560px;margin:10px auto 0;padding:12px 18px;border:1px solid #70978a66;border-radius:14px;background:linear-gradient(145deg,#183d35ee,#091b18ee);box-shadow:inset 0 1px 0 #c1dbc62b,inset 0 -3px 8px #0005,0 8px 20px #0007;text-align:left;width:100%;box-sizing:border-box;pointer-events:none}
   .busca-caixa h2{margin:0;color:#dfc18a;font:700 14px/1.3 var(--sans);letter-spacing:.04em}
   .busca-caixa #enigma,.busca-caixa #status,.busca-caixa #dica{max-width:none;text-align:left;margin:6px 0 0;min-height:0}
   .busca-caixa #dica{font-size:15px}
@@ -319,7 +319,7 @@
      especificidade, quem vem por ultimo vence, e o padrao tem de vencer. -->
 <link rel="stylesheet" href="css/profundidade.css?v=20260902-profundidade">
 <link rel="stylesheet" href="css/profundidade-1mais1.css?v=20260906-pf-all">
-<link rel="stylesheet" href="css/ac-janelas.css?v=20260916-publicado-ac">
+<link rel="stylesheet" href="css/ac-janelas.css?v=20260916-sala-cta">
 </head>
 <body>
 <canvas id="c"></canvas>
@@ -328,13 +328,13 @@
 <div id="hud">
   <div id="topo">
     <div id="local">A Casa da Costa — a sala do térreo</div>
-    <section data-ac-priority="1" class="busca-caixa" aria-labelledby="investigacao-titulo"><h2 id="investigacao-titulo">Investigação:</h2><div id="enigma">—</div></section>
+    <section class="busca-caixa" aria-labelledby="investigacao-titulo"><h2 id="investigacao-titulo">Investigação:</h2><div id="enigma">—</div></section>
     <div id="conta">1 DE 8</div>
   </div>
   <div id="base">
     <div id="medidor"><div id="medidor-i"></div></div>
     <div id="firme"><div id="firme-i"></div></div>
-    <section data-ac-priority="2" class="busca-caixa" aria-labelledby="orientacoes-titulo"><h2 id="orientacoes-titulo">Orientações:</h2><div id="status" role="status">A lanterna acende pouco.</div><div id="dica">Gire o corpo devagar. O feixe encontra uma coisa de cada vez.</div></section>
+    <section class="busca-caixa" aria-labelledby="orientacoes-titulo"><h2 id="orientacoes-titulo">Orientações:</h2><div id="status" role="status">A lanterna acende pouco.</div><div id="dica">Gire o corpo devagar. O feixe encontra uma coisa de cada vez.</div></section>
     <div id="marcas"></div>
     <div id="botoes">
       <button id="b-luz" class="acc">Lanterna</button>
@@ -368,6 +368,8 @@
 </div></div>
 
 <div id="intro" data-ac-priority="10">
+  <button type="button" class="close" data-close aria-label="Fechar e entrar">×</button>
+  <div id="intro-corpo">
   <div id="kicker">A noite da tempestade — dentro da casa</div>
   <div id="titulo">A Sala<br><b>às Escuras</b></div>
   <div id="sub">Oito coisas, e uma frase para cada</div>
@@ -380,10 +382,11 @@
       As luzes caíram e você está no escuro. Acenda a lanterna e ache os objetos até preencher a barrinha. São <b id="sala-explica-n">9</b> pistas para achar.
     </div>
   </div>
-  <button class="go" id="b-entrar" type="button">Entrar na sala</button>
-  <button class="alt" id="b-sim">Estou no computador</button>
   <div id="rodada">RODADA <b id="cod-rodada">----</b></div>
   <div id="nota">Confiram: o código tem de ser o mesmo em todos os aparelhos.</div>
+  </div>
+  <button class="go" id="b-entrar" type="button">Entrar na sala</button>
+  <button class="alt" id="b-sim">Estou no computador</button>
 </div>
 
 <div id="oito">
@@ -405,9 +408,9 @@
 </div>
 
 <script src="js/three.min.js"></script>
-<script src="js/vendor/GLTFLoader.js"></script><script src="js/ac-desk.js"></script><script src="js/ac-room-layout.js"></script><script src="js/ac-room-art.js"></script><script src="js/ac-room.js"></script><script src="js/mosaico-ra-engine.js?v=20260916-publicado-ac"></script>
+<script src="js/vendor/GLTFLoader.js"></script><script src="js/ac-desk.js"></script><script src="js/ac-room-layout.js"></script><script src="js/ac-room-art.js"></script><script src="js/ac-room.js"></script><script src="js/mosaico-ra-engine.js?v=20260916-sala-cta"></script>
 <!-- Protocolo com a Mesa e ativacao de sensor: um so arquivo para as tres tarefas. -->
-<script src="js/tarefa-sensor.js?v=20260916-publicado-ac"></script>
+<script src="js/tarefa-sensor.js?v=20260916-sala-cta"></script>
 <script>
 (function(){
 "use strict";
@@ -1534,6 +1537,7 @@ function fechaIntro(){
   var _o=document.getElementById("oito"); if(_o) _o.classList.remove("on");
   jogando=true;
   /* jogavel daqui: intro fechada, permissao resolvida, sala montada */
+  try{ if(window.ACJanelas&&ACJanelas.entrarAtividade) ACJanelas.entrarAtividade(); }catch(e){}
   iniciarCronometroOficial(); enviarStatus("ativo");
 }
 
@@ -1861,5 +1865,5 @@ if(bRa){
 
 })();
 </script>
-<script src="js/ac-janelas.js?v=20260916-publicado-ac"></script></body>
+<script src="js/ac-janelas.js?v=20260916-sala-cta"></script></body>
 </html>

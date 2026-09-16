@@ -114,3 +114,43 @@ describe("A Mesa · a janela de envio do Fragmento tem saída", () => {
       "grupo PRECISA ver a janela inteira com o “Entendi”.");
   });
 });
+
+describe("Sala às Escuras · a intro no Solo tem saída e CTA visível", () => {
+  const SALA = ler("v1/MOSAICO-26-a-sala-as-escuras.html");
+  const SOLO = ler("solo/mesa-solo.js");
+  const JANELAS_JS = ler("v1/js/ac-janelas.js");
+
+  it("o botão Entrar na sala fica fora da rolagem, com × na intro", () => {
+    assert.match(SALA, /id="intro-corpo"/,
+      "os cartões da abertura voltaram a empilhar acima de «Entrar na sala».\n" +
+      "No iframe do Solo a 390×700 o CTA sumia e não havia × nem Esc.");
+    const intro = SALA.slice(SALA.indexOf('id="intro"'), SALA.indexOf('id="oito"'));
+    const corpo = intro.indexOf('id="intro-corpo"');
+    const cta = intro.indexOf('id="b-entrar"');
+    const fecha = intro.indexOf('class="close"');
+    assert.ok(corpo > 0 && cta > corpo, "Entrar na sala tem de ficar DEPOIS de #intro-corpo");
+    assert.ok(fecha > 0 && fecha < cta, "o × tem de existir na intro, antes do CTA");
+    assert.match(intro, /data-close/);
+  });
+
+  it("fechar a intro dispara a entrada (não só esconde o cartão)", () => {
+    assert.match(SALA, /ACJanelas\.entrarAtividade/);
+    assert.match(JANELAS_JS, /dispararEntradaDaIntro/);
+    assert.match(JANELAS_JS, /go\.click\(\)/);
+  });
+
+  it("o HUD da sala não é janela de identidade nem intercepta a lanterna", () => {
+    assert.match(SALA, /class="busca-caixa"/);
+    assert.equal(/data-ac-priority="1" class="busca-caixa"/.test(SALA), false);
+    assert.equal(/data-ac-priority="2" class="busca-caixa"/.test(SALA), false);
+    assert.match(SALA, /\.busca-caixa\{[^}]*pointer-events:none/);
+  });
+
+  it("o Solo continua abrindo a sala no iframe 2/4, depois da Janela do Norte", () => {
+    assert.match(SOLO, /percursoEtapa==='janela'/);
+    assert.match(SOLO, /salaEscura:\{titulo:'A Sala às Escuras'/);
+    assert.match(SOLO, /MOSAICO-26-a-sala-as-escuras\.html\?embed=1&v=20260916-sala-cta/);
+    assert.doesNotMatch(SOLO, /id="b-entrar-ra"/);
+    assert.doesNotMatch(SOLO, /PERCURSO 3D E RA/);
+  });
+});
