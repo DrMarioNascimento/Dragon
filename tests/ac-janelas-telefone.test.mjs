@@ -110,9 +110,23 @@ describe("A Casa · janelas no telefone", () => {
     assert.match(JANELAS, /body\.ac-atividade-iniciada \.ac-panel-stack/);
     assert.match(JANELAS, /display:none!important/);
     assert.match(JANELAS_JS, /function ajuda\(/);
-    assert.match(JANELAS_JS, /closest\('#help'\)/);
+    assert.match(JANELAS_JS, /closest\('#help'\)&&document\.getElementById\('instructions'\)/);
     assert.match(JANELAS_JS, /function frase\(/);
     assert.match(JANELAS_JS, /dialog\[open\]/);
     assert.match(JANELAS_JS, /data-close/);
+  });
+
+  it("o #help do percurso é Dupla e a captura do i não o intercepta", () => {
+    const percurso = ler("v1/AC-percurso.html");
+    const escrivaninha = ler("v1/AC-escrivaninha.html");
+    const maquete = ler("v1/AC-maquete.html");
+    assert.match(percurso, /id="help">🤝 Dupla/);
+    assert.doesNotMatch(percurso, /id="instructions"/);
+    assert.match(escrivaninha, /id="help"[^>]*>i</);
+    assert.match(escrivaninha, /id="instructions"/);
+    assert.match(maquete, /id="help"[^>]*>i</);
+    assert.match(maquete, /id="instructions"/);
+    assert.match(JANELAS_JS, /closest\('#help'\)&&document\.getElementById\('instructions'\)/,
+      "sem este filtro, ajuda() faz stopImmediatePropagation no #help do percurso e o convite da dupla nunca abre.");
   });
 });

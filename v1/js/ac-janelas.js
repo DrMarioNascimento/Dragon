@@ -95,7 +95,8 @@
     if(telefone()) document.body.classList.add('ac-cena-livre');
     if(document.getElementById('loading')&&!document.getElementById('loading').hidden)entrarAtividade();
     document.addEventListener('click',function(ev){
-      if(ev.target.closest('#help'))ajuda(ev);
+      /* Só o i (páginas com #instructions). No percurso #help é Dupla/Fragmento. */
+      if(ev.target.closest('#help')&&document.getElementById('instructions'))ajuda(ev);
       else if(ev.target.closest('[data-close]')){const d=ev.target.closest('dialog');if(d){try{d.close();}catch(e){}}recolher();}
       else if(ev.target.matches&&ev.target.matches('dialog[open]')){try{ev.target.close();}catch(e){}recolher();}
     },true);
