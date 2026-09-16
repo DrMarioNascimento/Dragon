@@ -110,3 +110,13 @@ test('poeira dourada limita particulas, desaparece e nao intercepta pistas',asyn
  dust.dispose();assert.equal(parent.children.length,0);
  const quiet=context.window.createACGoldDust(parent,{reduced:true});quiet.update(0,point,800);quiet.update(.01,new T.Vector3(1,0,0),800);assert.ok([...parent.children[0].geometry.attributes.life.array].every(v=>v===0));quiet.dispose();
 });
+
+test('abertura da maquete enquadra de mais longe',async()=>{
+ const {readFileSync}=await import('node:fs');
+ const src=readFileSync(new URL('../v1/js/ac-maquete.js',import.meta.url),'utf8');
+ const paisagem=readFileSync(new URL('../v1/js/ac-paisagem.js',import.meta.url),'utf8');
+ assert.match(src,/Math\.max\(4\.6,/);
+ assert.match(src,/mobile\?1\.55:1\.75\)/);
+ assert.match(src,/complete\?3\.6:3\.0\)/);
+ assert.match(paisagem,/Math\.max\(8, Math\.min\(22, Math\.max\(size\.x, size\.z\) \* 2\.4\)\)/);
+});

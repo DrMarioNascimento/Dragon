@@ -43,7 +43,7 @@ export function apply(room, role, event, now = Date.now()) {
     if(p.ready.length!==(p.fragmento?.membros.length||2))return false;
   }
   if(event.type==='iniciar_maquete'){
-    if(role!=='conhecimento'||room.maquete||(room.percurso?room.percurso.ready.length!==(room.percurso.fragmento?.membros.length||2):room.stage!=='registrado'))return false;
+    if(role!=='conhecimento'||room.stage!=='registrado'||room.maquete)return false;
     room.maquete=startMaquette();return true;
   }
   if(event.type.startsWith('maquete_')){

@@ -6,6 +6,19 @@ import {resolve} from 'node:path';
 import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 
+test('percurso da Mesa segue sala escura, escrivaninha e maquete depois da Janela do Norte',()=>{
+ const src=readFileSync('v1/js/ac-percurso.js','utf8');
+ const atividades=readFileSync('v1/js/atividades-casa-da-costa.js','utf8');
+ assert.match(atividades,/inclinacao:\s*"janela"/);
+ assert.match(src,/sala:'MOSAICO-26-a-sala-as-escuras\.html'/);
+ assert.match(src,/mesa:'AC-escrivaninha\.html'/);
+ assert.match(src,/maquete:'AC-maquete\.html'/);
+ assert.match(src,/showScene\(!p\.ready\.includes\(credentials\.papel\)\?'sala':s\.maquete\?'maquete':'mesa'\)/);
+ assert.doesNotMatch(src,/janela:'MOSAICO-26-a-janela-do-norte\.html'/);
+ assert.ok(src.indexOf("sala:'1 / 3 · A sala às escuras'") < src.indexOf("mesa:'2 / 3 · Sob outra luz'"));
+ assert.ok(src.indexOf("mesa:'2 / 3 · Sob outra luz'") < src.indexOf("maquete:'3 / 3 · O lar em miniatura'"));
+});
+
 test('prazo de doze minutos vale somente para percurso novo e segue o documento da mesa',()=>{
  const c={STATE:{doc:{atividades:{inclinacao:'janela',constelacao:'salaEscura'},percursoAC:1,percursoLimiteSegundos:720}},CASO:{configuracao:{limitesSegundos:{inclinacao:150,constelacao:180}},tarefas:{}}};c.window=c;
  vm.runInNewContext(readFileSync('v1/js/atividades-casa-da-costa.js','utf8'),c);
@@ -27,15 +40,14 @@ test('navegador encaminha etapas e devolve apenas conclusao final da rodada corr
  addEventListener:(type,handler)=>listeners[type]=handler};context.window=context;
  vm.runInNewContext(readFileSync('v1/js/ac-percurso.js','utf8'),context);
  const flush=()=>new Promise(r=>setImmediate(r));await flush();
- assert.match(node('scene').src,/MOSAICO-26-a-janela-do-norte/);
+ assert.match(node('scene').src,/MOSAICO-26-a-sala-as-escuras/);
  const message=(source,runId)=>listeners.message({origin:'http://localhost',source,data:{mosaico:'tarefa-ok',runId,tempoMs:1200}});
  message({},'r1');message(child,'r2');await flush();assert.equal(actions.filter(a=>a.type==='sala_concluida').length,0);
  message(child,'r1');await flush();assert.equal(actions.filter(a=>a.type==='sala_concluida').length,1);assert.equal(sent.length,0);
- view={...view,percurso:{...view.percurso,ready:['luz','conhecimento']}};context.stream.onmessage({data:JSON.stringify(view)});await flush();assert.equal(actions.filter(a=>a.type==='iniciar_maquete').length,0,'a pessoa da luz aguarda o papel de conhecimento abrir a maquete');
+ view={...view,percurso:{...view.percurso,ready:['luz','conhecimento']}};context.stream.onmessage({data:JSON.stringify(view)});assert.match(node('scene').src,/AC-escrivaninha/);
  view={...view,maquete:{complete:false}};context.stream.onmessage({data:JSON.stringify(view)});assert.match(node('scene').src,/AC-maquete/);
- view={...view,maquete:{complete:true}};context.stream.onmessage({data:JSON.stringify(view)});assert.match(node('scene').src,/AC-escrivaninha/);
  node('finish').onclick();await flush();assert.equal(sent.length,0);
- view={...view,stage:'registrado',maquete:{complete:true}};context.stream.onmessage({data:JSON.stringify(view)});assert.equal(node('summary').hidden,false);
+ view={...view,maquete:{complete:true}};context.stream.onmessage({data:JSON.stringify(view)});assert.equal(node('summary').hidden,false);
  node('finish').onclick();await flush();node('finish').onclick();await flush();
  assert.equal(sent.length,1);assert.equal(sent[0].mosaico,'tarefa-ok');assert.equal(sent[0].runId,'r1');
 });
@@ -58,7 +70,9 @@ test('percurso exige duas salas concluidas, respeita pausa e preserva registro e
  apply(restored,'luz',{type:'encaixar'});
  apply(restored,'luz',{type:'feixe',origin:[0,0,1],target:[0,0,0]});
  apply(restored,'conhecimento',{type:'descobrir'});
- assert.equal(apply(restored,'conhecimento',{type:'iniciar_maquete'}),true);
+ assert.equal(apply(restored,'conhecimento',{type:'iniciar_maquete'}),false);
+ apply(restored,'conhecimento',{type:'registrar'});
+ apply(restored,'conhecimento',{type:'iniciar_maquete'});
  for(const [i,object]of ['rosa','relogio','armario-oeste'].entries()){
    const explorer=i===1?'conhecimento':'luz',guide=explorer==='luz'?'conhecimento':'luz';
    apply(restored,guide,{type:'maquete_orientar'});
@@ -70,8 +84,6 @@ test('percurso exige duas salas concluidas, respeita pausa e preserva registro e
  assert.equal(restored.maquete.score,24);
  assert.equal(apply(restored,'luz',{type:'maquete_encaixar'}),false);
  assert.equal(restored.maquete.score,24);
- apply(restored,'conhecimento',{type:'registrar'});
- assert.equal(restored.stage,'registrado');
 });
 
 test('HTTP vincula convite a rodada, protege consulta e serve apenas JSON canonico',async()=>{

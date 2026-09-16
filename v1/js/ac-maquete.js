@@ -8,29 +8,31 @@
   const handlers=[];function on(el,type,fn){el.addEventListener(type,fn);handlers.push(()=>el.removeEventListener(type,fn));}
   const entrarAtividade=()=>window.ACJanelas?.entrarAtividade();
   const scene=new THREE.Scene();scene.background=new THREE.Color(0x091515);
-  const camera=new THREE.PerspectiveCamera(40,innerWidth/innerHeight,.015,25);scene.add(camera);
+  const camera=new THREE.PerspectiveCamera(40,innerWidth/innerHeight,.015,40);scene.add(camera);
   let renderer;try{renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});}catch{$('description').textContent='Este navegador não conseguiu abrir o modelo 3D.';return;}
   renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));renderer.setSize(innerWidth,innerHeight);renderer.outputEncoding=THREE.sRGBEncoding;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.82;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.xr.enabled=true;$('scene').appendChild(renderer.domElement);
-  const controls=new THREE.OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.zoomSpeed=2;controls.minDistance=.18;controls.maxDistance=12;controls.maxPolarAngle=Math.PI*.49;
+  const controls=new THREE.OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.zoomSpeed=2;controls.minDistance=.18;controls.maxDistance=18;controls.maxPolarAngle=Math.PI*.49;
   function frame(){
     const mobile=innerWidth<=700,guide=data&&!data.complete&&data.explorer!==role;
     const panel=document.querySelector('.instruction').getBoundingClientRect();
     const manuscript=document.getElementById('manuscript').getBoundingClientRect();
     // No telefone os painéis vivem na pilha fixa (ac-janelas.js): a casa é
     // enquadrada no vão real entre o título do capítulo e o topo da pilha.
+    // Pilha escondida (cena livre) não conta — senão o vão vira 0 e a câmera cola.
     const stack=document.querySelector('.ac-panel-stack'),chapterBox=document.querySelector('.chapter')?.getBoundingClientRect();
-    const stackTop=stack&&stack.getBoundingClientRect().height?stack.getBoundingClientRect().top:panel.top;
+    const stackBox=stack&&stack.getBoundingClientRect(),stackVisible=stackBox&&stackBox.height>8;
+    const stackTop=stackVisible?stackBox.top:panel.height>8?panel.top:innerHeight-24;
     let top=115,bottom=innerHeight-85;
-    if(mobile&&stack){bottom=stackTop-10;top=Math.max(60,(chapterBox?chapterBox.bottom:100)+6);if(bottom-top<130)top=Math.max(48,bottom-130);}
-    else if(mobile){top=guide?Math.max(190,manuscript.bottom+16):data?.ready||data?.level>0?142:210;bottom=guide?Math.max(top+160,panel.top-28):Math.max(top+160,panel.top-16);}
-    const left=mobile?18:Math.min(panel.right+32,innerWidth*.4),right=innerWidth-(mobile?18:35);
+    if(mobile&&stackVisible){bottom=stackTop-10;top=Math.max(60,(chapterBox&&chapterBox.height>8?chapterBox.bottom:100)+6);if(bottom-top<130)top=Math.max(48,bottom-130);}
+    else if(mobile){top=guide&&manuscript.height>8?Math.max(190,manuscript.bottom+16):data?.ready||data?.level>0?142:80;bottom=guide&&panel.height>8?Math.max(top+160,panel.top-28):panel.height>8?Math.max(top+160,panel.top-16):innerHeight-24;}
+    const left=mobile?18:panel.width>8?Math.min(panel.right+32,innerWidth*.4):18,right=innerWidth-(mobile?18:35);
     const usableWidth=Math.max(160,right-left),usableHeight=Math.max(110,bottom-top);
     const centerX=(left+right)/2,centerY=(top+bottom)/2;
     camera.setViewOffset(innerWidth,innerHeight,innerWidth/2-centerX,innerHeight/2-centerY,innerWidth,innerHeight);
     controls.target.copy(model.root.localToWorld(new THREE.Vector3(0,data?.complete?.95:data?.level===2?.65:.52,0)));
-    const distance=Math.max(3,2.3/(2*Math.tan(Math.PI/9)*camera.aspect)*(innerWidth/usableWidth),
-      (data?.complete?2.9:2.15)/(2*Math.tan(Math.PI/9))*(innerHeight/usableHeight));
-    camera.position.copy(new THREE.Vector3(1.2,1.2,1.8).normalize().multiplyScalar(distance*(mobile?1.18:1.35)).add(controls.target));controls.update();
+    const distance=Math.max(4.6,2.8/(2*Math.tan(Math.PI/9)*camera.aspect)*(innerWidth/usableWidth),
+      (data?.complete?3.6:3.0)/(2*Math.tan(Math.PI/9))*(innerHeight/usableHeight));
+    camera.position.copy(new THREE.Vector3(1.2,1.2,1.8).normalize().multiplyScalar(distance*(mobile?1.55:1.75)).add(controls.target));controls.update();
   }
   scene.add(new THREE.HemisphereLight(0xbed2e4,0x33251b,.60));const sun=new THREE.DirectionalLight(0xffe1b5,1.45);sun.position.set(-2,4,3);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);scene.add(sun);scene.add(new THREE.AmbientLight(0xffffff,.10));const coastFill=new THREE.DirectionalLight(0x9ebed5,.6);coastFill.position.set(3,2,-2);scene.add(coastFill);
   const floor=new THREE.Mesh(new THREE.PlaneGeometry(30,30),new THREE.MeshStandardMaterial({color:0x071014,roughness:.95}));floor.rotation.x=-Math.PI/2;floor.position.y=-.385;floor.receiveShadow=true;scene.add(floor);
@@ -152,7 +154,7 @@
     if(await send('maquete_mover',{tip:tipLocal()}))await send('maquete_encaixar');
   });
 
-  on($('help'),'click',()=>$('instructions').showModal());document.querySelectorAll('[data-close]').forEach(el=>on(el,'click',()=>el.closest('dialog').close()));
+  on($('help'),'click',ev=>{if(window.ACJanelas){window.ACJanelas.ajuda(ev);return;}$('instructions').showModal();});document.querySelectorAll('[data-close]').forEach(el=>on(el,'click',()=>{el.closest('dialog').close();window.ACJanelas?.recolher();}));
   on(document.body,'beforexrselect',e=>{if(e.target.closest('dialog,header,.tools,#manuscript,#key-grip'))e.preventDefault();});
   const previousParams=new URLSearchParams(location.search);previousParams.set('rever','1');$('return-desk').href='AC-escrivaninha.html?'+previousParams;
   function enableFallback(reason){fallback=true;$('fallback-note').textContent=reason+' A exploração continua em 3D, com uma alternativa por nomes de objetos.';update();}
@@ -213,7 +215,7 @@
       soloConcluido=true;
       try{parent.postMessage({mosaico:'ac-solo-maquete-completa',score:data.score,evidence:data.evidence},location.origin)}catch(_){ }
     }
-  },connected=>{if(!connected){online=false;$('coop-status').textContent='Reconectando…';update();}},{maquette:true}).then(c=>{coop=c;if(c.demo)c.send('iniciar_maquete');if(new URLSearchParams(location.search).get('percurso')==='1')document.querySelector('.brand').removeAttribute('href');const backParams=new URLSearchParams(location.search);backParams.set('rever','1');$('return-desk').href='AC-escrivaninha.html?'+backParams;if(c.invite){$('invite').href=c.invite;$('invite').hidden=false;}if(!c.demo)$('instructions').showModal();}).catch(e=>{$('description').textContent=e.message;});
+  },connected=>{if(!connected){online=false;$('coop-status').textContent='Reconectando…';update();}},{maquette:true}).then(c=>{coop=c;if(c.demo)c.send('iniciar_maquete');if(new URLSearchParams(location.search).get('percurso')==='1')document.querySelector('.brand').removeAttribute('href');const backParams=new URLSearchParams(location.search);backParams.set('rever','1');$('return-desk').href='AC-escrivaninha.html?'+backParams;if(c.invite){$('invite').href=c.invite;$('invite').hidden=false;}if(!c.demo&&!matchMedia('(max-width:700px)').matches)$('instructions').showModal();}).catch(e=>{$('description').textContent=e.message;});
   // A pilha de painéis nasce depois deste script e muda de altura entre os capítulos.
   if(window.ResizeObserver){let lastStackH=-1;const watch=()=>{const st=document.querySelector('.ac-panel-stack');if(!st)return setTimeout(watch,120);new ResizeObserver(()=>{const h=Math.round(st.getBoundingClientRect().height);if(h!==lastStackH){lastStackH=h;if(!xr)frame();}}).observe(st);};watch();}
   on(window,'resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);if(!xr)frame();});
