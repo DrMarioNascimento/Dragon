@@ -37,10 +37,10 @@
   }
   function carregarJogo(){
     var jogo=document.createElement('script');
-    jogo.src='mesa-solo.js?v=20260916-sala-3d';
+    jogo.src='mesa-solo.js?v=20260916-janela-3';
     jogo.onload=function(){
       var ponte=document.createElement('script');
-      ponte.src='estado-solo.js?v=20260916-solo-janela';
+      ponte.src='estado-solo.js?v=20260916-janela-3';
       document.body.appendChild(ponte);
     };
     document.body.appendChild(jogo);

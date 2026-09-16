@@ -43,10 +43,12 @@ test('checkpoint incompleto do Solo recomeça na Janela do Norte, não na escriv
   const cloud = ler('solo/estado-solo.js');
   assert.doesNotMatch(cloud, /percursoEtapa==='janela'\?'janela':'escrivaninha'/,
     'o default "qualquer coisa → escrivaninha" voltou: snapshot antigo abre a mesa como 1ª atividade');
-  assert.match(cloud, /intro&&!state\.percursoPronto/);
+  assert.match(cloud, /aplicarIntroIncompleta/);
+  assert.match(cloud, /state\._partidaNova/);
   assert.match(cloud, /state\.percursoEtapa="janela"/);
   assert.match(cloud, /mosaico-cloud-ready/);
   assert.match(ler('solo/mesa-solo.js'), /abrirPercurso3D\(\)\{[\s\S]*percursoEtapa='janela'/);
+  assert.match(ler('solo/mesa-solo.js'), /if\(state\.phase==='home'\)[\s\S]*_partidaNova=true/);
   assert.match(ler('solo/mesa-solo.js'), /MOSAICO-26-a-janela-do-norte\.html\?embed=1/);
   assert.doesNotMatch(ler('solo/mesa-solo.js'), /PERCURSO 3D E RA/);
 });
@@ -104,15 +106,91 @@ test('Firebase tardio com snapshot incompleto também recomeça na janela', () =
   assert.notEqual(ctx.state.percursoEtapa, 'escrivaninha');
 });
 
-test('escrivaninha só retoma depois da sala ter sido aberta', () => {
+test('checkpoint em mosaico/puzzle sem chegada pela Janela recomeça na Janela do Norte', () => {
+  for (const phase of ['mosaico', 'puzzle', 'fact', 'mercado']) {
+    const store = new Map();
+    store.set(KEY, JSON.stringify({
+      phase, key: 'sete', percursoPronto: false
+    }));
+    const { ctx } = carregarPonte(store);
+    assert.equal(ctx.state.phase, 'percurso3d', phase);
+    assert.equal(ctx.state.percursoEtapa, 'janela', phase);
+  }
+});
+
+test('percursoPronto do caminho velho (escrivaninha primeiro) não abre a ordenação de fatos', () => {
   const store = new Map();
   store.set(KEY, JSON.stringify({
+    phase: 'mosaico', key: 'sete', percursoPronto: true,
+    atividades: ['janela', 'salaEscura']
+  }));
+  const { ctx } = carregarPonte(store);
+  assert.equal(ctx.state.phase, 'percurso3d');
+  assert.equal(ctx.state.percursoEtapa, 'janela');
+  assert.equal(ctx.state.percursoPronto, false,
+    'senão a Janela abre já concluída e o botão pula para o puzzle');
+});
+
+test('pós-abertura nunca retoma mosaico: mesmo percurso completo recomeça na Janela', () => {
+  const store = new Map();
+  store.set(KEY, JSON.stringify({
+    phase: 'mosaico', key: 'sete', percursoPronto: true,
+    percursoEtapa: 'escrivaninha', atividades: ['salaEscura'],
+    mosaico: [{ id: 'F01' }]
+  }));
+  const { ctx } = carregarPonte(store);
+  assert.equal(ctx.state.phase, 'percurso3d');
+  assert.equal(ctx.state.percursoEtapa, 'janela');
+  assert.equal(ctx.state.percursoPronto, false);
+});
+
+test('briefing salvo também recomeça na Janela, não no seletor de papéis', () => {
+  const store = new Map();
+  store.set(KEY, JSON.stringify({
+    phase: 'briefing', key: 'sete', percursoPronto: false
+  }));
+  const { ctx } = carregarPonte(store);
+  assert.equal(ctx.state.phase, 'percurso3d');
+  assert.equal(ctx.state.percursoEtapa, 'janela');
+});
+
+test('Começar / Entrar na casa ignora snapshot da nuvem (não volta à ordenação)', () => {
+  const store = new Map();
+  store.set(KEY, JSON.stringify({
+    phase: 'mosaico', key: 'sete', percursoPronto: true,
+    percursoEtapa: 'escrivaninha', atividades: ['salaEscura']
+  }));
+  const { ctx, listeners } = carregarPonte(store);
+  ctx.state._partidaNova = true;
+  ctx.state.phase = 'percurso3d';
+  ctx.state.percursoEtapa = 'janela';
+  ctx.state.percursoPronto = false;
+  const handlers = listeners['mosaico-cloud-ready'] || [];
+  handlers.forEach((fn) => fn());
+  assert.equal(ctx.state.phase, 'percurso3d');
+  assert.equal(ctx.state.percursoEtapa, 'janela');
+});
+
+test('pós-abertura não retoma sala nem escrivaninha: volta à Janela', () => {
+  const sala = new Map();
+  sala.set(KEY, JSON.stringify({
+    phase: 'sensor', key: 'sete', percursoEtapa: 'janela',
+    percursoPronto: false, atividades: ['salaEscura'], atividadeI: 0
+  }));
+  const { ctx: ctxSala } = carregarPonte(sala);
+  assert.equal(ctxSala.state.phase, 'percurso3d');
+  assert.equal(ctxSala.state.percursoEtapa, 'janela');
+  assert.equal(ctxSala.state.atividades.length, 0);
+
+  const mesa = new Map();
+  mesa.set(KEY, JSON.stringify({
     phase: 'percurso3d', key: 'sete', percursoEtapa: 'escrivaninha',
     percursoPronto: false, atividades: ['salaEscura']
   }));
-  const { ctx } = carregarPonte(store);
-  assert.equal(ctx.state.percursoEtapa, 'escrivaninha');
-  assert.equal(ctx.state.phase, 'percurso3d');
+  const { ctx: ctxMesa } = carregarPonte(mesa);
+  assert.equal(ctxMesa.state.percursoEtapa, 'janela');
+  assert.equal(ctxMesa.state.phase, 'percurso3d');
+  assert.equal(ctxMesa.state.atividades.length, 0);
 });
 
 test('escrivaninha e maquete publicadas não expõem RA de ensaio', () => {
