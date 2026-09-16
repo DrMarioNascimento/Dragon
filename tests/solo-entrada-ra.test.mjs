@@ -131,7 +131,7 @@ test('percursoPronto do caminho velho (escrivaninha primeiro) não abre a ordena
     'senão a Janela abre já concluída e o botão pula para o puzzle');
 });
 
-test('só retoma mosaico depois de Janela → Sala → escrivaninha/maquete', () => {
+test('pós-abertura nunca retoma mosaico: mesmo percurso completo recomeça na Janela', () => {
   const store = new Map();
   store.set(KEY, JSON.stringify({
     phase: 'mosaico', key: 'sete', percursoPronto: true,
@@ -139,8 +139,19 @@ test('só retoma mosaico depois de Janela → Sala → escrivaninha/maquete', ()
     mosaico: [{ id: 'F01' }]
   }));
   const { ctx } = carregarPonte(store);
-  assert.equal(ctx.state.phase, 'mosaico');
-  assert.equal(ctx.state.percursoEtapa, 'escrivaninha');
+  assert.equal(ctx.state.phase, 'percurso3d');
+  assert.equal(ctx.state.percursoEtapa, 'janela');
+  assert.equal(ctx.state.percursoPronto, false);
+});
+
+test('briefing salvo também recomeça na Janela, não no seletor de papéis', () => {
+  const store = new Map();
+  store.set(KEY, JSON.stringify({
+    phase: 'briefing', key: 'sete', percursoPronto: false
+  }));
+  const { ctx } = carregarPonte(store);
+  assert.equal(ctx.state.phase, 'percurso3d');
+  assert.equal(ctx.state.percursoEtapa, 'janela');
 });
 
 test('Começar / Entrar na casa ignora snapshot da nuvem (não volta à ordenação)', () => {

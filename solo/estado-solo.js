@@ -56,7 +56,7 @@
       return;
     }
     try{sessionStorage.removeItem("ac:solo-integral:v1")}catch(e){}
-    state.phase=x.phase==="briefing"?"briefing":"percurso3d";
+    state.phase="percurso3d";
     state.percursoEtapa="janela";
     state.atividades=[];
     state.atividadeI=0;
@@ -75,8 +75,8 @@
       state.phase=x.phase;state.key=x.key;state.i=Number(x.i)||0;state.order=Array.isArray(x.order)?x.order:[0,1,2,3];state.pick=x.pick==null?null:x.pick;state.seen=Array.isArray(x.seen)?x.seen:[];state.facts=x.facts||{};state.answers=x.answers||{};state.scoreFacts=Number(x.scoreFacts)||0;state.correct=Number(x.correct)||0;
       var intro=x.phase==="briefing"||x.phase==="percurso3d"||x.phase==="sensor";
       state.percursoPronto=!!x.percursoPronto;state.percursoResultado=x.percursoResultado||null;
-      if(!chegouPelaJanela(x)&&(intro||faseOrdenacaoFatos(x.phase))){
-        aplicarIntroIncompleta(intro?x:{phase:"percurso3d"});
+      if(faseOrdenacaoFatos(x.phase) || (intro && !chegouPelaJanela(x))){
+        aplicarIntroIncompleta(faseOrdenacaoFatos(x.phase)?{phase:"percurso3d"}:x);
       }else{
         state.percursoEtapa=state.percursoPronto&&x.percursoEtapa==="escrivaninha"?"escrivaninha":"janela";
         state.atividades=Array.isArray(x.atividades)?x.atividades:parAtividades();state.atividadeI=Number(x.atividadeI)||0;state.sensorPronto=!!x.sensorPronto;state.sensorTempos=Array.isArray(x.sensorTempos)?x.sensorTempos:[];

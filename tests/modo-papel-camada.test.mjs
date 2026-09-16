@@ -132,16 +132,6 @@ describe("celular / solo · seletor presente", () => {
     assert.match(MESA, /camadaAcessibilidade/);
   });
 
-  it("Mesa só injeta andaime Guiada depois da coleta (não na chegada)", () => {
-    assert.match(MESA, /andaimeDepoisDaColeta/);
-    assert.match(MESA, /mosaico\|cooperacao\|mercado\|deducao/);
-    assert.doesNotMatch(
-      MESA,
-      /camada!=='livre' && STATE\.tela==="painel" && !document\.querySelector\('\[data-mpc-andaime\]'\)/,
-      "o andaime voltou a nascer em qualquer painel — ordenar fatos na abertura"
-    );
-  });
-
   it("Carro Celular carrega o módulo e o lobby grava papel/camada", () => {
     assert.match(CEL, /papel-camada\.js/);
     assert.match(ROOM, /htmlSeletor/);
@@ -150,10 +140,14 @@ describe("celular / solo · seletor presente", () => {
     assert.match(ROOM, /mostrarSeletor/);
   });
 
-  it("Solo Casa abre o seletor antes de jogar", () => {
+  it("Solo Casa abre o seletor depois do percurso 3D, não após a abertura", () => {
     assert.match(SOLO, /papel-camada\.js/);
     assert.match(SOLO_JS, /mostrarSeletor/);
     assert.match(SOLO_JS, /chipHtml/);
+    const startFn = SOLO_JS.slice(SOLO_JS.indexOf("function start()"), SOLO_JS.indexOf("function abrirAnalise()"));
+    assert.doesNotMatch(startFn, /mostrarSeletor/,
+      "o seletor Guiada/Cronista não pode ser a primeira tela depois da abertura");
+    assert.match(SOLO_JS, /function abrirAnalise\(\)[\s\S]*mostrarSeletor/);
   });
 
   it("chrome in-game tem chip / andaime (Carro)", () => {

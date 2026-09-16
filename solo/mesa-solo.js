@@ -101,7 +101,15 @@ function header(){
   }catch(e){}
   return '<div class="shell"><div class="top"><div class="brand">MOSAICO · MODO SOLO</div><div class="badge">A Casa da Costa · 1867</div>'+chip+'</div>';
 }
-async function load(){try{const r=await fetch('../v1/casos/casa-da-costa.json?v=20260902-banco');if(!r.ok)throw Error();state.caso=await r.json();state.key=proxima();}catch(e){app.innerHTML=header()+'<div class="hero pf-card"><span class="k">Falha de carregamento</span><h2>O caso não pôde ser aberto.</h2><p class="muted">Recarregue a página quando a conexão estiver disponível.</p></div></div>';return;}render();}
+async function load(){try{const r=await fetch('../v1/casos/casa-da-costa.json?v=20260902-banco');if(!r.ok)throw Error();state.caso=await r.json();state.key=proxima();}catch(e){app.innerHTML=header()+'<div class="hero pf-card"><span class="k">Falha de carregamento</span><h2>O caso não pôde ser aberto.</h2><p class="muted">Recarregue a página quando a conexão estiver disponível.</p></div></div>';return;}
+  /* Pós-abertura a primeira tela jogável é a Janela, não o hub nem o
+     seletor Guiada (“Coloque os fatos na ordem certa”). Restore ainda pode
+     retomar sala/escrivaninha a meio. */
+  if(state.phase==='home'){
+    state.percursoEtapa='janela';
+    state.phase='percurso3d';
+  }
+  render();}
 /* A pilula de conta (#mosaico-account, de firebase-user.js) e position:fixed
    no canto superior direito, com z-index 99990. O cabecalho do Solo poe a
    badge do caso e os chips de papel/camada exatamente ali: medido a 375px,
@@ -177,11 +185,11 @@ function alternarTelaCheia(btn){
      continuar —, nao o mesmo quadro de novo no topo da tela. */
   if(!cheia)window.scrollTo({top:0});
 }
-function percurso3d(){const e=state.percursoEtapa,scene=e==='janela'?imersivo('1 / 4 · Chegada pela estrada','<iframe id="solo-percurso" title="A Janela do Norte" src="../v1/MOSAICO-26-a-janela-do-norte.html?embed=1" allow="camera; accelerometer; gyroscope; magnetometer"></iframe>'):imersivo('3 / 4 · Sob outra luz','<iframe id="solo-percurso" title="Escrivaninha da Casa da Costa" src="../v1/AC-escrivaninha.html?demo=solo" allow="camera; xr-spatial-tracking; accelerometer; gyroscope; magnetometer; fullscreen" allowfullscreen></iframe>'),texto=e==='janela'?'Chegue pela estrada e aponte a Janela do Norte para entrar na casa.':'Na escrivaninha, siga até o registro: a maquete abre na sequência para fechar a etapa final do percurso.',quadro=state.percursoPronto?'<div class="result pf-inset"><div class="score">'+esc((state.percursoResultado&&state.percursoResultado.score)||0)+'</div><p class="lead">Janela do Norte, Sala às Escuras, escrivaninha e maquete foram concluídas.</p></div>':scene;return '<span class="k">PERCURSO 3D · '+(e==='janela'?'CHEGADA':'ESCRIVANINHA')+'</span><h2>Da estrada à maquete.</h2><p class="lead">'+texto+'</p>'+quadro+'<button class="btn ghost" onclick="state.i=0;state.phase=\'puzzle\';newPuzzle();render()" '+(state.percursoPronto?'':'disabled')+'>'+(state.percursoPronto?'Passagem revelada · continuar':'Conclua a etapa atual')+'</button>';}
+function percurso3d(){const e=state.percursoEtapa,scene=e==='janela'?imersivo('1 / 4 · Chegada pela estrada','<iframe id="solo-percurso" title="A Janela do Norte" src="../v1/MOSAICO-26-a-janela-do-norte.html?embed=1" allow="camera; accelerometer; gyroscope; magnetometer"></iframe>'):imersivo('3 / 4 · Sob outra luz','<iframe id="solo-percurso" title="Escrivaninha da Casa da Costa" src="../v1/AC-escrivaninha.html?demo=solo" allow="camera; xr-spatial-tracking; accelerometer; gyroscope; magnetometer; fullscreen" allowfullscreen></iframe>'),texto=e==='janela'?'Chegue pela estrada e aponte a Janela do Norte para entrar na casa.':'Na escrivaninha, siga até o registro: a maquete abre na sequência para fechar a etapa final do percurso.',quadro=state.percursoPronto?'<div class="result pf-inset"><div class="score">'+esc((state.percursoResultado&&state.percursoResultado.score)||0)+'</div><p class="lead">Janela do Norte, Sala às Escuras, escrivaninha e maquete foram concluídas.</p></div>':scene;return '<span class="k">PERCURSO 3D · '+(e==='janela'?'CHEGADA':'ESCRIVANINHA')+'</span><h2>Da estrada à maquete.</h2><p class="lead">'+texto+'</p>'+quadro+'<button class="btn ghost" onclick="abrirAnalise()" '+(state.percursoPronto?'':'disabled')+'>'+(state.percursoPronto?'Passagem revelada · continuar':'Conclua a etapa atual')+'</button>';}
 function abrirAtividades(){state.atividades=parAtividades();state.atividadeI=0;state.sensorPronto=false;state.phase='sensor';render();}
 function sensor(){let id=state.atividades[state.atividadeI],a=ATIVIDADE[id];return '<span class="k">ATIVIDADE SENSORIAL 2 DE 4</span><h2>'+esc(a.titulo)+'</h2><p class="lead">Conclua esta etapa para seguir para a escrivaninha.</p>'+(state.sensorPronto?'<div class="result pf-inset"><p class="lead">Atividade concluída. A próxima etapa foi liberada.</p></div>':imersivo('2 / 4 · '+a.titulo,'<iframe id="solo-sensor" title="'+esc(a.titulo)+'" src="'+esc(a.arquivo)+'" allow="camera; xr-spatial-tracking; accelerometer; gyroscope; magnetometer"></iframe>'))+'<button class="btn ghost" onclick="confirmarSensor()" '+(state.sensorPronto?'':'disabled')+'>'+(state.sensorPronto?'Atividade concluída · continuar':'Conclua a tarefa no quadro')+'</button>';
 }
-function confirmarSensor(){if(!state.sensorPronto)return;if(state.atividadeI<state.atividades.length-1){state.atividadeI++;state.sensorPronto=false;render();return;}if(state.percursoEtapa==='janela'){state.percursoEtapa='escrivaninha';state.sensorPronto=false;state.phase='percurso3d';render();return;}state.i=0;state.phase='puzzle';newPuzzle();render();}
+function confirmarSensor(){if(!state.sensorPronto)return;if(state.atividadeI<state.atividades.length-1){state.atividadeI++;state.sensorPronto=false;render();return;}if(state.percursoEtapa==='janela'){state.percursoEtapa='escrivaninha';state.sensorPronto=false;state.phase='percurso3d';render();return;}abrirAnalise();}
 window.addEventListener('message',function(ev){if(ev.origin!==location.origin||!ev.data||ev.data.mosaico!=='tarefa-ok'||state.phase!=='sensor')return;state.sensorPronto=true;state.sensorTempos[state.atividadeI]=Math.max(0,Number(ev.data.tempoMs)||0);render();});
 window.addEventListener('message',function(ev){
  if(ev.origin!==location.origin||!ev.data||state.phase!=='percurso3d')return;
@@ -192,12 +200,15 @@ window.addEventListener('message',function(ev){
  if((ev.data.mosaico==='ac-solo-maquete-completa'||ev.data.mosaico==='ac-solo-completo')&&state.percursoEtapa==='escrivaninha'){state.percursoPronto=true;state.percursoResultado={score:Number(ev.data.score)||0,evidence:Array.isArray(ev.data.evidence)?ev.data.evidence:[]};render();}
 });
 function start(){
-  function go(){
-    if(state.apuracaoTimer){clearTimeout(state.apuracaoTimer);state.apuracaoTimer=null;}
-    marcarUsada();state.i=0;state.seen=[];state.facts={};state.answers={};state.scoreFacts=0;
-    state._partidaNova=true;state.percursoPronto=false;state.percursoResultado=null;state.percursoEtapa='janela';state.atividades=[];state.atividadeI=0;state.sensorPronto=false;state.sensorTempos=[];state.mosaico=[];state.mosaicoPick=null;state.mercadoEtapa=0;state.mercadoEscolhas=[];state.pontuacao=null;state.resultadoVista='apuracao';state.apuracaoEtapa=0;
-    state.phase='briefing';render();
-  }
+  if(state.apuracaoTimer){clearTimeout(state.apuracaoTimer);state.apuracaoTimer=null;}
+  marcarUsada();state.i=0;state.seen=[];state.facts={};state.answers={};state.scoreFacts=0;
+  state._partidaNova=true;state.percursoPronto=false;state.percursoResultado=null;state.percursoEtapa='janela';state.atividades=[];state.atividadeI=0;state.sensorPronto=false;state.sensorTempos=[];state.mosaico=[];state.mosaicoPick=null;state.mercadoEtapa=0;state.mercadoEscolhas=[];state.pontuacao=null;state.resultadoVista='apuracao';state.apuracaoEtapa=0;
+  abrirPercurso3D();
+}
+/* O seletor Guiada/Cronista (“Coloque os fatos na ordem certa”) só depois
+   do percurso 3D. Se nascer no Começar, vira a primeira tela após a abertura. */
+function abrirAnalise(){
+  function go(){state.i=0;state.phase='puzzle';newPuzzle();render();}
   if(window.MosaicoPapelCamada && !state._papelOk){
     window.MosaicoPapelCamada.mostrarSeletor({caso:'casa-da-costa'}).then(function(){state._papelOk=true;go();});
     return;

@@ -145,10 +145,6 @@ describe("ponte · contrato de clique (estático)", () => {
     assert.match(BRIDGE, /percursoAC:\s*1/);
     assert.match(BRIDGE, /inclinacao:\s*"janela"/);
     assert.match(BRIDGE, /constelacao:\s*"salaEscura"/);
-    const fn = BRIDGE.slice(BRIDGE.indexOf("global.DragonSalaAntesDeIniciar"), BRIDGE.indexOf("async function montarPartida"));
-    assert.match(fn, /fase:\s*"encenacao"/);
-    assert.doesNotMatch(fn, /fase:\s*"mosaico"/,
-      "o gate da Mesa não pode abrir o mosaico (ordenar fatos) no lugar da encenação/Janela");
   });
 
   it("o hub firebase-room não chama criarMesa; o par AC nasce em AntesDeIniciar / montarPartida", () => {

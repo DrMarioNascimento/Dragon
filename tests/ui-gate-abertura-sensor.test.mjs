@@ -117,14 +117,16 @@ describe("abertura · Carro Celular / Solo / Telão wiring", () => {
     assert.match(ler("abertura-casa.js"), /function mostrar\(/);
   });
 
-  it("Solo: após a abertura, Entrar na casa abre a Janela do Norte — não a ordenação de fatos", () => {
+  it("Solo: após a abertura a primeira tela jogável é a Janela do Norte", () => {
     const solo = ler("solo/mesa-solo.js");
-    assert.match(solo, /onclick="abrirPercurso3D\(\)"/);
     assert.match(solo, /abrirPercurso3D\(\)\{[\s\S]*percursoEtapa='janela'[\s\S]*phase='percurso3d'/);
     assert.match(solo, /1 \/ 4 · Chegada pela estrada/);
     assert.match(solo, /MOSAICO-26-a-janela-do-norte\.html\?embed=1/);
-    const startFn = solo.slice(solo.indexOf("function start()"), solo.indexOf("function currentId()"));
-    assert.doesNotMatch(startFn, /phase='mosaico'|phase='puzzle'|htmlAndaime/);
+    assert.match(solo, /if\(state\.phase==='home'\)[\s\S]*phase='percurso3d'/);
+    const startFn = solo.slice(solo.indexOf("function start()"), solo.indexOf("function abrirAnalise()"));
+    assert.doesNotMatch(startFn, /mostrarSeletor|htmlAndaime|phase='mosaico'|phase='puzzle'/);
+    assert.match(startFn, /abrirPercurso3D\(\)/);
+    assert.match(solo, /function abrirAnalise\(\)[\s\S]*mostrarSeletor/);
     const cloud = ler("solo/estado-solo.js");
     assert.match(cloud, /faseOrdenacaoFatos/);
     assert.match(cloud, /chegouPelaJanela/);
