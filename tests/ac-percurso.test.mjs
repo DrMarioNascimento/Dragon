@@ -8,7 +8,9 @@ import {readFileSync} from 'node:fs';
 
 test('percurso da Mesa segue sala escura, escrivaninha e maquete depois da Janela do Norte',()=>{
  const src=readFileSync('v1/js/ac-percurso.js','utf8');
+ const html=readFileSync('v1/AC-percurso.html','utf8');
  const atividades=readFileSync('v1/js/atividades-casa-da-costa.js','utf8');
+ assert.match(html,/ac-percurso\.js\?v=/);
  assert.match(atividades,/PAR_CANONICO = \{ inclinacao: "janela", constelacao: "salaEscura" \}/);
  assert.doesNotMatch(atividades,/\bn % opcoes\.length\b/);
  assert.match(src,/sala:'MOSAICO-26-a-sala-as-escuras\.html'/);

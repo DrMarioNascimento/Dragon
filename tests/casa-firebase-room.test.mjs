@@ -147,6 +147,16 @@ describe("ponte · contrato de clique (estático)", () => {
     assert.match(BRIDGE, /constelacao:\s*"salaEscura"/);
   });
 
+  it("o hub firebase-room não chama criarMesa; o par AC nasce em AntesDeIniciar / montarPartida", () => {
+    const plain = stripComments(ROOM);
+    assert.equal(/criarMesa\s*\(/.test(plain), false,
+      "firebase-room passou a criar a mesa pelo wrapper da Casa — este teste precisa mudar junto");
+    assert.match(ROOM, /DragonSalaAntesDeIniciar/);
+    assert.match(ROOM, /await setDoc\(roomRef\(code\)/);
+    assert.match(BRIDGE, /patchPercursoAC/);
+    assert.match(BRIDGE, /atualizarMesa\(codigo, canon\.patch\)/);
+  });
+
   it("AoEntrar devolve personagem e moedas no create", () => {
     assert.match(BRIDGE, /personagem:\s*personagem/);
     assert.match(BRIDGE, /moedas:\s*moedasIniciais/);
