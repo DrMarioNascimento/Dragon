@@ -102,11 +102,19 @@ function header(){
   return '<div class="shell"><div class="top"><div class="brand">MOSAICO · MODO SOLO</div><div class="badge">A Casa da Costa · 1867</div>'+chip+'</div>';
 }
 async function load(){try{const r=await fetch('../v1/casos/casa-da-costa.json?v=20260902-banco');if(!r.ok)throw Error();state.caso=await r.json();state.key=proxima();}catch(e){app.innerHTML=header()+'<div class="hero pf-card"><span class="k">Falha de carregamento</span><h2>O caso não pôde ser aberto.</h2><p class="muted">Recarregue a página quando a conexão estiver disponível.</p></div></div>';return;}
-  /* Pós-abertura a primeira tela jogável é a Janela, não o hub nem o
-     seletor Guiada (“Coloque os fatos na ordem certa”). Restore ainda pode
-     retomar sala/escrivaninha a meio. */
+  /* Pós-abertura a primeira tela jogável é a Janela, não o hub, o seletor
+     Guiada (“Coloque os fatos na ordem certa”), a Sala nem a escrivaninha.
+     _partidaNova impede o restore/Firebase de clobberar essa chegada. */
   if(state.phase==='home'){
+    try{sessionStorage.removeItem('ac:solo-integral:v1')}catch(_){}
+    state._partidaNova=true;
+    state.percursoPronto=false;
+    state.percursoResultado=null;
     state.percursoEtapa='janela';
+    state.atividades=[];
+    state.atividadeI=0;
+    state.sensorPronto=false;
+    state.sensorTempos=[];
     state.phase='percurso3d';
   }
   render();}

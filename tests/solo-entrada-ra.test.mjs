@@ -43,12 +43,12 @@ test('checkpoint incompleto do Solo recomeça na Janela do Norte, não na escriv
   const cloud = ler('solo/estado-solo.js');
   assert.doesNotMatch(cloud, /percursoEtapa==='janela'\?'janela':'escrivaninha'/,
     'o default "qualquer coisa → escrivaninha" voltou: snapshot antigo abre a mesa como 1ª atividade');
-  assert.match(cloud, /chegouPelaJanela/);
-  assert.match(cloud, /faseOrdenacaoFatos/);
+  assert.match(cloud, /aplicarIntroIncompleta/);
   assert.match(cloud, /state\._partidaNova/);
   assert.match(cloud, /state\.percursoEtapa="janela"/);
   assert.match(cloud, /mosaico-cloud-ready/);
   assert.match(ler('solo/mesa-solo.js'), /abrirPercurso3D\(\)\{[\s\S]*percursoEtapa='janela'/);
+  assert.match(ler('solo/mesa-solo.js'), /if\(state\.phase==='home'\)[\s\S]*_partidaNova=true/);
   assert.match(ler('solo/mesa-solo.js'), /MOSAICO-26-a-janela-do-norte\.html\?embed=1/);
   assert.doesNotMatch(ler('solo/mesa-solo.js'), /PERCURSO 3D E RA/);
 });
@@ -171,15 +171,26 @@ test('Começar / Entrar na casa ignora snapshot da nuvem (não volta à ordenaç
   assert.equal(ctx.state.percursoEtapa, 'janela');
 });
 
-test('escrivaninha só retoma depois da sala ter sido aberta', () => {
-  const store = new Map();
-  store.set(KEY, JSON.stringify({
+test('pós-abertura não retoma sala nem escrivaninha: volta à Janela', () => {
+  const sala = new Map();
+  sala.set(KEY, JSON.stringify({
+    phase: 'sensor', key: 'sete', percursoEtapa: 'janela',
+    percursoPronto: false, atividades: ['salaEscura'], atividadeI: 0
+  }));
+  const { ctx: ctxSala } = carregarPonte(sala);
+  assert.equal(ctxSala.state.phase, 'percurso3d');
+  assert.equal(ctxSala.state.percursoEtapa, 'janela');
+  assert.equal(ctxSala.state.atividades.length, 0);
+
+  const mesa = new Map();
+  mesa.set(KEY, JSON.stringify({
     phase: 'percurso3d', key: 'sete', percursoEtapa: 'escrivaninha',
     percursoPronto: false, atividades: ['salaEscura']
   }));
-  const { ctx } = carregarPonte(store);
-  assert.equal(ctx.state.percursoEtapa, 'escrivaninha');
-  assert.equal(ctx.state.phase, 'percurso3d');
+  const { ctx: ctxMesa } = carregarPonte(mesa);
+  assert.equal(ctxMesa.state.percursoEtapa, 'janela');
+  assert.equal(ctxMesa.state.phase, 'percurso3d');
+  assert.equal(ctxMesa.state.atividades.length, 0);
 });
 
 test('escrivaninha e maquete publicadas não expõem RA de ensaio', () => {

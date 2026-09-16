@@ -38,8 +38,8 @@ test('Solo Casa preserva as etapas da experiência da Mesa',()=>{
 test('checkpoint e carimbo incluem o Solo integral',()=>{
   for(const campo of ['percursoEtapa','atividades','atividadeI','sensorPronto','sensorTempos','mosaico','mercadoEtapa','mercadoEscolhas','pontuacao','resultadoVista','apuracaoEtapa'])
     assert.ok(cloud.includes(campo),campo);
-  assert.match(html,/mesa-solo\.js\?v=20260916-janela-2/);
-  assert.match(html,/estado-solo\.js\?v=20260916-janela-2/);
+  assert.match(html,/mesa-solo\.js\?v=20260916-janela-3/);
+  assert.match(html,/estado-solo\.js\?v=20260916-janela-3/);
 });
 
 test('percurso solo mantém 3D, RA, escrivaninha e maquete com três chaves',()=>{

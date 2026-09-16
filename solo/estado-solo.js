@@ -16,45 +16,14 @@
     try{localStorage.setItem(KEY,txt)}catch(e){}
     if(force&&window.MosaicoUserCloud&&window.MosaicoUserCloud.sincronizarAgora)window.MosaicoUserCloud.sincronizarAgora();
   }
-  /* Snapshot antigo sem percursoEtapa (ou com lixo) caía em escrivaninha:
-     a primeira tela jogável virava a mesa. Só retoma a escrivaninha quando o
-     checkpoint prova que janela + sala já passaram (atividades preenchidas).
-
-     Outro buraco, pós-PR #39: save em puzzle/mosaico ("Coloque a noite em
-     ordem" / trocar peças) era restaurado DEPOIS da abertura, mesmo sem a
-     chegada pela Janela. percursoPronto do caminho velho (escrivaninha
-     primeiro) não conta — senão o restore pula o percurso 3D. */
-  function passouSala(x){
-    return !!(x&&Array.isArray(x.atividades)&&x.atividades.length);
-  }
-  function chegouPelaJanela(x){
-    return !!(x&&x.percursoPronto&&x.percursoEtapa==="escrivaninha"&&passouSala(x));
-  }
-  function faseOrdenacaoFatos(phase){
-    return phase==="puzzle"||phase==="fact"||phase==="mosaico"||phase==="mercado"||phase==="relations"||phase==="map"||phase==="decision"||phase==="result";
-  }
-  function aplicarIntroIncompleta(x){
+  /* A abertura do Solo toca SEMPRE antes do jogo. Snapshot em mosaico/puzzle
+     ("Coloque a noite em ordem"), seletor Guiada, Sala (2/4) ou escrivaninha
+     (3/4) era restaurado DEPOIS dela e virava a primeira tela — o playtest
+     da PR #39. percursoPronto do caminho velho (escrivaninha primeiro) também
+     não conta. Depois da abertura a primeira tela jogável é a Janela. */
+  function aplicarIntroIncompleta(){
     state.percursoPronto=false;
     state.percursoResultado=null;
-    var etapa=x.percursoEtapa;
-    if(x.phase==="sensor"&&passouSala(x)){
-      state.phase="sensor";
-      state.percursoEtapa="janela";
-      state.atividades=x.atividades;
-      state.atividadeI=Number(x.atividadeI)||0;
-      state.sensorPronto=!!x.sensorPronto;
-      state.sensorTempos=Array.isArray(x.sensorTempos)?x.sensorTempos:[];
-      return;
-    }
-    if(x.phase==="percurso3d"&&etapa==="escrivaninha"&&passouSala(x)){
-      state.phase="percurso3d";
-      state.percursoEtapa="escrivaninha";
-      state.atividades=x.atividades;
-      state.atividadeI=Number(x.atividadeI)||0;
-      state.sensorPronto=false;
-      state.sensorTempos=Array.isArray(x.sensorTempos)?x.sensorTempos:[];
-      return;
-    }
     try{sessionStorage.removeItem("ac:solo-integral:v1")}catch(e){}
     state.phase="percurso3d";
     state.percursoEtapa="janela";
@@ -65,22 +34,15 @@
   }
   function restore(force){
     if(typeof state==="undefined"||!state||!state.caso)return false;
-    /* Começar / Entrar na casa ganha do snapshot da nuvem: senão o Firebase
-       tardio devolve mosaico/puzzle por cima da Janela do Norte. */
+    /* Começar / Entrar na casa / load() pós-abertura ganham do snapshot:
+       senão o Firebase tardio devolve mosaico/sala por cima da Janela. */
     if(state._partidaNova)return false;
     if(restaurado&&!force)return false;
     restaurado=true;var x=null;try{x=JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){}
     if(!x||!x.key||!state.caso.partidas||!state.caso.partidas[x.key])return false;
-      if(x.phase&&x.phase!=="home"){
-      state.phase=x.phase;state.key=x.key;state.i=Number(x.i)||0;state.order=Array.isArray(x.order)?x.order:[0,1,2,3];state.pick=x.pick==null?null:x.pick;state.seen=Array.isArray(x.seen)?x.seen:[];state.facts=x.facts||{};state.answers=x.answers||{};state.scoreFacts=Number(x.scoreFacts)||0;state.correct=Number(x.correct)||0;
-      var intro=x.phase==="briefing"||x.phase==="percurso3d"||x.phase==="sensor";
-      state.percursoPronto=!!x.percursoPronto;state.percursoResultado=x.percursoResultado||null;
-      if(faseOrdenacaoFatos(x.phase) || (intro && !chegouPelaJanela(x))){
-        aplicarIntroIncompleta(faseOrdenacaoFatos(x.phase)?{phase:"percurso3d"}:x);
-      }else{
-        state.percursoEtapa=state.percursoPronto&&x.percursoEtapa==="escrivaninha"?"escrivaninha":"janela";
-        state.atividades=Array.isArray(x.atividades)?x.atividades:parAtividades();state.atividadeI=Number(x.atividadeI)||0;state.sensorPronto=!!x.sensorPronto;state.sensorTempos=Array.isArray(x.sensorTempos)?x.sensorTempos:[];
-      }
+    if(x.phase&&x.phase!=="home"){
+      state.key=x.key;state.i=Number(x.i)||0;state.order=Array.isArray(x.order)?x.order:[0,1,2,3];state.pick=x.pick==null?null:x.pick;state.seen=Array.isArray(x.seen)?x.seen:[];state.facts=x.facts||{};state.answers=x.answers||{};state.scoreFacts=Number(x.scoreFacts)||0;state.correct=Number(x.correct)||0;
+      aplicarIntroIncompleta();
       state.mosaico=Array.isArray(x.mosaico)?x.mosaico:[];state.mosaicoPick=x.mosaicoPick==null?null:Number(x.mosaicoPick);
       state.mercadoEtapa=Number(x.mercadoEtapa)||0;state.mercadoEscolhas=Array.isArray(x.mercadoEscolhas)?x.mercadoEscolhas:[];state.contraponto=x.contraponto==null?null:Number(x.contraponto);state.pontuacao=x.pontuacao||null;state.resultadoVista=x.resultadoVista==='podio'?'podio':'apuracao';state.apuracaoEtapa=Math.min(5,Math.max(0,Number(x.apuracaoEtapa)||0));
       try{render()}catch(e){console.warn("MOSAICO Solo: não foi possível restaurar a tela",e)}

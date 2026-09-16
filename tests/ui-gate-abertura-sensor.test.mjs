@@ -128,8 +128,8 @@ describe("abertura · Carro Celular / Solo / Telão wiring", () => {
     assert.match(startFn, /abrirPercurso3D\(\)/);
     assert.match(solo, /function abrirAnalise\(\)[\s\S]*mostrarSeletor/);
     const cloud = ler("solo/estado-solo.js");
-    assert.match(cloud, /faseOrdenacaoFatos/);
-    assert.match(cloud, /chegouPelaJanela/);
+    assert.match(cloud, /aplicarIntroIncompleta/);
+    assert.match(cloud, /state\._partidaNova/);
   });
 });
 
