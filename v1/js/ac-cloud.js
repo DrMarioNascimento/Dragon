@@ -15,3 +15,8 @@
  };
  w.ACPrepareGroups=async(...args)=>(await cloud()).prepare(...args);
 })(window);
+(function(){
+  var s=document.createElement('script');
+  s.src=new URL('abertura-video-casa.js?v=20260917-video-so', document.currentScript.src).href;
+  document.head.appendChild(s);
+})();
