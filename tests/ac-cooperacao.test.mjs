@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { createRoom, apply, snapshot, bonus, createServer, KEY_SOCKET } from '../ferramentas/ac-cooperacao.mjs';
+import { createRoom, apply, snapshot, bonus, createServer, FECHADURAS } from '../ferramentas/ac-cooperacao.mjs';
+import { CAPITULOS } from '../ferramentas/ac-maquete-state.mjs';
+const ESCONDERIJOS = CAPITULOS.map((c) => c.esconderijo);
 import { resolve } from 'node:path';
 
 test('papeis assimetricos nao podem pular a acao do colega',()=>{
@@ -74,7 +76,7 @@ test('maquete HTTP: tres chaves, troca de papeis e reconexao sem perder pontos',
     const send=async(role,type,extra={})=>(await fetch(base+'/api/ac/action?'+query(role),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type,...extra})})).status;
     let light=await connect('luz'),knowledge=await connect('conhecimento');
     await light.next(s=>s.online.length===2);await knowledge.next(s=>s.online.length===2);
-    for(const [level,object] of ['rosa','relogio','armario-oeste'].entries()){
+    for(const [level,object] of ESCONDERIJOS.entries()){
       const explorer=level===1?'conhecimento':'luz',guide=level===1?'luz':'conhecimento';
       assert.equal(await send(explorer,'maquete_orientar'),409);
       assert.equal(await send(guide,'maquete_orientar'),200);
@@ -90,7 +92,7 @@ test('maquete HTTP: tres chaves, troca de papeis e reconexao sem perder pontos',
         assert.equal(restored.maquete.key,true);assert.equal(restored.maquete.score,0);assert.equal(restored.maquete.ready,true);
       }
       assert.equal(await send(explorer,'maquete_encaixar'),409,'sem posicao transmitida nao encaixa');
-      assert.equal(await send(explorer,'maquete_mover',{tip:KEY_SOCKET}),200);
+      assert.equal(await send(explorer,'maquete_mover',{tip:FECHADURAS[level]}),200);
       assert.equal(await send(explorer,'maquete_encaixar'),200);
       assert.equal(await send(explorer,'maquete_encaixar'),409);
       const advanced=await light.next(s=>s.maquete.level===level+1);assert.equal(advanced.maquete.score,(level+1)*8);
@@ -107,12 +109,12 @@ test('checkpoint conserva chaves e pontos mas exige reconectar a dupla',async()=
  const {saveRooms,loadRooms}=await import('../ferramentas/ac-room-store.mjs');const dir=mkdtempSync(join(tmpdir(),'ac-checkpoint-')),file=join(dir,'salas.json');
  try{
   const room=createRoom();room.stage='registrado';apply(room,'conhecimento',{type:'iniciar_maquete'});room.peers.set('a',{role:'luz'});room.peers.set('b',{role:'conhecimento'});
-  apply(room,'conhecimento',{type:'maquete_orientar'});apply(room,'luz',{type:'maquete_examinar',object:'rosa'});apply(room,'luz',{type:'maquete_mover',tip:KEY_SOCKET});apply(room,'luz',{type:'maquete_encaixar'});
-  apply(room,'luz',{type:'maquete_orientar'});apply(room,'conhecimento',{type:'maquete_examinar',object:'relogio'});
+  apply(room,'conhecimento',{type:'maquete_orientar'});apply(room,'luz',{type:'maquete_examinar',object:ESCONDERIJOS[0]});apply(room,'luz',{type:'maquete_mover',tip:FECHADURAS[0]});apply(room,'luz',{type:'maquete_encaixar'});
+  apply(room,'luz',{type:'maquete_orientar'});apply(room,'conhecimento',{type:'maquete_examinar',object:ESCONDERIJOS[1]});
   room.beam={origin:[0,0,1],target:[0,0,0],at:Date.now()};saveRooms(file,new Map([[room.id,room]]));
   const restored=loadRooms(file).get(room.id);assert.equal(restored.maquete.level,1);assert.equal(restored.maquete.score,8);assert.equal(restored.maquete.key,true);assert.deepEqual(restored.tokens,room.tokens);assert.equal(restored.peers.size,0);assert.equal(restored.beam,null);
   assert.equal(apply(restored,'conhecimento',{type:'maquete_encaixar'}),false);
-  restored.peers.set('a',{role:'luz'});restored.peers.set('b',{role:'conhecimento'});apply(restored,'conhecimento',{type:'maquete_mover',tip:KEY_SOCKET});assert.equal(apply(restored,'conhecimento',{type:'maquete_encaixar'}),true);assert.equal(restored.maquete.score,16);
+  restored.peers.set('a',{role:'luz'});restored.peers.set('b',{role:'conhecimento'});apply(restored,'conhecimento',{type:'maquete_mover',tip:FECHADURAS[1]});assert.equal(apply(restored,'conhecimento',{type:'maquete_encaixar'}),true);assert.equal(restored.maquete.score,16);
   writeFileSync(file,'arquivo interrompido');assert.throws(()=>loadRooms(file),/ilegivel/);assert.equal(readFileSync(file,'utf8'),'arquivo interrompido');
  }finally{unlinkSync(file);rmdirSync(dir);}
 });
@@ -145,13 +147,13 @@ test('entrada raiz redireciona preservando convite e carrega recursos relativos'
 
 test('fechadura colaborativa exige ponta recente e transmite posicao apenas ao orientador',()=>{
  const r=createRoom();r.stage='registrado';apply(r,'conhecimento',{type:'iniciar_maquete'});r.peers.set('a',{role:'luz'});r.peers.set('b',{role:'conhecimento'});
- apply(r,'conhecimento',{type:'maquete_orientar'},1000);apply(r,'luz',{type:'maquete_examinar',object:'rosa'},1000);
- assert.equal(apply(r,'conhecimento',{type:'maquete_mover',tip:KEY_SOCKET},1001),false);
+ apply(r,'conhecimento',{type:'maquete_orientar'},1000);apply(r,'luz',{type:'maquete_examinar',object:ESCONDERIJOS[0]},1000);
+ assert.equal(apply(r,'conhecimento',{type:'maquete_mover',tip:FECHADURAS[0]},1001),false);
  assert.equal(apply(r,'luz',{type:'maquete_mover',tip:[NaN,0,0]},1001),false);
  assert.equal(apply(r,'luz',{type:'maquete_mover',tip:[0,0,0]},1001),true);
  assert.equal(apply(r,'luz',{type:'maquete_encaixar'},1002),false);
- apply(r,'luz',{type:'maquete_mover',tip:KEY_SOCKET},1003);
- assert.equal(snapshot(r,1004,'luz').keyMotion,null);assert.deepEqual(snapshot(r,1004,'conhecimento').keyMotion.tip,KEY_SOCKET);
+ apply(r,'luz',{type:'maquete_mover',tip:FECHADURAS[0]},1003);
+ assert.equal(snapshot(r,1004,'luz').keyMotion,null);assert.deepEqual(snapshot(r,1004,'conhecimento').keyMotion.tip,FECHADURAS[0]);
  assert.equal(snapshot(r,3000,'conhecimento').keyMotion,null);assert.equal(apply(r,'luz',{type:'maquete_encaixar'},3000),false);
- apply(r,'luz',{type:'maquete_mover',tip:KEY_SOCKET},3001);assert.equal(apply(r,'luz',{type:'maquete_encaixar'},3002),true);assert.equal(r.keyMotion,null);
+ apply(r,'luz',{type:'maquete_mover',tip:FECHADURAS[0]},3001);assert.equal(apply(r,'luz',{type:'maquete_encaixar'},3002),true);assert.equal(r.keyMotion,null);
 });

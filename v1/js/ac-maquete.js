@@ -1,227 +1,688 @@
-(function(){
+/* A maquete da Casa da Costa — a atividade.
+
+   A cena não decide nada: ela mostra o que o motor (`ac-maquete-state.mjs`)
+   deixou aquele papel ver e manda de volta os atos que o motor aceita. Duas
+   consequências práticas, e as duas são de propósito:
+
+   · quem tem a CHAVE nunca recebe a posição da fechadura — nem escondida no
+     DOM, nem no snapshot. Ela simplesmente não chega ao aparelho dele;
+   · quem tem a FECHADURA não consegue tocar em móvel nenhum: o raycast só
+     roda para o lado da chave.
+
+   A atividade só existe depois que a maquete está POSTA no ambiente. Antes
+   disso a página é uma caixa fechada com um botão. */
+(function () {
   'use strict';
-  const $=id=>document.getElementById(id);let role=new URLSearchParams(location.search).get('papel')||'luz';
-  const solo=new URLSearchParams(location.search).get('demo')==='solo'&&!new URLSearchParams(location.search).has('sala');
-  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let coop=null,online=false,data=null,fallback=false,disposed=false,readStart=null,readingSent=false,soloConcluido=false;
-  let xr=null,hitSource=null,placed=false,hasHit=false,dragging=false,nearLock=false,pending=false,lastLevel=-1,lastReady=null,noticeTimer;
-  const handlers=[];function on(el,type,fn){if(!el)return;el.addEventListener(type,fn);handlers.push(()=>el.removeEventListener(type,fn));}
-  const entrarAtividade=()=>window.ACJanelas?.entrarAtividade();
-  const scene=new THREE.Scene();scene.background=new THREE.Color(0x091515);
-  const camera=new THREE.PerspectiveCamera(40,innerWidth/innerHeight,.015,40);scene.add(camera);
-  let renderer;try{renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});}catch{$('description').textContent='Este navegador não conseguiu abrir o modelo 3D.';return;}
-  renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));renderer.setSize(innerWidth,innerHeight);renderer.outputEncoding=THREE.sRGBEncoding;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.82;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.xr.enabled=true;$('scene').appendChild(renderer.domElement);
-  const controls=new THREE.OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.zoomSpeed=2;controls.minDistance=.18;controls.maxDistance=18;controls.maxPolarAngle=Math.PI*.49;
-  function frame(){
-    const mobile=innerWidth<=700,guide=data&&!data.complete&&data.explorer!==role;
-    const panel=document.querySelector('.instruction').getBoundingClientRect();
-    const manuscript=document.getElementById('manuscript').getBoundingClientRect();
-    // No telefone os painéis vivem na pilha fixa (ac-janelas.js): a casa é
-    // enquadrada no vão real entre o título do capítulo e o topo da pilha.
-    // Pilha escondida (cena livre) não conta — senão o vão vira 0 e a câmera cola.
-    const stack=document.querySelector('.ac-panel-stack'),chapterBox=document.querySelector('.chapter')?.getBoundingClientRect();
-    const stackBox=stack&&stack.getBoundingClientRect(),stackVisible=stackBox&&stackBox.height>8;
-    const stackTop=stackVisible?stackBox.top:panel.height>8?panel.top:innerHeight-24;
-    let top=115,bottom=innerHeight-85;
-    if(mobile&&stackVisible){bottom=stackTop-10;top=Math.max(60,(chapterBox&&chapterBox.height>8?chapterBox.bottom:100)+6);if(bottom-top<130)top=Math.max(48,bottom-130);}
-    else if(mobile){top=guide&&manuscript.height>8?Math.max(190,manuscript.bottom+16):data?.ready||data?.level>0?142:80;bottom=guide&&panel.height>8?Math.max(top+160,panel.top-28):panel.height>8?Math.max(top+160,panel.top-16):innerHeight-24;}
-    const left=mobile?18:panel.width>8?Math.min(panel.right+32,innerWidth*.4):18,right=innerWidth-(mobile?18:35);
-    const usableWidth=Math.max(160,right-left),usableHeight=Math.max(110,bottom-top);
-    const centerX=(left+right)/2,centerY=(top+bottom)/2;
-    camera.setViewOffset(innerWidth,innerHeight,innerWidth/2-centerX,innerHeight/2-centerY,innerWidth,innerHeight);
-    controls.target.copy(model.root.localToWorld(new THREE.Vector3(0,data?.complete?.95:data?.level===2?.65:.52,0)));
-    const distance=Math.max(4.6,2.8/(2*Math.tan(Math.PI/9)*camera.aspect)*(innerWidth/usableWidth),
-      (data?.complete?3.6:3.0)/(2*Math.tan(Math.PI/9))*(innerHeight/usableHeight));
-    camera.position.copy(new THREE.Vector3(1.2,1.2,1.8).normalize().multiplyScalar(distance*(mobile?1.55:1.75)).add(controls.target));controls.update();
-  }
-  scene.add(new THREE.HemisphereLight(0xbed2e4,0x33251b,.60));const sun=new THREE.DirectionalLight(0xffe1b5,1.45);sun.position.set(-2,4,3);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);scene.add(sun);scene.add(new THREE.AmbientLight(0xffffff,.10));const coastFill=new THREE.DirectionalLight(0x9ebed5,.6);coastFill.position.set(3,2,-2);scene.add(coastFill);
-  const floor=new THREE.Mesh(new THREE.PlaneGeometry(30,30),new THREE.MeshStandardMaterial({color:0x071014,roughness:.95}));floor.rotation.x=-Math.PI/2;floor.position.y=-.385;floor.receiveShadow=true;scene.add(floor);
-  const model=createACMaquette();scene.add(model.root);
-  const goldDust=createACGoldDust(model.root,{reduced});let keyFlight=null,lastInspected=null,motion=null,motionTime=0,lastMotionSent=0,motionBusy=false,motionRequest=null,finishing=false;
-  const tipBeacon=new THREE.Mesh(new THREE.SphereGeometry(.009,12,8),new THREE.MeshBasicMaterial({color:0xffe3a1}));tipBeacon.userData.exportExclude=true;tipBeacon.raycast=()=>{};tipBeacon.visible=false;model.root.add(tipBeacon);
-  model.key.userData.exportExclude=true;model.lock.userData.exportExclude=true;
-  frame();
-  const baseMinY=new THREE.Box3().setFromObject(ACMaquetteSpatial.exportModel({root:model.base})).min.y;
-  const placementMatrix=new THREE.Matrix4();let arScale=.5,startingAR=false;
-  const touches=new Map();let pinchDistance=0;
-  function preparation(){return data?.level===0&&!data.ready&&!data.key;}
-  function applyPlacement(){ACMaquetteSpatial.groundedPose(model.root,placementMatrix,arScale,baseMinY);}
-  on(renderer.domElement,'pointerdown',e=>{if(xr){touches.set(e.pointerId,new THREE.Vector2(e.clientX,e.clientY));renderer.domElement.setPointerCapture(e.pointerId);}});
-  on(renderer.domElement,'pointermove',e=>{
-    if(!xr||!touches.has(e.pointerId))return;touches.set(e.pointerId,new THREE.Vector2(e.clientX,e.clientY));
-    if(touches.size!==2||!preparation()){pinchDistance=0;return;}
-    const values=[...touches.values()],distance=values[0].distanceTo(values[1]);
-    if(pinchDistance>0){arScale=THREE.MathUtils.clamp(arScale*distance/pinchDistance,.3,1);if(placed)applyPlacement();}
-    pinchDistance=distance;pressPoint=null;
-  });
-  for(const event of ['pointerup','pointercancel'])on(renderer.domElement,event,e=>{touches.delete(e.pointerId);pinchDistance=0;});
-  $('editor-tools').hidden=!new URLSearchParams(location.search).has('edicao');
-  on($('export-glb'),'click',()=>{
-    const button=$('export-glb');button.disabled=true;button.textContent='Preparando modelo…';
-    try{new THREE.GLTFExporter().parse(ACMaquetteSpatial.exportModel(model),result=>{
-      const url=URL.createObjectURL(new Blob([result],{type:'model/gltf-binary'})),link=document.createElement('a');link.href=url;link.download='a-casa-maquete.glb';link.click();setTimeout(()=>URL.revokeObjectURL(url),30000);button.disabled=false;button.textContent='Baixar modelo GLB';
-    },{binary:true,onlyVisible:false});}catch{button.disabled=false;button.textContent='Baixar modelo GLB';notify('Não foi possível exportar o modelo.');}
-  });
-  on($('reposition'),'click',()=>{if(!xr)return;placed=false;hasHit=false;model.root.visible=false;reticle.visible=false;$('instructions').close();update();});
-  const reticle=new THREE.Mesh(new THREE.RingGeometry(.12,.135,32).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:0xf2d194}));reticle.matrixAutoUpdate=false;reticle.visible=false;scene.add(reticle);
-  const ray=new THREE.Raycaster(),point=new THREE.Vector3(),dragPlane=new THREE.Plane();let pressPoint=null;
-  const allowed=[['rosa','folha','ondas'],['relogio','escrivaninha','louca'],['armario-oeste','armario-sul','armario-norte','armario-leste']];
-  function notify(text){$('notice').textContent=text;$('notice').style.display='block';clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>$('notice').style.display='none',3500);}
-  function cameraNow(){return xr?(renderer.xr.getCamera(camera).cameras[0]||camera):camera;}
-  function visibleObject(object){for(let node=object;node;node=node.parent)if(!node.visible)return false;return true;}
-  function activeTargets(){return model.targets.filter(o=>allowed[data?.level]?.includes(o.userData.object));}
-  function canExplore(){return online&&data&&!data.complete&&data.explorer===role&&data.ready&&(!xr||placed);}
-  async function send(type,extra={}){if(!online||!coop||pending)return false;pending=true;try{return await coop.send(type,extra);}catch{notify('Aguarde a reconexão da dupla.');return false;}finally{pending=false;}}
-  function update(){
-    if(!data){$('heading').textContent='Siga a pista da escrivaninha.';$('description').textContent='Encontre e registre a etiqueta com seu colega para liberar esta investigação.';return;}
-    $('step').textContent=data.complete?'Percurso concluído':`Chave ${data.evidence.length+1} de 3 · ${data.name}`;
-    $('score').textContent='Chaves '+data.evidence.length+' de 3 · '+data.score+' pontos';
-    const explore=data.explorer===role;
-    model.lock.visible=!explore&&!data.complete;
-    document.body.dataset.roleMode=data.complete?'complete':explore?'explorer':'guide';
-    document.body.classList.toggle('investigating',data.ready||data.level>0);
-    $('reposition').hidden=!xr||!placed;
-    $('scale-note').textContent='O tamanho está fixo para esta investigação.';
-    $('manuscript').hidden=explore||data.complete||solo;
-    $('clue').textContent=data.ready?(data.clue||'Oriente seu colega pela voz.'):'Segure o manuscrito para ler e orientar seu colega.';
-    $('heading').textContent=data.complete?'O espaço que faltava.':solo?'A próxima chave está na maquete.':explore?'Seu olhar encontra o caminho.':'Sua leitura orienta o caminho.';
-    $('description').textContent=data.complete?'A fundação revelou uma passagem sob a despensa. A descoberta foi guardada.':solo?(!data.ready?'Leia a orientação para liberar a chave '+(data.evidence.length+1)+' de 3. '+(data.clue||''):data.key?'A chave foi encontrada. Confirme o encaixe para avançar automaticamente.':'Encontre a chave '+(data.evidence.length+1)+' de 3: '+(data.targetLabel||'o detalhe indicado')+'.'):explore?(data.ready?(data.key?'Você encontrou a chave. Só seu colega vê a fechadura. Siga a orientação dele e leve a ponta da chave até ela.':'Ouça a orientação do colega. Aproxime-se e toque no detalhe correspondente.'):'Aguarde seu colega ler o manuscrito.'):data.ready?'Compartilhe a orientação com seu colega. Só ele pode manipular a chave deste piso.':'Leia a orientação para liberar a chave '+(data.evidence.length+1)+' de 3.';
-    $('alternative').hidden=!(fallback||solo)||!explore||data.complete||data.key;
-    if($('ar'))$('ar').hidden=true;
-    const soloAction=$('solo-action');
-    soloAction.hidden=!solo||data.complete;
-    soloAction.disabled=!online;
-    if(solo&&!data.complete)soloAction.textContent=!data.ready?'Ler orientação da chave '+(data.evidence.length+1):data.key?'Confirmar encaixe da chave '+(data.evidence.length+1):'Encontrar chave '+(data.evidence.length+1);
-    if(!canExplore()){keyFlight=null;goldDust.resetTrail();dragging=false;nearLock=false;readStart=null;controls.enabled=!xr;$('key-grip').classList.remove('ready');}
-    $('key-grip').hidden=!canExplore()||!data.key;
-    model.key.visible=data.key&&explore;
 
-    for(const target of model.targets)target.visible=activeTargets().includes(target);
-    const changed=lastLevel!==data.level;
-    if(changed){model.key.position.set(.30,.25,.91);lastLevel=data.level;readingSent=false;readStart=null;}
-    if(changed||lastReady!==data.ready){lastReady=data.ready;if(!xr)frame();}
-    if(data.complete&&changed){$('final-score').textContent='3 chaves · '+data.score+' pontos. Nenhuma acusação foi concluída.';$('discovery').showModal();}
+  /* O import dinâmico do motor precisa de URL absoluta: num script clássico a
+     base de `import()` não é a mesma do `<script src>` em todos os navegadores,
+     e um caminho relativo cai em `js/js/` sem erro visível na leitura. */
+  var MEU_SRC = (document.currentScript && document.currentScript.src) || location.href;
+  var $ = function (id) { return document.getElementById(id); };
+  var params = new URLSearchParams(location.search);
+  var papel = params.get('papel') || 'luz';
+  var solo = params.get('demo') === 'solo' && !params.has('sala');
+  var reduzido = false;
+  try { reduzido = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
 
-    if(xr&&!placed){$('heading').textContent='Posicione a maquete.';$('description').textContent='Aponte para uma superfície e toque no círculo. Depois, examine a casa de perto.';}
-    if(!online)$('description').textContent='A dupla precisa estar conectada para continuar. O progresso está preservado neste servidor.';
+  var motor = null, mundo = null, ra = null, poeira = null;
+  var cena, camera, renderer, controles, chao;
+  var coop = null, dados = null, online = false, movimento = null, movimentoEm = 0;
+  var pendente = false, descartado = false, leituraInicio = null, leituraEnviada = false;
+  var arrastando = false, terminando = false, vooDaChave = null, ultimoExaminado = null;
+  var nivelAnterior = -1, prontoAnterior = null, concluidoEnviado = false, avisoTimer = null;
+  var giroAtivo = null, toques = new Map(), pinca = 0, tocouEm = null;
+  var planoDeArrasto = new THREE.Plane(), raio = new THREE.Raycaster(), ponto = new THREE.Vector3();
+  var ultimoEnvio = 0, envioOcupado = false, envioPendente = null;
+  var alturaAberta = 0.52, progressoDasCamadas = {};
+  var farol = null, tempoAnterior = 0, desligar = [];
+
+  function on(el, tipo, fn, opcoes) { if (!el) return; el.addEventListener(tipo, fn, opcoes); desligar.push(function () { el.removeEventListener(tipo, fn, opcoes); }); }
+  function entrarAtividade() { if (window.ACJanelas) window.ACJanelas.entrarAtividade(); }
+  function avisar(texto) {
+    $('notice').textContent = texto; $('notice').style.display = 'block';
+    clearTimeout(avisoTimer); avisoTimer = setTimeout(function () { $('notice').style.display = 'none'; }, 3600);
   }
-  function inspect(object){if(!canExplore()||data.key)return;entrarAtividade();lastInspected=object;send('maquete_examinar',{object});}
-  on(renderer.domElement,'pointerdown',e=>{pressPoint={x:e.clientX,y:e.clientY};});
-  on(renderer.domElement,'pointerup',e=>{
-    if(!pressPoint||Math.hypot(e.clientX-pressPoint.x,e.clientY-pressPoint.y)>8)return;pressPoint=null;
-    if(xr&&!placed){place();return;}if(!canExplore())return;
-    ray.setFromCamera(new THREE.Vector2(e.clientX/innerWidth*2-1,1-e.clientY/innerHeight*2),cameraNow());
-    const hits=ray.intersectObjects(activeTargets(),true).filter(h=>visibleObject(h.object));if(!hits.length)return;
-    const first=hits[0],all=ray.intersectObject(model.root,true);const obstruction=all.find(h=>visibleObject(h.object)&&h.object!==first.object&&!h.object.userData.decoration&&h.distance<first.distance-.01);
-    if(obstruction)return;let object=first.object;while(!object.userData.object&&object.parent)object=object.parent;
-    if(cameraNow().getWorldPosition(point).distanceTo(first.point)>1.5*model.root.scale.x){notify('Aproxime-se para examinar o detalhe.');return;}inspect(object.userData.object);
-  });
-  on(renderer.domElement,'pointercancel',()=>pressPoint=null);
-  on(controls,'start',()=>document.body.classList.add('manipulating'));
-  on(controls,'end',()=>document.body.classList.remove('manipulating'));
-  on(window,'blur',()=>document.body.classList.remove('manipulating'));
-  on($('manuscript'),'pointerdown',e=>{if(!online||data?.ready)return;entrarAtividade();e.preventDefault();readStart=performance.now();$('manuscript').setPointerCapture(e.pointerId);});
-  for(const event of ['pointerup','pointercancel','blur'])on($('manuscript'),event,()=>{readStart=null;});
-  on($('manuscript'),'keydown',e=>{if(e.key==='Enter'&&!e.repeat){entrarAtividade();e.preventDefault();send('maquete_orientar');}else if(e.key===' '&&!e.repeat){entrarAtividade();e.preventDefault();readStart=performance.now();}});on($('manuscript'),'keyup',()=>readStart=null);
-  on($('key-grip'),'pointerdown',e=>{if(!canExplore()||!data.key||keyFlight||finishing)return;e.preventDefault();dragging=true;goldDust.resetTrail();goldDust.trace(model.key.position);controls.enabled=false;$('key-grip').setPointerCapture(e.pointerId);const offset=model.keyTip.getWorldPosition(new THREE.Vector3()).sub(model.key.getWorldPosition(new THREE.Vector3()));const world=model.keySocket.getWorldPosition(new THREE.Vector3()).sub(offset);dragPlane.setFromNormalAndCoplanarPoint(cameraNow().getWorldDirection(new THREE.Vector3()),world);});
-  on($('key-grip'),'pointermove',e=>{if(!dragging)return;ray.setFromCamera(new THREE.Vector2(e.clientX/innerWidth*2-1,1-e.clientY/innerHeight*2),cameraNow());if(ray.ray.intersectPlane(dragPlane,point))model.key.position.copy(model.root.worldToLocal(point.clone()));goldDust.trace(model.key.position);nearLock=ACMaquetteSpatial.keyFits(model);publishMotion();});
-  function tipLocal(){return model.root.worldToLocal(model.keyTip.getWorldPosition(new THREE.Vector3())).toArray();}
-  async function publishMotion(force=false){
-    if(!coop||!canExplore()||!data.key)return false;
-    if(!force&&(motionBusy||performance.now()-lastMotionSent<100))return false;
-    if(force&&motionRequest)await motionRequest.catch(()=>{});
-    lastMotionSent=performance.now();motionBusy=true;
-    try{motionRequest=coop.send('maquete_mover',{tip:tipLocal()});return await motionRequest;}catch{return false;}finally{motionBusy=false;motionRequest=null;}
+
+  /* ---------- cena ---------- */
+
+  function montarCena() {
+    cena = new THREE.Scene();
+    cena.background = new THREE.Color(0x091515);
+    camera = new THREE.PerspectiveCamera(52, innerWidth / innerHeight, 0.01, 60);
+    cena.add(camera);
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 1.8));
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.25;
+    renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.xr.enabled = true;
+    $('scene').appendChild(renderer.domElement);
+
+    cena.add(new THREE.HemisphereLight(0xd9e6f2, 0x3b2e22, 1.05));
+    var sol = new THREE.DirectionalLight(0xffeccd, 1.5);
+    sol.position.set(-1.1, 2.0, 1.4); sol.castShadow = true;
+    sol.shadow.mapSize.set(1024, 1024); sol.shadow.camera.near = 0.05; sol.shadow.camera.far = 8;
+    sol.shadow.camera.left = -1; sol.shadow.camera.right = 1; sol.shadow.camera.top = 1; sol.shadow.camera.bottom = -1;
+    cena.add(sol);
+    cena.add(new THREE.AmbientLight(0xffffff, 0.34));
+    var fria = new THREE.DirectionalLight(0x9ec4dd, 0.55);
+    fria.position.set(1.6, 1.2, -1.4); cena.add(fria);
+
+    chao = new THREE.Mesh(new THREE.PlaneGeometry(14, 14), new THREE.MeshStandardMaterial({ color: 0x08121a, roughness: 0.96 }));
+    chao.rotation.x = -Math.PI / 2; chao.receiveShadow = true; cena.add(chao);
   }
-  async function finishKey(){
-    if(finishing||!canExplore())return;finishing=true;
-    try{if(await publishMotion(true)){const ok=await send('maquete_encaixar');if(!ok)notify('Peça ao colega para orientar a ponta até a fechadura.');}}finally{finishing=false;nearLock=false;goldDust.resetTrail();}
+
+  /* ---------- enquadramento da bancada ---------- */
+
+  function enquadrar() {
+    if (!mundo || !controles) return;
+    var caixa = new THREE.Box3().setFromObject(mundo.raiz);
+    var centro = caixa.getCenter(new THREE.Vector3());
+    var raioEsfera = caixa.getSize(new THREE.Vector3()).length() / 2;
+    var distancia = raioEsfera / Math.sin(camera.fov * Math.PI / 360);
+    controles.target.copy(centro);
+    camera.position.copy(centro).add(new THREE.Vector3(0.9, 0.85, 1.25).normalize().multiplyScalar(distancia * 1.05));
+    controles.update();
   }
-  for(const event of ['pointerup','pointercancel'])on($('key-grip'),event,e=>{if(!dragging)return;dragging=false;controls.enabled=!xr;$('key-grip').releasePointerCapture(e.pointerId);if(event==='pointerup')finishKey();else{nearLock=false;goldDust.resetTrail();}});
-  on($('key-grip'),'keydown',e=>{
-    if(!canExplore()||!data.key||keyFlight||finishing)return;
-    const delta={ArrowLeft:[-.008,0,0],ArrowRight:[.008,0,0],ArrowUp:[0,.008,0],ArrowDown:[0,-.008,0],PageUp:[0,0,-.008],PageDown:[0,0,.008]}[e.key];
-    if(delta){e.preventDefault();model.key.position.add(new THREE.Vector3(...delta));goldDust.trace(model.key.position);publishMotion();}
-    if(e.key==='Enter'){e.preventDefault();finishKey();}
-  });
-  on($('alternative'),'click',()=>{
-    $('object-list').replaceChildren();for(const obj of activeTargets()){const button=document.createElement('button');button.textContent=obj.userData.label;button.onclick=()=>{inspect(obj.userData.object);$('objects').close();};$('object-list').appendChild(button);}$('objects').showModal();
-  });
-  on($('solo-action'),'click',async()=>{
-    if(!solo||!data||data.complete)return;
+
+  /* ---------- camadas ---------- */
+
+  function camadasAbertas() { return (dados && dados.camadasAbertas) || []; }
+
+  function animarCamadas(dt) {
+    var abertas = camadasAbertas();
+    for (var i = 0; i < mundo.ordemDasCamadas.length; i++) {
+      var nome = mundo.ordemDasCamadas[i], grupo = mundo.camadas[nome];
+      var alvo = abertas.indexOf(nome) >= 0 ? 1 : 0;
+      var atual = progressoDasCamadas[nome] || 0;
+      atual = reduzido ? alvo : atual + (alvo - atual) * (1 - Math.exp(-dt * 3.2));
+      if (Math.abs(alvo - atual) < 0.002) atual = alvo;
+      progressoDasCamadas[nome] = atual;
+      grupo.position.y = alturaAberta * atual;
+      grupo.visible = atual < 0.985;
+      if (atual > 0) aplicarTransparencia(grupo, 1 - atual);
+      else if (grupo.userData.opaco !== true) aplicarTransparencia(grupo, 1);
+    }
+  }
+
+  function aplicarTransparencia(grupo, opacidade) {
+    grupo.userData.opaco = opacidade >= 1;
+    grupo.traverse(function (o) {
+      if (!o.isMesh || !o.material || o.userData.halo) return;
+      if (o.material.userData && o.material.userData.anel) return;
+      o.material.transparent = opacidade < 1;
+      o.material.opacity = opacidade;
+      o.material.depthWrite = opacidade >= 1;
+    });
+  }
+
+  /* ---------- realces ---------- */
+
+  function alvosAtivos() {
+    if (!dados || dados.complete || !mundo) return [];
+    var lista = [], ids = dados.candidatos || [];
+    for (var i = 0; i < ids.length; i++) if (mundo.alvos[ids[i]]) lista.push(mundo.alvos[ids[i]]);
+    return lista;
+  }
+
+  function podeExplorar() {
+    return !!(online && dados && !dados.complete && dados.chaveiro === papelAtual() && dados.ready && posta());
+  }
+  function papelAtual() { return papel; }
+  function posta() { return !!(ra && ra.estado().posta); }
+
+  function pulso(t) { return 0.35 + 0.35 * Math.sin(t * 3.4); }
+
+  function atualizarRealces(tempo) {
+    if (!mundo) return;
+    var ativos = alvosAtivos();
+    var mostrarAlvos = podeExplorar() && dados && !dados.key;
+    for (var id in mundo.alvos) {
+      var a = mundo.alvos[id];
+      var ligado = mostrarAlvos && ativos.indexOf(a) >= 0;
+      a.halo.material.opacity = ligado ? pulso(tempo) : 0;
+      a.halo.visible = ligado;
+    }
+    /* A fechadura só acende para quem NÃO tem a chave. O aparelho de quem tem
+       a chave nem recebe o identificador dela. */
+    var idFechadura = dados && dados.fechadura;
+    for (var k = 0; k < mundo.ancoras.length; k++) {
+      var anc = mundo.ancoras[k];
+      var acesa = !!(idFechadura && anc.id === idFechadura && posta());
+      anc.halo.material.opacity = acesa ? 0.45 + 0.35 * Math.sin(tempo * 2.6) : 0;
+      anc.halo.visible = acesa;
+      if (anc.peca && anc.peca.halo) { anc.peca.halo.material.opacity = acesa ? 0.30 : 0; anc.peca.halo.visible = acesa; }
+    }
+  }
+
+  /* ---------- transporte ---------- */
+
+  function enviar(tipo, extra) {
+    if (!online || !coop || pendente) return Promise.resolve(false);
+    pendente = true;
+    return coop.send(tipo, extra || {}).catch(function () { avisar('Aguarde a reconexão da dupla.'); return false; })
+      .then(function (r) { pendente = false; return r; }, function () { pendente = false; return false; });
+  }
+
+  function pontaLocal() {
+    return mundo.raiz.worldToLocal(mundo.chavePonta.getWorldPosition(new THREE.Vector3())).toArray();
+  }
+
+  function publicarMovimento(forcar) {
+    if (!coop || !podeExplorar() || !dados.key) return Promise.resolve(false);
+    if (!forcar && (envioOcupado || performance.now() - ultimoEnvio < 100)) return Promise.resolve(false);
+    if (forcar && envioPendente) { try { return envioPendente.catch(function () {}).then(function () { return publicarMovimento(true); }); } catch (e) {} }
+    ultimoEnvio = performance.now(); envioOcupado = true;
+    envioPendente = coop.send('maquete_mover', { tip: pontaLocal() });
+    return envioPendente.catch(function () { return false; }).then(function (r) { envioOcupado = false; envioPendente = null; return r; });
+  }
+
+  function examinar(id) {
+    if (!podeExplorar() || dados.key) return;
     entrarAtividade();
-    if(!data.ready){await send('maquete_orientar');return;}
-    if(!data.key){inspect(data.target);return;}
-    if(await send('maquete_mover',{tip:tipLocal()}))await send('maquete_encaixar');
+    ultimoExaminado = id;
+    enviar('maquete_examinar', { object: id });
+  }
+
+  function encaixar() {
+    if (terminando || !podeExplorar()) return;
+    terminando = true;
+    publicarMovimento(true).then(function (ok) {
+      if (!ok) { terminando = false; return; }
+      return enviar('maquete_encaixar').then(function (aceito) {
+        if (!aceito) avisar('A ponta não chegou à fechadura. Peça ao colega para orientar.');
+      });
+    }).then(function () { terminando = false; poeira.resetTrail(); });
+  }
+
+  /* ---------- texto de tela ---------- */
+
+  function textos() {
+    var passo = $('step'), titulo = $('heading'), descricao = $('description');
+    if (!posta()) {
+      passo.textContent = 'A CAIXA FECHADA';
+      titulo.textContent = 'Ponha a maquete na mesa.';
+      descricao.textContent = 'A investigação começa quando a casa estiver apoiada à sua frente.';
+      $('score').textContent = '';
+      return;
+    }
+    if (!dados) {
+      passo.textContent = 'A CAIXA FECHADA';
+      titulo.textContent = 'Siga a pista da escrivaninha.';
+      descricao.textContent = 'Encontre e registre a etiqueta com seu colega para liberar esta investigação.';
+      return;
+    }
+    passo.textContent = dados.complete ? 'PERCURSO CONCLUÍDO' : 'Camada ' + (dados.evidence.length + 1) + ' de 3 · ' + dados.name;
+    $('score').textContent = 'Camadas ' + dados.evidence.length + ' de 3 · ' + dados.score + ' pontos';
+    if (dados.complete) {
+      titulo.textContent = 'O espaço que faltava.';
+      descricao.textContent = 'A maquete se abriu até o porão. A descoberta foi guardada.';
+      return;
+    }
+    var temChave = dados.papel === 'chave';
+    if (solo) {
+      titulo.textContent = 'A próxima camada está presa.';
+      descricao.textContent = !dados.ready
+        ? 'Leia a anotação para saber onde a chave desta camada foi guardada.'
+        : (dados.key ? 'A chave está na sua mão. Leve a ponta até ' + (dados.fechaduraNome || 'a fechadura') + '.'
+          : 'Procure a chave: ' + (dados.clue || 'examine os detalhes desta camada.'));
+      return;
+    }
+    if (temChave) {
+      titulo.textContent = 'Você tem a chave.';
+      descricao.textContent = !dados.ready ? 'Aguarde: seu colega está lendo a anotação desta camada.'
+        : (dados.key ? 'A chave está na sua mão e você não vê a fechadura. Siga a voz do colega e leve a ponta até ela.'
+          : 'Só você pode mexer nos móveis. Ouça onde a chave foi guardada e toque no detalhe.');
+    } else {
+      titulo.textContent = 'Você tem a fechadura.';
+      descricao.textContent = !dados.ready ? 'Segure o manuscrito para ler a anotação desta camada.'
+        : (dados.key ? 'Você vê a fechadura e a ponta da chave do colega. Diga a ele para onde ir.'
+          : 'Diga ao colega, em voz alta, onde a chave foi guardada. Só ele pode tocar nos móveis.');
+    }
+  }
+
+  function pintarTela() {
+    var pronto = posta();
+    $('portal').hidden = pronto;
+    document.body.classList.toggle('maquete-posta', pronto);
+    textos();
+    var temDados = !!dados && !dados.complete;
+    var temChave = temDados && dados.papel === 'chave';
+    /* O manuscrito é do lado da FECHADURA. No Solo o papel vira sozinho depois
+       da leitura, e com ele o manuscrito sai de cena. */
+    $('manuscript').hidden = !(pronto && temDados && dados.papel === 'fechadura');
+    $('clue').textContent = dados && dados.ready ? (dados.clue || 'Oriente seu colega em voz alta.')
+      : 'Segure este manuscrito para ler a anotação desta camada.';
+    document.body.dataset.roleMode = !temDados ? 'complete' : (temChave ? 'explorer' : 'guide');
+    document.body.classList.toggle('investigating', !!(dados && (dados.ready || dados.level > 0)));
+    $('alternative').hidden = !(podeExplorar() && dados && !dados.key);
+    $('reposition').hidden = !pronto || (ra && ra.estado().modo === 'mesa');
+    $('key-grip').hidden = !(podeExplorar() && dados && dados.key);
+    if (mundo) mundo.chave.visible = !!(dados && dados.key && temChave && pronto);
+    var acao = $('solo-action');
+    acao.hidden = !solo || !pronto || !temDados;
+    acao.disabled = !online;
+    if (solo && temDados) acao.textContent = !dados.ready ? 'Ler a anotação' : (dados.key ? 'Levar a chave à fechadura' : 'Examinar por nome');
+    if (!online && pronto) $('description').textContent = 'A dupla precisa estar conectada para continuar. O progresso está guardado.';
+  }
+
+  /* ---------- toques na cena ---------- */
+
+  function objetoVisivel(o) { for (var n = o; n; n = n.parent) if (!n.visible) return false; return true; }
+
+  function cameraAgora() {
+    if (ra && ra.estado().modo === 'webxr' && renderer.xr.isPresenting) {
+      var c = renderer.xr.getCamera(camera);
+      return (c.cameras && c.cameras[0]) || c;
+    }
+    return camera;
+  }
+
+  function tocarNaCena(x, y) {
+    if (!posta()) { ra.posicionar(); pintarTela(); return; }
+    if (!podeExplorar() || dados.key) return;
+    var alvos = alvosAtivos(); if (!alvos.length) return;
+    raio.setFromCamera(new THREE.Vector2(x / innerWidth * 2 - 1, 1 - y / innerHeight * 2), cameraAgora());
+    var grupos = alvos.map(function (a) { return a.grupo; });
+    var acertos = raio.intersectObjects(grupos, true).filter(function (h) { return objetoVisivel(h.object); });
+    if (!acertos.length) return;
+    var primeiro = acertos[0];
+    /* Um alvo atrás de uma parede não conta: sem isto, tocar na fachada
+       acertaria o armário que está do outro lado dela. */
+    var todos = raio.intersectObject(mundo.raiz, true).filter(function (h) {
+      return objetoVisivel(h.object) && !h.object.userData.halo && h.object !== mundo.chave;
+    });
+    for (var i = 0; i < todos.length; i++) {
+      if (todos[i].distance < primeiro.distance - 0.0015 && !pertenceAAlvo(todos[i].object)) return;
+    }
+    var dono = primeiro.object;
+    while (dono && !dono.userData.object) dono = dono.parent;
+    if (dono && dono.userData.object) examinar(dono.userData.object);
+  }
+
+  function pertenceAAlvo(o) { for (var n = o; n; n = n.parent) if (n.userData && n.userData.object) return true; return false; }
+
+  /* ---------- gestos ---------- */
+
+  function ligarGestos() {
+    var tela = renderer.domElement;
+    on(tela, 'pointerdown', function (e) {
+      if (!ra || !mundo) return;
+      toques.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (toques.size === 1) { tocouEm = { x: e.clientX, y: e.clientY, t: performance.now() }; giroAtivo = { x: e.clientX }; }
+      if (toques.size === 2) { pinca = distanciaEntreToques(); giroAtivo = null; tocouEm = null; }
+      try { tela.setPointerCapture(e.pointerId); } catch (err) {}
+    });
+    on(tela, 'pointermove', function (e) {
+      if (!ra || !toques.has(e.pointerId)) return;
+      toques.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (toques.size === 2) {
+        var d = distanciaEntreToques();
+        if (pinca > 0 && ra.estado().modo !== 'mesa') ra.mudarEscala(d / pinca);
+        pinca = d; tocouEm = null; return;
+      }
+      if (giroAtivo && ra.estado().modo !== 'mesa' && posta()) {
+        var dx = e.clientX - giroAtivo.x;
+        if (Math.abs(dx) > 0.5) { ra.girar(dx * 0.006); giroAtivo.x = e.clientX; }
+        if (tocouEm && Math.hypot(e.clientX - tocouEm.x, e.clientY - tocouEm.y) > 9) tocouEm = null;
+      }
+    });
+    ['pointerup', 'pointercancel'].forEach(function (tipo) {
+      on(tela, tipo, function (e) {
+        if (!ra) return;
+        toques.delete(e.pointerId); if (toques.size < 2) pinca = 0;
+        if (toques.size === 0) giroAtivo = null;
+        if (tipo === 'pointerup' && tocouEm && performance.now() - tocouEm.t < 900 &&
+            Math.hypot(e.clientX - tocouEm.x, e.clientY - tocouEm.y) <= 9) tocarNaCena(e.clientX, e.clientY);
+        if (toques.size === 0) tocouEm = null;
+      });
+    });
+  }
+
+  function distanciaEntreToques() {
+    var v = Array.from(toques.values());
+    if (v.length < 2) return 0;
+    return Math.hypot(v[0].x - v[1].x, v[0].y - v[1].y);
+  }
+
+  /* ---------- arrasto da chave ---------- */
+
+  function ligarChave() {
+    var pega = $('key-grip');
+    on(pega, 'pointerdown', function (e) {
+      if (!podeExplorar() || !dados.key || vooDaChave || terminando) return;
+      e.preventDefault(); arrastando = true;
+      poeira.resetTrail(); poeira.trace(mundo.chave.position);
+      if (controles) controles.enabled = false;
+      try { pega.setPointerCapture(e.pointerId); } catch (err) {}
+      /* O plano do arrasto passa pela fechadura: resolve a PROFUNDIDADE para
+         quem não pode vê-la, e deixa a orientação do colega valer em duas
+         dimensões — que é o que dá para dizer em voz alta. */
+      var deslocamento = mundo.chavePonta.getWorldPosition(new THREE.Vector3()).sub(mundo.chave.getWorldPosition(new THREE.Vector3()));
+      var alvoMundo = mundo.raiz.localToWorld(vetorDaFechadura()).sub(deslocamento);
+      planoDeArrasto.setFromNormalAndCoplanarPoint(cameraAgora().getWorldDirection(new THREE.Vector3()), alvoMundo);
+    });
+    on(pega, 'pointermove', function (e) {
+      if (!arrastando) return;
+      raio.setFromCamera(new THREE.Vector2(e.clientX / innerWidth * 2 - 1, 1 - e.clientY / innerHeight * 2), cameraAgora());
+      if (raio.ray.intersectPlane(planoDeArrasto, ponto)) mundo.chave.position.copy(mundo.raiz.worldToLocal(ponto.clone()));
+      poeira.trace(mundo.chave.position);
+      publicarMovimento(false);
+    });
+    ['pointerup', 'pointercancel'].forEach(function (tipo) {
+      on(pega, tipo, function (e) {
+        if (!arrastando) return;
+        arrastando = false;
+        if (controles) controles.enabled = ra.estado().modo === 'mesa';
+        try { pega.releasePointerCapture(e.pointerId); } catch (err) {}
+        if (tipo === 'pointerup') encaixar(); else poeira.resetTrail();
+      });
+    });
+    on(pega, 'keydown', function (e) {
+      if (!podeExplorar() || !dados.key || terminando) return;
+      var passo = { ArrowLeft: [-0.006, 0, 0], ArrowRight: [0.006, 0, 0], ArrowUp: [0, 0.006, 0], ArrowDown: [0, -0.006, 0], PageUp: [0, 0, -0.006], PageDown: [0, 0, 0.006] }[e.key];
+      if (passo) { e.preventDefault(); mundo.chave.position.add(new THREE.Vector3(passo[0], passo[1], passo[2])); poeira.trace(mundo.chave.position); publicarMovimento(false); }
+      if (e.key === 'Enter') { e.preventDefault(); encaixar(); }
+    });
+  }
+
+  /* A posição da fechadura do capítulo corrente, no espaço do modelo. Quem tem
+     a chave NÃO recebe esse identificador; nesse caso o plano do arrasto passa
+     pelo centro da maquete, que é neutro. */
+  function vetorDaFechadura() {
+    var i = dados ? dados.level : 0;
+    if (motor && motor.FECHADURAS[i]) return new THREE.Vector3().fromArray(motor.FECHADURAS[i]);
+    return new THREE.Vector3(0, 0.5, 0);
+  }
+
+  /* ---------- laço ---------- */
+
+  function desenhar(tempo, quadroXR) {
+    if (descartado) return;
+    var dt = Math.min(0.1, (tempo - tempoAnterior) / 1000 || 0);
+    tempoAnterior = tempo;
+    if (ra) { ra.atualizar(dt, quadroXR); chao.visible = ra.estado().modo === 'mesa'; }
+    if (controles && ra && ra.estado().modo === 'mesa') controles.update();
+    if (mundo) {
+      animarCamadas(dt);
+      atualizarRealces(tempo / 1000);
+      if (leituraInicio !== null && !leituraEnviada && dados && !dados.ready && online) {
+        var quanto = Math.min(1, (tempo - leituraInicio) / 1000);
+        $('reading').firstElementChild.style.width = quanto * 100 + '%';
+        if (quanto === 1) { leituraEnviada = true; enviar('maquete_orientar').then(function (ok) { if (!ok) leituraEnviada = false; }); }
+      } else if (!dados || !dados.ready) { $('reading').firstElementChild.style.width = '0'; }
+      if (vooDaChave) {
+        vooDaChave.t += dt; var t = Math.min(1, vooDaChave.t / 0.7), s = t * t * (3 - 2 * t);
+        mundo.chave.position.copy(vooDaChave.de).lerp(vooDaChave.para, s);
+        mundo.chave.position.y += Math.sin(Math.PI * t) * 0.04;
+        if (t === 1) vooDaChave = null;
+      }
+      poeira.update(dt, mundo.chave.visible && podeExplorar() && (arrastando || vooDaChave) ? mundo.chave.position : null, innerHeight * renderer.getPixelRatio());
+      posicionarPega();
+      atualizarFarol(tempo);
+      if (mundo.chave.visible && podeExplorar() && !vooDaChave && !terminando && arrastando) publicarMovimento(false);
+    }
+    renderer.render(cena, camera);
+  }
+
+  function posicionarPega() {
+    var pega = $('key-grip');
+    if (!mundo.chave.visible) return;
+    mundo.raiz.updateMatrixWorld(true);
+    var tela = mundo.chave.getWorldPosition(new THREE.Vector3()).project(cameraAgora());
+    pega.style.left = (tela.x + 1) * innerWidth / 2 + 'px';
+    pega.style.top = (1 - tela.y) * innerHeight / 2 + 'px';
+    pega.hidden = !!vooDaChave || !podeExplorar() || !dados || !dados.key || tela.z < -1 || tela.z > 1;
+  }
+
+  function atualizarFarol(tempo) {
+    var guiando = dados && !dados.complete && dados.papel === 'fechadura';
+    var fresco = movimento && performance.now() - movimentoEm + (movimento.age || 0) < 1500;
+    farol.visible = !!(guiando && dados.key && fresco && online && posta());
+    $('alignment').hidden = !guiando || !dados.key;
+    if (farol.visible) {
+      farol.position.fromArray(movimento.tip);
+      var d = farol.position.distanceTo(vetorDaFechadura());
+      $('alignment').textContent = d < motor.TOLERANCIA ? 'A ponta está na fechadura. Diga a ele para soltar.'
+        : d < 0.10 ? 'A ponta está perto. Ajuste o último palmo.'
+          : 'O ponto de luz é a ponta da chave do colega. Leve-o até a fechadura.';
+    } else if (guiando && dados && dados.key) {
+      $('alignment').textContent = 'Aguarde: a ponta da chave aparece quando seu colega a mover.';
+    }
+  }
+
+  /* ---------- portal de entrada ---------- */
+
+  function montarPortal() {
+    ra.modosPossiveis(function (modos) {
+      $('portal-ra').hidden = !modos.webxr;
+      $('portal-camera').hidden = !modos.camera || modos.webxr;
+      $('portal-aviso').textContent = modos.webxr ? ''
+        : modos.camera ? 'Este aparelho não faz rastreio de superfície. A casa vai aparecer sobre a imagem da câmera e você a gira com um dedo.'
+          : 'Sem câmera disponível neste navegador. A maquete abre numa bancada e a investigação continua igual.';
+    });
+    on($('portal-ra'), 'click', function () { abrir('webxr'); });
+    on($('portal-camera'), 'click', function () { abrir('camera'); });
+    on($('portal-mesa'), 'click', function () { abrir('mesa'); });
+    on($('reposition'), 'click', function () { ra.soltar(); pintarTela(); });
+  }
+
+  function abrir(modo) {
+    entrarAtividade();
+    $('portal-aviso').textContent = 'Preparando…';
+    ra.entrar(modo).then(function (qual) {
+      $('portal-aviso').textContent = '';
+      if (qual === 'mesa') {
+        var e = ra.estado();
+        ra.mudarEscala(1 / e.escala);
+        ra.posicionar();
+        controles.enabled = true;
+        enquadrar();
+      }
+      pintarTela();
+    }).catch(function (erro) {
+      $('portal-aviso').textContent = modo === 'camera'
+        ? 'A câmera não foi liberada. Você pode continuar sem ela.'
+        : 'A realidade aumentada não abriu neste aparelho. Você pode continuar sem ela.';
+      if (erro && erro.name === 'NotAllowedError') $('portal-camera').textContent = 'Tentar a câmera de novo';
+    });
+  }
+
+  /* ---------- ligação com o motor ---------- */
+
+  function receber(snapshot) {
+    if (snapshot.soloRole) papel = snapshot.soloRole;
+    movimento = snapshot.keyMotion; movimentoEm = performance.now();
+    var antes = dados, estavaOnline = online;
+    dados = snapshot.maquete;
+    var papeis = (snapshot.percurso && snapshot.percurso.fragmento && snapshot.percurso.fragmento.membros.map(function (m) { return m.papel; })) || ['luz', 'conhecimento'];
+    online = papeis.every(function (r) { return snapshot.online.indexOf(r) >= 0; });
+    $('coop-status').textContent = online ? 'Dupla conectada' : 'Aguardando seu colega';
+
+    if (antes && dados && dados.mistakes > antes.mistakes) avisar('Não era este. Conversem outra vez antes de tentar.');
+    if (antes && dados && dados.level > antes.level) {
+      vooDaChave = null; poeira.resetTrail();
+      poeira.burst(vetorDaFechaduraDe(antes.level));
+      if (!dados.complete) avisar(capituloFechado(antes.level));
+      leituraEnviada = false; leituraInicio = null;
+    }
+    if (antes && dados && !antes.key && dados.key && dados.papel === 'chave') {
+      var origem = mundo && mundo.alvos[ultimoExaminado] ? mundo.alvos[ultimoExaminado].centro.clone() : new THREE.Vector3(0, 0.55, 0.2);
+      var camada = mundo && mundo.alvos[ultimoExaminado] ? mundo.camadas[mundo.alvos[ultimoExaminado].camada] : null;
+      if (camada) origem = origem.clone().add(new THREE.Vector3(0, camada.position.y, 0));
+      poeira.burst(origem); poeira.resetTrail();
+      var pouso = origem.clone().add(new THREE.Vector3(0, 0.06, 0.04));
+      if (reduzido) mundo.chave.position.copy(pouso);
+      else { mundo.chave.position.copy(origem); vooDaChave = { de: origem.clone(), para: pouso, t: 0 }; }
+    }
+    if (dados && dados.level !== nivelAnterior) { nivelAnterior = dados.level; leituraEnviada = false; }
+    if (!antes || estavaOnline !== online || JSON.stringify(antes) !== JSON.stringify(dados)) pintarTela();
+    if (dados && dados.complete && !concluidoEnviado) {
+      concluidoEnviado = true;
+      $('final-score').textContent = '3 camadas · ' + dados.score + ' pontos. Nenhuma acusação foi concluída.';
+      try { $('discovery').showModal(); } catch (e) {}
+      if (params.get('demo') === 'solo') {
+        try { parent.postMessage({ mosaico: 'ac-solo-maquete-completa', score: dados.score, evidence: dados.evidence }, location.origin); } catch (e) {}
+      }
+    }
+  }
+
+  function vetorDaFechaduraDe(nivel) {
+    if (motor && motor.FECHADURAS[nivel]) return new THREE.Vector3().fromArray(motor.FECHADURAS[nivel]);
+    return new THREE.Vector3(0, 0.5, 0);
+  }
+  function capituloFechado(nivel) {
+    return (motor && motor.CAPITULOS[nivel] && motor.CAPITULOS[nivel].fecho) || 'A camada se soltou.';
+  }
+
+  /* ---------- botões ---------- */
+
+  function ligarBotoes() {
+    on($('manuscript'), 'pointerdown', function (e) {
+      if (!online || !dados || dados.ready || dados.papel !== 'fechadura') return;
+      entrarAtividade(); e.preventDefault(); leituraInicio = performance.now();
+      try { $('manuscript').setPointerCapture(e.pointerId); } catch (err) {}
+    });
+    ['pointerup', 'pointercancel', 'blur'].forEach(function (t) { on($('manuscript'), t, function () { leituraInicio = null; }); });
+    on($('manuscript'), 'keydown', function (e) {
+      if (e.key === 'Enter' && !e.repeat) { entrarAtividade(); e.preventDefault(); enviar('maquete_orientar'); }
+      else if (e.key === ' ' && !e.repeat) { entrarAtividade(); e.preventDefault(); leituraInicio = performance.now(); }
+    });
+    on($('manuscript'), 'keyup', function () { leituraInicio = null; });
+
+    on($('alternative'), 'click', function () { abrirListaDeObjetos(); });
+    on($('solo-action'), 'click', function () {
+      if (!solo || !dados || dados.complete) return;
+      entrarAtividade();
+      if (!dados.ready) { enviar('maquete_orientar'); return; }
+      if (!dados.key) { abrirListaDeObjetos(); return; }
+      mundo.chave.position.copy(vetorDaFechadura()).sub(new THREE.Vector3().fromArray(pontaRelativa()));
+      publicarMovimento(true).then(function (ok) { if (ok) enviar('maquete_encaixar'); });
+    });
+    on($('help'), 'click', function (ev) {
+      if (window.ACJanelas) { window.ACJanelas.ajuda(ev); return; }
+      try { $('instructions').showModal(); } catch (e) {}
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-close]'), function (el) {
+      on(el, 'click', function () { var d = el.closest('dialog'); if (d) { try { d.close(); } catch (e) {} } if (window.ACJanelas) window.ACJanelas.recolher(); });
+    });
+  }
+
+  function pontaRelativa() {
+    mundo.raiz.updateMatrixWorld(true);
+    var ponta = mundo.raiz.worldToLocal(mundo.chavePonta.getWorldPosition(new THREE.Vector3()));
+    return ponta.sub(mundo.chave.position).toArray();
+  }
+
+  function abrirListaDeObjetos() {
+    if (!dados || !dados.candidatos) return;
+    var capitulo = motor.CAPITULOS[dados.level];
+    /* Sorteado por partida: escrita à mão, esta lista nasceria com o
+       esconderijo em primeiro lugar em todos os capítulos. */
+    var ordem = motor.ordemDosCandidatos(capitulo, semente());
+    var caixa = $('object-list'); caixa.textContent = '';
+    ordem.forEach(function (id) {
+      var b = document.createElement('button');
+      b.textContent = (dados.rotulos && dados.rotulos[id]) || id;
+      b.onclick = function () { examinar(id); try { $('objects').close(); } catch (e) {} };
+      caixa.appendChild(b);
+    });
+    try { $('objects').showModal(); } catch (e) {}
+  }
+
+  function semente() { return params.get('sala') || params.get('run') || 'AC-COSTA'; }
+
+  /* ---------- partida ---------- */
+
+  function comecar() {
+    montarCena();
+    ligarGestos(); ligarChave(); ligarBotoes();
+
+    var voltar = new URLSearchParams(location.search); voltar.set('rever', '1');
+    $('return-desk').href = 'AC-escrivaninha.html?' + voltar;
+
+    import(new URL('ac-maquete-state.mjs', MEU_SRC).href).then(function (m) {
+      motor = m;
+      return new Promise(function (ok, falha) {
+        ACMaquetteMundo.carregar({ pontos: m.FECHADURAS }, ok, falha);
+      });
+    }).then(function (m) {
+      mundo = m;
+      cena.add(mundo.raiz);
+      /* A poeira mora DENTRO da maquete: assim acompanha escala, giro e pose
+         sem nenhuma conversão de coordenadas. */
+      poeira = createACGoldDust(mundo.raiz, { reduced: reduzido });
+      farol = new THREE.Mesh(new THREE.SphereGeometry(0.006, 12, 8), new THREE.MeshBasicMaterial({ color: 0xffe3a1 }));
+      farol.visible = false; farol.userData.exportExclude = true; farol.raycast = function () {};
+      mundo.raiz.add(farol);
+      mundo.chave.visible = false;
+
+      controles = new THREE.OrbitControls(camera, renderer.domElement);
+      controles.enableDamping = true; controles.minDistance = 0.12; controles.maxDistance = 14;
+      controles.maxPolarAngle = Math.PI * 0.495; controles.enabled = false;
+
+      ra = ACMaquetteRA.criar({ renderer: renderer, cena: cena, camera: camera, raiz: mundo.raiz, baseY: mundo.baseY, aoMudar: aoMudarRA });
+      montarPortal();
+      $('portal-titulo').textContent = 'Ponha a maquete na sua mesa.';
+      $('portal-texto').textContent = 'A caixa veio fechada. Procure uma superfície plana e apoie a casa nela.';
+      habilitarPortal(true);
+      ligarCooperacao();
+      pintarTela();
+      renderer.setAnimationLoop(desenhar);
+      window.__maquete = { mundo: mundo, ra: ra, motor: motor, estado: function () { return dados; },
+        quadro: function () { desenhar(performance.now(), null); } };
+    }).catch(function (erro) {
+      $('portal-aviso').textContent = 'A maquete não pôde ser carregada. ' + (erro && erro.message ? erro.message : '');
+      $('description').textContent = 'A maquete não pôde ser carregada neste aparelho.';
+    });
+  }
+
+  function habilitarPortal(ligado) {
+    ['portal-ra', 'portal-camera', 'portal-mesa'].forEach(function (id) { $(id).disabled = !ligado; });
+  }
+
+  function aoMudarRA() {
+    var e = ra.estado();
+    $('pousar').hidden = !(e.modo === 'webxr' && !e.posta);
+    $('pousar').textContent = e.temHit ? 'Toque no círculo para apoiar a casa.' : 'Aponte devagar para uma superfície plana.';
+    if (e.modo === 'camera' && !e.posta) { $('pousar').hidden = false; $('pousar').textContent = 'Toque na tela para apoiar a casa à sua frente.'; }
+    if (controles) controles.enabled = e.modo === 'mesa' && e.posta;
+    pintarTela();
+  }
+
+  function ligarCooperacao() {
+    ACCooperation(receber, function (ligado) {
+      if (!ligado) { online = false; $('coop-status').textContent = 'Reconectando…'; pintarTela(); }
+    }, { maquette: true }).then(function (c) {
+      coop = c;
+      if (c.demo) c.send('iniciar_maquete');
+      if (params.get('percurso') === '1') { var marca = document.querySelector('.brand'); if (marca) marca.removeAttribute('href'); }
+      if (c.invite) { $('invite').href = c.invite; $('invite').hidden = false; }
+    }).catch(function (e) { $('description').textContent = e.message; });
+  }
+
+  on(window, 'resize', function () {
+    if (!camera || !renderer) return;
+    camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+    if (ra && ra.estado().modo === 'mesa' && ra.estado().posta) enquadrar();
+  });
+  on(document, 'visibilitychange', function () { leituraInicio = null; });
+  on(window, 'pagehide', function (e) {
+    if (e.persisted) { renderer.setAnimationLoop(null); return; }
+    descartado = true;
+    if (poeira) poeira.dispose();
+    clearTimeout(avisoTimer);
+    if (coop) coop.close();
+    if (ra) ra.sair();
+    desligar.forEach(function (fn) { fn(); });
+    if (controles) controles.dispose();
+    renderer.setAnimationLoop(null);
+    renderer.dispose();
   });
 
-  on($('help'),'click',ev=>{if(window.ACJanelas){window.ACJanelas.ajuda(ev);return;}$('instructions').showModal();});document.querySelectorAll('[data-close]').forEach(el=>on(el,'click',()=>{el.closest('dialog').close();window.ACJanelas?.recolher();}));
-  on(document.body,'beforexrselect',e=>{if(e.target.closest('dialog,header,.tools,#manuscript,#key-grip'))e.preventDefault();});
-  const previousParams=new URLSearchParams(location.search);previousParams.set('rever','1');$('return-desk').href='AC-escrivaninha.html?'+previousParams;
-  function enableFallback(reason){fallback=true;$('fallback-note').textContent=reason+' A exploração continua em 3D, com uma alternativa por nomes de objetos.';update();}
-  function place(){if(!xr||placed||!hasHit)return;placementMatrix.copy(reticle.matrix);applyPlacement();model.root.visible=true;placed=true;reticle.visible=false;update();}
-  on($('ar'),'click',async()=>{
-    if(xr){await xr.end();return;}if(startingAR)return;startingAR=true;
-    try{
-      const session=await navigator.xr.requestSession('immersive-ar',{requiredFeatures:['hit-test','dom-overlay'],domOverlay:{root:document.body}});if(disposed){await session.end();return;}
-      camera.clearViewOffset();xr=session;placed=false;hasHit=false;touches.clear();pinchDistance=0;controls.enabled=false;model.root.visible=false;
-      session.addEventListener('select',place);
-      session.addEventListener('end',()=>{hitSource?.cancel();hitSource=null;xr=null;placed=false;reticle.visible=false;floor.visible=true;model.root.visible=true;model.root.position.set(0,0,0);model.root.quaternion.identity();model.root.scale.setScalar(1);hasHit=false;touches.clear();scene.background=new THREE.Color(0x091515);document.body.classList.remove('in-ar');if($('ar'))$('ar').textContent='Explorar em RA';controls.enabled=true;frame();enableFallback('A sessão de RA foi encerrada.');},{once:true});
-      renderer.xr.setReferenceSpaceType('local');await renderer.xr.setSession(session);if(xr!==session||disposed)return;const viewer=await session.requestReferenceSpace('viewer');if(xr!==session||disposed)return;const source=await session.requestHitTestSource({space:viewer});if(xr!==session||disposed){source.cancel();return;}hitSource=source;
-      fallback=false;floor.visible=false;scene.background=null;document.body.classList.add('in-ar');if($('ar'))$('ar').textContent='Sair da RA';update();
-    }catch{if(xr)await xr.end().catch(()=>{});enableFallback('RA indisponível ou não autorizada.');}finally{startingAR=false;}
-  });
-  enableFallback('A exploração continua em 3D, com uma alternativa por nomes de objetos.');
-  let lastTime=0;
-  function render(time,frameXR){
-    if(disposed)return;const dt=Math.min(.1,(time-lastTime)/1000||0);lastTime=time;
-    if(document.hidden){readStart=null;return;}
-    if(xr&&frameXR&&hitSource){const hits=frameXR.getHitTestResults(hitSource);hasHit=!!hits.length;if(hasHit){const pose=hits[0].getPose(renderer.xr.getReferenceSpace());hasHit=!!pose;if(pose)reticle.matrix.fromArray(pose.transform.matrix);}reticle.visible=hasHit&&!placed;}
-    if(!xr)controls.update();
-    if(readStart!==null&&!readingSent&&data&&!data.ready&&online){const amount=Math.min(1,(time-readStart)/1000);$('reading').firstElementChild.style.width=amount*100+'%';if(amount===1){readingSent=true;send('maquete_orientar').then(ok=>{if(!ok)readingSent=false;});}}else if(!data?.ready)$('reading').firstElementChild.style.width='0';
-    const level=data?.level||0;
-    // Abertura por partes: o segredo nao aparece antes da ultima chave.
-    for(const [g,lift] of [[model.roof,level>0?1.5:0],[model.upper,level===1?1.2:level===3?.95:0],[model.lower,level>2?.48:0]]){
-      const target=g.userData.restY+lift;g.position.y=reduced?target:THREE.MathUtils.lerp(g.position.y,target,1-Math.exp(-dt*4));g.visible=!(g===model.roof&&level>0&&g.position.y>1.7)&&!(g===model.upper&&level===1&&g.position.y>1.45);
-    }
-    model.facades[0].visible=level===0;model.facades[1].visible=level<2;
-    model.cellar.visible=level>=3;
-    if(keyFlight){keyFlight.elapsed+=dt;const t=Math.min(1,keyFlight.elapsed/.8),ease=t*t*(3-2*t);model.key.position.copy(keyFlight.from).lerp(keyFlight.to,ease);model.key.position.y+=Math.sin(Math.PI*t)*.10;if(t===1)keyFlight=null;}
-    goldDust.update(dt,model.key.visible&&canExplore()&&(dragging||keyFlight)?model.key.position:null,innerHeight*renderer.getPixelRatio());
-    if(model.key.visible){model.root.updateMatrixWorld(true);const screen=model.key.getWorldPosition(new THREE.Vector3()).project(cameraNow());$('key-grip').style.left=(screen.x+1)*innerWidth/2+'px';$('key-grip').style.top=(1-screen.y)*innerHeight/2+'px';$('key-grip').hidden=!!keyFlight||!canExplore()||!data?.key||screen.z< -1||screen.z>1;}
-    if(model.key.visible&&canExplore()&&!keyFlight&&!finishing)publishMotion();
-    const guiding=data&&!data.complete&&data.explorer!==role;
-    const fresh=motion&&performance.now()-motionTime+motion.age<1500;
-    tipBeacon.visible=!!(guiding&&data.key&&fresh&&online&&(!xr||placed));
-    $('alignment').hidden=!guiding||!data.key;
-    if(tipBeacon.visible){tipBeacon.position.fromArray(motion.tip);const socket=model.root.worldToLocal(model.keySocket.getWorldPosition(new THREE.Vector3()));const distance=tipBeacon.position.distanceTo(socket);$('alignment').textContent=distance<.025?'Ponta alinhada. Diga ao colega para soltar.':distance<.10?'A ponta está perto. Oriente o ajuste final.':'O ponto luminoso mostra a ponta da chave. Oriente seu colega até a fechadura.';}
-    else if(guiding&&data.key)$('alignment').textContent='Aguarde seu colega mover a chave para acompanhar a ponta.';
-    if(!xr&&model.lower.visible)model.livingRoom.updateReflection(renderer,scene);
-    renderer.render(scene,camera);
-  }
-  ACCooperation(snapshot=>{
-    if(snapshot.soloRole)role=snapshot.soloRole;
-    motion=snapshot.keyMotion;motionTime=performance.now();
-    const old=data,wasOnline=online;data=snapshot.maquete;online=(snapshot.percurso?.fragmento?.membros.map(m=>m.papel)||['luz','conhecimento']).every(r=>snapshot.online.includes(r));$('coop-status').textContent=online?'Dupla conectada':'Aguardando seu colega';
-    if(old&&data&&data.mistakes>old.mistakes)notify('Esse detalhe não corresponde à orientação. Converse com seu colega.');
-    if(old&&data&&data.level>old.level){keyFlight=null;goldDust.resetTrail();goldDust.burst(model.root.worldToLocal(model.lock.getWorldPosition(new THREE.Vector3())));if(!data.complete)notify('Chave '+data.evidence.length+' encaixada. Agora leia a orientação para liberar a próxima chave.');}
-    if(!old||wasOnline!==online||JSON.stringify(old)!==JSON.stringify(data))update();
-    if(old&&data&&!old.key&&data.key&&data.explorer===role){
-      const source=model.targets.find(o=>o.userData.object===lastInspected);
-      const origin=source?model.root.worldToLocal(source.getWorldPosition(new THREE.Vector3())):model.key.position.clone();
-      goldDust.burst(origin);goldDust.resetTrail();
-      if(!reduced){keyFlight={from:origin.clone(),to:new THREE.Vector3(.30,.25,.91),elapsed:0};model.key.position.copy(origin);}
-    }
-    if(data&&data.complete&&!soloConcluido&&new URLSearchParams(location.search).get('demo')==='solo'){
-      soloConcluido=true;
-      try{parent.postMessage({mosaico:'ac-solo-maquete-completa',score:data.score,evidence:data.evidence},location.origin)}catch(_){ }
-    }
-  },connected=>{if(!connected){online=false;$('coop-status').textContent='Reconectando…';update();}},{maquette:true}).then(c=>{coop=c;if(c.demo)c.send('iniciar_maquete');if(new URLSearchParams(location.search).get('percurso')==='1')document.querySelector('.brand').removeAttribute('href');const backParams=new URLSearchParams(location.search);backParams.set('rever','1');$('return-desk').href='AC-escrivaninha.html?'+backParams;if(c.invite){$('invite').href=c.invite;$('invite').hidden=false;}if(!c.demo&&!matchMedia('(max-width:700px)').matches)$('instructions').showModal();}).catch(e=>{$('description').textContent=e.message;});
-  // A pilha de painéis nasce depois deste script e muda de altura entre os capítulos.
-  if(window.ResizeObserver){let lastStackH=-1;const watch=()=>{const st=document.querySelector('.ac-panel-stack');if(!st)return setTimeout(watch,120);new ResizeObserver(()=>{const h=Math.round(st.getBoundingClientRect().height);if(h!==lastStackH){lastStackH=h;if(!xr)frame();}}).observe(st);};watch();}
-  on(window,'resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);if(!xr)frame();});
-  on(document,'visibilitychange',()=>readStart=null);
-  on(window,'pagehide',e=>{if(e.persisted){renderer.setAnimationLoop(null);return;}disposed=true;goldDust.dispose();clearTimeout(noticeTimer);coop?.close();hitSource?.cancel();xr?.end().catch(()=>{});handlers.forEach(fn=>fn());controls.dispose();renderer.setAnimationLoop(null);const geometries=new Set(),materials=new Set();scene.traverse(o=>{if(o.geometry)geometries.add(o.geometry);if(o.material)materials.add(o.material);});geometries.forEach(g=>g.dispose());materials.forEach(m=>{m.map?.dispose();m.bumpMap?.dispose();m.dispose();});renderer.dispose();});
-  on(window,'pageshow',e=>{if(e.persisted&&!disposed){lastTime=performance.now();renderer.setAnimationLoop(render);}});
-  update();renderer.setAnimationLoop(render);
+  comecar();
 })();

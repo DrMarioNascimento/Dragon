@@ -11,7 +11,7 @@ function valid(r){
  if(r.percurso){const p=r.percurso;if(typeof p.runId!=='string'||!p.runId||p.runId.length>180||![p.ready,p.paused].every(a=>Array.isArray(a)&&a.length<=(r.tokens.apoio?3:2)&&new Set(a).size===a.length&&a.every(v=>Object.hasOwn(r.tokens,v))))return false;}
  if(r.percurso?.players&&Object.entries(r.percurso.players).some(([role,id])=>!Object.hasOwn(r.tokens,role)||typeof id!=='string'||!id||id.length>128))return false;
  const m=r.maquete;if(m===null)return true;
- return m&&Number.isInteger(m.level)&&m.level>=0&&m.level<=3&&typeof m.ready==='boolean'&&typeof m.key==='boolean'&&Number.isInteger(m.mistakes)&&m.mistakes>=0&&Number.isInteger(m.score)&&m.score>=0&&m.score<=24&&Number.isFinite(m.lastAttempt)&&Array.isArray(m.evidence)&&m.evidence.length===m.level&&m.evidence.every((v,i)=>v===['chave-exterior','chave-terreo','passagem-sob-despensa'][i]);
+ return m&&Number.isInteger(m.level)&&m.level>=0&&m.level<=3&&typeof m.ready==='boolean'&&typeof m.key==='boolean'&&Number.isInteger(m.mistakes)&&m.mistakes>=0&&Number.isInteger(m.score)&&m.score>=0&&m.score<=24&&Number.isFinite(m.lastAttempt)&&Array.isArray(m.evidence)&&m.evidence.length===m.level&&m.evidence.every((v,i)=>v===['chave-exterior','chave-dos-quartos','passagem-sob-despensa'][i]);
 }
 export function loadRooms(path){
  if(!path)return new Map();let raw;try{raw=readFileSync(path,'utf8');}catch(error){if(error.code==='ENOENT')return new Map();throw error;}

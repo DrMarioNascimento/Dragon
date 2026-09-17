@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { startMaquette, actMaquette, maquetteView } from './ac-maquete-state.mjs';
 
 import {apply,snapshot,earnedStages} from '../v1/js/ac-core.mjs';
-export {apply,snapshot,earnedStages,KEY_SOCKET,bonus} from '../v1/js/ac-core.mjs';
+export {apply,snapshot,earnedStages,FECHADURAS,TOLERANCIA,bonus} from '../v1/js/ac-core.mjs';
 export function createRoom(now = Date.now()) {
   return { id: randomBytes(6).toString('hex'), tokens: { luz: randomBytes(18).toString('hex'), conhecimento: randomBytes(18).toString('hex') }, stage: 'posicionar', startedAt: null, finishedAt: null, createdAt: now, updatedAt: now, beam: null, peers: new Map() };
 }

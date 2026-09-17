@@ -1,18 +1,57 @@
 <!doctype html>
-<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#091515"><title>A Casa · O lar em miniatura</title><link rel="stylesheet" href="css/ac-investigacao.css"><link rel="stylesheet" href="css/ac-maquete.css"><link rel="stylesheet" href="css/ac-janelas.css?v=20260916-sala-cta">
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#091515"><title>A Casa · O lar em miniatura</title><link rel="stylesheet" href="css/ac-investigacao.css"><link rel="stylesheet" href="css/ac-maquete.css?v=20260917-maquete-ra"><link rel="stylesheet" href="css/ac-janelas.css?v=20260916-sala-cta">
 <script src="js/ac-cloud.js"></script></head>
 <body>
   <div id="scene" aria-label="Maquete tridimensional da Casa da Costa"></div>
   <header class="topbar"><a class="brand" href="AC-escrivaninha.html">AC<span>A CASA<br>DA COSTA</span></a><span class="edition">O JARDIM · A MAQUETE</span><button id="help" aria-label="Como explorar">i</button></header>
   <p id="coop-status" data-ac-priority="6" role="status">Conectando a dupla…</p>
-  <div class="chapter"><span class="eyebrow">A PRÓXIMA DESCOBERTA</span><h1>Um lar dentro do lar.</h1><p id="subtitle">Alguns espaços só existem para quem olha de perto.</p></div>
-  <aside data-ac-priority="2" class="instruction" aria-live="polite"><span id="step" class="eyebrow">EXTERIOR</span><h2 id="heading">Observe a casa.</h2><p id="description">Esta maquete continua a pista encontrada sob a escrivaninha.</p><p id="score"></p></aside>
-  <div id="manuscript" data-ac-priority="1" tabindex="0" role="button" aria-label="Segure o manuscrito para revelar a orientação" hidden><span class="eyebrow">O CONHECIMENTO</span><p id="clue">Segure este manuscrito para ler.</p><p id="alignment" role="status" hidden></p><div id="reading"><span></span></div></div>
-  <button id="key-grip" class="gesture-point" aria-label="Leve a ponta da chave ao orifício da fechadura" hidden><span>CHAVE · arraste</span></button>
-  <nav class="tools"><button id="alternative" hidden>Objetos próximos</button><button id="solo-action" hidden></button></nav>
-  <dialog id="instructions" data-ac-priority="10"><button class="close" data-close aria-label="Fechar instruções">×</button><span class="eyebrow">DOIS OLHARES</span><h2>Leia. Oriente. Explore.</h2><p>Quem lê o manuscrito vê a fechadura e um ponto luminoso que acompanha a ponta movida pelo colega. O outro encontra e arrasta a chave, sem ver a fechadura. Conversem usando a escada e os lados da casa como referências. A cada piso, os papéis se alternam.</p><p>Arraste para girar, use dois dedos ou a roda do mouse para aproximar e toque nos detalhes.</p><p id="fallback-note"></p><p>Ao selecionar a chave pelo teclado, use as setas para mover, Page Up/Page Down para ajustar a profundidade e Enter para tentar o encaixe. Seu colega acompanha a ponta e orienta você.</p><p id="scale-note">O tamanho da maquete fica fixo nesta investigação.</p><button id="reposition" hidden>Reposicionar na superfície</button><details id="editor-tools" hidden><summary>Ferramentas de edição</summary><p>Exporta a arquitetura completa, incluindo os pisos internos, para edição 3D.</p><button id="export-glb">Baixar modelo GLB</button></details><p>As chaves abrem novas partes do modelo. Não é necessário procurar botões para mudar de piso.</p><p>Cada chave vale até 8 pontos; escolhas incorretas diminuem 1 ponto, com mínimo de 2.</p><p><a id="invite" hidden target="_blank" rel="noopener noreferrer">Abrir o papel do colega ↗</a></p><a id="return-desk">Voltar à escrivaninha</a></dialog>
-  <dialog id="objects" data-ac-priority="2"><button class="close" data-close aria-label="Fechar objetos">×</button><h2>Inspecionar por nome</h2><p>Alternativa por nomes de objetos.</p><div id="object-list"></div></dialog>
-  <dialog id="discovery" data-ac-priority="8"><button class="close" data-close aria-label="Fechar descoberta">×</button><span class="eyebrow">O ESPAÇO QUE FALTAVA</span><h2>Há um caminho sob a casa.</h2><p>A abertura na despensa se alinha com uma escada escondida na fundação. A maquete revela uma passagem até um espaço que não aparecia na leitura inicial da casa.</p><p>Encontrar esse caminho não prova quem o usou, nem quando. Essa é a próxima pergunta.</p><p id="final-score"></p></dialog>
+  <div class="chapter"><span class="eyebrow">A PRÓXIMA DESCOBERTA</span><h1>Um lar dentro do lar.</h1><p id="subtitle">Alguém construiu esta casa duas vezes. A segunda cabe numa mesa.</p></div>
+
+  <!-- A PORTA DA ATIVIDADE. Enquanto a maquete não está no ambiente, não há
+       capítulo, não há chave e não há fechadura: a investigação nasce do
+       objeto posto na mesa. -->
+  <section id="portal" aria-live="polite">
+    <div class="portal-cartao">
+      <span class="eyebrow">ANTES DE COMEÇAR</span>
+      <h2 id="portal-titulo">Ponha a maquete na sua mesa.</h2>
+      <p id="portal-texto">A caixa veio fechada. Procure uma superfície plana e apoie a casa nela.</p>
+      <div class="portal-botoes">
+        <button id="portal-ra" class="portal-principal" hidden>Apontar para a mesa</button>
+        <button id="portal-camera" class="portal-principal" hidden>Abrir a câmera</button>
+        <button id="portal-mesa">Continuar sem câmera</button>
+      </div>
+      <p id="portal-aviso" class="portal-aviso" role="status"></p>
+    </div>
+  </section>
+
+  <p id="pousar" role="status" hidden>Aponte para a superfície e toque no círculo.</p>
+
+  <aside data-ac-priority="2" class="instruction" aria-live="polite"><span id="step" class="eyebrow">A CAIXA FECHADA</span><h2 id="heading">Ponha a maquete na mesa.</h2><p id="description">A investigação começa quando a casa estiver apoiada à sua frente.</p><p id="score"></p></aside>
+
+  <div id="manuscript" data-ac-priority="1" tabindex="0" role="button" aria-label="Segure o manuscrito para ler a anotação" hidden><span class="eyebrow">O CONHECIMENTO</span><p id="clue">Segure este manuscrito para ler.</p><p id="alignment" role="status" hidden></p><div id="reading"><span></span></div></div>
+
+  <button id="key-grip" class="gesture-point" aria-label="Leve a ponta da chave até a fechadura" hidden><span>CHAVE · arraste</span></button>
+
+  <nav class="tools"><button id="alternative" hidden>Objetos próximos</button><button id="solo-action" hidden></button><button id="reposition" hidden>Reposicionar</button></nav>
+
+  <dialog id="instructions" data-ac-priority="10"><button class="close" data-close aria-label="Fechar instruções">×</button><span class="eyebrow">DOIS OLHARES</span><h2>Um tem a chave. O outro tem a fechadura.</h2>
+    <p>A maquete se abre por camadas, e cada camada é presa por uma fechadura. Quem tem a fechadura vê onde ela está e lê a anotação que diz onde a chave foi guardada. Quem tem a chave é o único que pode mexer nos móveis e arrastar a chave — e não enxerga a fechadura nenhuma vez.</p>
+    <p>Conversem em voz alta. Os lados se invertem a cada camada.</p>
+    <p id="fallback-note"></p>
+    <p>Um dedo arrastando gira a maquete; dois dedos aproximam. Toque nos detalhes para examinar.</p>
+    <p>Com o teclado: selecione a chave, mova com as setas, ajuste a profundidade com Page Up e Page Down e confirme com Enter.</p>
+    <p>Cada camada vale até 8 pontos; cada engano tira 1, com mínimo de 2.</p>
+    <p><a id="invite" hidden target="_blank" rel="noopener noreferrer">Abrir o papel do colega ↗</a></p>
+    <a id="return-desk">Voltar à escrivaninha</a></dialog>
+
+  <dialog id="objects" data-ac-priority="2"><button class="close" data-close aria-label="Fechar objetos">×</button><h2>Examinar por nome</h2><p>Se o toque na cena estiver difícil, escolha pelo nome.</p><div id="object-list"></div></dialog>
+
+  <dialog id="discovery" data-ac-priority="8"><button class="close" data-close aria-label="Fechar descoberta">×</button><span class="eyebrow">O ESPAÇO QUE FALTAVA</span><h2>A casa não termina onde a casa termina.</h2>
+    <p>Sob a despensa há um porão, e do porão sai uma passagem de pedra que atravessa a fundação e some para fora do terreno. Nenhuma planta da Casa da Costa registra esse trecho.</p>
+    <p>Encontrar o caminho não prova quem o usou, nem quando. Essa é a próxima pergunta.</p>
+    <p id="final-score"></p></dialog>
+
   <div id="notice" data-ac-priority="9" role="status"></div>
-  <script src="js/three.min.js"></script><script src="js/vendor/OrbitControls.js"></script><script src="js/ac-cooperacao.js?v=20260916-publicado-ac"></script><script src="js/ac-maquete-materials.js"></script><script src="js/vendor/GLTFLoader.js"></script><script src="js/ac-desk.js"></script><script src="js/ac-room-layout.js"></script><script src="js/ac-room-art.js"></script><script src="js/ac-room.js"></script><script src="js/ac-maquete-model.js"></script><script src="js/vendor/GLTFExporter.js"></script><script src="js/ac-maquete-spatial.js"></script><script src="js/ac-gold-dust.js"></script><script src="js/ac-maquete.js?v=20260916-publicado-ac"></script>
+
+  <script src="js/three.min.js"></script><script src="js/vendor/OrbitControls.js"></script><script src="js/vendor/GLTFLoader.js"></script><script src="js/ac-cooperacao.js?v=20260917-maquete-ra"></script><script src="js/ac-gold-dust.js"></script><script src="js/ac-maquete-mundo.js?v=20260917-maquete-ra"></script><script src="js/ac-maquete-ra.js?v=20260917-maquete-ra"></script><script src="js/ac-maquete.js?v=20260917-maquete-ra"></script>
 <script src="js/ac-janelas.js?v=20260916-sala-cta"></script></body></html>

@@ -1,6 +1,6 @@
 (function(global){
  'use strict';
- const evidence=['chave-exterior','chave-terreo','passagem-sob-despensa'];
+ const evidence=['chave-exterior','chave-dos-quartos','passagem-sob-despensa'];
  function validar(r){return r&&r.version===1&&typeof r.sala==='string'&&typeof r.runId==='string'&&Number.isInteger(r.vela)&&r.vela>=0&&r.vela<=30&&Number.isInteger(r.chaves)&&r.chaves>=6&&r.chaves<=24&&JSON.stringify(r.evidence)===JSON.stringify(evidence);}
  function etapasConfirmadas(e){
    if(!e)return {vela:0,chaves:0};

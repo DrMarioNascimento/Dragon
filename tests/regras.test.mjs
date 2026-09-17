@@ -15,6 +15,7 @@
    e a retirada de `concluidoMs` do Fragmento. */
 
 import { readFileSync } from "node:fs";
+import {CAPITULOS,FECHADURAS} from '../ferramentas/ac-maquete-state.mjs';
 import test, { before, after, beforeEach } from "node:test";
 import {
   initializeTestEnvironment, assertSucceeds, assertFails
@@ -527,9 +528,9 @@ test('AC Firestore: trio percorre nove objetos, vela e tres chaves com resultado
  let i=0;const send=async(role,event)=>assertSucceeds(setDoc(doc(clients[role],...path,'eventos',String(++i).padStart(3,'0')),{uid:users[role],role,event,at:serverTimestamp()}));
  for(const role of Object.keys(users)){await send(role,{type:'sala_progresso',objetos:4,total:9});await send(role,{type:'sala_concluida',objetos:9,total:9,tempoMs:1000});}
  await send('luz',{type:'posicionar'});await send('luz',{type:'encaixar'});await send('luz',{type:'feixe',origin:[0,0,1],target:[0,0,0]});await send('conhecimento',{type:'descobrir'});await send('conhecimento',{type:'registrar'});await send('conhecimento',{type:'iniciar_maquete'});
- for(const [level,object] of ['rosa','relogio','armario-oeste'].entries()){
+ for(const [level,object] of CAPITULOS.map((c)=>c.esconderijo).entries()){
   const explorer=level===1?'conhecimento':'luz',guide=level===1?'luz':'conhecimento';
-  await send(guide,{type:'maquete_orientar'});await send(explorer,{type:'maquete_examinar',object});await send(explorer,{type:'maquete_mover',tip:[.48,-.13,.888]});await send(explorer,{type:'maquete_encaixar'});
+  await send(guide,{type:'maquete_orientar'});await send(explorer,{type:'maquete_examinar',object});await send(explorer,{type:'maquete_mover',tip:FECHADURAS[level]});await send(explorer,{type:'maquete_encaixar'});
  }
  const results=[];for(const db of Object.values(clients)){const s=await getDocs(collection(db,...path,'eventos'));results.push(receipts(g,s.docs.map(d=>({...d.data(),id:d.id,at:d.data().at.toMillis()}))));}
  const assert=(await import('node:assert/strict')).default;

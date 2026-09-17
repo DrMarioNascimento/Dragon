@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createRoom,apply,snapshot,createServer,KEY_SOCKET} from '../ferramentas/ac-cooperacao.mjs';
+import {createRoom,apply,snapshot,createServer,FECHADURAS} from '../ferramentas/ac-cooperacao.mjs';
+import {CAPITULOS} from '../ferramentas/ac-maquete-state.mjs';
 import {roomRecord} from '../ferramentas/ac-room-store.mjs';
 import {resolve} from 'node:path';
 import vm from 'node:vm';
@@ -77,11 +78,11 @@ test('percurso exige duas salas concluidas, respeita pausa e preserva registro e
  assert.equal(apply(restored,'conhecimento',{type:'iniciar_maquete'}),false);
  apply(restored,'conhecimento',{type:'registrar'});
  apply(restored,'conhecimento',{type:'iniciar_maquete'});
- for(const [i,object]of ['rosa','relogio','armario-oeste'].entries()){
+ for(const [i,object]of CAPITULOS.map((c)=>c.esconderijo).entries()){
    const explorer=i===1?'conhecimento':'luz',guide=explorer==='luz'?'conhecimento':'luz';
    apply(restored,guide,{type:'maquete_orientar'});
    apply(restored,explorer,{type:'maquete_examinar',object});
-   apply(restored,explorer,{type:'maquete_mover',tip:KEY_SOCKET});
+   apply(restored,explorer,{type:'maquete_mover',tip:FECHADURAS[i]});
    assert.equal(apply(restored,explorer,{type:'maquete_encaixar'}),true);
  }
  assert.equal(snapshot(restored).maquete.complete,true);
