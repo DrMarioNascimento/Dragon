@@ -311,3 +311,26 @@ describe("PADRAO · nota Celular gate + abertura", () => {
     assert.match(criar, /formEntrar\('',true\)/);
   });
 });
+
+describe("abertura · Casa da Costa com vídeo vertical", () => {
+  it("em tela vertical o palco é o vídeo, mudo, e a voz continua sendo a narração", () => {
+    assert.ok(existsSync(join(root, "ACasa-Video-Vertical-Abertura.mp4")), "o vídeo da abertura saiu do repositório");
+    assert.match(OPEN_CASA, /VIDEO_ALTO = url\('ACasa-Video-Vertical-Abertura\.mp4'\)/);
+    assert.match(OPEN_CASA, /const AUDIO = url\('v1\/audio\/A-Casa-da-Costa-Abertura\.mp3'\)/);
+    const preparar = OPEN_CASA.slice(OPEN_CASA.indexOf("function prepararVideo"), OPEN_CASA.indexOf("function tocarVideo"));
+    assert.match(preparar, /if \(larga\(\)/, "na tela larga fica a paisagem 3D");
+    assert.match(preparar, /v\.muted = true/);
+    assert.match(preparar, /playsinline/);
+    assert.doesNotMatch(preparar, /loop/, "o vídeo para no último quadro enquanto a voz termina");
+  });
+
+  it("vídeo e voz saem do mesmo toque, e a paisagem não monta por cima do vídeo", () => {
+    const comecar = OPEN_CASA.slice(OPEN_CASA.indexOf("async function comecar"), OPEN_CASA.indexOf("function mostrar"));
+    assert.ok(comecar.indexOf("tocarVideo()") < comecar.indexOf("await audio.play()"), "o vídeo precisa ser chamado antes do await, dentro do gesto");
+    assert.ok(comecar.indexOf("if (video) return") < comecar.indexOf("loadPaisagem()"));
+  });
+
+  it("a abertura continua fechando pelo fim da narração", () => {
+    assert.match(OPEN_CASA, /audio\.onended = \(\) => \{\s*if \(paisagemViva\) return;\s*setTimeout\(terminar, 900\);/);
+  });
+});

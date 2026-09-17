@@ -4,7 +4,13 @@
    15/09/2026: o palco pode ser a paisagem 3D (`casa-da-costa-noturna.glb`).
    A foto permanece por baixo e volta se o WebGL ou o modelo falharem.
    Com a paisagem no ar, a narração não fecha sozinha: o jogador toca a
-   porta (ou o botão) para entrar. Pular continua valendo. */
+   porta (ou o botão) para entrar. Pular continua valendo.
+
+   17/09/2026: em tela vertical o palco é o vídeo ACasa-Video-Vertical-Abertura.mp4.
+   O vídeo não tem faixa de som: a voz continua sendo A-Casa-da-Costa-Abertura.mp3,
+   e os dois começam no mesmo toque. O vídeo dura 55 s e a narração 81 s — ele
+   para no último quadro e a abertura fecha quando a voz termina. Na tela
+   larga fica a paisagem 3D. Se o vídeo falhar, volta a foto. */
 (function () {
   const AQUI = new URL('.', document.currentScript.src);
   const url = (p) => new URL(p, AQUI).href;
@@ -13,11 +19,12 @@
   const IMG_ALTA = url('v1/img/Vertical.jpg');
   const PAISAGEM_JS = url('v1/js/ac-paisagem.js?v=20260916-publicado-ac');
   const PAISAGEM_GLB = url('v1/assets/ac/casa-da-costa-noturna.glb');
+  const VIDEO_ALTO = url('ACasa-Video-Vertical-Abertura.mp4');
   const larga = () => {
     try { return matchMedia('(min-aspect-ratio: 1/1)').matches; } catch (e) { return false; }
   };
 
-  let mostrado = false, terminado = false, fim = null, paisagemViva = false;
+  let mostrado = false, terminado = false, fim = null, paisagemViva = false, video = null;
 
   const css = document.createElement('style');
   css.textContent = `
@@ -27,6 +34,9 @@
 #abCasa .palco{position:absolute;inset:0;display:grid;place-items:center;overflow:hidden}
 #abCasa .palco img{width:100%;height:100%;object-fit:cover;transition:opacity .7s ease}
 #abCasa .palco.tem-3d img{opacity:0;pointer-events:none}
+#abVideo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .7s ease;pointer-events:none}
+#abCasa .palco.tem-video #abVideo{opacity:1}
+#abCasa .palco.tem-video img{opacity:0}
 #abPaisagem{position:absolute;inset:0;z-index:0}
 #abPaisagem canvas{width:100%;height:100%;display:block;touch-action:none}
 #abCasa .veu{position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,#020609e6);pointer-events:none;z-index:1}
@@ -99,6 +109,7 @@
     if (terminado) return;
     terminado = true;
     try { audio.pause(); } catch (e) {}
+    try { if (video) { video.pause(); video.removeAttribute('src'); video.load(); } } catch (e) {}
     try { if (window.MosaicoPaisagem) window.MosaicoPaisagem.desmontar(); } catch (e) {}
     raiz.classList.remove('on');
     raiz.remove();
@@ -106,9 +117,34 @@
     if (typeof fim === 'function') fim();
   }
 
+  /* Vídeo sem som, então pode tocar mudo e inline no iPhone. Ele é chamado
+     no mesmo toque que a voz, antes do await, para os dois saírem juntos. */
+  function prepararVideo(palco) {
+    if (larga() || !palco) return null;
+    const v = document.createElement('video');
+    v.id = 'abVideo';
+    v.muted = true; v.defaultMuted = true;
+    v.playsInline = true;
+    v.setAttribute('muted', ''); v.setAttribute('playsinline', ''); v.setAttribute('webkit-playsinline', '');
+    v.preload = 'auto';
+    v.poster = IMG_ALTA;
+    v.addEventListener('playing', () => palco.classList.add('tem-video'));
+    v.addEventListener('error', () => { palco.classList.remove('tem-video'); video = null; v.remove(); });
+    v.src = VIDEO_ALTO;
+    palco.insertBefore(v, palco.querySelector('.veu'));
+    return v;
+  }
+  function tocarVideo() {
+    if (!video) return;
+    try { video.currentTime = Math.min(audio.currentTime || 0, (video.duration || Infinity) - .05); } catch (e) {}
+    const p = video.play();
+    if (p && p.catch) p.catch(() => {});
+  }
+
   async function comecar() {
     audio.src = AUDIO;
     audio.currentTime = 0;
+    tocarVideo();
     try {
       await audio.play();
       const prep=document.getElementById('abPrep');
@@ -120,6 +156,8 @@
       document.getElementById('abRestart').hidden = true;
     }
     const palco = document.getElementById('abPalco');
+    // Com o vídeo no palco, a paisagem 3D não monta por cima dele.
+    if (video) return;
     const ok = await loadPaisagem();
     if (!ok || !window.MosaicoPaisagem || !palco) return;
     window.MosaicoPaisagem.montar(palco, {
@@ -139,6 +177,7 @@
     mostrado = true;
     document.body.appendChild(raiz);
     document.getElementById('abImg').src = larga() ? IMG_LARGA : IMG_ALTA;
+    video = prepararVideo(document.getElementById('abPalco'));
     raiz.classList.add('on');
 
     document.getElementById('abIniciar').onclick = comecar;
@@ -147,11 +186,13 @@
     const play = document.getElementById('abPlay');
     play.onclick = async () => {
       if (audio.paused) {
+        tocarVideo();
         try { await audio.play(); play.textContent = 'Ⅱ'; } catch (e) {}
-      } else { audio.pause(); play.textContent = '▶'; }
+      } else { audio.pause(); if (video) video.pause(); play.textContent = '▶'; }
     };
     document.getElementById('abRestart').onclick = async () => {
       audio.currentTime = 0;
+      tocarVideo();
       try { await audio.play(); play.textContent = 'Ⅱ'; } catch (e) {}
     };
     audio.onended = () => {
@@ -161,7 +202,7 @@
     try {
       matchMedia('(min-aspect-ratio: 1/1)').addEventListener('change', () => {
         const img = document.getElementById('abImg');
-        if (img && !paisagemViva) img.src = larga() ? IMG_LARGA : IMG_ALTA;
+        if (img && !paisagemViva && !video) img.src = larga() ? IMG_LARGA : IMG_ALTA;
       });
     } catch (e) {}
   }
