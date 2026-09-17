@@ -8,7 +8,7 @@ const root=document.getElementById('app');
 let app,auth,db,roomCode='',roomData=null,players=[],unsubRoom=null,unsubPlayers=null,role='',pendingUser=null;
 let ritmo='automatico',localScreen='menu',ownPlayer=null,salaOpen=false;
 
-function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&','<':'<','>':'>','"':'"',"'":'&#39;'}[c]));}
 function init(){
   if(!firebase.apps.length) app=firebase.initializeApp(CFG,'noite-shell'); else app=firebase.apps[0];
   auth=firebase.auth(app);db=firebase.firestore(app);
@@ -40,20 +40,11 @@ function renderMasterGate(msg=''){
   localScreen='master-gate';
   base('ÁREA DO MESTRE','Abrir uma mesa',`<span class="room-section-label">Como as rodadas devem avançar?</span><button class="room-rhythm ${ritmo==='automatico'?'on':''}" data-r="automatico"><b>AUTOMATICAMENTE · RECOMENDADO</b><span>O jogo avança quando todos terminam.</span></button><button class="room-rhythm ${ritmo==='conduzido'?'on':''}" data-r="conduzido"><b>COM MINHA LIBERAÇÃO</b><span>A Sala avisará quando for hora de avançar.</span></button>${msg?`<div class="room-error">${esc(msg)}</div>`:''}<div class="room-actions"><button class="btn btn-gold" id="openGoogle">Abrir com Google</button><button class="btn btn-ghost" id="back">Cancelar</button></div>`,'room-master-gate');
   document.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{ritmo=b.dataset.r;renderMasterGate()});
-  /* A senha saiu (03/09/2026). Era sha256 de constante escrita neste arquivo,
-     com o desbloqueio num sessionStorage que qualquer um define pelo console —
-     pedágio, não controle. Quem decide se alguém abre mesa é a regra do
-     Firestore, emailMestre(), no servidor. Ver firebase-room.js. */
   document.getElementById('openGoogle').onclick=loginGoogle;
   document.getElementById('back').onclick=renderMenu;
 }
 async function loginGoogle(){
   try{
-    /* Uma vez, e só uma. `prompt:'select_account'` ordenava ao Google mostrar
-       o seletor mesmo com sessão viva, e ninguém olhava para a conta que já
-       estava aqui — o Firebase guarda em browserLocalPersistence por padrão.
-       Agora só há popup quando não há conta, ou quando a que existe é anônima.
-       Ver firebase-room.js. A conferência contra config/mestres continua. */
     const atual=auth.currentUser;
     if(atual&&!atual.isAnonymous&&atual.email){pendingUser=atual;}
     else{
@@ -85,12 +76,6 @@ function renderMasterOrientation(){
   document.getElementById('understood').onclick=()=>{localScreen='join-master';renderJoin(true)};
 }
 
-/* O campo do nome vinha preenchido com o displayName da conta Google, e o
-   Mestre entrava na casa com o nome civil completo — que aparece no lobby e no
-   estado público para todos. Isto é um jogo: o nome é da partida, escolhido na
-   hora, e a conta Google serve só para autorizar quem abre. O campo nasce
-   vazio, e nada da conta é gravado. Mesma regra de firebase-room.js, onde ela
-   foi escrita primeiro (3c8d643) e não tinha atravessado para cá. */
 function renderJoin(asMaster,msg=''){
   localScreen=asMaster?'join-master':'join';
   const codeValue=roomCode||(new URLSearchParams(location.search).get('sala')||'').toUpperCase();
@@ -140,37 +125,12 @@ function listen(){
   unsubRoom=ref.onSnapshot(s=>{roomData=s.exists?s.data():null;if(!roomData){renderMenu();return;}if(roomData.fase!=='sala'){launchOnline();return;}if(localScreen==='preparation')renderPreparation();});
   unsubPlayers=ref.collection('jogadores').orderBy('entrouMs').onSnapshot(s=>{players=s.docs.map(d=>({id:d.id,...d.data()}));ownPlayer=myPlayer();if(localScreen==='preparation')renderPreparation();});
 }
-/* A ABERTURA É OBRIGATÓRIA, e toca num APARELHO SÓ (03/09/2026).
-   A Noite da Casa não tinha abertura nenhuma: o dossiê simplesmente aparecia.
-   Ganhou uma, e por algumas horas ela tocava em TODOS os telefones — o que
-   numa sala vira eco de oito aparelhos defasados, cada um com o próprio
-   atraso de rede e de toque.
-
-   A regra do Mario: com telão passa no telão; sem telão, no aparelho do
-   Mestre; no Solo, no próprio. O pressuposto é uma sala e um som, não um som
-   por pessoa. A Noite da Casa é sem-telão por decisão escrita (modo fixo em
-   três lugares), então aqui é sempre o Mestre.
-
-   Quem não é o Mestre não fica sem nada: espera, vendo que a casa está
-   falando, e entra quando a sala avisa que acabou. É o mesmo desenho do
-   AGUARDE da Mesa. Sem isso o convidado começaria a jogar por cima da
-   narração alheia.
-
-   `abertura-casa.js` mora na RAIZ: tudo em v2/ é apagado e recopiado a cada
-   publicação, e só mosaico-web/public/ sobrevive. De /Dragon/v2/, ../ cai em
-   /Dragon/. Se ela não carregar, o jogo entra assim mesmo — clima nunca
-   segura a mesa. */
 function aguardarAbertura(seguir){
-  /* Pelo `base` da própria casca: classe inventada aqui sairia sem estilo
-     nenhum, porque room.css não conhece nome que não passou por ele. */
   base('A CASA DA COSTA','A casa está falando',
     '<p class="lead">A abertura está tocando no aparelho de quem abriu a mesa. '+
     'Ouça daí — a sua tela entra sozinha quando ela terminar.</p>');
   let pronto=false;
   const entra=()=>{if(pronto)return;pronto=true;seguir()};
-  /* Duas saídas, e as duas precisam existir: a sala avisando que acabou, e um
-     teto de tempo. Um convidado preso porque o Mestre fechou a aba no meio da
-     narração é o mesmo travamento que a Mesa levou meses para descobrir. */
   const un=db.collection('noite').doc(roomCode).onSnapshot(s=>{
     const d=s.exists?s.data():null;
     if(d&&d.abertura&&d.abertura.concluida){un();entra()}
@@ -188,7 +148,7 @@ function comAbertura(seguir){
   const conduzo=!sala||!sala.online||sala.role==='master';
   if(!conduzo){aguardarAbertura(seguir);return}
   const a=document.createElement('script');
-  a.src='../abertura-casa.js?v=20260915-audio-cta';
+  a.src='../abertura-casa.js?v=20260917-video-so';
   a.onload=()=>window.MosaicoAberturaCasa.mostrar(()=>{marcarAberturaConcluida();seguir()});
   a.onerror=()=>{console.error('MOSAICO: abertura não carregou.');marcarAberturaConcluida();seguir()};
   document.head.appendChild(a);
