@@ -16,7 +16,10 @@
  w.ACPrepareGroups=async(...args)=>(await cloud()).prepare(...args);
 })(window);
 (function(){
-  var s=document.createElement('script');
-  s.src=new URL('abertura-video-casa.js?v=20260917-video-so', document.currentScript.src).href;
-  document.head.appendChild(s);
+  var base=document.currentScript.src;
+  ['abertura-video-casa.js?v=20260917-video-so','esconder-teste-3d.js?v=20260917-sem-atalho'].forEach(function(nome){
+    var s=document.createElement('script');
+    s.src=new URL(nome, base).href;
+    document.head.appendChild(s);
+  });
 })();
