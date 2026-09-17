@@ -30,7 +30,7 @@
     if(window.__mosaicoSoloIniciado)return;
     window.__mosaicoSoloIniciado=true;
     var ab=document.createElement('script');
-    ab.src='../abertura-casa.js?v=20260915-audio-cta';
+    ab.src='../abertura-casa.js?v=20260917-video-so';
     ab.onload=function(){window.MosaicoAberturaCasa.mostrar(carregarJogo)};
     ab.onerror=function(){console.error('MOSAICO: abertura não carregou.');carregarJogo()};
     document.head.appendChild(ab);
