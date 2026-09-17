@@ -64,6 +64,11 @@
      debaixo dele e nenhuma direção de olhar os alcançava. Medido: 0 de 36. */
   var EXCECOES = { 'forro-piso-2': 'telhado' };
 
+  /* A descoberta. Medido: com o terreno opaco, a passagem responde a ZERO de
+     72 direções — ela corre por baixo do chão, para fora da pegada da casa.
+     Por isso, no fim, o terreno fica fantasma em vez de continuar sólido. */
+  var REVELACAO = { id: 'passagem-oculta', camada: 'porao', nomes: ['aduela-da-passagem', 'laje-da-passagem', 'barra', 'porta-de-ferro'] };
+
   var RELOGIO = { hora: 21, minuto: 29 };
 
   function nomesDe(regra) { return regra.nomes || (regra.nome ? [regra.nome] : null); }
@@ -195,23 +200,48 @@
     var grupo = new THREE.Group();
     grupo.name = 'chave';
     var latao = new THREE.MeshStandardMaterial({ color: 0xd8b25e, roughness: 0.42, metalness: 0.85, emissive: 0x2a1c05 });
-    var haste = new THREE.Mesh(new THREE.CylinderGeometry(0.0022, 0.0022, 0.040, 10), latao);
-    haste.rotation.z = Math.PI / 2; haste.position.x = 0.0;
-    var argola = new THREE.Mesh(new THREE.TorusGeometry(0.0072, 0.0020, 8, 18), latao);
-    argola.position.x = -0.026; argola.rotation.y = Math.PI / 2;
-    var palheta = new THREE.Mesh(new THREE.BoxGeometry(0.0055, 0.0090, 0.0022), latao);
-    palheta.position.set(0.0155, -0.0045, 0);
-    var dente = new THREE.Mesh(new THREE.BoxGeometry(0.0022, 0.0055, 0.0022), latao);
-    dente.position.set(0.0085, -0.0035, 0);
+    /* 7 cm de chave num modelo de 1 m. Medido na tela em 17/09/2026: com 4 cm
+       ela ocupava meia dúzia de pixels e o jogador via só o círculo do gesto. */
+    var haste = new THREE.Mesh(new THREE.CylinderGeometry(0.0040, 0.0040, 0.072, 12), latao);
+    haste.rotation.z = Math.PI / 2;
+    var argola = new THREE.Mesh(new THREE.TorusGeometry(0.0130, 0.0036, 10, 20), latao);
+    argola.position.x = -0.047; argola.rotation.y = Math.PI / 2;
+    var palheta = new THREE.Mesh(new THREE.BoxGeometry(0.0100, 0.0162, 0.0040), latao);
+    palheta.position.set(0.0279, -0.0081, 0);
+    var dente = new THREE.Mesh(new THREE.BoxGeometry(0.0040, 0.0100, 0.0040), latao);
+    dente.position.set(0.0153, -0.0063, 0);
     grupo.add(haste, argola, palheta, dente);
     var ponta = new THREE.Object3D();
-    ponta.position.set(0.0200, 0, 0);
+    ponta.position.set(0.0360, 0, 0);
     grupo.add(ponta);
     grupo.userData.exportExclude = true;
     return { grupo: grupo, ponta: ponta, material: latao };
   }
 
   /* ---- halo dos alvos e das fechaduras ----------------------------------- */
+
+  /* Um alfinete: fio fino saindo do objeto e uma conta de luz em cima. O anel
+     no chão sozinho não se vê — medido na tela em 17/09/2026, sobre o lajeado
+     claro e sobre a pedra ele simplesmente desaparece. O fio é o que liga a
+     marca AO OBJETO; sem ele a conta flutuando aponta para nada. */
+  function alfinete(cor, altura) {
+    var grupo = new THREE.Group();
+    /* Com `depthTest:false` o alfinete aparecia POR CIMA do telhado mesmo
+       quando o objeto estava do outro lado da casa — uma marca que aponta para
+       onde a coisa não está. Ele respeita a profundidade; quem enquadra a cena
+       é que põe a câmera do lado certo. */
+    var material = new THREE.MeshBasicMaterial({ color: cor, transparent: true, opacity: 0 });
+    var fio = new THREE.Mesh(new THREE.CylinderGeometry(0.0012, 0.0012, altura, 6), material);
+    fio.position.y = altura / 2;
+    var conta = new THREE.Mesh(new THREE.SphereGeometry(0.0075, 12, 10), material);
+    conta.position.y = altura;
+    grupo.add(fio, conta);
+    grupo.renderOrder = 6;
+    grupo.userData.exportExclude = true;
+    grupo.userData.marca = material;
+    grupo.traverse(function (o) { o.raycast = function () {}; });
+    return grupo;
+  }
 
   function halo(cor, raio) {
     var m = new THREE.Mesh(
@@ -261,6 +291,7 @@
     for (i = 0; i < ALVOS.length; i++) alvos[ALVOS[i].id] = recolher(raiz, ALVOS[i], reservados);
     var fechaduras = {};
     for (i = 0; i < FECHADURAS.length; i++) fechaduras[FECHADURAS[i].id] = recolher(raiz, FECHADURAS[i], reservados);
+    var revelacao = recolher(raiz, REVELACAO, reservados);
 
     /* 3 — camadas: cada uma vira um grupo próprio, com material próprio, para
        poder subir e desaparecer sem levar as outras junto. */
@@ -307,6 +338,7 @@
     for (i = 0; i < idsAlvo.length; i++) prender(alvos[idsAlvo[i]], camadas, raiz, 'alvo');
     var idsFech = Object.keys(fechaduras);
     for (i = 0; i < idsFech.length; i++) prender(fechaduras[idsFech[i]], camadas, raiz, 'fechadura');
+    prender(revelacao, camadas, raiz, 'fechadura');
 
     /* 5 — âncoras das fechaduras: o ponto exato que o motor confere. */
     var ancoras = [];
@@ -325,7 +357,10 @@
       anel.position.copy(ancora.position);
       anel.position.y += 0.0015;
       raiz.add(anel);
-      ancoras.push({ ponto: ancora, halo: anel, id: FECHADURAS[i].id, peca: fechaduras[FECHADURAS[i].id] });
+      var pino = alfinete(0xffd489, 0.055);
+      pino.position.copy(ancora.position);
+      raiz.add(pino);
+      ancoras.push({ ponto: ancora, halo: anel, pino: pino, id: FECHADURAS[i].id, peca: fechaduras[FECHADURAS[i].id] });
     }
 
     var chave = criarChave();
@@ -348,6 +383,7 @@
       chave: chave.grupo,
       chavePonta: chave.ponta,
       chaveMaterial: chave.material,
+      revelacao: revelacao,
       baseY: completo.min.y,
       altura: completo.max.y - completo.min.y,
       escalaOriginal: escala,
@@ -440,11 +476,16 @@
     /* O anel é MARCA, não contorno. Sem teto, os dois pilares do portão viram
        um anel de 24 cm que atravessa metade do terreiro. */
     var raio = tem ? Math.min(0.040, Math.max(0.012, Math.max(caixaLocal.max.x - caixaLocal.min.x, caixaLocal.max.z - caixaLocal.min.z) * 0.62)) : 0.012;
-    var anel = halo(tipo === 'alvo' ? 0x9fe7d6 : 0xffd489, raio);
+    var cor = tipo === 'alvo' ? 0x9fe7d6 : 0xffd489;
+    var anel = halo(cor, raio);
     anel.position.set(centro.x, (tem ? caixaLocal.min.y : 0) + 0.0015, centro.z);
     grupo.add(anel);
+    var pino = alfinete(cor, 0.055);
+    pino.position.set(centro.x, tem ? caixaLocal.max.y + 0.004 : 0, centro.z);
+    grupo.add(pino);
     conjunto.grupo = grupo;
     conjunto.halo = anel;
+    conjunto.pino = pino;
     conjunto.centro = centro.clone();
     conjunto.caixa = caixaLocal.clone();
     return grupo;

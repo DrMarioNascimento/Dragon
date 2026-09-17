@@ -50,17 +50,26 @@ test('percurso solo mantém 3D, RA, escrivaninha e maquete com três chaves',()=
   assert.match(js,/MOSAICO-26-a-janela-do-norte\.html\?embed=1/);
   assert.match(js,/AC-escrivaninha\.html\?demo=solo/);
   assert.match(js,/xr-spatial-tracking/);
-  for(const acao of ['posicionar','encaixar','descobrir','registrar','iniciar_maquete','maquete_orientar','maquete_examinar','maquete_mover','maquete_encaixar'])
+  for(const acao of ['posicionar','encaixar','descobrir','registrar','iniciar_maquete','maquete_mover','maquete_encaixar'])
     assert.ok(coop.includes(acao),acao);
+  /* Os demais atos da maquete (`maquete_orientar`, `maquete_examinar`) não
+     aparecem mais por nome no Solo: ele encaminha o que não conhece ao MESMO
+     motor da Mesa, e é isso que precisa ser guardado. */
+  assert.match(coop,/type\.indexOf\('maquete_'\)\s*===\s*0/);
+  assert.match(coop,/M\.actMaquette/);
   assert.match(desk,/MODO SOLO · PERCURSO COMPLETO/);
   assert.match(desk,/Procurar bilhete sob as gavetas/);
   assert.match(desk,/Ler e guardar bilhete/);
   assert.match(desk,/iniciar_maquete/);
   assert.match(desk,/location\.replace\('AC-maquete\.html'/);
   assert.match(maquete,/ac-solo-maquete-completa/);
-  for(const cta of ['Ler orientação da chave','Encontrar chave','Confirmar encaixe da chave'])
+  for(const cta of ['Ler a anotação','Examinar por nome','Levar a chave à fechadura'])
     assert.ok(maquete.includes(cta),cta);
-  assert.match(coop,/targetLabel/);
-  assert.match(coop,/chave-exterior','chave-terreo','passagem-sob-despensa/);
+  /* As três evidências continuam sendo as mesmas do recibo; quem as define é
+     o motor, e o Solo não pode ter uma segunda lista. */
+  const motor=readFileSync(new URL('../v1/js/ac-maquete-state.mjs',import.meta.url),'utf8');
+  for(const id of ['chave-exterior','chave-dos-quartos','passagem-sob-despensa'])
+    assert.ok(motor.includes(id),id);
+  assert.ok(!coop.includes('passagem-sob-despensa'),'o Solo não pode listar as evidências por conta própria');
   assert.doesNotMatch(escrivaninha, /id="ar"|id="ar-ios"|Colocar em RA|Ver em RA|teste=sala3d/);
 });

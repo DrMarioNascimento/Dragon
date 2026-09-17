@@ -30,11 +30,11 @@
   var coop = null, dados = null, online = false, movimento = null, movimentoEm = 0;
   var pendente = false, descartado = false, leituraInicio = null, leituraEnviada = false;
   var arrastando = false, terminando = false, vooDaChave = null, ultimoExaminado = null;
-  var nivelAnterior = -1, prontoAnterior = null, concluidoEnviado = false, avisoTimer = null;
+  var nivelAnterior = -1, enquadramentoAtual = '', concluidoEnviado = false, avisoTimer = null;
   var giroAtivo = null, toques = new Map(), pinca = 0, tocouEm = null;
   var planoDeArrasto = new THREE.Plane(), raio = new THREE.Raycaster(), ponto = new THREE.Vector3();
   var ultimoEnvio = 0, envioOcupado = false, envioPendente = null;
-  var alturaAberta = 0.52, progressoDasCamadas = {};
+  var alturaAberta = 0.62, progressoDasCamadas = {}, fantasmaTerreno = 1;
   var farol = null, tempoAnterior = 0, desligar = [];
 
   function on(el, tipo, fn, opcoes) { if (!el) return; el.addEventListener(tipo, fn, opcoes); desligar.push(function () { el.removeEventListener(tipo, fn, opcoes); }); }
@@ -56,35 +56,97 @@
     renderer.setSize(innerWidth, innerHeight);
     renderer.outputEncoding = THREE.sRGBEncoding;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.25;
+    renderer.toneMappingExposure = 1.0;
     renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.xr.enabled = true;
     $('scene').appendChild(renderer.domElement);
 
-    cena.add(new THREE.HemisphereLight(0xd9e6f2, 0x3b2e22, 1.05));
+    /* Calibrado olhando a tela em 17/09/2026: com hemisférica em 1,05 e
+       exposição 1,25 o plano de apoio virava um lençol azul-claro que roubava
+       a casa. A luz do céu desceu, o chão escureceu e a exposição voltou a 1. */
+    cena.add(new THREE.HemisphereLight(0xbcd2e6, 0x2e2418, 0.58));
     var sol = new THREE.DirectionalLight(0xffeccd, 1.5);
     sol.position.set(-1.1, 2.0, 1.4); sol.castShadow = true;
     sol.shadow.mapSize.set(1024, 1024); sol.shadow.camera.near = 0.05; sol.shadow.camera.far = 8;
     sol.shadow.camera.left = -1; sol.shadow.camera.right = 1; sol.shadow.camera.top = 1; sol.shadow.camera.bottom = -1;
     cena.add(sol);
-    cena.add(new THREE.AmbientLight(0xffffff, 0.34));
+    cena.add(new THREE.AmbientLight(0xffffff, 0.16));
     var fria = new THREE.DirectionalLight(0x9ec4dd, 0.55);
     fria.position.set(1.6, 1.2, -1.4); cena.add(fria);
 
-    chao = new THREE.Mesh(new THREE.PlaneGeometry(14, 14), new THREE.MeshStandardMaterial({ color: 0x08121a, roughness: 0.96 }));
+    chao = new THREE.Mesh(new THREE.CircleGeometry(2.6, 64), new THREE.MeshStandardMaterial({ color: 0x050d10, roughness: 0.98 }));
     chao.rotation.x = -Math.PI / 2; chao.receiveShadow = true; cena.add(chao);
   }
 
   /* ---------- enquadramento da bancada ---------- */
 
+  /* Enquadra o que o CAPÍTULO usa: a casa, mais os alvos e a fechadura da vez.
+     Duas medições, uma depois da outra:
+     · com a maquete inteira (penhasco e rochedos soltos) a câmera ia longe
+       demais e a chave virava meia dúzia de pixels;
+     · só com a casa, três dos quatro alvos do primeiro capítulo — que ficam
+       no portão, na outra ponta do terreno — saíam da tela. */
   function enquadrar() {
     if (!mundo || !controles) return;
-    var caixa = new THREE.Box3().setFromObject(mundo.raiz);
-    var centro = caixa.getCenter(new THREE.Vector3());
-    var raioEsfera = caixa.getSize(new THREE.Vector3()).length() / 2;
-    var distancia = raioEsfera / Math.sin(camera.fov * Math.PI / 360);
+    var casa = new THREE.Box3(), i;
+    for (i = 0; i < mundo.ordemDasCamadas.length; i++) {
+      var nome = mundo.ordemDasCamadas[i];
+      if (nome !== 'terreno') casa.expandByObject(mundo.camadas[nome]);
+    }
+    if (casa.isEmpty()) casa.setFromObject(mundo.raiz);
+    var centro = casa.getCenter(new THREE.Vector3());
+
+    /* A moldura precisa caber a casa E o que este capítulo pede — que pode
+       estar no portão, na outra ponta do terreno. O ALVO da órbita continua
+       sendo a casa: centrar na caixa aumentada empurrava a casa para fora
+       da tela por baixo. */
+    var tudo = casa.clone();
+    var ativos = alvosAtivos(), pontos = [];
+    for (i = 0; i < ativos.length; i++) pontos.push(ativos[i].grupo.localToWorld(ativos[i].centro.clone()));
+    var fech = dados && dados.fechadura && mundo.fechaduras[dados.fechadura];
+    var pontoFechadura = fech ? fech.grupo.localToWorld(fech.centro.clone()) : null;
+    for (i = 0; i < pontos.length; i++) tudo.expandByPoint(pontos[i]);
+    if (pontoFechadura) tudo.expandByPoint(pontoFechadura);
+
+    /* No fim a câmera vai para a passagem: é a única coisa que a atividade
+       inteira serviu para achar. O foco é decidido ANTES da distância, senão a
+       moldura é medida em torno de um centro que ainda vai mudar. */
+    var foco = null;
+    if (dados && dados.complete && mundo.revelacao && mundo.revelacao.pecas.length) {
+      /* A casa já saiu inteira; o que resta ver é o porão e o túnel. Manter a
+         moldura da casa aqui deixava a descoberta do tamanho de uma unha. */
+      tudo = new THREE.Box3().expandByObject(mundo.camadas['porao']);
+      var alvoFinal = mundo.revelacao.grupo.localToWorld(mundo.revelacao.centro.clone());
+      tudo.expandByPoint(alvoFinal);
+      centro.copy(tudo.getCenter(new THREE.Vector3())).lerp(alvoFinal, 0.35);
+      foco = alvoFinal.clone();
+    } else if (dados && dados.papel === 'fechadura' && pontoFechadura) foco = pontoFechadura.clone();
+
+    var alcance = 0;
+    var cantos = [tudo.min, tudo.max,
+      new THREE.Vector3(tudo.min.x, tudo.min.y, tudo.max.z), new THREE.Vector3(tudo.max.x, tudo.min.y, tudo.min.z),
+      new THREE.Vector3(tudo.min.x, tudo.max.y, tudo.max.z), new THREE.Vector3(tudo.max.x, tudo.max.y, tudo.min.z)];
+    for (i = 0; i < cantos.length; i++) alcance = Math.max(alcance, cantos[i].distanceTo(centro));
+    var distancia = alcance / Math.sin(camera.fov * Math.PI / 360);
+
+    /* E a câmera nasce do lado do que ESTE jogador tem para fazer: quem tem a
+       chave olha para os móveis, quem tem a fechadura olha para a fechadura.
+       As duas coisas ficam em lados opostos da casa mais de uma vez. */
+    if (!foco && pontos.length) {
+      foco = new THREE.Vector3();
+      for (i = 0; i < pontos.length; i++) foco.add(pontos[i]);
+      foco.multiplyScalar(1 / pontos.length);
+    }
+    var lado = new THREE.Vector3(0.85, 0, 1.15);
+    if (foco) {
+      foco.sub(centro); foco.y = 0;
+      if (foco.lengthSq() > 1e-6) lado.copy(foco).normalize();
+    }
+    lado.normalize();
+    /* No fim a câmera baixa: a passagem é horizontal e some vista de cima. */
+    lado.y = dados && dados.complete ? 0.34 : 0.86;
     controles.target.copy(centro);
-    camera.position.copy(centro).add(new THREE.Vector3(0.9, 0.85, 1.25).normalize().multiplyScalar(distancia * 1.05));
+    camera.position.copy(centro).add(lado.normalize().multiplyScalar(distancia * 1.02));
     controles.update();
   }
 
@@ -94,16 +156,29 @@
 
   function animarCamadas(dt) {
     var abertas = camadasAbertas();
+    /* O terreno nunca se levanta — ele vira FANTASMA no fim. A passagem sai da
+       fundação e corre por baixo do chão: com o terreno sólido ela não é vista
+       de ângulo nenhum, e a descoberta da atividade inteira ficaria invisível. */
+    var fantasma = !!(dados && dados.complete);
+    var alvoTerreno = fantasma ? 0.20 : 1;
+    fantasmaTerreno += (alvoTerreno - fantasmaTerreno) * (reduzido ? 1 : 1 - Math.exp(-dt * 2.2));
+    if (Math.abs(alvoTerreno - fantasmaTerreno) < 0.005) fantasmaTerreno = alvoTerreno;
+    aplicarTransparencia(mundo.camadas['terreno'], fantasmaTerreno);
     for (var i = 0; i < mundo.ordemDasCamadas.length; i++) {
       var nome = mundo.ordemDasCamadas[i], grupo = mundo.camadas[nome];
+      if (nome === 'terreno') continue;
       var alvo = abertas.indexOf(nome) >= 0 ? 1 : 0;
       var atual = progressoDasCamadas[nome] || 0;
       atual = reduzido ? alvo : atual + (alvo - atual) * (1 - Math.exp(-dt * 3.2));
       if (Math.abs(alvo - atual) < 0.002) atual = alvo;
       progressoDasCamadas[nome] = atual;
       grupo.position.y = alturaAberta * atual;
-      grupo.visible = atual < 0.985;
-      if (atual > 0) aplicarTransparencia(grupo, 1 - atual);
+      grupo.visible = atual < 0.99;
+      /* A camada sobe OPACA e só se apaga no fim do percurso. Medido na tela:
+         desvanecendo desde o começo, a maquete inteira vira um raio-X e não se
+         entende mais o que saiu do quê. */
+      var opacidade = atual <= 0.55 ? 1 : 1 - (atual - 0.55) / 0.45;
+      if (opacidade < 1) aplicarTransparencia(grupo, opacidade);
       else if (grupo.userData.opaco !== true) aplicarTransparencia(grupo, 1);
     }
   }
@@ -134,7 +209,9 @@
   function papelAtual() { return papel; }
   function posta() { return !!(ra && ra.estado().posta); }
 
-  function pulso(t) { return 0.35 + 0.35 * Math.sin(t * 3.4); }
+  /* Medido na tela: com 0,35 de teto o anel some sobre a pedra e sobre o
+     lajeado claros. O que marca o objeto tocável tem de ser visto de longe. */
+  function pulso(t) { return 0.62 + 0.30 * Math.sin(t * 3.2); }
 
   function atualizarRealces(tempo) {
     if (!mundo) return;
@@ -143,8 +220,17 @@
     for (var id in mundo.alvos) {
       var a = mundo.alvos[id];
       var ligado = mostrarAlvos && ativos.indexOf(a) >= 0;
-      a.halo.material.opacity = ligado ? pulso(tempo) : 0;
+      a.halo.material.opacity = ligado ? pulso(tempo) * 0.6 : 0;
       a.halo.visible = ligado;
+      a.pino.userData.marca.opacity = ligado ? pulso(tempo) : 0;
+      a.pino.visible = ligado;
+    }
+    var revelada = !!(dados && dados.complete);
+    if (mundo.revelacao && mundo.revelacao.pino) {
+      mundo.revelacao.pino.userData.marca.opacity = revelada ? 0.62 + 0.3 * Math.sin(tempo * 2.2) : 0;
+      mundo.revelacao.pino.visible = revelada;
+      mundo.revelacao.halo.material.opacity = revelada ? 0.4 : 0;
+      mundo.revelacao.halo.visible = revelada;
     }
     /* A fechadura só acende para quem NÃO tem a chave. O aparelho de quem tem
        a chave nem recebe o identificador dela. */
@@ -152,9 +238,13 @@
     for (var k = 0; k < mundo.ancoras.length; k++) {
       var anc = mundo.ancoras[k];
       var acesa = !!(idFechadura && anc.id === idFechadura && posta());
-      anc.halo.material.opacity = acesa ? 0.45 + 0.35 * Math.sin(tempo * 2.6) : 0;
+      var brilho = 0.62 + 0.30 * Math.sin(tempo * 2.6);
+      anc.halo.material.opacity = acesa ? brilho * 0.6 : 0;
       anc.halo.visible = acesa;
-      if (anc.peca && anc.peca.halo) { anc.peca.halo.material.opacity = acesa ? 0.30 : 0; anc.peca.halo.visible = acesa; }
+      anc.pino.userData.marca.opacity = acesa ? brilho : 0;
+      anc.pino.visible = acesa;
+      if (anc.peca && anc.peca.halo) { anc.peca.halo.material.opacity = acesa ? 0.3 : 0; anc.peca.halo.visible = acesa; }
+      if (anc.peca && anc.peca.pino) { anc.peca.pino.userData.marca.opacity = 0; anc.peca.pino.visible = false; }
     }
   }
 
@@ -258,7 +348,9 @@
       : 'Segure este manuscrito para ler a anotação desta camada.';
     document.body.dataset.roleMode = !temDados ? 'complete' : (temChave ? 'explorer' : 'guide');
     document.body.classList.toggle('investigating', !!(dados && (dados.ready || dados.level > 0)));
-    $('alternative').hidden = !(podeExplorar() && dados && !dados.key);
+    /* No Solo o mesmo botão já é o `solo-action`; dois botões lado a lado
+       fazendo a mesma coisa era só ruído na barra. */
+    $('alternative').hidden = solo || !(podeExplorar() && dados && !dados.key);
     $('reposition').hidden = !pronto || (ra && ra.estado().modo === 'mesa');
     $('key-grip').hidden = !(podeExplorar() && dados && dados.key);
     if (mundo) mundo.chave.visible = !!(dados && dados.key && temChave && pronto);
@@ -471,7 +563,10 @@
   }
 
   function abrir(modo) {
-    entrarAtividade();
+    /* Não chamar `entrarAtividade()` aqui de propósito: ele esconde a pilha de
+       painéis (é a "cena livre" de A Casa), e quem tem a FECHADURA fica sem o
+       manuscrito, que é a única coisa que ele tem para jogar. A cena só fica
+       livre quando o jogador mexe de fato — tocar num móvel, pegar a chave. */
     $('portal-aviso').textContent = 'Preparando…';
     ra.entrar(modo).then(function (qual) {
       $('portal-aviso').textContent = '';
@@ -519,6 +614,16 @@
       else { mundo.chave.position.copy(origem); vooDaChave = { de: origem.clone(), para: pouso, t: 0 }; }
     }
     if (dados && dados.level !== nivelAnterior) { nivelAnterior = dados.level; leituraEnviada = false; }
+    /* Reenquadrar quando muda o CAPÍTULO, o PAPEL ou o passo: cada um desses
+       olha para outro canto da maquete, e mais de uma vez os dois lados ficam
+       em faces opostas da casa. Sem isto o jogador começa a etapa com o que
+       ele precisa ver escondido atrás do telhado, e nada na tela diz que falta
+       girar. */
+    var assinatura = dados ? dados.level + '/' + dados.papel + '/' + (dados.key ? 1 : 0) + '/' + (dados.ready ? 1 : 0) : '';
+    if (assinatura !== enquadramentoAtual) {
+      enquadramentoAtual = assinatura;
+      if (ra && ra.estado().modo === 'mesa' && ra.estado().posta && !arrastando) setTimeout(enquadrar, 30);
+    }
     if (!antes || estavaOnline !== online || JSON.stringify(antes) !== JSON.stringify(dados)) pintarTela();
     if (dados && dados.complete && !concluidoEnviado) {
       concluidoEnviado = true;
@@ -650,6 +755,10 @@
     $('pousar').textContent = e.temHit ? 'Toque no círculo para apoiar a casa.' : 'Aponte devagar para uma superfície plana.';
     if (e.modo === 'camera' && !e.posta) { $('pousar').hidden = false; $('pousar').textContent = 'Toque na tela para apoiar a casa à sua frente.'; }
     if (controles) controles.enabled = e.modo === 'mesa' && e.posta;
+    /* Reenquadrar assim que a maquete é posta: o primeiro `enquadrar()` do
+       modo bancada roda antes de o motor mandar o capítulo, e sem os alvos a
+       caixa sai pequena demais. */
+    if (e.modo === 'mesa' && e.posta) enquadrar();
     pintarTela();
   }
 

@@ -17,6 +17,12 @@ const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const TIPOS = {
   ".html": "text/html; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
+  /* Sem isto o `import()` de um .mjs morre com erro de MIME: o navegador
+     recusa módulo servido como octet-stream. O GitHub Pages acerta sozinho;
+     era só aqui que a conferência quebrava. */
+  ".mjs": "text/javascript; charset=utf-8",
+  ".glb": "model/gltf-binary",
+  ".usdz": "model/vnd.usdz+zip",
   ".css": "text/css; charset=utf-8",
   ".json": "application/json; charset=utf-8",
   ".webmanifest": "application/manifest+json; charset=utf-8",

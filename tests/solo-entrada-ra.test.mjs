@@ -193,21 +193,32 @@ test('pós-abertura não retoma sala nem escrivaninha: volta à Janela', () => {
   assert.equal(ctxMesa.state.atividades.length, 0);
 });
 
-test('escrivaninha e maquete publicadas não expõem RA de ensaio', () => {
+test('a escrivaninha não expõe RA de ensaio; a maquete abre RA de produção', () => {
   const html = ler('v1/AC-escrivaninha.html');
   const maquete = ler('v1/AC-maquete.html');
   const percurso = ler('v1/AC-percurso.html');
   const desk = ler('v1/js/ac-investigacao.js');
   const maqueteJs = ler('v1/js/ac-maquete.js');
+
+  /* A proibição original (15/09/2026) era contra os controles de ENSAIO que
+     tinham vazado para as páginas publicadas — “Criar novo ensaio”, “Bônus
+     experimental”, o atalho `teste=sala3d`. Ela continua valendo.
+
+     O que mudou em 17/09/2026: a maquete passou a ser, por desenho, uma
+     atividade DE RA — a casa é posta no ambiente e a investigação nasce dali.
+     Proibir RA nesta página passaria a guardar o contrário do que o jogo faz.
+     A escrivaninha e o percurso seguem sem RA. */
   for (const [nome, src] of [['escrivaninha', html], ['maquete', maquete], ['percurso', percurso]]) {
     assert.doesNotMatch(src, /ENSAIO EM DUPLA/, nome);
     assert.doesNotMatch(src, /Bônus experimental/, nome);
-    assert.doesNotMatch(src, /Colocar em RA/, nome);
-    assert.doesNotMatch(src, /Ver em RA/, nome);
-    assert.doesNotMatch(src, /Explorar em RA/, nome);
     assert.doesNotMatch(src, /teste=sala3d/, nome);
     assert.doesNotMatch(src, /sem alterar a partida publicada/, nome);
     assert.doesNotMatch(src, /Criar novo ensaio/, nome);
+  }
+  for (const [nome, src] of [['escrivaninha', html], ['percurso', percurso]]) {
+    assert.doesNotMatch(src, /Colocar em RA/, nome);
+    assert.doesNotMatch(src, /Ver em RA/, nome);
+    assert.doesNotMatch(src, /Explorar em RA/, nome);
     assert.doesNotMatch(src, /id="ar"/, nome);
     assert.doesNotMatch(src, /id="ar-ios"/, nome);
   }
@@ -216,7 +227,14 @@ test('escrivaninha e maquete publicadas não expõem RA de ensaio', () => {
   assert.doesNotMatch(maqueteJs, /pontos de ensaio/);
   assert.doesNotMatch(ler('v1/js/ac-percurso.js'), /Este ensaio foi aberto/);
   assert.match(desk, /if\(ar\) ar\.hidden=true/);
-  assert.match(maqueteJs, /if\(\$\('ar'\)\)\$\('ar'\)\.hidden=true/);
+
+  /* E a porta de RA da maquete tem de existir, com as três saídas: sem a
+     terceira, um aparelho sem câmera fica sem atividade nenhuma. */
+  assert.match(maquete, /id="portal-ra"/);
+  assert.match(maquete, /id="portal-camera"/);
+  assert.match(maquete, /id="portal-mesa"/);
+  assert.match(maqueteJs, /ACMaquetteRA\.criar/);
+
   const sala = ler('v1/MOSAICO-26-a-sala-as-escuras.html');
   assert.doesNotMatch(sala, /id="b-ra"/);
   assert.doesNotMatch(sala, /id="b-entrar-ra"/);

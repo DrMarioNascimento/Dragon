@@ -83,6 +83,15 @@ body.ra-camera,body.ra-webxr{background:transparent}
   .portal-cartao{max-height:88dvh;overflow:auto}
 }
 
+/* A CENA LIVRE não pode valer para quem guia.
+   Em A Casa, entrar na atividade recolhe a pilha de painéis e deixa a cena
+   limpa — o que é certo para quem manipula. Mas nesta atividade quem tem a
+   FECHADURA não manipula nada: o manuscrito é a interface inteira dele, e sem
+   ele não há o que dizer ao colega. Então, e só nesse papel, a pilha fica. */
+body[data-role-mode="guide"].ac-cena-livre .ac-panel-stack,
+body[data-role-mode="guide"].ac-atividade-iniciada .ac-panel-stack{display:flex!important}
+body[data-role-mode="guide"] .ac-panel-stack>.instruction{display:none!important}
+
 /* Quem guia não arrasta nada: o manuscrito é o painel principal dele. */
 @media(min-width:701px) and (min-height:501px){
   [data-role-mode="guide"] #manuscript{left:7vw;right:auto;bottom:130px;width:min(350px,35vw)}
