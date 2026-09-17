@@ -198,7 +198,6 @@
     var meu = jogadores.find(function (p) { return p.id === uid; });
     if (!meu) throw new Error("Seu assento na sala não foi encontrado.");
 
-    /* Convidado só completa o próprio personagem se o create não trouxe. */
     if (!meu.personagem) {
       var ocupados = [];
       jogadores.forEach(function (j) {
@@ -251,13 +250,18 @@
         );
         localStorage.setItem("mosaico_ultimo_codigo", codigo);
       } catch (e) {}
-      global.STATE.orientacaoMestreAberta = true;
+      global.STATE.orientacaoMestreAberta = false;
     } else {
-      global.STATE.orientacaoParticipanteAberta = true;
+      global.STATE.orientacaoParticipanteAberta = false;
     }
 
     var app = document.getElementById("app");
     if (app) app.hidden = false;
+    var portao = document.getElementById("portao");
+    if (portao) portao.style.display = "none";
+    document.body.classList.remove("portao");
+    var part = document.getElementById("abertura-participante");
+    if (part) { part.classList.add("hidden"); part.style.display = "none"; }
 
     if (typeof global.assinarSala === "function") global.assinarSala(codigo, true);
     if (typeof global.sincronizarJogador === "function") global.sincronizarJogador();
