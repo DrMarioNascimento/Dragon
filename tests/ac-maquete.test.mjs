@@ -35,53 +35,78 @@ test('sequencia da escrivaninha exige registro e dupla online; snapshots preserv
 });
 
 
-test('geometria real: medalhoes ficam acessiveis e a miniatura usa instancias',async()=>{
+test('modelo publicado: casa-da-costa-pisos.glb traz as partes, os medalhoes e nada que a RA perca',async()=>{
+ const {readFileSync,statSync}=await import('node:fs');
+ const arquivo='v1/assets/ac/casa-da-costa-pisos.glb',bytes=readFileSync(arquivo);
+ assert.ok(statSync(arquivo).size<5*1024*1024,'GLB acima de 5 MB');
+ const json=JSON.parse(bytes.subarray(20,20+bytes.readUInt32LE(12)).toString('utf8'));
+ const nomes=new Set(json.nodes.map(n=>n.name));
+ for(const parte of ['terreno','porao','piso-1','piso-2','telhado','verga-porta','varanda-oeste','varanda-leste','louca','forro-piso-2'])assert.ok(nomes.has(parte),'falta a parte '+parte);
+ const objetos=json.nodes.filter(n=>n.extras?.object).map(n=>n.extras.object).sort();
+ assert.deepEqual(objetos,['armario-leste','armario-norte','armario-oeste','armario-sul','escrivaninha','espelho','relogio','vela']);
+ for(const mesh of json.meshes)for(const p of mesh.primitives)assert.equal(p.attributes.COLOR_0,undefined,'cor por vertice nao chega ao iPhone: '+mesh.name);
+ assert.ok(json.materials.every(m=>!m.doubleSided),'dupla face nao chega ao iPhone');
+ assert.ok(!(json.extensionsUsed||[]).some(e=>/draco|meshopt/i.test(e)),'o leitor r128 da maquete nao descomprime');
+});
+
+function cenaMinima(T){
+ const scene=new T.Group(),casa=new T.Group();casa.name='casa-da-costa';casa.position.set(.23,13.19,-.4);scene.add(casa);
+ const parte=name=>{const g=new T.Group();g.name=name;casa.add(g);return g;};
+ const peca=(pai,name,[x,y,z],[w,h,d],extras)=>{const m=new T.Mesh(new T.BoxGeometry(w,h,d),new T.MeshStandardMaterial());m.name=name;m.position.set(x-.23,y-13.19,z+.4);if(extras)m.userData=extras;pai.add(m);return m;};
+ const terreno=parte('terreno'),porao=parte('porao'),p1=parte('piso-1'),p2=parte('piso-2'),telhado=parte('telhado');
+ peca(terreno,'estrato-3',[0,9.5,0],[30,2,18.9]);
+ peca(porao,'piso-do-porao',[0,10,-3],[16,.2,10]);peca(porao,'abobada',[0,13,-3],[16,.3,10]);
+ const e1=new T.Group();e1.name='estrutura-piso-1';p1.add(e1);peca(e1,'parede-frente',[0,15.7,2.55],[16,3.5,.5]);peca(e1,'soalho-piso-1',[0,13.95,-1],[16,.1,7]);
+ const portada=new T.Group();portada.name='portada';p1.add(portada);peca(portada,'verga-porta',[5.63,17.34,6.7],[2.8,.34,.46]);
+ for(const [nome,x] of [['varanda-oeste',-11.92],['varanda-leste',12.38]]){const v=new T.Group();v.name=nome;p1.add(v);peca(v,'pilar-torneado',[x,15.5,3.7],[.26,2.8,.26]);peca(v,'pilar-torneado',[x+(x<0?1.6:-1.6),15.5,3.7],[.26,2.8,.26]);}
+ peca(p1,'louca',[6.8,15.1,1.95],[1.5,.16,.22]);
+ peca(p1,'medalhao-relogio',[-3.87,14.02,-.2],[.32,.04,.32],{object:'relogio',label:'Base do relógio'});
+ peca(p2,'forro-piso-2',[0,20.64,-.9],[16,.1,6.4]);
+ peca(p2,'medalhao-armario-oeste',[-7.32,17.52,2.41],[.28,.04,.28],{object:'armario-oeste',label:'Armário do quarto oeste'});
+ peca(telhado,'telhado-principal',[0,22,-1],[18,3,9]);
+ return scene;
+}
+
+test('maquete a partir do modelo: partes nos grupos certos, fechadura na regra do servidor e medalhoes tocaveis',async()=>{
  const {readFileSync}=await import('node:fs');const vm=await import('node:vm');
  const gradient={addColorStop(){}};
  const canvasContext=new Proxy({}, {get:(target,key)=>target[key]??(key.startsWith('create')?()=>gradient:()=>{}),set:(target,key,value)=>(target[key]=value,true)});
- const context=vm.createContext({window:{},console,document:{createElement(){return {width:128,height:128,getContext(){return canvasContext;}};}},URLSearchParams,location:{search:''}});
+ const context=vm.createContext({window:{},console,document:{createElement(){return {width:128,height:128,getContext(){return canvasContext;}};}}});
  vm.runInContext(readFileSync('v1/js/three.min.js','utf8'),context);context.window.THREE=context.THREE;
- context.ACDesk={load(done){done(new context.THREE.Group());}};
- for(const file of ['ac-room-layout.js','ac-room-art.js','ac-room.js','ac-maquete-model.js']){vm.runInContext(readFileSync('v1/js/'+file,'utf8'),context);Object.assign(context,context.window);}
- vm.runInContext(readFileSync('v1/js/ac-maquete-spatial.js','utf8'),context);
- const T=context.THREE,model=context.window.createACMaquette();
- assert.equal(model.livingRoom.root.scale.x,.064);
- const canonical=context.ACRoom.create({seed:'OUTRA-PARTIDA'});
- for(const id of Object.keys(canonical.layout.objects)){
-   const source=canonical.objects[id],copy=model.livingRoom.objects[id];assert.ok(source&&copy,id);
-   assert.deepEqual(Array.from(source.position.toArray()),Array.from(copy.position.toArray()),id+' conserva posicao local');
-   assert.deepEqual(Array.from(source.quaternion.toArray()),Array.from(copy.quaternion.toArray()),id+' conserva orientacao');
-   const signature=object=>{const out=[];object.traverse(o=>{if(o.isMesh)out.push([o.geometry.attributes.position.count,o.material.color?.getHex(),o.material.roughness,o.material.metalness,o.material.map?.image?.width,o.material.map?.image?.height]);});return JSON.stringify(out);};
-   assert.equal(signature(source),signature(copy),id+' conserva geometria e materiais');
- }
- const {KEY_SOCKET}=await import('../ferramentas/ac-cooperacao.mjs');assert.ok(model.keySocket.getWorldPosition(new T.Vector3()).distanceTo(new T.Vector3(...KEY_SOCKET))<1e-8);
+ for(const file of ['ac-maquete-model.js','ac-maquete-spatial.js']){vm.runInContext(readFileSync('v1/js/'+file,'utf8'),context);Object.assign(context,context.window);}
+ const T=context.THREE,model=context.window.createACMaquette({gltf:cenaMinima(T)});
+ assert.equal(model.ready,true);
+ for(const [grupo,parte] of [['base','terreno'],['cellar','porao'],['lower','piso-1'],['upper','piso-2'],['roof','telhado']])assert.ok(model[grupo].getObjectByName(parte),parte+' entra em '+grupo);
+ assert.equal(model.root.getObjectByName('forro-piso-2'),undefined,'o forro esconderia os armarios');
+ assert.equal(model.root.getObjectByName('abobada'),undefined,'a abobada esconderia o porao');
+ assert.ok(model.facades[0].getObjectByName('parede-frente'),'a parede da frente sai com a fachada');
+ assert.ok(model.facades[0].getObjectByName('portada'));
+ assert.ok(model.lower.getObjectByName('soalho-piso-1').parent.name==='estrutura-piso-1','o piso fica');
+ const ids=Array.from(model.targets,t=>t.userData.object).sort();
+ assert.deepEqual(ids,['armario-oeste','folha','louca','ondas','relogio','rosa']);
+ const {KEY_SOCKET}=await import('../ferramentas/ac-cooperacao.mjs');
+ model.root.updateMatrixWorld(true);
+ assert.ok(model.keySocket.getWorldPosition(new T.Vector3()).distanceTo(new T.Vector3(...KEY_SOCKET))<1e-8,'fechadura e servidor concordam');
+ // A face do estrato cai atras da fechadura, rente a ela.
+ const face=new T.Box3().setFromObject(model.base.getObjectByName('estrato-3')).max.z,backOfLock=KEY_SOCKET[2]-.008-.006;
+ assert.ok(Math.abs(face-backOfLock)<.004,'fechadura rente ao penhasco: '+face+' vs '+backOfLock);
  for(const scale of [.3,1]){
-  model.root.scale.setScalar(scale);model.root.rotation.y=.7;
+  model.root.scale.setScalar(scale);model.root.rotation.y=.7;model.root.updateMatrixWorld(true);
   model.key.position.copy(model.root.worldToLocal(model.keySocket.getWorldPosition(new T.Vector3())));
   assert.equal(context.window.ACMaquetteSpatial.keyFits(model),false,'argola sobre fechadura nao encaixa');
   const delta=model.keySocket.getWorldPosition(new T.Vector3()).sub(model.keyTip.getWorldPosition(new T.Vector3()));
   model.key.position.copy(model.root.worldToLocal(model.key.getWorldPosition(new T.Vector3()).add(delta)));
   assert.equal(context.window.ACMaquetteSpatial.keyFits(model),true,'ponta encaixa mesmo com escala e rotacao RA');
  }
- model.root.scale.setScalar(1);model.root.rotation.y=0;
-model.roof.visible=false;model.upper.visible=false;model.root.updateMatrixWorld(true);
- let instanceCount=0;model.root.traverse(o=>{if(o.isInstancedMesh)instanceCount++;});assert.ok(instanceCount>10&&instanceCount<100);
- assert.equal(model.doorways.length,8);
- for(const doorway of model.doorways){
-  const origin=doorway.wall.localToWorld(new T.Vector3(doorway.x-.018,.07,doorway.z));
-  const ray=new T.Raycaster(origin,new T.Vector3(1,0,0),0,.036);
-  const wallHit=ray.intersectObject(doorway.wall,true).find(h=>h.object.material?.color&&h.object!==model.key);
-  assert.equal(wallHit,undefined,'vao atravessa divisoria: '+doorway.frame.name);
- }
- for(const name of ['rosa','relogio','armario-oeste']){
-  const object=model.targets.find(o=>o.userData.object===name);assert.ok(object);
-  model.upper.visible=name==='armario-oeste';model.root.updateMatrixWorld(true);
-  const origin=object.localToWorld(new T.Vector3(0,.08,0)),target=object.localToWorld(new T.Vector3(0,.004,0));const ray=new T.Raycaster(origin,target.clone().sub(origin).normalize());
-  const visible=o=>{for(let p=o;p;p=p.parent)if(!p.visible)return false;return true;};const hit=ray.intersectObject(model.root,true).find(h=>visible(h.object));assert.ok(hit,name+' tem superficie atingivel');
-  let owner=hit.object;while(owner&&!owner.userData.object)owner=owner.parent;assert.equal(owner?.userData.object,name,name+' nao esta enterrado no movel');
+ model.root.scale.setScalar(1);model.root.rotation.y=0;model.root.updateMatrixWorld(true);
+ for(const name of ['rosa','folha','ondas']){
+  const object=model.targets.find(o=>o.userData.object===name);
+  const origin=object.localToWorld(new T.Vector3(0,.08,0)),target=object.localToWorld(new T.Vector3(0,.004,0));
+  assert.ok(origin.z>target.z,name+' olha para a frente');
+  const hit=new T.Raycaster(origin,target.clone().sub(origin).normalize()).intersectObject(model.root,true)[0];
+  let owner=hit?.object;while(owner&&!owner.userData.object)owner=owner.parent;assert.equal(owner?.userData.object,name,name+' nao esta enterrado');
  }
 });
-
 
 test('exportacao preserva instancias e pose apoiada nao enterra a base',async()=>{
  const {readFileSync}=await import('node:fs');const vm=await import('node:vm');
