@@ -1,10 +1,10 @@
-/* A Mesa publicada não leva atalho de laboratório.
-   O HTML ainda cria #m3d-atalho-teste; isto apaga na hora. */
+/* A Mesa publicada não leva atalho de laboratório nem o portão antigo. */
 (function () {
   const css = document.createElement('style');
   css.textContent =
     '#m3d-atalho-teste,.m3d-badge-launch,' +
-    'button[onclick*="iniciarTeste3D"]{display:none!important}';
+    'button[onclick*="iniciarTeste3D"],' +
+    '#portao,#ctrl-abertura{display:none!important}';
   document.head.appendChild(css);
 
   function limpar() {
@@ -13,6 +13,9 @@
     document.querySelectorAll('button[onclick*="iniciarTeste3D"]').forEach(function (el) {
       el.remove();
     });
+    const portao = document.getElementById('portao');
+    if (portao) portao.style.display = 'none';
+    document.body.classList.remove('portao');
     if (typeof window.atualizarBotaoFlutuanteTeste === 'function' &&
         !window.atualizarBotaoFlutuanteTeste._apagado) {
       window.atualizarBotaoFlutuanteTeste = function () {
