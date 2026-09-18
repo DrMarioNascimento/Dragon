@@ -811,7 +811,7 @@ function montaSala(seedStr){
   rodadaVista=roundCode();
   pintaEnigma(false);
   var inp=document.getElementById("semente");
-  if(inp.value!==seedStr) inp.value=seedStr;
+  if(inp && inp.value!==seedStr) inp.value=seedStr;  /* fora da Mesa/Solo: o campo é do painel do Mestre */
   document.getElementById("cod-rodada").textContent=codigoCurto(seedStr);
   pintaMarcas(); pintaRodada();
 }
@@ -1694,7 +1694,8 @@ var FOLGAS=[{n:"apertado",v:0.75},{n:"normal",v:1},{n:"largo",v:1.4},{n:"muito l
 var iFolga=1;
 function pintaFolga(){
   CFG.FOLGA=FOLGAS[iFolga].v;
-  document.getElementById("folga").textContent="Folga do rumo: "+FOLGAS[iFolga].n;
+  var el=document.getElementById("folga");
+  if(el) el.textContent="Folga do rumo: "+FOLGAS[iFolga].n;
 }
 document.getElementById("folga").addEventListener("click",function(){
   iFolga=(iFolga+1)%FOLGAS.length; pintaFolga();
@@ -1764,6 +1765,17 @@ document.getElementById("falha-toque").addEventListener("click",function(){
 RETENTAR=function(){ ativaSensor(); };
 SEGUIR_TOQUE=function(){ entrarModoDedo("Arraste para girar o corpo."); };
 if(EMBED){ document.documentElement.classList.add("embed"); document.body.classList.add("embed"); }
+/* O painel do Mestre (leituras do sensor, semente, "Folga do rumo" que alarga
+   a mira em até 1,9×, "Calibrar norte") é ferramenta de campo, não de quem
+   joga. Dentro da Mesa e do Solo (embed) ele sai do DOM — a mesma convenção
+   da Janela do Norte. Antes o botão "Mestre" ficava no HUD de todo jogador
+   (Mario, 18/09/2026: botão extra, apague). Com ?dev=1 ele volta. */
+if(EMBED && !DEV){
+  ["b-mestre","mestre"].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el && el.parentNode) el.parentNode.removeChild(el);
+  });
+}
 if(!DEV){
   var _bt=document.getElementById("b-sim")||document.getElementById("alt");
   if(_bt && _bt.parentNode) _bt.parentNode.removeChild(_bt);

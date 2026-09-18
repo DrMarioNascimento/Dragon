@@ -119,6 +119,10 @@ test("landings e redirects chegam a fluxos que existem", () => {
   assert.match(REDIRECT_MESA, /carro-forte\/celular\.html/);
   assert.match(REDIRECT_NOITE, /carro-forte\/noite\//);
   assert.match(ROOT_MESA, /id="app"/);
+  /* A raiz é só a porta: leva à Mesa de verdade com o código da sala. A cópia
+     velha que morava aqui carregava o modo de teste 3D inteiro. */
+  assert.match(ROOT_MESA, /location\.replace\("v1\/MOSAICO-mesa\.html" \+ location\.search \+ location\.hash\)/);
+  assert.doesNotMatch(ROOT_MESA, /Teste3D|<script type="module">/);
   assert.ok(existsSync(new URL("../carro-forte/celular.html", import.meta.url)));
   assert.ok(existsSync(new URL("../carro-forte/noite/index.html", import.meta.url)));
   assert.ok(existsSync(new URL("../v1/MOSAICO-mesa.html", import.meta.url)));

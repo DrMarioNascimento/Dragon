@@ -8,13 +8,13 @@
   let coop=null, role=new URLSearchParams(location.search).get('papel')||'luz', connected=false, shared=null;
   let fallback=false, arSupported=false, lastBeam=0, beamPending=false, discoverPending=false, registerPending=false;
   const clueText='Procure pelo lar onde o telhado não protege da chuva, os móveis nunca mudam de lugar e os moradores são pequenos demais. É lá onde todos os projetos se iniciam, é lá que o segredo repousa.';
-  let disposed = false, modelReady = false, orbiting = false, hold = 0, noticeTimer;
+  let disposed = false, modelReady = false, hold = 0, noticeTimer;
   let xrSession = null, hitSource = null, xrGeneration = 0, hasHit = false, xrPlaced = false;
   /* iPhone: o Safari não tem RA por WebXR, mas abre o Quick Look do sistema
      (a mesma técnica do lab-ra). Lá dentro não roda JavaScript: serve para
      posicionar e circular a escrivaninha na sala real; vela e luz seguem aqui. */
   const quickLook=(()=>{try{const a=document.createElement('a');return !!(a.relList&&a.relList.supports&&a.relList.supports('ar'));}catch(_){return false;}})();
-  let motionEnabled = false, motionOrigin = null, lightTransfer = 0;
+  let lightTransfer = 0;
   let draggingCandle = false, snapReady = false, draggingDesk = false;
   const dragPlane = new THREE.Plane(), dragRay = new THREE.Raycaster(), dragPoint = new THREE.Vector3();
   const cleanup = [];
@@ -130,7 +130,6 @@
       $('primary').textContent='Ler e guardar bilhete';
       $('primary').disabled=!connected;
     }
-    for(const id of ['orbit','below','motion'])$(id).hidden=!fallback||!!xrSession;
     const ar=$('ar'), arIos=$('ar-ios');
     if(ar) ar.hidden=true;
     if(arIos) arIos.hidden=true;
@@ -150,11 +149,10 @@
       element.setAttribute('aria-label',words);
     }
     const searching=state.stage==='iluminar';
-    $('reticle').style.display=searching&&!orbiting?'block':'none';$('progress').style.display=searching&&role==='conhecimento'?'block':'none';
+    $('reticle').style.display=searching?'block':'none';$('progress').style.display=searching&&role==='conhecimento'?'block':'none';
     $('count').textContent=state.evidence.length;
-    controls.mouseButtons.LEFT=role==='conhecimento'?THREE.MOUSE.ROTATE:(orbiting?THREE.MOUSE.ROTATE:null);controls.mouseButtons.RIGHT=THREE.MOUSE.ROTATE;
-    controls.enabled=fallback&&!xrSession&&!draggingCandle&&(orbiting||role==='conhecimento'||state.stage==='iluminar');
-    $('orbit').disabled=!!xrSession;$('below').disabled=!!xrSession || !modelReady;
+    controls.mouseButtons.LEFT=role==='conhecimento'?THREE.MOUSE.ROTATE:null; // o botão esquerdo da luz mira o feixecontrols.mouseButtons.RIGHT=THREE.MOUSE.ROTATE;
+    controls.enabled=fallback&&!xrSession&&!draggingCandle&&(role==='conhecimento'||state.stage==='iluminar');
     placement.visible=role==='luz'&&!xrSession&&state.stage==='posicionar';
     /* A vela fica no castiçal depois de posta: é nela que se vê apagar, e é
        nela que a mão de quem a pôs tenta — em vão — reacender. */
@@ -287,14 +285,14 @@
     deskRoot.position.set(0,0,0);return true;
   }
   on(renderer.domElement,'pointerdown',event=>{
-    if(role!=='luz'||!connected||!fallback||state.stage!=='posicionar'||xrSession||!modelReady||orbiting)return;beginAction();
+    if(role!=='luz'||!connected||!fallback||state.stage!=='posicionar'||xrSession||!modelReady)return;beginAction();
     if(moveDeskOnFloor(event)){draggingDesk=true;renderer.domElement.setPointerCapture(event.pointerId);}
   });
   on(renderer.domElement,'pointermove',event=>{if(draggingDesk)moveDeskOnFloor(event);});
   on(renderer.domElement,'pointerup',event=>{if(!draggingDesk)return;draggingDesk=false;if(renderer.domElement.hasPointerCapture(event.pointerId))renderer.domElement.releasePointerCapture(event.pointerId);dispatch('posicionar');});
   on(renderer.domElement,'pointercancel',()=>{draggingDesk=false;});
   on(renderer.domElement,'click',event=>{
-    if(!modelReady||!connected||orbiting||draggingCandle)return;
+    if(!modelReady||!connected||draggingCandle)return;
     if(xrSession&&!xrPlaced){placeAtHit();return;}
     if(role!=='luz'||(!fallback&&!xrSession))return;beginAction();
     if(state.stage==='posicionar'){
@@ -346,26 +344,31 @@
   }
   on($('candle-grip'),'pointerup',endDrag);on($('candle-grip'),'pointercancel',endDrag);
   document.querySelectorAll('[data-close]').forEach(b=>on(b,'click',()=>b.closest('dialog').close()));
-  on($('restart'),'click',()=>{
-    $('restart').disabled=true;
-    $('instructions').close();
-    const next=new URL(location.pathname,location.origin);
-    next.searchParams.set('iniciar','1');
-    const scenario=new URLSearchParams(location.search).get('cenario');
-    if(scenario)next.searchParams.set('cenario',scenario);
-    location.href=next.href;
+  /* Olhar por baixo da escrivaninha, onde a marca está. Era o botão "Ver por
+     baixo"; saiu com "Girar a mesa" e "Usar movimento" (Mario, 18/09/2026:
+     "num primeiro momento não quero"). Agora é o gesto no próprio móvel:
+     tocar nas gavetas leva o olhar para debaixo delas. */
+  function olharPorBaixo(){camera.position.copy(deskRoot.localToWorld(new THREE.Vector3(.47,.025,.25)));controls.target.copy(deskRoot.localToWorld(new THREE.Vector3(.47,.098,.10)));controls.update();pointer.set(0,0);hold=0;updateUI();}
+  let toqueNoMovel=null;
+  on(renderer.domElement,'pointerdown',event=>{toqueNoMovel={x:event.clientX,y:event.clientY};});
+  on(renderer.domElement,'pointerup',event=>{
+    const t=toqueNoMovel;toqueNoMovel=null;
+    if(!t||Math.hypot(event.clientX-t.x,event.clientY-t.y)>8)return; // arrastar é girar ou mirar, não tocar
+    if(!modelReady||xrSession||draggingCandle||state.stage!=='iluminar')return;
+    const rect=renderer.domElement.getBoundingClientRect();
+    dragRay.setFromCamera(new THREE.Vector2((event.clientX-rect.left)/rect.width*2-1,-(event.clientY-rect.top)/rect.height*2+1),camera);
+    const hit=dragRay.intersectObject(desk,true)[0];if(!hit)return;
+    /* As gavetas e a borda de baixo contam; o tampo não (é onde está o
+       castiçal). O corte sai da altura do próprio móvel: um número fixo de
+       0,4 m deixava de fora a maior parte das gavetas. */
+    const caixa=new THREE.Box3().setFromObject(desk),alto=deskRoot.worldToLocal(caixa.max.clone()).y;
+    const local=deskRoot.worldToLocal(hit.point.clone());
+    if(local.y<alto*.85)olharPorBaixo();
   });
-  on($('orbit'),'click',()=>{orbiting=!orbiting;$('orbit').setAttribute('aria-pressed',String(orbiting));$('orbit').textContent=orbiting?'💡':'Girar a mesa';$('orbit').setAttribute('aria-label',orbiting?'Voltar à luz':'Girar a mesa');hold=0;updateUI();});
-  on($('below'),'click',()=>{camera.position.copy(deskRoot.localToWorld(new THREE.Vector3(.47,.025,.25)));controls.target.copy(deskRoot.localToWorld(new THREE.Vector3(.47,.098,.10)));controls.update();orbiting=false;$('orbit').setAttribute('aria-pressed','false');$('orbit').textContent='Girar a mesa';pointer.set(0,0);hold=0;updateUI();});
-  on(renderer.domElement,'pointermove',event=>{if(orbiting||xrSession)return;const rect=renderer.domElement.getBoundingClientRect();pointer.set((event.clientX-rect.left)/rect.width*2-1,-(event.clientY-rect.top)/rect.height*2+1);$('reticle').style.left=event.clientX+'px';$('reticle').style.top=event.clientY+'px';});
+  on(renderer.domElement,'pointermove',event=>{if(xrSession)return;const rect=renderer.domElement.getBoundingClientRect();pointer.set((event.clientX-rect.left)/rect.width*2-1,-(event.clientY-rect.top)/rect.height*2+1);$('reticle').style.left=event.clientX+'px';$('reticle').style.top=event.clientY+'px';});
   on(window,'keydown',e=>{if($('fragment').open||$('instructions').open||!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key))return;e.preventDefault();pointer.x=THREE.MathUtils.clamp(pointer.x+(e.key==='ArrowRight'?.035:e.key==='ArrowLeft'?-.035:0),-1,1);pointer.y=THREE.MathUtils.clamp(pointer.y+(e.key==='ArrowUp'?.035:e.key==='ArrowDown'?-.035:0),-1,1);$('reticle').style.left=(pointer.x+1)*innerWidth/2+'px';$('reticle').style.top=(1-pointer.y)*innerHeight/2+'px';});
 
-  on($('motion'),'click',async()=>{
-    try{if(typeof DeviceOrientationEvent.requestPermission==='function'&&await DeviceOrientationEvent.requestPermission()!=='granted'){setFallback('Movimento não autorizado.');notify('Movimento não autorizado. Continue por toque.');return;}motionEnabled=!motionEnabled;motionOrigin=null;$('motion').textContent=motionEnabled?'Desativar movimento':'Usar movimento';}
-    catch(_){notify('Não foi possível ativar movimento. Continue por toque.');}
-  });
 
-  on(window,'deviceorientation',e=>{if(!motionEnabled||xrSession||e.beta===null||e.gamma===null)return;if(!motionOrigin)motionOrigin={beta:e.beta,gamma:e.gamma};pointer.set(THREE.MathUtils.clamp((e.gamma-motionOrigin.gamma)/35,-1,1),THREE.MathUtils.clamp(-(e.beta-motionOrigin.beta)/35,-1,1));$('reticle').style.left=(pointer.x+1)*innerWidth/2+'px';$('reticle').style.top=(1-pointer.y)*innerHeight/2+'px';});
 
   on($('ar'),'click',async()=>{
     if(xrSession){await xrSession.end();return;}
@@ -490,7 +493,7 @@
     if(new URLSearchParams(location.search).get('demo')==='solo'&&snapshot.maquete?.complete&&snapshot.stage==='registrado')parent.postMessage({mosaico:'ac-solo-completo',score:snapshot.maquete.score,evidence:snapshot.maquete.evidence},location.origin);
   },online=>{connected=online;if(!online){hold=0;$('coop-status').textContent='Reconectando… a luz compartilhada está suspensa.';}updateUI();}).then(connection=>{
     coop=connection;role=connection.role;
-    if(new URLSearchParams(location.search).get('percurso')==='1'){$('restart').hidden=true;document.querySelector('.brand').removeAttribute('href');}
+    if(new URLSearchParams(location.search).get('percurso')==='1'){document.querySelector('.brand').removeAttribute('href');}
     if(connection.demo){
       document.querySelector('.edition').textContent='MODO SOLO · PERCURSO COMPLETO';
     }

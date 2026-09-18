@@ -15,11 +15,3 @@
  };
  w.ACPrepareGroups=async(...args)=>(await cloud()).prepare(...args);
 })(window);
-(function(){
-  var base=document.currentScript.src;
-  ['abertura-video-casa.js?v=20260917-video-so','esconder-teste-3d.js?v=20260917-fluxo','mesa-fluxo-abertura.js?v=20260917-fluxo'].forEach(function(nome){
-    var s=document.createElement('script');
-    s.src=new URL(nome, base).href;
-    document.head.appendChild(s);
-  });
-})();
