@@ -44,7 +44,7 @@
   var planoDeArrasto = new THREE.Plane(), raio = new THREE.Raycaster(), ponto = new THREE.Vector3();
   var ultimoEnvio = 0, envioOcupado = false, envioPendente = null;
   var alturaAberta = 0.62, progressoDasCamadas = {}, fantasmaTerreno = 1;
-  var farol = null, tempoAnterior = 0, desligar = [];
+  var farol = null, tempoAnterior = 0, desligar = [], modoEscolhido = false;
 
   function on(el, tipo, fn, opcoes) { if (!el) return; el.addEventListener(tipo, fn, opcoes); desligar.push(function () { el.removeEventListener(tipo, fn, opcoes); }); }
   function entrarAtividade() { if (window.ACJanelas) window.ACJanelas.entrarAtividade(); }
@@ -399,7 +399,11 @@
 
   function pintarTela() {
     var pronto = posta();
-    $('portal').hidden = pronto;
+    /* O portal é `inset:0`: enquanto ele estiver na tela, NENHUM toque chega à
+       cena — e em RA o pouso é justamente um toque na cena. Ele sai assim que
+       um modo é escolhido; daí em diante quem fala é a linha de pouso. */
+    var escolhendo = !ra || (ra.estado().modo === 'mesa' && !pronto && !modoEscolhido);
+    $('portal').hidden = pronto || !escolhendo;
     document.body.classList.toggle('maquete-posta', pronto);
     textos();
     var temDados = !!dados && !dados.complete;
@@ -514,7 +518,7 @@
       }
       if (giroAtivo && ra.estado().modo !== 'mesa' && posta()) {
         var dx = e.clientX - giroAtivo.x;
-        if (Math.abs(dx) > 0.5) { ra.girar(dx * 0.006); giroAtivo.x = e.clientX; }
+        if (Math.abs(dx) > 0.5) { ra.girar(dx * 0.0045); giroAtivo.x = e.clientX; }
         if (tocouEm && Math.hypot(e.clientX - tocouEm.x, e.clientY - tocouEm.y) > 9) tocouEm = null;
       }
     });
@@ -657,6 +661,9 @@
     on($('portal-camera'), 'click', function () { abrir('camera'); });
     on($('portal-mesa'), 'click', function () { abrir('mesa'); });
     on($('reposition'), 'click', function () { ra.soltar(); pintarTela(); });
+    /* Voltar ao portal só existe antes de pousar: depois, o botão é
+       "Reposicionar", que não desmonta a atividade. */
+    on($('portal-voltar'), 'click', function () { modoEscolhido = false; ra.sair().then(function () { pintarTela(); }); });
   }
 
   function abrir(modo) {
@@ -667,6 +674,7 @@
     $('portal-aviso').textContent = 'Preparando…';
     ra.entrar(modo).then(function (qual) {
       $('portal-aviso').textContent = '';
+      modoEscolhido = true;
       if (qual === 'mesa') {
         var e = ra.estado();
         ra.mudarEscala(1 / e.escala);
@@ -676,6 +684,7 @@
       }
       pintarTela();
     }).catch(function (erro) {
+      modoEscolhido = false;
       $('portal-aviso').textContent = modo === 'camera'
         ? 'A câmera não foi liberada. Você pode continuar sem ela.'
         : 'A realidade aumentada não abriu neste aparelho. Você pode continuar sem ela.';
@@ -854,11 +863,12 @@
   function aoMudarRA() {
     var e = ra.estado();
     $('pousar').hidden = !(e.modo === 'webxr' && !e.posta);
+    $('portal-voltar').hidden = e.posta || e.modo === 'mesa';
     $('pousar').textContent = e.temHit ? 'Toque no círculo para apoiar a casa.' : 'Aponte devagar para uma superfície plana.';
     if (e.modo === 'camera' && !e.posta) { $('pousar').hidden = false; $('pousar').textContent = 'Toque na tela para apoiar a casa à sua frente.'; }
-    /* Antes de pousar, a órbita continua ligada em qualquer modo: é a vitrine
-       do portal, e girar a casa ali não começa atividade nenhuma. */
-    if (controles) controles.enabled = e.modo === 'mesa' || !e.posta;
+    /* A órbita é da BANCADA. Em RA quem move o ponto de vista é o aparelho, e
+       deixá-la ligada faz a câmera da cena brigar com a do giroscópio. */
+    if (controles) controles.enabled = e.modo === 'mesa';
     /* Reenquadrar assim que a maquete é posta: o primeiro `enquadrar()` do
        modo bancada roda antes de o motor mandar o capítulo, e sem os alvos a
        caixa sai pequena demais. */

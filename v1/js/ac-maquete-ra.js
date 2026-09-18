@@ -19,9 +19,11 @@
 (function (global) {
   'use strict';
 
-  var ALTURA_DA_MESA = 0.62;   // m abaixo dos olhos, onde a maquete pousa no modo câmera
-  var DISTANCIA = 0.85;        // m à frente
-  var ESCALA_MIN = 0.22, ESCALA_MAX = 1.05, ESCALA_PADRAO = 0.42;
+  var ALTURA_DA_MESA = 0.16;   // m abaixo da linha de mira: a casa se apoia, não flutua
+  var DISTANCIA = 0.80;        // m à frente, na direção do olhar
+  /* Sem rastreio de posição não dá para dar um passo atrás: uma maquete de um
+   metro a oitenta centímetros do rosto deixa o jogador dentro dela. */
+  var ESCALA_MIN = 0.22, ESCALA_MAX = 0.90, ESCALA_PADRAO = 0.42;
 
   function ehIOS() {
     var ua = navigator.userAgent || '';
@@ -73,17 +75,26 @@
       raiz.updateMatrixWorld(true);
     }
 
+    /* Sem rastreio de superfície, o lugar é PARA ONDE SE APONTA: a casa pousa
+       na direção do olhar, a uma distância fixa. Apontar para baixo põe a casa
+       na mesa; apontar para a frente põe no ar.
+       Antes disto o ponto era sempre 62 cm abaixo dos olhos, e olhando em
+       frente (que é como um telefone parado fica) só o telhado entrava na tela.
+       A maquete fica de pé: da câmera vem só a guinada, nunca a inclinação. */
     function poseNaFrente() {
       var direcao = new THREE.Vector3();
       camera.getWorldDirection(direcao);
-      direcao.y = 0;
       if (direcao.lengthSq() < 1e-6) direcao.set(0, 0, -1);
       direcao.normalize();
       var origem = new THREE.Vector3();
       camera.getWorldPosition(origem);
       var ponto = origem.clone().addScaledVector(direcao, DISTANCIA);
-      ponto.y = origem.y - ALTURA_DA_MESA;
+      /* Um palmo abaixo da linha de mira: a maquete se apoia, não flutua na
+         altura dos olhos. */
+      ponto.y -= ALTURA_DA_MESA;
       pose.identity();
+      var guinada = Math.atan2(direcao.x, direcao.z);
+      pose.makeRotationY(guinada);
       pose.setPosition(ponto);
     }
 
@@ -149,6 +160,14 @@
         document.body.classList.add('in-ar', 'ra-camera');
         renderer.setClearAlpha(0);
         cena.background = null;
+        /* A câmera VIRA O APARELHO: origem, sem rotação e sem deslocamento de
+           quadro. Herdando a pose da órbita da vitrine, a casa era posta a
+           85 cm de um ponto de vista que estava a três metros da cena — e
+           aparecia cortada no alto da tela. */
+        camera.position.set(0, 0, 0);
+        camera.quaternion.identity();
+        camera.clearViewOffset();
+        camera.updateMatrixWorld(true);
         aoMudar();
         return 'camera';
       });
@@ -160,6 +179,7 @@
         domOverlay: { root: document.body }
       }).then(function (s) {
         sessao = s; modo = 'webxr'; posta = false; temHit = false; escala = ESCALA_PADRAO; giroY = 0;
+        camera.clearViewOffset();
         document.body.classList.add('in-ar', 'ra-webxr');
         cena.background = null; renderer.setClearAlpha(0);
         /* Em WebXR o toque válido é o `select` da sessão: com dom-overlay,
@@ -249,6 +269,11 @@
           camera.position.set(0, 0, 0);
           camera.updateMatrixWorld(true);
         }
+        /* Enquanto não pousou, a casa ACOMPANHA o olhar: é a pré-visualização
+           do lugar onde ela vai ficar. Sem isso o jogador olha para a imagem da
+           câmera com a maquete parada em outro canto e não entende que falta
+           tocar. */
+        if (!posta) { poseNaFrente(); aplicarPose(); }
         mira.visible = false;
       }
     }

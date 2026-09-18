@@ -36,6 +36,10 @@ body[data-role-mode="guide"] #faixa{display:none!important}
   margin:0;padding:11px 14px;border-radius:14px;background:#0d2a24f2;border:1px solid #c9a66c55;
   color:#ffeccb;font:600 14px/1.35 system-ui;text-align:center;pointer-events:none}
 #pousar[hidden]{display:none!important}
+#portal-voltar{position:fixed;z-index:30;left:50%;transform:translateX(-50%);
+  bottom:max(24px,env(safe-area-inset-bottom));padding:10px 16px;font-size:12px;
+  background:#0d2a24ee;border-color:#c9a66c55;border-radius:24px}
+#portal-voltar[hidden]{display:none!important}
 
 /* O capítulo de abertura é a moldura do "antes": some quando a casa é posta,
    senão ele cruza com a pilha de painéis no meio da tela. */
