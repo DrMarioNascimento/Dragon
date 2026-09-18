@@ -464,6 +464,10 @@
       var m = new THREE.Matrix4().multiplyMatrices(inversa, p.userData.poseDeMundo || p.matrixWorld);
       var copia = new THREE.Mesh(p.geometry, p.material.clone());
       copia.name = p.name;
+      /* Cada peça de alvo e de fechadura tem material PRÓPRIO justamente para
+         poder acender. A maçaneta da portada, por exemplo, fica debaixo da
+         verga: um alfinete saindo dela nasce dentro da pedra e não se vê. */
+      if (copia.material.emissive) { copia.material.emissive.setHex(0x000000); copia.userData.acendivel = true; }
       m.decompose(copia.position, copia.quaternion, copia.scale);
       copia.castShadow = true; copia.receiveShadow = true;
       grupo.add(copia);
@@ -486,6 +490,13 @@
     conjunto.grupo = grupo;
     conjunto.halo = anel;
     conjunto.pino = pino;
+    conjunto.acender = function (cor, forca) {
+      grupo.traverse(function (o) {
+        if (!o.userData.acendivel || !o.material || !o.material.emissive) return;
+        o.material.emissive.setHex(cor);
+        o.material.emissiveIntensity = forca;
+      });
+    };
     conjunto.centro = centro.clone();
     conjunto.caixa = caixaLocal.clone();
     return grupo;

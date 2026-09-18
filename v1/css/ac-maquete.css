@@ -28,6 +28,10 @@ body.ra-camera,body.ra-webxr{background:transparent}
   color:#ffeccb;font:600 14px/1.35 system-ui;text-align:center;pointer-events:none}
 #pousar[hidden]{display:none!important}
 
+/* O capítulo de abertura é a moldura do "antes": some quando a casa é posta,
+   senão ele cruza com a pilha de painéis no meio da tela. */
+body.maquete-posta .chapter{display:none}
+
 /* ---- painéis ---- */
 .instruction{width:min(350px,35vw)}
 #manuscript{position:fixed;right:5vw;bottom:118px;width:300px;padding:25px;

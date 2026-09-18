@@ -4,10 +4,19 @@
    deixou aquele papel ver e manda de volta os atos que o motor aceita. Duas
    consequências práticas, e as duas são de propósito:
 
-   · quem tem a CHAVE nunca recebe a posição da fechadura — nem escondida no
-     DOM, nem no snapshot. Ela simplesmente não chega ao aparelho dele;
+   · quem tem a CHAVE não recebe a fechadura pelo snapshot e não a vê em lugar
+     nenhum da tela: nem aceso, nem no DOM, nem no texto;
    · quem tem a FECHADURA não consegue tocar em móvel nenhum: o raycast só
      roda para o lado da chave.
+
+   O que NÃO é segredo, e é honesto dizer: `ac-maquete-state.mjs` é o mesmo
+   arquivo nos dois aparelhos — é ele que deixa o jogo rodar sem servidor —,
+   então as coordenadas e as dicas estão no código de ambos. O plano do
+   arrasto, inclusive, passa pela fechadura de propósito: é o que resolve a
+   PROFUNDIDADE para quem não pode vê-la e deixa a orientação do colega valer
+   em duas dimensões, que é o que dá para dizer em voz alta. A separação aqui é
+   de JOGO, não de sigilo: vale contra o olhar, não contra quem abre o
+   inspetor.
 
    A atividade só existe depois que a maquete está POSTA no ambiente. Antes
    disso a página é uma caixa fechada com um botão. */
@@ -121,6 +130,18 @@
       centro.copy(tudo.getCenter(new THREE.Vector3())).lerp(alvoFinal, 0.35);
       foco = alvoFinal.clone();
     } else if (dados && dados.papel === 'fechadura' && pontoFechadura) foco = pontoFechadura.clone();
+    else if (pontos.length) {
+      /* Quem tem a chave olha para os móveis do capítulo. */
+      foco = new THREE.Vector3();
+      for (i = 0; i < pontos.length; i++) foco.add(pontos[i]);
+      foco.multiplyScalar(1 / pontos.length);
+    }
+
+    /* Puxar o centro da órbita para o que interessa. Medido em duas abas
+       (17/09/2026): com o alvo no meio da casa, a maçaneta — que é a fechadura
+       do primeiro capítulo — projetava em y=579 de 600, encostada na barra de
+       ferramentas. Estava na tela e ninguém a veria. */
+    if (foco && !(dados && dados.complete)) centro.lerp(foco, 0.32);
 
     var alcance = 0;
     var cantos = [tudo.min, tudo.max,
@@ -129,14 +150,8 @@
     for (i = 0; i < cantos.length; i++) alcance = Math.max(alcance, cantos[i].distanceTo(centro));
     var distancia = alcance / Math.sin(camera.fov * Math.PI / 360);
 
-    /* E a câmera nasce do lado do que ESTE jogador tem para fazer: quem tem a
-       chave olha para os móveis, quem tem a fechadura olha para a fechadura.
-       As duas coisas ficam em lados opostos da casa mais de uma vez. */
-    if (!foco && pontos.length) {
-      foco = new THREE.Vector3();
-      for (i = 0; i < pontos.length; i++) foco.add(pontos[i]);
-      foco.multiplyScalar(1 / pontos.length);
-    }
+    /* E a câmera nasce do lado do que ESTE jogador tem para fazer: as duas
+       coisas ficam em faces opostas da casa mais de uma vez. */
     var lado = new THREE.Vector3(0.85, 0, 1.15);
     if (foco) {
       foco.sub(centro); foco.y = 0;
@@ -224,6 +239,7 @@
       a.halo.visible = ligado;
       a.pino.userData.marca.opacity = ligado ? pulso(tempo) : 0;
       a.pino.visible = ligado;
+      if (a.acender) a.acender(ligado ? 0x1d6b58 : 0x000000, ligado ? 0.55 + 0.35 * Math.sin(tempo * 3.2) : 0);
     }
     var revelada = !!(dados && dados.complete);
     if (mundo.revelacao && mundo.revelacao.pino) {
@@ -231,6 +247,9 @@
       mundo.revelacao.pino.visible = revelada;
       mundo.revelacao.halo.material.opacity = revelada ? 0.4 : 0;
       mundo.revelacao.halo.visible = revelada;
+      /* A passagem corre por baixo do terreno fantasma: sem acender a pedra
+         dela, o olho não separa o túnel do chão translúcido em volta. */
+      if (mundo.revelacao.acender) mundo.revelacao.acender(revelada ? 0x7a4a16 : 0x000000, revelada ? 0.55 + 0.3 * Math.sin(tempo * 2.0) : 0);
     }
     /* A fechadura só acende para quem NÃO tem a chave. O aparelho de quem tem
        a chave nem recebe o identificador dela. */
@@ -245,6 +264,8 @@
       anc.pino.visible = acesa;
       if (anc.peca && anc.peca.halo) { anc.peca.halo.material.opacity = acesa ? 0.3 : 0; anc.peca.halo.visible = acesa; }
       if (anc.peca && anc.peca.pino) { anc.peca.pino.userData.marca.opacity = 0; anc.peca.pino.visible = false; }
+      /* A peça em si acende. É o que resolve a fechadura enfiada num vão. */
+      if (anc.peca && anc.peca.acender) anc.peca.acender(acesa ? 0x8a5a12 : 0x000000, acesa ? brilho : 0);
     }
   }
 
