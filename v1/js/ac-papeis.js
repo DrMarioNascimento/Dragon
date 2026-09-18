@@ -37,8 +37,20 @@
   const RECORTE={x:40,y:40,w:780,h:920};
   async function desenharPlanta(){
     const {x:X,y:Y,w:W,h:H}=RECORTE,c=tela(W,H),g=c.getContext('2d');
-    try{g.drawImage(await carregarImagem('img/casa-da-costa-planta-1867.svg'),X,Y,W,H,0,0,W,H);}
+    let planta=null;
+    try{planta=await carregarImagem('img/casa-da-costa-planta-1867.svg');g.drawImage(planta,X,Y,W,H,0,0,W,H);}
     catch(e){g.fillStyle='#d9bf8b';g.fillRect(0,0,W,H);}
+    /* A fotografia da fachada é noturna: os três pedaços de cima saíam quase
+       lisos (luminância média ~60, desvio ~40, contra 150–196 dos outros —
+       medido a 800×540, volta 3). Só clarear achatava o desvio para ~25: a
+       foto virava mancha. Os níveis sobem juntos — brilho E contraste — e a
+       silhueta da casa, o céu e o raio voltam a separar um pedaço do outro. */
+    const FOTO=[55,58,755,365];
+    if(planta&&'filter' in g){
+      g.save();g.beginPath();g.rect(FOTO[0]-X,FOTO[1]-Y,FOTO[2],FOTO[3]);g.clip();
+      g.filter='sepia(.45) brightness(2.3) contrast(1.35)';
+      g.drawImage(planta,X,Y,W,H,0,0,W,H);g.restore();
+    }
     /* As marcas a lápis: um círculo por fragmento, e o traço que as liga —
        um trajeto que ninguém do grupo fez. Dois no mesmo cômodo ficam lado a
        lado, um rótulo acima e o outro abaixo: lado a lado e na mesma altura,
