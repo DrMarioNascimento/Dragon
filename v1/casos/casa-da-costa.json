@@ -1573,6 +1573,16 @@
     "id": "tarefa-interior",
     "hora": "21:29–21:31",
     "txt": "Respiração, sombra e uma colher deslocada formam um trajeto que não cabe nas posições dos seis."
+   },
+   "papeis": {
+    "_leia": "Os papéis rasgados da passagem (4ª cena do percurso, Mesa e Solo). Cada quebra-cabeça monta uma dimensão da MESMA pista acima: ONDE (a planta img/casa-da-costa-planta-1867.svg, com uma marca por fragmento em 'onde', no cômodo que o texto do próprio fragmento diz), O QUÊ (o bilhete, com o 'txt') e QUANDO (o relógio de corda, com os ponteiros em 'hora'). O cômodo é nome de rótulo da planta, não o campo 'm' do banco: medido em 18/09/2026, 'm' não bate com essa planta (F22, o vão do sótão, cairia no bloco de texto). Nada aqui entra no Arquivo além da pista, que a Mesa já entrega ao fim do percurso.",
+    "onde": [
+     { "f": "F06", "comodo": "SALA DE ESTAR" },
+     { "f": "F24", "comodo": "CORREDOR" },
+     { "f": "F07", "comodo": "CORREDOR" }
+    ],
+    "hora": "21:29",
+    "achado": "Sob a despensa"
    }
   }
  },

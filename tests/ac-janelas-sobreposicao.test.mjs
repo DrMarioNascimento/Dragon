@@ -131,6 +131,31 @@ async function medir(aba, estado, preparar) {
   return defeitos;
 }
 
+/* Nos papéis, o que o dedo precisa acertar não é janela: é o pedaço. Nenhum
+   pedaço (nem o tabuleiro) pode ficar sob a pilha de painéis ABERTA, sob a
+   barra, ou fora da tela — em nenhum dos três tamanhos. */
+const PECAS = `(()=>{const r=e=>e.getBoundingClientRect(),W=innerWidth,H=innerHeight,erros=[];
+  const cruza=(a,b)=>a.left<b.right-1&&b.left<a.right-1&&a.top<b.bottom-1&&b.top<a.bottom-1;
+  const pilha=document.querySelector('.ac-panel-stack'),barra=document.querySelector('.topbar');
+  const tampas=[pilha&&getComputedStyle(pilha).visibility!=='hidden'?['a pilha de painéis',r(pilha)]:null,
+    barra&&getComputedStyle(barra).display!=='none'?['a barra',r(barra)]:null].filter(Boolean);
+  for(const el of [document.getElementById('tabuleiro'),...document.querySelectorAll('.peca:not([hidden])')]){
+    const b=r(el),nome=el.id||('pedaço '+el.dataset.i);
+    if(b.left<-1||b.top<-1||b.right>W+1||b.bottom>H+1)erros.push(nome+' sai da tela');
+    for(const [t,c] of tampas)if(cruza(b,c))erros.push(nome+' fica sob '+t);
+  }return erros;})()`;
+async function medirPecas(aba, estado) {
+  const defeitos = [];
+  for (const [l, a] of TAMANHOS) {
+    await aba.tamanho(l, a);
+    await new Promise((r) => setTimeout(r, 450));
+    await aba.avaliar(ABRIR);
+    await new Promise((r) => setTimeout(r, 450));
+    for (const e of await aba.avaliar(PECAS)) defeitos.push(`${estado} @ ${l}×${a}: ${e}`);
+  }
+  return defeitos;
+}
+
 /* O "outro jogador": um fluxo de eventos aberto pelo próprio teste. Sem ele
    o motor recusa os atos da maquete (a dupla precisa estar conectada). */
 async function conectarComo(base, sala, papel, chave) {
@@ -247,6 +272,23 @@ test("janelas d'A Casa: nada se cruza, nada fica coberto, nada sai da tela", { s
     await aba.avaliar("document.getElementById('create').click(),true");
     await aba.esperar("document.getElementById('partners').open");
     defeitos.push(...await medir(aba, "percurso · convite"));
+
+    /* ---------- os papéis da passagem ---------- */
+    const prontosPapeis = "!!window.__papeis&&document.getElementById('loading').hidden&&document.querySelectorAll('.peca').length>0";
+    await aba.ir(`${base}/v1/AC-papeis.html`);
+    await aba.esperar(prontosPapeis);
+    defeitos.push(...await medir(aba, "papéis · a planta", ABRIR));
+    defeitos.push(...await medirPecas(aba, "papéis · a planta"));
+    await aba.avaliar("window.__papeis.abrirEtapa(1).then(()=>true)");
+    await aba.esperar(prontosPapeis + "&&window.__papeis.etapa==='bilhete'");
+    defeitos.push(...await medir(aba, "papéis · o bilhete", ABRIR));
+    defeitos.push(...await medirPecas(aba, "papéis · o bilhete"));
+    await aba.avaliar("window.__papeis.abrirEtapa(2).then(()=>true)");
+    await aba.esperar(prontosPapeis + "&&window.__papeis.etapa==='relogio'");
+    defeitos.push(...await medir(aba, "papéis · o relógio", ABRIR));
+    defeitos.push(...await medirPecas(aba, "papéis · o relógio"));
+    await aba.avaliar("document.getElementById('achado').showModal(),true");
+    defeitos.push(...await medir(aba, "papéis · o achado"));
 
     /* ---------- sala às escuras ---------- */
     await aba.ir(`${base}/v1/MOSAICO-26-a-sala-as-escuras.html`);

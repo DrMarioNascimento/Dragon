@@ -56,7 +56,9 @@
      21h29, O Vidro é a contagem das xícaras às 22h40, A Sala é a travessia. */
   var HORA   = { janela: "21:29", vidro: "22:40", salaEscura: "21:31" };
   var PAR_CANONICO = { inclinacao: "janela", constelacao: "salaEscura" };
-  var PERCURSO_LIMITE = 720;
+  /* 15 min: sala, vela, maquete e — desde 18/09/2026 — os três papéis da
+     passagem, que medem de dois a cinco minutos a mais. */
+  var PERCURSO_LIMITE = 900;
 
   function partidaId() {
     var c = global.CASO;
@@ -132,7 +134,7 @@
     atividades();
     if(doc.percursoAC===1&&atividadeDaFase(tipo)==='salaEscura'){
       var segundos=Number(doc.percursoLimiteSegundos);
-      return (Number.isFinite(segundos)&&segundos>=300&&segundos<=1800?segundos:720)*1000;
+      return (Number.isFinite(segundos)&&segundos>=300&&segundos<=1800?segundos:PERCURSO_LIMITE)*1000;
     }
     return (Number(cfg[tipo])||180)*1000;
   };

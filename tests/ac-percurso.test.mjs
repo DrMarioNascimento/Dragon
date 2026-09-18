@@ -19,18 +19,20 @@ test('percurso da Mesa segue sala escura, escrivaninha e maquete depois da Janel
  assert.match(src,/maquete:'AC-maquete\.html'/);
  assert.match(src,/showScene\(!p\.ready\.includes\(credentials\.papel\)\?'sala':s\.maquete\?'maquete':'mesa'\)/);
  assert.doesNotMatch(src,/janela:'MOSAICO-26-a-janela-do-norte\.html'/);
- assert.ok(src.indexOf("sala:'1 / 3 · A sala às escuras'") < src.indexOf("mesa:'2 / 3 · Sob outra luz'"));
- assert.ok(src.indexOf("mesa:'2 / 3 · Sob outra luz'") < src.indexOf("maquete:'3 / 3 · O lar em miniatura'"));
+ assert.ok(src.indexOf("sala:'1 / 4 · A sala às escuras'") < src.indexOf("mesa:'2 / 4 · Sob outra luz'"));
+ assert.ok(src.indexOf("mesa:'2 / 4 · Sob outra luz'") < src.indexOf("maquete:'3 / 4 · O lar em miniatura'"));
+ assert.ok(src.indexOf("maquete:'3 / 4 · O lar em miniatura'") < src.indexOf("papeis:'4 / 4 · Os papéis da passagem'"));
+ assert.match(src,/papeis:'AC-papeis\.html'/);
 });
 
-test('prazo de doze minutos vale somente para percurso novo e segue o documento da mesa',()=>{
+test('prazo do percurso (15 min desde os papéis da passagem) vale somente para percurso novo e segue o documento da mesa',()=>{
  const c={STATE:{doc:{atividades:{inclinacao:'janela',constelacao:'salaEscura'},percursoAC:1,percursoLimiteSegundos:720}},CASO:{configuracao:{limitesSegundos:{inclinacao:150,constelacao:180}},tarefas:{}}};c.window=c;
  vm.runInNewContext(readFileSync('v1/js/atividades-casa-da-costa.js','utf8'),c);
  assert.equal(c.limiteTarefaSensorMs('constelacao'),720000);
  assert.equal(c.limiteTarefaSensorMs('inclinacao'),150000);
  c.STATE.doc.percursoLimiteSegundos=900;assert.equal(c.limiteTarefaSensorMs('constelacao'),900000);
- c.STATE.doc.percursoLimiteSegundos=-1;assert.equal(c.limiteTarefaSensorMs('constelacao'),720000);
- delete c.STATE.doc.percursoAC;assert.equal(c.limiteTarefaSensorMs('constelacao'),720000);
+ c.STATE.doc.percursoLimiteSegundos=-1;assert.equal(c.limiteTarefaSensorMs('constelacao'),900000);
+ delete c.STATE.doc.percursoAC;assert.equal(c.limiteTarefaSensorMs('constelacao'),900000);
  assert.equal(c.STATE.doc.percursoAC,1);
 });
 
@@ -57,7 +59,12 @@ test('navegador encaminha etapas e devolve apenas conclusao final da rodada corr
     fecha (volta 3). Antes disso, o recado de outra rodada não serve. */
  assert.equal(node('summary').hidden,true,'o resumo não pode atropelar a descoberta');
  listeners.message({origin:'http://localhost',source:child,data:{mosaico:'ac-maquete-descoberta-vista',runId:'r2'}});assert.equal(node('summary').hidden,true);
- listeners.message({origin:'http://localhost',source:child,data:{mosaico:'ac-maquete-descoberta-vista',runId:'r1'}});assert.equal(node('summary').hidden,false);
+ listeners.message({origin:'http://localhost',source:child,data:{mosaico:'ac-maquete-descoberta-vista',runId:'r1'}});
+ /* Depois da descoberta, a passagem: os papéis rasgados (18/09/2026). O
+    resumo espera o jogador montar os três e guardar. */
+ assert.match(node('scene').src,/AC-papeis\.html/);assert.equal(node('summary').hidden,true,'o resumo não pode atropelar os papéis');
+ listeners.message({origin:'http://localhost',source:child,data:{mosaico:'ac-papeis-completo',runId:'r2'}});assert.equal(node('summary').hidden,true);
+ listeners.message({origin:'http://localhost',source:child,data:{mosaico:'ac-papeis-completo',runId:'r1'}});assert.equal(node('summary').hidden,false);
  node('finish').onclick();await flush();node('finish').onclick();await flush();
  assert.equal(sent.length,1);assert.equal(sent[0].mosaico,'tarefa-ok');assert.equal(sent[0].runId,'r1');
 });

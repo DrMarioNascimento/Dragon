@@ -22,12 +22,14 @@ const CASA = {
   escrivaninha: ler("v1/AC-escrivaninha.html"),
   maquete: ler("v1/AC-maquete.html"),
   percurso: ler("v1/AC-percurso.html"),
-  sala: ler("v1/MOSAICO-26-a-sala-as-escuras.html")
+  sala: ler("v1/MOSAICO-26-a-sala-as-escuras.html"),
+  papeis: ler("v1/AC-papeis.html")
 };
 const PAGINAS = [
   "v1/AC-escrivaninha.html",
   "v1/AC-maquete.html",
   "v1/AC-percurso.html",
+  "v1/AC-papeis.html",
   "v1/MOSAICO-mesa.html",
   "v1/MOSAICO-26-a-janela-do-norte.html",
   "v1/MOSAICO-26-a-sala-as-escuras.html",
@@ -97,7 +99,7 @@ describe("A Casa · janelas", () => {
       "o chevron deixou de abrir");
     assert.match(JANELAS_JS, /closest\('\[data-ac-cena\]'\)\)recolher\(\)/, "tocar na cena deixou de recolher");
     assert.match(JANELAS_JS, /TEMPO_AVISO=4000, TEMPO_PAINEIS=15000/, "os tempos do relógio mudaram fora da constante");
-    for (const [nome, html] of Object.entries({ escrivaninha: CASA.escrivaninha, maquete: CASA.maquete }))
+    for (const [nome, html] of Object.entries({ escrivaninha: CASA.escrivaninha, maquete: CASA.maquete, papeis: CASA.papeis }))
       assert.match(html, /id="scene" data-ac-cena/, nome + ": a cena não está marcada — tocar nela não recolheria nada");
     /* Na sala, tocar na tela é MIRAR a lanterna: lá o toque não recolhe (o
        quente/frio é jogo), só o relógio. */
@@ -116,7 +118,7 @@ describe("A Casa · janelas", () => {
   });
 
   it("'Como jogar' é uma linha da orientação, não um botão da barra", () => {
-    for (const nome of ["escrivaninha", "maquete"]) {
+    for (const nome of ["escrivaninha", "maquete", "papeis"]) {
       assert.match(CASA[nome], /class="ac-como-jogar" data-ac-abrir="instructions"/, nome);
       assert.match(CASA[nome], /<dialog id="instructions" data-ac-priority="10">/, nome);
     }
