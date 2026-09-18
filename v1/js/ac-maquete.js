@@ -260,6 +260,33 @@
       distancia = alcance / Math.sin(meiaLente());
     }
 
+    /* Volta 3 (18/09/2026): no ato do encaixe, quem tem a FECHADURA na
+       tela (quem guia, e o Solo) via a casa inteira — a tolerância de 0,03
+       virava um vão de ~7 px a 390×844, menor que a ponta de um dedo. O
+       quadro fecha na fechadura (e na chave, no Solo). Quem tem só a chave
+       continua vendo a casa toda: fechar o quadro nele apontaria onde está a
+       fechadura que ele não pode ver. */
+    var fechandoNaChave = !procurando() && ambosAcharam() && !(dados && dados.complete) && papelDaVista() === 'chave' && pontos.length > 1;
+    if ((!procurando() && ambosAcharam() && pontoFechadura && !(dados && dados.complete) && papelDaVista() !== 'chave') || fechandoNaChave) {
+      tudo = new THREE.Box3();
+      if (pontoFechadura) tudo.expandByPoint(pontoFechadura);
+      /* Quem tem só a chave: o quadro fecha no RECORTE da pista — os mesmos
+         pontos que os dois procuraram, que o colega também conhece —, e não
+         na fechadura. Medido na volta 3 em duas abas: com a casa inteira (e o
+         mirante novo esticando a caixa para cima), o vão do encaixe tinha
+         5,5 px de raio a 390×844. */
+      if (fechandoNaChave) for (i = 0; i < pontos.length; i++) tudo.expandByPoint(pontos[i]);
+      if (mundo.chave.visible) tudo.expandByPoint(mundo.raiz.localToWorld(mundo.chave.position.clone()));
+      tudo.expandByScalar(fechandoNaChave ? 0.13 : 0.11);
+      centro.copy(tudo.getCenter(new THREE.Vector3()));
+      alcance = 0;
+      cantos = [tudo.min, tudo.max,
+        new THREE.Vector3(tudo.min.x, tudo.min.y, tudo.max.z), new THREE.Vector3(tudo.max.x, tudo.min.y, tudo.min.z),
+        new THREE.Vector3(tudo.min.x, tudo.max.y, tudo.max.z), new THREE.Vector3(tudo.max.x, tudo.max.y, tudo.min.z)];
+      for (i = 0; i < cantos.length; i++) alcance = Math.max(alcance, cantos[i].distanceTo(centro));
+      distancia = alcance / Math.sin(meiaLente());
+    }
+
     /* E a câmera nasce do lado do que ESTE jogador tem para fazer. */
     var lado = new THREE.Vector3(0.85, 0, 1.15);
     if (foco) {
@@ -292,24 +319,41 @@
     }
     return null;
   }
+  /* Volta 2 (18/09/2026, modelo novo): o relógio agora é DE PAREDE e os
+     castiçais ficam atrás de tabiques. Mirar no CENTRO do conjunto e aceitar
+     "bateu em algo a 2 cm dele" contava como visto o relógio visto por TRÁS
+     da parede — o raio batia no reboco a 1,2 cm do mostrador. Agora cada
+     conjunto é mirado em até quatro peças suas, e só conta se o PRIMEIRO
+     obstáculo for ele mesmo. */
+  function pontosDoConjunto(c) {
+    var lista = [], malhas = [];
+    c.grupo.traverse(function (o) { if (o.isMesh && o.geometry && o.geometry.type !== 'RingGeometry' && o.visible) malhas.push(o); });
+    lista.push(c.grupo.localToWorld(c.centro.clone()));
+    for (var i = 0; i < malhas.length && lista.length < 5; i += Math.max(1, Math.floor(malhas.length / 4))) {
+      if (!malhas[i].geometry.boundingSphere) malhas[i].geometry.computeBoundingSphere();
+      lista.push(malhas[i].localToWorld(malhas[i].geometry.boundingSphere.center.clone()));
+    }
+    return lista;
+  }
   function quantosSeVeem(posicao, conjuntos) {
-    var abertas = camadasAbertas(), vistos = 0, alvo = new THREE.Vector3(), dir = new THREE.Vector3();
+    var abertas = camadasAbertas(), vistos = 0, dir = new THREE.Vector3();
     for (var i = 0; i < conjuntos.length; i++) {
-      var c = conjuntos[i];
-      c.grupo.localToWorld(alvo.copy(c.centro));
-      dir.copy(alvo).sub(posicao);
-      var longe = dir.length(); dir.normalize();
-      raio.set(posicao, dir); raio.far = longe + 0.01;
-      var hits = raio.intersectObject(mundo.raiz, true);
-      raio.far = Infinity;
-      for (var k = 0; k < hits.length; k++) {
-        var h = hits[k];
-        if (!h.object.isMesh || !h.object.visible || (h.object.geometry && h.object.geometry.type === 'RingGeometry')) continue;
-        if (abertas.indexOf(camadaDoObjeto(h.object)) >= 0) continue;
-        if (donoDoToque(h.object) === c.grupo || h.distance >= longe - 0.02) vistos++;
-        break;
+      var c = conjuntos[i], pontos = pontosDoConjunto(c), bons = 0;
+      for (var p = 0; p < pontos.length; p++) {
+        dir.copy(pontos[p]).sub(posicao);
+        var longe = dir.length(); dir.normalize();
+        raio.set(posicao, dir); raio.far = longe + 0.05;
+        var hits = raio.intersectObject(mundo.raiz, true);
+        raio.far = Infinity;
+        for (var k = 0; k < hits.length; k++) {
+          var h = hits[k];
+          if (!h.object.isMesh || !objetoVisivel(h.object) || (h.object.geometry && h.object.geometry.type === 'RingGeometry')) continue;
+          if (abertas.indexOf(camadaDoObjeto(h.object)) >= 0) continue;
+          if (donoDoToque(h.object) === c.grupo) bons++;
+          break;
+        }
       }
-      if (k === hits.length) vistos++;
+      if (bons) vistos += 1 + bons / (pontos.length * 10);
     }
     return vistos;
   }
@@ -317,18 +361,20 @@
      cômodos por cima das paredes. Medido na volta 2 (Solo, térreo): com
      cinco pontos na sala escura, nenhum dos oito lados na altura de sempre
      mostrava o relógio — e era ele o esconderijo. */
-  var ALTURAS = [0.86, 1.8];
+  var ALTURAS = [0.86, 1.8, 0.5];
   function ladoQueMostra(centro, distancia, base, conjuntos) {
     var melhor = null, melhorN = -1, eixo = new THREE.Vector3(0, 1, 0);
     mundo.raiz.updateMatrixWorld(true);
-    for (var h = 0; h < ALTURAS.length && melhorN < conjuntos.length; h++) {
+    /* Doze lados por altura, e a busca só para quando TODOS os pontos se
+       veem de verdade (a parte fracionária da nota desempata pelo quanto de
+       cada um aparece). */
+    for (var h = 0; h < ALTURAS.length && melhorN < conjuntos.length + 0.05; h++) {
       var plano = new THREE.Vector3(base.x, 0, base.z).normalize();
-      for (var k = 0; k < 8; k++) {
-        var d = plano.clone().applyAxisAngle(eixo, k * Math.PI / 4);
+      for (var k = 0; k < 12; k++) {
+        var d = plano.clone().applyAxisAngle(eixo, k * Math.PI / 6);
         d.y = ALTURAS[h]; d.normalize();
         var n = quantosSeVeem(centro.clone().add(d.clone().multiplyScalar(distancia)), conjuntos);
-        if (n > melhorN) { melhorN = n; melhor = d; }
-        if (n === conjuntos.length) break;
+        if (n > melhorN + 1e-6) { melhorN = n; melhor = d; }
       }
     }
     return melhor || base;
@@ -837,15 +883,36 @@
          chave — ela se afasta aos poucos até caber uma pega entre as duas. */
       if (!pega.hidden && !arrastando && !vooDaChave) {
         var pk = { x: parseFloat(pega.style.left), y: parseFloat(pega.style.top) };
-        if (Math.hypot(pk.x - q.x, pk.y - q.y) < 92) {
-          var ponta = mundo.chavePonta.getWorldPosition(new THREE.Vector3());
-          var fora = mundo.raiz.worldToLocal(ponta.clone()).sub(mundo.raiz.worldToLocal(pontoFixa.clone()));
-          fora.y = 0;
-          if (fora.lengthSq() < 1e-8) fora.set(1, 0, 1);
-          mundo.chave.position.addScaledVector(fora.normalize(), 0.006);
-        }
+        if (Math.hypot(pk.x - q.x, pk.y - q.y) < 92) afastarChave(q, pk, pontoFixa);
       }
     } else fixa.hidden = true;
+  }
+
+  /* Volta 1 (18/09/2026, modelo novo): o afastamento andava 0,006 por
+     quadro no MUNDO, na direção horizontal fechadura→chave. Com a câmera de
+     frente, essa direção é quase a do olhar — a chave se afastava na
+     profundidade e as pegas continuavam a 17 px, uma sobre a outra; a 4
+     quadros por segundo (telefone fraco) nunca se separavam. Agora a conta é
+     na TELA e de uma vez: a ponta vai para 110 px da fechadura, no primeiro
+     lado livre do vão da cena, no mesmo plano do arrasto. */
+  function afastarChave(q, pk, pontoFixa) {
+    var livre = areaLivre(), margem = 46;
+    var base = Math.atan2(pk.y - q.y, pk.x - q.x);
+    if (!isFinite(base) || (pk.x === q.x && pk.y === q.y)) base = 0;
+    var giros = [0, 0.785, -0.785, 1.571, -1.571, 2.356, -2.356, 3.142], destino = null;
+    for (var i = 0; i < giros.length && !destino; i++) {
+      var a = base + giros[i], x = q.x + Math.cos(a) * 110, y = q.y + Math.sin(a) * 110;
+      if (x > livre.esquerda + margem && x < livre.largura - margem && y > livre.topo + margem && y < livre.base - margem) destino = { x: x, y: y };
+    }
+    if (!destino) destino = { x: q.x + Math.cos(base) * 110, y: q.y + Math.sin(base) * 110 };
+    var plano = new THREE.Plane().setFromNormalAndCoplanarPoint(cameraAgora().getWorldDirection(new THREE.Vector3()), pontoFixa);
+    raio.setFromCamera(ndc(destino.x, destino.y), cameraAgora());
+    var alvo = new THREE.Vector3();
+    if (!raio.ray.intersectPlane(plano, alvo)) return;
+    mundo.chave.position.copy(mundo.raiz.worldToLocal(alvo)).sub(mundo.chavePonta.position);
+    mundo.raiz.updateMatrixWorld(true);
+    var p = naTela(mundo.chavePonta.getWorldPosition(new THREE.Vector3()));
+    $('key-grip').style.left = p.x + 'px'; $('key-grip').style.top = p.y + 'px';
   }
 
   /* Quem guia (e só quem guia) vê a ponta da chave do colega. */
@@ -950,7 +1017,12 @@
     /* A fechadura apareceu — só onde a fechadura existe. */
     if (antes && dados && !antes.lock && dados.lock && temLadoDaFechadura()) poeira.burst(vetorDaFechadura());
     /* Reenquadrar quando muda o CAPÍTULO, o PAPEL ou o ato. */
-    var assinatura = dados ? dados.level + '/' + dados.papel + '/' + (dados.key ? 1 : 0) + '/' + (dados.lock ? 1 : 0) : '';
+    /* Volta 2 (18/09/2026, Solo a 1280×800): a assinatura levava key e lock
+       separados. No Solo, achar a chave reenquadrava duas vezes (30 ms e
+       1,2 s) com a procura ainda aberta e os mesmos cinco pontos na tela —
+       a cena pulava sob o dedo que ia tocar a fechadura, e o toque caía no
+       vazio. Só reenquadra quando muda o que ESTE aparelho tem a fazer. */
+    var assinatura = dados ? dados.level + '/' + dados.papel + '/' + (procurando() ? 1 : 0) + '/' + (ambosAcharam() ? 1 : 0) + '/' + (dados.complete ? 1 : 0) : '';
     if (assinatura !== enquadramentoAtual) {
       enquadramentoAtual = assinatura;
       if (antes) vida();
@@ -1093,6 +1165,23 @@
             alvos: alvosAtivos().map(function (a) { return a.id; }), toques: toques.size, tocouEm: !!tocouEm,
             alvoDaOrbita: controles && naTela(controles.target.clone()), alvo3d: controles && controles.target.toArray().map(function (n) { return +n.toFixed(3); }), camera: camera.position.toArray().map(function (n) { return +n.toFixed(3); }),
             olhar: camera.getWorldDirection(new THREE.Vector3()).toArray().map(function (n) { return +n.toFixed(3); }) };
+        },
+        /* Onde um jogador tocaria: o primeiro pixel, em volta da projeção,
+           em que o objeto é o que se VÊ (o primeiro obstáculo do raio). */
+        ondeVisivel: function (id) {
+          var c = conjuntoDe(id); if (!c) return null;
+          mundo.raiz.updateMatrixWorld(true);
+          var pontos = pontosDoConjunto(c), cam = cameraAgora();
+          for (var p = 0; p < pontos.length; p++) {
+            var t = naTela(pontos[p].clone());
+            for (var r = 0; r <= 12; r += 3) for (var a = 0; a < (r ? 8 : 1); a++) {
+              var x = t.x + Math.cos(a * Math.PI / 4) * r, y = t.y + Math.sin(a * Math.PI / 4) * r;
+              raio.setFromCamera(ndc(x, y), cam);
+              var h = raio.intersectObject(mundo.raiz, true).filter(function (k) { return k.object.isMesh && objetoVisivel(k.object) && k.object.geometry && k.object.geometry.type !== 'RingGeometry'; });
+              if (h.length && donoDoToque(h[0].object) === c.grupo) return { x: x, y: y };
+            }
+          }
+          return null;
         },
         /* O que o raio acerta num ponto da tela — os três primeiros. */
         raio: function (x, y) {

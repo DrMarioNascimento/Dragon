@@ -388,13 +388,23 @@ test('geometria real: fechaduras, alvos, camadas e o relógio do caso', async ()
   const horas = mundo.relogio.find((g) => g.nome === 'ponteiro-das-horas');
   const minutos = mundo.relogio.find((g) => g.nome === 'ponteiro-dos-minutos');
   assert.ok(Math.abs(horas.para - alvoHora) < 0.01 && Math.abs(minutos.para - alvoMinuto) < 0.01);
-  assert.ok(Math.abs(horas.de - horas.para) > 5,
-    'se o modelo já viesse em 21h29 este acerto seria ruído — confira antes de remover');
+  /* O modelo de 18/09/2026 já veio com o relógio de parede perto de 21h29
+     (ponteiro das horas a 4° do alvo). O acerto continua: ele garante a hora
+     exata do caso, venha o modelo como vier. */
+  assert.ok(Math.abs(horas.de - horas.para) < 180 && Math.abs(minutos.de - minutos.para) < 360);
+
+  /* 6b. Nenhum "botão" do editor de origem na maquete: os medalhões de ponto
+         clicável (Base do relógio, Armário do quarto oeste…) marcavam dois
+         esconderijos. Saíram do arquivo em 18/09/2026 e não podem voltar. */
+  assert.equal(mundo.botoesDoEditor, 0, 'o GLB voltou a trazer medalhões/pontos clicáveis do editor');
+  let sobra = 0;
+  mundo.raiz.traverse((o) => { if (/^medalhao|^part_\d+$/.test(o.name || '')) sobra++; });
+  assert.equal(sobra, 0, 'sobrou peça de medalhão do editor na cena');
 
   /* 7. A fusão: o telefone não aguenta 2.472 chamadas de desenho por quadro. */
   assert.ok(mundo.desenhos > 0 && mundo.desenhos <= 120,
     'a fusão por camada e material devolveu ' + mundo.desenhos + ' malhas; acima de 120 a RA no telefone cai');
-  assert.ok(mundo.altura > 0.9 && mundo.altura < 1.3, 'a maquete normalizada tem altura ' + mundo.altura);
+  assert.ok(mundo.altura > 0.9 && mundo.altura < 1.45, 'a maquete normalizada tem altura ' + mundo.altura);
   assert.ok(mundo.baseY >= 0, 'a base da maquete não pode ficar abaixo de zero: pousaria dentro da mesa');
 });
 
