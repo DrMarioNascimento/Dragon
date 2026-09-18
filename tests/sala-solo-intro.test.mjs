@@ -57,7 +57,7 @@ describe("Solo · Sala às Escuras jogável", () => {
     assert.match(SOLO, /1 \/ 4 · Chegada pela estrada/);
     assert.match(SOLO, /2 \/ 4 · /);
     assert.match(SOLO, /MOSAICO-26-a-janela-do-norte\.html\?embed=1/);
-    assert.match(SOLO, /MOSAICO-26-a-sala-as-escuras\.html\?embed=1&v=20260917-janelas/);
+    assert.match(SOLO, /MOSAICO-26-a-sala-as-escuras\.html\?embed=1&v=20260918-papeis/);
     assert.ok(
       SOLO.indexOf("MOSAICO-26-a-janela-do-norte.html") <
         SOLO.indexOf("MOSAICO-26-a-sala-as-escuras.html"),

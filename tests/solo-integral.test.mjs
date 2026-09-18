@@ -7,8 +7,12 @@ const html=readFileSync(new URL('../solo/index.html',import.meta.url),'utf8');
 const cloud=readFileSync(new URL('../solo/estado-solo.js',import.meta.url),'utf8');
 
 test('Solo Casa preserva as etapas da experiência da Mesa',()=>{
-  for(const fase of ['briefing','percurso3d','sensor','mosaico','mercado','relations','decision','result'])
+  for(const fase of ['marco','percurso3d','sensor','papeis','mosaico','mercado','map','decision','result'])
     assert.ok(js.includes("'"+fase+"'"),fase);
+  /* O que só existia no Solo saiu (Mario, 18/09/2026): o quebra-cabeça de
+     quatro peças numeradas, as dez perguntas de fato e as Relações. */
+  for(const fora of ["'puzzle'","'fact'","'relations'",'function puzzle(','function fact(','function relations(','Toque em duas peças para trocar'])
+    assert.ok(!js.includes(fora),'voltou ao Solo: '+fora);
   for(const tarefa of ['MOSAICO-26-a-janela-do-norte.html','MOSAICO-26-vidro-embacado.html','MOSAICO-26-a-sala-as-escuras.html'])
     assert.ok(js.includes(tarefa),tarefa);
   assert.match(js,/disabled.*sensorPronto|sensorPronto.*disabled/s);
@@ -26,20 +30,32 @@ test('Solo Casa preserva as etapas da experiência da Mesa',()=>{
   assert.match(js,/if\(ev\.data\.mosaico==='tarefa-ok'&&state\.percursoEtapa==='janela'\)[\s\S]*abrirAtividades\(\)/);
   assert.match(js,/if\(state\.percursoEtapa==='janela'\)\{state\.percursoEtapa='escrivaninha'/);
   const startFn=js.slice(js.indexOf('function start()'),js.indexOf('function abrirAnalise()'));
-  assert.doesNotMatch(startFn,/htmlAndaime|mostrarSeletor|phase='mosaico'|phase='puzzle'/,
+  assert.doesNotMatch(startFn,/htmlAndaime|mostrarSeletor|phase='mosaico'/,
     'o seletor Guiada (ordem nos fatos) não pode nascer no Começar após a abertura');
-  assert.match(startFn,/abrirPercurso3D\(\)/);
+  /* Começar → Encenação (tela-marco) → Votação (tela-marco) → Janela. */
+  assert.match(startFn,/abrirMarco\('encenacao'\)/);
+  assert.match(js,/encenacao:\{[^}]*depois:\(\)=>abrirMarco\('votacao'\)\}/);
+  assert.match(js,/votacao:\{[^}]*depois:\(\)=>abrirPercurso3D\(\)\}/);
+  assert.match(js,/Neste momento seria /);
   assert.match(js,/function abrirAnalise\(\)[\s\S]*mostrarSeletor/);
   assert.match(js,/abrirPercurso3D\(\)\{[\s\S]*state\._partidaNova=true/);
-  assert.match(js,/fasesComHipoteses=\['relations','map','decision'\]/);
-  assert.match(js,/if\(state\.phase==='home'\)[\s\S]*phase='percurso3d'/);
+  assert.match(js,/fasesComHipoteses=\['map','decision'\]/);
+  assert.match(js,/if\(state\.phase==='home'\)[\s\S]*state\.phase='marco';\s*state\.marco='encenacao'/);
+  /* A sequência do meio segue a da Mesa: maquete → papéis → (seletor) →
+     Mosaico → Voto de cooperação (tela-marco) → Mercado. */
+  assert.match(js,/onclick="abrirPapeis\(\)"/);
+  assert.match(js,/AC-papeis\.html\?demo=solo/);
+  assert.match(js,/ev\.data\.mosaico!=='ac-papeis-completo'/);
+  assert.match(js,/function abrirAnalise\(\)\{\s*function go\(\)\{prepararMosaico\(\);state\.phase='mosaico'/);
+  assert.match(js,/abrirMarco\(\\'cooperacao\\'\)/);
+  assert.match(js,/cooperacao:\{[^}]*depois:\(\)=>\{state\.phase='mercado'/);
 });
 
 test('checkpoint e carimbo incluem o Solo integral',()=>{
   for(const campo of ['percursoEtapa','atividades','atividadeI','sensorPronto','sensorTempos','mosaico','mercadoEtapa','mercadoEscolhas','pontuacao','resultadoVista','apuracaoEtapa'])
     assert.ok(cloud.includes(campo),campo);
-  assert.match(html,/mesa-solo\.js\?v=20260917-janelas/);
-  assert.match(html,/estado-solo\.js\?v=20260917-janelas/);
+  assert.match(html,/mesa-solo\.js\?v=20260918-papeis/);
+  assert.match(html,/estado-solo\.js\?v=20260918-papeis/);
 });
 
 test('percurso solo mantém 3D, RA, escrivaninha e maquete com três chaves',()=>{

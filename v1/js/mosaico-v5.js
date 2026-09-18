@@ -223,7 +223,7 @@
           b.onload=function(){
             if(document.querySelector('script[data-atividades-casa]'))return;
             var a=document.createElement("script");
-            a.src="js/atividades-casa-da-costa.js?v=20260916-publicado-ac";
+            a.src="js/atividades-casa-da-costa.js?v=20260918-papeis";
             a.dataset.atividadesCasa="1";
             /* O rendimento entra por último: ele envolve concluirTarefaSensor
                e MosaicoV5.calcular, e precisa do banco e das atividades já
