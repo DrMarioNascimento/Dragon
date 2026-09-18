@@ -273,7 +273,8 @@ describe("produção · escrivaninha/maquete sem RA de ensaio", () => {
         assert.equal(re.test(src), false, `${p} ainda contém ${re}`);
       }
     }
-    for (const p of ["v1/AC-escrivaninha.html", "v1/AC-percurso.html"]) {
+    /* A escrivaninha voltou a ter RA (18/09/2026): só o percurso segue sem. */
+    for (const p of ["v1/AC-percurso.html"]) {
       const src = ler(p);
       for (const re of PROIBIDO_SEM_RA) {
         assert.equal(re.test(src), false, `${p} ainda contém ${re}`);
@@ -294,13 +295,12 @@ describe("produção · escrivaninha/maquete sem RA de ensaio", () => {
     assert.match(solo, /AC-escrivaninha\.html\?demo=solo/);
   });
 
-  it("a Sala às Escuras publicada não expõe Alternar visual / Entrar em RA", () => {
+  /* A RA da Sala voltou em 18/09/2026, sem os rótulos de ensaio. */
+  it("a Sala às Escuras publicada não traz Alternar visual nem Prefiro jogar sem RA", () => {
     const sala = ler("v1/MOSAICO-26-a-sala-as-escuras.html");
-    assert.equal(/id="b-ra"/.test(sala), false);
-    assert.equal(/id="b-entrar-ra"/.test(sala), false);
-    assert.equal(/>Entrar em RA</.test(sala), false);
     assert.equal(/>Alternar visual</.test(sala), false);
     assert.equal(/Prefiro jogar sem RA/.test(sala), false);
+    assert.match(sala, /id="b-entrar-ra" type="button" hidden>/, "Entrar em RA nasce escondido e só aparece se o aparelho tem RA");
     assert.match(sala, />Entrar na sala</);
   });
 });

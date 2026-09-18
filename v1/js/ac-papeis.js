@@ -436,7 +436,7 @@
 
   async function iniciar(){
     try{
-      const r=await fetch('casos/casa-da-costa.json?v=20260918-papeis');caso=await r.json();
+      const r=await fetch('casos/casa-da-costa.json?v=20260918-ra');caso=await r.json();
       papeis=caso.tarefas.salaEscura.papeis;pista=caso.tarefas.salaEscura.pista;
     }catch(e){$('loading').textContent='Os papéis não puderam ser abertos. Recarregue a página.';return;}
     inicio=Date.now();

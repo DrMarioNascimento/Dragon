@@ -196,7 +196,7 @@ describe("profundidade 1+1 · tokens compartilhados", () => {
     assert.match(ler("carro-forte/noite/index.html"), /modal-card depth-card pf-card/);
     assert.match(ler("carro-forte/noite/index.html"), /drawer-card depth-card pf-card/);
     assert.match(ler("carro-forte/celular.html"), /drawer-card depth-card pf-card/);
-    assert.match(ler("solo/index.html"), /mesa-solo\.css\?v=20260918-papeis/);
+    assert.match(ler("solo/index.html"), /mesa-solo\.css\?v=20260918-ra/);
     assert.match(ler("abertura-casa.js"), /cartao pf-card/);
     assert.match(ler("abertura-casa.js"), /cartao-inset pf-inset/);
   });
