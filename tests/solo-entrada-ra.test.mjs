@@ -207,7 +207,7 @@ test('a escrivaninha não expõe RA de ensaio; a maquete abre RA de produção',
      O que mudou em 17/09/2026: a maquete passou a ser, por desenho, uma
      atividade DE RA — a casa é posta no ambiente e a investigação nasce dali.
      Proibir RA nesta página passaria a guardar o contrário do que o jogo faz.
-     A escrivaninha e o percurso seguem sem RA. */
+     Em 18/09/2026 a escrivaninha voltou a ter RA (Mario). Só o percurso segue sem. */
   for (const [nome, src] of [['escrivaninha', html], ['maquete', maquete], ['percurso', percurso]]) {
     assert.doesNotMatch(src, /ENSAIO EM DUPLA/, nome);
     assert.doesNotMatch(src, /Bônus experimental/, nome);
@@ -215,7 +215,7 @@ test('a escrivaninha não expõe RA de ensaio; a maquete abre RA de produção',
     assert.doesNotMatch(src, /sem alterar a partida publicada/, nome);
     assert.doesNotMatch(src, /Criar novo ensaio/, nome);
   }
-  for (const [nome, src] of [['escrivaninha', html], ['percurso', percurso]]) {
+  for (const [nome, src] of [['percurso', percurso]]) {
     assert.doesNotMatch(src, /Colocar em RA/, nome);
     assert.doesNotMatch(src, /Ver em RA/, nome);
     assert.doesNotMatch(src, /Explorar em RA/, nome);
@@ -226,7 +226,11 @@ test('a escrivaninha não expõe RA de ensaio; a maquete abre RA de produção',
   assert.doesNotMatch(maquete, /pontos de ensaio/);
   assert.doesNotMatch(maqueteJs, /pontos de ensaio/);
   assert.doesNotMatch(ler('v1/js/ac-percurso.js'), /Este ensaio foi aberto/);
-  assert.match(desk, /if\(ar\) ar\.hidden=true/);
+  /* A escrivaninha oferece RA a quem tem: WebXR ou Quick Look no iPhone. */
+  assert.match(html, /<button id="ar" hidden>Colocar em RA<\/button>/);
+  assert.match(html, /<a id="ar-ios" href="assets\/ac\/escrivaninha\.usdz" rel="ar"/);
+  assert.match(desk, /if\(ar\) ar\.hidden=!arSupported;/);
+  assert.match(desk, /navigator\.xr\.isSessionSupported\('immersive-ar'\)/);
 
   /* E a porta de RA da maquete tem de existir, com as três saídas: sem a
      terceira, um aparelho sem câmera fica sem atividade nenhuma. */
@@ -236,8 +240,6 @@ test('a escrivaninha não expõe RA de ensaio; a maquete abre RA de produção',
   assert.match(maqueteJs, /ACMaquetteRA\.criar/);
 
   const sala = ler('v1/MOSAICO-26-a-sala-as-escuras.html');
-  assert.doesNotMatch(sala, /id="b-ra"/);
-  assert.doesNotMatch(sala, /id="b-entrar-ra"/);
-  assert.doesNotMatch(sala, />Entrar em RA</);
+  assert.match(sala, /id="b-entrar-ra" type="button" hidden>Entrar em RA</);
   assert.doesNotMatch(sala, />Alternar visual</);
 });

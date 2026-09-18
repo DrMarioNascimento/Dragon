@@ -130,9 +130,13 @@
       $('primary').textContent='Ler e guardar bilhete';
       $('primary').disabled=!connected;
     }
+    /* A RA voltou (Mario, 18/09/2026: "volta o RA na escrivaninha"): WebXR
+       onde o navegador tem (Android), Quick Look no iPhone para quem põe a
+       escrivaninha na sala. O 3D continua sendo o caminho de quem não tem. */
     const ar=$('ar'), arIos=$('ar-ios');
-    if(ar) ar.hidden=true;
-    if(arIos) arIos.hidden=true;
+    if(ar) ar.hidden=!arSupported;
+    prepararArIos();
+    if(arIos) arIos.hidden=!(quickLook&&!arSupported&&!xrSession&&role==='luz'&&state.stage==='posicionar');
     $('dossier').hidden=role!=='conhecimento'||!['encontrado','registrado'].includes(state.stage);
     /* O fósforo só existe no bolso de quem não pôs a vela, e só quando ela apagou. */
     $('fosforo').hidden=role!=='conhecimento'||!velaApagada()||!connected;
@@ -141,7 +145,7 @@
       $('heading').textContent=role==='luz'?'A vela apagou.':'A luz sumiu.';
       $('description').textContent=role==='luz'?'O pavio ainda fumega.':'No bolso, uma caixa de fósforos.';
     }
-    if(fallback&&!xrSession&&!$('accessible').checked&&role==='luz'&&['posicionar','castical'].includes(state.stage))$('description').textContent=$('description').textContent.replace(/[.!]?$/,'.')+(state.stage==='posicionar'?' Toque no chão para posicionar a escrivaninha.':' Arraste a vela até o castiçal sobre a escrivaninha.');
+    if(fallback&&!xrSession&&!$('accessible').checked&&role==='luz'&&['posicionar','castical'].includes(state.stage))$('description').textContent=$('description').textContent.replace(/[.!]?$/,'.')+(state.stage==='posicionar'?(quickLook&&!arSupported?' Coloque a escrivaninha na sua sala, ou toque no chão para posicioná-la aqui.':' Toque no chão para posicionar a escrivaninha.'):' Arraste a vela até o castiçal sobre a escrivaninha.');
     if(xrSession&&!xrPlaced){$('heading').textContent='Posicione a escrivaninha.';$('description').textContent='Aponte para uma superfície e confirme quando o círculo aparecer.';$('primary').textContent='Posicionar escrivaninha';$('primary').disabled=!hasHit||!modelReady;}
     for(const id of ['step','heading','description','primary']){
       const element=$(id),words=element.textContent;
@@ -390,7 +394,11 @@
       notify('Aponte para o chão e toque no círculo para posicionar a escrivaninha.');updateUI();
     }catch(_){notify('RA não autorizada ou indisponível. Continue em 3D.');if(xrSession)await xrSession.end();setFallback('RA não autorizada ou indisponível.');}
   });
-  setFallback('Investigue por movimento e arrasto.');
+  /* A RA é uma porta a mais, nunca a única: o 3D fica ligado também no aparelho
+     que tem RA. Antes (quando a RA era ensaio) o 3D só ligava se a RA falhasse —
+     quem não quisesse a câmera não conseguia pôr a escrivaninha no chão, e quem
+     ficava no escuro não conseguia girar a cena (volta 2, 18/09/2026). */
+  if(navigator.xr)navigator.xr.isSessionSupported('immersive-ar').then(supported=>{if(disposed)return;arSupported=supported;setFallback(supported?'A RA é opcional: com ela, a escrivaninha vai para a sua sala.':'RA não disponível neste navegador.');}).catch(()=>setFallback('Não foi possível verificar a RA.'));else setFallback('RA não disponível neste navegador.');
 
   ACDesk.load(model=>{
     if(disposed){disposeObject(model);return;}
