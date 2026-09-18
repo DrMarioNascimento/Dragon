@@ -33,15 +33,17 @@ test('entrada automatica reutiliza sala e papel; lista da atividade nao muda dep
   for(const e of entries){assert.ok(e.chave);assert.equal(e.tokens,undefined);}
  }finally{server.closeAllConnections();await new Promise(r=>server.close(r));}
 });
-test('trio exige tres conclusoes da sala e apoio participa da leitura da maquete',()=>{
+test('trio exige tres conclusoes da sala e apoio participa da procura na maquete',()=>{
  const r=createRoom();r.tokens.apoio='a'.repeat(36);r.percurso={runId:'r',ready:[],paused:[],fragmento:{membros:[{papel:'luz'},{papel:'conhecimento'},{papel:'apoio'}]}};
  apply(r,'luz',{type:'sala_concluida'});apply(r,'conhecimento',{type:'sala_concluida'});
  assert.equal(apply(r,'luz',{type:'posicionar'}),false);
  apply(r,'apoio',{type:'sala_concluida'});assert.equal(apply(r,'luz',{type:'posicionar'}),true);
  r.stage='registrado';apply(r,'conhecimento',{type:'iniciar_maquete'});
  for(const role of ['luz','conhecimento','apoio'])r.peers.set(role,{role});
- assert.equal(apply(r,'apoio',{type:'maquete_orientar'}),true);
- assert.equal(apply(r,'apoio',{type:'maquete_examinar',object:CAPITULOS[0].esconderijo}),false);
+ /* No trio, quem não tem a chave está do lado da fechadura: o apoio também a procura. */
+ assert.equal(apply(r,'apoio',{type:'maquete_examinar',object:CAPITULOS[0].fechadura}),true);
+ assert.equal(r.maquete.lock,true);
+ assert.equal(apply(r,'apoio',{type:'maquete_mover',tip:FECHADURAS[0]}),false,'o apoio não move a chave');
  apply(r,'luz',{type:'maquete_examinar',object:CAPITULOS[0].esconderijo});apply(r,'luz',{type:'maquete_mover',tip:FECHADURAS[0]});
  assert.equal(apply(r,'luz',{type:'maquete_encaixar'}),true);
  const saved=roomRecord(r);assert.equal(saved.tokens.apoio,r.tokens.apoio);assert.equal(saved.percurso.ready.length,3);

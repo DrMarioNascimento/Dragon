@@ -9,8 +9,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import {
-  startMaquette, actMaquette, maquetteView, ordemDosCandidatos,
-  papelDaFechadura, CAPITULOS, FECHADURAS, TOLERANCIA
+  startMaquette, actMaquette, maquetteView, maquetteViewSolo, papelDoToqueSolo, ordemDosCandidatos, ordemDosAlvos,
+  papelDaFechadura, CAPITULOS, FECHADURAS, TOLERANCIA, SEGUNDA_PISTA
 } from '../ferramentas/ac-maquete-state.mjs';
 import { createRoom, apply, snapshot } from '../ferramentas/ac-cooperacao.mjs';
 import { montarMundo } from './ajuda-maquete.mjs';
@@ -20,29 +20,99 @@ const ESCONDERIJOS = CAPITULOS.map((c) => c.esconderijo);
 
 /* ------------------------------------------------------------------ motor */
 
-test('um tem a chave, o outro tem a fechadura — e nenhum dos dois vê o lado do colega', () => {
+/* Leva uma camada até o fim pelo caminho que o jogo usa: cada lado acha o seu
+   objeto, a chave anda até a fechadura e encaixa. */
+function abrirCamada(sala, nivel, ponta = FECHADURAS[nivel], t = 1000) {
+  const c = CAPITULOS[nivel];
+  apply(sala, c.chaveiro, { type: 'maquete_examinar', object: c.esconderijo }, t);
+  apply(sala, papelDaFechadura(c), { type: 'maquete_examinar', object: c.fechadura }, t);
+  apply(sala, c.chaveiro, { type: 'maquete_mover', tip: ponta }, t + 1);
+  return apply(sala, c.chaveiro, { type: 'maquete_encaixar' }, t + 2);
+}
+function salaDaMaquete() {
+  const sala = createRoom();
+  sala.stage = 'registrado';
+  apply(sala, 'conhecimento', { type: 'iniciar_maquete' });
+  sala.peers.set('a', { role: 'luz' }); sala.peers.set('b', { role: 'conhecimento' });
+  return sala;
+}
+
+test('ato 1: a pista é a MESMA nos dois aparelhos e diz o recorte, não o objeto', () => {
   const s = startMaquette();
-  const capitulo = CAPITULOS[0];
-  const chaveiro = capitulo.chaveiro, dono = papelDaFechadura(capitulo);
+  for (const [i, capitulo] of CAPITULOS.entries()) {
+    s.level = i;
+    const daChave = maquetteView(s, capitulo.chaveiro), daFechadura = maquetteView(s, papelDaFechadura(capitulo));
+    assert.equal(daChave.pista, daFechadura.pista, capitulo.id + ': as duas pistas têm de ser idênticas');
+    assert.equal(daChave.pista, capitulo.recorte);
+    assert.doesNotMatch(daChave.pista, /chave|fechadura|maçaneta|pedra|armário|relógio|lareira|chaminé/i,
+      capitulo.id + ': a pista entregou o objeto em vez do recorte');
+    assert.equal(daChave.ato, 1);
+  }
+});
 
-  const daChave = maquetteView(s, chaveiro), daFechadura = maquetteView(s, dono);
-  assert.equal(daChave.papel, 'chave');
-  assert.equal(daFechadura.papel, 'fechadura');
-  assert.equal(daChave.clue, null, 'a anotação não pode chegar a quem tem a chave');
-  assert.equal(daChave.fechadura, null, 'a POSIÇÃO da fechadura não pode chegar a quem tem a chave');
-  assert.equal(daChave.fechaduraNome, null);
-  assert.ok(daFechadura.clue && daFechadura.clue.length > 20);
-  assert.equal(daFechadura.fechadura, capitulo.fechadura);
+test('ninguém é avisado do papel: a vista não traz texto de papel nem a outra metade', () => {
+  const s = startMaquette();
+  const c = CAPITULOS[0];
+  const daChave = maquetteView(s, c.chaveiro), daFechadura = maquetteView(s, papelDaFechadura(c));
+  /* O aparelho de quem tem a chave não conhece a fechadura em lugar nenhum:
+     nem na lista de pontos, nem no nome, nem acesa. */
+  assert.ok(!JSON.stringify(daChave).includes(c.fechadura), 'o identificador da fechadura vazou para quem tem a chave');
+  assert.ok(!daChave.alvos.includes(c.fechadura));
+  assert.ok(daFechadura.alvos.includes(c.fechadura), 'a fechadura é um dos pontos de quem a procura');
+  assert.equal(daFechadura.fechadura, null, 'antes de achada, a fechadura não acende');
+  /* Os mesmos pontos acesos — o esconderijo está entre eles — para que a
+     lista de quem procura a fechadura não aponte qual é o esconderijo. */
+  for (const id of c.candidatos) assert.ok(daFechadura.alvos.includes(id));
+  for (const v of [daChave, daFechadura]) {
+    assert.equal(v.clue, undefined, 'o manuscrito com a dica saiu: a pista agora é a mesma nos dois');
+    assert.equal(v.achado, null);
+  }
+});
 
-  /* O motor não confia no cliente: quem tem a chave não lê o manuscrito e quem
-     tem a fechadura não toca em móvel nenhum. */
-  assert.equal(actMaquette(s, chaveiro, { type: 'maquete_orientar' }), false);
-  assert.equal(actMaquette(s, chaveiro, { type: 'maquete_examinar', object: capitulo.esconderijo }), false,
-    'examinar antes da leitura não pode valer');
-  assert.equal(actMaquette(s, dono, { type: 'maquete_orientar' }), true);
-  assert.equal(actMaquette(s, dono, { type: 'maquete_examinar', object: capitulo.esconderijo }), false);
-  assert.equal(actMaquette(s, chaveiro, { type: 'maquete_examinar', object: capitulo.esconderijo }), true);
+test('cada um acha o SEU objeto: o esconderijo é vazio para quem procura a fechadura', () => {
+  const s = startMaquette();
+  const c = CAPITULOS[0], chaveiro = c.chaveiro, dono = papelDaFechadura(c);
+  /* O mesmo toque, no mesmo lugar, dá coisas diferentes em cada aparelho. */
+  assert.equal(actMaquette(s, dono, { type: 'maquete_examinar', object: c.esconderijo }, 1000), true);
+  assert.equal(s.key, false, 'quem procura a fechadura não pode achar a chave');
+  assert.equal(s.mistakes, 1);
+  assert.equal(actMaquette(s, chaveiro, { type: 'maquete_examinar', object: c.fechadura }, 1000), false,
+    'a fechadura não existe no aparelho de quem tem a chave');
+  assert.equal(actMaquette(s, chaveiro, { type: 'maquete_examinar', object: c.esconderijo }, 1000), true);
   assert.equal(s.key, true);
+  assert.equal(maquetteView(s, chaveiro).achado, c.achado.chave);
+  assert.equal(maquetteView(s, chaveiro).ato, 1, 'um lado só não abre o segundo ato');
+  assert.equal(actMaquette(s, dono, { type: 'maquete_examinar', object: c.fechadura }, 2000), true);
+  assert.equal(s.lock, true);
+  assert.equal(maquetteView(s, dono).fechadura, c.fechadura, 'achada, a fechadura acende para quem a achou');
+  assert.equal(maquetteView(s, chaveiro).fechadura, null, 'e continua não existindo para quem tem a chave');
+});
+
+test('ato 2: quando os dois acharam, chega a segunda pista — igual nos dois', () => {
+  const s = startMaquette();
+  const c = CAPITULOS[0];
+  actMaquette(s, c.chaveiro, { type: 'maquete_examinar', object: c.esconderijo }, 1000);
+  actMaquette(s, papelDaFechadura(c), { type: 'maquete_examinar', object: c.fechadura }, 1000);
+  const a = maquetteView(s, c.chaveiro), b = maquetteView(s, papelDaFechadura(c));
+  assert.equal(a.pista, SEGUNDA_PISTA);
+  assert.equal(b.pista, SEGUNDA_PISTA);
+  assert.equal(a.ato, 2);
+});
+
+test('nenhum dos dois termina sozinho — nem pelo caminho mais lento', () => {
+  const c = CAPITULOS[0];
+  /* Só a chave: não anda nem encaixa. */
+  const sala = salaDaMaquete();
+  apply(sala, c.chaveiro, { type: 'maquete_examinar', object: c.esconderijo }, 1000);
+  assert.equal(apply(sala, c.chaveiro, { type: 'maquete_mover', tip: FECHADURAS[0] }, 1001), false,
+    'a chave não pode andar antes de a outra metade existir');
+  assert.equal(apply(sala, c.chaveiro, { type: 'maquete_encaixar' }, 1002), false);
+  /* Quem achou a fechadura não move nada nem encaixa nada. */
+  apply(sala, papelDaFechadura(c), { type: 'maquete_examinar', object: c.fechadura }, 1003);
+  assert.equal(apply(sala, papelDaFechadura(c), { type: 'maquete_mover', tip: FECHADURAS[0] }, 1004), false);
+  assert.equal(apply(sala, papelDaFechadura(c), { type: 'maquete_encaixar' }, 1005), false);
+  /* E o evento antigo, de ler o manuscrito, não existe mais. */
+  assert.equal(apply(sala, papelDaFechadura(c), { type: 'maquete_orientar' }, 1006), false);
 });
 
 test('os lados se invertem a cada camada, e as três abrem em ordem', () => {
@@ -52,8 +122,8 @@ test('os lados se invertem a cada camada, e as três abrem em ordem', () => {
     const chaveiro = capitulo.chaveiro, dono = papelDaFechadura(capitulo);
     papeis.push(chaveiro);
     assert.equal(actMaquette(s, chaveiro, { type: 'maquete_encaixar' }), false, 'encaixar sem chave');
-    actMaquette(s, dono, { type: 'maquete_orientar' });
     actMaquette(s, chaveiro, { type: 'maquete_examinar', object: capitulo.esconderijo });
+    actMaquette(s, dono, { type: 'maquete_examinar', object: capitulo.fechadura });
     actMaquette(s, chaveiro, { type: 'maquete_encaixar' });
     assert.deepEqual(maquetteView(s, chaveiro).camadasAbertas, CAPITULOS.slice(0, i + 1).map((c) => c.camada));
     assert.equal(maquetteView(s, chaveiro).complete, i === CAPITULOS.length - 1);
@@ -66,54 +136,60 @@ test('os lados se invertem a cada camada, e as três abrem em ordem', () => {
   assert.equal(s.score, 24, 'a maquete concluída não paga de novo');
 });
 
-test('engano tira ponto sem travar a camada, e toque repetido não conta duas vezes', () => {
+test('engano tira ponto sem travar a camada; o toque repetido é de cada jogador', () => {
   const s = startMaquette();
-  const c = CAPITULOS[0];
-  actMaquette(s, papelDaFechadura(c), { type: 'maquete_orientar' });
+  const c = CAPITULOS[0], dono = papelDaFechadura(c);
   const errado = c.candidatos.find((id) => id !== c.esconderijo);
   assert.equal(actMaquette(s, c.chaveiro, { type: 'maquete_examinar', object: errado }, 1000), true);
   assert.equal(actMaquette(s, c.chaveiro, { type: 'maquete_examinar', object: errado }, 1100), false,
-    'dois toques em 700 ms são o mesmo toque');
+    'dois toques do MESMO jogador em 700 ms são o mesmo toque');
+  /* Os dois procuram ao mesmo tempo: o toque do colega no mesmo instante não
+     pode ser engolido pela trava do outro. */
+  assert.equal(actMaquette(s, dono, { type: 'maquete_examinar', object: errado }, 1100), true);
   for (let i = 2; i < 12; i++) actMaquette(s, c.chaveiro, { type: 'maquete_examinar', object: errado }, i * 1000);
   actMaquette(s, c.chaveiro, { type: 'maquete_examinar', object: c.esconderijo }, 13000);
+  actMaquette(s, dono, { type: 'maquete_examinar', object: c.fechadura }, 13000);
   actMaquette(s, c.chaveiro, { type: 'maquete_encaixar' }, 14000);
-  assert.equal(s.score, 2, 'o piso de 2 pontos vale mesmo depois de onze enganos');
+  assert.equal(s.score, 2, 'o piso de 2 pontos vale mesmo depois de doze enganos');
 });
 
 test('o encaixe é conferido contra a fechadura DAQUELE capítulo, não contra um ponto fixo', () => {
-  const sala = createRoom();
-  sala.stage = 'registrado';
-  apply(sala, 'conhecimento', { type: 'iniciar_maquete' });
-  sala.peers.set('a', { role: 'luz' }); sala.peers.set('b', { role: 'conhecimento' });
-
-  const abrir = (nivel, ponta) => {
-    const c = CAPITULOS[nivel];
-    apply(sala, papelDaFechadura(c), { type: 'maquete_orientar' });
-    apply(sala, c.chaveiro, { type: 'maquete_examinar', object: c.esconderijo });
-    apply(sala, c.chaveiro, { type: 'maquete_mover', tip: ponta });
-    return apply(sala, c.chaveiro, { type: 'maquete_encaixar' });
-  };
-
-  assert.equal(abrir(0, FECHADURAS[0]), true);
+  const sala = salaDaMaquete();
+  assert.equal(abrirCamada(sala, 0), true);
   /* A fechadura da primeira camada não abre a segunda. Antes de 17/09/2026 o
      motor comparava com UM ponto só, e a mesma posição servia para as três. */
-  assert.equal(abrir(1, FECHADURAS[0]), false, 'a fechadura da camada anterior não pode servir');
+  assert.equal(abrirCamada(sala, 1, FECHADURAS[0], 3000), false, 'a fechadura da camada anterior não pode servir');
   assert.equal(sala.maquete.level, 1);
-  assert.equal(abrir(1, FECHADURAS[1]), true);
+  assert.equal(abrirCamada(sala, 1, FECHADURAS[1], 5000), true);
   assert.equal(sala.maquete.level, 2);
 });
 
 test('a ponta da chave só chega ao aparelho de quem NÃO a está movendo', () => {
-  const sala = createRoom();
-  sala.stage = 'registrado';
-  apply(sala, 'conhecimento', { type: 'iniciar_maquete' });
-  sala.peers.set('a', { role: 'luz' }); sala.peers.set('b', { role: 'conhecimento' });
+  const sala = salaDaMaquete();
   const c = CAPITULOS[0];
-  apply(sala, papelDaFechadura(c), { type: 'maquete_orientar' }, 1000);
   apply(sala, c.chaveiro, { type: 'maquete_examinar', object: c.esconderijo }, 1000);
+  apply(sala, papelDaFechadura(c), { type: 'maquete_examinar', object: c.fechadura }, 1000);
   apply(sala, c.chaveiro, { type: 'maquete_mover', tip: FECHADURAS[0] }, 1001);
   assert.equal(snapshot(sala, 1002, c.chaveiro).keyMotion, null);
   assert.deepEqual(snapshot(sala, 1002, papelDaFechadura(c)).keyMotion.tip, FECHADURAS[0]);
+});
+
+test('Solo: a mesma pessoa ocupa as duas metades, sem mecânica substituta', () => {
+  const s = startMaquette();
+  const c = CAPITULOS[0];
+  const v = maquetteViewSolo(s);
+  assert.equal(v.papel, 'ambos');
+  assert.ok(v.alvos.includes(c.fechadura) && v.alvos.includes(c.esconderijo), 'o Solo vasculha os dois objetos');
+  /* O toque vale pelo lado que ainda procura aquele ponto. */
+  assert.equal(papelDoToqueSolo(s, c.esconderijo), c.chaveiro);
+  assert.equal(papelDoToqueSolo(s, c.fechadura), papelDaFechadura(c));
+  actMaquette(s, c.chaveiro, { type: 'maquete_examinar', object: c.esconderijo }, 1000);
+  assert.equal(papelDoToqueSolo(s, c.esconderijo), papelDaFechadura(c),
+    'achada a chave, os outros pontos viram vazios da procura pela fechadura');
+  actMaquette(s, papelDaFechadura(c), { type: 'maquete_examinar', object: c.fechadura }, 1000);
+  assert.equal(maquetteViewSolo(s).pista, SEGUNDA_PISTA);
+  assert.equal(maquetteViewSolo(s).fechadura, c.fechadura, 'no Solo a fechadura achada acende');
+  assert.equal(papelDoToqueSolo(s, c.fechadura), null);
 });
 
 test('a lista por nome é sorteada: o esconderijo não nasce sempre em cima', () => {
@@ -132,10 +208,18 @@ test('a lista por nome é sorteada: o esconderijo não nasce sempre em cima', ()
       if (pos === 0) primeiro++;
     }
     const taxa = primeiro / salas, esperado = 1 / capitulo.candidatos.length;
-    /* Mede-se a FREQUÊNCIA contra o acaso, nunca a ausência: proibir que caia
-       em primeiro seria um baralho viciado. */
+    /* Mede-se a FREQUÊNCIA contra o acaso, nunca a ausência. */
     assert.ok(Math.abs(taxa - esperado) < 0.05, capitulo.id + ' caiu em primeiro em ' + (taxa * 100).toFixed(1) + '%');
     assert.equal(posicoes.size, capitulo.candidatos.length, capitulo.id + ': alguma posição nunca sai');
+    /* A lista de quem procura a fechadura também é sorteada: a fechadura
+       sempre por último entregaria qual é. */
+    let ultima = 0;
+    for (let i = 0; i < salas; i++) {
+      const lista = maquetteView({ ...startMaquette(), level: CAPITULOS.indexOf(capitulo) }, papelDaFechadura(capitulo)).alvos;
+      const ordem = ordemDosAlvos(lista, capitulo.id, 'SALA-' + i);
+      if (ordem[ordem.length - 1] === capitulo.fechadura) ultima++;
+    }
+    assert.ok(Math.abs(ultima / salas - 1 / 5) < 0.05, capitulo.id + ': a fechadura cai por último em ' + (ultima / salas * 100).toFixed(1) + '%');
   }
   const a = ordemDosCandidatos(CAPITULOS[0], 'MESMA'), b = ordemDosCandidatos(CAPITULOS[0], 'MESMA');
   assert.deepEqual(a, b, 'a mesma sala tem de ver a mesma ordem ao reabrir a lista');
@@ -322,8 +406,8 @@ test('o Solo lê o mesmo motor da Mesa, sem cópia dos capítulos', () => {
   assert.match(coop, /M\.actMaquette/);
   assert.match(coop, /M\.FECHADURAS/);
   for (const capitulo of CAPITULOS) {
-    assert.ok(!coop.includes(capitulo.dica),
-      'a dica de "' + capitulo.id + '" está copiada dentro de ac-cooperacao.js: duas verdades, uma delas fica velha');
+    assert.ok(!coop.includes(capitulo.recorte),
+      'a pista de "' + capitulo.id + '" está copiada dentro de ac-cooperacao.js: duas verdades, uma delas fica velha');
     assert.ok(!coop.includes("'" + capitulo.esconderijo + "'"),
       'o esconderijo de "' + capitulo.id + '" está copiado dentro de ac-cooperacao.js');
   }
@@ -331,9 +415,15 @@ test('o Solo lê o mesmo motor da Mesa, sem cópia dos capítulos', () => {
 
 test('a maquete publicada guarda os dois olhares na tela', () => {
   const js = ler('v1/js/ac-maquete.js');
-  assert.match(js, /dados\.papel === 'fechadura'/, 'o manuscrito é do lado da fechadura');
-  assert.match(js, /dados\.chaveiro === papelAtual\(\)/, 'só quem tem a chave explora');
   assert.match(js, /idFechadura && anc\.id === idFechadura/, 'a fechadura acende pelo que o motor mandou, não por nível');
+  assert.match(js, /function podeMoverChave\(\)[^}]*temLadoDaChave\(\) && ambosAcharam\(\)/, 'só quem tem a chave move, e só com as duas metades achadas');
+  /* A recusa tem de ser VISTA, em dois tempos: chacoalha, e só insistindo aparece a frase. */
+  assert.match(js, /function recusar\(\)[\s\S]{0,400}tentativasNaFixa >= 2/, 'a frase da recusa só na segunda tentativa');
+  assert.match(js, /Essa não sai da sua mão — a outra metade está com seu colega\./);
+  /* Nenhum texto de tela anuncia o papel. */
+  for (const frase of ['Você tem a chave', 'Você tem a fechadura', 'Só você pode', 'Segure o manuscrito']) {
+    assert.ok(!js.includes(frase), 'a tela voltou a avisar o papel: "' + frase + '"');
+  }
   assert.match(js, /posta\(\)/, 'a atividade depende da maquete estar posta no ambiente');
   const ra = ler('v1/js/ac-maquete-ra.js');
   for (const modo of ['webxr', 'camera', 'mesa']) assert.ok(ra.includes("'" + modo + "'"), 'falta o modo ' + modo);

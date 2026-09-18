@@ -30,8 +30,11 @@ describe("Solo · Sala às Escuras jogável", () => {
     assert.match(CSS, /body #intro:has\(#intro-corpo\)\{[^}]*overflow:hidden/);
   });
 
-  it("a intro se dispensa por ×, fundo ou Esc via o mesmo Entrar na sala", () => {
-    assert.match(SALA, /<button type="button" class="close" data-close/);
+  it("a intro se dispensa por fundo ou Esc via o mesmo Entrar na sala — sem ×", () => {
+    /* A sala é uma das quatro telas d'A Casa: nenhuma janela tem × próprio
+       (17/09/2026). O CTA fica fora da rolagem, e fundo e Esc disparam ele. */
+    assert.doesNotMatch(SALA, /class="close"/);
+    assert.match(SALA, /<html[^>]*data-ac-casa/);
     assert.match(JS, /function dispararEntradaDaIntro\(/);
     assert.match(JS, /function portaDaIntro\(/);
     assert.match(JS, /ev\.key==='Escape'&&dispararEntradaDaIntro/);
@@ -54,7 +57,7 @@ describe("Solo · Sala às Escuras jogável", () => {
     assert.match(SOLO, /1 \/ 4 · Chegada pela estrada/);
     assert.match(SOLO, /2 \/ 4 · /);
     assert.match(SOLO, /MOSAICO-26-a-janela-do-norte\.html\?embed=1/);
-    assert.match(SOLO, /MOSAICO-26-a-sala-as-escuras\.html\?embed=1&v=20260916-sala-cta/);
+    assert.match(SOLO, /MOSAICO-26-a-sala-as-escuras\.html\?embed=1&v=20260917-janelas/);
     assert.ok(
       SOLO.indexOf("MOSAICO-26-a-janela-do-norte.html") <
         SOLO.indexOf("MOSAICO-26-a-sala-as-escuras.html"),

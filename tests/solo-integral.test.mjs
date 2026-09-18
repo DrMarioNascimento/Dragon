@@ -52,23 +52,24 @@ test('percurso solo mantém 3D, RA, escrivaninha e maquete com três chaves',()=
   assert.match(js,/xr-spatial-tracking/);
   for(const acao of ['posicionar','encaixar','descobrir','registrar','iniciar_maquete','maquete_mover','maquete_encaixar'])
     assert.ok(coop.includes(acao),acao);
-  /* Os demais atos da maquete (`maquete_orientar`, `maquete_examinar`) não
-     aparecem mais por nome no Solo: ele encaminha o que não conhece ao MESMO
-     motor da Mesa, e é isso que precisa ser guardado. */
-  assert.match(coop,/type\.indexOf\('maquete_'\)\s*===\s*0/);
+  /* O Solo não tem motor próprio: o toque vai ao MESMO motor da Mesa, pelo
+     lado que ainda procura aquele ponto. */
+  assert.match(coop,/M\.papelDoToqueSolo\(/);
   assert.match(coop,/M\.actMaquette/);
+  assert.match(coop,/M\.maquetteViewSolo\(/);
+  /* A vela apaga e reacende no Solo como na Mesa. */
+  assert.match(coop,/type==='reacender'/);
   assert.match(desk,/MODO SOLO · PERCURSO COMPLETO/);
   assert.match(desk,/Procurar bilhete sob as gavetas/);
   assert.match(desk,/Ler e guardar bilhete/);
   assert.match(desk,/iniciar_maquete/);
   assert.match(desk,/location\.replace\('AC-maquete\.html'/);
   assert.match(maquete,/ac-solo-maquete-completa/);
-  for(const cta of ['Ler a anotação','Examinar por nome'])
-    assert.ok(maquete.includes(cta),cta);
-  /* Com a chave na mão o Solo ARRASTA, como na Mesa: o botão some. O atalho
-     que encaixava sozinho tirava da bancada o gesto que ela existe para
-     testar. Ver a volta 1 do Solo, 17/09/2026. */
-  assert.match(maquete,/acao\.hidden = !solo \|\| !pronto \|\| !temDados \|\| !!dados\.key/);
+  /* O Solo ARRASTA, como na Mesa, e tenta arrastar a fixa, como na Mesa: as
+     duas pegas. Não existe botão que encaixe sozinho. */
+  assert.ok(!maquete.includes('solo-action'),'o botão de atalho do Solo voltou');
+  assert.match(maquete,/\$\('key-grip'\)\.hidden = !podeMoverChave\(\)/);
+  assert.match(maquete,/\$\('lock-grip'\)\.hidden = !\(podeExplorar\(\) && temLadoDaFechadura\(\) && ambosAcharam\(\)\)/);
   /* As três evidências continuam sendo as mesmas do recibo; quem as define é
      o motor, e o Solo não pode ter uma segunda lista. */
   const motor=readFileSync(new URL('../v1/js/ac-maquete-state.mjs',import.meta.url),'utf8');

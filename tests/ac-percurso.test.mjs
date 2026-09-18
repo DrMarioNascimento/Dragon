@@ -80,8 +80,8 @@ test('percurso exige duas salas concluidas, respeita pausa e preserva registro e
  apply(restored,'conhecimento',{type:'iniciar_maquete'});
  for(const [i,object]of CAPITULOS.map((c)=>c.esconderijo).entries()){
    const explorer=i===1?'conhecimento':'luz',guide=explorer==='luz'?'conhecimento':'luz';
-   apply(restored,guide,{type:'maquete_orientar'});
    apply(restored,explorer,{type:'maquete_examinar',object});
+   apply(restored,guide,{type:'maquete_examinar',object:CAPITULOS[i].fechadura});
    apply(restored,explorer,{type:'maquete_mover',tip:FECHADURAS[i]});
    assert.equal(apply(restored,explorer,{type:'maquete_encaixar'}),true);
  }

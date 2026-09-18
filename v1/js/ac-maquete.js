@@ -1,22 +1,30 @@
 /* A maquete da Casa da Costa — a atividade.
 
    A cena não decide nada: ela mostra o que o motor (`ac-maquete-state.mjs`)
-   deixou aquele papel ver e manda de volta os atos que o motor aceita. Duas
-   consequências práticas, e as duas são de propósito:
+   deixou aquele papel ver e manda de volta os atos que o motor aceita.
 
-   · quem tem a CHAVE não recebe a fechadura pelo snapshot e não a vê em lugar
-     nenhum da tela: nem aceso, nem no DOM, nem no texto;
-   · quem tem a FECHADURA não consegue tocar em móvel nenhum: o raycast só
-     roda para o lado da chave.
+   A lei d'A Casa: cada jogador tem METADE do aparelho, e ninguém é avisado do
+   seu papel — ele se revela pelo efeito no outro. Em cada camada:
+
+   · Ato 1 — a mesma pista nos dois aparelhos, dizendo o recorte. Cada um
+     vasculha a SUA maquete: num aparelho há a chave escondida, no outro há a
+     fechadura. A chave não existe no aparelho de quem tem a fechadura, e a
+     fechadura não existe no de quem tem a chave.
+   · Ato 2 — os dois acharam; chega a segunda pista, também igual. Um arrasta e
+     a peça vem; o outro arrasta e a peça resiste, chacoalha e volta. Na
+     segunda tentativa aparece a frase que diz de quem é a outra metade.
+   · Ato 3 — quem tem a fixa descreve onde ela está; quem tem a móvel leva,
+     guiado pela voz. Quem guia vê a ponta da chave do colega como um ponto de
+     luz.
+
+   No Solo a mesma pessoa faz as duas funções — as duas pegas, as duas
+   procuras, o mesmo arrasto. Nada de mecânica substituta.
 
    O que NÃO é segredo, e é honesto dizer: `ac-maquete-state.mjs` é o mesmo
-   arquivo nos dois aparelhos — é ele que deixa o jogo rodar sem servidor —,
-   então as coordenadas e as dicas estão no código de ambos. O plano do
-   arrasto, inclusive, passa pela fechadura de propósito: é o que resolve a
+   arquivo nos dois aparelhos, então as coordenadas estão no código de ambos.
+   O plano do arrasto passa pela fechadura de propósito: é o que resolve a
    PROFUNDIDADE para quem não pode vê-la e deixa a orientação do colega valer
-   em duas dimensões, que é o que dá para dizer em voz alta. A separação aqui é
-   de JOGO, não de sigilo: vale contra o olhar, não contra quem abre o
-   inspetor.
+   em duas dimensões. A separação aqui é de JOGO, não de sigilo.
 
    A atividade só existe depois que a maquete está POSTA no ambiente. Antes
    disso a página é uma caixa fechada com um botão. */
@@ -36,22 +44,27 @@
 
   var motor = null, mundo = null, ra = null, poeira = null;
   var cena, camera, renderer, controles, chao;
-  var coop = null, dados = null, online = false, movimento = null, movimentoEm = 0;
-  var pendente = false, descartado = false, leituraInicio = null, leituraEnviada = false;
-  var arrastando = false, terminando = false, vooDaChave = null, ultimoExaminado = null;
-  var nivelAnterior = -1, enquadramentoAtual = '', concluidoEnviado = false, avisoTimer = null;
+  var coop = null, dados = null, online = false, movimento = null, movimentoEm = 0, ultimoTip = '';
+  var pendente = false, descartado = false;
+  var arrastando = false, terminando = false, vooDaChave = null, ultimoExaminado = null, examinadoEm = 0;
+  var enquadramentoAtual = '', concluidoEnviado = false;
   var giroAtivo = null, toques = new Map(), pinca = 0, tocouEm = null;
   var planoDeArrasto = new THREE.Plane(), raio = new THREE.Raycaster(), ponto = new THREE.Vector3();
   var ultimoEnvio = 0, envioOcupado = false, envioPendente = null;
   var alturaAberta = 0.62, progressoDasCamadas = {}, fantasmaTerreno = 1;
   var farol = null, tempoAnterior = 0, desligar = [], modoEscolhido = false, recebeuEstado = false;
+  var tentativasNaFixa = 0, tremor = 0;
+
+  var AZUL = 0x9fe7d6, OURO = 0xffd489;
 
   function on(el, tipo, fn, opcoes) { if (!el) return; el.addEventListener(tipo, fn, opcoes); desligar.push(function () { el.removeEventListener(tipo, fn, opcoes); }); }
   function entrarAtividade() { if (window.ACJanelas) window.ACJanelas.entrarAtividade(); }
-  function avisar(texto) {
+  function avisar(texto, nivel) {
+    if (window.ACJanelas && window.ACJanelas.aviso) { window.ACJanelas.aviso(texto, nivel || 3); return; }
     $('notice').textContent = texto; $('notice').style.display = 'block';
-    clearTimeout(avisoTimer); avisoTimer = setTimeout(function () { $('notice').style.display = 'none'; }, 3600);
+    setTimeout(function () { $('notice').style.display = 'none'; }, 4000);
   }
+  function vida() { if (window.ACJanelas && window.ACJanelas.vida) window.ACJanelas.vida(); }
 
   /* ---------- cena ---------- */
 
@@ -102,6 +115,7 @@
     renderer.setSize(l, a, false);
     camera.aspect = l / a;
     camera.updateProjectionMatrix();
+    aplicarMoldura();
   }
 
   /* Coordenadas normalizadas a partir do retângulo REAL do canvas. */
@@ -112,9 +126,42 @@
   function larguraDaTela() { return renderer.domElement.getBoundingClientRect().width; }
   function alturaDaTela() { return renderer.domElement.getBoundingClientRect().height; }
 
+  /* ---------- a área livre ----------
+     A cena é desenhada no vão que as janelas deixam: entre a barra do topo (ou
+     o diálogo do portal) e a faixa baixa (ou o rodapé). Sem isto o que o
+     jogador precisa tocar nasce atrás do painel, e nada na tela diz que falta
+     girar. Mexe só no enquadramento da imagem — a câmera não se move, então
+     recolher e abrir os painéis não desfaz o giro que o jogador escolheu. */
+  function areaLivre() {
+    var a = alturaDaTela(), topo = 0, base = a;
+    var barra = document.querySelector('.topbar');
+    if (barra && getComputedStyle(barra).visibility !== 'hidden') topo = Math.max(topo, barra.getBoundingClientRect().bottom);
+    var portal = $('portal');
+    if (portal && portal.open) topo = Math.max(topo, portal.getBoundingClientRect().bottom);
+    var pilha = document.querySelector('.ac-panel-stack');
+    var paisagem = false;
+    try { paisagem = matchMedia('(max-height:560px)').matches; } catch (e) {}
+    if (pilha && !paisagem && !document.body.classList.contains('ac-recolhido') && pilha.getBoundingClientRect().height > 0) base = Math.min(base, pilha.getBoundingClientRect().top);
+    var tools = document.querySelector('.tools');
+    if (tools && tools.getBoundingClientRect().height > 0) base = Math.min(base, tools.getBoundingClientRect().top);
+    if (base - topo < a * 0.3) { topo = 0; base = a; }
+    return { topo: topo, base: base, altura: a };
+  }
+  function aplicarMoldura() {
+    if (!camera || !renderer || renderer.xr.isPresenting) return;
+    /* Em RA de câmera a imagem é a do mundo: deslocar o quadro soltaria a
+       casa do lugar onde ela foi pousada. */
+    if (ra && ra.estado().modo !== 'mesa') { camera.clearViewOffset(); return; }
+    var l = larguraDaTela(), livre = areaLivre();
+    var centro = (livre.topo + livre.base) / 2;
+    var desvio = Math.round(livre.altura / 2 - centro);
+    if (Math.abs(desvio) < 2) camera.clearViewOffset();
+    else camera.setViewOffset(l, livre.altura, 0, desvio, l, livre.altura);
+  }
+
   /* ---------- enquadramento da bancada ---------- */
 
-  /* Enquadra o que o CAPÍTULO usa: a casa, mais os alvos e a fechadura da vez.
+  /* Enquadra o que o CAPÍTULO usa: a casa, mais os pontos da vez.
      Duas medições, uma depois da outra:
      · com a maquete inteira (penhasco e rochedos soltos) a câmera ia longe
        demais e a chave virava meia dúzia de pixels;
@@ -123,17 +170,17 @@
   function enquadrar() {
     if (!mundo || !controles) return;
     var casa = new THREE.Box3(), i;
+    /* As camadas já abertas ficam de fora: erguidas e invisíveis, elas
+       esticavam a caixa 0,62 para cima e a câmera recuava até a casa virar
+       um selo (volta 1, andar dos quartos). */
+    var abertasAgora = camadasAbertas();
     for (i = 0; i < mundo.ordemDasCamadas.length; i++) {
       var nome = mundo.ordemDasCamadas[i];
-      if (nome !== 'terreno') casa.expandByObject(mundo.camadas[nome]);
+      if (nome !== 'terreno' && abertasAgora.indexOf(nome) < 0) casa.expandByObject(mundo.camadas[nome]);
     }
     if (casa.isEmpty()) casa.setFromObject(mundo.raiz);
     var centro = casa.getCenter(new THREE.Vector3());
 
-    /* A moldura precisa caber a casa E o que este capítulo pede — que pode
-       estar no portão, na outra ponta do terreno. O ALVO da órbita continua
-       sendo a casa: centrar na caixa aumentada empurrava a casa para fora
-       da tela por baixo. */
     var tudo = casa.clone();
     var ativos = alvosAtivos(), pontos = [];
     for (i = 0; i < ativos.length; i++) pontos.push(ativos[i].grupo.localToWorld(ativos[i].centro.clone()));
@@ -143,29 +190,24 @@
     if (pontoFechadura) tudo.expandByPoint(pontoFechadura);
 
     /* No fim a câmera vai para a passagem: é a única coisa que a atividade
-       inteira serviu para achar. O foco é decidido ANTES da distância, senão a
-       moldura é medida em torno de um centro que ainda vai mudar. */
+       inteira serviu para achar. */
     var foco = null;
     if (dados && dados.complete && mundo.revelacao && mundo.revelacao.pecas.length) {
-      /* A casa já saiu inteira; o que resta ver é o porão e o túnel. Manter a
-         moldura da casa aqui deixava a descoberta do tamanho de uma unha. */
       tudo = new THREE.Box3().expandByObject(mundo.camadas['porao']);
       var alvoFinal = mundo.revelacao.grupo.localToWorld(mundo.revelacao.centro.clone());
       tudo.expandByPoint(alvoFinal);
       centro.copy(tudo.getCenter(new THREE.Vector3())).lerp(alvoFinal, 0.35);
       foco = alvoFinal.clone();
-    } else if (dados && dados.papel === 'fechadura' && pontoFechadura) foco = pontoFechadura.clone();
+    } else if (pontoFechadura && dados.papel !== 'chave') foco = pontoFechadura.clone();
     else if (pontos.length) {
-      /* Quem tem a chave olha para os móveis do capítulo. */
       foco = new THREE.Vector3();
       for (i = 0; i < pontos.length; i++) foco.add(pontos[i]);
       foco.multiplyScalar(1 / pontos.length);
     }
 
     /* Puxar o centro da órbita para o que interessa. Medido em duas abas
-       (17/09/2026): com o alvo no meio da casa, a maçaneta — que é a fechadura
-       do primeiro capítulo — projetava em y=579 de 600, encostada na barra de
-       ferramentas. Estava na tela e ninguém a veria. */
+       (17/09/2026): com o alvo no meio da casa, a maçaneta projetava em y=579
+       de 600, encostada na barra de ferramentas. */
     if (foco && !(dados && dados.complete)) centro.lerp(foco, 0.32);
 
     var alcance = 0;
@@ -175,34 +217,90 @@
     for (i = 0; i < cantos.length; i++) alcance = Math.max(alcance, cantos[i].distanceTo(centro));
     var distancia = alcance / Math.sin(camera.fov * Math.PI / 360);
 
-    /* E a câmera nasce do lado do que ESTE jogador tem para fazer: as duas
-       coisas ficam em faces opostas da casa mais de uma vez. */
+    /* Procurando, o quadro fecha no RECORTE da pista: os pontos da vez e só
+       eles. Medido na volta 1 (17/09/2026): com a casa inteira no quadro, os
+       quatro pontos do andar dos quartos ficavam a 17 px uns dos outros a
+       390×844 — menos que a largura de um polegar, e engano custa ponto. */
+    if (procurando() && pontos.length > 1) {
+      tudo = new THREE.Box3();
+      for (i = 0; i < pontos.length; i++) tudo.expandByPoint(pontos[i]);
+      tudo.expandByScalar(0.09);
+      centro.copy(tudo.getCenter(new THREE.Vector3()));
+      alcance = 0;
+      cantos = [tudo.min, tudo.max,
+        new THREE.Vector3(tudo.min.x, tudo.min.y, tudo.max.z), new THREE.Vector3(tudo.max.x, tudo.min.y, tudo.min.z),
+        new THREE.Vector3(tudo.min.x, tudo.max.y, tudo.max.z), new THREE.Vector3(tudo.max.x, tudo.max.y, tudo.min.z)];
+      for (i = 0; i < cantos.length; i++) alcance = Math.max(alcance, cantos[i].distanceTo(centro));
+      distancia = alcance / Math.sin(camera.fov * Math.PI / 360);
+    }
+
+    /* E a câmera nasce do lado do que ESTE jogador tem para fazer. */
     var lado = new THREE.Vector3(0.85, 0, 1.15);
     if (foco) {
       foco.sub(centro); foco.y = 0;
       if (foco.lengthSq() > 1e-6) lado.copy(foco).normalize();
     }
     lado.normalize();
-    /* No fim a câmera baixa: a passagem é horizontal e some vista de cima. */
     lado.y = dados && dados.complete ? 0.34 : 0.86;
-    /* Na VITRINE (antes de pousar) o cartão do portal come a metade de baixo
-       da tela no telefone. A casa é empurrada para cima com um deslocamento de
-       quadro e a câmera recua: sem isso, no iPhone, o que aparecia acima do
-       cartão era um pedaço de telhado. */
-    var vitrine = !posta();
-    var l = larguraDaTela(), a = alturaDaTela();
-    if (vitrine) {
-      /* O deslocamento sai da ALTURA DO CARTÃO, não de um ponto de quebra por
-         largura: dentro da moldura do percurso a tela é larga e baixa, e o
-         cartão come metade dela. Medido a 800×540 em 17/09/2026. */
-      var cartao = $('portal').querySelector('.portal-cartao');
-      var altoDoCartao = cartao ? cartao.getBoundingClientRect().height : a * 0.4;
-      camera.setViewOffset(l, a, 0, Math.min(a * 0.30, altoDoCartao * 0.55), l, a);
-    }
-    else camera.clearViewOffset();
+    /* ...e do lado de onde os pontos se VEEM. Medido na volta 1: do lado
+       "natural", os dois armários do andar dos quartos ficavam atrás da
+       fachada — o raio batia na pedra —, e o esconderijo era um deles. Testa
+       oito lados em volta e fica com o que mostra mais pontos da vez. */
+    var queVer = ativos.slice();
+    if (fech && !procurando()) queVer = [fech];
+    if (queVer.length && !(dados && dados.complete)) lado = ladoQueMostra(centro, distancia * 1.02, lado, queVer);
+    /* A imagem é desenhada no vão livre: quanto menor o vão, mais longe a
+       câmera, senão a casa transborda por cima do painel. */
+    var livre = areaLivre();
+    /* Teto 2,6: com o portal aberto a 390×844 o vão é de 368 px em 844, e a
+       1,8 a casa saía cortada embaixo (volta 1). */
+    var aperto = Math.min(2.6, Math.max(1, livre.altura / Math.max(1, livre.base - livre.topo)));
     controles.target.copy(centro);
-    camera.position.copy(centro).add(lado.normalize().multiplyScalar(distancia * (vitrine ? 1.34 : 1.02)));
+    camera.position.copy(centro).add(lado.normalize().multiplyScalar(distancia * 1.02 * aperto));
+    aplicarMoldura();
     controles.update();
+  }
+
+  /* Quantos dos conjuntos se veem de uma posição de câmera. Camadas que já
+     foram abertas não contam como obstáculo: no instante do enquadramento
+     elas ainda estão subindo, mas vão sumir. */
+  function camadaDoObjeto(o) {
+    for (var n = o; n; n = n.parent) {
+      for (var nome in mundo.camadas) if (mundo.camadas[nome] === n) return nome;
+    }
+    return null;
+  }
+  function quantosSeVeem(posicao, conjuntos) {
+    var abertas = camadasAbertas(), vistos = 0, alvo = new THREE.Vector3(), dir = new THREE.Vector3();
+    for (var i = 0; i < conjuntos.length; i++) {
+      var c = conjuntos[i];
+      c.grupo.localToWorld(alvo.copy(c.centro));
+      dir.copy(alvo).sub(posicao);
+      var longe = dir.length(); dir.normalize();
+      raio.set(posicao, dir); raio.far = longe + 0.01;
+      var hits = raio.intersectObject(mundo.raiz, true);
+      raio.far = Infinity;
+      for (var k = 0; k < hits.length; k++) {
+        var h = hits[k];
+        if (!h.object.visible || (h.object.geometry && h.object.geometry.type === 'RingGeometry')) continue;
+        if (abertas.indexOf(camadaDoObjeto(h.object)) >= 0) continue;
+        if (donoDoToque(h.object) === c.grupo || h.distance >= longe - 0.02) vistos++;
+        break;
+      }
+      if (k === hits.length) vistos++;
+    }
+    return vistos;
+  }
+  function ladoQueMostra(centro, distancia, base, conjuntos) {
+    var melhor = null, melhorN = -1, eixo = new THREE.Vector3(0, 1, 0);
+    mundo.raiz.updateMatrixWorld(true);
+    for (var k = 0; k < 8; k++) {
+      var d = base.clone().normalize().applyAxisAngle(eixo, k * Math.PI / 4);
+      var n = quantosSeVeem(centro.clone().add(d.clone().multiplyScalar(distancia)), conjuntos);
+      if (n > melhorN) { melhorN = n; melhor = d; }
+      if (n === conjuntos.length) break;
+    }
+    return melhor || base;
   }
 
   /* ---------- camadas ---------- */
@@ -213,7 +311,7 @@
     var abertas = camadasAbertas();
     /* O terreno nunca se levanta — ele vira FANTASMA no fim. A passagem sai da
        fundação e corre por baixo do chão: com o terreno sólido ela não é vista
-       de ângulo nenhum, e a descoberta da atividade inteira ficaria invisível. */
+       de ângulo nenhum. */
     var fantasma = !!(dados && dados.complete);
     var alvoTerreno = fantasma ? 0.20 : 1;
     fantasmaTerreno += (alvoTerreno - fantasmaTerreno) * (reduzido ? 1 : 1 - Math.exp(-dt * 2.2));
@@ -229,9 +327,7 @@
       progressoDasCamadas[nome] = atual;
       grupo.position.y = alturaAberta * atual;
       grupo.visible = atual < 0.99;
-      /* A camada sobe OPACA e só se apaga no fim do percurso. Medido na tela:
-         desvanecendo desde o começo, a maquete inteira vira um raio-X e não se
-         entende mais o que saiu do quê. */
+      /* A camada sobe OPACA e só se apaga no fim do percurso. */
       var opacidade = atual <= 0.55 ? 1 : 1 - (atual - 0.55) / 0.45;
       if (opacidade < 1) aplicarTransparencia(grupo, opacidade);
       else if (grupo.userData.opaco !== true) aplicarTransparencia(grupo, 1);
@@ -249,18 +345,32 @@
     });
   }
 
-  /* ---------- realces ---------- */
+  /* ---------- papéis e pontos ---------- */
 
+  function papelDaVista() { return dados ? dados.papel : null; }
+  function temLadoDaChave() { var p = papelDaVista(); return p === 'chave' || p === 'ambos'; }
+  function temLadoDaFechadura() { var p = papelDaVista(); return p === 'fechadura' || p === 'ambos'; }
+  function ambosAcharam() { return !!(dados && dados.key && dados.lock); }
+  /* Ainda procurando? Cada lado procura até achar o SEU objeto. */
+  function procurando() {
+    if (!dados || dados.complete) return false;
+    if (papelDaVista() === 'chave') return !dados.key;
+    if (papelDaVista() === 'fechadura') return !dados.lock;
+    return !ambosAcharam();
+  }
+
+  /* Um ponto da vez é um alvo do modelo OU uma fechadura: no aparelho de quem
+     a procura, a fechadura é só mais um lugar aceso entre os outros. */
+  function conjuntoDe(id) { return mundo && (mundo.alvos[id] || mundo.fechaduras[id]) || null; }
   function alvosAtivos() {
     if (!dados || dados.complete || !mundo) return [];
-    var lista = [], ids = dados.candidatos || [];
+    var lista = [], ids = dados.alvos || [];
     for (var i = 0; i < ids.length; i++) {
-      if (mundo.alvos[ids[i]]) lista.push(mundo.alvos[ids[i]]);
+      var c = conjuntoDe(ids[i]);
+      if (c) lista.push(c);
       /* Motor e modelo discordando sobre o nome de um alvo é a falha mais muda
          que esta atividade tem: a cena fica inteira, o toque não responde e
-         nada aparece na tela. Custou uma hora de conferência em 17/09/2026,
-         com um servidor de ensaio que ainda rodava a versão anterior dos
-         capítulos. Se acontecer de novo, que apareça no console. */
+         nada aparece na tela. Custou uma hora em 17/09/2026. */
       else if (!avisados[ids[i]]) { avisados[ids[i]] = true; console.error('[maquete] o capítulo pede o alvo "' + ids[i] + '", que não existe neste modelo'); }
     }
     return lista;
@@ -268,22 +378,32 @@
   var avisados = {};
 
   function podeExplorar() {
-    return !!(online && dados && !dados.complete && dados.chaveiro === papelAtual() && dados.ready && posta());
+    return !!(online && dados && !dados.complete && posta());
   }
-  function papelAtual() { return papel; }
   function posta() { return !!(ra && ra.estado().posta); }
+  function podeMoverChave() { return podeExplorar() && temLadoDaChave() && ambosAcharam(); }
 
   /* Medido na tela: com 0,35 de teto o anel some sobre a pedra e sobre o
      lajeado claros. O que marca o objeto tocável tem de ser visto de longe. */
   function pulso(t) { return 0.62 + 0.30 * Math.sin(t * 3.2); }
 
+  function pintarMarca(conj, cor) {
+    if (conj.halo && conj.halo.material.color.getHex() !== cor) conj.halo.material.color.setHex(cor);
+    if (conj.pino && conj.pino.userData.marca && conj.pino.userData.marca.color && conj.pino.userData.marca.color.getHex() !== cor) conj.pino.userData.marca.color.setHex(cor);
+  }
+
   function atualizarRealces(tempo) {
     if (!mundo) return;
-    var ativos = alvosAtivos();
-    var mostrarAlvos = podeExplorar() && dados && !dados.key;
-    for (var id in mundo.alvos) {
-      var a = mundo.alvos[id];
-      var ligado = mostrarAlvos && ativos.indexOf(a) >= 0;
+    var ativos = procurando() && podeExplorar() ? alvosAtivos() : [];
+    var todos = [];
+    for (var id in mundo.alvos) todos.push(mundo.alvos[id]);
+    for (var fid in mundo.fechaduras) todos.push(mundo.fechaduras[fid]);
+    for (var i = 0; i < todos.length; i++) {
+      var a = todos[i];
+      var ligado = ativos.indexOf(a) >= 0;
+      /* Procurando, TODO ponto aceso tem a mesma cor: a fechadura acesa em
+         ouro no meio dos outros entregaria qual é qual. */
+      if (ligado) pintarMarca(a, AZUL);
       a.halo.material.opacity = ligado ? pulso(tempo) * 0.6 : 0;
       a.halo.visible = ligado;
       a.pino.userData.marca.opacity = ligado ? pulso(tempo) : 0;
@@ -296,12 +416,10 @@
       mundo.revelacao.pino.visible = revelada;
       mundo.revelacao.halo.material.opacity = revelada ? 0.4 : 0;
       mundo.revelacao.halo.visible = revelada;
-      /* A passagem corre por baixo do terreno fantasma: sem acender a pedra
-         dela, o olho não separa o túnel do chão translúcido em volta. */
       if (mundo.revelacao.acender) mundo.revelacao.acender(revelada ? 0x7a4a16 : 0x000000, revelada ? 0.55 + 0.3 * Math.sin(tempo * 2.0) : 0);
     }
-    /* A fechadura só acende para quem NÃO tem a chave. O aparelho de quem tem
-       a chave nem recebe o identificador dela. */
+    /* A fechadura ACHADA acende em ouro — só no aparelho de quem a achou. O
+       de quem tem a chave nem recebe o identificador dela. */
     var idFechadura = dados && dados.fechadura;
     for (var k = 0; k < mundo.ancoras.length; k++) {
       var anc = mundo.ancoras[k];
@@ -311,10 +429,17 @@
       anc.halo.visible = acesa;
       anc.pino.userData.marca.opacity = acesa ? brilho : 0;
       anc.pino.visible = acesa;
-      if (anc.peca && anc.peca.halo) { anc.peca.halo.material.opacity = acesa ? 0.3 : 0; anc.peca.halo.visible = acesa; }
-      if (anc.peca && anc.peca.pino) { anc.peca.pino.userData.marca.opacity = 0; anc.peca.pino.visible = false; }
-      /* A peça em si acende. É o que resolve a fechadura enfiada num vão. */
-      if (anc.peca && anc.peca.acender) anc.peca.acender(acesa ? 0x8a5a12 : 0x000000, acesa ? brilho : 0);
+      if (anc.peca && acesa) {
+        if (anc.peca.halo) { pintarMarca(anc.peca, OURO); anc.peca.halo.material.opacity = 0.3; anc.peca.halo.visible = true; }
+        if (anc.peca.pino) { anc.peca.pino.userData.marca.opacity = 0; anc.peca.pino.visible = false; }
+        if (anc.peca.acender) anc.peca.acender(0x8a5a12, brilho);
+      }
+    }
+    /* A fixa resiste: quando alguém tenta arrastá-la, a peça treme no lugar. */
+    if (idFechadura && mundo.fechaduras[idFechadura]) {
+      var g = mundo.fechaduras[idFechadura].grupo;
+      if (tremor > 0) { g.position.x = Math.sin(tempo * 70) * 0.004 * tremor; tremor = Math.max(0, tremor - 0.05); }
+      else if (g.position.x !== 0) g.position.x = 0;
     }
   }
 
@@ -323,7 +448,7 @@
   function enviar(tipo, extra) {
     if (!online || !coop || pendente) return Promise.resolve(false);
     pendente = true;
-    return coop.send(tipo, extra || {}).catch(function () { avisar('Aguarde a reconexão da dupla.'); return false; })
+    return coop.send(tipo, extra || {}).catch(function () { avisar('Aguarde a reconexão da dupla.', 9); return false; })
       .then(function (r) { pendente = false; return r; }, function () { pendente = false; return false; });
   }
 
@@ -332,7 +457,7 @@
   }
 
   function publicarMovimento(forcar) {
-    if (!coop || !podeExplorar() || !dados.key) return Promise.resolve(false);
+    if (!coop || !podeMoverChave()) return Promise.resolve(false);
     if (!forcar && (envioOcupado || performance.now() - ultimoEnvio < 100)) return Promise.resolve(false);
     if (forcar && envioPendente) { try { return envioPendente.catch(function () {}).then(function () { return publicarMovimento(true); }); } catch (e) {} }
     ultimoEnvio = performance.now(); envioOcupado = true;
@@ -341,27 +466,32 @@
   }
 
   function examinar(id) {
-    if (!podeExplorar() || dados.key) return;
+    if (!podeExplorar() || !procurando()) return;
     entrarAtividade();
-    ultimoExaminado = id;
+    ultimoExaminado = id; examinadoEm = performance.now();
     enviar('maquete_examinar', { object: id });
   }
 
   function encaixar() {
-    if (terminando || !podeExplorar()) return;
+    if (terminando || !podeMoverChave()) return;
     terminando = true;
     publicarMovimento(true).then(function (ok) {
       if (!ok) { terminando = false; return; }
       return enviar('maquete_encaixar').then(function (aceito) {
-        if (!aceito) avisar('A ponta não chegou à fechadura. Peça ao colega para orientar.');
+        if (!aceito) avisar('A ponta não achou onde entrar.', 7);
       });
     }).then(function () { terminando = false; poeira.resetTrail(); });
   }
 
-  /* ---------- texto de tela ---------- */
+  /* ---------- texto de tela ----------
+     Os textos descrevem o MUNDO, nunca explicam a mecânica. Ninguém lê "você
+     tem a chave": o papel se revela pelo que acontece na mão e no aparelho do
+     colega. */
 
   function textos() {
-    var passo = $('step'), titulo = $('heading'), descricao = $('description');
+    var passo = $('step'), titulo = $('heading'), descricao = $('description'), painel = document.querySelector('.instruction');
+    var nivel = 2;
+    $('alignment').hidden = true;
     /* Atividade ainda trancada vem ANTES de tudo: pedir para pôr a casa na
        mesa, e só depois dizer que não era aqui, é dar uma volta à toa. */
     if (recebeuEstado && !dados) {
@@ -369,107 +499,63 @@
       titulo.textContent = 'A maquete continua fechada.';
       descricao.textContent = 'A etiqueta sob a escrivaninha é o que abre esta caixa. Volte e registre a descoberta.';
       $('score').textContent = '';
-      return;
-    }
-    if (!posta()) {
+    } else if (!posta()) {
       passo.textContent = 'A CAIXA FECHADA';
-      titulo.textContent = 'Ponha a maquete na mesa.';
-      descricao.textContent = 'A investigação começa quando a casa estiver apoiada à sua frente.';
+      var e = ra && ra.estado();
+      if (e && e.modo === 'webxr') { titulo.textContent = 'Procure a mesa.'; descricao.textContent = e.temHit ? 'Toque no círculo para apoiar a casa.' : 'Aponte devagar para uma superfície plana.'; }
+      else if (e && e.modo === 'camera' && modoEscolhido) { titulo.textContent = 'Procure a mesa.'; descricao.textContent = 'Toque na tela para apoiar a casa à sua frente.'; }
+      else { titulo.textContent = 'Ponha a maquete na mesa.'; descricao.textContent = 'A investigação começa quando a casa estiver apoiada à sua frente.'; }
       $('score').textContent = '';
-      return;
-    }
-    if (!dados) {
+    } else if (!dados) {
       passo.textContent = 'A CAIXA FECHADA';
-      titulo.textContent = 'Siga a pista da escrivaninha.';
-      descricao.textContent = 'Encontre e registre a etiqueta com seu colega para liberar esta investigação.';
-      return;
-    }
-    passo.textContent = dados.complete ? 'PERCURSO CONCLUÍDO' : 'Camada ' + (dados.evidence.length + 1) + ' de 3 · ' + dados.name;
-    $('score').textContent = 'Camadas ' + dados.evidence.length + ' de 3 · ' + dados.score + ' pontos';
-    if (dados.complete) {
+      titulo.textContent = 'A maquete espera.';
+      descricao.textContent = 'A pista da escrivaninha é o que abre esta caixa.';
+    } else if (dados.complete) {
+      passo.textContent = 'O PORÃO';
       titulo.textContent = 'O espaço que faltava.';
       descricao.textContent = 'A maquete se abriu até o porão. A descoberta foi guardada.';
-      return;
-    }
-    var temChave = dados.papel === 'chave';
-    if (solo) {
-      titulo.textContent = 'A próxima camada está presa.';
-      descricao.textContent = !dados.ready
-        ? 'Leia a anotação para saber onde a chave desta camada foi guardada.'
-        : (dados.key ? 'A chave está na sua mão. Leve a ponta até ' + (dados.fechaduraNome || 'a fechadura') + '.'
-          : 'Procure a chave: ' + (dados.clue || 'examine os detalhes desta camada.'));
-      return;
-    }
-    if (temChave) {
-      titulo.textContent = 'Você tem a chave.';
-      descricao.textContent = !dados.ready ? 'Aguarde: seu colega está lendo a anotação desta camada.'
-        : (dados.key ? 'A chave está na sua mão e você não vê a fechadura. Siga a voz do colega e leve a ponta até ela.'
-          : 'Só você pode mexer nos móveis. Ouça onde a chave foi guardada e toque no detalhe.');
+      $('score').textContent = 'Camadas 3 de 3 · ' + dados.score + ' pontos';
     } else {
-      titulo.textContent = 'Você tem a fechadura.';
-      descricao.textContent = !dados.ready ? 'Segure o manuscrito para ler a anotação desta camada.'
-        : (dados.key ? 'Você vê a fechadura e a ponta da chave do colega. Diga a ele para onde ir.'
-          : 'Diga ao colega, em voz alta, onde a chave foi guardada. Só ele pode tocar nos móveis.');
+      passo.textContent = 'Camada ' + (dados.evidence.length + 1) + ' de 3 · ' + dados.name;
+      $('score').textContent = 'Camadas ' + dados.evidence.length + ' de 3 · ' + dados.score + ' pontos';
+      /* A pista é a mesma nos dois aparelhos: é ela que manda no painel, que
+         vira "Dica da pista" enquanto ela vale. */
+      titulo.textContent = dados.pista;
+      nivel = 4;
+      if (!online) descricao.textContent = solo ? 'A maquete está parada.' : 'Do outro lado da mesa, ninguém responde. O progresso está guardado.';
+      else if (!ambosAcharam()) descricao.textContent = dados.achado ? dados.achado + (solo ? ' Falta a outra metade.' : ' Sozinho, isso não abre nada.') : 'Alguma coisa ficou para trás aqui.';
+      else if (papelDaVista() === 'fechadura') {
+        descricao.textContent = dados.achado || '';
+        $('alignment').hidden = false;
+      } else descricao.textContent = dados.achado || '';
     }
+    if (window.ACJanelas && window.ACJanelas.nivel) window.ACJanelas.nivel(painel, nivel);
   }
 
   function pintarTela() {
     var pronto = posta();
-    /* O portal é `inset:0`: enquanto ele estiver na tela, NENHUM toque chega à
-       cena — e em RA o pouso é justamente um toque na cena. Ele sai assim que
-       um modo é escolhido; daí em diante quem fala é a linha de pouso. */
-    var escolhendo = !ra || (ra.estado().modo === 'mesa' && !pronto && !modoEscolhido);
+    var e = ra && ra.estado();
+    /* O portal é a decisão de entrada: enquanto ele estiver aberto, nada da
+       cena é tocável. Ele sai assim que um modo é escolhido; daí em diante
+       quem fala é a orientação. */
+    var escolhendo = !ra || (e.modo === 'mesa' && !pronto && !modoEscolhido);
     /* Se a atividade ainda não foi liberada (a etiqueta da escrivaninha não
-       foi registrada), não faz sentido pedir para pôr a casa na mesa: o
-       jogador colocaria a maquete para descobrir que não é aqui. */
+       foi registrada), não faz sentido pedir para pôr a casa na mesa. */
     var liberada = !recebeuEstado || !!dados;
-    $('portal').hidden = pronto || !escolhendo || !liberada;
+    var mostrarPortal = !pronto && escolhendo && liberada && !!mundo;
+    var portal = $('portal');
+    if (mostrarPortal && !portal.open) { try { portal.showModal(); } catch (err) { portal.setAttribute('open', ''); } setTimeout(enquadrar, 30); }
+    else if (!mostrarPortal && portal.open) { try { portal.close(); } catch (err) { portal.removeAttribute('open'); } setTimeout(enquadrar, 30); }
     document.body.classList.toggle('maquete-posta', pronto);
     textos();
     var temDados = !!dados && !dados.complete;
-    var temChave = temDados && dados.papel === 'chave';
-    /* O manuscrito é do lado da FECHADURA. No Solo o papel vira sozinho depois
-       da leitura, e com ele o manuscrito sai de cena. */
-    $('manuscript').hidden = !(pronto && temDados && dados.papel === 'fechadura');
-    $('clue').textContent = dados && dados.ready ? (dados.clue || 'Oriente seu colega em voz alta.')
-      : 'Segure este manuscrito para ler a anotação desta camada.';
-    document.body.dataset.roleMode = !temDados ? 'complete' : (temChave ? 'explorer' : 'guide');
-    document.body.classList.toggle('investigating', !!(dados && (dados.ready || dados.level > 0)));
-    /* No Solo o mesmo botão já é o `solo-action`; dois botões lado a lado
-       fazendo a mesma coisa era só ruído na barra. */
-    $('alternative').hidden = solo || !(podeExplorar() && dados && !dados.key);
-    $('reposition').hidden = !pronto || (ra && ra.estado().modo === 'mesa');
-    $('key-grip').hidden = !(podeExplorar() && dados && dados.key);
-    if (mundo) mundo.chave.visible = !!(dados && dados.key && temChave && pronto);
-    var acao = $('solo-action');
-    /* Com a chave na mão o botão SAI. O que depende de duas pessoas na Mesa é
-       a orientação — não o arrasto. Jogando sozinho, o jogador vê a chave e a
-       fechadura ao mesmo tempo, e arrastar é justamente a parte que a bancada
-       precisa exercitar. Um botão que encaixa sozinho tiraria do Solo o gesto
-       que ele existe para testar. */
-    acao.hidden = !solo || !pronto || !temDados || !!dados.key;
-    acao.disabled = !online;
-    if (solo && temDados && !dados.key) acao.textContent = !dados.ready ? 'Ler a anotação' : 'Examinar por nome';
-    if (!online && pronto) $('description').textContent = 'A dupla precisa estar conectada para continuar. O progresso está guardado.';
-    faixaDeEstado(pronto, temDados, temChave);
-  }
-
-  /* No telefone a cena fica livre e os painéis se recolhem; esta linha é a
-     única coisa que continua dizendo de quem é a vez. Uma frase curta, e nunca
-     duas alturas diferentes — ela fica onde o polegar não a cobre. */
-  function faixaDeEstado(pronto, temDados, temChave) {
-    var faixa = $('faixa');
-    if (recebeuEstado && !dados) { faixa.hidden = false; faixa.textContent = 'A maquete continua fechada: falta registrar a etiqueta da escrivaninha.'; return; }
-    if (!pronto || !temDados) { faixa.hidden = true; return; }
-    if (!online) { faixa.hidden = false; faixa.textContent = 'Aguardando seu colega voltar.'; return; }
-    var texto;
-    if (solo) texto = !dados.ready ? 'Leia a anotação.' : (dados.key ? 'Leve a chave até a fechadura.' : 'Procure a chave nos detalhes acesos.');
-    else if (temChave) texto = !dados.ready ? 'Seu colega está lendo a anotação.'
-      : (dados.key ? 'A chave é sua. Siga a voz dele até a fechadura.' : 'Toque no detalhe que ele descrever.');
-    else texto = !dados.ready ? 'Segure o manuscrito para ler.'
-      : (dados.key ? 'Guie a ponta de luz até a fechadura acesa.' : 'Diga a ele onde a chave está.');
-    faixa.hidden = false;
-    faixa.textContent = texto;
+    document.body.dataset.roleMode = !temDados ? 'complete' : papelDaVista();
+    $('alternative').hidden = !(podeExplorar() && procurando());
+    $('reposition').hidden = !pronto || (e && e.modo === 'mesa');
+    $('portal-voltar').hidden = !e || pronto || e.modo === 'mesa';
+    $('key-grip').hidden = !podeMoverChave();
+    $('lock-grip').hidden = !(podeExplorar() && temLadoDaFechadura() && ambosAcharam());
+    if (mundo) mundo.chave.visible = !!(temDados && dados.key && temLadoDaChave() && pronto);
   }
 
   /* ---------- toques na cena ---------- */
@@ -486,20 +572,20 @@
 
   /* O dedo não tem a precisão do raio.
      Medido a 390×844 em 17/09/2026: a pedra do caminho ocupa cerca de SEIS
-     pixels de largura. Mirando no centro dela o raio acerta; três pixels ao
-     lado, acerta a terra. Um toque de polegar erra por muito mais que três
-     pixels, e o jogador perdia ponto por causa da mira, não da dedução.
-
-     Então o toque varre ANÉIS em volta do ponto: primeiro o próprio ponto,
-     depois 18 px, depois 32 px. O primeiro anel que encontrar um alvo ganha —
-     assim um alvo bem debaixo do dedo nunca perde para outro que está a 30 px.
-     Dentro de um anel, vale o mais PERTO da câmera, que é o que está na
-     frente. Parede na frente continua barrando: aí o primeiro acerto do raio
-     é a parede, e aquela amostra simplesmente não conta. */
+     pixels de largura. Então o toque varre ANÉIS em volta do ponto: primeiro o
+     próprio ponto, depois 18 px, depois 32 px. O primeiro anel que encontrar
+     um ponto aceso ganha. Dentro de um anel, vale o mais PERTO da câmera.
+     Parede na frente continua barrando. */
   var ANEIS = [0, 18, 32];
+  function donoDoToque(o) {
+    for (var n = o; n; n = n.parent) {
+      if (n.userData && (n.userData.object || n.userData.fechadura)) return n;
+    }
+    return null;
+  }
   function tocarNaCena(x, y) {
     if (!posta()) { ra.posicionar(); pintarTela(); return; }
-    if (!podeExplorar() || dados.key) return;
+    if (!podeExplorar() || !procurando()) return;
     var alvos = alvosAtivos(); if (!alvos.length) return;
     var visiveis = alvos.map(function (a) { return a.grupo; });
     var camera3 = cameraAgora();
@@ -513,15 +599,14 @@
           return objetoVisivel(h.object) && h.object.geometry && h.object.geometry.type !== 'RingGeometry';
         });
         if (!acertos.length) continue;
-        var dono = acertos[0].object;
-        while (dono && !(dono.userData && dono.userData.object)) dono = dono.parent;
+        var dono = donoDoToque(acertos[0].object);
         if (!dono || visiveis.indexOf(dono) < 0) continue;
-        if (!melhor || acertos[0].distance < melhor.distancia) melhor = { id: dono.userData.object, distancia: acertos[0].distance };
+        var id = dono.userData.object || dono.userData.fechadura;
+        if (!melhor || acertos[0].distance < melhor.distancia) melhor = { id: id, distancia: acertos[0].distance };
       }
       if (melhor) { examinar(melhor.id); return; }
     }
   }
-
 
   /* ---------- gestos ---------- */
 
@@ -545,8 +630,8 @@
       if (giroAtivo && ra.estado().modo !== 'mesa' && posta()) {
         var dx = e.clientX - giroAtivo.x;
         if (Math.abs(dx) > 0.5) { ra.girar(dx * 0.0045); giroAtivo.x = e.clientX; }
-        if (tocouEm && Math.hypot(e.clientX - tocouEm.x, e.clientY - tocouEm.y) > 9) tocouEm = null;
       }
+      if (tocouEm && Math.hypot(e.clientX - tocouEm.x, e.clientY - tocouEm.y) > 9) tocouEm = null;
     });
     ['pointerup', 'pointercancel'].forEach(function (tipo) {
       on(tela, tipo, function (e) {
@@ -566,32 +651,71 @@
     return Math.hypot(v[0].x - v[1].x, v[0].y - v[1].y);
   }
 
-  /* ---------- arrasto da chave ---------- */
+  /* ---------- a metade fixa: a recusa ----------
+     Quem tem a fechadura também tenta arrastar — e a peça resiste: chacoalha,
+     volta ao lugar, e na primeira vez não há texto nenhum. Insistindo, aparece
+     a frase que diz de quem é a outra metade. "Não acontece nada" seria
+     indistinguível de travamento, e o jogador culparia o jogo. */
+  function ligarFixa() {
+    var pega = $('lock-grip'), inicio = null;
+    on(pega, 'pointerdown', function (e) {
+      if (!podeExplorar() || !ambosAcharam()) return;
+      e.preventDefault(); inicio = { x: e.clientX, y: e.clientY };
+      try { pega.setPointerCapture(e.pointerId); } catch (err) {}
+    });
+    on(pega, 'pointermove', function (e) {
+      if (!inicio) return;
+      /* Um palmo de elástico, e não mais: ela "quer" vir e não vem. */
+      var dx = e.clientX - inicio.x, dy = e.clientY - inicio.y, d = Math.hypot(dx, dy) || 1, k = Math.min(10, d) / d;
+      pega.style.translate = (dx * k) + 'px ' + (dy * k) + 'px';
+    });
+    ['pointerup', 'pointercancel'].forEach(function (tipo) {
+      on(pega, tipo, function () {
+        if (!inicio) return;
+        inicio = null; pega.style.translate = '';
+        recusar();
+      });
+    });
+    on(pega, 'keydown', function (e) {
+      if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Enter', ' '].indexOf(e.key) >= 0) { e.preventDefault(); recusar(); }
+    });
+  }
+  function recusar() {
+    var pega = $('lock-grip');
+    pega.classList.remove('recusa'); void pega.offsetWidth; pega.classList.add('recusa');
+    tremor = 1;
+    try { navigator.vibrate && navigator.vibrate([12, 40, 12]); } catch (e) {}
+    tentativasNaFixa++;
+    if (tentativasNaFixa >= 2) avisar(solo ? 'Essa não sai do lugar — quem anda é a outra metade.' : 'Essa não sai da sua mão — a outra metade está com seu colega.', 9);
+    vida();
+  }
+
+  /* ---------- arrasto da chave (ato 3 — conferido, não mexer) ---------- */
 
   function ligarChave() {
     var pega = $('key-grip');
     on(pega, 'pointerdown', function (e) {
-      if (!podeExplorar() || !dados.key || vooDaChave || terminando) return;
+      if (!podeMoverChave() || vooDaChave || terminando) return;
       e.preventDefault(); arrastando = true;
+      document.body.classList.add('manipulating');
       poeira.resetTrail(); poeira.trace(mundo.chave.position);
       if (controles) controles.enabled = false;
       try { pega.setPointerCapture(e.pointerId); } catch (err) {}
-      /* O plano do arrasto passa pela fechadura: resolve a PROFUNDIDADE para
+      /* O plano do arrasto passa pela FECHADURA: resolve a PROFUNDIDADE para
          quem não pode vê-la, e deixa a orientação do colega valer em duas
-         dimensões — que é o que dá para dizer em voz alta. */
-      var deslocamento = mundo.chavePonta.getWorldPosition(new THREE.Vector3()).sub(mundo.chave.getWorldPosition(new THREE.Vector3()));
-      var alvoMundo = mundo.raiz.localToWorld(vetorDaFechadura()).sub(deslocamento);
-      planoDeArrasto.setFromNormalAndCoplanarPoint(cameraAgora().getWorldDirection(new THREE.Vector3()), alvoMundo);
+         dimensões — que é o que dá para dizer em voz alta.
+         É a PONTA que segue o dedo, então é a ponta que precisa estar no
+         plano da fechadura. Até a volta 1 (17/09/2026) o plano passava por
+         "fechadura − comprimento da chave", resto de quando o dedo levava o
+         corpo: conforme a chave estava virada para a câmera, a ponta ficava
+         até 0,036 fora do plano — mais que a tolerância de 0,03 — e o encaixe
+         recusava com a ponta visualmente em cima da fechadura. */
+      planoDeArrasto.setFromNormalAndCoplanarPoint(cameraAgora().getWorldDirection(new THREE.Vector3()), mundo.raiz.localToWorld(vetorDaFechadura()));
     });
     on(pega, 'pointermove', function (e) {
       if (!arrastando) return;
       raio.setFromCamera(ndc(e.clientX, e.clientY), cameraAgora());
-      /* Quem segue o dedo é a PONTA, não o corpo da chave.
-         Antes o dedo levava a origem da chave, e a ponta ficava um
-         comprimento de chave (0,036 da maquete, mais que a tolerância de
-         0,03) adiante. Na Mesa o colega absorvia isso guiando pela ponta; no
-         Solo, onde a pessoa vê a fechadura, ela punha a chave em cima dela e o
-         encaixe recusava sem explicar por quê. */
+      /* Quem segue o dedo é a PONTA, não o corpo da chave. */
       if (raio.ray.intersectPlane(planoDeArrasto, ponto)) {
         mundo.chave.position.copy(mundo.raiz.worldToLocal(ponto.clone())).sub(mundo.chavePonta.position);
       }
@@ -602,22 +726,21 @@
       on(pega, tipo, function (e) {
         if (!arrastando) return;
         arrastando = false;
+        document.body.classList.remove('manipulating');
         if (controles) controles.enabled = ra.estado().modo === 'mesa';
         try { pega.releasePointerCapture(e.pointerId); } catch (err) {}
         if (tipo === 'pointerup') encaixar(); else poeira.resetTrail();
       });
     });
     on(pega, 'keydown', function (e) {
-      if (!podeExplorar() || !dados.key || terminando) return;
+      if (!podeMoverChave() || terminando) return;
       var passo = { ArrowLeft: [-0.006, 0, 0], ArrowRight: [0.006, 0, 0], ArrowUp: [0, 0.006, 0], ArrowDown: [0, -0.006, 0], PageUp: [0, 0, -0.006], PageDown: [0, 0, 0.006] }[e.key];
       if (passo) { e.preventDefault(); mundo.chave.position.add(new THREE.Vector3(passo[0], passo[1], passo[2])); poeira.trace(mundo.chave.position); publicarMovimento(false); }
       if (e.key === 'Enter') { e.preventDefault(); encaixar(); }
     });
   }
 
-  /* A posição da fechadura do capítulo corrente, no espaço do modelo. Quem tem
-     a chave NÃO recebe esse identificador; nesse caso o plano do arrasto passa
-     pelo centro da maquete, que é neutro. */
+  /* A posição da fechadura do capítulo corrente, no espaço do modelo. */
   function vetorDaFechadura() {
     var i = dados ? dados.level : 0;
     if (motor && motor.FECHADURAS[i]) return new THREE.Vector3().fromArray(motor.FECHADURAS[i]);
@@ -635,52 +758,59 @@
     if (mundo) {
       animarCamadas(dt);
       atualizarRealces(tempo / 1000);
-      if (leituraInicio !== null && !leituraEnviada && dados && !dados.ready && online) {
-        var quanto = Math.min(1, (tempo - leituraInicio) / 1000);
-        $('reading').firstElementChild.style.width = quanto * 100 + '%';
-        if (quanto === 1) { leituraEnviada = true; enviar('maquete_orientar').then(function (ok) { if (!ok) leituraEnviada = false; }); }
-      } else if (!dados || !dados.ready) { $('reading').firstElementChild.style.width = '0'; }
       if (vooDaChave) {
         vooDaChave.t += dt; var t = Math.min(1, vooDaChave.t / 0.7), s = t * t * (3 - 2 * t);
         mundo.chave.position.copy(vooDaChave.de).lerp(vooDaChave.para, s);
         mundo.chave.position.y += Math.sin(Math.PI * t) * 0.04;
         if (t === 1) vooDaChave = null;
       }
-      poeira.update(dt, mundo.chave.visible && podeExplorar() && (arrastando || vooDaChave) ? mundo.chave.position : null, alturaDaTela() * renderer.getPixelRatio());
-      posicionarPega();
-      atualizarFarol(tempo);
-      if (mundo.chave.visible && podeExplorar() && !vooDaChave && !terminando && arrastando) publicarMovimento(false);
+      poeira.update(dt, mundo.chave.visible && podeMoverChave() && (arrastando || vooDaChave) ? mundo.chave.position : null, alturaDaTela() * renderer.getPixelRatio());
+      posicionarPegas();
+      atualizarFarol();
+      if (mundo.chave.visible && podeMoverChave() && !vooDaChave && !terminando && arrastando) publicarMovimento(false);
     }
     renderer.render(cena, camera);
   }
 
-  function posicionarPega() {
-    var pega = $('key-grip');
-    if (!mundo.chave.visible) return;
-    mundo.raiz.updateMatrixWorld(true);
+  function naTela(v) {
     var caixa = renderer.domElement.getBoundingClientRect();
-    /* A pega fica na PONTA: é o ponto que o colega enxerga e o único que
-       decide o encaixe. */
-    var tela = mundo.chavePonta.getWorldPosition(new THREE.Vector3()).project(cameraAgora());
-    pega.style.left = caixa.left + (tela.x + 1) * caixa.width / 2 + 'px';
-    pega.style.top = caixa.top + (1 - tela.y) * caixa.height / 2 + 'px';
-    pega.hidden = !!vooDaChave || !podeExplorar() || !dados || !dados.key || tela.z < -1 || tela.z > 1;
+    var tela = v.project(cameraAgora());
+    return { x: caixa.left + (tela.x + 1) * caixa.width / 2, y: caixa.top + (1 - tela.y) * caixa.height / 2, dentro: tela.z >= -1 && tela.z <= 1 };
+  }
+  function posicionarPegas() {
+    mundo.raiz.updateMatrixWorld(true);
+    var pega = $('key-grip');
+    if (mundo.chave.visible) {
+      /* A pega fica na PONTA: é o ponto que o colega enxerga e o único que
+         decide o encaixe. */
+      var p = naTela(mundo.chavePonta.getWorldPosition(new THREE.Vector3()));
+      pega.style.left = p.x + 'px'; pega.style.top = p.y + 'px';
+      pega.hidden = !!vooDaChave || !podeMoverChave() || !p.dentro;
+    } else pega.hidden = true;
+    var fixa = $('lock-grip');
+    var fechadura = dados && dados.fechadura && mundo.fechaduras[dados.fechadura];
+    /* No Solo, com a chave em movimento, a pega da fixa sai de baixo do dedo:
+       as duas no mesmo ponto fariam o encaixe final cair na peça errada. */
+    if (fechadura && podeExplorar() && ambosAcharam() && !(solo && arrastando)) {
+      var q = naTela(fechadura.grupo.localToWorld(fechadura.centro.clone()));
+      fixa.style.left = q.x + 'px'; fixa.style.top = q.y + 'px';
+      fixa.hidden = !q.dentro;
+    } else fixa.hidden = true;
   }
 
-  function atualizarFarol(tempo) {
-    var guiando = dados && !dados.complete && dados.papel === 'fechadura';
+  /* Quem guia (e só quem guia) vê a ponta da chave do colega. */
+  function atualizarFarol() {
+    var guiando = dados && !dados.complete && papelDaVista() === 'fechadura' && ambosAcharam();
     var fresco = movimento && performance.now() - movimentoEm + (movimento.age || 0) < 1500;
-    farol.visible = !!(guiando && dados.key && fresco && online && posta());
-    $('alignment').hidden = !guiando || !dados.key;
+    farol.visible = !!(guiando && fresco && online && posta());
+    if (!guiando) return;
     if (farol.visible) {
       farol.position.fromArray(movimento.tip);
       var d = farol.position.distanceTo(vetorDaFechadura());
-      $('alignment').textContent = d < motor.TOLERANCIA ? 'A ponta está na fechadura. Diga a ele para soltar.'
-        : d < 0.10 ? 'A ponta está perto. Ajuste o último palmo.'
-          : 'O ponto de luz é a ponta da chave do colega. Leve-o até a fechadura.';
-    } else if (guiando && dados && dados.key) {
-      $('alignment').textContent = 'Aguarde: a ponta da chave aparece quando seu colega a mover.';
-    }
+      $('alignment').textContent = d < motor.TOLERANCIA ? 'O ponto de luz está dentro do vão.'
+        : d < 0.10 ? 'O ponto de luz está a um palmo do vão.'
+          : 'Um ponto de luz anda pela maquete.';
+    } else $('alignment').textContent = 'Nenhum ponto de luz, por enquanto.';
   }
 
   /* ---------- portal de entrada ---------- */
@@ -703,10 +833,6 @@
   }
 
   function abrir(modo) {
-    /* Não chamar `entrarAtividade()` aqui de propósito: ele esconde a pilha de
-       painéis (é a "cena livre" de A Casa), e quem tem a FECHADURA fica sem o
-       manuscrito, que é a única coisa que ele tem para jogar. A cena só fica
-       livre quando o jogador mexe de fato — tocar num móvel, pegar a chave. */
     $('portal-aviso').textContent = 'Preparando…';
     ra.entrar(modo).then(function (qual) {
       $('portal-aviso').textContent = '';
@@ -716,9 +842,9 @@
         ra.mudarEscala(1 / e.escala);
         ra.posicionar();
         controles.enabled = true;
-        enquadrar();
       }
       pintarTela();
+      setTimeout(enquadrar, 30);
     }).catch(function (erro) {
       modoEscolhido = false;
       $('portal-aviso').textContent = modo === 'camera'
@@ -732,6 +858,11 @@
 
   function receber(snapshot) {
     if (snapshot.soloRole) papel = snapshot.soloRole;
+    var tip = snapshot.keyMotion ? JSON.stringify(snapshot.keyMotion.tip) : '';
+    /* O relógio de ociosidade zera na MUDANÇA — a ponta do colega andou —, e
+       não na chegada do snapshot, que vem de segundo em segundo mesmo parado. */
+    if (tip && tip !== ultimoTip) vida();
+    ultimoTip = tip;
     movimento = snapshot.keyMotion; movimentoEm = performance.now();
     var antes = dados, estavaOnline = online;
     dados = snapshot.maquete;
@@ -740,39 +871,43 @@
     online = papeis.every(function (r) { return snapshot.online.indexOf(r) >= 0; });
     /* No Solo não há dupla: o painel de cooperação sai da tela em vez de
        anunciar um colega que não existe. */
-    if (solo) $('coop-status').hidden = true;
-    else $('coop-status').textContent = online ? 'Dupla conectada' : 'Aguardando seu colega';
+    /* O cartão de cooperação só fala quando falta alguém: "dupla conectada"
+       ocupava um painel inteiro (117 px a 390×844) para não dizer nada, e
+       empurrava o resto da pilha para baixo da dobra. */
+    $('coop-status').hidden = solo || online;
+    if (!online) $('coop-status').textContent = 'Aguardando seu colega';
 
-    if (antes && dados && dados.mistakes > antes.mistakes) avisar('Não era este. Conversem outra vez antes de tentar.');
+    /* "Nada aqui" só no aparelho que TOCOU: o engano conta para os dois, mas
+       o aviso no aparelho de quem não tocou em nada seria mentira. */
+    if (antes && dados && dados.level === antes.level && dados.mistakes > antes.mistakes && performance.now() - examinadoEm < 4000) avisar('Nada aqui.', 7);
     if (antes && dados && dados.level > antes.level) {
       vooDaChave = null; poeira.resetTrail();
       poeira.burst(vetorDaFechaduraDe(antes.level));
-      if (!dados.complete) avisar(capituloFechado(antes.level));
-      leituraEnviada = false; leituraInicio = null;
+      if (!dados.complete) avisar(capituloFechado(antes.level), 3);
+      tentativasNaFixa = 0;
     }
-    if (antes && dados && !antes.key && dados.key && dados.papel === 'chave') {
-      var origem = mundo && mundo.alvos[ultimoExaminado] ? mundo.alvos[ultimoExaminado].centro.clone() : new THREE.Vector3(0, 0.55, 0.2);
-      var camada = mundo && mundo.alvos[ultimoExaminado] ? mundo.camadas[mundo.alvos[ultimoExaminado].camada] : null;
+    /* A chave saiu do esconderijo — só onde a chave existe. */
+    if (antes && dados && !antes.key && dados.key && temLadoDaChave()) {
+      var conj = mundo && mundo.alvos[ultimoExaminado];
+      var origem = conj ? conj.centro.clone() : new THREE.Vector3(0, 0.55, 0.2);
+      var camada = conj ? mundo.camadas[conj.camada] : null;
       if (camada) origem = origem.clone().add(new THREE.Vector3(0, camada.position.y, 0));
       poeira.burst(origem); poeira.resetTrail();
       var pouso = origem.clone().add(new THREE.Vector3(0, 0.06, 0.04));
       if (reduzido) mundo.chave.position.copy(pouso);
       else { mundo.chave.position.copy(origem); vooDaChave = { de: origem.clone(), para: pouso, t: 0 }; }
     }
-    if (dados && dados.level !== nivelAnterior) { nivelAnterior = dados.level; leituraEnviada = false; }
-    /* Reenquadrar quando muda o CAPÍTULO, o PAPEL ou o passo: cada um desses
-       olha para outro canto da maquete, e mais de uma vez os dois lados ficam
-       em faces opostas da casa. Sem isto o jogador começa a etapa com o que
-       ele precisa ver escondido atrás do telhado, e nada na tela diz que falta
-       girar. */
-    var assinatura = dados ? dados.level + '/' + dados.papel + '/' + (dados.key ? 1 : 0) + '/' + (dados.ready ? 1 : 0) : '';
+    /* A fechadura apareceu — só onde a fechadura existe. */
+    if (antes && dados && !antes.lock && dados.lock && temLadoDaFechadura()) poeira.burst(vetorDaFechadura());
+    /* Reenquadrar quando muda o CAPÍTULO, o PAPEL ou o ato. */
+    var assinatura = dados ? dados.level + '/' + dados.papel + '/' + (dados.key ? 1 : 0) + '/' + (dados.lock ? 1 : 0) : '';
     if (assinatura !== enquadramentoAtual) {
       enquadramentoAtual = assinatura;
+      if (antes) vida();
       if (ra && ra.estado().modo === 'mesa' && ra.estado().posta && !arrastando) setTimeout(enquadrar, 30);
     }
     if (!antes || estavaOnline !== online || JSON.stringify(antes) !== JSON.stringify(dados)) pintarTela();
-    /* A descoberta só abre com a maquete posta: quem reabre uma atividade já
-       concluída via o diálogo por cima do portal, antes de ter a casa na mesa. */
+    /* A descoberta só abre com a maquete posta. */
     if (dados && dados.complete && !concluidoEnviado && posta()) {
       concluidoEnviado = true;
       $('final-score').textContent = '3 camadas · ' + dados.score + ' pontos. Nenhuma acusação foi concluída.';
@@ -794,43 +929,27 @@
   /* ---------- botões ---------- */
 
   function ligarBotoes() {
-    on($('manuscript'), 'pointerdown', function (e) {
-      if (!online || !dados || dados.ready || dados.papel !== 'fechadura') return;
-      entrarAtividade(); e.preventDefault(); leituraInicio = performance.now();
-      try { $('manuscript').setPointerCapture(e.pointerId); } catch (err) {}
-    });
-    ['pointerup', 'pointercancel', 'blur'].forEach(function (t) { on($('manuscript'), t, function () { leituraInicio = null; }); });
-    on($('manuscript'), 'keydown', function (e) {
-      if (e.key === 'Enter' && !e.repeat) { entrarAtividade(); e.preventDefault(); enviar('maquete_orientar'); }
-      else if (e.key === ' ' && !e.repeat) { entrarAtividade(); e.preventDefault(); leituraInicio = performance.now(); }
-    });
-    on($('manuscript'), 'keyup', function () { leituraInicio = null; });
-
     on($('alternative'), 'click', function () { abrirListaDeObjetos(); });
-    on($('solo-action'), 'click', function () {
-      if (!solo || !dados || dados.complete) return;
-      entrarAtividade();
-      if (!dados.ready) { enviar('maquete_orientar'); return; }
-      abrirListaDeObjetos();
+    on($('guardar'), 'click', function () {
+      if (params.get('demo') === 'solo' && dados && dados.complete) {
+        try { parent.postMessage({ mosaico: 'ac-solo-maquete-completa', score: dados.score, evidence: dados.evidence }, location.origin); } catch (e) {}
+      }
     });
-    on($('help'), 'click', function (ev) {
-      if (window.ACJanelas) { window.ACJanelas.ajuda(ev); return; }
-      try { $('instructions').showModal(); } catch (e) {}
-    });
-    Array.prototype.forEach.call(document.querySelectorAll('[data-close]'), function (el) {
-      on(el, 'click', function () { var d = el.closest('dialog'); if (d) { try { d.close(); } catch (e) {} } if (window.ACJanelas) window.ACJanelas.recolher(); });
-    });
+    /* Recolher ou abrir os painéis NÃO reenquadra a imagem. Medido na volta 1
+       (17/09/2026): o toque na cena recolhe os painéis no pointerdown; se a
+       imagem se recentrasse ali, a casa andava debaixo do dedo antes do
+       pointerup e o toque caía no chão — o alvo nunca era examinado. */
   }
 
   function abrirListaDeObjetos() {
-    if (!dados || !dados.candidatos) return;
-    var capitulo = motor.CAPITULOS[dados.level];
+    if (!dados || !dados.alvos) return;
     /* Sorteado por partida: escrita à mão, esta lista nasceria com o
        esconderijo em primeiro lugar em todos os capítulos. */
-    var ordem = motor.ordemDosCandidatos(capitulo, semente());
+    var ordem = motor.ordemDosAlvos(dados.alvos, dados.capitulo, semente());
     var caixa = $('object-list'); caixa.textContent = '';
     ordem.forEach(function (id) {
       var b = document.createElement('button');
+      b.type = 'button';
       b.textContent = (dados.rotulos && dados.rotulos[id]) || id;
       b.onclick = function () { examinar(id); try { $('objects').close(); } catch (e) {} };
       caixa.appendChild(b);
@@ -844,20 +963,11 @@
 
   function comecar() {
     montarCena();
-    ligarGestos(); ligarChave(); ligarBotoes();
+    ligarGestos(); ligarChave(); ligarFixa(); ligarBotoes();
 
     var voltar = new URLSearchParams(location.search); voltar.set('rever', '1');
     $('return-desk').href = 'AC-escrivaninha.html?' + voltar;
-    if (solo) {
-      $('coop-status').hidden = true;
-      /* O texto de ajuda é escrito para a dupla. Jogando sozinho, os dois
-         lados são a mesma pessoa, e dizer "seu colega" é mentira na tela. */
-      var doisOlhares = $('instructions').querySelector('h2');
-      if (doisOlhares) doisOlhares.textContent = 'A chave e a fechadura são suas.';
-      var explicacao = $('instructions').querySelectorAll('p');
-      if (explicacao[0]) explicacao[0].textContent = 'A maquete se abre por camadas, e cada camada é presa por uma fechadura. A anotação diz onde a chave daquela camada foi guardada; achada a chave, é levá-la até a fechadura acesa.';
-      if (explicacao[1]) explicacao[1].textContent = 'Na mesa, esta investigação é feita em dupla: um tem a chave e o outro a fechadura.';
-    }
+    if (solo) $('coop-status').hidden = true;
 
     import(new URL('ac-maquete-state.mjs', MEU_SRC).href).then(function (m) {
       motor = m;
@@ -867,8 +977,7 @@
     }).then(function (m) {
       mundo = m;
       cena.add(mundo.raiz);
-      /* A poeira mora DENTRO da maquete: assim acompanha escala, giro e pose
-         sem nenhuma conversão de coordenadas. */
+      /* A poeira mora DENTRO da maquete: acompanha escala, giro e pose. */
       poeira = createACGoldDust(mundo.raiz, { reduced: reduzido });
       farol = new THREE.Mesh(new THREE.SphereGeometry(0.006, 12, 8), new THREE.MeshBasicMaterial({ color: 0xffe3a1 }));
       farol.visible = false; farol.userData.exportExclude = true; farol.raycast = function () {};
@@ -881,20 +990,36 @@
 
       ra = ACMaquetteRA.criar({ renderer: renderer, cena: cena, camera: camera, raiz: mundo.raiz, baseY: mundo.baseY, aoMudar: aoMudarRA });
       ra.previa();
-      enquadrar();
       controles.enabled = true;
       montarPortal();
-      $('portal-titulo').textContent = 'Ponha a maquete na sua mesa.';
-      $('portal-texto').textContent = 'A caixa veio fechada. Procure uma superfície plana e apoie a casa nela.';
       habilitarPortal(true);
       ligarCooperacao();
       pintarTela();
+      enquadrar();
       renderer.setAnimationLoop(desenhar);
+      /* O painel do Claude congela o requestAnimationFrame: este gancho
+         desenha um quadro avulso para conferir a tela parada. */
       window.__maquete = { mundo: mundo, ra: ra, motor: motor, estado: function () { return dados; },
-        quadro: function () { desenhar(performance.now(), null); } };
+        quadro: function () { desenhar(performance.now(), null); }, enquadrar: enquadrar,
+        /* Onde um ponto da cena cai na tela — para tocar nele de verdade. */
+        onde: function (id) {
+          mundo.raiz.updateMatrixWorld(true);
+          if (Array.isArray(id)) return naTela(mundo.raiz.localToWorld(new THREE.Vector3().fromArray(id)));
+          var c = conjuntoDe(id); if (!c) return null;
+          return naTela(c.grupo.localToWorld(c.centro.clone()));
+        },
+        /* O que o raio acerta num ponto da tela — os três primeiros. */
+        raio: function (x, y) {
+          raio.setFromCamera(ndc(x, y), cameraAgora());
+          return raio.intersectObject(mundo.raiz, true).filter(function (h) { return objetoVisivel(h.object); }).slice(0, 3).map(function (h) {
+            var d = donoDoToque(h.object);
+            return h.object.name + (d ? ' ← ' + (d.userData.object || d.userData.fechadura) : '') + ' @' + h.distance.toFixed(3);
+          });
+        } };
     }).catch(function (erro) {
       $('portal-aviso').textContent = 'A maquete não pôde ser carregada. ' + (erro && erro.message ? erro.message : '');
       $('description').textContent = 'A maquete não pôde ser carregada neste aparelho.';
+      try { $('portal').showModal(); } catch (e) {}
     });
   }
 
@@ -904,16 +1029,8 @@
 
   function aoMudarRA() {
     var e = ra.estado();
-    $('pousar').hidden = !(e.modo === 'webxr' && !e.posta);
-    $('portal-voltar').hidden = e.posta || e.modo === 'mesa';
-    $('pousar').textContent = e.temHit ? 'Toque no círculo para apoiar a casa.' : 'Aponte devagar para uma superfície plana.';
-    if (e.modo === 'camera' && !e.posta) { $('pousar').hidden = false; $('pousar').textContent = 'Toque na tela para apoiar a casa à sua frente.'; }
-    /* A órbita é da BANCADA. Em RA quem move o ponto de vista é o aparelho, e
-       deixá-la ligada faz a câmera da cena brigar com a do giroscópio. */
+    /* A órbita é da BANCADA. Em RA quem move o ponto de vista é o aparelho. */
     if (controles) controles.enabled = e.modo === 'mesa';
-    /* Reenquadrar assim que a maquete é posta: o primeiro `enquadrar()` do
-       modo bancada roda antes de o motor mandar o capítulo, e sem os alvos a
-       caixa sai pequena demais. */
     if (e.modo === 'mesa' && e.posta) enquadrar();
     pintarTela();
   }
@@ -934,12 +1051,10 @@
     ajustarTamanho();
     if (ra && ra.estado().modo === 'mesa') enquadrar();
   });
-  on(document, 'visibilitychange', function () { leituraInicio = null; });
   on(window, 'pagehide', function (e) {
     if (e.persisted) { renderer.setAnimationLoop(null); return; }
     descartado = true;
     if (poeira) poeira.dispose();
-    clearTimeout(avisoTimer);
     if (coop) coop.close();
     if (ra) ra.sair();
     desligar.forEach(function (fn) { fn(); });

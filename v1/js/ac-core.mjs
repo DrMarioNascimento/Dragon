@@ -1,4 +1,6 @@
 import {startMaquette,actMaquette,maquetteView,FECHADURAS,TOLERANCIA} from './ac-maquete-state.mjs';
+import {acenderVela,velaAcesa,vistaDaVela,podeReacender,VELA_MS} from './ac-vela.mjs';
+export {VELA_MS} from './ac-vela.mjs';
 export {FECHADURAS,TOLERANCIA} from './ac-maquete-state.mjs';
 const validTip=tip=>Array.isArray(tip)&&tip.length===3&&tip.every(n=>Number.isFinite(n)&&Math.abs(n)<=3);
 export const bonus = elapsed => Math.max(0, 30 - Math.floor(Math.max(0, elapsed) / 10));
@@ -21,7 +23,7 @@ export function apply(room, role, event, now = Date.now()) {
       const wasPaused=p.paused.length>0;
       p.paused=p.paused.filter(r=>r!==role);if(event.acao==='pausar')p.paused.push(role);
       if(!wasPaused&&p.paused.length)p.pauseAt=now;
-      if(wasPaused&&!p.paused.length){if(room.startedAt!==null&&room.finishedAt===null&&Number.isFinite(p.pauseAt))room.startedAt+=Math.max(0,now-p.pauseAt);p.pauseAt=null;}
+      if(wasPaused&&!p.paused.length){if(room.startedAt!==null&&room.finishedAt===null&&Number.isFinite(p.pauseAt))room.startedAt+=Math.max(0,now-p.pauseAt);if(room.vela&&Number.isFinite(p.pauseAt))room.vela.ate+=Math.max(0,now-p.pauseAt);p.pauseAt=null;}
       return true;
     }
     if(p.paused.length)return false;
@@ -50,7 +52,9 @@ export function apply(room, role, event, now = Date.now()) {
     if(!(room.percurso?.fragmento?.membros.map(m=>m.papel)||['luz','conhecimento']).every(r=>[...room.peers.values()].some(p=>p.role===r)))return false;
     const state=room.maquete;
     if(event.type==='maquete_mover'){
-      if(!state?.key||maquetteView(state,role).chaveiro!==role||!validTip(event.tip))return false;
+      /* A chave só anda depois que as DUAS metades foram achadas: antes disso
+         não há para onde levá-la, e um arrasto às cegas viraria atalho. */
+      if(!state?.key||!state.lock||maquetteView(state,role).chaveiro!==role||!validTip(event.tip))return false;
       room.keyMotion={tip:[...event.tip],at:now,level:state.level};return true;
     }
     if(event.type==='maquete_encaixar'){
@@ -68,15 +72,21 @@ export function apply(room, role, event, now = Date.now()) {
     if (![event.origin,event.target].every(v => Array.isArray(v) && v.length === 3 && v.every(n => Number.isFinite(n) && Math.abs(n) <= 30))) return false;
     room.beam = { origin: event.origin, target: event.target, at: now }; return true;
   }
+  /* O fósforo é de quem NÃO pôs a vela: só ele reacende, e só o que apagou. */
+  if (event.type === 'reacender') {
+    if (role !== 'conhecimento' || !podeReacender(room.vela, room.stage, now)) return false;
+    room.vela = acenderVela(now); return true;
+  }
   if (!rule || role !== rule[0] || room.stage !== rule[1]) return false;
-  if (event.type === 'descobrir' && (!room.beam || now - room.beam.at > 1500 || ![...room.peers.values()].some(p => p.role === 'luz'))) return false;
+  if (event.type === 'descobrir' && (!room.beam || now - room.beam.at > 1500 || !velaAcesa(room.vela, room.stage, now) || ![...room.peers.values()].some(p => p.role === 'luz'))) return false;
   if (event.type === 'iniciar' && room.startedAt !== null) return false;
   room.startedAt ??= now;
   room.stage = rule[2];
   if (event.type === 'descobrir') room.finishedAt = now;
+  if (event.type === 'encaixar') room.vela = acenderVela(now);
   return true;
 }
 export function snapshot(room, now = Date.now(), role = null) {
   const elapsed = room.startedAt === null ? 0 : Math.max(0, ((room.finishedAt ?? (room.percurso?.paused.length?room.percurso.pauseAt:now) ?? now) - room.startedAt) / 1000);
-  return { percurso: room.percurso || null, stage: room.stage, elapsed, bonus: bonus(elapsed), started: room.startedAt !== null, finished: room.finishedAt !== null, beam: room.beam ? { ...room.beam, age: now - room.beam.at } : null, online: [...new Set([...room.peers.values()].map(p => p.role))], keyMotion:room.keyMotion&&now-room.keyMotion.at<=1500&&role!==maquetteView(room.maquete,role)?.chaveiro?{tip:room.keyMotion.tip,age:now-room.keyMotion.at}:null, maquete:maquetteView(room.maquete,role) };
+  return { percurso: room.percurso || null, stage: room.stage, elapsed, bonus: bonus(elapsed), started: room.startedAt !== null, finished: room.finishedAt !== null, beam: room.beam ? { ...room.beam, age: now - room.beam.at } : null, vela: vistaDaVela(room.vela, room.stage, room.percurso?.paused.length ? room.percurso.pauseAt : now), online: [...new Set([...room.peers.values()].map(p => p.role))], keyMotion:room.keyMotion&&now-room.keyMotion.at<=1500&&role!==maquetteView(room.maquete,role)?.chaveiro?{tip:room.keyMotion.tip,age:now-room.keyMotion.at}:null, maquete:maquetteView(room.maquete,role) };
 }

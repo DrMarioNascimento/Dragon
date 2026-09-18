@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-ac-casa>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -319,10 +319,22 @@
      especificidade, quem vem por ultimo vence, e o padrao tem de vencer. -->
 <link rel="stylesheet" href="css/profundidade.css?v=20260902-profundidade">
 <link rel="stylesheet" href="css/profundidade-1mais1.css?v=20260906-pf-all">
-<link rel="stylesheet" href="css/ac-janelas.css?v=20260916-sala-cta">
+<link rel="stylesheet" href="css/ac-janelas.css?v=20260917-janelas">
+<style>
+  /* O chevron d'A Casa também mora aqui, no mesmo canto das outras telas.
+     Dentro do percurso ele some: a barra que vale é a da moldura. Fora dela,
+     o HUD desce uma barra para o botão não cair sobre a Investigação. */
+  html[data-ac-casa] #help.ac-chevron{position:fixed;z-index:30;top:max(calc((var(--ac-barra) - 44px) / 2),env(safe-area-inset-top));right:max(var(--ac-margem),env(safe-area-inset-right));text-transform:none;letter-spacing:0;pointer-events:auto}
+  html[data-ac-casa]:not(.ac-sob-moldura) #hud{padding-top:max(var(--ac-barra),env(safe-area-inset-top))}
+  html.ac-sob-moldura #help{display:none!important}
+  /* As Orientações são painel: o relógio de ociosidade as recolhe e o
+     chevron as traz de volta. A Investigação é o objetivo e fica. */
+  html[data-ac-casa] body.ac-recolhido [data-ac-painel]{visibility:hidden}
+</style>
 </head>
 <body>
 <canvas id="c"></canvas>
+<button id="help" class="ac-chevron" type="button" aria-label="Mostrar as janelas" aria-expanded="true">⌄</button>
 <div id="veil"></div>
 
 <div id="hud">
@@ -334,7 +346,7 @@
   <div id="base">
     <div id="medidor"><div id="medidor-i"></div></div>
     <div id="firme"><div id="firme-i"></div></div>
-    <section class="busca-caixa" aria-labelledby="orientacoes-titulo"><h2 id="orientacoes-titulo">Orientações:</h2><div id="status" role="status">A lanterna acende pouco.</div><div id="dica">Gire o corpo devagar. O feixe encontra uma coisa de cada vez.</div></section>
+    <section class="busca-caixa" data-ac-painel aria-labelledby="orientacoes-titulo"><h2 id="orientacoes-titulo">Orientações:</h2><div id="status" role="status">A lanterna acende pouco.</div><div id="dica">Gire o corpo devagar. O feixe encontra uma coisa de cada vez.</div></section>
     <div id="marcas"></div>
     <div id="botoes">
       <button id="b-luz" class="acc">Lanterna</button>
@@ -368,7 +380,6 @@
 </div></div>
 
 <div id="intro" data-ac-priority="10">
-  <button type="button" class="close" data-close aria-label="Fechar e entrar">×</button>
   <div id="intro-corpo">
   <div id="kicker">A noite da tempestade — dentro da casa</div>
   <div id="titulo">A Sala<br><b>às Escuras</b></div>
@@ -408,9 +419,9 @@
 </div>
 
 <script src="js/three.min.js"></script>
-<script src="js/vendor/GLTFLoader.js"></script><script src="js/ac-desk.js"></script><script src="js/ac-room-layout.js"></script><script src="js/ac-room-art.js"></script><script src="js/ac-room.js"></script><script src="js/mosaico-ra-engine.js?v=20260916-sala-cta"></script>
+<script src="js/vendor/GLTFLoader.js"></script><script src="js/ac-desk.js"></script><script src="js/ac-room-layout.js"></script><script src="js/ac-room-art.js"></script><script src="js/ac-room.js"></script><script src="js/mosaico-ra-engine.js?v=20260917-janelas"></script>
 <!-- Protocolo com a Mesa e ativacao de sensor: um so arquivo para as tres tarefas. -->
-<script src="js/tarefa-sensor.js?v=20260916-sala-cta"></script>
+<script src="js/tarefa-sensor.js?v=20260917-janelas"></script>
 <script>
 (function(){
 "use strict";
@@ -1865,5 +1876,5 @@ if(bRa){
 
 })();
 </script>
-<script src="js/ac-janelas.js?v=20260916-sala-cta"></script></body>
+<script src="js/ac-janelas.js?v=20260917-janelas"></script></body>
 </html>

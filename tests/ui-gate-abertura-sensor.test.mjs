@@ -54,10 +54,10 @@ describe("abertura · Carro Celular / Solo / Telão wiring", () => {
     }
   });
 
-  it("limpa orientação e cooperação enquanto a escrivaninha prepara", () => {
+  it("fora d'A Casa, entrar na atividade ainda recolhe; n'A Casa, recolher é gesto", () => {
     const windows = ler("v1/js/ac-janelas.js");
-    assert.match(windows, /getElementById\('loading'\)[\s\S]{0,100}?entrarAtividade\(\)/);
-    assert.match(windows, /function entrarAtividade\(\)[\s\S]{0,300}?recolher\(\)/);
+    assert.match(windows, /!CASA&&document\.getElementById\('loading'\)[\s\S]{0,100}?entrarAtividade\(\)/);
+    assert.match(windows, /function entrarAtividade\(\)[\s\S]{0,200}?if\(!CASA\)recolherLegado\(\)/);
   });
 
   it("Celular carrega opening-flow antes de game.js e chama abertura no boot", () => {

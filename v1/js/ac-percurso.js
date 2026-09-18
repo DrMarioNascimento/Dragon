@@ -18,7 +18,7 @@
   }
   function showScene(name){
     if(current===name)return;current=name;
-    const q=new URLSearchParams(params);q.set('run',run);q.set('embed','1');q.set('cenario',params.get('cenario')||'AC-COSTA');q.set('v','20260916-sala-cta');
+    const q=new URLSearchParams(params);q.set('run',run);q.set('embed','1');q.set('cenario',params.get('cenario')||'AC-COSTA');q.set('v','20260917-janelas');
     if(name!=='sala'){q.set('percurso','1');for(const [k,v]of Object.entries(credentials))q.set(k,v);}
     /* Ordem canônica das primeiras atividades (Mesa e Solo):
        1. Janela do Norte (fase inclinacao, fora deste iframe)
@@ -28,6 +28,13 @@
     const path={sala:'MOSAICO-26-a-sala-as-escuras.html',mesa:'AC-escrivaninha.html',maquete:'AC-maquete.html'}[name];
     frame.src=path+'?'+q;frame.hidden=false;
     $('stage').textContent={sala:'1 / 3 · A sala às escuras',mesa:'2 / 3 · Sob outra luz',maquete:'3 / 3 · O lar em miniatura'}[name];
+  }
+  /* O bloqueio é um diálogo de decisão: sem ×, sem Esc — sai quando a
+     partida retoma ou o colega chega. */
+  function bloquear(texto){
+    const d=$('block');
+    if(texto){$('block-texto').textContent=texto;if(!d.open){try{d.showModal();}catch{d.setAttribute('open','');}}}
+    else if(d.open){try{d.close();}catch{d.removeAttribute('open');}}
   }
   function applyFragmentTheme(hex){
     if(!/^#[0-9a-f]{6}$/i.test(hex))return;
@@ -45,13 +52,12 @@
   }
   function receive(s){
     state=s;const p=s.percurso;if(!p||p.runId!==run)return;
-    if(p.fragmento){applyFragmentTheme(p.fragmento.hex);$('help').textContent='🤝 Fragmento';$('partners-title').textContent='Seu Fragmento nesta atividade';$('partners-intro').textContent='Encontre seus colegas pela cor e pelo símbolo do Fragmento.';const badge=$('fragment-identity');badge.hidden=false;badge.textContent=p.fragmento.simbolo+' '+p.fragmento.nome+' · '+p.fragmento.cor;badge.style.color=p.fragmento.hex;
+    if(p.fragmento){applyFragmentTheme(p.fragmento.hex);$('partners-title').textContent='Seu Fragmento nesta atividade';$('partners-intro').textContent='Encontre seus colegas pela cor e pelo símbolo do Fragmento.';const badge=$('fragment-identity');badge.hidden=false;badge.textContent=p.fragmento.simbolo+' '+p.fragmento.nome+' · '+p.fragmento.cor;badge.style.color=p.fragmento.hex;
       $('identity').textContent='Seu papel: '+({luz:'💡 luz',conhecimento:'📜 investigação',apoio:'📖 leitura e orientação'}[credentials.papel])+'. Grupo desta atividade: '+p.fragmento.membros.map(m=>m.nome).join(', ');}
     frame.inert=p.paused.length>0;
     const waiting=p.ready.includes(credentials.papel)&&p.ready.length<(p.fragmento?.membros.length||2);
-    $('block').hidden=!p.paused.length&&!waiting;
-    $('block').textContent=p.paused.length?'A partida está pausada. Aguarde a retomada.':'Você concluiu a sala. Aguarde os demais integrantes terminarem a investigação.';
-    if(s.maquete?.complete){$('points-sala').textContent=(p.salaIndividual?.[credentials.papel]?.pontos??0)+' pontos';$('points-candle').textContent=s.bonus+' pontos';$('points-keys').textContent=s.maquete.score+' pontos';frame.hidden=true;$('summary').hidden=false;$('stage').textContent='Investigação concluída';return;}
+    bloquear(p.paused.length||waiting?(p.paused.length?'A partida está pausada. Aguarde a retomada.':'Você concluiu a sala. Aguarde os demais integrantes terminarem a investigação.'):null);
+    if(s.maquete?.complete){$('points-sala').textContent=(p.salaIndividual?.[credentials.papel]?.pontos??0)+' pontos';$('points-candle').textContent=s.bonus+' pontos';$('points-keys').textContent=s.maquete.score+' pontos';frame.hidden=true;bloquear(null);$('summary').hidden=false;$('stage').textContent='Investigação concluída';return;}
     showScene(!p.ready.includes(credentials.papel)?'sala':s.maquete?'maquete':'mesa');
   }
   async function connect(c){
@@ -61,7 +67,8 @@
     if(player!=='visitante')await action('percurso_identificar',{jogador:player});
     save();for(const [k,v]of Object.entries(c))params.set(k,v);history.replaceState(null,'','?'+params);$('setup').hidden=true;receive(s);
     stream?.close();stream=new (globalThis.ACEvents||EventSource)('/api/ac/events?'+query());stream.onmessage=e=>receive(JSON.parse(e.data));
-    stream.onerror=()=>{$('block').hidden=false;$('block').textContent='Reconectando… seu progresso está preservado.';};
+    stream.onerror=()=>bloquear('Reconectando… seu progresso está preservado.');
+    stream.onopen=()=>{if(state)receive(state);};
     if(!s.percurso?.fragmento)$('identity').textContent=c.papel==='luz'?'Você é o portador da luz.':'Você é o portador do conhecimento.';
     if(!s.percurso?.fragmento&&c.papel==='conhecimento'){$('invite').textContent='Você entrou pelo convite do colega.';$('invite').removeAttribute('href');}
     await action('percurso_controle',{acao:control});
@@ -117,7 +124,15 @@
     if(c.papel!=='conhecimento'||!c.sala||!c.chave)throw Error('Convite incompleto.');return c;
   }
   $('join').onclick=()=>attempt(()=>connect(parseInvite($('join-link').value)));
-  $('help').onclick=()=>$('partners').showModal();$('close').onclick=()=>$('partners').close();
+  $('close').onclick=()=>$('partners').close();
+  /* O chevron d'A Casa ABRE o que estiver recolhido. Enquanto a dupla não se
+     formou, o que está recolhido é o convite: sem isto, quem tocou em
+     "Entendi" nunca mais recuperava o link do colega. */
+  window.addEventListener('ac-janelas-abrir',()=>{
+    if(!credentials||!state)return;
+    const faltando=!state.percurso?.fragmento&&credentials.papel==='luz'&&!(state.online||[]).includes('conhecimento')&&$('invite').getAttribute('href');
+    if(faltando&&!$('partners').open){try{$('partners').showModal();}catch{}}
+  });
   frame.onload=()=>{if(state?.percurso?.fragmento)applyFragmentTheme(state.percurso.fragmento.hex);frame.contentWindow.postMessage({mosaico:'controle-tarefa',runId:run,acao:control},location.origin);};
   window.addEventListener('message',e=>{
     if(e.origin!==location.origin||!e.data||e.data.runId!==run)return;

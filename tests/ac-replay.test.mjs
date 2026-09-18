@@ -10,7 +10,7 @@ test('replay converge em tres clientes com eventos fora de ordem e preserva prem
  add('luz',{type:'posicionar'});add('luz',{type:'encaixar'});add('luz',{type:'feixe',origin:[0,0,1],target:[0,0,0]});add('conhecimento',{type:'descobrir'});add('conhecimento',{type:'registrar'});add('conhecimento',{type:'iniciar_maquete'});
  for(const [i,object] of CAPITULOS.map((c)=>c.esconderijo).entries()){
    const explorer=i===1?'conhecimento':'luz',guide=i===1?'luz':'conhecimento';
-   add(guide,{type:'maquete_orientar'});add(explorer,{type:'maquete_examinar',object});add(explorer,{type:'maquete_mover',tip:FECHADURAS[i]});add(explorer,{type:'maquete_encaixar'});
+   add(explorer,{type:'maquete_examinar',object});add(guide,{type:'maquete_examinar',object:CAPITULOS[i].fechadura});add(explorer,{type:'maquete_mover',tip:FECHADURAS[i]});add(explorer,{type:'maquete_encaixar'});
  }
  const result=receipts(group,events);assert.equal(result[1].chaves,24);assert.equal(Object.keys(result[1].salaIndividual).length,3);
  assert.deepEqual(receipts(group,[...events].reverse()),result);

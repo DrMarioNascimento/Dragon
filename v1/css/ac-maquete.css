@@ -1,124 +1,41 @@
 /* A maquete. A folha continua sendo a mesma família de A Casa
    (`ac-investigacao.css` + `ac-janelas.css`); aqui ficam só a porta de entrada
-   da RA, a imagem da câmera e os ajustes de telefone medidos no percurso. */
+   da RA, a imagem da câmera e as pegas. ONDE cada janela mora é assunto de
+   `ac-janelas.css` — nenhuma posição de janela é decidida aqui. */
 
 /* ---- a imagem da câmera, atrás de tudo ---- */
 #ac-camera{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2;background:#04100e}
 body.in-ar #scene canvas{background:transparent}
 body.ra-camera,body.ra-webxr{background:transparent}
 
-/* ---- a porta: pôr a maquete no ambiente ---- */
-#portal{position:fixed;inset:0;z-index:40;display:grid;place-items:end center;
-  padding:0 16px max(24px,env(safe-area-inset-bottom));
-  background:linear-gradient(180deg,#04100ecc 0%,#04100e22 38%,#04100eee 100%);pointer-events:auto}
-#portal[hidden]{display:none!important}
-.portal-cartao{width:min(460px,100%);background:linear-gradient(145deg,#18352f,#091b18);
-  border:1px solid #c9a66c66;border-top:4px solid #DCC9A3;border-radius:18px;padding:20px 22px 22px;
-  box-shadow:inset 0 1px #ffffff22,0 8px 0 #04110e,0 22px 48px #0007}
-.portal-cartao h2{font:400 27px/1.15 Georgia,serif;color:#f4f1e6;margin:8px 0 10px}
-.portal-cartao p{font:15px/1.5 system-ui;color:#e7eee6;margin:0 0 16px}
+/* ---- a porta: pôr a maquete no ambiente (diálogo da faixa tela) ---- */
+html[data-ac-casa] #portal{background:linear-gradient(145deg,#18352f,#091b18)}
+html[data-ac-casa] #portal::backdrop{background:linear-gradient(180deg,#04100ecc 0%,#04100e22 60%,#04100e55 100%);backdrop-filter:none}
+#portal h2{color:#f4f1e6}
+#portal p{color:#e7eee6}
 .portal-botoes{display:flex;flex-direction:column;gap:10px}
 .portal-botoes button{width:100%}
 .portal-botoes .portal-principal{background:linear-gradient(#3a6c5c,#1d4438);border-color:#8fc0ac;color:#fffaf0;font-size:15px;min-height:52px}
 .portal-aviso{font:13px/1.45 system-ui;color:#ffe7bd;margin:14px 0 0;min-height:1.45em}
 
-/* ---- linha de pouso e faixa de estado ---- */
-#faixa{position:fixed;z-index:29;left:12px;right:12px;bottom:max(76px,calc(58px + env(safe-area-inset-bottom)));
-  margin:0;padding:10px 14px;border-radius:14px;background:#0b211de8;border:1px solid #6f8f83;
-  color:#ffffff;font:600 14px/1.35 system-ui;text-align:center;pointer-events:none}
-#faixa[hidden]{display:none!important}
-#faixa b{color:#ffe1ac;font-weight:700}
-@media(min-width:701px){#faixa{display:none!important}}
-/* Quem guia já tem o manuscrito aberto na mesma faixa de tela — medido a
-   390×844, os dois se sobrepunham (faixa 728–768, manuscrito 610–808). */
-body[data-role-mode="guide"] #faixa{display:none!important}
-#pousar{position:fixed;z-index:30;left:12px;right:12px;bottom:max(88px,calc(70px + env(safe-area-inset-bottom)));
-  margin:0;padding:11px 14px;border-radius:14px;background:#0d2a24f2;border:1px solid #c9a66c55;
-  color:#ffeccb;font:600 14px/1.35 system-ui;text-align:center;pointer-events:none}
-#pousar[hidden]{display:none!important}
-#portal-voltar{position:fixed;z-index:30;left:50%;transform:translateX(-50%);
-  bottom:max(24px,env(safe-area-inset-bottom));padding:10px 16px;font-size:12px;
-  background:#0d2a24ee;border-color:#c9a66c55;border-radius:24px}
-#portal-voltar[hidden]{display:none!important}
-
-/* O capítulo de abertura é a moldura do "antes": some quando a casa é posta,
-   senão ele cruza com a pilha de painéis no meio da tela. */
-body.maquete-posta .chapter{display:none}
-/* Moldura baixa (dentro do percurso, ou telefone deitado): o capítulo cruza
-   com o cartão do portal. Some antes de atrapalhar. */
-@media(max-height:640px){.chapter{display:none}}
-
 /* ---- painéis ---- */
-.instruction{width:min(350px,35vw)}
-#manuscript{position:fixed;right:5vw;bottom:118px;width:300px;padding:25px;
-  background:linear-gradient(140deg,#e6d4ae,#bda478);color:#34291e;border:1px solid #f0deb8;
-  border-radius:5px 18px 6px 13px;box-shadow:inset 0 0 24px #74562c30,0 8px 0 #5b472d,0 24px 45px #0006;
-  touch-action:none;user-select:none;cursor:pointer}
-#manuscript .eyebrow{color:#6b512d}
-#manuscript p{font-size:17px;line-height:1.6}
-#manuscript:focus-visible{outline:3px solid #e6c185;outline-offset:5px}
-#reading{height:3px;background:#80643b44}
-#reading span{display:block;background:#5e4f32;height:3px;width:0}
 #score{font-size:12px;color:#f0dcb4;margin-bottom:0}
+#alignment{color:#ffe7bd!important;font-weight:600!important}
 #object-list{display:grid;gap:10px;margin-bottom:15px}
-#objects button{width:100%}
-#key-grip{border:1px solid #e8cc8c77;background:#c8a86e12;box-shadow:0 0 20px #c8a86e22}
+#objects #object-list button{width:100%}
 #return-desk{color:#edd4a5;text-decoration:underline}
 .in-ar #alternative{display:block}
-.in-ar #manuscript{background:#e5d3b2f7}
-.instruction a{pointer-events:auto;color:#ead2a1}
 .chapter{text-shadow:0 2px 12px #000,0 1px 3px #000}
 .chapter p{color:#cfdbcd}
-.chapter,.instruction{transition:opacity .18s ease}
-.manipulating .chapter{opacity:.12}
-.tools{bottom:max(20px,env(safe-area-inset-bottom))}
+@media(max-width:700px){.chapter h1{font-size:27px;line-height:1.15}.chapter .eyebrow{font-size:8px}}
+@media(max-height:640px){.chapter p{display:none}}
 
-#key-grip.gesture-point{width:76px;height:76px;border:1px solid #f2cf7880;box-shadow:0 0 22px #e3b45535;background:#c8a86e08}
-#key-grip.gesture-point span{opacity:1;font-size:11px;font-weight:600;color:#ffe4a2;background:#102a23f2;border:1px solid #e5bc6255;padding:7px 10px}
+/* ---- as pegas: a chave e a fechadura ---- */
+#key-grip.gesture-point,#lock-grip.gesture-point{width:76px;height:76px;border:1px solid #f2cf7880;box-shadow:0 0 22px #e3b45535;background:#c8a86e08;touch-action:none}
+#key-grip.gesture-point span,#lock-grip.gesture-point span{opacity:1;font-size:11px;font-weight:600;color:#ffe4a2;background:#102a23f2;border:1px solid #e5bc6255;padding:7px 10px}
 #key-grip.gesture-point.ready{border-color:#baf4c9;box-shadow:0 0 24px #baf4c955}
-
-/* ---- telefone: medido no percurso da Casa, 15–17/09/2026 ---- */
-@media(max-width:700px){
-  .chapter{top:100px;right:18px}
-  .chapter h1{font-size:27px;line-height:1.15}
-  .chapter .eyebrow{font-size:8px}
-  .investigating .chapter h1{font-size:22px;margin:4px 0}
-  .investigating .chapter p,.investigating .chapter>.eyebrow{display:none}
-  .instruction{width:auto;bottom:65px;padding:13px 17px}
-  .instruction h2{font-size:19px}
-  .instruction p{font-size:13px;line-height:1.45;margin-bottom:8px}
-  #manuscript{right:16px;left:16px;bottom:235px;width:auto;padding:16px 21px}
-  #manuscript p{font-size:15px;margin:10px 0}
-  #manuscript .eyebrow{font-size:9px}
-  .portal-cartao{padding:18px 18px 20px}
-  .portal-cartao h2{font-size:24px}
-  .portal-cartao p{font-size:14px}
-  #pousar{font-size:13px;bottom:max(76px,calc(62px + env(safe-area-inset-bottom)))}
-}
-@media(max-height:500px) and (orientation:landscape){
-  .chapter{top:85px;left:18px}.chapter h1{font-size:22px}.chapter p,.chapter>.eyebrow{display:none}
-  .instruction{left:18px;bottom:65px;width:230px;padding:10px 14px}
-  #manuscript{right:18px;bottom:65px;width:245px;padding:12px 16px}#manuscript p{font-size:13px}
-  #portal{place-items:center}
-  .portal-cartao{max-height:88dvh;overflow:auto}
-}
-
-/* A CENA LIVRE não pode valer para quem guia.
-   Em A Casa, entrar na atividade recolhe a pilha de painéis e deixa a cena
-   limpa — o que é certo para quem manipula. Mas nesta atividade quem tem a
-   FECHADURA não manipula nada: o manuscrito é a interface inteira dele, e sem
-   ele não há o que dizer ao colega. Então, e só nesse papel, a pilha fica. */
-body[data-role-mode="guide"].ac-cena-livre .ac-panel-stack,
-body[data-role-mode="guide"].ac-atividade-iniciada .ac-panel-stack{display:flex!important}
-body[data-role-mode="guide"] .ac-panel-stack>.instruction{display:none!important}
-
-/* Quem guia não arrasta nada: o manuscrito é o painel principal dele. */
-@media(min-width:701px) and (min-height:501px){
-  [data-role-mode="guide"] #manuscript{left:7vw;right:auto;bottom:130px;width:min(350px,35vw)}
-  [data-role-mode="guide"] .instruction{bottom:38px;padding:12px 20px}
-}
-@media(max-width:700px){
-  [data-role-mode="guide"] #manuscript{top:150px;bottom:auto;max-height:calc(100dvh - 300px);overflow:auto;padding:14px 19px}
-  [data-role-mode="guide"] .chapter h1{font-size:22px;margin:4px 0}
-  [data-role-mode="guide"] .chapter p,[data-role-mode="guide"] .chapter>.eyebrow{display:none}
-}
+/* A recusa tem de ser VISTA: a peça resiste, chacoalha e volta. "Não
+   acontece nada" é indistinguível de travamento. */
+#lock-grip.recusa{animation:ac-recusa .42s cubic-bezier(.36,.07,.19,.97)}
+@keyframes ac-recusa{10%,90%{transform:translate(calc(-50% - 2px),-50%)}20%,80%{transform:translate(calc(-50% + 4px),-50%)}30%,50%,70%{transform:translate(calc(-50% - 7px),-50%)}40%,60%{transform:translate(calc(-50% + 7px),-50%)}}
+@media(prefers-reduced-motion:reduce){#lock-grip.recusa{animation:none;outline:2px solid #ffb3a0}}

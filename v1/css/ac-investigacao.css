@@ -19,3 +19,8 @@
   .ac-panel-stack>.instruction #primary{position:sticky;bottom:0;margin-top:12px;background:#16362f}
   .tools{z-index:20;padding:0 8px}
 }
+
+/* A recusa tem de ser VISTA: a peça resiste, chacoalha e volta ao lugar. */
+.gesture-point.recusa{animation:ac-recusa-pega .42s cubic-bezier(.36,.07,.19,.97)}
+@keyframes ac-recusa-pega{10%,90%{transform:translate(calc(-50% - 2px),-50%)}20%,80%{transform:translate(calc(-50% + 4px),-50%)}30%,50%,70%{transform:translate(calc(-50% - 7px),-50%)}40%,60%{transform:translate(calc(-50% + 7px),-50%)}}
+@media(prefers-reduced-motion:reduce){.gesture-point.recusa{animation:none;outline:2px solid #ffb3a0}}

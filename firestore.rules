@@ -98,9 +98,9 @@ service cloud.firestore {
           return d.keys().hasOnly(['uid','role','event','at']) && ownRole(d) && d.at == request.time
             && request.time.toMillis() <= group().endsAt && room(versao,roomId).fase == group().phase && room(versao,roomId).acElencoAtividade.runId == group().runId
             && d.event is map && d.event.keys().hasOnly(['type','acao','objetos','total','tempoMs','origin','target','tip','object'])
-            && d.event.type in ['sala_progresso','sala_concluida','sala_encerrar','percurso_controle','iniciar','posicionar','encaixar','feixe','descobrir','registrar','iniciar_maquete','maquete_orientar','maquete_examinar','maquete_mover','maquete_encaixar']
+            && d.event.type in ['sala_progresso','sala_concluida','sala_encerrar','percurso_controle','iniciar','posicionar','encaixar','feixe','descobrir','registrar','reacender','iniciar_maquete','maquete_examinar','maquete_mover','maquete_encaixar']
             && (!(d.event.type in ['iniciar','posicionar','encaixar','feixe']) || d.role == 'luz')
-            && (!(d.event.type in ['descobrir','registrar','iniciar_maquete']) || d.role == 'conhecimento')
+            && (!(d.event.type in ['descobrir','registrar','reacender','iniciar_maquete']) || d.role == 'conhecimento')
             && (!('objetos' in d.event) || (d.event.objetos is int && d.event.objetos >= 0 && d.event.objetos <= 9))
             && (!('total' in d.event) || d.event.total == 9)
             && (!('tempoMs' in d.event) || (d.event.tempoMs is number && d.event.tempoMs > 0 && d.event.tempoMs <= 3600000))

@@ -1,36 +1,56 @@
-/* AC: a mesma ancora para ajuda, pistas e descobertas. */
-:root{--ac-window-top:max(16px,env(safe-area-inset-top,0px));--ac-window-width:480px;--ac-window-box:min(var(--ac-window-width),calc(100vw - 32px))}
+/* AC: identidade e lugar das janelas.
+
+   A folha tem três partes, nesta ordem:
+   1. o cromo de identidade (símbolo, nome e cor do nível) — vale para toda
+      página que a carregue, inclusive a Mesa, a Janela do Norte e o Vidro;
+   2. a intro das tarefas sensoriais (CTA fora da rolagem);
+   3. as FAIXAS d'A Casa — só em `<html data-ac-casa>` (escrivaninha, percurso,
+      maquete e sala às escuras).
+
+   Toda medida de janela d'A Casa sai das variáveis abaixo. Se um número mudar,
+   muda a VARIÁVEL, nunca o ponto de uso. */
+:root{
+  /* barra do topo: piso de toque de 44 px + folga, e cresce um pouco na tela grande */
+  --ac-barra:  clamp(48px, 7dvh, 64px);
+  /* margem lateral única, a mesma para tudo */
+  --ac-margem: clamp(10px, 3vw, 24px);
+  /* largura máxima de QUALQUER janela */
+  --ac-caixa:  min(34rem, calc(100vw - 2 * var(--ac-margem)));
+  /* tetos de altura das faixas */
+  --ac-alto:   22dvh;
+  --ac-baixo:  38dvh;
+  /* altura real do rodapé de ferramentas, medida em tempo real (ac-janelas.js) */
+  --ac-rodape: 0px;
+  /* conteúdo de qualquer janela */
+  --ac-corpo:  clamp(13px, 3.6vw, 16px);
+  --ac-titulo: clamp(19px, 5.2vw, 26px);
+  --ac-respiro:clamp(12px, 3.4vw, 20px);
+  /* o cromo de identidade (símbolo + nome do nível) */
+  --ac-cromo:  clamp(56px, 12dvh, 84px);
+  --ac-selo:   clamp(34px, 7dvh, 52px);
+
+  /* legado da Mesa: abertura dos diálogos que não são d'A Casa */
+  --ac-window-top:max(16px,env(safe-area-inset-top,0px));--ac-window-width:480px;--ac-window-box:min(var(--ac-window-width),calc(100vw - 32px));
+}
 @media(min-width:701px){:root{--ac-window-top:max(48px,env(safe-area-inset-top,0px))}}
+
+/* ============ 1. cromo de identidade (todas as páginas) ============ */
 dialog{position:fixed;inset:var(--ac-window-top) 0 auto;margin:0 auto;width:var(--ac-window-box);max-height:calc(100dvh - var(--ac-window-top) - max(16px,env(safe-area-inset-bottom,0px)));overflow:auto;overscroll-behavior:contain;padding-top:64px;box-shadow:inset 0 1px #ffffff20,0 8px 0 #061410,0 25px 80px #0009}
-dialog>.close{position:sticky;top:0;float:right;margin:-52px -4px 8px 12px;width:44px;min-height:44px;padding:0;background:#142e28;border:1px solid #789083;border-radius:10px;z-index:5}
 body #carta{justify-content:flex-start;padding-top:var(--ac-window-top)}
 body #carta::before,body #carta::after{display:none}
 body #carta-in{max-width:var(--ac-window-width)}
 
 /* Cor e simbolo pertencem ao tipo, nao ao texto da pista.
    #intro / #oito / #falha / .busca-caixa NÃO são janelas de identidade:
-   o chrome de 84px + ::before/::after virava um cartão de tela cheia no
-   iframe do Solo e empurrava o CTA para fora da dobra. */
-[data-ac-priority]:not(#intro):not(#oito):not(#falha):not(.busca-caixa){border-color:var(--ac-accent)!important;border-top:4px solid var(--ac-accent)!important;background:linear-gradient(145deg,#18352f,#091b18)!important;color:#f4f1e6!important;box-shadow:inset 0 1px #ffffff22,0 6px 0 #04110e,0 18px 40px #0006!important}
-[data-ac-priority]:not(#intro):not(#oito):not(#falha):not(.busca-caixa)::before{content:attr(data-ac-symbol);display:inline-flex!important;align-items:center;justify-content:center;width:52px;height:52px;border:2px solid var(--ac-accent);border-radius:12px;font:36px/1 'Apple Color Emoji','Segoe UI Emoji',sans-serif;vertical-align:middle;margin:0 10px 12px 0;flex:none!important}
-[data-ac-priority]:not(#intro):not(#oito):not(#falha):not(.busca-caixa)::after{content:attr(data-ac-title);display:block;color:var(--ac-accent);font:700 18px/1.3 system-ui;margin:0 0 12px;order:-1}
-/* Cabecalho fixo de identidade, separado do conteudo dinamico. */
-[data-ac-priority]:not(#intro):not(#oito):not(#falha):not(.busca-caixa){position:relative}
-[data-ac-priority]:not(#intro):not(#oito):not(#falha):not(.busca-caixa)::after{position:absolute;top:22px;left:86px;right:48px}
+   o chrome + ::before/::after virava um cartão de tela cheia no iframe do
+   Solo e empurrava o CTA para fora da dobra. */
+[data-ac-priority]:not(#intro):not(#oito):not(#falha):not(.busca-caixa){position:relative;border-color:var(--ac-accent)!important;border-top:4px solid var(--ac-accent)!important;background:linear-gradient(145deg,#18352f,#091b18)!important;color:#f4f1e6!important;box-shadow:inset 0 1px #ffffff22,0 6px 0 #04110e,0 18px 40px #0006!important;padding-top:var(--ac-cromo)!important}
+[data-ac-priority]:not(#intro):not(#oito):not(#falha):not(.busca-caixa)::before{content:attr(data-ac-symbol);display:inline-flex!important;align-items:center;justify-content:center;position:absolute;left:16px;top:calc((var(--ac-cromo) - var(--ac-selo)) / 2);width:var(--ac-selo);height:var(--ac-selo);margin:0!important;border:2px solid var(--ac-accent);border-radius:12px;font:calc(var(--ac-selo) * .66)/1 'Apple Color Emoji','Segoe UI Emoji',sans-serif;flex:none!important}
+[data-ac-priority]:not(#intro):not(#oito):not(#falha):not(.busca-caixa)::after{content:attr(data-ac-title);display:block;position:absolute;top:calc(var(--ac-cromo) / 2 - .65em);left:calc(var(--ac-selo) + 30px);right:16px;color:var(--ac-accent);font:700 clamp(14px,3.8vw,18px)/1.3 system-ui;margin:0;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* HUD da sala: texto informativo, sem interceptar a lanterna/3D. */
 .busca-caixa{pointer-events:none}
-.ac-panel-stack{position:fixed;z-index:12;left:24px;top:155px;bottom:86px;width:min(350px,32vw);display:flex;flex-direction:column;gap:12px;overflow-y:auto;padding:0 8px 12px;pointer-events:none;overscroll-behavior:contain}
-body .ac-panel-stack>#manuscript,body .ac-panel-stack>.instruction,body .ac-panel-stack>#coop-status{position:relative!important;inset:auto!important;transform:none!important;margin:0!important;width:100%!important;max-width:none!important;max-height:none!important;flex:none;padding:16px!important;pointer-events:auto;text-align:left}
-.ac-panel-stack #manuscript p{color:#f4f1e6}.ac-panel-stack #manuscript .eyebrow{color:#FF9638}
 body .modal-fundo:has(>[data-ac-priority]){align-items:flex-start;padding-top:var(--ac-window-top);overflow:auto}
 body .modal[data-ac-priority]{width:min(480px,calc(100vw - 32px));max-height:calc(100dvh - 64px);overflow:auto;margin:0 auto}
-@media(max-width:700px){.ac-panel-stack{left:8px;top:auto;bottom:80px;width:calc(100vw - 16px);max-height:46dvh}.ac-panel-stack [data-ac-priority]::before{width:44px;height:44px;font-size:32px}.ac-panel-stack [data-ac-priority]::after{left:78px;font-size:16px}}
-
-body [data-ac-priority]:not(#intro):not(#oito):not(#falha):not(.busca-caixa),body .ac-panel-stack>[data-ac-priority]{padding-top:84px!important}
-body [data-ac-priority]:not(#intro):not(#oito):not(#falha):not(.busca-caixa)::before{position:absolute;left:16px;top:14px;margin:0!important}
-body [data-ac-priority]:not(#intro):not(#oito):not(#falha):not(.busca-caixa)::after{top:28px;left:82px;right:50px;text-align:left}
-body dialog[data-ac-priority]>.close{margin:-70px -4px 8px 12px;top:0}
-
 body .mosaico-ra-modal:has(>[data-ac-priority]){align-items:flex-start;padding-top:var(--ac-window-top);overflow:auto}body .mosaico-ra-modal-card[data-ac-priority]{max-width:480px;max-height:calc(100dvh - 80px);overflow:auto;transform:none!important}
 
 /* Mesmo ponto de abertura para confirmacoes, alertas e cartas dos sensores. */
@@ -44,115 +64,27 @@ body .ra-inv-wrapper[data-ac-priority]{max-width:480px;margin:var(--ac-window-to
 body details[data-ac-priority]:not([open]){min-height:110px}
 body [data-ac-priority] .dialogo-botoes{position:sticky;bottom:0;background:#0c211c;padding:12px 0 4px;z-index:2}
 
-/* IDs dos paineis tinham prioridade sobre o espacamento do cabecalho. */
-body .ac-panel-stack>#coop-status[data-ac-priority],
-body .ac-panel-stack>#manuscript[data-ac-priority],
-body .ac-panel-stack>.instruction[data-ac-priority]{padding:84px 16px 16px!important;min-height:112px;border-radius:14px;line-height:1.5}
-body .ac-panel-stack>#coop-status[data-ac-priority]{font:14px/1.5 system-ui,sans-serif}
-body.ac-atividade-iniciada .ac-panel-stack>#coop-status{display:none!important}
-
-/* Cena livre / atividade iniciada: as janelas informativas somem de verdade.
-   Sem isto, `ac-cena-livre` era só uma classe no body e os cartões
-   continuavam cobrindo a cena. Ficam a topbar (botão i) e as ferramentas. */
-body.ac-cena-livre .ac-panel-stack,
-body.ac-cena-livre .chapter,
-body.ac-cena-livre #coop-status,
-body.ac-cena-livre #loading,
-body.ac-cena-livre .caption,
-body.ac-atividade-iniciada .ac-panel-stack,
-body.ac-atividade-iniciada .chapter,
-body.ac-atividade-iniciada #loading,
-body.ac-atividade-iniciada .caption{display:none!important}
+/* O × dos diálogos que NÃO são d'A Casa (a Mesa ainda os usa). Fixo, na
+   faixa de cabeçalho, ancorado na mesma largura do diálogo: `sticky` prende
+   no content box e `absolute` rola com o texto — os dois já falharam. */
+dialog>.close{position:fixed;float:none;margin:0;top:calc(var(--ac-window-top) + 14px);right:calc((100vw - var(--ac-window-box))/2 + 14px);display:grid;place-items:center;padding:0;width:44px!important;min-width:44px;min-height:44px;background:#142e28;border:1px solid #789083;border-radius:10px;z-index:5}
 #ac-frase[hidden]{display:none!important}
 
-/* Abertura das tarefas sensoriais: o CTA fica FORA da rolagem.
-   Medido no iframe do Solo a 390×700 (16/09/2026): cartões + nota canônica
-   + chrome de identidade deixavam «Entrar na sala» abaixo da dobra, sem ×
-   nem Esc — o jogador via só janelas informativas e não tinha o que fazer. */
+/* ============ 2. intro das tarefas sensoriais ============
+   O CTA fica FORA da rolagem. Medido no iframe do Solo a 390×700
+   (16/09/2026): cartões + nota canônica deixavam «Entrar na sala» abaixo da
+   dobra — o jogador via só janelas informativas e não tinha o que fazer. */
 body #intro:has(#intro-corpo){justify-content:flex-start;overflow:hidden}
 #intro-corpo{flex:1 1 auto;min-height:0;width:100%;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:4px 52px 8px 8px;box-sizing:border-box}
+html[data-ac-casa] #intro-corpo{padding-right:8px}
 #intro:has(#intro-corpo)::before,#intro:has(#intro-corpo)::after{content:none!important;display:none!important;flex:none!important;margin:0!important}
 body #intro>.close{position:absolute;top:max(10px,env(safe-area-inset-top));right:max(10px,env(safe-area-inset-right));width:44px!important;min-width:44px;min-height:44px;margin:0;display:grid;place-items:center;padding:0;z-index:8;background:#142e28;border:1px solid #789083;border-radius:10px;color:#ffe9c4;font:700 22px/1 system-ui}
 body #intro .go,body #intro .alt{flex:none;z-index:6}
 
-/* ===== Telefone (20260915) =====
-   1. Cabeçalho: "A CASA / DA COSTA" quebrava palavra por palavra e o subtítulo
-      encostava no botão i.
-   2. Botão × das janelas: o WebKit mede o `sticky` a partir do padding do
-      diálogo, então a margem negativa não subia e o × caía sobre o texto.
-   3. Painéis: a instrução rolava dentro de uma pilha que também rolava, e os
-      botões de ferramentas (que quebram em duas linhas) cobriam a pilha. A
-      pilha agora nasce acima da altura MEDIDA das ferramentas (ac-janelas.js). */
-.topbar{gap:10px}
-.brand{flex:none}
-.brand span{white-space:nowrap}
-#help{flex:none}
-.edition{flex:1 1 auto;min-width:0;text-align:center;line-height:1.35}
-/* O x fica na FAIXA de cabecalho da janela (os 84px onde moram o simbolo
-   e o titulo), e nao pode rolar junto com o texto: estas janelas nao fecham
-   por Esc num telefone nem por toque no fundo, entao um x fora da tela
-   prende o jogador dentro do dialogo.
-   `sticky` nao resolve: os dois motores prendem o grude no CONTENT box, ou
-   seja 84px abaixo do topo — medido em 15/09/2026, o x parava exatamente
-   sobre a primeira linha do texto. E `absolute` rola com o conteudo.
-   Fixo, ancorado em --ac-window-box, que e a MESMA largura do dialogo.
-   A largura leva !important porque na maquete existe um seletor de ID
-   (`#objects button` com largura 100%) que ganha de qualquer classe: com o
-   x fixo, esses 100% viravam a largura da TELA e o glifo saia dela. */
-body dialog>.close,body dialog[data-ac-priority]>.close{position:fixed;float:none;margin:0;
-  top:calc(var(--ac-window-top) + 14px);right:calc((100vw - var(--ac-window-box))/2 + 14px);
-  display:grid;place-items:center;padding:0;width:44px!important;min-width:44px}
-@media(max-width:700px){
-  .edition{font-size:8px;letter-spacing:.1em}
-  .ac-panel-stack{bottom:calc(var(--ac-tools-space,80px) + 8px);max-height:min(40dvh,calc(100dvh - var(--ac-tools-space,80px) - 150px));overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
-  body .ac-panel-stack>.instruction[data-ac-priority]{max-height:none!important;overflow:visible!important}
-  .tools{bottom:max(14px,env(safe-area-inset-bottom,0px))}
-}
-@media(max-width:380px){
-  .brand{font-size:24px;gap:8px}.brand span{font-size:9px;padding-left:8px}
-  .tools button{padding:9px 10px}
-}
-@media(max-width:700px){
-  /* Sombra longa recortada pela pilha rolável virava um retângulo escuro. */
-  body .ac-panel-stack>#coop-status[data-ac-priority],
-  body .ac-panel-stack>#manuscript[data-ac-priority],
-  body .ac-panel-stack>.instruction[data-ac-priority]{box-shadow:inset 0 1px #ffffff20,0 5px 0 #061410!important}
-  .ac-panel-stack>.instruction #primary{box-shadow:0 -10px 14px #0c201d,0 4px 0 #071612}
-}
-
-/* Telas baixas (quadro da Mesa, iPhone com barras do Safari): menos cabeçalho
-   de card e título de capítulo compacto, para a cena 3D continuar visível. */
-@media(max-width:700px) and (max-height:760px){
-  .chapter{top:74px!important}
-  .chapter h1{font-size:24px!important;margin:2px 0!important}
-  .chapter p{display:none}
-  .topbar{padding:10px 14px}
-  .brand{font-size:24px}
-  .topbar #help{width:38px;min-height:38px;font-size:21px}
-  .ac-panel-stack{max-height:min(42dvh,calc(100dvh - var(--ac-tools-space,80px) - 120px))}
-  body .ac-panel-stack>[data-ac-priority],body .ac-panel-stack>#coop-status[data-ac-priority],body .ac-panel-stack>#manuscript[data-ac-priority],html body .ac-panel-stack>.instruction[data-ac-priority]{padding:52px 14px 12px!important;min-height:0}
-  body .ac-panel-stack>[data-ac-priority]::before{width:32px!important;height:32px!important;font-size:21px!important;top:10px!important;left:14px!important;border-radius:9px}
-  body .ac-panel-stack>[data-ac-priority]::after{top:15px!important;left:56px!important;font-size:14px!important}
-  .ac-panel-stack #timer{font-size:10px;margin-bottom:2px}
-  .ac-panel-stack>.instruction h2{font-size:19px;margin:2px 0 4px}
-  #coop-status:not(.ac-panel-stack>*){top:56px}
-}
-
-/* Card de instrução no telefone: a ação logo abaixo do título, sem botão
-   "sticky" cobrindo a explicação. A pilha rola como um bloco só. */
-@media(max-width:700px){
-  body .ac-panel-stack>.instruction[data-ac-priority]{display:flex;flex-direction:column}
-  .ac-panel-stack>.instruction #timer{order:1}.ac-panel-stack>.instruction #step{order:2}
-  .ac-panel-stack>.instruction #heading{order:3}.ac-panel-stack>.instruction #primary{order:4;position:static!important;margin:4px 0 10px;box-shadow:inset 0 1px #ffffff18,0 4px 0 #071612}
-  .ac-panel-stack>.instruction #description{order:5;margin-bottom:4px}.ac-panel-stack>.instruction #progress{order:6}
-  .ac-panel-stack>.instruction #score{order:7}
-  .tools{gap:6px}
-}
-
-/* Durante um gesto (vela, chave) os painéis saem do caminho do dedo. */
-.manipulating .ac-panel-stack{opacity:.15;pointer-events:none!important;transition:opacity .15s}
-.manipulating .ac-panel-stack *{pointer-events:none!important}
-.gesture-point{z-index:14}
+/* Legado da Mesa e dos módulos: "cena livre" esconde o que era informativo. */
+html:not([data-ac-casa]) body.ac-cena-livre .ac-panel-stack,
+html:not([data-ac-casa]) body.ac-cena-livre .chapter,
+html:not([data-ac-casa]) body.ac-cena-livre #coop-status{display:none!important}
 
 /* RA do iPhone pelo Quick Look: o <a rel="ar"> só pode ter a imagem como filho,
    então o rótulo vem do CSS. Texto dentro do <a> faz o Safari BAIXAR o .usdz. */
@@ -161,3 +93,104 @@ body dialog>.close,body dialog[data-ac-priority]>.close{position:fixed;float:non
 #ar-ios>img{width:18px;height:18px;object-fit:cover;border-radius:4px;flex:none;pointer-events:none}
 #ar-ios::after{content:attr(data-label)}
 #ar-ios[hidden]{display:none!important}
+
+/* ============ 3. as faixas d'A Casa ============ */
+
+/* ---- barra do topo ---- */
+html[data-ac-casa] .topbar,
+html[data-ac-casa] body>header{position:fixed;z-index:25;top:0;left:0;right:0;height:var(--ac-barra);box-sizing:border-box;
+  padding:0 var(--ac-margem);display:flex;align-items:center;justify-content:space-between;gap:10px}
+html[data-ac-casa] .topbar .brand{flex:none;font-size:clamp(22px,5.4dvh,34px)}
+html[data-ac-casa] .topbar .brand span{white-space:nowrap}
+html[data-ac-casa] .topbar .edition{flex:1 1 auto;min-width:0;text-align:center;line-height:1.35;font-size:clamp(8px,2.2vw,10px);letter-spacing:.12em}
+/* O chevron: o único controle de janela. `⌃` recolhido, `⌄` aberto. */
+html[data-ac-casa] #help.ac-chevron{flex:none;width:44px;min-width:44px;min-height:44px;height:44px;padding:0;border-radius:50%;
+  display:grid;place-items:center;font:700 24px/1 system-ui,sans-serif;color:#ffe9c4;background:#14352e;border:1px solid #c9a66c88;
+  box-shadow:inset 0 1px #ffffff18,0 3px 0 #071612;margin:0}
+html[data-ac-casa] #help.ac-chevron[aria-expanded="false"]{background:#3a2c10;border-color:#f0c878;color:#fff1cf}
+/* Dentro do percurso, a barra que vale é a dele. */
+html.ac-sob-moldura .topbar #help{visibility:hidden}
+
+/* ---- faixa BAIXO: painéis (níveis 1, 2, 4, 6) ---- */
+html[data-ac-casa] .ac-panel-stack{position:fixed;z-index:12;left:50%;right:auto;top:auto;transform:translateX(-50%);
+  bottom:calc(var(--ac-rodape) + var(--ac-margem));width:var(--ac-caixa);max-height:var(--ac-baixo);
+  display:flex;flex-direction:column;gap:8px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+  padding:0;margin:0;box-sizing:border-box;pointer-events:none;transition:opacity .18s ease}
+html[data-ac-casa] body.ac-recolhido .ac-panel-stack{opacity:0;visibility:hidden}
+html[data-ac-casa] .ac-panel-stack>*{position:relative!important;inset:auto!important;transform:none!important;margin:0!important;
+  width:100%!important;max-width:none!important;max-height:none!important;flex:none;box-sizing:border-box;
+  padding:var(--ac-cromo) var(--ac-respiro) var(--ac-respiro)!important;border-radius:14px;pointer-events:auto;text-align:left;
+  font:var(--ac-corpo)/1.5 system-ui,sans-serif;backdrop-filter:none}
+html[data-ac-casa] .ac-panel-stack>* h2{font:400 var(--ac-titulo)/1.2 Georgia,serif;margin:2px 0 6px}
+html[data-ac-casa] .ac-panel-stack>* p{font:var(--ac-corpo)/1.5 system-ui,sans-serif;margin:0 0 8px;color:#e7eee6}
+html[data-ac-casa] .ac-panel-stack>* .eyebrow{display:block;font:600 clamp(9px,2.4vw,11px)/1.4 system-ui;letter-spacing:.18em;color:#e4c691}
+html[data-ac-casa] .ac-panel-stack>* button{width:100%;margin-top:6px}
+html[data-ac-casa] .ac-panel-stack.ac-pulso>*{animation:ac-pulso .5s ease}
+@keyframes ac-pulso{0%{filter:brightness(1.35)}100%{filter:none}}
+/* "Como jogar" deixou de ser botão da barra: é uma linha da orientação. */
+html[data-ac-casa] .ac-como-jogar{display:inline-flex!important;align-items:center;gap:6px;width:auto!important;min-height:44px;margin:4px 0 0!important;
+  padding:0 12px!important;background:transparent!important;border:1px solid #cad7e866!important;border-radius:22px!important;box-shadow:none!important;
+  color:#e6eef8!important;font:600 13px/1 system-ui!important}
+
+/* ---- faixa ALTO: aviso passageiro (níveis 3, 7, 9) ---- */
+html[data-ac-casa] #notice,
+html[data-ac-casa] #sync-status,
+html[data-ac-casa] #loading{position:fixed;z-index:31;left:50%;right:auto;transform:translateX(-50%);
+  top:calc(var(--ac-barra) + var(--ac-margem));bottom:auto;width:var(--ac-caixa);max-width:none;max-height:var(--ac-alto);overflow:auto;box-sizing:border-box;
+  margin:0;border-radius:14px;text-align:left;font:600 var(--ac-corpo)/1.4 system-ui,sans-serif;pointer-events:none}
+/* O aviso tem cromo COMPACTO: símbolo à esquerda, nome em cima do texto. O
+   cromo alto das janelas grandes comeria a faixa inteira dentro da moldura
+   do percurso (22dvh de 540 = 119 px). */
+/* Os ids repetidos são de propósito: o cromo de identidade (parte 1) conta
+   três `:not(#id)` de especificidade, e sem isto ele ganhava — o aviso saía
+   com o cabeçalho grande (volta 1, 17/09/2026). */
+html[data-ac-casa] #notice#notice#notice[data-ac-priority],
+html[data-ac-casa] #sync-status#sync-status#sync-status[data-ac-priority]{padding:30px 14px 10px 58px!important;min-height:58px}
+html[data-ac-casa] #notice#notice#notice[data-ac-priority]::before,
+html[data-ac-casa] #sync-status#sync-status#sync-status[data-ac-priority]::before{left:10px;top:10px;width:36px;height:36px;font-size:22px;border-radius:9px}
+html[data-ac-casa] #notice#notice#notice[data-ac-priority]::after,
+html[data-ac-casa] #sync-status#sync-status#sync-status[data-ac-priority]::after{top:8px;left:58px;font-size:12px}
+html[data-ac-casa] #loading{padding:12px 16px;background:#0a1918f2;border:1px solid #c9a66c55;color:#f0dcb4}
+
+/* ---- faixa TELA: diálogos (níveis 5, 8, 10) ---- */
+html[data-ac-casa] dialog{position:fixed;inset:auto;top:calc(var(--ac-barra) + var(--ac-margem));left:0;right:0;margin:0 auto;
+  width:var(--ac-caixa);max-width:none;max-height:calc(100dvh - 2 * (var(--ac-barra) + var(--ac-margem)));overflow:auto;overscroll-behavior:contain;
+  box-sizing:border-box;padding:var(--ac-cromo) var(--ac-respiro) var(--ac-respiro);border-radius:18px;font:var(--ac-corpo)/1.5 system-ui,sans-serif}
+html[data-ac-casa] dialog h2{font:400 var(--ac-titulo)/1.2 Georgia,serif;margin:4px 0 10px}
+html[data-ac-casa] dialog p{font:var(--ac-corpo)/1.5 system-ui,sans-serif}
+html[data-ac-casa] dialog button{min-height:44px}
+html[data-ac-casa] dialog::backdrop{background:#020908b8;backdrop-filter:blur(6px)}
+/* Nenhuma janela d'A Casa tem ×. */
+html[data-ac-casa] dialog>.close,html[data-ac-casa] #intro>.close{display:none!important}
+/* O botão que continua o jogo: sempre à vista no pé do diálogo. */
+html[data-ac-casa] dialog .ac-continuar{position:sticky;bottom:calc(-1 * var(--ac-respiro));display:block;width:100%;margin-top:14px;z-index:3;
+  background:linear-gradient(#3a6c5c,#1d4438);border-color:#8fc0ac;color:#fffaf0;font:700 15px/1.2 system-ui}
+
+/* ---- rodapé de ferramentas ---- */
+html[data-ac-casa] .tools{position:fixed;z-index:20;left:50%;transform:translateX(-50%);bottom:max(var(--ac-margem),env(safe-area-inset-bottom));
+  width:max-content;max-width:calc(100vw - 2 * var(--ac-margem));display:flex;flex-wrap:wrap;justify-content:center;gap:6px;padding:0;white-space:nowrap}
+html[data-ac-casa] .tools button,html[data-ac-casa] .tools #ar-ios{min-height:44px}
+
+/* ---- o título de abertura: não é janela ---- */
+html[data-ac-casa] .chapter{position:fixed;top:calc(var(--ac-barra) + var(--ac-margem));left:var(--ac-margem);right:var(--ac-margem);pointer-events:none}
+html[data-ac-casa] body.ac-capitulo-visto .chapter{display:none!important}
+html[data-ac-casa] .caption{display:none!important}
+
+/* ---- durante um gesto (vela, chave) os painéis saem do caminho do dedo ---- */
+html[data-ac-casa] .manipulating .ac-panel-stack{opacity:.15;pointer-events:none!important}
+html[data-ac-casa] .manipulating .ac-panel-stack *{pointer-events:none!important}
+/* As pegas ficam por cima da faixa baixa: são o que o dedo precisa acertar. */
+html[data-ac-casa] .gesture-point{z-index:14}
+
+/* ---- paisagem e moldura baixa ----
+   A faixa baixo vira COLUNA à esquerda; a alta continua faixa, centrada no
+   que sobra de cena à direita da coluna. Sobram ~66vw de cena. */
+@media (max-height:560px){
+  html[data-ac-casa] .ac-panel-stack{left:var(--ac-margem);transform:none;top:calc(var(--ac-barra) + var(--ac-margem));
+    bottom:calc(var(--ac-rodape) + var(--ac-margem));width:min(18rem,32vw);max-height:none}
+  html[data-ac-casa] #notice,html[data-ac-casa] #sync-status,html[data-ac-casa] #loading{
+    left:calc(min(18rem, 32vw) + 2 * var(--ac-margem));right:var(--ac-margem);transform:none;width:auto;max-width:34rem;margin:0 auto}
+  html[data-ac-casa] .chapter{left:calc(min(18rem, 32vw) + 2 * var(--ac-margem))}
+}
+
+@media(prefers-reduced-motion:reduce){html[data-ac-casa] .ac-panel-stack.ac-pulso>*{animation:none}}
