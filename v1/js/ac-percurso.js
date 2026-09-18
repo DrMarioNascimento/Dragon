@@ -36,6 +36,8 @@
     if(texto){$('block-texto').textContent=texto;if(!d.open){try{d.showModal();}catch{d.setAttribute('open','');}}}
     else if(d.open){try{d.close();}catch{d.removeAttribute('open');}}
   }
+  const vistaKey=key+':descoberta';
+  function descobertaVista(){try{return sessionStorage.getItem(vistaKey)==='1';}catch{return false;}}
   function applyFragmentTheme(hex){
     if(!/^#[0-9a-f]{6}$/i.test(hex))return;
     const rgb=[1,3,5].map(i=>Math.round(parseInt(hex.slice(i,i+2),16)*0.24));
@@ -53,11 +55,20 @@
   function receive(s){
     state=s;const p=s.percurso;if(!p||p.runId!==run)return;
     if(p.fragmento){applyFragmentTheme(p.fragmento.hex);$('partners-title').textContent='Seu Fragmento nesta atividade';$('partners-intro').textContent='Encontre seus colegas pela cor e pelo símbolo do Fragmento.';const badge=$('fragment-identity');badge.hidden=false;badge.textContent=p.fragmento.simbolo+' '+p.fragmento.nome+' · '+p.fragmento.cor;badge.style.color=p.fragmento.hex;
-      $('identity').textContent='Seu papel: '+({luz:'💡 luz',conhecimento:'📜 investigação',apoio:'📖 leitura e orientação'}[credentials.papel])+'. Grupo desta atividade: '+p.fragmento.membros.map(m=>m.nome).join(', ');}
+      /* Ninguém é avisado do papel (lei d'A Casa, 17/09/2026): ele se revela
+         pelo efeito no colega. O convite diz só com quem se joga. */
+      $('identity').textContent='Grupo desta atividade: '+p.fragmento.membros.map(m=>m.nome).join(', ');}
     frame.inert=p.paused.length>0;
     const waiting=p.ready.includes(credentials.papel)&&p.ready.length<(p.fragmento?.membros.length||2);
     bloquear(p.paused.length||waiting?(p.paused.length?'A partida está pausada. Aguarde a retomada.':'Você concluiu a sala. Aguarde os demais integrantes terminarem a investigação.'):null);
-    if(s.maquete?.complete){$('points-sala').textContent=(p.salaIndividual?.[credentials.papel]?.pontos??0)+' pontos';$('points-candle').textContent=s.bonus+' pontos';$('points-keys').textContent=s.maquete.score+' pontos';frame.hidden=true;bloquear(null);$('summary').hidden=false;$('stage').textContent='Investigação concluída';return;}
+    /* A maquete concluída ainda mostra a descoberta e a passagem: o resumo
+       só entra quando o jogador fecha a descoberta. Antes a moldura trocava
+       na hora e ninguém via o que a atividade inteira serviu para achar
+       (volta 3, 17/09/2026). */
+    if(s.maquete?.complete&&!descobertaVista()){showScene('maquete');return;}
+    if(s.maquete?.complete){$('points-sala').textContent=(p.salaIndividual?.[credentials.papel]?.pontos??0)+' pontos';$('points-candle').textContent=s.bonus+' pontos';$('points-keys').textContent=s.maquete.score+' pontos';frame.hidden=true;bloquear(null);$('summary').hidden=false;
+      /* A tela de dentro saiu: o chevron não pode ficar com o estado dela. */
+      $('help').textContent='⌄';$('help').setAttribute('aria-expanded','true');$('stage').textContent='Investigação concluída';return;}
     showScene(!p.ready.includes(credentials.papel)?'sala':s.maquete?'maquete':'mesa');
   }
   async function connect(c){
@@ -69,7 +80,7 @@
     stream?.close();stream=new (globalThis.ACEvents||EventSource)('/api/ac/events?'+query());stream.onmessage=e=>receive(JSON.parse(e.data));
     stream.onerror=()=>bloquear('Reconectando… seu progresso está preservado.');
     stream.onopen=()=>{if(state)receive(state);};
-    if(!s.percurso?.fragmento)$('identity').textContent=c.papel==='luz'?'Você é o portador da luz.':'Você é o portador do conhecimento.';
+    if(!s.percurso?.fragmento)$('identity').textContent='';
     if(!s.percurso?.fragmento&&c.papel==='conhecimento'){$('invite').textContent='Você entrou pelo convite do colega.';$('invite').removeAttribute('href');}
     await action('percurso_controle',{acao:control});
     flushProgress();
@@ -144,6 +155,7 @@
       if(credentials)attempt(()=>action('percurso_controle',{acao:paused?'pausar':'retomar'}));return;
     }
     if(e.source!==frame.contentWindow||paused)return;
+    if(e.data.mosaico==='ac-maquete-descoberta-vista'){try{sessionStorage.setItem(vistaKey,'1');}catch{}if(state)receive(state);return;}
     if(e.data.mosaico==='ac-sala-progresso'&&current==='sala')queueProgress('sala_progresso',{objetos:e.data.objetos,total:e.data.total});
     if(e.data.mosaico==='tarefa-status')tell(e.data);
     if(e.data.mosaico==='tarefa-ok'&&current==='sala'&&Number(e.data.tempoMs)>0)queueProgress('sala_concluida',{tempoMs:e.data.tempoMs,objetos:e.data.objetosEncontrados,total:e.data.objetosTotal});

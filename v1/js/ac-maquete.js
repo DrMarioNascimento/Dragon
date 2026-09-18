@@ -53,7 +53,7 @@
   var ultimoEnvio = 0, envioOcupado = false, envioPendente = null;
   var alturaAberta = 0.62, progressoDasCamadas = {}, fantasmaTerreno = 1;
   var farol = null, tempoAnterior = 0, desligar = [], modoEscolhido = false, recebeuEstado = false;
-  var tentativasNaFixa = 0, tremor = 0;
+  var tentativasNaFixa = 0, tremor = 0, girouDesde = false;
 
   var AZUL = 0x9fe7d6, OURO = 0xffd489;
 
@@ -159,6 +159,19 @@
     else camera.setViewOffset(l, livre.altura, 0, desvio, l, livre.altura);
   }
 
+  /* Metade do MENOR ângulo da lente. No telefone em pé o ângulo horizontal é
+     bem mais estreito que o vertical (proporção 0,46): medir a distância só
+     pelo vertical deixava a maçaneta fora da tela, à direita, no recorte da
+     procura (volta 3, 17/09/2026). */
+  function meiaLente() {
+    var v = camera.fov * Math.PI / 360;
+    var livre = areaLivre();
+    /* O vão livre entre as janelas encolhe o ângulo vertical útil. */
+    var util = Math.atan(Math.tan(v) * Math.max(0.2, (livre.base - livre.topo) / Math.max(1, livre.altura)));
+    var h = Math.atan(Math.tan(v) * camera.aspect);
+    return Math.min(util, h);
+  }
+
   /* ---------- enquadramento da bancada ---------- */
 
   /* Enquadra o que o CAPÍTULO usa: a casa, mais os pontos da vez.
@@ -169,6 +182,12 @@
        no portão, na outra ponta do terreno — saíam da tela. */
   function enquadrar() {
     if (!mundo || !controles) return;
+    /* As posições de mundo dos pontos vêm das matrizes da maquete, que só se
+       atualizam ao desenhar. Logo depois de pousar a casa (ou num aparelho
+       que ainda não desenhou o quadro seguinte) elas estavam velhas, e o
+       quadro mirava onde a casa ESTAVA: medido na volta 3, os pontos da sala
+       escura nasciam amontoados na borda esquerda, um deles fora da tela. */
+    mundo.raiz.updateMatrixWorld(true);
     var casa = new THREE.Box3(), i;
     /* As camadas já abertas ficam de fora: erguidas e invisíveis, elas
        esticavam a caixa 0,62 para cima e a câmera recuava até a casa virar
@@ -215,7 +234,7 @@
       new THREE.Vector3(tudo.min.x, tudo.min.y, tudo.max.z), new THREE.Vector3(tudo.max.x, tudo.min.y, tudo.min.z),
       new THREE.Vector3(tudo.min.x, tudo.max.y, tudo.max.z), new THREE.Vector3(tudo.max.x, tudo.max.y, tudo.min.z)];
     for (i = 0; i < cantos.length; i++) alcance = Math.max(alcance, cantos[i].distanceTo(centro));
-    var distancia = alcance / Math.sin(camera.fov * Math.PI / 360);
+    var distancia = alcance / Math.sin(meiaLente());
 
     /* Procurando, o quadro fecha no RECORTE da pista: os pontos da vez e só
        eles. Medido na volta 1 (17/09/2026): com a casa inteira no quadro, os
@@ -231,7 +250,7 @@
         new THREE.Vector3(tudo.min.x, tudo.min.y, tudo.max.z), new THREE.Vector3(tudo.max.x, tudo.min.y, tudo.min.z),
         new THREE.Vector3(tudo.min.x, tudo.max.y, tudo.max.z), new THREE.Vector3(tudo.max.x, tudo.max.y, tudo.min.z)];
       for (i = 0; i < cantos.length; i++) alcance = Math.max(alcance, cantos[i].distanceTo(centro));
-      distancia = alcance / Math.sin(camera.fov * Math.PI / 360);
+      distancia = alcance / Math.sin(meiaLente());
     }
 
     /* E a câmera nasce do lado do que ESTE jogador tem para fazer. */
@@ -249,14 +268,10 @@
     var queVer = ativos.slice();
     if (fech && !procurando()) queVer = [fech];
     if (queVer.length && !(dados && dados.complete)) lado = ladoQueMostra(centro, distancia * 1.02, lado, queVer);
-    /* A imagem é desenhada no vão livre: quanto menor o vão, mais longe a
-       câmera, senão a casa transborda por cima do painel. */
-    var livre = areaLivre();
-    /* Teto 2,6: com o portal aberto a 390×844 o vão é de 368 px em 844, e a
-       1,8 a casa saía cortada embaixo (volta 1). */
-    var aperto = Math.min(2.6, Math.max(1, livre.altura / Math.max(1, livre.base - livre.topo)));
+    /* A distância já mede o vão livre e a lente mais estreita (meiaLente);
+       a moldura põe o centro da imagem no meio desse vão. */
     controles.target.copy(centro);
-    camera.position.copy(centro).add(lado.normalize().multiplyScalar(distancia * 1.02 * aperto));
+    camera.position.copy(centro).add(lado.normalize().multiplyScalar(distancia * 1.02));
     aplicarMoldura();
     controles.update();
   }
@@ -932,7 +947,14 @@
     if (assinatura !== enquadramentoAtual) {
       enquadramentoAtual = assinatura;
       if (antes) vida();
-      if (ra && ra.estado().modo === 'mesa' && ra.estado().posta && !arrastando) setTimeout(enquadrar, 30);
+      if (ra && ra.estado().modo === 'mesa' && ra.estado().posta && !arrastando) {
+        setTimeout(enquadrar, 30);
+        /* E de novo quando tudo assenta: a camada termina de subir e a pilha
+           reabre com o texto novo. Medido na volta 3, o primeiro quadro saía
+           com o armário acima da tela. Só se o jogador ainda não girou. */
+        girouDesde = false;
+        setTimeout(function () { if (!girouDesde && !arrastando) enquadrar(); }, 1200);
+      }
     }
     if (!antes || estavaOnline !== online || JSON.stringify(antes) !== JSON.stringify(dados)) pintarTela();
     /* A descoberta só abre com a maquete posta. */
@@ -945,13 +967,24 @@
          a descoberta FECHA — pelo botão, por Esc ou por um toque fora. */
       var aberto = false;
       try { $('discovery').showModal(); aberto = true; } catch (e) {}
-      if (aberto) $('discovery').addEventListener('close', avisarSoloDaConclusao, { once: true });
-      else avisarSoloDaConclusao();
+      if (!aberto) avisarSoloDaConclusao();
+      /* Pelo evento `close` E pelos gestos que fecham: medido na volta 3, num
+         documento em segundo plano o `close` do <dialog> não chegava, e a
+         moldura esperava para sempre. Vai uma vez só. */
+      else ['close', 'cancel'].forEach(function (t) { $('discovery').addEventListener(t, avisarSoloDaConclusao); });
     }
   }
 
+  var conclusaoAvisada = false;
   function avisarSoloDaConclusao() {
-    if (params.get('demo') !== 'solo' || !dados || !dados.complete) return;
+    if (!dados || !dados.complete || conclusaoAvisada) return;
+    conclusaoAvisada = true;
+    /* Dentro do percurso da Mesa vale o mesmo: a moldura só troca para o
+       resumo depois que a descoberta foi lida (volta 3). */
+    if (params.get('percurso') === '1') {
+      try { parent.postMessage({ mosaico: 'ac-maquete-descoberta-vista', runId: params.get('run') }, location.origin); } catch (e) {}
+    }
+    if (params.get('demo') !== 'solo') return;
     try { parent.postMessage({ mosaico: 'ac-solo-maquete-completa', score: dados.score, evidence: dados.evidence }, location.origin); } catch (e) {}
   }
 
@@ -967,6 +1000,12 @@
 
   function ligarBotoes() {
     on($('alternative'), 'click', function () { abrirListaDeObjetos(); });
+    on($('guardar'), 'click', avisarSoloDaConclusao);
+    on($('discovery'), 'click', function (e) {
+      if (e.target !== $('discovery')) return;
+      var r = $('discovery').getBoundingClientRect();
+      if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) avisarSoloDaConclusao();
+    });
 
     /* Recolher ou abrir os painéis NÃO reenquadra a imagem. Medido na volta 1
        (17/09/2026): o toque na cena recolhe os painéis no pointerdown; se a
@@ -1019,6 +1058,7 @@
 
       controles = new THREE.OrbitControls(camera, renderer.domElement);
       controles.enableDamping = true; controles.minDistance = 0.12; controles.maxDistance = 14;
+      controles.addEventListener('start', function () { girouDesde = true; });
       controles.maxPolarAngle = Math.PI * 0.495; controles.enabled = false;
 
       ra = ACMaquetteRA.criar({ renderer: renderer, cena: cena, camera: camera, raiz: mundo.raiz, baseY: mundo.baseY, aoMudar: aoMudarRA });
@@ -1043,7 +1083,9 @@
         },
         diag: function () {
           return { online: online, pendente: pendente, posta: posta(), podeExplorar: podeExplorar(), procurando: procurando(),
-            alvos: alvosAtivos().map(function (a) { return a.id; }), toques: toques.size, tocouEm: !!tocouEm };
+            alvos: alvosAtivos().map(function (a) { return a.id; }), toques: toques.size, tocouEm: !!tocouEm,
+            alvoDaOrbita: controles && naTela(controles.target.clone()), alvo3d: controles && controles.target.toArray().map(function (n) { return +n.toFixed(3); }), camera: camera.position.toArray().map(function (n) { return +n.toFixed(3); }),
+            olhar: camera.getWorldDirection(new THREE.Vector3()).toArray().map(function (n) { return +n.toFixed(3); }) };
         },
         /* O que o raio acerta num ponto da tela — os três primeiros. */
         raio: function (x, y) {

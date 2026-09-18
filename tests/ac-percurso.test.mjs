@@ -37,7 +37,7 @@ test('prazo de doze minutos vale somente para percurso novo e segue o documento 
 test('navegador encaminha etapas e devolve apenas conclusao final da rodada correta',async()=>{
  const listeners={},sent=[],actions=[],nodes=new Map(),store=new Map();let view={percurso:{runId:'r1',ready:[],paused:[]},maquete:null};
  const child={postMessage(){}};const parent={postMessage(data){sent.push(data);}};
- const node=id=>{if(!nodes.has(id))nodes.set(id,{hidden:true,textContent:'',contentWindow:child,showModal(){},close(){},removeAttribute(){}});return nodes.get(id);};
+ const node=id=>{if(!nodes.has(id))nodes.set(id,{hidden:true,textContent:'',contentWindow:child,showModal(){},close(){},removeAttribute(){},setAttribute(){}});return nodes.get(id);};
  const context={URL,URLSearchParams,Date,JSON,Math,crypto:{randomUUID:()=> 'test'},location:{search:'?run=r1&sala=abc&papel=luz&chave=secret',href:'http://localhost/v1/AC-percurso.html',origin:'http://localhost'},history:{replaceState(){}},parent,
  document:{getElementById:node},sessionStorage:{setItem:(k,v)=>store.set(k,v),getItem:k=>store.get(k)},
  EventSource:class{constructor(){context.stream=this;}close(){}},
@@ -52,7 +52,12 @@ test('navegador encaminha etapas e devolve apenas conclusao final da rodada corr
  view={...view,percurso:{...view.percurso,ready:['luz','conhecimento']}};context.stream.onmessage({data:JSON.stringify(view)});assert.match(node('scene').src,/AC-escrivaninha/);
  view={...view,maquete:{complete:false}};context.stream.onmessage({data:JSON.stringify(view)});assert.match(node('scene').src,/AC-maquete/);
  node('finish').onclick();await flush();assert.equal(sent.length,0);
- view={...view,maquete:{complete:true}};context.stream.onmessage({data:JSON.stringify(view)});assert.equal(node('summary').hidden,false);
+ view={...view,maquete:{complete:true}};context.stream.onmessage({data:JSON.stringify(view)});
+ /* A maquete concluída ainda mostra a descoberta: o resumo só entra quando ela
+    fecha (volta 3). Antes disso, o recado de outra rodada não serve. */
+ assert.equal(node('summary').hidden,true,'o resumo não pode atropelar a descoberta');
+ listeners.message({origin:'http://localhost',source:child,data:{mosaico:'ac-maquete-descoberta-vista',runId:'r2'}});assert.equal(node('summary').hidden,true);
+ listeners.message({origin:'http://localhost',source:child,data:{mosaico:'ac-maquete-descoberta-vista',runId:'r1'}});assert.equal(node('summary').hidden,false);
  node('finish').onclick();await flush();node('finish').onclick();await flush();
  assert.equal(sent.length,1);assert.equal(sent[0].mosaico,'tarefa-ok');assert.equal(sent[0].runId,'r1');
 });

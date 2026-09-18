@@ -49,8 +49,9 @@
     const lista = [];
     const add = (el, faixa) => { if (visivel(el)) lista.push({ nome: nome(el), faixa, caixa: caixa(el), el }); };
     document.querySelectorAll('.topbar, body > header').forEach(el => add(el, 'barra'));
-    const modal = document.querySelector('dialog[open]');
+    const modal = sobreposto();
     document.querySelectorAll('dialog[open]').forEach(el => add(el, 'tela'));
+    if (modal && modal.tagName !== 'DIALOG') add(modal, 'tela');
     /* Com um diálogo modal aberto, o resto está sob o fundo e inerte: só
        contam o diálogo e a barra. */
     if (!modal) {
@@ -65,8 +66,20 @@
     return lista;
   }
 
+  /* O que cobre a tela inteira e manda no toque: o <dialog> aberto ou os
+     sobrepostos de tela cheia dos módulos (a intro da sala é nível 10 como
+     um diálogo, só que é <div>). Debaixo dele, nada conta. */
+  function sobreposto() {
+    const d = document.querySelector('dialog[open]');
+    if (d) return d;
+    for (const sel of ['#intro:not(.gone):not(.out)', '#oito.on', '#falha.on', '#carta.on']) {
+      const el = document.querySelector(sel);
+      if (el && visivel(el)) return el;
+    }
+    return null;
+  }
   function controles() {
-    const modal = document.querySelector('dialog[open]');
+    const modal = sobreposto();
     const raiz = modal || document;
     return Array.from(raiz.querySelectorAll('button, a[href], [role="button"], input, select'))
       .filter(el => visivel(el) && !el.closest('[inert]') && !el.disabled);

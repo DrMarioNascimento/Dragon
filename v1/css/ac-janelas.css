@@ -108,8 +108,11 @@ html[data-ac-casa] #help.ac-chevron{flex:none;width:44px;min-width:44px;min-heig
   display:grid;place-items:center;font:700 24px/1 system-ui,sans-serif;color:#ffe9c4;background:#14352e;border:1px solid #c9a66c88;
   box-shadow:inset 0 1px #ffffff18,0 3px 0 #071612;margin:0}
 html[data-ac-casa] #help.ac-chevron[aria-expanded="false"]{background:#3a2c10;border-color:#f0c878;color:#fff1cf}
-/* Dentro do percurso, a barra que vale é a dele. */
-html.ac-sob-moldura .topbar #help{visibility:hidden}
+/* Dentro do percurso, a barra que vale é a DELE: a da tela de dentro só
+   repetia a marca e comia 55 px (medido a 390×844, volta 3). Sem ela, a
+   barra da tela interna mede zero e as faixas sobem junto. */
+html.ac-sob-moldura{--ac-barra:0px}
+html.ac-sob-moldura .topbar{display:none!important}
 
 /* ---- faixa BAIXO: painéis (níveis 1, 2, 4, 6) ---- */
 html[data-ac-casa] .ac-panel-stack{position:fixed;z-index:12;left:50%;right:auto;top:auto;transform:translateX(-50%);
@@ -130,10 +133,16 @@ html[data-ac-casa] .ac-panel-stack>* .eyebrow{display:block;font:600 clamp(9px,2
 html[data-ac-casa] .ac-panel-stack>* button{width:100%;margin-top:6px}
 html[data-ac-casa] .ac-panel-stack.ac-pulso>*{animation:ac-pulso .5s ease}
 @keyframes ac-pulso{0%{filter:brightness(1.35)}100%{filter:none}}
-/* "Como jogar" deixou de ser botão da barra: é uma linha da orientação. */
-html[data-ac-casa] .ac-como-jogar{display:inline-flex!important;align-items:center;gap:6px;width:auto!important;min-height:44px;margin:4px 0 0!important;
-  padding:0 12px!important;background:transparent!important;border:1px solid #cad7e866!important;border-radius:22px!important;box-shadow:none!important;
-  color:#e6eef8!important;font:600 13px/1 system-ui!important}
+/* "Como jogar" deixou de ser botão da barra: é uma linha da orientação — e
+   mora no canto direito do cabeçalho do painel, que já estava vazio. No fim
+   do painel ele sumia sob a dobra da pilha quando a pista tinha duas linhas
+   (medido pelo teste de sobreposição a 1280×800, 18/09/2026). */
+html[data-ac-casa] .ac-panel-stack .ac-como-jogar{position:absolute!important;top:calc((var(--ac-cromo) - 44px) / 2);right:var(--ac-respiro);
+  display:inline-flex!important;align-items:center;gap:6px;width:auto!important;min-height:44px;margin:0!important;
+  padding:0 12px!important;background:#0b1f1bcc!important;border:1px solid #cad7e866!important;border-radius:22px!important;box-shadow:none!important;
+  color:#e6eef8!important;font:600 13px/1 system-ui!important;z-index:2}
+/* O nome do nível não pode correr por baixo do botão. */
+html[data-ac-casa] .ac-panel-stack>[data-ac-priority]:has(.ac-como-jogar)::after{right:calc(var(--ac-respiro) + 140px)}
 
 /* ---- faixa ALTO: aviso passageiro (níveis 3, 7, 9) ---- */
 html[data-ac-casa] #notice,
