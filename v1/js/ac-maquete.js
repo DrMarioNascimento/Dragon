@@ -10,7 +10,7 @@
   const scene=new THREE.Scene();scene.background=new THREE.Color(0x091515);
   const camera=new THREE.PerspectiveCamera(40,innerWidth/innerHeight,.015,40);scene.add(camera);
   let renderer;try{renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});}catch{$('description').textContent='Este navegador não conseguiu abrir o modelo 3D.';return;}
-  renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));renderer.setSize(innerWidth,innerHeight);renderer.outputEncoding=THREE.sRGBEncoding;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.82;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.xr.enabled=true;$('scene').appendChild(renderer.domElement);
+  renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));renderer.setSize(innerWidth,innerHeight);renderer.outputEncoding=THREE.sRGBEncoding;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.9;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.xr.enabled=true;$('scene').appendChild(renderer.domElement);
   const controls=new THREE.OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.zoomSpeed=2;controls.minDistance=.18;controls.maxDistance=18;controls.maxPolarAngle=Math.PI*.49;
   function frame(){
     const mobile=innerWidth<=700,guide=data&&!data.complete&&data.explorer!==role;
@@ -29,19 +29,23 @@
     const usableWidth=Math.max(160,right-left),usableHeight=Math.max(110,bottom-top);
     const centerX=(left+right)/2,centerY=(top+bottom)/2;
     camera.setViewOffset(innerWidth,innerHeight,innerWidth/2-centerX,innerHeight/2-centerY,innerWidth,innerHeight);
-    controls.target.copy(model.root.localToWorld(new THREE.Vector3(0,data?.complete?.95:data?.level===2?.65:.52,0)));
+    controls.target.copy(model.root.localToWorld(model.center.clone().setY(data?.complete?.95:data?.level===2?.65:.52)));
     const distance=Math.max(4.6,2.8/(2*Math.tan(Math.PI/9)*camera.aspect)*(innerWidth/usableWidth),
       (data?.complete?3.6:3.0)/(2*Math.tan(Math.PI/9))*(innerHeight/usableHeight));
     camera.position.copy(new THREE.Vector3(1.2,1.2,1.8).normalize().multiplyScalar(distance*(mobile?1.55:1.75)).add(controls.target));controls.update();
   }
-  scene.add(new THREE.HemisphereLight(0xbed2e4,0x33251b,.60));const sun=new THREE.DirectionalLight(0xffe1b5,1.45);sun.position.set(-2,4,3);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);scene.add(sun);scene.add(new THREE.AmbientLight(0xffffff,.10));const coastFill=new THREE.DirectionalLight(0x9ebed5,.6);coastFill.position.set(3,2,-2);scene.add(coastFill);
-  const floor=new THREE.Mesh(new THREE.PlaneGeometry(30,30),new THREE.MeshStandardMaterial({color:0x071014,roughness:.95}));floor.rotation.x=-Math.PI/2;floor.position.y=-.385;floor.receiveShadow=true;scene.add(floor);
-  const model=createACMaquette();scene.add(model.root);
+  // Luar sobre a costa: a luz quente vem das janelas acesas da própria maquete.
+  scene.add(new THREE.HemisphereLight(0x9fb4d0,0x2a231b,.62));const sun=new THREE.DirectionalLight(0xcfdcff,1.25);sun.position.set(-2,4,3);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);scene.add(sun);scene.add(new THREE.AmbientLight(0xffffff,.08));const coastFill=new THREE.DirectionalLight(0x86a6c8,.55);coastFill.position.set(3,2,-2);scene.add(coastFill);
+  const floor=new THREE.Mesh(new THREE.PlaneGeometry(30,30),new THREE.MeshStandardMaterial({color:0x03080b,roughness:.95}));floor.rotation.x=-Math.PI/2;floor.position.y=-.745;floor.receiveShadow=true;scene.add(floor);
+  const model=createACMaquette({
+    onReady(){baseMinY=new THREE.Box3().setFromObject(ACMaquetteSpatial.exportModel({root:model.base})).min.y;lastLevel=-1;update();if(!xr)frame();},
+    onError(){$('description').textContent='A maquete não carregou. Verifique a conexão e recarregue a página.';}
+  });scene.add(model.root);
   const goldDust=createACGoldDust(model.root,{reduced});let keyFlight=null,lastInspected=null,motion=null,motionTime=0,lastMotionSent=0,motionBusy=false,motionRequest=null,finishing=false;
   const tipBeacon=new THREE.Mesh(new THREE.SphereGeometry(.009,12,8),new THREE.MeshBasicMaterial({color:0xffe3a1}));tipBeacon.userData.exportExclude=true;tipBeacon.raycast=()=>{};tipBeacon.visible=false;model.root.add(tipBeacon);
   model.key.userData.exportExclude=true;model.lock.userData.exportExclude=true;
   frame();
-  const baseMinY=new THREE.Box3().setFromObject(ACMaquetteSpatial.exportModel({root:model.base})).min.y;
+  let baseMinY=0;
   const placementMatrix=new THREE.Matrix4();let arScale=.5,startingAR=false;
   const touches=new Map();let pinchDistance=0;
   function preparation(){return data?.level===0&&!data.ready&&!data.key;}
@@ -65,7 +69,7 @@
   on($('reposition'),'click',()=>{if(!xr)return;placed=false;hasHit=false;model.root.visible=false;reticle.visible=false;$('instructions').close();update();});
   const reticle=new THREE.Mesh(new THREE.RingGeometry(.12,.135,32).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:0xf2d194}));reticle.matrixAutoUpdate=false;reticle.visible=false;scene.add(reticle);
   const ray=new THREE.Raycaster(),point=new THREE.Vector3(),dragPlane=new THREE.Plane();let pressPoint=null;
-  const allowed=[['rosa','folha','ondas'],['relogio','escrivaninha','louca'],['armario-oeste','armario-sul','armario-norte','armario-leste']];
+  const allowed=[['rosa','folha','ondas'],['relogio','escrivaninha','vela','espelho','louca'],['armario-oeste','armario-sul','armario-norte','armario-leste']];
   function notify(text){$('notice').textContent=text;$('notice').style.display='block';clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>$('notice').style.display='none',3500);}
   function cameraNow(){return xr?(renderer.xr.getCamera(camera).cameras[0]||camera):camera;}
   function visibleObject(object){for(let node=object;node;node=node.parent)if(!node.visible)return false;return true;}
@@ -196,7 +200,7 @@
     $('alignment').hidden=!guiding||!data.key;
     if(tipBeacon.visible){tipBeacon.position.fromArray(motion.tip);const socket=model.root.worldToLocal(model.keySocket.getWorldPosition(new THREE.Vector3()));const distance=tipBeacon.position.distanceTo(socket);$('alignment').textContent=distance<.025?'Ponta alinhada. Diga ao colega para soltar.':distance<.10?'A ponta está perto. Oriente o ajuste final.':'O ponto luminoso mostra a ponta da chave. Oriente seu colega até a fechadura.';}
     else if(guiding&&data.key)$('alignment').textContent='Aguarde seu colega mover a chave para acompanhar a ponta.';
-    if(!xr&&model.lower.visible)model.livingRoom.updateReflection(renderer,scene);
+    if(!xr&&model.lower.visible)model.livingRoom?.updateReflection(renderer,scene);
     renderer.render(scene,camera);
   }
   ACCooperation(snapshot=>{
