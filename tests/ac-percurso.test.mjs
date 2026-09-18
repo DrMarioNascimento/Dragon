@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createRoom,apply,snapshot,createServer,KEY_SOCKET} from '../ferramentas/ac-cooperacao.mjs';
+import {createRoom,apply,snapshot,createServer,FECHADURAS} from '../ferramentas/ac-cooperacao.mjs';
+import {CAPITULOS} from '../ferramentas/ac-maquete-state.mjs';
 import {roomRecord} from '../ferramentas/ac-room-store.mjs';
 import {resolve} from 'node:path';
 import vm from 'node:vm';
@@ -18,25 +19,27 @@ test('percurso da Mesa segue sala escura, escrivaninha e maquete depois da Janel
  assert.match(src,/maquete:'AC-maquete\.html'/);
  assert.match(src,/showScene\(!p\.ready\.includes\(credentials\.papel\)\?'sala':s\.maquete\?'maquete':'mesa'\)/);
  assert.doesNotMatch(src,/janela:'MOSAICO-26-a-janela-do-norte\.html'/);
- assert.ok(src.indexOf("sala:'1 / 3 · A sala às escuras'") < src.indexOf("mesa:'2 / 3 · Sob outra luz'"));
- assert.ok(src.indexOf("mesa:'2 / 3 · Sob outra luz'") < src.indexOf("maquete:'3 / 3 · O lar em miniatura'"));
+ assert.ok(src.indexOf("sala:'1 / 4 · A sala às escuras'") < src.indexOf("mesa:'2 / 4 · Sob outra luz'"));
+ assert.ok(src.indexOf("mesa:'2 / 4 · Sob outra luz'") < src.indexOf("maquete:'3 / 4 · O lar em miniatura'"));
+ assert.ok(src.indexOf("maquete:'3 / 4 · O lar em miniatura'") < src.indexOf("papeis:'4 / 4 · Os papéis da passagem'"));
+ assert.match(src,/papeis:'AC-papeis\.html'/);
 });
 
-test('prazo de doze minutos vale somente para percurso novo e segue o documento da mesa',()=>{
+test('prazo do percurso (15 min desde os papéis da passagem) vale somente para percurso novo e segue o documento da mesa',()=>{
  const c={STATE:{doc:{atividades:{inclinacao:'janela',constelacao:'salaEscura'},percursoAC:1,percursoLimiteSegundos:720}},CASO:{configuracao:{limitesSegundos:{inclinacao:150,constelacao:180}},tarefas:{}}};c.window=c;
  vm.runInNewContext(readFileSync('v1/js/atividades-casa-da-costa.js','utf8'),c);
  assert.equal(c.limiteTarefaSensorMs('constelacao'),720000);
  assert.equal(c.limiteTarefaSensorMs('inclinacao'),150000);
  c.STATE.doc.percursoLimiteSegundos=900;assert.equal(c.limiteTarefaSensorMs('constelacao'),900000);
- c.STATE.doc.percursoLimiteSegundos=-1;assert.equal(c.limiteTarefaSensorMs('constelacao'),720000);
- delete c.STATE.doc.percursoAC;assert.equal(c.limiteTarefaSensorMs('constelacao'),720000);
+ c.STATE.doc.percursoLimiteSegundos=-1;assert.equal(c.limiteTarefaSensorMs('constelacao'),900000);
+ delete c.STATE.doc.percursoAC;assert.equal(c.limiteTarefaSensorMs('constelacao'),900000);
  assert.equal(c.STATE.doc.percursoAC,1);
 });
 
 test('navegador encaminha etapas e devolve apenas conclusao final da rodada correta',async()=>{
  const listeners={},sent=[],actions=[],nodes=new Map(),store=new Map();let view={percurso:{runId:'r1',ready:[],paused:[]},maquete:null};
  const child={postMessage(){}};const parent={postMessage(data){sent.push(data);}};
- const node=id=>{if(!nodes.has(id))nodes.set(id,{hidden:true,textContent:'',contentWindow:child,showModal(){},close(){},removeAttribute(){}});return nodes.get(id);};
+ const node=id=>{if(!nodes.has(id))nodes.set(id,{hidden:true,textContent:'',contentWindow:child,showModal(){},close(){},removeAttribute(){},setAttribute(){}});return nodes.get(id);};
  const context={URL,URLSearchParams,Date,JSON,Math,crypto:{randomUUID:()=> 'test'},location:{search:'?run=r1&sala=abc&papel=luz&chave=secret',href:'http://localhost/v1/AC-percurso.html',origin:'http://localhost'},history:{replaceState(){}},parent,
  document:{getElementById:node},sessionStorage:{setItem:(k,v)=>store.set(k,v),getItem:k=>store.get(k)},
  EventSource:class{constructor(){context.stream=this;}close(){}},
@@ -51,7 +54,17 @@ test('navegador encaminha etapas e devolve apenas conclusao final da rodada corr
  view={...view,percurso:{...view.percurso,ready:['luz','conhecimento']}};context.stream.onmessage({data:JSON.stringify(view)});assert.match(node('scene').src,/AC-escrivaninha/);
  view={...view,maquete:{complete:false}};context.stream.onmessage({data:JSON.stringify(view)});assert.match(node('scene').src,/AC-maquete/);
  node('finish').onclick();await flush();assert.equal(sent.length,0);
- view={...view,maquete:{complete:true}};context.stream.onmessage({data:JSON.stringify(view)});assert.equal(node('summary').hidden,false);
+ view={...view,maquete:{complete:true}};context.stream.onmessage({data:JSON.stringify(view)});
+ /* A maquete concluída ainda mostra a descoberta: o resumo só entra quando ela
+    fecha (volta 3). Antes disso, o recado de outra rodada não serve. */
+ assert.equal(node('summary').hidden,true,'o resumo não pode atropelar a descoberta');
+ listeners.message({origin:'http://localhost',source:child,data:{mosaico:'ac-maquete-descoberta-vista',runId:'r2'}});assert.equal(node('summary').hidden,true);
+ listeners.message({origin:'http://localhost',source:child,data:{mosaico:'ac-maquete-descoberta-vista',runId:'r1'}});
+ /* Depois da descoberta, a passagem: os papéis rasgados (18/09/2026). O
+    resumo espera o jogador montar os três e guardar. */
+ assert.match(node('scene').src,/AC-papeis\.html/);assert.equal(node('summary').hidden,true,'o resumo não pode atropelar os papéis');
+ listeners.message({origin:'http://localhost',source:child,data:{mosaico:'ac-papeis-completo',runId:'r2'}});assert.equal(node('summary').hidden,true);
+ listeners.message({origin:'http://localhost',source:child,data:{mosaico:'ac-papeis-completo',runId:'r1'}});assert.equal(node('summary').hidden,false);
  node('finish').onclick();await flush();node('finish').onclick();await flush();
  assert.equal(sent.length,1);assert.equal(sent[0].mosaico,'tarefa-ok');assert.equal(sent[0].runId,'r1');
 });
@@ -77,11 +90,11 @@ test('percurso exige duas salas concluidas, respeita pausa e preserva registro e
  assert.equal(apply(restored,'conhecimento',{type:'iniciar_maquete'}),false);
  apply(restored,'conhecimento',{type:'registrar'});
  apply(restored,'conhecimento',{type:'iniciar_maquete'});
- for(const [i,object]of ['rosa','relogio','armario-oeste'].entries()){
+ for(const [i,object]of CAPITULOS.map((c)=>c.esconderijo).entries()){
    const explorer=i===1?'conhecimento':'luz',guide=explorer==='luz'?'conhecimento':'luz';
-   apply(restored,guide,{type:'maquete_orientar'});
    apply(restored,explorer,{type:'maquete_examinar',object});
-   apply(restored,explorer,{type:'maquete_mover',tip:KEY_SOCKET});
+   apply(restored,guide,{type:'maquete_examinar',object:CAPITULOS[i].fechadura});
+   apply(restored,explorer,{type:'maquete_mover',tip:FECHADURAS[i]});
    assert.equal(apply(restored,explorer,{type:'maquete_encaixar'}),true);
  }
  assert.equal(snapshot(restored).maquete.complete,true);

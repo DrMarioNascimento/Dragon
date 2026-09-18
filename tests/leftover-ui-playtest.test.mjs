@@ -253,23 +253,29 @@ describe("produção · v2 não é porta do playtest", () => {
 });
 
 describe("produção · escrivaninha/maquete sem RA de ensaio", () => {
+  /* Vale para as três páginas: o que saiu em 15/09/2026 foram os controles de
+     ENSAIO. Em 17/09/2026 a maquete passou a ser atividade de RA por desenho
+     (a casa é posta no ambiente), então os rótulos de RA só continuam proibidos
+     na escrivaninha e no percurso — ver `solo-entrada-ra.test.mjs`. */
   const PROIBIDO = [
     /ENSAIO EM DUPLA/i,
     /Bônus experimental/,
-    /Colocar em RA/,
-    /Ver em RA/,
-    /Explorar em RA/,
     /teste=sala3d/,
     /sem alterar a partida publicada/,
     /Criar novo ensaio/,
-    /id="ar"/,
-    /id="ar-ios"/,
   ];
+  const PROIBIDO_SEM_RA = [/Colocar em RA/, /Ver em RA/, /Explorar em RA/, /id="ar"/, /id="ar-ios"/];
 
   it("HTML publicado da escrivaninha, maquete e percurso não traz controles de ensaio RA", () => {
     for (const p of ["v1/AC-escrivaninha.html", "v1/AC-maquete.html", "v1/AC-percurso.html"]) {
       const src = ler(p);
       for (const re of PROIBIDO) {
+        assert.equal(re.test(src), false, `${p} ainda contém ${re}`);
+      }
+    }
+    for (const p of ["v1/AC-escrivaninha.html", "v1/AC-percurso.html"]) {
+      const src = ler(p);
+      for (const re of PROIBIDO_SEM_RA) {
         assert.equal(re.test(src), false, `${p} ainda contém ${re}`);
       }
     }

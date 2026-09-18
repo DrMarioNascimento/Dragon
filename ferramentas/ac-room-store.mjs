@@ -3,7 +3,7 @@ import {readFileSync,mkdirSync,openSync,writeFileSync,fsyncSync,closeSync,rename
 import {dirname} from 'node:path';
 export const ROOM_RETENTION=7*24*3600000;
 export function roomRecord(room){
- return {percurso:room.percurso?structuredClone(room.percurso):null,id:room.id,tokens:{...room.tokens},stage:room.stage,startedAt:room.startedAt,finishedAt:room.finishedAt,createdAt:room.createdAt,updatedAt:room.updatedAt??room.createdAt,maquete:room.maquete?structuredClone(room.maquete):null};
+ return {percurso:room.percurso?structuredClone(room.percurso):null,id:room.id,tokens:{...room.tokens},stage:room.stage,startedAt:room.startedAt,finishedAt:room.finishedAt,createdAt:room.createdAt,updatedAt:room.updatedAt??room.createdAt,maquete:room.maquete?structuredClone(room.maquete):null,vela:room.vela?{ate:room.vela.ate}:null};
 }
 function valid(r){
  const stamp=n=>n===null||(Number.isFinite(n)&&n>=0),hex=(v,n)=>typeof v==='string'&&new RegExp('^[a-f0-9]{'+n+'}$').test(v);
@@ -11,7 +11,8 @@ function valid(r){
  if(r.percurso){const p=r.percurso;if(typeof p.runId!=='string'||!p.runId||p.runId.length>180||![p.ready,p.paused].every(a=>Array.isArray(a)&&a.length<=(r.tokens.apoio?3:2)&&new Set(a).size===a.length&&a.every(v=>Object.hasOwn(r.tokens,v))))return false;}
  if(r.percurso?.players&&Object.entries(r.percurso.players).some(([role,id])=>!Object.hasOwn(r.tokens,role)||typeof id!=='string'||!id||id.length>128))return false;
  const m=r.maquete;if(m===null)return true;
- return m&&Number.isInteger(m.level)&&m.level>=0&&m.level<=3&&typeof m.ready==='boolean'&&typeof m.key==='boolean'&&Number.isInteger(m.mistakes)&&m.mistakes>=0&&Number.isInteger(m.score)&&m.score>=0&&m.score<=24&&Number.isFinite(m.lastAttempt)&&Array.isArray(m.evidence)&&m.evidence.length===m.level&&m.evidence.every((v,i)=>v===['chave-exterior','chave-terreo','passagem-sob-despensa'][i]);
+ if(r.vela!=null&&!Number.isFinite(r.vela.ate))return false;
+ return m&&Number.isInteger(m.level)&&m.level>=0&&m.level<=3&&typeof m.key==='boolean'&&(m.lock===undefined||typeof m.lock==='boolean')&&Number.isInteger(m.mistakes)&&m.mistakes>=0&&Number.isInteger(m.score)&&m.score>=0&&m.score<=24&&(Number.isFinite(m.lastAttempt)||(m.lastAttempt&&typeof m.lastAttempt==='object'))&&Array.isArray(m.evidence)&&m.evidence.length===m.level&&m.evidence.every((v,i)=>v===['chave-exterior','chave-dos-quartos','passagem-sob-despensa'][i]);
 }
 export function loadRooms(path){
  if(!path)return new Map();let raw;try{raw=readFileSync(path,'utf8');}catch(error){if(error.code==='ENOENT')return new Map();throw error;}

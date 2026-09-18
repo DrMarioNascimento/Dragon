@@ -120,17 +120,18 @@ describe("Sala às Escuras · a intro no Solo tem saída e CTA visível", () => 
   const SOLO = ler("solo/mesa-solo.js");
   const JANELAS_JS = ler("v1/js/ac-janelas.js");
 
-  it("o botão Entrar na sala fica fora da rolagem, com × na intro", () => {
+  it("o botão Entrar na sala fica fora da rolagem, e a intro não tem ×", () => {
     assert.match(SALA, /id="intro-corpo"/,
       "os cartões da abertura voltaram a empilhar acima de «Entrar na sala».\n" +
       "No iframe do Solo a 390×700 o CTA sumia e não havia × nem Esc.");
     const intro = SALA.slice(SALA.indexOf('id="intro"'), SALA.indexOf('id="oito"'));
     const corpo = intro.indexOf('id="intro-corpo"');
     const cta = intro.indexOf('id="b-entrar"');
-    const fecha = intro.indexOf('class="close"');
     assert.ok(corpo > 0 && cta > corpo, "Entrar na sala tem de ficar DEPOIS de #intro-corpo");
-    assert.ok(fecha > 0 && fecha < cta, "o × tem de existir na intro, antes do CTA");
-    assert.match(intro, /data-close/);
+    /* Sem ×: a sala é d'A Casa. Fundo e Esc disparam o mesmo CTA, e ele fica
+       sempre à vista, fora da rolagem. */
+    assert.doesNotMatch(intro, /class="close"/);
+    assert.match(JANELAS_JS, /ev\.target\.id==='intro'/);
   });
 
   it("fechar a intro dispara a entrada (não só esconde o cartão)", () => {
@@ -149,7 +150,7 @@ describe("Sala às Escuras · a intro no Solo tem saída e CTA visível", () => 
   it("o Solo continua abrindo a sala no iframe 2/4, depois da Janela do Norte", () => {
     assert.match(SOLO, /percursoEtapa==='janela'/);
     assert.match(SOLO, /salaEscura:\{titulo:'A Sala às Escuras'/);
-    assert.match(SOLO, /MOSAICO-26-a-sala-as-escuras\.html\?embed=1&v=20260916-sala-cta/);
+    assert.match(SOLO, /MOSAICO-26-a-sala-as-escuras\.html\?embed=1&v=20260918-papeis/);
     assert.doesNotMatch(SOLO, /id="b-entrar-ra"/);
     assert.doesNotMatch(SOLO, /PERCURSO 3D E RA/);
   });

@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {distribuirFragmentos} from '../ferramentas/ac-fragmentos.mjs';
-import {createServer,createRoom,apply,KEY_SOCKET} from '../ferramentas/ac-cooperacao.mjs';
+import {createServer,createRoom,apply,FECHADURAS} from '../ferramentas/ac-cooperacao.mjs';
+import {CAPITULOS} from '../ferramentas/ac-maquete-state.mjs';
 import {roomRecord,saveRooms,loadRooms} from '../ferramentas/ac-room-store.mjs';
 import {mkdtempSync,unlinkSync,rmdirSync} from 'node:fs';
 import {tmpdir} from 'node:os';
@@ -32,16 +33,18 @@ test('entrada automatica reutiliza sala e papel; lista da atividade nao muda dep
   for(const e of entries){assert.ok(e.chave);assert.equal(e.tokens,undefined);}
  }finally{server.closeAllConnections();await new Promise(r=>server.close(r));}
 });
-test('trio exige tres conclusoes da sala e apoio participa da leitura da maquete',()=>{
+test('trio exige tres conclusoes da sala e apoio participa da procura na maquete',()=>{
  const r=createRoom();r.tokens.apoio='a'.repeat(36);r.percurso={runId:'r',ready:[],paused:[],fragmento:{membros:[{papel:'luz'},{papel:'conhecimento'},{papel:'apoio'}]}};
  apply(r,'luz',{type:'sala_concluida'});apply(r,'conhecimento',{type:'sala_concluida'});
  assert.equal(apply(r,'luz',{type:'posicionar'}),false);
  apply(r,'apoio',{type:'sala_concluida'});assert.equal(apply(r,'luz',{type:'posicionar'}),true);
  r.stage='registrado';apply(r,'conhecimento',{type:'iniciar_maquete'});
  for(const role of ['luz','conhecimento','apoio'])r.peers.set(role,{role});
- assert.equal(apply(r,'apoio',{type:'maquete_orientar'}),true);
- assert.equal(apply(r,'apoio',{type:'maquete_examinar',object:'rosa'}),false);
- apply(r,'luz',{type:'maquete_examinar',object:'rosa'});apply(r,'luz',{type:'maquete_mover',tip:KEY_SOCKET});
+ /* No trio, quem não tem a chave está do lado da fechadura: o apoio também a procura. */
+ assert.equal(apply(r,'apoio',{type:'maquete_examinar',object:CAPITULOS[0].fechadura}),true);
+ assert.equal(r.maquete.lock,true);
+ assert.equal(apply(r,'apoio',{type:'maquete_mover',tip:FECHADURAS[0]}),false,'o apoio não move a chave');
+ apply(r,'luz',{type:'maquete_examinar',object:CAPITULOS[0].esconderijo});apply(r,'luz',{type:'maquete_mover',tip:FECHADURAS[0]});
  assert.equal(apply(r,'luz',{type:'maquete_encaixar'}),true);
  const saved=roomRecord(r);assert.equal(saved.tokens.apoio,r.tokens.apoio);assert.equal(saved.percurso.ready.length,3);
  const dir=mkdtempSync(join(tmpdir(),'ac-trio-')),file=join(dir,'state.json');

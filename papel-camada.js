@@ -228,7 +228,7 @@
       "#mpcOverlay .mpc-sheet h2{font:600 28px Georgia,serif;margin:0 0 6px;color:#f4f9fd}",
       /* keep --titulo in lockstep with profundidade-1mais1 / mesa */
       "#mpcOverlay .mpc-sheet .lead{color:#c5d4dc;font-size:14px;line-height:1.45;margin:0 0 8px}",
-      "#mpcOverlay .mpc-ok{width:100%;min-height:52px;margin-top:14px;border:0;border-radius:10px;padding:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;background:linear-gradient(180deg,#8ee4ad,#3ea86a);color:#062011;box-shadow:inset 0 1px 0 #d4f5e2,0 5px 0 #1b5c38,0 12px 22px #000a}"
+      "#mpcOverlay .mpc-ok{position:sticky;bottom:0;z-index:2;width:100%;min-height:52px;margin-top:14px;border:0;border-radius:10px;padding:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;background:linear-gradient(180deg,#8ee4ad,#3ea86a);color:#062011;box-shadow:inset 0 1px 0 #d4f5e2,0 5px 0 #1b5c38,0 12px 22px #000a}"
     ].join("");
     document.head.appendChild(st);
   }

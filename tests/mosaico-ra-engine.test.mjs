@@ -73,8 +73,8 @@ describe("Mosaico RA & Sala 3D Volumétrica · Motor e Integração", () => {
   it("MOSAICO-mesa.html integra Three.js e motor RA sem quebrar cache stamps", () => {
     assert.match(mesaHtml, /<script src="js\/three\.min\.js"><\/script>/);
     assert.match(mesaHtml, /mosaico-ra-engine\.js/);
-    assert.match(mesaHtml, /irParaFaseTeste3D\(\\?['"]sala3d\\?['"]\)/);
-    assert.match(mesaHtml, /🕯️ Sala 3D & RA/);
+    /* O atalho "Sala 3D & RA" do modo de teste saiu com ele (18/09/2026). */
+    assert.doesNotMatch(mesaHtml, /Teste3D|Sala 3D & RA/);
   });
 
   it("MOSAICO-26-a-sala-as-escuras.html integra Three.js sem expor RA de ensaio", () => {

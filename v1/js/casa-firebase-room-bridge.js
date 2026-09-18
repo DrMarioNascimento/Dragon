@@ -150,7 +150,7 @@
   function patchPercursoAC(room) {
     var par = { inclinacao: "janela", constelacao: "salaEscura" };
     var segundos = Number(room && room.percursoLimiteSegundos);
-    var limite = Number.isFinite(segundos) && segundos >= 300 && segundos <= 1800 ? segundos : 720;
+    var limite = Number.isFinite(segundos) && segundos >= 300 && segundos <= 1800 ? segundos : 900;
     var atual = room && room.atividades;
     var alinhado = atual && atual.inclinacao === "janela" && atual.constelacao === "salaEscura"
       && room.percursoAC === 1 && room.tarefaInterior === "sala-escura"

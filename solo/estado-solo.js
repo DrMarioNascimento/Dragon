@@ -7,7 +7,7 @@
   var KEY="mosaico_solo_costa_cloud",restaurado=false,ultima="";
   function snap(){
     if(typeof state==="undefined"||!state)return null;
-    return {phase:state.phase,key:state.key,i:state.i,order:state.order,pick:state.pick,seen:state.seen,facts:state.facts,answers:state.answers,scoreFacts:state.scoreFacts,correct:state.correct,
+    return {phase:state.phase,key:state.key,answers:state.answers,correct:state.correct,
       percursoPronto:state.percursoPronto,percursoResultado:state.percursoResultado,percursoEtapa:state.percursoEtapa,atividades:state.atividades,atividadeI:state.atividadeI,sensorPronto:state.sensorPronto,sensorTempos:state.sensorTempos,mosaico:state.mosaico,mosaicoPick:state.mosaicoPick,
       mercadoEtapa:state.mercadoEtapa,mercadoEscolhas:state.mercadoEscolhas,contraponto:state.contraponto,pontuacao:state.pontuacao,resultadoVista:state.resultadoVista,apuracaoEtapa:state.apuracaoEtapa};
   }
@@ -16,7 +16,7 @@
     try{localStorage.setItem(KEY,txt)}catch(e){}
     if(force&&window.MosaicoUserCloud&&window.MosaicoUserCloud.sincronizarAgora)window.MosaicoUserCloud.sincronizarAgora();
   }
-  /* A abertura do Solo toca SEMPRE antes do jogo. Snapshot em mosaico/puzzle
+  /* A abertura do Solo toca SEMPRE antes do jogo. Snapshot em mosaico
      ("Coloque a noite em ordem"), seletor Guiada, Sala (2/4) ou escrivaninha
      (3/4) era restaurado DEPOIS dela e virava a primeira tela — o playtest
      da PR #39. percursoPronto do caminho velho (escrivaninha primeiro) também
@@ -41,7 +41,7 @@
     restaurado=true;var x=null;try{x=JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){}
     if(!x||!x.key||!state.caso.partidas||!state.caso.partidas[x.key])return false;
     if(x.phase&&x.phase!=="home"){
-      state.key=x.key;state.i=Number(x.i)||0;state.order=Array.isArray(x.order)?x.order:[0,1,2,3];state.pick=x.pick==null?null:x.pick;state.seen=Array.isArray(x.seen)?x.seen:[];state.facts=x.facts||{};state.answers=x.answers||{};state.scoreFacts=Number(x.scoreFacts)||0;state.correct=Number(x.correct)||0;
+      state.key=x.key;state.answers=x.answers||{};state.correct=Number(x.correct)||0;
       aplicarIntroIncompleta();
       state.mosaico=Array.isArray(x.mosaico)?x.mosaico:[];state.mosaicoPick=x.mosaicoPick==null?null:Number(x.mosaicoPick);
       state.mercadoEtapa=Number(x.mercadoEtapa)||0;state.mercadoEscolhas=Array.isArray(x.mercadoEscolhas)?x.mercadoEscolhas:[];state.contraponto=x.contraponto==null?null:Number(x.contraponto);state.pontuacao=x.pontuacao||null;state.resultadoVista=x.resultadoVista==='podio'?'podio':'apuracao';state.apuracaoEtapa=Math.min(5,Math.max(0,Number(x.apuracaoEtapa)||0));

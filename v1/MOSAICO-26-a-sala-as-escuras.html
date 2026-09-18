@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-ac-casa>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -319,10 +319,31 @@
      especificidade, quem vem por ultimo vence, e o padrao tem de vencer. -->
 <link rel="stylesheet" href="css/profundidade.css?v=20260902-profundidade">
 <link rel="stylesheet" href="css/profundidade-1mais1.css?v=20260906-pf-all">
-<link rel="stylesheet" href="css/ac-janelas.css?v=20260916-sala-cta">
+<link rel="stylesheet" href="css/ac-janelas.css?v=20260918-papeis">
+<style>
+  /* O chevron d'A Casa também mora aqui, no mesmo canto das outras telas.
+     Acima de TUDO: em jogo a camada visual da sala sobe para z-index 200001
+     e a carta para 300005 — medido na volta 2, o toque no chevron caía nela.
+     Dentro do percurso ele some: a barra que vale é a da moldura. Fora dela,
+     o HUD desce uma barra para o botão não cair sobre a Investigação. */
+  html[data-ac-casa] #help.ac-chevron{position:fixed;z-index:2147483000;top:max(calc((var(--ac-barra) - 44px) / 2),env(safe-area-inset-top));right:max(var(--ac-margem),env(safe-area-inset-right));text-transform:none;letter-spacing:0;pointer-events:auto}
+  html[data-ac-casa]:not(.ac-sob-moldura) #hud{padding-top:max(var(--ac-barra),env(safe-area-inset-top))}
+  /* O mesmo vale para o que cobre a sala: medido no quadro do Solo a
+     390×844 (volta 2, 17/09/2026), o chevron caía sobre a primeira linha da
+     intro. */
+  html[data-ac-casa]:not(.ac-sob-moldura) #intro,
+  html[data-ac-casa]:not(.ac-sob-moldura) #oito,
+  html[data-ac-casa]:not(.ac-sob-moldura) #falha,
+  html[data-ac-casa]:not(.ac-sob-moldura) #carta{padding-top:max(var(--ac-barra),env(safe-area-inset-top))!important}
+  html.ac-sob-moldura #help{display:none!important}
+  /* As Orientações são painel: o relógio de ociosidade as recolhe e o
+     chevron as traz de volta. A Investigação é o objetivo e fica. */
+  html[data-ac-casa] body.ac-recolhido [data-ac-painel]{visibility:hidden}
+</style>
 </head>
 <body>
 <canvas id="c"></canvas>
+<button id="help" class="ac-chevron" type="button" aria-label="Mostrar as janelas" aria-expanded="true">⌄</button>
 <div id="veil"></div>
 
 <div id="hud">
@@ -334,7 +355,7 @@
   <div id="base">
     <div id="medidor"><div id="medidor-i"></div></div>
     <div id="firme"><div id="firme-i"></div></div>
-    <section class="busca-caixa" aria-labelledby="orientacoes-titulo"><h2 id="orientacoes-titulo">Orientações:</h2><div id="status" role="status">A lanterna acende pouco.</div><div id="dica">Gire o corpo devagar. O feixe encontra uma coisa de cada vez.</div></section>
+    <section class="busca-caixa" data-ac-painel aria-labelledby="orientacoes-titulo"><h2 id="orientacoes-titulo">Orientações:</h2><div id="status" role="status">A lanterna acende pouco.</div><div id="dica">Gire o corpo devagar. O feixe encontra uma coisa de cada vez.</div></section>
     <div id="marcas"></div>
     <div id="botoes">
       <button id="b-luz" class="acc">Lanterna</button>
@@ -368,7 +389,6 @@
 </div></div>
 
 <div id="intro" data-ac-priority="10">
-  <button type="button" class="close" data-close aria-label="Fechar e entrar">×</button>
   <div id="intro-corpo">
   <div id="kicker">A noite da tempestade — dentro da casa</div>
   <div id="titulo">A Sala<br><b>às Escuras</b></div>
@@ -408,9 +428,9 @@
 </div>
 
 <script src="js/three.min.js"></script>
-<script src="js/vendor/GLTFLoader.js"></script><script src="js/ac-desk.js"></script><script src="js/ac-room-layout.js"></script><script src="js/ac-room-art.js"></script><script src="js/ac-room.js"></script><script src="js/mosaico-ra-engine.js?v=20260916-sala-cta"></script>
+<script src="js/vendor/GLTFLoader.js"></script><script src="js/ac-desk.js"></script><script src="js/ac-room-layout.js"></script><script src="js/ac-room-art.js"></script><script src="js/ac-room.js"></script><script src="js/mosaico-ra-engine.js?v=20260918-papeis"></script>
 <!-- Protocolo com a Mesa e ativacao de sensor: um so arquivo para as tres tarefas. -->
-<script src="js/tarefa-sensor.js?v=20260916-sala-cta"></script>
+<script src="js/tarefa-sensor.js?v=20260918-papeis"></script>
 <script>
 (function(){
 "use strict";
@@ -791,7 +811,7 @@ function montaSala(seedStr){
   rodadaVista=roundCode();
   pintaEnigma(false);
   var inp=document.getElementById("semente");
-  if(inp.value!==seedStr) inp.value=seedStr;
+  if(inp && inp.value!==seedStr) inp.value=seedStr;  /* fora da Mesa/Solo: o campo é do painel do Mestre */
   document.getElementById("cod-rodada").textContent=codigoCurto(seedStr);
   pintaMarcas(); pintaRodada();
 }
@@ -1674,7 +1694,8 @@ var FOLGAS=[{n:"apertado",v:0.75},{n:"normal",v:1},{n:"largo",v:1.4},{n:"muito l
 var iFolga=1;
 function pintaFolga(){
   CFG.FOLGA=FOLGAS[iFolga].v;
-  document.getElementById("folga").textContent="Folga do rumo: "+FOLGAS[iFolga].n;
+  var el=document.getElementById("folga");
+  if(el) el.textContent="Folga do rumo: "+FOLGAS[iFolga].n;
 }
 document.getElementById("folga").addEventListener("click",function(){
   iFolga=(iFolga+1)%FOLGAS.length; pintaFolga();
@@ -1744,6 +1765,17 @@ document.getElementById("falha-toque").addEventListener("click",function(){
 RETENTAR=function(){ ativaSensor(); };
 SEGUIR_TOQUE=function(){ entrarModoDedo("Arraste para girar o corpo."); };
 if(EMBED){ document.documentElement.classList.add("embed"); document.body.classList.add("embed"); }
+/* O painel do Mestre (leituras do sensor, semente, "Folga do rumo" que alarga
+   a mira em até 1,9×, "Calibrar norte") é ferramenta de campo, não de quem
+   joga. Dentro da Mesa e do Solo (embed) ele sai do DOM — a mesma convenção
+   da Janela do Norte. Antes o botão "Mestre" ficava no HUD de todo jogador
+   (Mario, 18/09/2026: botão extra, apague). Com ?dev=1 ele volta. */
+if(EMBED && !DEV){
+  ["b-mestre","mestre"].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el && el.parentNode) el.parentNode.removeChild(el);
+  });
+}
 if(!DEV){
   var _bt=document.getElementById("b-sim")||document.getElementById("alt");
   if(_bt && _bt.parentNode) _bt.parentNode.removeChild(_bt);
@@ -1863,7 +1895,13 @@ if(bRa){
   loop();
 })();
 
+/* Para a auditoria, como __escrivaninha e __maquete: no painel de testes a
+   aba fica sem requestAnimationFrame (≈4 quadros/s), e a sala só anda quadro
+   a quadro. `quadro()` roda um quadro sem agendar o próximo. */
+window.__sala={quadro:function(){loop(true);},alvo:alvo,
+  get view(){return view;},get raw(){return raw;},get jogando(){return jogando;},get achados(){return achados;},total:OBJETOS.length};
+
 })();
 </script>
-<script src="js/ac-janelas.js?v=20260916-sala-cta"></script></body>
+<script src="js/ac-janelas.js?v=20260918-papeis"></script></body>
 </html>

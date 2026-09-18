@@ -7,15 +7,13 @@
 [hidden]{display:none!important}#coop-status{position:fixed;top:76px;right:32px;max-width:70vw;font:11px/1.4 system-ui;color:#b9cabc;pointer-events:none}#timer{font:600 11px/1.5 system-ui;color:#e4c691;margin-bottom:8px;font-variant-numeric:tabular-nums}#invite{color:#f0d399;text-decoration:underline}.gesture-point:not(#socket){border-color:transparent;box-shadow:none}.gesture-point:not(#socket) span{font-size:10px;opacity:.7}#socket:not(.ready){display:none}.in-ar #orbit,.in-ar #below,.in-ar #motion,.in-ar #primary{display:none!important}@media(max-width:700px){#coop-status{top:65px;right:18px;max-width:65vw;text-align:right}.instruction{bottom:76px}.chapter{top:110px}}
 
 
-/* Leitura móvel no percurso Solo: instrução rolável, controles fora do texto. */
-@media(max-width:700px){
-  .ac-panel-stack{bottom:74px;max-height:42dvh;overflow:visible;padding:0 8px}
-  body .ac-panel-stack>.instruction[data-ac-priority]{
-    max-height:38dvh!important;overflow-y:auto;overscroll-behavior:contain;
-    -webkit-overflow-scrolling:touch;padding:76px 16px 18px!important;
-    scrollbar-gutter:stable;box-shadow:inset 0 1px #ffffff20,0 8px 0 #061410,0 18px 36px #0009!important
-  }
-  .ac-panel-stack>.instruction #description{font-size:14px;line-height:1.48}
-  .ac-panel-stack>.instruction #primary{position:sticky;bottom:0;margin-top:12px;background:#16362f}
-  .tools{z-index:20;padding:0 8px}
-}
+/* Onde cada janela mora (pilha de painéis, avisos, diálogos) é assunto de
+   `ac-janelas.css`. O remendo que ficava aqui ("leitura móvel no percurso
+   Solo") dava ao painel uma rolagem própria de 38dvh DENTRO da pilha, que
+   já rola: medido na volta 2 (17/09/2026), o "Como jogar" ficava 12 px
+   preso entre as duas rolagens, sem como chegar nele. */
+
+/* A recusa tem de ser VISTA: a peça resiste, chacoalha e volta ao lugar. */
+.gesture-point.recusa{animation:ac-recusa-pega .42s cubic-bezier(.36,.07,.19,.97)}
+@keyframes ac-recusa-pega{10%,90%{transform:translate(calc(-50% - 2px),-50%)}20%,80%{transform:translate(calc(-50% + 4px),-50%)}30%,50%,70%{transform:translate(calc(-50% - 7px),-50%)}40%,60%{transform:translate(calc(-50% + 7px),-50%)}}
+@media(prefers-reduced-motion:reduce){.gesture-point.recusa{animation:none;outline:2px solid #ffb3a0}}

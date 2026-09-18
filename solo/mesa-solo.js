@@ -83,7 +83,7 @@ function conjunto(k){
  return dentro;
 }
 
-const state={phase:'home',caso:null,key:null,i:0,order:[0,1,2,3],pick:null,seen:[],facts:{},answers:{},scoreFacts:0,
+const state={phase:'home',caso:null,key:null,answers:{},marco:null,papeisPronto:false,
   percursoPronto:false,percursoResultado:null,percursoEtapa:'janela',atividades:[],atividadeI:0,sensorPronto:false,sensorTempos:[],mosaico:[],mosaicoPick:null,mercadoEtapa:0,mercadoEscolhas:[],pontuacao:null,resultadoVista:'apuracao',apuracaoEtapa:0,apuracaoTimer:null};
 const app=document.getElementById('app');
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -102,7 +102,8 @@ function header(){
   return '<div class="shell"><div class="top"><div class="brand">MOSAICO · MODO SOLO</div><div class="badge">A Casa da Costa · 1867</div>'+chip+'</div>';
 }
 async function load(){try{const r=await fetch('../v1/casos/casa-da-costa.json?v=20260902-banco');if(!r.ok)throw Error();state.caso=await r.json();state.key=proxima();}catch(e){app.innerHTML=header()+'<div class="hero pf-card"><span class="k">Falha de carregamento</span><h2>O caso não pôde ser aberto.</h2><p class="muted">Recarregue a página quando a conexão estiver disponível.</p></div></div>';return;}
-  /* Pós-abertura a primeira tela jogável é a Janela, não o hub, o seletor
+  /* Pós-abertura vem a sequência da Mesa: as telas-marco da Encenação e da
+     Votação (só existem em grupo) e então a Janela — não o hub, o seletor
      Guiada (“Coloque os fatos na ordem certa”), a Sala nem a escrivaninha.
      _partidaNova impede o restore/Firebase de clobberar essa chegada. */
   if(state.phase==='home'){
@@ -115,7 +116,9 @@ async function load(){try{const r=await fetch('../v1/casos/casa-da-costa.json?v=
     state.atividadeI=0;
     state.sensorPronto=false;
     state.sensorTempos=[];
-    state.phase='percurso3d';
+    state.papeisPronto=false;
+    state.phase='marco';
+    state.marco='encenacao';
   }
   render();}
 /* A pilula de conta (#mosaico-account, de firebase-user.js) e position:fixed
@@ -139,11 +142,11 @@ function medirPilulaDaConta(){
   window.addEventListener('resize',aplicar);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',medirPilulaDaConta,{once:true});else medirPilulaDaConta();
-function render(){if(!state.caso)return;let h=header();if(state.phase==='home')h+=home();if(state.phase==='briefing')h+=briefing();if(state.phase==='percurso3d')h+=percurso3d();if(state.phase==='sensor')h+=sensor();if(state.phase==='puzzle')h+=puzzle();if(state.phase==='fact')h+=fact();if(state.phase==='mosaico')h+=mosaico();if(state.phase==='mercado')h+=mercado();if(state.phase==='relations')h+=relations();if(state.phase==='map')h+=map();if(state.phase==='decision')h+=decision();if(state.phase==='result')h+=result();
+function render(){if(!state.caso)return;let h=header();if(state.phase==='home')h+=home();if(state.phase==='briefing')h+=briefing();if(state.phase==='percurso3d')h+=percurso3d();if(state.phase==='sensor')h+=sensor();if(state.phase==='marco')h+=marco();if(state.phase==='papeis')h+=papeisTela();if(state.phase==='mosaico')h+=mosaico();if(state.phase==='mercado')h+=mercado();if(state.phase==='map')h+=map();if(state.phase==='decision')h+=decision();if(state.phase==='result')h+=result();
   try{
     /* O andaime de hipóteses pertence à análise/dedução. Na Mesa ele só
        aparece depois da coleta; no Solo deve obedecer à mesma sequência. */
-    var fasesComHipoteses=['relations','map','decision'];
+    var fasesComHipoteses=['map','decision'];
     if(window.MosaicoPapelCamada && fasesComHipoteses.indexOf(state.phase)>=0){
       var e=window.MosaicoPapelCamada.carregar('casa-da-costa');
       if(e.camada!=='livre') h+=window.MosaicoPapelCamada.htmlAndaime('casa-da-costa',e,{partidaId:state.key,state:{selecionados:state.answers||{}}});
@@ -160,7 +163,7 @@ function parAtividades(){
 const ATIVIDADE={
  janela:{titulo:'A Janela do Norte',arquivo:'../v1/MOSAICO-26-a-janela-do-norte.html?embed=1'},
  vidro:{titulo:'O Vidro Embaçado',arquivo:'../v1/MOSAICO-26-vidro-embacado.html?embed=1'},
- salaEscura:{titulo:'A Sala às Escuras',arquivo:'../v1/MOSAICO-26-a-sala-as-escuras.html?embed=1&v=20260916-sala-cta'}
+ salaEscura:{titulo:'A Sala às Escuras',arquivo:'../v1/MOSAICO-26-a-sala-as-escuras.html?embed=1&v=20260918-papeis'}
 };
 function briefing(){let p=state.caso.partidas[state.key];return '<span class="k">ENCENAÇÃO · PREPARAÇÃO</span><h2>A casa distribui os papéis.</h2><p class="lead">Você fará todas as tarefas da experiência. O sistema alternará a perspectiva cognitiva e assumirá somente as ações que dependeriam de outras pessoas.</p><div class="role-grid"><div class="relation pf-inset"><b>Você investiga</b><p class="muted">Observa, executa as atividades, organiza fatos e decide.</p></div><div class="relation pf-inset"><b>O sistema contrapõe</b><p class="muted">Distribui arquivos, oferece alternativas no Mercado e testa sua interpretação.</p></div></div><div class="question pf-inset"><b>'+esc(p.natureza)+'</b><p>'+esc(p.pergunta)+'</p></div><button class="btn" onclick="abrirPercurso3D()">Entrar na casa</button>';}
 function abrirPercurso3D(){try{sessionStorage.removeItem('ac:solo-integral:v1')}catch(_){ }state._partidaNova=true;state.percursoPronto=false;state.percursoResultado=null;state.percursoEtapa='janela';state.phase='percurso3d';render();}
@@ -193,7 +196,7 @@ function alternarTelaCheia(btn){
      continuar —, nao o mesmo quadro de novo no topo da tela. */
   if(!cheia)window.scrollTo({top:0});
 }
-function percurso3d(){const e=state.percursoEtapa,scene=e==='janela'?imersivo('1 / 4 · Chegada pela estrada','<iframe id="solo-percurso" title="A Janela do Norte" src="../v1/MOSAICO-26-a-janela-do-norte.html?embed=1" allow="camera; accelerometer; gyroscope; magnetometer"></iframe>'):imersivo('3 / 4 · Sob outra luz','<iframe id="solo-percurso" title="Escrivaninha da Casa da Costa" src="../v1/AC-escrivaninha.html?demo=solo" allow="camera; xr-spatial-tracking; accelerometer; gyroscope; magnetometer; fullscreen" allowfullscreen></iframe>'),texto=e==='janela'?'Chegue pela estrada e aponte a Janela do Norte para entrar na casa.':'Na escrivaninha, siga até o registro: a maquete abre na sequência para fechar a etapa final do percurso.',quadro=state.percursoPronto?'<div class="result pf-inset"><div class="score">'+esc((state.percursoResultado&&state.percursoResultado.score)||0)+'</div><p class="lead">Janela do Norte, Sala às Escuras, escrivaninha e maquete foram concluídas.</p></div>':scene;return '<span class="k">PERCURSO 3D · '+(e==='janela'?'CHEGADA':'ESCRIVANINHA')+'</span><h2>Da estrada à maquete.</h2><p class="lead">'+texto+'</p>'+quadro+'<button class="btn ghost" onclick="abrirAnalise()" '+(state.percursoPronto?'':'disabled')+'>'+(state.percursoPronto?'Passagem revelada · continuar':'Conclua a etapa atual')+'</button>';}
+function percurso3d(){const e=state.percursoEtapa,scene=e==='janela'?imersivo('1 / 4 · Chegada pela estrada','<iframe id="solo-percurso" title="A Janela do Norte" src="../v1/MOSAICO-26-a-janela-do-norte.html?embed=1" allow="camera; accelerometer; gyroscope; magnetometer"></iframe>'):imersivo('3 / 4 · Sob outra luz','<iframe id="solo-percurso" title="Escrivaninha da Casa da Costa" src="../v1/AC-escrivaninha.html?demo=solo" allow="camera; xr-spatial-tracking; accelerometer; gyroscope; magnetometer; fullscreen" allowfullscreen></iframe>'),texto=e==='janela'?'Chegue pela estrada e aponte a Janela do Norte para entrar na casa.':'Na escrivaninha, siga até o registro: a maquete abre na sequência para fechar a etapa final do percurso.',quadro=state.percursoPronto?'<div class="result pf-inset"><div class="score">'+esc((state.percursoResultado&&state.percursoResultado.score)||0)+'</div><p class="lead">Janela do Norte, Sala às Escuras, escrivaninha e maquete foram concluídas.</p></div>':scene;return '<span class="k">PERCURSO 3D · '+(e==='janela'?'CHEGADA':'ESCRIVANINHA')+'</span><h2>Da estrada à maquete.</h2><p class="lead">'+texto+'</p>'+quadro+'<button class="btn ghost" onclick="abrirPapeis()" '+(state.percursoPronto?'':'disabled')+'>'+(state.percursoPronto?'Passagem revelada · continuar':'Conclua a etapa atual')+'</button>';}
 function abrirAtividades(){state.atividades=parAtividades();state.atividadeI=0;state.sensorPronto=false;state.phase='sensor';render();}
 function sensor(){let id=state.atividades[state.atividadeI],a=ATIVIDADE[id];return '<span class="k">ATIVIDADE SENSORIAL 2 DE 4</span><h2>'+esc(a.titulo)+'</h2><p class="lead">Conclua esta etapa para seguir para a escrivaninha.</p>'+(state.sensorPronto?'<div class="result pf-inset"><p class="lead">Atividade concluída. A próxima etapa foi liberada.</p></div>':imersivo('2 / 4 · '+a.titulo,'<iframe id="solo-sensor" title="'+esc(a.titulo)+'" src="'+esc(a.arquivo)+'" allow="camera; xr-spatial-tracking; accelerometer; gyroscope; magnetometer"></iframe>'))+'<button class="btn ghost" onclick="confirmarSensor()" '+(state.sensorPronto?'':'disabled')+'>'+(state.sensorPronto?'Atividade concluída · continuar':'Conclua a tarefa no quadro')+'</button>';
 }
@@ -209,29 +212,52 @@ window.addEventListener('message',function(ev){
 });
 function start(){
   if(state.apuracaoTimer){clearTimeout(state.apuracaoTimer);state.apuracaoTimer=null;}
-  marcarUsada();state.i=0;state.seen=[];state.facts={};state.answers={};state.scoreFacts=0;
+  marcarUsada();state.answers={};state.papeisPronto=false;
   state._partidaNova=true;state.percursoPronto=false;state.percursoResultado=null;state.percursoEtapa='janela';state.atividades=[];state.atividadeI=0;state.sensorPronto=false;state.sensorTempos=[];state.mosaico=[];state.mosaicoPick=null;state.mercadoEtapa=0;state.mercadoEscolhas=[];state.pontuacao=null;state.resultadoVista='apuracao';state.apuracaoEtapa=0;
-  abrirPercurso3D();
+  abrirMarco('encenacao');
 }
 /* O seletor Guiada/Cronista (“Coloque os fatos na ordem certa”) só depois
    do percurso 3D. Se nascer no Começar, vira a primeira tela após a abertura. */
 function abrirAnalise(){
-  function go(){state.i=0;state.phase='puzzle';newPuzzle();render();}
+  function go(){prepararMosaico();state.phase='mosaico';render();}
   if(window.MosaicoPapelCamada && !state._papelOk){
     window.MosaicoPapelCamada.mostrarSeletor({caso:'casa-da-costa'}).then(function(){state._papelOk=true;go();});
     return;
   }
   go();
 }
-function currentId(){return conjunto(state.key)[state.i];}
-function newPuzzle(){state.order=shuffle([0,1,2,3]);if(state.order.every((v,i)=>v===i))[state.order[0],state.order[1]]=[state.order[1],state.order[0]];state.pick=null;}
-function puzzle(){let id=currentId(),e=evid(id),p=state.caso.partidas[state.key],pct=Math.round(state.i/conjunto(state.key).length*100);let pieces=state.order.map((n,i)=>'<button class="piece '+(state.pick===i?'sel ':'')+(n===i?'ok':'')+'" data-mark="'+esc(e.icon)+'" onclick="tap('+i+')"><span style="position:absolute;left:7px;top:5px;font-size:10px;opacity:.6">'+(n+1)+'</span></button>').join('');return '<div class="stage"><div><span class="k">'+esc(p.titulo)+'</span><h2>Evidência '+(state.i+1)+' de '+conjunto(state.key).length+'</h2></div><div class="badge">'+pct+'%</div></div><div class="progress"><i style="width:'+pct+'%"></i></div><div class="evidence"><div class="meta"><span>Arquivo fragmentado</span><span>'+esc(e.hora||'—')+'</span></div><h3>'+esc(e.title)+'</h3><div class="puzzle">'+pieces+'</div><p class="muted" style="color:#59452e">Toque em duas peças para trocar suas posições.</p></div>';}
-function tap(i){if(state.pick===null){state.pick=i;render();return;}if(state.pick===i){state.pick=null;render();return;}let a=state.pick;[state.order[a],state.order[i]]=[state.order[i],state.order[a]];state.pick=null;if(state.order.every((v,n)=>v===n))state.phase='fact';render();}
-function factOptions(e){return shuffle([e.fact,'Esse fato sozinho identifica quem estava na casa.','Esse fato prova que houve crime.','Esse fato já explica toda a noite.']);}
-function fact(){let id=currentId(),e=evid(id);if(!state.facts[id])state.facts[id]={opts:factOptions(e),chosen:null};let f=state.facts[id];let opts=f.opts.map((o,i)=>'<button class="opt pf-cell '+(f.chosen===i?(o===e.fact?'good':'bad'):'')+'" onclick="chooseFact('+i+')">'+esc(o)+'</button>').join('');return '<span class="k">FATO</span><h2>O que esta evidência permite afirmar diretamente?</h2><div class="factbox pf-inset"><b>'+esc(e.title)+'</b><span>Evite transformar pista em conclusão.</span></div><div class="opts pf-inset">'+opts+'</div>'+(f.chosen!==null?'<button class="btn" onclick="nextEvidence()">'+(state.i<conjunto(state.key).length-1?'Próxima evidência':'Abrir o Mosaico')+'</button>':'');}
-function chooseFact(i){let id=currentId(),e=evid(id),f=state.facts[id];if(f.chosen!==null)return;f.chosen=i;if(f.opts[i]===e.fact)state.scoreFacts++;render();}
-function nextEvidence(){let id=currentId();if(!state.seen.includes(id))state.seen.push(id);if(state.i<conjunto(state.key).length-1){state.i++;newPuzzle();state.phase='puzzle';}else{prepararMosaico();state.phase='mosaico';}render();}
-
+/* As etapas que só existem em grupo — a Encenação, a Votação de performance
+   e o Voto de cooperação — não somem do Solo sem aviso: cada uma vira uma
+   tela-marco NA MESMA POSIÇÃO da sequência da Mesa (Mario, 18/09/2026). O
+   Solo é bancada da Mesa: quem testa por ele precisa saber onde a Mesa faz
+   algo que ele não está exercitando. */
+const MARCOS={
+  encenacao:{nome:'A Encenação',texto:'cada jogador, na sua vez, lê no celular uma instrução secreta e a encena para o grupo; os outros assistem de tela virada.',depois:()=>abrirMarco('votacao')},
+  votacao:{nome:'A Votação de performance',texto:'cada um vota em quem encenou melhor, menos em si mesmo.',depois:()=>abrirPercurso3D()},
+  cooperacao:{nome:'O Voto de cooperação',texto:'cada um escolhe, em segredo, quem mais ajudou o seu grupo a pôr a noite em ordem.',depois:()=>{state.phase='mercado';render();}}
+};
+function abrirMarco(id){state.marco=id;state.phase='marco';render();window.scrollTo({top:0});}
+function marco(){
+  const m=MARCOS[state.marco]||MARCOS.encenacao;
+  return '<section class="hero pf-card marco-mesa"><span class="k">A MESA · EM GRUPO</span><h2>'+esc(m.nome)+'</h2>'+
+    '<p class="lead">Neste momento seria '+esc(m.nome.replace(/^A /,'a ').replace(/^O /,'o '))+' na versão A Mesa, em grupo: '+esc(m.texto)+'</p>'+
+    '<p class="muted">No Solo esta etapa não acontece — ela precisa de outras pessoas.</p>'+
+    '<button class="btn" onclick="seguirMarco()">Continuar</button></section>';
+}
+function seguirMarco(){(MARCOS[state.marco]||MARCOS.encenacao).depois();}
+/* 4 / 4 · Os papéis da passagem: a mesma página da Mesa (AC-papeis.html),
+   que é individual nos dois modos. */
+function abrirPapeis(){if(!state.percursoPronto)return;state.papeisPronto=false;state.phase='papeis';render();window.scrollTo({top:0});}
+function papeisTela(){
+  return '<span class="k">PERCURSO 3D · A PASSAGEM</span><h2>Os papéis da passagem.</h2><p class="lead">Debaixo da despensa, três papéis rasgados.</p>'+
+    (state.papeisPronto?'<div class="result pf-inset"><p class="lead">A planta, o bilhete e o relógio foram montados. A pista foi para o dossiê.</p></div>':
+      imersivo('4 / 4 · Os papéis da passagem','<iframe id="solo-papeis" title="Os papéis da passagem" src="../v1/AC-papeis.html?demo=solo&v=20260918-papeis"></iframe>'))+
+    '<button class="btn ghost" onclick="abrirAnalise()" '+(state.papeisPronto?'':'disabled')+'>'+(state.papeisPronto?'Papéis guardados · continuar':'Monte os três papéis')+'</button>';
+}
+window.addEventListener('message',function(ev){
+  if(ev.origin!==location.origin||!ev.data||ev.data.mosaico!=='ac-papeis-completo'||state.phase!=='papeis')return;
+  state.papeisPronto=true;render();
+});
 function itensMosaico(){
  const ids=(state.caso.mosaico&&state.caso.mosaico.ordemCorreta)||[];
  return ids.map(id=>({id:id,rot:(state.caso.mosaico.rotulos||{})[id]||id,dica:(state.caso.mosaico.dicas||{})[id]||''}));
@@ -240,33 +266,22 @@ function prepararMosaico(){state.mosaico=shuffle(itensMosaico());if(state.mosaic
 function mosaico(){
  let certo=itensMosaico(),ok=state.mosaico.length&&state.mosaico.every((x,i)=>x.id===certo[i].id);
  let linhas=state.mosaico.map((x,i)=>'<button class="mosaico-item '+(state.mosaicoPick===i?'sel':'')+'" onclick="tocarMosaico('+i+')"><span>'+(i+1)+'</span><b>'+esc(x.rot)+'</b><small>'+esc(x.dica)+'</small></button>').join('');
- return '<span class="k">MOSAICO · RECONSTRUÇÃO INDIVIDUAL</span><h2>Coloque a noite em ordem.</h2><p class="lead">Organize individualmente os acontecimentos revelados. Toque em dois para trocar suas posições.</p><div class="mosaico-lista">'+linhas+'</div>'+(ok?'<div class="factbox pf-inset"><b>Linha factual validada</b><span>A sequência está coerente. Agora você pode acessar o Mercado de pistas.</span></div><button class="btn" onclick="state.phase=\'mercado\';render()">Entrar no Mercado</button>':'<p class="muted">A etapa só avança quando todos os acontecimentos estiverem na ordem factual.</p>');
+ return '<span class="k">MOSAICO · RECONSTRUÇÃO INDIVIDUAL</span><h2>Coloque a noite em ordem.</h2><p class="lead">Organize individualmente os acontecimentos revelados. Toque em dois para trocar suas posições.</p><div class="mosaico-lista">'+linhas+'</div>'+(ok?'<div class="factbox pf-inset"><b>Linha factual validada</b><span>A sequência está coerente. Agora você pode acessar o Mercado de pistas.</span></div><button class="btn" onclick="abrirMarco(\'cooperacao\')">Continuar</button>':'<p class="muted">A etapa só avança quando todos os acontecimentos estiverem na ordem factual.</p>');
 }
-function tocarMosaico(i){if(state.mosaicoPick===null){state.mosaicoPick=i;render();return;}if(state.mosaicoPick===i){state.mosaicoPick=null;render();return;}let a=state.mosaicoPick;[state.mosaico[a],state.mosaico[i]]=[state.mosaico[i],state.mosaico[a]];state.mosaicoPick=null;render();}
+function tocarMosaico(i){if(state.mosaicoPick===null){state.mosaicoPick=i;render();return;}if(state.mosaicoPick===i){state.mosaicoPick=null;render();return;}let a=state.mosaicoPick;[state.mosaico[a],state.mosaico[i]]=[state.mosaico[i],state.mosaico[a]];state.mosaicoPick=null;render();
+ /* A validação nasce ABAIXO da lista: a 390×844 o botão do Mercado ficava em y=937, e quem acertava a ordem não via nada mudar na tela (volta 2, 17/09/2026). */
+ let certo=itensMosaico();if(state.mosaico.every((x,k)=>x.id===certo[k].id)){const v=document.querySelector('#app .mosaico-lista ~ .factbox');if(v)v.scrollIntoView({behavior:'smooth',block:'center'});}}
 function ofertaMercado(){return conjunto(state.key).slice(0,3).map(evid).filter(Boolean);}
 function mercado(){
  let etapa=state.mercadoEtapa,ofertas=ofertaMercado();
  if(etapa===0)return '<span class="k">MERCADO DE PISTAS · AÇÃO 1 DE 3</span><h2>Adquirir uma pista lacrada.</h2><p class="lead">Três arquivos lacrados estão disponíveis. Escolha um para aprofundar sua investigação.</p><div class="mercado-grid">'+ofertas.map((e,i)=>'<button class="mkt-card" onclick="acaoMercado(\'adquirir\','+i+')"><b>Arquivo lacrado '+(i+1)+'</b><span>'+esc(e.hora)+'</span></button>').join('')+'</div>';
  if(etapa===1)return '<span class="k">MERCADO DE PISTAS · AÇÃO 2 DE 3</span><h2>Avaliar a confiança.</h2><p class="lead">Avalie individualmente se a pista é central ou secundária para sua linha de investigação.</p><div class="opts pf-inset"><button class="opt" onclick="acaoMercado(\'manter\')">Manter: ela parece central</button><button class="opt" onclick="acaoMercado(\'consignar\')">Consignar: ela parece secundária</button></div>';
  if(etapa===2)return '<span class="k">MERCADO DE PISTAS · AÇÃO 3 DE 3</span><h2>Comprar informação ou preservar recursos?</h2><p class="lead">Faça uma revisão crítica antes de decidir, sem acesso à resposta canônica.</p><div class="relation pf-inset"><b>Revisão crítica</b><p class="muted">“Os fatos explicam presença, mas ainda não necessariamente entrada ou culpa.”</p></div><div class="opts pf-inset"><button class="opt" onclick="acaoMercado(\'comprar contraponto\')">Comprar o contraponto</button><button class="opt" onclick="acaoMercado(\'preservar recursos\')">Preservar os recursos</button></div>';
- return '<span class="k">MERCADO ENCERRADO</span><h2>Suas decisões foram registradas.</h2><div class="relation pf-inset">'+state.mercadoEscolhas.map(x=>'<p>• '+esc(x)+'</p>').join('')+'</div><button class="btn" onclick="state.phase=\'relations\';render()">Relacionar os fatos</button>';
+ return '<span class="k">MERCADO ENCERRADO</span><h2>Suas decisões foram registradas.</h2><div class="relation pf-inset">'+state.mercadoEscolhas.map(x=>'<p>• '+esc(x)+'</p>').join('')+'</div><button class="btn" onclick="state.phase=\'map\';render()">Abrir a planta da casa</button>';
 }
 function acaoMercado(tipo,i){let txt=tipo;if(tipo==='adquirir'){let e=ofertaMercado()[i];txt='Adquiriu: '+(e?e.title:'arquivo')}state.mercadoEscolhas.push(txt);state.mercadoEtapa++;render();}
-/* Um fragmento pode servir a MAIS DE UMA relação. O agrupamento antigo
-   perguntava a cada fragmento "de que relação você é?" e ficava com a primeira,
-   então a peça compartilhada nunca contava para a segunda — em "nome", R10 tinha
-   duas peças em mão e mesmo assim não aparecia. Agora a pergunta é feita ao
-   contrário: para cada relação do banco, quais peças dela estão em mão. */
-function relationGroups(){
- const dentro={}; conjunto(state.key).forEach(c=>dentro[c]=1);
- return relacoesDoCaso().map(r=>{
-  const pecas=(r.pecas||[]).map(g=>(Array.isArray(g)?g:[g]).find(x=>dentro[x])).filter(Boolean);
-  return [r,pecas];
- }).filter(x=>x[1].length>1);
-}
-function relations(){let groups=relationGroups();let html=groups.map(([r,ids],idx)=>'<div class="relation pf-inset"><span class="k">RELAÇÃO '+(idx+1)+'</span><h3>'+ids.map(id=>esc(evid(id).title)).join(' + ')+'</h3><div class="tags">'+ids.map(id=>'<span class="tag">'+esc(evid(id).fact.split('.')[0])+'</span>').join('')+'</div><p class="muted">Juntos, esses fatos sustentam: <b style="color:var(--gold2)">'+esc(String(r.efeito||'').replace(/.s*$/,''))+'</b>.</p></div>').join('');return '<span class="k">FATO → RELAÇÃO → INFERÊNCIA</span><h2>Agora os fragmentos começam a conversar.</h2><p class="lead">Uma pista isolada é fraca. A relação entre fatos é o que torna a inferência auditável.</p>'+html+'<button class="btn" onclick="state.phase=\'map\';render()">Abrir a planta de 1867</button>';}
 function map(){let p=state.caso.partidas[state.key];return '<span class="k">MAPA DA CASA</span><h2>Onde os fatos se encontram?</h2><p class="lead">Use a planta como síntese espacial. Não procure um culpado: procure onde a pergunta começa a fechar.</p><div class="map pf-inset"><img src="../v1/img/casa-da-costa-planta-1867.svg" alt="Planta esquemática da Casa da Costa, construção de 1867"><div class="mapnote"><b>'+esc(p.titulo)+'</b><br>'+esc(p.pergunta)+'</div></div><button class="btn" onclick="state.phase=\'decision\';render()">Responder à pergunta</button>';}
-function decision(){let p=state.caso.partidas[state.key];let fields=p.campos.map(f=>'<div class="field pf-inset"><label>'+esc(f.rotulo)+'</label><select id="f-'+esc(f.id)+'"><option value="">Escolha…</option>'+f.opcoes.map(o=>'<option>'+esc(o)+'</option>').join('')+'</select></div>').join('');return '<span class="k">INFERÊNCIA → DECISÃO</span><h2>'+esc(p.pergunta)+'</h2><p class="lead">Preencha os campos derivados desta pergunta. Depois do envio, a resposta será comparada à realidade canônica.</p><div class="fields">'+fields+'</div><button class="btn red" onclick="finish()">Fechar minha conclusão</button><button class="btn ghost" onclick="state.phase=\'relations\';render()">Rever relações</button>';}
+function decision(){let p=state.caso.partidas[state.key];let fields=p.campos.map(f=>'<div class="field pf-inset"><label>'+esc(f.rotulo)+'</label><select id="f-'+esc(f.id)+'"><option value="">Escolha…</option>'+f.opcoes.map(o=>'<option>'+esc(o)+'</option>').join('')+'</select></div>').join('');return '<span class="k">INFERÊNCIA → DECISÃO</span><h2>'+esc(p.pergunta)+'</h2><p class="lead">Preencha os campos derivados desta pergunta. Depois do envio, a resposta será comparada à realidade canônica.</p><div class="fields">'+fields+'</div><button class="btn red" onclick="finish()">Fechar minha conclusão</button><button class="btn ghost" onclick="state.phase=\'map\';render()">Rever a planta</button>';}
 function finish(){
   try{
     if(window.MosaicoPapelCamada&&window.MosaicoHipotesesCamada){
@@ -297,6 +312,9 @@ function prepararPontuacao(){
 function totalSolo(){return CATEGORIAS_SOLO.reduce((s,c)=>s+Number((state.pontuacao||{})[c[0]]||0),0);}
 function agendarApuracao(){if(state.apuracaoTimer)return;state.apuracaoTimer=setTimeout(function(){state.apuracaoTimer=null;if(state.phase!=='result'||state.resultadoVista!=='apuracao')return;if(state.apuracaoEtapa<CATEGORIAS_SOLO.length){state.apuracaoEtapa++;render();}else{state.resultadoVista='podio';render();}},1500);}
 function apuracao(){let vis=state.apuracaoEtapa;let cols=CATEGORIAS_SOLO.map((c,i)=>'<div class="apuracao-cat '+(i<vis?'visivel':'')+'"><span>'+esc(c[1])+'</span><b>'+(i<vis?esc(state.pontuacao[c[0]])+' pts':'—')+'</b></div>').join('');return '<span class="k">APURAÇÃO FINAL</span><h2>A investigação será recomposta.</h2><p class="lead">As categorias aparecem automaticamente, na mesma ordem do placar da Mesa.</p><div class="apuracao-grid">'+cols+'</div><div class="apuracao-total"><span>Total parcial</span><b>'+CATEGORIAS_SOLO.slice(0,vis).reduce((s,c)=>s+Number(state.pontuacao[c[0]]||0),0)+'</b></div>';}
+/* A figura do pódio sai do elenco do caso, como na Mesa: quem joga o Solo é
+   o Investigador. Antes o degrau só tinha o número (Mario, 18/09/2026). */
+function avatarSolo(){const e=((state.caso&&state.caso.elenco)||[]).find(x=>x.id==='investigador');return (e&&e.av)||'🔎';}
 function podio(){let p=state.caso.partidas[state.key],rows=p.campos.map(f=>'<div class="relation pf-inset"><span class="k">'+esc(f.rotulo)+'</span><p style="margin:.35rem 0"><b>Sua resposta:</b> '+esc(state.answers[f.id])+'</p><p class="muted" style="margin:0"><b>Canônica:</b> '+esc(f.resposta)+'</p></div>').join('');
   let processo='';
   try{
@@ -305,8 +323,8 @@ function podio(){let p=state.caso.partidas[state.key],rows=p.campos.map(f=>'<div
       processo=window.MosaicoHipotesesCamada.htmlRelatorioProcesso(sc,{caso:'casa-da-costa'})||'';
     }
   }catch(err){}
-  return '<span class="k">PÓDIO · RESULTADO FINAL</span><div class="podio-solo"><div class="podio-degrau"><span>1º</span><b>Investigador solo</b><strong>'+totalSolo()+' pts</strong></div></div><h2>'+esc(p.titulo)+'</h2><div class="result pf-inset"><div class="score">'+totalSolo()+'</div><p class="muted">Pontuação total da experiência completa</p><p class="lead">'+esc(p.revelacao)+'</p></div>'+processo+rows+'<div class="factbox pf-inset"><b>Realidade canônica</b><span>'+esc(state.caso.realidadeCanonica.sintese)+'</span></div><button class="btn" onclick="nextRun()">Nova partida</button>';
+  return '<span class="k">PÓDIO · RESULTADO FINAL</span><div class="podio-solo"><div class="podio-degrau"><span>1º</span><i class="podio-av" aria-hidden="true">'+esc(avatarSolo())+'</i><b>Investigador solo</b><strong>'+totalSolo()+' pts</strong></div></div><h2>'+esc(p.titulo)+'</h2><div class="result pf-inset"><div class="score">'+totalSolo()+'</div><p class="muted">Pontuação total da experiência completa</p><p class="lead">'+esc(p.revelacao)+'</p></div>'+processo+rows+'<div class="factbox pf-inset"><b>Realidade canônica</b><span>'+esc(state.caso.realidadeCanonica.sintese)+'</span></div><button class="btn" onclick="nextRun()">Nova partida</button>';
 }
 function result(){if(!state.pontuacao)prepararPontuacao();return state.resultadoVista==='podio'?podio():apuracao();}
-function nextRun(){if(state.apuracaoTimer){clearTimeout(state.apuracaoTimer);state.apuracaoTimer=null;}state.key=proxima();state.phase='home';state.i=0;state.seen=[];state.facts={};state.answers={};state.scoreFacts=0;state.percursoPronto=false;state.percursoResultado=null;state.percursoEtapa='janela';state.atividades=[];state.atividadeI=0;state.sensorPronto=false;state.sensorTempos=[];state.pontuacao=null;state.resultadoVista='apuracao';state.apuracaoEtapa=0;render();}
+function nextRun(){if(state.apuracaoTimer){clearTimeout(state.apuracaoTimer);state.apuracaoTimer=null;}state.key=proxima();state.phase='home';state.answers={};state.papeisPronto=false;state.marco=null;state.percursoPronto=false;state.percursoResultado=null;state.percursoEtapa='janela';state.atividades=[];state.atividadeI=0;state.sensorPronto=false;state.sensorTempos=[];state.pontuacao=null;state.resultadoVista='apuracao';state.apuracaoEtapa=0;render();}
 load();

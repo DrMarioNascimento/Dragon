@@ -8,31 +8,43 @@
   let coop=null, role=new URLSearchParams(location.search).get('papel')||'luz', connected=false, shared=null;
   let fallback=false, arSupported=false, lastBeam=0, beamPending=false, discoverPending=false, registerPending=false;
   const clueText='Procure pelo lar onde o telhado não protege da chuva, os móveis nunca mudam de lugar e os moradores são pequenos demais. É lá onde todos os projetos se iniciam, é lá que o segredo repousa.';
-  let disposed = false, modelReady = false, orbiting = false, hold = 0, noticeTimer;
+  let disposed = false, modelReady = false, hold = 0, noticeTimer;
   let xrSession = null, hitSource = null, xrGeneration = 0, hasHit = false, xrPlaced = false;
   /* iPhone: o Safari não tem RA por WebXR, mas abre o Quick Look do sistema
      (a mesma técnica do lab-ra). Lá dentro não roda JavaScript: serve para
      posicionar e circular a escrivaninha na sala real; vela e luz seguem aqui. */
   const quickLook=(()=>{try{const a=document.createElement('a');return !!(a.relList&&a.relList.supports&&a.relList.supports('ar'));}catch(_){return false;}})();
-  let motionEnabled = false, motionOrigin = null, lightTransfer = 0;
+  let lightTransfer = 0;
   let draggingCandle = false, snapReady = false, draggingDesk = false;
   const dragPlane = new THREE.Plane(), dragRay = new THREE.Raycaster(), dragPoint = new THREE.Vector3();
   const cleanup = [];
   const on = (target, type, fn, options) => { if(!target) return; target.addEventListener(type, fn, options); cleanup.push(() => target.removeEventListener(type, fn, options)); };
   const entrarAtividade=()=>window.ACJanelas?.entrarAtividade();
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  function notify(message) { $('notice').textContent = message; $('notice').style.display = 'block'; clearTimeout(noticeTimer); noticeTimer = setTimeout(() => { $('notice').style.display = 'none'; }, 5000); }
+  function notify(message,nivel) { if(window.ACJanelas?.aviso){window.ACJanelas.aviso(message,nivel||9);return;} $('notice').textContent = message; $('notice').style.display = 'block'; clearTimeout(noticeTimer); noticeTimer = setTimeout(() => { $('notice').style.display = 'none'; }, 4000); }
   function dispatch(type) { if(!connected||!coop)return;coop.send(type).catch(()=>notify('Conexão interrompida. Aguarde a reconexão.')); }
   function beginAction(){entrarAtividade();if(role==='luz'&&shared&&!shared.started)dispatch('iniciar');}
   function setFallback(reason){fallback=true;$('accessible').closest('label').hidden=false;$('fallback-description').textContent=reason+' O modo 3D permite arrastar para explorar; os botões são opcionais.';updateUI();}
 
+  /* Os textos descrevem o MUNDO, nunca o papel. Ninguém lê "portador da luz":
+     quem põe a vela descobre o que ela faz pelo que o colega diz que viu, e
+     quem fica no escuro descobre o fósforo no bolso quando a luz some. */
   const descriptions = {
-    posicionar: ['PORTADOR DA LUZ', 'A luz voltou.', 'A luz voltou, ache um lugar seguro para segurar a vela e auxiliar seu colega na tarefa', 'Posicionar escrivaninha'],
-    castical: ['PORTADOR DA LUZ', 'Um lugar seguro.', 'A luz voltou, ache um lugar seguro para segurar a vela e auxiliar seu colega na tarefa', 'Colocar a vela no castiçal'],
-    iluminar: ['PORTADOR DA LUZ', 'Ilumine para seu colega.', 'Agora essa luz pode esclarecer um segredo escondido que só seu colega consegue ver!', 'Investigar'],
-    encontrado: ['DESCOBERTA EM DUPLA', 'Um segredo revelado.', 'Seu colega pode ler a etiqueta e guardar a descoberta.', 'Examinar fragmento'],
-    registrado: ['DOSSIÊ', 'A descoberta permanece.', 'A pista foi guardada pela dupla. Ela orienta a próxima investigação.', 'Reabrir fragmento']
+    posicionar: ['A ESCRIVANINHA', 'Uma vela apagada na mão.', 'Uma escrivaninha espera um lugar no chão da sala.', 'Posicionar escrivaninha'],
+    castical: ['A ESCRIVANINHA', 'Um lugar seguro.', 'Sobre a escrivaninha há um castiçal vazio.', 'Colocar a vela no castiçal'],
+    iluminar: ['A ESCRIVANINHA', 'A chama pegou.', 'A luz vai aonde você aponta.', 'Investigar'],
+    encontrado: ['A ESCRIVANINHA', 'Um segredo revelado.', 'Do outro lado da mesa, alguém lê uma etiqueta.', 'Examinar fragmento'],
+    registrado: ['DOSSIÊ', 'A descoberta permanece.', 'A pista foi guardada. Ela aponta para outro lugar da casa.', 'Reabrir fragmento']
   };
+  const noEscuro = {
+    posicionar: ['A ESCRIVANINHA', 'Escuro.', 'Não se vê nada. Do outro lado da sala, alguém arrasta um móvel.'],
+    castical: ['A ESCRIVANINHA', 'Escuro.', 'Não se vê nada. Alguém procura onde apoiar alguma coisa.'],
+    iluminar: ['A ESCRIVANINHA', 'Uma luz chegou.', 'Ela vem de outro lugar e alcança o que alcança. Debaixo das coisas também há coisas.']
+  };
+  /* A vela como o motor a conta: existe depois do castiçal, e apaga sozinha. */
+  const vela = () => shared?.vela || {existe:false,acesa:false,resta:0};
+  const velaApagada = () => state.stage==='iluminar'&&vela().existe&&!vela().acesa;
+  let tentativasNaVela=0, toquesNoEscuro=0, tremorVela=0, velaAntes=null;
 
   const scene = new THREE.Scene(); scene.background = new THREE.Color(0x091515); scene.fog = new THREE.Fog(0x091515, 6, 14);
   const camera = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, .02, 35);
@@ -113,18 +125,22 @@
     $('primary').hidden=(!(fallback&&$('accessible').checked)&&!soloNext)||(role!=='luz'&&!soloNext)||state.stage==='registrado';
     if(solo&&role==='conhecimento'&&state.stage==='iluminar'){
       $('primary').textContent='Procurar bilhete sob as gavetas';
-      $('primary').disabled=!connected;
+      $('primary').disabled=!connected||velaApagada();
     }else if(solo&&role==='conhecimento'&&state.stage==='encontrado'){
       $('primary').textContent='Ler e guardar bilhete';
       $('primary').disabled=!connected;
     }
-    for(const id of ['orbit','below','motion'])$(id).hidden=!fallback||!!xrSession;
     const ar=$('ar'), arIos=$('ar-ios');
     if(ar) ar.hidden=true;
     if(arIos) arIos.hidden=true;
     $('dossier').hidden=role!=='conhecimento'||!['encontrado','registrado'].includes(state.stage);
-    if(role==='conhecimento'&&['posicionar','castical','iluminar'].includes(state.stage)){ $('step').textContent='PORTADOR DO CONHECIMENTO';$('heading').textContent=state.stage==='iluminar'?'O que só você pode ver.':'Um não vê sem o outro.';$('description').textContent=['posicionar','castical'].includes(state.stage)?'Seu colega precisa achar um lugar para segurar a vela, só assim a tarefa dará seguimento!':'A vela pode iluminar com segurança algo escondido que pode estar nessa escrivaninha, ela ilumina o que só você pode ver!'; }
-    if(role==='apoio'){$('step').textContent='LEITURA E ORIENTAÇÃO';$('heading').textContent='Ajude seu Fragmento.';$('description').textContent='Acompanhe as instruções e oriente os colegas. Um posiciona e ilumina; o outro examina a etiqueta. Na maquete, você também poderá ler o manuscrito.';}
+    /* O fósforo só existe no bolso de quem não pôs a vela, e só quando ela apagou. */
+    $('fosforo').hidden=role!=='conhecimento'||!velaApagada()||!connected;
+    if(role!=='luz'&&noEscuro[state.stage]){const [a,b,c]=noEscuro[state.stage];$('step').textContent=a;$('heading').textContent=b;$('description').textContent=c;}
+    if(velaApagada()){
+      $('heading').textContent=role==='luz'?'A vela apagou.':'A luz sumiu.';
+      $('description').textContent=role==='luz'?'O pavio ainda fumega.':'No bolso, uma caixa de fósforos.';
+    }
     if(fallback&&!xrSession&&!$('accessible').checked&&role==='luz'&&['posicionar','castical'].includes(state.stage))$('description').textContent=$('description').textContent.replace(/[.!]?$/,'.')+(state.stage==='posicionar'?' Toque no chão para posicionar a escrivaninha.':' Arraste a vela até o castiçal sobre a escrivaninha.');
     if(xrSession&&!xrPlaced){$('heading').textContent='Posicione a escrivaninha.';$('description').textContent='Aponte para uma superfície e confirme quando o círculo aparecer.';$('primary').textContent='Posicionar escrivaninha';$('primary').disabled=!hasHit||!modelReady;}
     for(const id of ['step','heading','description','primary']){
@@ -133,18 +149,21 @@
       element.setAttribute('aria-label',words);
     }
     const searching=state.stage==='iluminar';
-    $('reticle').style.display=searching&&!orbiting?'block':'none';$('progress').style.display=searching&&role==='conhecimento'?'block':'none';
+    $('reticle').style.display=searching?'block':'none';$('progress').style.display=searching&&role==='conhecimento'?'block':'none';
     $('count').textContent=state.evidence.length;
-    controls.mouseButtons.LEFT=role==='conhecimento'?THREE.MOUSE.ROTATE:(orbiting?THREE.MOUSE.ROTATE:null);controls.mouseButtons.RIGHT=THREE.MOUSE.ROTATE;
-    controls.enabled=fallback&&!xrSession&&!draggingCandle&&(orbiting||role==='conhecimento'||state.stage==='iluminar');
-    $('orbit').disabled=!!xrSession;$('below').disabled=!!xrSession || !modelReady;
+    controls.mouseButtons.LEFT=role==='conhecimento'?THREE.MOUSE.ROTATE:null; // o botão esquerdo da luz mira o feixecontrols.mouseButtons.RIGHT=THREE.MOUSE.ROTATE;
+    controls.enabled=fallback&&!xrSession&&!draggingCandle&&(role==='conhecimento'||state.stage==='iluminar');
     placement.visible=role==='luz'&&!xrSession&&state.stage==='posicionar';
-    holder.visible=role==='luz'&&state.stage==='castical'; candle.visible=role==='luz'&&['posicionar','castical'].includes(state.stage);
-    if(candle.visible&&!draggingCandle){ camera.add(candle); candle.position.set(0,candleRestY(),-.55); candle.scale.setScalar(.5); candle.rotation.set(0,0,-.06); }
-    torch.visible=searching||state.stage==='encontrado'||state.stage==='registrado';
+    /* A vela fica no castiçal depois de posta: é nela que se vê apagar, e é
+       nela que a mão de quem a pôs tenta — em vão — reacender. */
+    const velaPosta=['iluminar','encontrado','registrado'].includes(state.stage);
+    holder.visible=role==='luz'&&(state.stage==='castical'||velaPosta); candle.visible=role==='luz'&&state.stage!=='apagao';
+    if(velaPosta&&candle.parent!==holder){holder.add(candle);candle.position.set(0,.153,0);candle.scale.setScalar(1);candle.rotation.set(0,0,0);}
+    else if(!velaPosta&&candle.visible&&!draggingCandle){ camera.add(candle); candle.position.set(0,candleRestY(),-.55); candle.scale.setScalar(.5); candle.rotation.set(0,0,-.06); }
+    torch.visible=(searching&&!velaApagada())||state.stage==='encontrado'||state.stage==='registrado';
     const dark=state.stage==='apagao'; ambient.intensity=dark?.08:.32; windowLight.intensity=dark?.1:.8; rim.intensity=dark?.1:.4;
     if(role!=='conhecimento')clue.material.opacity=0;
-    $('candle-grip').hidden=role!=='luz'||state.stage!=='castical'||(!!xrSession&&!xrPlaced)||!connected;
+    $('candle-grip').hidden=role!=='luz'||!(state.stage==='castical'||velaApagada())||(!!xrSession&&!xrPlaced)||!connected;
     $('socket').hidden=true; // Encontrar o castical faz parte do desafio: sem marcador que entregue o lugar.
   }
   /* No telefone a pilha de instruções ocupa a parte de baixo da tela. A vela
@@ -174,9 +193,8 @@
   function dockCandle(){
     if(role!=='luz'||state.stage!=='castical'||!connected)return;
     draggingCandle=false;snapReady=false;dispatch('encaixar');
-    lightTransfer=reduced?0:1.2;holder.visible=lightTransfer>0;candle.visible=lightTransfer>0;
+    lightTransfer=0;
     holder.add(candle);candle.position.set(0,.153,0);candle.scale.setScalar(1);candle.rotation.set(0,0,0);
-    notify('Agora essa luz pode esclarecer um segredo escondido que só seu colega consegue ver!');
   }
   function placeAtHit(){
     if(!modelReady||!xrSession||xrPlaced||!hasHit)return;
@@ -241,6 +259,14 @@
     if(event.data!=='_apple_ar_quicklook_button_tapped')return;
     if(role==='luz'&&state.stage==='posicionar'&&connected){beginAction();dispatch('posicionar');notify('Escrivaninha posicionada. Agora leve a vela até o castiçal.');}
   });
+  on($('fosforo'),'click',()=>{if(role!=='conhecimento'||!velaApagada())return;entrarAtividade();dispatch('reacender');});
+  /* No escuro, quem toca a cena tateia: a resposta é do mundo, não do jogo. */
+  on(renderer.domElement,'pointerdown',()=>{
+    if(role==='luz'||!connected||(!['posicionar','castical'].includes(state.stage)&&!velaApagada()))return;
+    toquesNoEscuro++;
+    if(toquesNoEscuro===2)notify(velaApagada()?'Escuro de novo. No bolso, alguma coisa chacoalha.':'Escuro demais para ver qualquer coisa.',9);
+    else if(toquesNoEscuro===4)notify('A luz, se vier, vem de outro lugar.',9);
+  });
   on($('follow-clue'),'click',()=>{entrarAtividade();if(shared?.maquete)location.href='AC-maquete.html'+location.search;else dispatch('iniciar_maquete');});
   on($('register'),'click',async()=>{
     if(registerPending||state.stage!=='encontrado')return;
@@ -251,7 +277,6 @@
     finally{registerPending=false;if($('fragment').open)openFragment();}
   });
   on($('dossier'),'click',()=>{if(state.stage==='encontrado'||state.stage==='registrado')openFragment();else notify('O dossiê está vazio. Investigue a borda inferior da escrivaninha.');});
-  on($('help'),'click',ev=>{if(window.ACJanelas){window.ACJanelas.ajuda(ev);return;}$('instructions').showModal();});
   on($('accessible'),'change',updateUI);
   function moveDeskOnFloor(event){
     if(xrSession)return false;
@@ -260,14 +285,14 @@
     deskRoot.position.set(0,0,0);return true;
   }
   on(renderer.domElement,'pointerdown',event=>{
-    if(role!=='luz'||!connected||!fallback||state.stage!=='posicionar'||xrSession||!modelReady||orbiting)return;beginAction();
+    if(role!=='luz'||!connected||!fallback||state.stage!=='posicionar'||xrSession||!modelReady)return;beginAction();
     if(moveDeskOnFloor(event)){draggingDesk=true;renderer.domElement.setPointerCapture(event.pointerId);}
   });
   on(renderer.domElement,'pointermove',event=>{if(draggingDesk)moveDeskOnFloor(event);});
   on(renderer.domElement,'pointerup',event=>{if(!draggingDesk)return;draggingDesk=false;if(renderer.domElement.hasPointerCapture(event.pointerId))renderer.domElement.releasePointerCapture(event.pointerId);dispatch('posicionar');});
   on(renderer.domElement,'pointercancel',()=>{draggingDesk=false;});
   on(renderer.domElement,'click',event=>{
-    if(!modelReady||!connected||orbiting||draggingCandle)return;
+    if(!modelReady||!connected||draggingCandle)return;
     if(xrSession&&!xrPlaced){placeAtHit();return;}
     if(role!=='luz'||(!fallback&&!xrSession))return;beginAction();
     if(state.stage==='posicionar'){
@@ -284,7 +309,16 @@
     const world=object.localToWorld(offset.clone()).project(active||camera);
     return {x:(world.x+1)*innerWidth/2,y:(1-world.y)*innerHeight/2,visible:world.z>-1&&world.z<1};
   }
+  /* A vela apagada resiste à mão de quem a pôs: treme, e na segunda vez a
+     frase diz de quem é o fósforo. "Não acontece nada" seria travamento. */
+  function recusarVela(){
+    const g=$('candle-grip');g.classList.remove('recusa');void g.offsetWidth;g.classList.add('recusa');
+    tremorVela=1;tentativasNaVela++;
+    try{navigator.vibrate&&navigator.vibrate([12,40,12]);}catch(_){}
+    if(tentativasNaVela>=2)notify('Essa chama não pega da sua mão — o fósforo está com seu colega.',9);
+  }
   on($('candle-grip'),'pointerdown',event=>{
+    if(role==='luz'&&connected&&velaApagada()){event.preventDefault();event.stopPropagation();recusarVela();return;}
     if(role!=='luz'||!connected||state.stage!=='castical'||!modelReady||(!fallback&&!xrSession))return;beginAction();
     event.preventDefault();event.stopPropagation();draggingCandle=true;controls.enabled=false;document.body.classList.add('manipulating');
     $('candle-grip').setPointerCapture(event.pointerId);
@@ -310,26 +344,31 @@
   }
   on($('candle-grip'),'pointerup',endDrag);on($('candle-grip'),'pointercancel',endDrag);
   document.querySelectorAll('[data-close]').forEach(b=>on(b,'click',()=>b.closest('dialog').close()));
-  on($('restart'),'click',()=>{
-    $('restart').disabled=true;
-    $('instructions').close();
-    const next=new URL(location.pathname,location.origin);
-    next.searchParams.set('iniciar','1');
-    const scenario=new URLSearchParams(location.search).get('cenario');
-    if(scenario)next.searchParams.set('cenario',scenario);
-    location.href=next.href;
+  /* Olhar por baixo da escrivaninha, onde a marca está. Era o botão "Ver por
+     baixo"; saiu com "Girar a mesa" e "Usar movimento" (Mario, 18/09/2026:
+     "num primeiro momento não quero"). Agora é o gesto no próprio móvel:
+     tocar nas gavetas leva o olhar para debaixo delas. */
+  function olharPorBaixo(){camera.position.copy(deskRoot.localToWorld(new THREE.Vector3(.47,.025,.25)));controls.target.copy(deskRoot.localToWorld(new THREE.Vector3(.47,.098,.10)));controls.update();pointer.set(0,0);hold=0;updateUI();}
+  let toqueNoMovel=null;
+  on(renderer.domElement,'pointerdown',event=>{toqueNoMovel={x:event.clientX,y:event.clientY};});
+  on(renderer.domElement,'pointerup',event=>{
+    const t=toqueNoMovel;toqueNoMovel=null;
+    if(!t||Math.hypot(event.clientX-t.x,event.clientY-t.y)>8)return; // arrastar é girar ou mirar, não tocar
+    if(!modelReady||xrSession||draggingCandle||state.stage!=='iluminar')return;
+    const rect=renderer.domElement.getBoundingClientRect();
+    dragRay.setFromCamera(new THREE.Vector2((event.clientX-rect.left)/rect.width*2-1,-(event.clientY-rect.top)/rect.height*2+1),camera);
+    const hit=dragRay.intersectObject(desk,true)[0];if(!hit)return;
+    /* As gavetas e a borda de baixo contam; o tampo não (é onde está o
+       castiçal). O corte sai da altura do próprio móvel: um número fixo de
+       0,4 m deixava de fora a maior parte das gavetas. */
+    const caixa=new THREE.Box3().setFromObject(desk),alto=deskRoot.worldToLocal(caixa.max.clone()).y;
+    const local=deskRoot.worldToLocal(hit.point.clone());
+    if(local.y<alto*.85)olharPorBaixo();
   });
-  on($('orbit'),'click',()=>{orbiting=!orbiting;$('orbit').setAttribute('aria-pressed',String(orbiting));$('orbit').textContent=orbiting?'💡':'Girar a mesa';$('orbit').setAttribute('aria-label',orbiting?'Voltar à luz':'Girar a mesa');hold=0;updateUI();});
-  on($('below'),'click',()=>{camera.position.copy(deskRoot.localToWorld(new THREE.Vector3(.47,.025,.25)));controls.target.copy(deskRoot.localToWorld(new THREE.Vector3(.47,.098,.10)));controls.update();orbiting=false;$('orbit').setAttribute('aria-pressed','false');$('orbit').textContent='Girar a mesa';pointer.set(0,0);hold=0;updateUI();});
-  on(renderer.domElement,'pointermove',event=>{if(orbiting||xrSession)return;const rect=renderer.domElement.getBoundingClientRect();pointer.set((event.clientX-rect.left)/rect.width*2-1,-(event.clientY-rect.top)/rect.height*2+1);$('reticle').style.left=event.clientX+'px';$('reticle').style.top=event.clientY+'px';});
+  on(renderer.domElement,'pointermove',event=>{if(xrSession)return;const rect=renderer.domElement.getBoundingClientRect();pointer.set((event.clientX-rect.left)/rect.width*2-1,-(event.clientY-rect.top)/rect.height*2+1);$('reticle').style.left=event.clientX+'px';$('reticle').style.top=event.clientY+'px';});
   on(window,'keydown',e=>{if($('fragment').open||$('instructions').open||!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key))return;e.preventDefault();pointer.x=THREE.MathUtils.clamp(pointer.x+(e.key==='ArrowRight'?.035:e.key==='ArrowLeft'?-.035:0),-1,1);pointer.y=THREE.MathUtils.clamp(pointer.y+(e.key==='ArrowUp'?.035:e.key==='ArrowDown'?-.035:0),-1,1);$('reticle').style.left=(pointer.x+1)*innerWidth/2+'px';$('reticle').style.top=(1-pointer.y)*innerHeight/2+'px';});
 
-  on($('motion'),'click',async()=>{
-    try{if(typeof DeviceOrientationEvent.requestPermission==='function'&&await DeviceOrientationEvent.requestPermission()!=='granted'){setFallback('Movimento não autorizado.');notify('Movimento não autorizado. Continue por toque.');return;}motionEnabled=!motionEnabled;motionOrigin=null;$('motion').textContent=motionEnabled?'Desativar movimento':'Usar movimento';}
-    catch(_){notify('Não foi possível ativar movimento. Continue por toque.');}
-  });
 
-  on(window,'deviceorientation',e=>{if(!motionEnabled||xrSession||e.beta===null||e.gamma===null)return;if(!motionOrigin)motionOrigin={beta:e.beta,gamma:e.gamma};pointer.set(THREE.MathUtils.clamp((e.gamma-motionOrigin.gamma)/35,-1,1),THREE.MathUtils.clamp(-(e.beta-motionOrigin.beta)/35,-1,1));$('reticle').style.left=(pointer.x+1)*innerWidth/2+'px';$('reticle').style.top=(1-pointer.y)*innerHeight/2+'px';});
 
   on($('ar'),'click',async()=>{
     if(xrSession){await xrSession.end();return;}
@@ -360,12 +399,28 @@
     deskRoot.add(desk);modelReady=true;$('loading').hidden=true;updateUI();
   },()=>{$('loading').textContent='Não foi possível carregar a escrivaninha. Recarregue a página para tentar novamente.';});
 
-  const clock=new THREE.Clock(); let lastTime=0;
+  const clock=new THREE.Clock(); let lastTime=0, forcarQuadro=false;
   function render(time,frame){
     if(disposed)return;const dt=Math.min(clock.getDelta(),.1),t=time*.001;
-    if(document.hidden){hold=0;return;}
+    if(document.hidden&&!forcarQuadro){hold=0;return;}
     if(xrSession&&frame&&hitSource){const hits=frame.getHitTestResults(hitSource);hasHit=hits.length>0;if(hasHit){const pose=hits[0].getPose(renderer.xr.getReferenceSpace());if(pose)reticle.matrix.fromArray(pose.transform.matrix);}reticle.visible=hasHit&&!xrPlaced;if(!xrPlaced)$('primary').disabled=!hasHit||!modelReady;}
     if(!xrSession){controls.update();room.updateReflection(renderer,scene);}
+    if(role==='luz'&&velaApagada()&&connected){
+      scene.updateMatrixWorld(true);
+      const cp=screenPoint(candle,new THREE.Vector3(0,.10,0));
+      $('candle-grip').style.left=cp.x+'px';$('candle-grip').style.top=cp.y+'px';$('candle-grip').hidden=!cp.visible;
+    }
+    if(tremorVela>0){candle.rotation.z=Math.sin(t*60)*.08*tremorVela;tremorVela=Math.max(0,tremorVela-dt*2.5);if(!tremorVela)candle.rotation.z=0;}
+    /* A luz como a vela manda: sem ela, quem está do outro lado volta ao
+       escuro, e a sala de quem a pôs escurece também. */
+    {
+      const v=vela(),escuroTotal=role!=='luz'&&(['posicionar','castical'].includes(state.stage)||velaApagada()),penumbra=role==='luz'&&velaApagada();
+      const alvo=escuroTotal?.05:penumbra?.3:.82;
+      renderer.toneMappingExposure+=(alvo-renderer.toneMappingExposure)*(reduced?1:Math.min(1,dt*3));
+      const noCastical=candle.parent===holder;
+      flame.visible=!noCastical?false:(state.stage!=='iluminar'||v.acesa);
+      candleLight.intensity=flame.visible?.85:0;
+    }
     if(role==='luz'&&state.stage==='castical'&&(!xrSession||xrPlaced)&&connected){
       scene.updateMatrixWorld(true);
       const cp=screenPoint(candle,new THREE.Vector3(0,.10,0)),sp=screenPoint(holder,new THREE.Vector3(0,.153,0));
@@ -381,12 +436,12 @@
     if(xrSession){ray.ray.origin.copy(viewerPosition);activeCamera.getWorldDirection(ray.ray.direction);}else ray.setFromCamera(pointer,activeCamera);
     const target=new THREE.Vector3();clue.getWorldPosition(target);
     torch.position.copy(viewerPosition);beamDirection.copy(ray.ray.direction);torch.target.position.copy(torch.position).addScaledVector(beamDirection,2);
-    if(role==='luz'&&state.stage==='iluminar'&&connected&&(!xrSession||xrPlaced)&&!beamPending&&time-lastBeam>100){
+    if(role==='luz'&&state.stage==='iluminar'&&!velaApagada()&&connected&&(!xrSession||xrPlaced)&&!beamPending&&time-lastBeam>100){
       lastBeam=time;beamPending=true;
       coop.send('feixe',{origin:deskRoot.worldToLocal(torch.position.clone()).toArray(),target:deskRoot.worldToLocal(torch.target.position.clone()).toArray()}).catch(()=>{}).finally(()=>beamPending=false);
     }
     const beam=shared?.beam;
-    const lightLive=!!(connected&&beam&&beam.age<1500&&shared.online.includes('luz')&&performance.now()-lastSnapshot<1800);
+    const lightLive=!!(connected&&beam&&beam.age<1500&&vela().acesa&&shared.online.includes('luz')&&performance.now()-lastSnapshot<1800);
     if(role==='conhecimento'){
       torch.visible=lightLive&&['iluminar','encontrado','registrado'].includes(state.stage);
       if(lightLive){torch.position.copy(deskRoot.localToWorld(new THREE.Vector3(...beam.origin)));torch.target.position.copy(deskRoot.localToWorld(new THREE.Vector3(...beam.target)));beamDirection.subVectors(torch.target.position,torch.position).normalize();}
@@ -405,7 +460,7 @@
       const visible=lit&&near&&inView&&!viewBlocked&&normal.dot(viewToLabel.clone().normalize())<-.2;
       clueExposed=visible;clue.material.opacity=visible?.95:0;
       hold=machine.dwell(hold,visible,dt);$('progress').firstElementChild.style.width=(hold/1.2*100)+'%';$('progress').setAttribute('aria-valuenow',String(Math.round(hold/1.2*100)));
-      if(hold>=1.2&&!discoverPending){discoverPending=true;coop.send('descobrir').catch(()=>{}).finally(()=>{discoverPending=false;});}
+      if(hold>=1.2&&!discoverPending&&vela().acesa){discoverPending=true;coop.send('descobrir').catch(()=>{}).finally(()=>{discoverPending=false;});}
     }
     // O painel so acompanha o ponteiro enquanto esta sendo inspecionado; o giro usa outro no.
     if($('fragment').open&&!reduced){const tilt=$('fragment-card').querySelector('.m3d-card-tilt');if(tilt)tilt.style.transform=`rotateX(${-pointer.y*3}deg) rotateY(${pointer.x*4}deg)`;}
@@ -427,19 +482,29 @@
     const minutes=Math.floor(snapshot.elapsed/60),seconds=Math.floor(snapshot.elapsed%60);
     $('timer').textContent=String(minutes).padStart(2,'0')+':'+String(seconds).padStart(2,'0')+' · Bônus '+snapshot.bonus+' pontos';
     const other=role==='luz'?'conhecimento':'luz';
-    $('coop-status').textContent=snapshot.online.includes(other)?'Dupla conectada':role==='luz'?'Aguardando o portador do conhecimento · convite na ajuda':'Aguardando o portador da luz';
-    if(new URLSearchParams(location.search).get('demo')==='solo'&&!new URLSearchParams(location.search).has('sala')){$('timer').textContent='Demonstração · sem pontuação';$('coop-status').textContent='Colega automático: a etiqueta está iluminada. Use Ver por baixo.';}
+    $('coop-status').hidden=snapshot.online.includes(other);$('coop-status').textContent='Aguardando seu colega';
+    /* A vela mudou (apagou ou voltou): é mudança de estado, então o painel
+       volta e o relógio de ociosidade zera. */
+    const agoraVela=snapshot.vela?String(snapshot.vela.acesa):null;
+    if(velaAntes!==null&&agoraVela!==velaAntes){updateUI();window.ACJanelas?.vida();if(snapshot.vela&&!snapshot.vela.acesa){tentativasNaVela=0;toquesNoEscuro=0;}}
+    velaAntes=agoraVela;
+    if(new URLSearchParams(location.search).get('demo')==='solo'&&!new URLSearchParams(location.search).has('sala')){$('timer').textContent='Demonstração · sem pontuação';$('coop-status').hidden=true;}
     if(previous!==state.stage){hold=0;updateUI();if(role==='conhecimento'&&(state.stage==='encontrado'||(state.stage==='registrado'&&$('fragment').open)))openFragment();}
     if(new URLSearchParams(location.search).get('demo')==='solo'&&snapshot.maquete?.complete&&snapshot.stage==='registrado')parent.postMessage({mosaico:'ac-solo-completo',score:snapshot.maquete.score,evidence:snapshot.maquete.evidence},location.origin);
   },online=>{connected=online;if(!online){hold=0;$('coop-status').textContent='Reconectando… a luz compartilhada está suspensa.';}updateUI();}).then(connection=>{
     coop=connection;role=connection.role;
-    if(new URLSearchParams(location.search).get('percurso')==='1'){$('restart').hidden=true;document.querySelector('.brand').removeAttribute('href');}
+    if(new URLSearchParams(location.search).get('percurso')==='1'){document.querySelector('.brand').removeAttribute('href');}
     if(connection.demo){
       document.querySelector('.edition').textContent='MODO SOLO · PERCURSO COMPLETO';
     }
     if(connection.invite){$('invite').href=connection.invite;$('invite-wrap').hidden=false;}
-    updateUI();if(!startWithoutInstructions&&!connection.demo&&!matchMedia('(max-width:700px)').matches)$('instructions').showModal();
+    updateUI();
   }).catch(error=>{$('coop-status').textContent=error.message;$('loading').textContent='A cooperação exige o servidor local da AC.';$('loading').hidden=false;});
   updateUI();renderer.setAnimationLoop(render);
+  /* O painel do Claude congela o requestAnimationFrame: este gancho desenha um
+     quadro avulso para conferir a tela parada (o mesmo da maquete). */
+  window.__escrivaninha={quadro:()=>{forcarQuadro=true;try{render(performance.now(),null);}finally{forcarQuadro=false;}},estado:()=>({stage:state.stage,role,vela:vela(),exposicao:renderer.toneMappingExposure,chama:flame.visible}),
+    /* Onde a marca cai na tela deste aparelho (px do documento): para mirar o feixe na auditoria. */
+    onde:()=>{scene.updateMatrixWorld(true);return screenPoint(clue,new THREE.Vector3());}};
 
 })();

@@ -1,231 +1,1154 @@
-(function(){
+/* A maquete da Casa da Costa — a atividade.
+
+   A cena não decide nada: ela mostra o que o motor (`ac-maquete-state.mjs`)
+   deixou aquele papel ver e manda de volta os atos que o motor aceita.
+
+   A lei d'A Casa: cada jogador tem METADE do aparelho, e ninguém é avisado do
+   seu papel — ele se revela pelo efeito no outro. Em cada camada:
+
+   · Ato 1 — a mesma pista nos dois aparelhos, dizendo o recorte. Cada um
+     vasculha a SUA maquete: num aparelho há a chave escondida, no outro há a
+     fechadura. A chave não existe no aparelho de quem tem a fechadura, e a
+     fechadura não existe no de quem tem a chave.
+   · Ato 2 — os dois acharam; chega a segunda pista, também igual. Um arrasta e
+     a peça vem; o outro arrasta e a peça resiste, chacoalha e volta. Na
+     segunda tentativa aparece a frase que diz de quem é a outra metade.
+   · Ato 3 — quem tem a fixa descreve onde ela está; quem tem a móvel leva,
+     guiado pela voz. Quem guia vê a ponta da chave do colega como um ponto de
+     luz.
+
+   No Solo a mesma pessoa faz as duas funções — as duas pegas, as duas
+   procuras, o mesmo arrasto. Nada de mecânica substituta.
+
+   O que NÃO é segredo, e é honesto dizer: `ac-maquete-state.mjs` é o mesmo
+   arquivo nos dois aparelhos, então as coordenadas estão no código de ambos.
+   O plano do arrasto passa pela fechadura de propósito: é o que resolve a
+   PROFUNDIDADE para quem não pode vê-la e deixa a orientação do colega valer
+   em duas dimensões. A separação aqui é de JOGO, não de sigilo.
+
+   A atividade só existe depois que a maquete está POSTA no ambiente. Antes
+   disso a página é uma caixa fechada com um botão. */
+(function () {
   'use strict';
-  const $=id=>document.getElementById(id);let role=new URLSearchParams(location.search).get('papel')||'luz';
-  const solo=new URLSearchParams(location.search).get('demo')==='solo'&&!new URLSearchParams(location.search).has('sala');
-  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let coop=null,online=false,data=null,fallback=false,disposed=false,readStart=null,readingSent=false,soloConcluido=false;
-  let xr=null,hitSource=null,placed=false,hasHit=false,dragging=false,nearLock=false,pending=false,lastLevel=-1,lastReady=null,noticeTimer;
-  const handlers=[];function on(el,type,fn){if(!el)return;el.addEventListener(type,fn);handlers.push(()=>el.removeEventListener(type,fn));}
-  const entrarAtividade=()=>window.ACJanelas?.entrarAtividade();
-  const scene=new THREE.Scene();scene.background=new THREE.Color(0x091515);
-  const camera=new THREE.PerspectiveCamera(40,innerWidth/innerHeight,.015,40);scene.add(camera);
-  let renderer;try{renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});}catch{$('description').textContent='Este navegador não conseguiu abrir o modelo 3D.';return;}
-  renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));renderer.setSize(innerWidth,innerHeight);renderer.outputEncoding=THREE.sRGBEncoding;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.9;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.xr.enabled=true;$('scene').appendChild(renderer.domElement);
-  const controls=new THREE.OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.zoomSpeed=2;controls.minDistance=.18;controls.maxDistance=18;controls.maxPolarAngle=Math.PI*.49;
-  function frame(){
-    const mobile=innerWidth<=700,guide=data&&!data.complete&&data.explorer!==role;
-    const panel=document.querySelector('.instruction').getBoundingClientRect();
-    const manuscript=document.getElementById('manuscript').getBoundingClientRect();
-    // No telefone os painéis vivem na pilha fixa (ac-janelas.js): a casa é
-    // enquadrada no vão real entre o título do capítulo e o topo da pilha.
-    // Pilha escondida (cena livre) não conta — senão o vão vira 0 e a câmera cola.
-    const stack=document.querySelector('.ac-panel-stack'),chapterBox=document.querySelector('.chapter')?.getBoundingClientRect();
-    const stackBox=stack&&stack.getBoundingClientRect(),stackVisible=stackBox&&stackBox.height>8;
-    const stackTop=stackVisible?stackBox.top:panel.height>8?panel.top:innerHeight-24;
-    let top=115,bottom=innerHeight-85;
-    if(mobile&&stackVisible){bottom=stackTop-10;top=Math.max(60,(chapterBox&&chapterBox.height>8?chapterBox.bottom:100)+6);if(bottom-top<130)top=Math.max(48,bottom-130);}
-    else if(mobile){top=guide&&manuscript.height>8?Math.max(190,manuscript.bottom+16):data?.ready||data?.level>0?142:80;bottom=guide&&panel.height>8?Math.max(top+160,panel.top-28):panel.height>8?Math.max(top+160,panel.top-16):innerHeight-24;}
-    const left=mobile?18:panel.width>8?Math.min(panel.right+32,innerWidth*.4):18,right=innerWidth-(mobile?18:35);
-    const usableWidth=Math.max(160,right-left),usableHeight=Math.max(110,bottom-top);
-    const centerX=(left+right)/2,centerY=(top+bottom)/2;
-    camera.setViewOffset(innerWidth,innerHeight,innerWidth/2-centerX,innerHeight/2-centerY,innerWidth,innerHeight);
-    controls.target.copy(model.root.localToWorld(model.center.clone().setY(data?.complete?.95:data?.level===2?.65:.52)));
-    const distance=Math.max(4.6,2.8/(2*Math.tan(Math.PI/9)*camera.aspect)*(innerWidth/usableWidth),
-      (data?.complete?3.6:3.0)/(2*Math.tan(Math.PI/9))*(innerHeight/usableHeight));
-    camera.position.copy(new THREE.Vector3(1.2,1.2,1.8).normalize().multiplyScalar(distance*(mobile?1.55:1.75)).add(controls.target));controls.update();
-  }
-  // Luar sobre a costa: a luz quente vem das janelas acesas da própria maquete.
-  scene.add(new THREE.HemisphereLight(0x9fb4d0,0x2a231b,.62));const sun=new THREE.DirectionalLight(0xcfdcff,1.25);sun.position.set(-2,4,3);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);scene.add(sun);scene.add(new THREE.AmbientLight(0xffffff,.08));const coastFill=new THREE.DirectionalLight(0x86a6c8,.55);coastFill.position.set(3,2,-2);scene.add(coastFill);
-  const floor=new THREE.Mesh(new THREE.PlaneGeometry(30,30),new THREE.MeshStandardMaterial({color:0x03080b,roughness:.95}));floor.rotation.x=-Math.PI/2;floor.position.y=-.745;floor.receiveShadow=true;scene.add(floor);
-  const model=createACMaquette({
-    onReady(){baseMinY=new THREE.Box3().setFromObject(ACMaquetteSpatial.exportModel({root:model.base})).min.y;lastLevel=-1;update();if(!xr)frame();},
-    onError(){$('description').textContent='A maquete não carregou. Verifique a conexão e recarregue a página.';}
-  });scene.add(model.root);
-  const goldDust=createACGoldDust(model.root,{reduced});let keyFlight=null,lastInspected=null,motion=null,motionTime=0,lastMotionSent=0,motionBusy=false,motionRequest=null,finishing=false;
-  const tipBeacon=new THREE.Mesh(new THREE.SphereGeometry(.009,12,8),new THREE.MeshBasicMaterial({color:0xffe3a1}));tipBeacon.userData.exportExclude=true;tipBeacon.raycast=()=>{};tipBeacon.visible=false;model.root.add(tipBeacon);
-  model.key.userData.exportExclude=true;model.lock.userData.exportExclude=true;
-  frame();
-  let baseMinY=0;
-  const placementMatrix=new THREE.Matrix4();let arScale=.5,startingAR=false;
-  const touches=new Map();let pinchDistance=0;
-  function preparation(){return data?.level===0&&!data.ready&&!data.key;}
-  function applyPlacement(){ACMaquetteSpatial.groundedPose(model.root,placementMatrix,arScale,baseMinY);}
-  on(renderer.domElement,'pointerdown',e=>{if(xr){touches.set(e.pointerId,new THREE.Vector2(e.clientX,e.clientY));renderer.domElement.setPointerCapture(e.pointerId);}});
-  on(renderer.domElement,'pointermove',e=>{
-    if(!xr||!touches.has(e.pointerId))return;touches.set(e.pointerId,new THREE.Vector2(e.clientX,e.clientY));
-    if(touches.size!==2||!preparation()){pinchDistance=0;return;}
-    const values=[...touches.values()],distance=values[0].distanceTo(values[1]);
-    if(pinchDistance>0){arScale=THREE.MathUtils.clamp(arScale*distance/pinchDistance,.3,1);if(placed)applyPlacement();}
-    pinchDistance=distance;pressPoint=null;
-  });
-  for(const event of ['pointerup','pointercancel'])on(renderer.domElement,event,e=>{touches.delete(e.pointerId);pinchDistance=0;});
-  $('editor-tools').hidden=!new URLSearchParams(location.search).has('edicao');
-  on($('export-glb'),'click',()=>{
-    const button=$('export-glb');button.disabled=true;button.textContent='Preparando modelo…';
-    try{new THREE.GLTFExporter().parse(ACMaquetteSpatial.exportModel(model),result=>{
-      const url=URL.createObjectURL(new Blob([result],{type:'model/gltf-binary'})),link=document.createElement('a');link.href=url;link.download='a-casa-maquete.glb';link.click();setTimeout(()=>URL.revokeObjectURL(url),30000);button.disabled=false;button.textContent='Baixar modelo GLB';
-    },{binary:true,onlyVisible:false});}catch{button.disabled=false;button.textContent='Baixar modelo GLB';notify('Não foi possível exportar o modelo.');}
-  });
-  on($('reposition'),'click',()=>{if(!xr)return;placed=false;hasHit=false;model.root.visible=false;reticle.visible=false;$('instructions').close();update();});
-  const reticle=new THREE.Mesh(new THREE.RingGeometry(.12,.135,32).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:0xf2d194}));reticle.matrixAutoUpdate=false;reticle.visible=false;scene.add(reticle);
-  const ray=new THREE.Raycaster(),point=new THREE.Vector3(),dragPlane=new THREE.Plane();let pressPoint=null;
-  const allowed=[['rosa','folha','ondas'],['relogio','escrivaninha','vela','espelho','louca'],['armario-oeste','armario-sul','armario-norte','armario-leste']];
-  function notify(text){$('notice').textContent=text;$('notice').style.display='block';clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>$('notice').style.display='none',3500);}
-  function cameraNow(){return xr?(renderer.xr.getCamera(camera).cameras[0]||camera):camera;}
-  function visibleObject(object){for(let node=object;node;node=node.parent)if(!node.visible)return false;return true;}
-  function activeTargets(){return model.targets.filter(o=>allowed[data?.level]?.includes(o.userData.object));}
-  function canExplore(){return online&&data&&!data.complete&&data.explorer===role&&data.ready&&(!xr||placed);}
-  async function send(type,extra={}){if(!online||!coop||pending)return false;pending=true;try{return await coop.send(type,extra);}catch{notify('Aguarde a reconexão da dupla.');return false;}finally{pending=false;}}
-  function update(){
-    if(!data){$('heading').textContent='Siga a pista da escrivaninha.';$('description').textContent='Encontre e registre a etiqueta com seu colega para liberar esta investigação.';return;}
-    $('step').textContent=data.complete?'Percurso concluído':`Chave ${data.evidence.length+1} de 3 · ${data.name}`;
-    $('score').textContent='Chaves '+data.evidence.length+' de 3 · '+data.score+' pontos';
-    const explore=data.explorer===role;
-    model.lock.visible=!explore&&!data.complete;
-    document.body.dataset.roleMode=data.complete?'complete':explore?'explorer':'guide';
-    document.body.classList.toggle('investigating',data.ready||data.level>0);
-    $('reposition').hidden=!xr||!placed;
-    $('scale-note').textContent='O tamanho está fixo para esta investigação.';
-    $('manuscript').hidden=explore||data.complete||solo;
-    $('clue').textContent=data.ready?(data.clue||'Oriente seu colega pela voz.'):'Segure o manuscrito para ler e orientar seu colega.';
-    $('heading').textContent=data.complete?'O espaço que faltava.':solo?'A próxima chave está na maquete.':explore?'Seu olhar encontra o caminho.':'Sua leitura orienta o caminho.';
-    $('description').textContent=data.complete?'A fundação revelou uma passagem sob a despensa. A descoberta foi guardada.':solo?(!data.ready?'Leia a orientação para liberar a chave '+(data.evidence.length+1)+' de 3. '+(data.clue||''):data.key?'A chave foi encontrada. Confirme o encaixe para avançar automaticamente.':'Encontre a chave '+(data.evidence.length+1)+' de 3: '+(data.targetLabel||'o detalhe indicado')+'.'):explore?(data.ready?(data.key?'Você encontrou a chave. Só seu colega vê a fechadura. Siga a orientação dele e leve a ponta da chave até ela.':'Ouça a orientação do colega. Aproxime-se e toque no detalhe correspondente.'):'Aguarde seu colega ler o manuscrito.'):data.ready?'Compartilhe a orientação com seu colega. Só ele pode manipular a chave deste piso.':'Leia a orientação para liberar a chave '+(data.evidence.length+1)+' de 3.';
-    $('alternative').hidden=!(fallback||solo)||!explore||data.complete||data.key;
-    if($('ar'))$('ar').hidden=true;
-    const soloAction=$('solo-action');
-    soloAction.hidden=!solo||data.complete;
-    soloAction.disabled=!online;
-    if(solo&&!data.complete)soloAction.textContent=!data.ready?'Ler orientação da chave '+(data.evidence.length+1):data.key?'Confirmar encaixe da chave '+(data.evidence.length+1):'Encontrar chave '+(data.evidence.length+1);
-    if(!canExplore()){keyFlight=null;goldDust.resetTrail();dragging=false;nearLock=false;readStart=null;controls.enabled=!xr;$('key-grip').classList.remove('ready');}
-    $('key-grip').hidden=!canExplore()||!data.key;
-    model.key.visible=data.key&&explore;
 
-    for(const target of model.targets)target.visible=activeTargets().includes(target);
-    const changed=lastLevel!==data.level;
-    if(changed){model.key.position.set(.30,.25,.91);lastLevel=data.level;readingSent=false;readStart=null;}
-    if(changed||lastReady!==data.ready){lastReady=data.ready;if(!xr)frame();}
-    if(data.complete&&changed){$('final-score').textContent='3 chaves · '+data.score+' pontos. Nenhuma acusação foi concluída.';$('discovery').showModal();}
+  /* O import dinâmico do motor precisa de URL absoluta: num script clássico a
+     base de `import()` não é a mesma do `<script src>` em todos os navegadores,
+     e um caminho relativo cai em `js/js/` sem erro visível na leitura. */
+  var MEU_SRC = (document.currentScript && document.currentScript.src) || location.href;
+  var $ = function (id) { return document.getElementById(id); };
+  var params = new URLSearchParams(location.search);
+  var papel = params.get('papel') || 'luz';
+  var solo = params.get('demo') === 'solo' && !params.has('sala');
+  var reduzido = false;
+  try { reduzido = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
 
-    if(xr&&!placed){$('heading').textContent='Posicione a maquete.';$('description').textContent='Aponte para uma superfície e toque no círculo. Depois, examine a casa de perto.';}
-    if(!online)$('description').textContent='A dupla precisa estar conectada para continuar. O progresso está preservado neste servidor.';
+  var motor = null, mundo = null, ra = null, poeira = null;
+  var cena, camera, renderer, controles, chao;
+  var coop = null, dados = null, online = false, movimento = null, movimentoEm = 0, ultimoTip = '';
+  var pendente = false, descartado = false;
+  var arrastando = false, terminando = false, vooDaChave = null, ultimoExaminado = null, examinadoEm = 0;
+  var enquadramentoAtual = '', concluidoEnviado = false;
+  var giroAtivo = null, toques = new Map(), pinca = 0, tocouEm = null;
+  var planoDeArrasto = new THREE.Plane(), raio = new THREE.Raycaster(), ponto = new THREE.Vector3();
+  var ultimoEnvio = 0, envioOcupado = false, envioPendente = null;
+  var alturaAberta = 0.62, progressoDasCamadas = {}, fantasmaTerreno = 1;
+  var farol = null, tempoAnterior = 0, desligar = [], modoEscolhido = false, recebeuEstado = false;
+  var tentativasNaFixa = 0, tremor = 0, girouDesde = false;
+
+  var AZUL = 0x9fe7d6, OURO = 0xffd489;
+
+  function on(el, tipo, fn, opcoes) { if (!el) return; el.addEventListener(tipo, fn, opcoes); desligar.push(function () { el.removeEventListener(tipo, fn, opcoes); }); }
+  function entrarAtividade() { if (window.ACJanelas) window.ACJanelas.entrarAtividade(); }
+  function avisar(texto, nivel) {
+    if (window.ACJanelas && window.ACJanelas.aviso) { window.ACJanelas.aviso(texto, nivel || 3); return; }
+    $('notice').textContent = texto; $('notice').style.display = 'block';
+    setTimeout(function () { $('notice').style.display = 'none'; }, 4000);
   }
-  function inspect(object){if(!canExplore()||data.key)return;entrarAtividade();lastInspected=object;send('maquete_examinar',{object});}
-  on(renderer.domElement,'pointerdown',e=>{pressPoint={x:e.clientX,y:e.clientY};});
-  on(renderer.domElement,'pointerup',e=>{
-    if(!pressPoint||Math.hypot(e.clientX-pressPoint.x,e.clientY-pressPoint.y)>8)return;pressPoint=null;
-    if(xr&&!placed){place();return;}if(!canExplore())return;
-    ray.setFromCamera(new THREE.Vector2(e.clientX/innerWidth*2-1,1-e.clientY/innerHeight*2),cameraNow());
-    const hits=ray.intersectObjects(activeTargets(),true).filter(h=>visibleObject(h.object));if(!hits.length)return;
-    const first=hits[0],all=ray.intersectObject(model.root,true);const obstruction=all.find(h=>visibleObject(h.object)&&h.object!==first.object&&!h.object.userData.decoration&&h.distance<first.distance-.01);
-    if(obstruction)return;let object=first.object;while(!object.userData.object&&object.parent)object=object.parent;
-    if(cameraNow().getWorldPosition(point).distanceTo(first.point)>1.5*model.root.scale.x){notify('Aproxime-se para examinar o detalhe.');return;}inspect(object.userData.object);
-  });
-  on(renderer.domElement,'pointercancel',()=>pressPoint=null);
-  on(controls,'start',()=>document.body.classList.add('manipulating'));
-  on(controls,'end',()=>document.body.classList.remove('manipulating'));
-  on(window,'blur',()=>document.body.classList.remove('manipulating'));
-  on($('manuscript'),'pointerdown',e=>{if(!online||data?.ready)return;entrarAtividade();e.preventDefault();readStart=performance.now();$('manuscript').setPointerCapture(e.pointerId);});
-  for(const event of ['pointerup','pointercancel','blur'])on($('manuscript'),event,()=>{readStart=null;});
-  on($('manuscript'),'keydown',e=>{if(e.key==='Enter'&&!e.repeat){entrarAtividade();e.preventDefault();send('maquete_orientar');}else if(e.key===' '&&!e.repeat){entrarAtividade();e.preventDefault();readStart=performance.now();}});on($('manuscript'),'keyup',()=>readStart=null);
-  on($('key-grip'),'pointerdown',e=>{if(!canExplore()||!data.key||keyFlight||finishing)return;e.preventDefault();dragging=true;goldDust.resetTrail();goldDust.trace(model.key.position);controls.enabled=false;$('key-grip').setPointerCapture(e.pointerId);const offset=model.keyTip.getWorldPosition(new THREE.Vector3()).sub(model.key.getWorldPosition(new THREE.Vector3()));const world=model.keySocket.getWorldPosition(new THREE.Vector3()).sub(offset);dragPlane.setFromNormalAndCoplanarPoint(cameraNow().getWorldDirection(new THREE.Vector3()),world);});
-  on($('key-grip'),'pointermove',e=>{if(!dragging)return;ray.setFromCamera(new THREE.Vector2(e.clientX/innerWidth*2-1,1-e.clientY/innerHeight*2),cameraNow());if(ray.ray.intersectPlane(dragPlane,point))model.key.position.copy(model.root.worldToLocal(point.clone()));goldDust.trace(model.key.position);nearLock=ACMaquetteSpatial.keyFits(model);publishMotion();});
-  function tipLocal(){return model.root.worldToLocal(model.keyTip.getWorldPosition(new THREE.Vector3())).toArray();}
-  async function publishMotion(force=false){
-    if(!coop||!canExplore()||!data.key)return false;
-    if(!force&&(motionBusy||performance.now()-lastMotionSent<100))return false;
-    if(force&&motionRequest)await motionRequest.catch(()=>{});
-    lastMotionSent=performance.now();motionBusy=true;
-    try{motionRequest=coop.send('maquete_mover',{tip:tipLocal()});return await motionRequest;}catch{return false;}finally{motionBusy=false;motionRequest=null;}
+  function vida() { if (window.ACJanelas && window.ACJanelas.vida) window.ACJanelas.vida(); }
+
+  /* ---------- cena ---------- */
+
+  function montarCena() {
+    cena = new THREE.Scene();
+    cena.background = new THREE.Color(0x091515);
+    camera = new THREE.PerspectiveCamera(52, innerWidth / innerHeight, 0.01, 60);
+    cena.add(camera);
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 1.8));
+    renderer.setSize(innerWidth, innerHeight, false);
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.0;
+    renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.xr.enabled = true;
+    $('scene').appendChild(renderer.domElement);
+
+    /* Calibrado olhando a tela em 17/09/2026: com hemisférica em 1,05 e
+       exposição 1,25 o plano de apoio virava um lençol azul-claro que roubava
+       a casa. A luz do céu desceu, o chão escureceu e a exposição voltou a 1. */
+    cena.add(new THREE.HemisphereLight(0xbcd2e6, 0x2e2418, 0.58));
+    var sol = new THREE.DirectionalLight(0xffeccd, 1.5);
+    sol.position.set(-1.1, 2.0, 1.4); sol.castShadow = true;
+    sol.shadow.mapSize.set(1024, 1024); sol.shadow.camera.near = 0.05; sol.shadow.camera.far = 8;
+    sol.shadow.camera.left = -1; sol.shadow.camera.right = 1; sol.shadow.camera.top = 1; sol.shadow.camera.bottom = -1;
+    cena.add(sol);
+    cena.add(new THREE.AmbientLight(0xffffff, 0.16));
+    var fria = new THREE.DirectionalLight(0x9ec4dd, 0.55);
+    fria.position.set(1.6, 1.2, -1.4); cena.add(fria);
+
+    chao = new THREE.Mesh(new THREE.CircleGeometry(2.6, 64), new THREE.MeshStandardMaterial({ color: 0x050d10, roughness: 0.98 }));
+    chao.rotation.x = -Math.PI / 2; chao.receiveShadow = true; cena.add(chao);
+    ajustarTamanho();
+    if (window.ResizeObserver) new ResizeObserver(ajustarTamanho).observe($('scene'));
   }
-  async function finishKey(){
-    if(finishing||!canExplore())return;finishing=true;
-    try{if(await publishMotion(true)){const ok=await send('maquete_encaixar');if(!ok)notify('Peça ao colega para orientar a ponta até a fechadura.');}}finally{finishing=false;nearLock=false;goldDust.resetTrail();}
+
+  /* O tamanho vem do CANVAS, não de `innerWidth`.
+     Medido em 17/09/2026 a 390×844: a tela tinha 390 e o canvas 406 — 4% de
+     diferença. Isso não é só um corte na imagem: todo toque é convertido para
+     coordenadas de tela, e com a régua errada o dedo acerta um ponto que não é
+     o que ele viu. `setSize(..., false)` deixa a folha mandar no tamanho em
+     CSS e só o buffer de desenho é acertado aqui. */
+  function ajustarTamanho() {
+    if (!renderer || !camera) return;
+    var caixa = renderer.domElement.getBoundingClientRect();
+    var l = Math.max(1, Math.round(caixa.width)), a = Math.max(1, Math.round(caixa.height));
+    renderer.setSize(l, a, false);
+    camera.aspect = l / a;
+    camera.updateProjectionMatrix();
+    aplicarMoldura();
   }
-  for(const event of ['pointerup','pointercancel'])on($('key-grip'),event,e=>{if(!dragging)return;dragging=false;controls.enabled=!xr;$('key-grip').releasePointerCapture(e.pointerId);if(event==='pointerup')finishKey();else{nearLock=false;goldDust.resetTrail();}});
-  on($('key-grip'),'keydown',e=>{
-    if(!canExplore()||!data.key||keyFlight||finishing)return;
-    const delta={ArrowLeft:[-.008,0,0],ArrowRight:[.008,0,0],ArrowUp:[0,.008,0],ArrowDown:[0,-.008,0],PageUp:[0,0,-.008],PageDown:[0,0,.008]}[e.key];
-    if(delta){e.preventDefault();model.key.position.add(new THREE.Vector3(...delta));goldDust.trace(model.key.position);publishMotion();}
-    if(e.key==='Enter'){e.preventDefault();finishKey();}
-  });
-  on($('alternative'),'click',()=>{
-    $('object-list').replaceChildren();for(const obj of activeTargets()){const button=document.createElement('button');button.textContent=obj.userData.label;button.onclick=()=>{inspect(obj.userData.object);$('objects').close();};$('object-list').appendChild(button);}$('objects').showModal();
-  });
-  on($('solo-action'),'click',async()=>{
-    if(!solo||!data||data.complete)return;
+
+  /* Coordenadas normalizadas a partir do retângulo REAL do canvas. */
+  function ndc(x, y) {
+    var c = renderer.domElement.getBoundingClientRect();
+    return new THREE.Vector2(((x - c.left) / c.width) * 2 - 1, 1 - ((y - c.top) / c.height) * 2);
+  }
+  function larguraDaTela() { return renderer.domElement.getBoundingClientRect().width; }
+  function alturaDaTela() { return renderer.domElement.getBoundingClientRect().height; }
+
+  /* ---------- a área livre ----------
+     A cena é desenhada no vão que as janelas deixam: entre a barra do topo (ou
+     o diálogo do portal) e a faixa baixa (ou o rodapé). Sem isto o que o
+     jogador precisa tocar nasce atrás do painel, e nada na tela diz que falta
+     girar. Mexe só no enquadramento da imagem — a câmera não se move, então
+     recolher e abrir os painéis não desfaz o giro que o jogador escolheu. */
+  function areaLivre() {
+    var a = alturaDaTela(), topo = 0, base = a;
+    var barra = document.querySelector('.topbar');
+    if (barra && getComputedStyle(barra).visibility !== 'hidden') topo = Math.max(topo, barra.getBoundingClientRect().bottom);
+    var portal = $('portal');
+    if (portal && portal.open) topo = Math.max(topo, portal.getBoundingClientRect().bottom);
+    var pilha = document.querySelector('.ac-panel-stack');
+    var paisagem = false;
+    try { paisagem = matchMedia('(max-height:560px)').matches; } catch (e) {}
+    var esquerda = 0, largura = larguraDaTela();
+    var pilhaAberta = pilha && getComputedStyle(pilha).visibility !== 'hidden' && pilha.getBoundingClientRect().height > 0;
+    if (pilhaAberta && !paisagem) base = Math.min(base, pilha.getBoundingClientRect().top);
+    /* Na paisagem a faixa baixa é COLUNA à esquerda: o vão livre é o que
+       sobra à direita dela (medido a 800×540, a casa ficava meio atrás). */
+    if (pilhaAberta && paisagem) esquerda = Math.max(0, pilha.getBoundingClientRect().right);
+    var tools = document.querySelector('.tools');
+    if (tools && tools.getBoundingClientRect().height > 0) base = Math.min(base, tools.getBoundingClientRect().top);
+    if (base - topo < a * 0.3) { topo = 0; base = a; }
+    if (largura - esquerda < largura * 0.4) esquerda = 0;
+    return { topo: topo, base: base, altura: a, esquerda: esquerda, largura: largura };
+  }
+  function aplicarMoldura() {
+    if (!camera || !renderer || renderer.xr.isPresenting) return;
+    /* Em RA de câmera a imagem é a do mundo: deslocar o quadro soltaria a
+       casa do lugar onde ela foi pousada. */
+    if (ra && ra.estado().modo !== 'mesa') { camera.clearViewOffset(); return; }
+    var l = larguraDaTela(), livre = areaLivre();
+    var centro = (livre.topo + livre.base) / 2;
+    var desvio = Math.round(livre.altura / 2 - centro);
+    var lado = -Math.round(livre.esquerda / 2);
+    if (Math.abs(desvio) < 2 && !lado) camera.clearViewOffset();
+    else camera.setViewOffset(l, livre.altura, lado, desvio, l, livre.altura);
+  }
+
+  /* Metade do MENOR ângulo da lente. No telefone em pé o ângulo horizontal é
+     bem mais estreito que o vertical (proporção 0,46): medir a distância só
+     pelo vertical deixava a maçaneta fora da tela, à direita, no recorte da
+     procura (volta 3, 17/09/2026). */
+  function meiaLente() {
+    var v = camera.fov * Math.PI / 360;
+    var livre = areaLivre();
+    /* O vão livre entre as janelas encolhe o ângulo vertical útil. */
+    var util = Math.atan(Math.tan(v) * Math.max(0.2, (livre.base - livre.topo) / Math.max(1, livre.altura)));
+    var h = Math.atan(Math.tan(v) * camera.aspect * Math.max(0.3, (livre.largura - livre.esquerda) / Math.max(1, livre.largura)));
+    return Math.min(util, h);
+  }
+
+  /* ---------- enquadramento da bancada ---------- */
+
+  /* Enquadra o que o CAPÍTULO usa: a casa, mais os pontos da vez.
+     Duas medições, uma depois da outra:
+     · com a maquete inteira (penhasco e rochedos soltos) a câmera ia longe
+       demais e a chave virava meia dúzia de pixels;
+     · só com a casa, três dos quatro alvos do primeiro capítulo — que ficam
+       no portão, na outra ponta do terreno — saíam da tela. */
+  function enquadrar() {
+    if (!mundo || !controles) return;
+    /* As posições de mundo dos pontos vêm das matrizes da maquete, que só se
+       atualizam ao desenhar. Logo depois de pousar a casa (ou num aparelho
+       que ainda não desenhou o quadro seguinte) elas estavam velhas, e o
+       quadro mirava onde a casa ESTAVA: medido na volta 3, os pontos da sala
+       escura nasciam amontoados na borda esquerda, um deles fora da tela. */
+    mundo.raiz.updateMatrixWorld(true);
+    var casa = new THREE.Box3(), i;
+    /* As camadas já abertas ficam de fora: erguidas e invisíveis, elas
+       esticavam a caixa 0,62 para cima e a câmera recuava até a casa virar
+       um selo (volta 1, andar dos quartos). */
+    var abertasAgora = camadasAbertas();
+    for (i = 0; i < mundo.ordemDasCamadas.length; i++) {
+      var nome = mundo.ordemDasCamadas[i];
+      if (nome !== 'terreno' && abertasAgora.indexOf(nome) < 0) casa.expandByObject(mundo.camadas[nome]);
+    }
+    if (casa.isEmpty()) casa.setFromObject(mundo.raiz);
+    var centro = casa.getCenter(new THREE.Vector3());
+
+    var tudo = casa.clone();
+    var ativos = alvosAtivos(), pontos = [];
+    for (i = 0; i < ativos.length; i++) pontos.push(ativos[i].grupo.localToWorld(ativos[i].centro.clone()));
+    var fech = dados && dados.fechadura && mundo.fechaduras[dados.fechadura];
+    var pontoFechadura = fech ? fech.grupo.localToWorld(fech.centro.clone()) : null;
+    for (i = 0; i < pontos.length; i++) tudo.expandByPoint(pontos[i]);
+    if (pontoFechadura) tudo.expandByPoint(pontoFechadura);
+
+    /* No fim a câmera vai para a passagem: é a única coisa que a atividade
+       inteira serviu para achar. */
+    var foco = null;
+    if (dados && dados.complete && mundo.revelacao && mundo.revelacao.pecas.length) {
+      tudo = new THREE.Box3().expandByObject(mundo.camadas['porao']);
+      var alvoFinal = mundo.revelacao.grupo.localToWorld(mundo.revelacao.centro.clone());
+      tudo.expandByPoint(alvoFinal);
+      centro.copy(tudo.getCenter(new THREE.Vector3())).lerp(alvoFinal, 0.35);
+      foco = alvoFinal.clone();
+    } else if (pontoFechadura && dados.papel !== 'chave') foco = pontoFechadura.clone();
+    else if (pontos.length) {
+      foco = new THREE.Vector3();
+      for (i = 0; i < pontos.length; i++) foco.add(pontos[i]);
+      foco.multiplyScalar(1 / pontos.length);
+    }
+
+    /* Puxar o centro da órbita para o que interessa. Medido em duas abas
+       (17/09/2026): com o alvo no meio da casa, a maçaneta projetava em y=579
+       de 600, encostada na barra de ferramentas. */
+    if (foco && !(dados && dados.complete)) centro.lerp(foco, 0.32);
+
+    var alcance = 0;
+    var cantos = [tudo.min, tudo.max,
+      new THREE.Vector3(tudo.min.x, tudo.min.y, tudo.max.z), new THREE.Vector3(tudo.max.x, tudo.min.y, tudo.min.z),
+      new THREE.Vector3(tudo.min.x, tudo.max.y, tudo.max.z), new THREE.Vector3(tudo.max.x, tudo.max.y, tudo.min.z)];
+    for (i = 0; i < cantos.length; i++) alcance = Math.max(alcance, cantos[i].distanceTo(centro));
+    var distancia = alcance / Math.sin(meiaLente());
+
+    /* Procurando, o quadro fecha no RECORTE da pista: os pontos da vez e só
+       eles. Medido na volta 1 (17/09/2026): com a casa inteira no quadro, os
+       quatro pontos do andar dos quartos ficavam a 17 px uns dos outros a
+       390×844 — menos que a largura de um polegar, e engano custa ponto. */
+    if (procurando() && pontos.length > 1) {
+      tudo = new THREE.Box3();
+      for (i = 0; i < pontos.length; i++) tudo.expandByPoint(pontos[i]);
+      tudo.expandByScalar(0.09);
+      centro.copy(tudo.getCenter(new THREE.Vector3()));
+      alcance = 0;
+      cantos = [tudo.min, tudo.max,
+        new THREE.Vector3(tudo.min.x, tudo.min.y, tudo.max.z), new THREE.Vector3(tudo.max.x, tudo.min.y, tudo.min.z),
+        new THREE.Vector3(tudo.min.x, tudo.max.y, tudo.max.z), new THREE.Vector3(tudo.max.x, tudo.max.y, tudo.min.z)];
+      for (i = 0; i < cantos.length; i++) alcance = Math.max(alcance, cantos[i].distanceTo(centro));
+      distancia = alcance / Math.sin(meiaLente());
+    }
+
+    /* E a câmera nasce do lado do que ESTE jogador tem para fazer. */
+    var lado = new THREE.Vector3(0.85, 0, 1.15);
+    if (foco) {
+      foco.sub(centro); foco.y = 0;
+      if (foco.lengthSq() > 1e-6) lado.copy(foco).normalize();
+    }
+    lado.normalize();
+    lado.y = dados && dados.complete ? 0.34 : 0.86;
+    /* ...e do lado de onde os pontos se VEEM. Medido na volta 1: do lado
+       "natural", os dois armários do andar dos quartos ficavam atrás da
+       fachada — o raio batia na pedra —, e o esconderijo era um deles. Testa
+       oito lados em volta e fica com o que mostra mais pontos da vez. */
+    var queVer = ativos.slice();
+    if (fech && !procurando()) queVer = [fech];
+    if (queVer.length && !(dados && dados.complete)) lado = ladoQueMostra(centro, distancia * 1.02, lado, queVer);
+    /* A distância já mede o vão livre e a lente mais estreita (meiaLente);
+       a moldura põe o centro da imagem no meio desse vão. */
+    controles.target.copy(centro);
+    camera.position.copy(centro).add(lado.normalize().multiplyScalar(distancia * 1.02));
+    aplicarMoldura();
+    controles.update();
+  }
+
+  /* Quantos dos conjuntos se veem de uma posição de câmera. Camadas que já
+     foram abertas não contam como obstáculo: no instante do enquadramento
+     elas ainda estão subindo, mas vão sumir. */
+  function camadaDoObjeto(o) {
+    for (var n = o; n; n = n.parent) {
+      for (var nome in mundo.camadas) if (mundo.camadas[nome] === n) return nome;
+    }
+    return null;
+  }
+  function quantosSeVeem(posicao, conjuntos) {
+    var abertas = camadasAbertas(), vistos = 0, alvo = new THREE.Vector3(), dir = new THREE.Vector3();
+    for (var i = 0; i < conjuntos.length; i++) {
+      var c = conjuntos[i];
+      c.grupo.localToWorld(alvo.copy(c.centro));
+      dir.copy(alvo).sub(posicao);
+      var longe = dir.length(); dir.normalize();
+      raio.set(posicao, dir); raio.far = longe + 0.01;
+      var hits = raio.intersectObject(mundo.raiz, true);
+      raio.far = Infinity;
+      for (var k = 0; k < hits.length; k++) {
+        var h = hits[k];
+        if (!h.object.isMesh || !h.object.visible || (h.object.geometry && h.object.geometry.type === 'RingGeometry')) continue;
+        if (abertas.indexOf(camadaDoObjeto(h.object)) >= 0) continue;
+        if (donoDoToque(h.object) === c.grupo || h.distance >= longe - 0.02) vistos++;
+        break;
+      }
+      if (k === hits.length) vistos++;
+    }
+    return vistos;
+  }
+  /* Duas alturas: a de sempre e uma mais de cima, que olha para DENTRO dos
+     cômodos por cima das paredes. Medido na volta 2 (Solo, térreo): com
+     cinco pontos na sala escura, nenhum dos oito lados na altura de sempre
+     mostrava o relógio — e era ele o esconderijo. */
+  var ALTURAS = [0.86, 1.8];
+  function ladoQueMostra(centro, distancia, base, conjuntos) {
+    var melhor = null, melhorN = -1, eixo = new THREE.Vector3(0, 1, 0);
+    mundo.raiz.updateMatrixWorld(true);
+    for (var h = 0; h < ALTURAS.length && melhorN < conjuntos.length; h++) {
+      var plano = new THREE.Vector3(base.x, 0, base.z).normalize();
+      for (var k = 0; k < 8; k++) {
+        var d = plano.clone().applyAxisAngle(eixo, k * Math.PI / 4);
+        d.y = ALTURAS[h]; d.normalize();
+        var n = quantosSeVeem(centro.clone().add(d.clone().multiplyScalar(distancia)), conjuntos);
+        if (n > melhorN) { melhorN = n; melhor = d; }
+        if (n === conjuntos.length) break;
+      }
+    }
+    return melhor || base;
+  }
+
+  /* ---------- camadas ---------- */
+
+  function camadasAbertas() { return (dados && dados.camadasAbertas) || []; }
+
+  function animarCamadas(dt) {
+    var abertas = camadasAbertas();
+    /* O terreno nunca se levanta — ele vira FANTASMA no fim. A passagem sai da
+       fundação e corre por baixo do chão: com o terreno sólido ela não é vista
+       de ângulo nenhum. */
+    var fantasma = !!(dados && dados.complete);
+    var alvoTerreno = fantasma ? 0.20 : 1;
+    fantasmaTerreno += (alvoTerreno - fantasmaTerreno) * (reduzido ? 1 : 1 - Math.exp(-dt * 2.2));
+    if (Math.abs(alvoTerreno - fantasmaTerreno) < 0.005) fantasmaTerreno = alvoTerreno;
+    aplicarTransparencia(mundo.camadas['terreno'], fantasmaTerreno);
+    for (var i = 0; i < mundo.ordemDasCamadas.length; i++) {
+      var nome = mundo.ordemDasCamadas[i], grupo = mundo.camadas[nome];
+      if (nome === 'terreno') continue;
+      var alvo = abertas.indexOf(nome) >= 0 ? 1 : 0;
+      var atual = progressoDasCamadas[nome] || 0;
+      atual = reduzido ? alvo : atual + (alvo - atual) * (1 - Math.exp(-dt * 3.2));
+      if (Math.abs(alvo - atual) < 0.002) atual = alvo;
+      progressoDasCamadas[nome] = atual;
+      grupo.position.y = alturaAberta * atual;
+      grupo.visible = atual < 0.99;
+      /* A camada sobe OPACA e só se apaga no fim do percurso. */
+      var opacidade = atual <= 0.55 ? 1 : 1 - (atual - 0.55) / 0.45;
+      if (opacidade < 1) aplicarTransparencia(grupo, opacidade);
+      else if (grupo.userData.opaco !== true) aplicarTransparencia(grupo, 1);
+    }
+  }
+
+  function aplicarTransparencia(grupo, opacidade) {
+    grupo.userData.opaco = opacidade >= 1;
+    grupo.traverse(function (o) {
+      if (!o.isMesh || !o.material || o.userData.halo) return;
+      if (o.material.userData && o.material.userData.anel) return;
+      o.material.transparent = opacidade < 1;
+      o.material.opacity = opacidade;
+      o.material.depthWrite = opacidade >= 1;
+    });
+  }
+
+  /* ---------- papéis e pontos ---------- */
+
+  function papelDaVista() { return dados ? dados.papel : null; }
+  function temLadoDaChave() { var p = papelDaVista(); return p === 'chave' || p === 'ambos'; }
+  function temLadoDaFechadura() { var p = papelDaVista(); return p === 'fechadura' || p === 'ambos'; }
+  function ambosAcharam() { return !!(dados && dados.key && dados.lock); }
+  /* Ainda procurando? Cada lado procura até achar o SEU objeto. */
+  function procurando() {
+    if (!dados || dados.complete) return false;
+    if (papelDaVista() === 'chave') return !dados.key;
+    if (papelDaVista() === 'fechadura') return !dados.lock;
+    return !ambosAcharam();
+  }
+
+  /* Um ponto da vez é um alvo do modelo OU uma fechadura: no aparelho de quem
+     a procura, a fechadura é só mais um lugar aceso entre os outros. */
+  function conjuntoDe(id) { return mundo && (mundo.alvos[id] || mundo.fechaduras[id]) || null; }
+  function alvosAtivos() {
+    if (!dados || dados.complete || !mundo) return [];
+    var lista = [], ids = dados.alvos || [];
+    for (var i = 0; i < ids.length; i++) {
+      var c = conjuntoDe(ids[i]);
+      if (c) lista.push(c);
+      /* Motor e modelo discordando sobre o nome de um alvo é a falha mais muda
+         que esta atividade tem: a cena fica inteira, o toque não responde e
+         nada aparece na tela. Custou uma hora em 17/09/2026. */
+      else if (!avisados[ids[i]]) { avisados[ids[i]] = true; console.error('[maquete] o capítulo pede o alvo "' + ids[i] + '", que não existe neste modelo'); }
+    }
+    return lista;
+  }
+  var avisados = {};
+
+  function podeExplorar() {
+    return !!(online && dados && !dados.complete && posta());
+  }
+  function posta() { return !!(ra && ra.estado().posta); }
+  function podeMoverChave() { return podeExplorar() && temLadoDaChave() && ambosAcharam(); }
+
+  /* Medido na tela: com 0,35 de teto o anel some sobre a pedra e sobre o
+     lajeado claros. O que marca o objeto tocável tem de ser visto de longe. */
+  function pulso(t) { return 0.62 + 0.30 * Math.sin(t * 3.2); }
+
+  function pintarMarca(conj, cor) {
+    if (conj.halo && conj.halo.material.color.getHex() !== cor) conj.halo.material.color.setHex(cor);
+    if (conj.pino && conj.pino.userData.marca && conj.pino.userData.marca.color && conj.pino.userData.marca.color.getHex() !== cor) conj.pino.userData.marca.color.setHex(cor);
+  }
+
+  function atualizarRealces(tempo) {
+    if (!mundo) return;
+    var ativos = procurando() && podeExplorar() ? alvosAtivos() : [];
+    var todos = [];
+    for (var id in mundo.alvos) todos.push(mundo.alvos[id]);
+    for (var fid in mundo.fechaduras) todos.push(mundo.fechaduras[fid]);
+    for (var i = 0; i < todos.length; i++) {
+      var a = todos[i];
+      var ligado = ativos.indexOf(a) >= 0;
+      /* Procurando, TODO ponto aceso tem a mesma cor: a fechadura acesa em
+         ouro no meio dos outros entregaria qual é qual. */
+      if (ligado) pintarMarca(a, AZUL);
+      a.halo.material.opacity = ligado ? pulso(tempo) * 0.6 : 0;
+      a.halo.visible = ligado;
+      a.pino.userData.marca.opacity = ligado ? pulso(tempo) : 0;
+      a.pino.visible = ligado;
+      if (a.acender) a.acender(ligado ? 0x1d6b58 : 0x000000, ligado ? 0.55 + 0.35 * Math.sin(tempo * 3.2) : 0);
+    }
+    var revelada = !!(dados && dados.complete);
+    if (mundo.revelacao && mundo.revelacao.pino) {
+      mundo.revelacao.pino.userData.marca.opacity = revelada ? 0.62 + 0.3 * Math.sin(tempo * 2.2) : 0;
+      mundo.revelacao.pino.visible = revelada;
+      mundo.revelacao.halo.material.opacity = revelada ? 0.4 : 0;
+      mundo.revelacao.halo.visible = revelada;
+      if (mundo.revelacao.acender) mundo.revelacao.acender(revelada ? 0x7a4a16 : 0x000000, revelada ? 0.55 + 0.3 * Math.sin(tempo * 2.0) : 0);
+    }
+    /* A fechadura ACHADA acende em ouro — só no aparelho de quem a achou. O
+       de quem tem a chave nem recebe o identificador dela. */
+    var idFechadura = dados && dados.fechadura;
+    for (var k = 0; k < mundo.ancoras.length; k++) {
+      var anc = mundo.ancoras[k];
+      var acesa = !!(idFechadura && anc.id === idFechadura && posta());
+      var brilho = 0.62 + 0.30 * Math.sin(tempo * 2.6);
+      anc.halo.material.opacity = acesa ? brilho * 0.6 : 0;
+      anc.halo.visible = acesa;
+      anc.pino.userData.marca.opacity = acesa ? brilho : 0;
+      anc.pino.visible = acesa;
+      if (anc.peca && acesa) {
+        if (anc.peca.halo) { pintarMarca(anc.peca, OURO); anc.peca.halo.material.opacity = 0.3; anc.peca.halo.visible = true; }
+        if (anc.peca.pino) { anc.peca.pino.userData.marca.opacity = 0; anc.peca.pino.visible = false; }
+        if (anc.peca.acender) anc.peca.acender(0x8a5a12, brilho);
+      }
+    }
+    /* A fixa resiste: quando alguém tenta arrastá-la, a peça treme no lugar. */
+    if (idFechadura && mundo.fechaduras[idFechadura]) {
+      var g = mundo.fechaduras[idFechadura].grupo;
+      if (tremor > 0) { g.position.x = Math.sin(tempo * 70) * 0.004 * tremor; tremor = Math.max(0, tremor - 0.05); }
+      else if (g.position.x !== 0) g.position.x = 0;
+    }
+  }
+
+  /* ---------- transporte ---------- */
+
+  function enviar(tipo, extra) {
+    if (!online || !coop || pendente) return Promise.resolve(false);
+    pendente = true;
+    return coop.send(tipo, extra || {}).catch(function () { avisar('Aguarde a reconexão da dupla.', 9); return false; })
+      .then(function (r) { pendente = false; return r; }, function () { pendente = false; return false; });
+  }
+
+  function pontaLocal() {
+    return mundo.raiz.worldToLocal(mundo.chavePonta.getWorldPosition(new THREE.Vector3())).toArray();
+  }
+
+  function publicarMovimento(forcar) {
+    if (!coop || !podeMoverChave()) return Promise.resolve(false);
+    if (!forcar && (envioOcupado || performance.now() - ultimoEnvio < 100)) return Promise.resolve(false);
+    if (forcar && envioPendente) { try { return envioPendente.catch(function () {}).then(function () { return publicarMovimento(true); }); } catch (e) {} }
+    ultimoEnvio = performance.now(); envioOcupado = true;
+    envioPendente = coop.send('maquete_mover', { tip: pontaLocal() });
+    return envioPendente.catch(function () { return false; }).then(function (r) { envioOcupado = false; envioPendente = null; return r; });
+  }
+
+  function examinar(id) {
+    if (!podeExplorar() || !procurando()) return;
     entrarAtividade();
-    if(!data.ready){await send('maquete_orientar');return;}
-    if(!data.key){inspect(data.target);return;}
-    if(await send('maquete_mover',{tip:tipLocal()}))await send('maquete_encaixar');
+    ultimoExaminado = id; examinadoEm = performance.now();
+    enviar('maquete_examinar', { object: id });
+  }
+
+  function encaixar() {
+    if (terminando || !podeMoverChave()) return;
+    terminando = true;
+    publicarMovimento(true).then(function (ok) {
+      if (!ok) { terminando = false; return; }
+      return enviar('maquete_encaixar').then(function (aceito) {
+        if (!aceito) avisar('A ponta não achou onde entrar.', 7);
+      });
+    }).then(function () { terminando = false; poeira.resetTrail(); });
+  }
+
+  /* ---------- texto de tela ----------
+     Os textos descrevem o MUNDO, nunca explicam a mecânica. Ninguém lê "você
+     tem a chave": o papel se revela pelo que acontece na mão e no aparelho do
+     colega. */
+
+  function textos() {
+    var passo = $('step'), titulo = $('heading'), descricao = $('description'), painel = document.querySelector('.instruction');
+    var nivel = 2;
+    $('alignment').hidden = true;
+    /* Atividade ainda trancada vem ANTES de tudo: pedir para pôr a casa na
+       mesa, e só depois dizer que não era aqui, é dar uma volta à toa. */
+    if (recebeuEstado && !dados) {
+      passo.textContent = 'AINDA NÃO';
+      titulo.textContent = 'A maquete continua fechada.';
+      descricao.textContent = 'A etiqueta sob a escrivaninha é o que abre esta caixa. Volte e registre a descoberta.';
+      $('score').textContent = '';
+    } else if (!posta()) {
+      passo.textContent = 'A CAIXA FECHADA';
+      var e = ra && ra.estado();
+      if (e && e.modo === 'webxr') { titulo.textContent = 'Procure a mesa.'; descricao.textContent = e.temHit ? 'Toque no círculo para apoiar a casa.' : 'Aponte devagar para uma superfície plana.'; }
+      else if (e && e.modo === 'camera' && modoEscolhido) { titulo.textContent = 'Procure a mesa.'; descricao.textContent = 'Toque na tela para apoiar a casa à sua frente.'; }
+      else { titulo.textContent = 'Ponha a maquete na mesa.'; descricao.textContent = 'A investigação começa quando a casa estiver apoiada à sua frente.'; }
+      $('score').textContent = '';
+    } else if (!dados) {
+      passo.textContent = 'A CAIXA FECHADA';
+      titulo.textContent = 'A maquete espera.';
+      descricao.textContent = 'A pista da escrivaninha é o que abre esta caixa.';
+    } else if (dados.complete) {
+      passo.textContent = 'O PORÃO';
+      titulo.textContent = 'O espaço que faltava.';
+      descricao.textContent = 'A maquete se abriu até o porão. A descoberta foi guardada.';
+      $('score').textContent = 'Camadas 3 de 3 · ' + dados.score + ' pontos';
+    } else {
+      passo.textContent = 'Camada ' + (dados.evidence.length + 1) + ' de 3 · ' + dados.name;
+      $('score').textContent = 'Camadas ' + dados.evidence.length + ' de 3 · ' + dados.score + ' pontos';
+      /* A pista é a mesma nos dois aparelhos: é ela que manda no painel, que
+         vira "Dica da pista" enquanto ela vale. */
+      titulo.textContent = dados.pista;
+      nivel = 4;
+      if (!online) descricao.textContent = solo ? 'A maquete está parada.' : 'Do outro lado da mesa, ninguém responde. O progresso está guardado.';
+      else if (!ambosAcharam()) descricao.textContent = dados.achado ? dados.achado + (solo ? ' Falta a outra metade.' : ' Sozinho, isso não abre nada.') : 'Alguma coisa ficou para trás aqui.';
+      else if (papelDaVista() === 'fechadura') {
+        descricao.textContent = dados.achado || '';
+        $('alignment').hidden = false;
+      } else descricao.textContent = dados.achado || '';
+    }
+    if (window.ACJanelas && window.ACJanelas.nivel) window.ACJanelas.nivel(painel, nivel);
+  }
+
+  function pintarTela() {
+    var pronto = posta();
+    var e = ra && ra.estado();
+    /* O portal é a decisão de entrada: enquanto ele estiver aberto, nada da
+       cena é tocável. Ele sai assim que um modo é escolhido; daí em diante
+       quem fala é a orientação. */
+    var escolhendo = !ra || (e.modo === 'mesa' && !pronto && !modoEscolhido);
+    /* Se a atividade ainda não foi liberada (a etiqueta da escrivaninha não
+       foi registrada), não faz sentido pedir para pôr a casa na mesa. */
+    var liberada = !recebeuEstado || !!dados;
+    var mostrarPortal = !pronto && escolhendo && liberada && !!mundo;
+    var portal = $('portal');
+    if (mostrarPortal && !portal.open) { try { portal.showModal(); } catch (err) { portal.setAttribute('open', ''); } setTimeout(enquadrar, 30); }
+    else if (!mostrarPortal && portal.open) { try { portal.close(); } catch (err) { portal.removeAttribute('open'); } setTimeout(enquadrar, 30); }
+    document.body.classList.toggle('maquete-posta', pronto);
+    textos();
+    var temDados = !!dados && !dados.complete;
+    document.body.dataset.roleMode = !temDados ? 'complete' : papelDaVista();
+    $('alternative').hidden = !(podeExplorar() && procurando());
+    $('reposition').hidden = !pronto || (e && e.modo === 'mesa');
+    $('portal-voltar').hidden = !e || pronto || e.modo === 'mesa';
+    $('key-grip').hidden = !podeMoverChave();
+    $('lock-grip').hidden = !(podeExplorar() && temLadoDaFechadura() && ambosAcharam());
+    if (mundo) mundo.chave.visible = !!(temDados && dados.key && temLadoDaChave() && pronto);
+  }
+
+  /* ---------- toques na cena ---------- */
+
+  function objetoVisivel(o) { for (var n = o; n; n = n.parent) if (!n.visible) return false; return true; }
+
+  function cameraAgora() {
+    if (ra && ra.estado().modo === 'webxr' && renderer.xr.isPresenting) {
+      var c = renderer.xr.getCamera(camera);
+      return (c.cameras && c.cameras[0]) || c;
+    }
+    return camera;
+  }
+
+  /* O dedo não tem a precisão do raio.
+     Medido a 390×844 em 17/09/2026: a pedra do caminho ocupa cerca de SEIS
+     pixels de largura. Então o toque varre ANÉIS em volta do ponto: primeiro o
+     próprio ponto, depois 18 px, depois 32 px. O primeiro anel que encontrar
+     um ponto aceso ganha. Dentro de um anel, vale o mais PERTO da câmera.
+     Parede na frente continua barrando. */
+  var ANEIS = [0, 18, 32];
+  function donoDoToque(o) {
+    for (var n = o; n; n = n.parent) {
+      if (n.userData && (n.userData.object || n.userData.fechadura)) return n;
+    }
+    return null;
+  }
+  function tocarNaCena(x, y) {
+    if (!posta()) { ra.posicionar(); pintarTela(); return; }
+    if (!podeExplorar() || !procurando()) return;
+    var alvos = alvosAtivos(); if (!alvos.length) return;
+    var visiveis = alvos.map(function (a) { return a.grupo; });
+    var camera3 = cameraAgora();
+    for (var r = 0; r < ANEIS.length; r++) {
+      var passos = ANEIS[r] === 0 ? 1 : 8, melhor = null;
+      for (var k = 0; k < passos; k++) {
+        var ang = (k / passos) * Math.PI * 2;
+        var px = x + Math.cos(ang) * ANEIS[r], py = y + Math.sin(ang) * ANEIS[r];
+        raio.setFromCamera(ndc(px, py), camera3);
+        /* Só MALHAS contam. A poeira dourada de um achado (um sistema de
+           pontos dentro da maquete) ficava na frente do raio por um ou dois
+           segundos e engolia o toque seguinte — medido na volta 2 do Solo,
+           tocando na maçaneta logo depois de achar a chave. */
+        var acertos = raio.intersectObject(mundo.raiz, true).filter(function (h) {
+          return h.object.isMesh && objetoVisivel(h.object) && h.object.geometry && h.object.geometry.type !== 'RingGeometry';
+        });
+        if (!acertos.length) continue;
+        var dono = donoDoToque(acertos[0].object);
+        if (!dono || visiveis.indexOf(dono) < 0) continue;
+        var id = dono.userData.object || dono.userData.fechadura;
+        if (!melhor || acertos[0].distance < melhor.distancia) melhor = { id: id, distancia: acertos[0].distance };
+      }
+      if (melhor) { examinar(melhor.id); return; }
+    }
+  }
+
+  /* ---------- gestos ---------- */
+
+  function ligarGestos() {
+    var tela = renderer.domElement;
+    on(tela, 'pointerdown', function (e) {
+      if (!ra || !mundo) return;
+      toques.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (toques.size === 1) { tocouEm = { x: e.clientX, y: e.clientY, t: performance.now() }; giroAtivo = { x: e.clientX }; }
+      if (toques.size === 2) { pinca = distanciaEntreToques(); giroAtivo = null; tocouEm = null; }
+      try { tela.setPointerCapture(e.pointerId); } catch (err) {}
+    });
+    on(tela, 'pointermove', function (e) {
+      if (!ra || !toques.has(e.pointerId)) return;
+      toques.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (toques.size === 2) {
+        var d = distanciaEntreToques();
+        if (pinca > 0 && ra.estado().modo !== 'mesa') ra.mudarEscala(d / pinca);
+        pinca = d; tocouEm = null; return;
+      }
+      if (giroAtivo && ra.estado().modo !== 'mesa' && posta()) {
+        var dx = e.clientX - giroAtivo.x;
+        if (Math.abs(dx) > 0.5) { ra.girar(dx * 0.0045); giroAtivo.x = e.clientX; }
+      }
+      if (tocouEm && Math.hypot(e.clientX - tocouEm.x, e.clientY - tocouEm.y) > 9) tocouEm = null;
+    });
+    ['pointerup', 'pointercancel'].forEach(function (tipo) {
+      on(tela, tipo, function (e) {
+        if (!ra) return;
+        toques.delete(e.pointerId); if (toques.size < 2) pinca = 0;
+        if (toques.size === 0) giroAtivo = null;
+        if (tipo === 'pointerup' && tocouEm && performance.now() - tocouEm.t < 900 &&
+            Math.hypot(e.clientX - tocouEm.x, e.clientY - tocouEm.y) <= 9) tocarNaCena(e.clientX, e.clientY);
+        if (toques.size === 0) tocouEm = null;
+      });
+    });
+  }
+
+  function distanciaEntreToques() {
+    var v = Array.from(toques.values());
+    if (v.length < 2) return 0;
+    return Math.hypot(v[0].x - v[1].x, v[0].y - v[1].y);
+  }
+
+  /* ---------- a metade fixa: a recusa ----------
+     Quem tem a fechadura também tenta arrastar — e a peça resiste: chacoalha,
+     volta ao lugar, e na primeira vez não há texto nenhum. Insistindo, aparece
+     a frase que diz de quem é a outra metade. "Não acontece nada" seria
+     indistinguível de travamento, e o jogador culparia o jogo. */
+  function ligarFixa() {
+    var pega = $('lock-grip'), inicio = null;
+    on(pega, 'pointerdown', function (e) {
+      if (!podeExplorar() || !ambosAcharam()) return;
+      e.preventDefault(); inicio = { x: e.clientX, y: e.clientY };
+      try { pega.setPointerCapture(e.pointerId); } catch (err) {}
+    });
+    on(pega, 'pointermove', function (e) {
+      if (!inicio) return;
+      /* Um palmo de elástico, e não mais: ela "quer" vir e não vem. */
+      var dx = e.clientX - inicio.x, dy = e.clientY - inicio.y, d = Math.hypot(dx, dy) || 1, k = Math.min(10, d) / d;
+      pega.style.translate = (dx * k) + 'px ' + (dy * k) + 'px';
+    });
+    ['pointerup', 'pointercancel'].forEach(function (tipo) {
+      on(pega, tipo, function () {
+        if (!inicio) return;
+        inicio = null; pega.style.translate = '';
+        recusar();
+      });
+    });
+    on(pega, 'keydown', function (e) {
+      if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Enter', ' '].indexOf(e.key) >= 0) { e.preventDefault(); recusar(); }
+    });
+  }
+  function recusar() {
+    var pega = $('lock-grip');
+    pega.classList.remove('recusa'); void pega.offsetWidth; pega.classList.add('recusa');
+    tremor = 1;
+    try { navigator.vibrate && navigator.vibrate([12, 40, 12]); } catch (e) {}
+    tentativasNaFixa++;
+    if (tentativasNaFixa >= 2) avisar(solo ? 'Essa não sai do lugar — quem anda é a outra metade.' : 'Essa não sai da sua mão — a outra metade está com seu colega.', 9);
+    vida();
+  }
+
+  /* ---------- arrasto da chave (ato 3 — conferido, não mexer) ---------- */
+
+  function ligarChave() {
+    var pega = $('key-grip');
+    on(pega, 'pointerdown', function (e) {
+      if (!podeMoverChave() || vooDaChave || terminando) return;
+      e.preventDefault(); arrastando = true;
+      document.body.classList.add('manipulating');
+      poeira.resetTrail(); poeira.trace(mundo.chave.position);
+      if (controles) controles.enabled = false;
+      try { pega.setPointerCapture(e.pointerId); } catch (err) {}
+      /* O plano do arrasto passa pela FECHADURA: resolve a PROFUNDIDADE para
+         quem não pode vê-la, e deixa a orientação do colega valer em duas
+         dimensões — que é o que dá para dizer em voz alta.
+         É a PONTA que segue o dedo, então é a ponta que precisa estar no
+         plano da fechadura. Até a volta 1 (17/09/2026) o plano passava por
+         "fechadura − comprimento da chave", resto de quando o dedo levava o
+         corpo: conforme a chave estava virada para a câmera, a ponta ficava
+         até 0,036 fora do plano — mais que a tolerância de 0,03 — e o encaixe
+         recusava com a ponta visualmente em cima da fechadura. */
+      planoDeArrasto.setFromNormalAndCoplanarPoint(cameraAgora().getWorldDirection(new THREE.Vector3()), mundo.raiz.localToWorld(vetorDaFechadura()));
+    });
+    on(pega, 'pointermove', function (e) {
+      if (!arrastando) return;
+      raio.setFromCamera(ndc(e.clientX, e.clientY), cameraAgora());
+      /* Quem segue o dedo é a PONTA, não o corpo da chave. */
+      if (raio.ray.intersectPlane(planoDeArrasto, ponto)) {
+        mundo.chave.position.copy(mundo.raiz.worldToLocal(ponto.clone())).sub(mundo.chavePonta.position);
+      }
+      poeira.trace(mundo.chave.position);
+      publicarMovimento(false);
+    });
+    ['pointerup', 'pointercancel'].forEach(function (tipo) {
+      on(pega, tipo, function (e) {
+        if (!arrastando) return;
+        arrastando = false;
+        document.body.classList.remove('manipulating');
+        if (controles) controles.enabled = ra.estado().modo === 'mesa';
+        try { pega.releasePointerCapture(e.pointerId); } catch (err) {}
+        if (tipo === 'pointerup') encaixar(); else poeira.resetTrail();
+      });
+    });
+    on(pega, 'keydown', function (e) {
+      if (!podeMoverChave() || terminando) return;
+      var passo = { ArrowLeft: [-0.006, 0, 0], ArrowRight: [0.006, 0, 0], ArrowUp: [0, 0.006, 0], ArrowDown: [0, -0.006, 0], PageUp: [0, 0, -0.006], PageDown: [0, 0, 0.006] }[e.key];
+      if (passo) { e.preventDefault(); mundo.chave.position.add(new THREE.Vector3(passo[0], passo[1], passo[2])); poeira.trace(mundo.chave.position); publicarMovimento(false); }
+      if (e.key === 'Enter') { e.preventDefault(); encaixar(); }
+    });
+  }
+
+  /* A posição da fechadura do capítulo corrente, no espaço do modelo. */
+  function vetorDaFechadura() {
+    var i = dados ? dados.level : 0;
+    if (motor && motor.FECHADURAS[i]) return new THREE.Vector3().fromArray(motor.FECHADURAS[i]);
+    return new THREE.Vector3(0, 0.5, 0);
+  }
+
+  /* ---------- laço ---------- */
+
+  function desenhar(tempo, quadroXR) {
+    if (descartado) return;
+    var dt = Math.min(0.1, (tempo - tempoAnterior) / 1000 || 0);
+    tempoAnterior = tempo;
+    if (ra) { ra.atualizar(dt, quadroXR); chao.visible = ra.estado().modo === 'mesa'; }
+    if (controles && controles.enabled) controles.update();
+    if (mundo) {
+      animarCamadas(dt);
+      atualizarRealces(tempo / 1000);
+      if (vooDaChave) {
+        vooDaChave.t += dt; var t = Math.min(1, vooDaChave.t / 0.7), s = t * t * (3 - 2 * t);
+        mundo.chave.position.copy(vooDaChave.de).lerp(vooDaChave.para, s);
+        mundo.chave.position.y += Math.sin(Math.PI * t) * 0.04;
+        if (t === 1) vooDaChave = null;
+      }
+      poeira.update(dt, mundo.chave.visible && podeMoverChave() && (arrastando || vooDaChave) ? mundo.chave.position : null, alturaDaTela() * renderer.getPixelRatio());
+      posicionarPegas();
+      atualizarFarol();
+      if (mundo.chave.visible && podeMoverChave() && !vooDaChave && !terminando && arrastando) publicarMovimento(false);
+    }
+    renderer.render(cena, camera);
+  }
+
+  function naTela(v) {
+    var caixa = renderer.domElement.getBoundingClientRect();
+    var tela = v.project(cameraAgora());
+    return { x: caixa.left + (tela.x + 1) * caixa.width / 2, y: caixa.top + (1 - tela.y) * caixa.height / 2, dentro: tela.z >= -1 && tela.z <= 1 };
+  }
+  function posicionarPegas() {
+    mundo.raiz.updateMatrixWorld(true);
+    var pega = $('key-grip');
+    if (mundo.chave.visible) {
+      /* A pega fica na PONTA: é o ponto que o colega enxerga e o único que
+         decide o encaixe. */
+      var p = naTela(mundo.chavePonta.getWorldPosition(new THREE.Vector3()));
+      pega.style.left = p.x + 'px'; pega.style.top = p.y + 'px';
+      pega.hidden = !!vooDaChave || !podeMoverChave() || !p.dentro;
+    } else pega.hidden = true;
+    var fixa = $('lock-grip');
+    var fechadura = dados && dados.fechadura && mundo.fechaduras[dados.fechadura];
+    /* No Solo, com a chave em movimento, a pega da fixa sai de baixo do dedo:
+       as duas no mesmo ponto fariam o encaixe final cair na peça errada. */
+    if (fechadura && podeExplorar() && ambosAcharam() && !(solo && arrastando)) {
+      var pontoFixa = fechadura.grupo.localToWorld(fechadura.centro.clone());
+      var q = naTela(pontoFixa);
+      fixa.style.left = q.x + 'px'; fixa.style.top = q.y + 'px';
+      fixa.hidden = !q.dentro;
+      /* No Solo as duas pegas estão na mesma tela, e a chave nasce ao lado
+         da fechadura (a pedra fica diante da porta): medido na volta 2, as
+         pegas ficavam a 35 px, uma cobrindo o centro da outra. A que anda é a
+         chave — ela se afasta aos poucos até caber uma pega entre as duas. */
+      if (!pega.hidden && !arrastando && !vooDaChave) {
+        var pk = { x: parseFloat(pega.style.left), y: parseFloat(pega.style.top) };
+        if (Math.hypot(pk.x - q.x, pk.y - q.y) < 92) {
+          var ponta = mundo.chavePonta.getWorldPosition(new THREE.Vector3());
+          var fora = mundo.raiz.worldToLocal(ponta.clone()).sub(mundo.raiz.worldToLocal(pontoFixa.clone()));
+          fora.y = 0;
+          if (fora.lengthSq() < 1e-8) fora.set(1, 0, 1);
+          mundo.chave.position.addScaledVector(fora.normalize(), 0.006);
+        }
+      }
+    } else fixa.hidden = true;
+  }
+
+  /* Quem guia (e só quem guia) vê a ponta da chave do colega. */
+  function atualizarFarol() {
+    var guiando = dados && !dados.complete && papelDaVista() === 'fechadura' && ambosAcharam();
+    var fresco = movimento && performance.now() - movimentoEm + (movimento.age || 0) < 1500;
+    farol.visible = !!(guiando && fresco && online && posta());
+    if (!guiando) return;
+    if (farol.visible) {
+      farol.position.fromArray(movimento.tip);
+      var d = farol.position.distanceTo(vetorDaFechadura());
+      $('alignment').textContent = d < motor.TOLERANCIA ? 'O ponto de luz está dentro do vão.'
+        : d < 0.10 ? 'O ponto de luz está a um palmo do vão.'
+          : 'Um ponto de luz anda pela maquete.';
+    } else $('alignment').textContent = 'Nenhum ponto de luz, por enquanto.';
+  }
+
+  /* ---------- portal de entrada ---------- */
+
+  function montarPortal() {
+    ra.modosPossiveis(function (modos) {
+      $('portal-ra').hidden = !modos.webxr;
+      $('portal-camera').hidden = !modos.camera || modos.webxr;
+      $('portal-aviso').textContent = modos.webxr ? ''
+        : modos.camera ? 'Este aparelho não faz rastreio de superfície. A casa vai aparecer sobre a imagem da câmera e você a gira com um dedo.'
+          : 'Sem câmera disponível neste navegador. A maquete abre numa bancada e a investigação continua igual.';
+    });
+    on($('portal-ra'), 'click', function () { abrir('webxr'); });
+    on($('portal-camera'), 'click', function () { abrir('camera'); });
+    on($('portal-mesa'), 'click', function () { abrir('mesa'); });
+    on($('reposition'), 'click', function () { ra.soltar(); pintarTela(); });
+    /* Voltar ao portal só existe antes de pousar: depois, o botão é
+       "Reposicionar", que não desmonta a atividade. */
+    on($('portal-voltar'), 'click', function () { modoEscolhido = false; ra.sair().then(function () { pintarTela(); }); });
+  }
+
+  function abrir(modo) {
+    $('portal-aviso').textContent = 'Preparando…';
+    ra.entrar(modo).then(function (qual) {
+      $('portal-aviso').textContent = '';
+      modoEscolhido = true;
+      if (qual === 'mesa') {
+        var e = ra.estado();
+        ra.mudarEscala(1 / e.escala);
+        ra.posicionar();
+        controles.enabled = true;
+      }
+      pintarTela();
+      setTimeout(enquadrar, 30);
+    }).catch(function (erro) {
+      modoEscolhido = false;
+      $('portal-aviso').textContent = modo === 'camera'
+        ? 'A câmera não foi liberada. Você pode continuar sem ela.'
+        : 'A realidade aumentada não abriu neste aparelho. Você pode continuar sem ela.';
+      if (erro && erro.name === 'NotAllowedError') $('portal-camera').textContent = 'Tentar a câmera de novo';
+    });
+  }
+
+  /* ---------- ligação com o motor ---------- */
+
+  function receber(snapshot) {
+    if (snapshot.soloRole) papel = snapshot.soloRole;
+    var tip = snapshot.keyMotion ? JSON.stringify(snapshot.keyMotion.tip) : '';
+    /* O relógio de ociosidade zera na MUDANÇA — a ponta do colega andou —, e
+       não na chegada do snapshot, que vem de segundo em segundo mesmo parado. */
+    if (tip && tip !== ultimoTip) vida();
+    ultimoTip = tip;
+    movimento = snapshot.keyMotion; movimentoEm = performance.now();
+    var antes = dados, estavaOnline = online;
+    dados = snapshot.maquete;
+    recebeuEstado = true;
+    var papeis = (snapshot.percurso && snapshot.percurso.fragmento && snapshot.percurso.fragmento.membros.map(function (m) { return m.papel; })) || ['luz', 'conhecimento'];
+    online = papeis.every(function (r) { return snapshot.online.indexOf(r) >= 0; });
+    /* No Solo não há dupla: o painel de cooperação sai da tela em vez de
+       anunciar um colega que não existe. */
+    /* O cartão de cooperação só fala quando falta alguém: "dupla conectada"
+       ocupava um painel inteiro (117 px a 390×844) para não dizer nada, e
+       empurrava o resto da pilha para baixo da dobra. */
+    $('coop-status').hidden = solo || online;
+    if (!online) $('coop-status').textContent = 'Aguardando seu colega';
+
+    /* "Nada aqui" só no aparelho que TOCOU: o engano conta para os dois, mas
+       o aviso no aparelho de quem não tocou em nada seria mentira. */
+    if (antes && dados && dados.level === antes.level && dados.mistakes > antes.mistakes && performance.now() - examinadoEm < 4000) avisar('Nada aqui.', 7);
+    if (antes && dados && dados.level > antes.level) {
+      vooDaChave = null; poeira.resetTrail();
+      poeira.burst(vetorDaFechaduraDe(antes.level));
+      if (!dados.complete) avisar(capituloFechado(antes.level), 3);
+      tentativasNaFixa = 0;
+    }
+    /* A chave saiu do esconderijo — só onde a chave existe. */
+    if (antes && dados && !antes.key && dados.key && temLadoDaChave()) {
+      var conj = mundo && mundo.alvos[ultimoExaminado];
+      var origem = conj ? conj.centro.clone() : new THREE.Vector3(0, 0.55, 0.2);
+      var camada = conj ? mundo.camadas[conj.camada] : null;
+      if (camada) origem = origem.clone().add(new THREE.Vector3(0, camada.position.y, 0));
+      poeira.burst(origem); poeira.resetTrail();
+      var pouso = origem.clone().add(new THREE.Vector3(0, 0.06, 0.04));
+      if (reduzido) mundo.chave.position.copy(pouso);
+      else { mundo.chave.position.copy(origem); vooDaChave = { de: origem.clone(), para: pouso, t: 0 }; }
+    }
+    /* A fechadura apareceu — só onde a fechadura existe. */
+    if (antes && dados && !antes.lock && dados.lock && temLadoDaFechadura()) poeira.burst(vetorDaFechadura());
+    /* Reenquadrar quando muda o CAPÍTULO, o PAPEL ou o ato. */
+    var assinatura = dados ? dados.level + '/' + dados.papel + '/' + (dados.key ? 1 : 0) + '/' + (dados.lock ? 1 : 0) : '';
+    if (assinatura !== enquadramentoAtual) {
+      enquadramentoAtual = assinatura;
+      if (antes) vida();
+      if (ra && ra.estado().modo === 'mesa' && ra.estado().posta && !arrastando) {
+        setTimeout(enquadrar, 30);
+        /* E de novo quando tudo assenta: a camada termina de subir e a pilha
+           reabre com o texto novo. Medido na volta 3, o primeiro quadro saía
+           com o armário acima da tela. Só se o jogador ainda não girou. */
+        girouDesde = false;
+        setTimeout(function () { if (!girouDesde && !arrastando) enquadrar(); }, 1200);
+      }
+    }
+    if (!antes || estavaOnline !== online || JSON.stringify(antes) !== JSON.stringify(dados)) pintarTela();
+    /* A descoberta só abre com a maquete posta. */
+    if (dados && dados.complete && !concluidoEnviado && posta()) {
+      concluidoEnviado = true;
+      $('final-score').textContent = '3 camadas · ' + dados.score + ' pontos. Nenhuma acusação foi concluída.';
+      /* O Solo troca o quadro assim que recebe o recado. Mandado aqui, na
+         hora da conclusão, ele tirava a maquete da tela antes de o jogador
+         ler a descoberta ou ver a passagem (volta 2, 17/09/2026). Vai quando
+         a descoberta FECHA — pelo botão, por Esc ou por um toque fora. */
+      var aberto = false;
+      try { $('discovery').showModal(); aberto = true; } catch (e) {}
+      if (!aberto) avisarSoloDaConclusao();
+      /* Pelo evento `close` E pelos gestos que fecham: medido na volta 3, num
+         documento em segundo plano o `close` do <dialog> não chegava, e a
+         moldura esperava para sempre. Vai uma vez só. */
+      else ['close', 'cancel'].forEach(function (t) { $('discovery').addEventListener(t, avisarSoloDaConclusao); });
+    }
+  }
+
+  var conclusaoAvisada = false;
+  function avisarSoloDaConclusao() {
+    if (!dados || !dados.complete || conclusaoAvisada) return;
+    conclusaoAvisada = true;
+    /* Dentro do percurso da Mesa vale o mesmo: a moldura só troca para o
+       resumo depois que a descoberta foi lida (volta 3). */
+    if (params.get('percurso') === '1') {
+      try { parent.postMessage({ mosaico: 'ac-maquete-descoberta-vista', runId: params.get('run') }, location.origin); } catch (e) {}
+    }
+    if (params.get('demo') !== 'solo') return;
+    try { parent.postMessage({ mosaico: 'ac-solo-maquete-completa', score: dados.score, evidence: dados.evidence }, location.origin); } catch (e) {}
+  }
+
+  function vetorDaFechaduraDe(nivel) {
+    if (motor && motor.FECHADURAS[nivel]) return new THREE.Vector3().fromArray(motor.FECHADURAS[nivel]);
+    return new THREE.Vector3(0, 0.5, 0);
+  }
+  function capituloFechado(nivel) {
+    return (motor && motor.CAPITULOS[nivel] && motor.CAPITULOS[nivel].fecho) || 'A camada se soltou.';
+  }
+
+  /* ---------- botões ---------- */
+
+  function ligarBotoes() {
+    on($('alternative'), 'click', function () { abrirListaDeObjetos(); });
+    on($('guardar'), 'click', avisarSoloDaConclusao);
+    on($('discovery'), 'click', function (e) {
+      if (e.target !== $('discovery')) return;
+      var r = $('discovery').getBoundingClientRect();
+      if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) avisarSoloDaConclusao();
+    });
+
+    /* Recolher ou abrir os painéis NÃO reenquadra a imagem. Medido na volta 1
+       (17/09/2026): o toque na cena recolhe os painéis no pointerdown; se a
+       imagem se recentrasse ali, a casa andava debaixo do dedo antes do
+       pointerup e o toque caía no chão — o alvo nunca era examinado. */
+  }
+
+  function abrirListaDeObjetos() {
+    if (!dados || !dados.alvos) return;
+    /* Sorteado por partida: escrita à mão, esta lista nasceria com o
+       esconderijo em primeiro lugar em todos os capítulos. */
+    var ordem = motor.ordemDosAlvos(dados.alvos, dados.capitulo, semente());
+    var caixa = $('object-list'); caixa.textContent = '';
+    ordem.forEach(function (id) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = (dados.rotulos && dados.rotulos[id]) || id;
+      b.onclick = function () { examinar(id); try { $('objects').close(); } catch (e) {} };
+      caixa.appendChild(b);
+    });
+    try { $('objects').showModal(); } catch (e) {}
+  }
+
+  function semente() { return params.get('sala') || params.get('run') || 'AC-COSTA'; }
+
+  /* ---------- partida ---------- */
+
+  function comecar() {
+    montarCena();
+    ligarGestos(); ligarChave(); ligarFixa(); ligarBotoes();
+
+    var voltar = new URLSearchParams(location.search); voltar.set('rever', '1');
+    $('return-desk').href = 'AC-escrivaninha.html?' + voltar;
+    if (solo) $('coop-status').hidden = true;
+
+    import(new URL('ac-maquete-state.mjs', MEU_SRC).href).then(function (m) {
+      motor = m;
+      return new Promise(function (ok, falha) {
+        ACMaquetteMundo.carregar({ pontos: m.FECHADURAS }, ok, falha);
+      });
+    }).then(function (m) {
+      mundo = m;
+      cena.add(mundo.raiz);
+      /* A poeira mora DENTRO da maquete: acompanha escala, giro e pose. */
+      poeira = createACGoldDust(mundo.raiz, { reduced: reduzido });
+      farol = new THREE.Mesh(new THREE.SphereGeometry(0.006, 12, 8), new THREE.MeshBasicMaterial({ color: 0xffe3a1 }));
+      farol.visible = false; farol.userData.exportExclude = true; farol.raycast = function () {};
+      mundo.raiz.add(farol);
+      mundo.chave.visible = false;
+
+      controles = new THREE.OrbitControls(camera, renderer.domElement);
+      controles.enableDamping = true; controles.minDistance = 0.12; controles.maxDistance = 14;
+      controles.addEventListener('start', function () { girouDesde = true; });
+      controles.maxPolarAngle = Math.PI * 0.495; controles.enabled = false;
+
+      ra = ACMaquetteRA.criar({ renderer: renderer, cena: cena, camera: camera, raiz: mundo.raiz, baseY: mundo.baseY, aoMudar: aoMudarRA });
+      ra.previa();
+      controles.enabled = true;
+      montarPortal();
+      habilitarPortal(true);
+      ligarCooperacao();
+      pintarTela();
+      enquadrar();
+      renderer.setAnimationLoop(desenhar);
+      /* O painel do Claude congela o requestAnimationFrame: este gancho
+         desenha um quadro avulso para conferir a tela parada. */
+      window.__maquete = { mundo: mundo, ra: ra, motor: motor, estado: function () { return dados; },
+        quadro: function () { desenhar(performance.now(), null); }, enquadrar: enquadrar,
+        /* Onde um ponto da cena cai na tela — para tocar nele de verdade. */
+        onde: function (id) {
+          mundo.raiz.updateMatrixWorld(true);
+          if (Array.isArray(id)) return naTela(mundo.raiz.localToWorld(new THREE.Vector3().fromArray(id)));
+          var c = conjuntoDe(id); if (!c) return null;
+          return naTela(c.grupo.localToWorld(c.centro.clone()));
+        },
+        diag: function () {
+          return { online: online, pendente: pendente, posta: posta(), podeExplorar: podeExplorar(), procurando: procurando(),
+            alvos: alvosAtivos().map(function (a) { return a.id; }), toques: toques.size, tocouEm: !!tocouEm,
+            alvoDaOrbita: controles && naTela(controles.target.clone()), alvo3d: controles && controles.target.toArray().map(function (n) { return +n.toFixed(3); }), camera: camera.position.toArray().map(function (n) { return +n.toFixed(3); }),
+            olhar: camera.getWorldDirection(new THREE.Vector3()).toArray().map(function (n) { return +n.toFixed(3); }) };
+        },
+        /* O que o raio acerta num ponto da tela — os três primeiros. */
+        raio: function (x, y) {
+          raio.setFromCamera(ndc(x, y), cameraAgora());
+          return raio.intersectObject(mundo.raiz, true).filter(function (h) { return objetoVisivel(h.object); }).slice(0, 3).map(function (h) {
+            if (!h.object.isMesh) return '(' + h.object.type + ') @' + h.distance.toFixed(3);
+            var d = donoDoToque(h.object);
+            return h.object.name + (d ? ' ← ' + (d.userData.object || d.userData.fechadura) : '') + ' @' + h.distance.toFixed(3);
+          });
+        } };
+    }).catch(function (erro) {
+      $('portal-aviso').textContent = 'A maquete não pôde ser carregada. ' + (erro && erro.message ? erro.message : '');
+      $('description').textContent = 'A maquete não pôde ser carregada neste aparelho.';
+      try { $('portal').showModal(); } catch (e) {}
+    });
+  }
+
+  function habilitarPortal(ligado) {
+    ['portal-ra', 'portal-camera', 'portal-mesa'].forEach(function (id) { $(id).disabled = !ligado; });
+  }
+
+  function aoMudarRA() {
+    var e = ra.estado();
+    /* A órbita é da BANCADA. Em RA quem move o ponto de vista é o aparelho. */
+    if (controles) controles.enabled = e.modo === 'mesa';
+    if (e.modo === 'mesa' && e.posta) enquadrar();
+    pintarTela();
+  }
+
+  function ligarCooperacao() {
+    ACCooperation(receber, function (ligado) {
+      if (!ligado) { online = false; $('coop-status').textContent = 'Reconectando…'; pintarTela(); }
+    }, { maquette: true }).then(function (c) {
+      coop = c;
+      if (c.demo) c.send('iniciar_maquete');
+      if (params.get('percurso') === '1') { var marca = document.querySelector('.brand'); if (marca) marca.removeAttribute('href'); }
+      if (c.invite) { $('invite').href = c.invite; $('invite').hidden = false; }
+    }).catch(function (e) { $('description').textContent = e.message; });
+  }
+
+  on(window, 'resize', function () {
+    if (!camera || !renderer) return;
+    ajustarTamanho();
+    if (ra && ra.estado().modo === 'mesa') enquadrar();
+  });
+  on(window, 'pagehide', function (e) {
+    if (e.persisted) { renderer.setAnimationLoop(null); return; }
+    descartado = true;
+    if (poeira) poeira.dispose();
+    if (coop) coop.close();
+    if (ra) ra.sair();
+    desligar.forEach(function (fn) { fn(); });
+    if (controles) controles.dispose();
+    renderer.setAnimationLoop(null);
+    renderer.dispose();
   });
 
-  on($('help'),'click',ev=>{if(window.ACJanelas){window.ACJanelas.ajuda(ev);return;}$('instructions').showModal();});document.querySelectorAll('[data-close]').forEach(el=>on(el,'click',()=>{el.closest('dialog').close();window.ACJanelas?.recolher();}));
-  on(document.body,'beforexrselect',e=>{if(e.target.closest('dialog,header,.tools,#manuscript,#key-grip'))e.preventDefault();});
-  const previousParams=new URLSearchParams(location.search);previousParams.set('rever','1');$('return-desk').href='AC-escrivaninha.html?'+previousParams;
-  function enableFallback(reason){fallback=true;$('fallback-note').textContent=reason+' A exploração continua em 3D, com uma alternativa por nomes de objetos.';update();}
-  function place(){if(!xr||placed||!hasHit)return;placementMatrix.copy(reticle.matrix);applyPlacement();model.root.visible=true;placed=true;reticle.visible=false;update();}
-  on($('ar'),'click',async()=>{
-    if(xr){await xr.end();return;}if(startingAR)return;startingAR=true;
-    try{
-      const session=await navigator.xr.requestSession('immersive-ar',{requiredFeatures:['hit-test','dom-overlay'],domOverlay:{root:document.body}});if(disposed){await session.end();return;}
-      camera.clearViewOffset();xr=session;placed=false;hasHit=false;touches.clear();pinchDistance=0;controls.enabled=false;model.root.visible=false;
-      session.addEventListener('select',place);
-      session.addEventListener('end',()=>{hitSource?.cancel();hitSource=null;xr=null;placed=false;reticle.visible=false;floor.visible=true;model.root.visible=true;model.root.position.set(0,0,0);model.root.quaternion.identity();model.root.scale.setScalar(1);hasHit=false;touches.clear();scene.background=new THREE.Color(0x091515);document.body.classList.remove('in-ar');if($('ar'))$('ar').textContent='Explorar em RA';controls.enabled=true;frame();enableFallback('A sessão de RA foi encerrada.');},{once:true});
-      renderer.xr.setReferenceSpaceType('local');await renderer.xr.setSession(session);if(xr!==session||disposed)return;const viewer=await session.requestReferenceSpace('viewer');if(xr!==session||disposed)return;const source=await session.requestHitTestSource({space:viewer});if(xr!==session||disposed){source.cancel();return;}hitSource=source;
-      fallback=false;floor.visible=false;scene.background=null;document.body.classList.add('in-ar');if($('ar'))$('ar').textContent='Sair da RA';update();
-    }catch{if(xr)await xr.end().catch(()=>{});enableFallback('RA indisponível ou não autorizada.');}finally{startingAR=false;}
-  });
-  enableFallback('A exploração continua em 3D, com uma alternativa por nomes de objetos.');
-  let lastTime=0;
-  function render(time,frameXR){
-    if(disposed)return;const dt=Math.min(.1,(time-lastTime)/1000||0);lastTime=time;
-    if(document.hidden){readStart=null;return;}
-    if(xr&&frameXR&&hitSource){const hits=frameXR.getHitTestResults(hitSource);hasHit=!!hits.length;if(hasHit){const pose=hits[0].getPose(renderer.xr.getReferenceSpace());hasHit=!!pose;if(pose)reticle.matrix.fromArray(pose.transform.matrix);}reticle.visible=hasHit&&!placed;}
-    if(!xr)controls.update();
-    if(readStart!==null&&!readingSent&&data&&!data.ready&&online){const amount=Math.min(1,(time-readStart)/1000);$('reading').firstElementChild.style.width=amount*100+'%';if(amount===1){readingSent=true;send('maquete_orientar').then(ok=>{if(!ok)readingSent=false;});}}else if(!data?.ready)$('reading').firstElementChild.style.width='0';
-    const level=data?.level||0;
-    // Abertura por partes: o segredo nao aparece antes da ultima chave.
-    for(const [g,lift] of [[model.roof,level>0?1.5:0],[model.upper,level===1?1.2:level===3?.95:0],[model.lower,level>2?.48:0]]){
-      const target=g.userData.restY+lift;g.position.y=reduced?target:THREE.MathUtils.lerp(g.position.y,target,1-Math.exp(-dt*4));g.visible=!(g===model.roof&&level>0&&g.position.y>1.7)&&!(g===model.upper&&level===1&&g.position.y>1.45);
-    }
-    model.facades[0].visible=level===0;model.facades[1].visible=level<2;
-    model.cellar.visible=level>=3;
-    if(keyFlight){keyFlight.elapsed+=dt;const t=Math.min(1,keyFlight.elapsed/.8),ease=t*t*(3-2*t);model.key.position.copy(keyFlight.from).lerp(keyFlight.to,ease);model.key.position.y+=Math.sin(Math.PI*t)*.10;if(t===1)keyFlight=null;}
-    goldDust.update(dt,model.key.visible&&canExplore()&&(dragging||keyFlight)?model.key.position:null,innerHeight*renderer.getPixelRatio());
-    if(model.key.visible){model.root.updateMatrixWorld(true);const screen=model.key.getWorldPosition(new THREE.Vector3()).project(cameraNow());$('key-grip').style.left=(screen.x+1)*innerWidth/2+'px';$('key-grip').style.top=(1-screen.y)*innerHeight/2+'px';$('key-grip').hidden=!!keyFlight||!canExplore()||!data?.key||screen.z< -1||screen.z>1;}
-    if(model.key.visible&&canExplore()&&!keyFlight&&!finishing)publishMotion();
-    const guiding=data&&!data.complete&&data.explorer!==role;
-    const fresh=motion&&performance.now()-motionTime+motion.age<1500;
-    tipBeacon.visible=!!(guiding&&data.key&&fresh&&online&&(!xr||placed));
-    $('alignment').hidden=!guiding||!data.key;
-    if(tipBeacon.visible){tipBeacon.position.fromArray(motion.tip);const socket=model.root.worldToLocal(model.keySocket.getWorldPosition(new THREE.Vector3()));const distance=tipBeacon.position.distanceTo(socket);$('alignment').textContent=distance<.025?'Ponta alinhada. Diga ao colega para soltar.':distance<.10?'A ponta está perto. Oriente o ajuste final.':'O ponto luminoso mostra a ponta da chave. Oriente seu colega até a fechadura.';}
-    else if(guiding&&data.key)$('alignment').textContent='Aguarde seu colega mover a chave para acompanhar a ponta.';
-    if(!xr&&model.lower.visible)model.livingRoom?.updateReflection(renderer,scene);
-    renderer.render(scene,camera);
-  }
-  ACCooperation(snapshot=>{
-    if(snapshot.soloRole)role=snapshot.soloRole;
-    motion=snapshot.keyMotion;motionTime=performance.now();
-    const old=data,wasOnline=online;data=snapshot.maquete;online=(snapshot.percurso?.fragmento?.membros.map(m=>m.papel)||['luz','conhecimento']).every(r=>snapshot.online.includes(r));$('coop-status').textContent=online?'Dupla conectada':'Aguardando seu colega';
-    if(old&&data&&data.mistakes>old.mistakes)notify('Esse detalhe não corresponde à orientação. Converse com seu colega.');
-    if(old&&data&&data.level>old.level){keyFlight=null;goldDust.resetTrail();goldDust.burst(model.root.worldToLocal(model.lock.getWorldPosition(new THREE.Vector3())));if(!data.complete)notify('Chave '+data.evidence.length+' encaixada. Agora leia a orientação para liberar a próxima chave.');}
-    if(!old||wasOnline!==online||JSON.stringify(old)!==JSON.stringify(data))update();
-    if(old&&data&&!old.key&&data.key&&data.explorer===role){
-      const source=model.targets.find(o=>o.userData.object===lastInspected);
-      const origin=source?model.root.worldToLocal(source.getWorldPosition(new THREE.Vector3())):model.key.position.clone();
-      goldDust.burst(origin);goldDust.resetTrail();
-      if(!reduced){keyFlight={from:origin.clone(),to:new THREE.Vector3(.30,.25,.91),elapsed:0};model.key.position.copy(origin);}
-    }
-    if(data&&data.complete&&!soloConcluido&&new URLSearchParams(location.search).get('demo')==='solo'){
-      soloConcluido=true;
-      try{parent.postMessage({mosaico:'ac-solo-maquete-completa',score:data.score,evidence:data.evidence},location.origin)}catch(_){ }
-    }
-  },connected=>{if(!connected){online=false;$('coop-status').textContent='Reconectando…';update();}},{maquette:true}).then(c=>{coop=c;if(c.demo)c.send('iniciar_maquete');if(new URLSearchParams(location.search).get('percurso')==='1')document.querySelector('.brand').removeAttribute('href');const backParams=new URLSearchParams(location.search);backParams.set('rever','1');$('return-desk').href='AC-escrivaninha.html?'+backParams;if(c.invite){$('invite').href=c.invite;$('invite').hidden=false;}if(!c.demo&&!matchMedia('(max-width:700px)').matches)$('instructions').showModal();}).catch(e=>{$('description').textContent=e.message;});
-  // A pilha de painéis nasce depois deste script e muda de altura entre os capítulos.
-  if(window.ResizeObserver){let lastStackH=-1;const watch=()=>{const st=document.querySelector('.ac-panel-stack');if(!st)return setTimeout(watch,120);new ResizeObserver(()=>{const h=Math.round(st.getBoundingClientRect().height);if(h!==lastStackH){lastStackH=h;if(!xr)frame();}}).observe(st);};watch();}
-  on(window,'resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);if(!xr)frame();});
-  on(document,'visibilitychange',()=>readStart=null);
-  on(window,'pagehide',e=>{if(e.persisted){renderer.setAnimationLoop(null);return;}disposed=true;goldDust.dispose();clearTimeout(noticeTimer);coop?.close();hitSource?.cancel();xr?.end().catch(()=>{});handlers.forEach(fn=>fn());controls.dispose();renderer.setAnimationLoop(null);const geometries=new Set(),materials=new Set();scene.traverse(o=>{if(o.geometry)geometries.add(o.geometry);if(o.material)materials.add(o.material);});geometries.forEach(g=>g.dispose());materials.forEach(m=>{m.map?.dispose();m.bumpMap?.dispose();m.dispose();});renderer.dispose();});
-  on(window,'pageshow',e=>{if(e.persisted&&!disposed){lastTime=performance.now();renderer.setAnimationLoop(render);}});
-  update();renderer.setAnimationLoop(render);
+  comecar();
 })();

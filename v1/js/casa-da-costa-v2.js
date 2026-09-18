@@ -21,7 +21,7 @@
     c.tarefas=c.tarefas||{};
     c.tarefas.inclinacao=Object.assign({titulo:"A Janela do Norte",arquivo:"MOSAICO-26-a-janela-do-norte.html?embed=1"},c.tarefas.inclinacao||{});
     c.tarefas.constelacao=Object.assign({titulo:"O Vidro Embaçado",arquivo:"MOSAICO-26-vidro-embacado.html?embed=1"},c.tarefas.constelacao||{});
-    c.tarefas.salaEscura=Object.assign({titulo:"A Sala às Escuras",arquivo:"MOSAICO-26-a-sala-as-escuras.html?embed=1&v=20260916-sala-cta"},c.tarefas.salaEscura||{});
+    c.tarefas.salaEscura=Object.assign({titulo:"A Sala às Escuras",arquivo:"MOSAICO-26-a-sala-as-escuras.html?embed=1&v=20260918-papeis"},c.tarefas.salaEscura||{});
     CASO=c;
     PERSONAGENS=c.elenco||PERSONAGENS;
     ROTEIRO=c.roteiros||ROTEIRO;
