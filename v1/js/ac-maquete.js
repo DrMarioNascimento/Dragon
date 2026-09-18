@@ -44,7 +44,7 @@
   var planoDeArrasto = new THREE.Plane(), raio = new THREE.Raycaster(), ponto = new THREE.Vector3();
   var ultimoEnvio = 0, envioOcupado = false, envioPendente = null;
   var alturaAberta = 0.62, progressoDasCamadas = {}, fantasmaTerreno = 1;
-  var farol = null, tempoAnterior = 0, desligar = [], modoEscolhido = false;
+  var farol = null, tempoAnterior = 0, desligar = [], modoEscolhido = false, recebeuEstado = false;
 
   function on(el, tipo, fn, opcoes) { if (!el) return; el.addEventListener(tipo, fn, opcoes); desligar.push(function () { el.removeEventListener(tipo, fn, opcoes); }); }
   function entrarAtividade() { if (window.ACJanelas) window.ACJanelas.entrarAtividade(); }
@@ -362,6 +362,15 @@
 
   function textos() {
     var passo = $('step'), titulo = $('heading'), descricao = $('description');
+    /* Atividade ainda trancada vem ANTES de tudo: pedir para pôr a casa na
+       mesa, e só depois dizer que não era aqui, é dar uma volta à toa. */
+    if (recebeuEstado && !dados) {
+      passo.textContent = 'AINDA NÃO';
+      titulo.textContent = 'A maquete continua fechada.';
+      descricao.textContent = 'A etiqueta sob a escrivaninha é o que abre esta caixa. Volte e registre a descoberta.';
+      $('score').textContent = '';
+      return;
+    }
     if (!posta()) {
       passo.textContent = 'A CAIXA FECHADA';
       titulo.textContent = 'Ponha a maquete na mesa.';
@@ -410,7 +419,11 @@
        cena — e em RA o pouso é justamente um toque na cena. Ele sai assim que
        um modo é escolhido; daí em diante quem fala é a linha de pouso. */
     var escolhendo = !ra || (ra.estado().modo === 'mesa' && !pronto && !modoEscolhido);
-    $('portal').hidden = pronto || !escolhendo;
+    /* Se a atividade ainda não foi liberada (a etiqueta da escrivaninha não
+       foi registrada), não faz sentido pedir para pôr a casa na mesa: o
+       jogador colocaria a maquete para descobrir que não é aqui. */
+    var liberada = !recebeuEstado || !!dados;
+    $('portal').hidden = pronto || !escolhendo || !liberada;
     document.body.classList.toggle('maquete-posta', pronto);
     textos();
     var temDados = !!dados && !dados.complete;
@@ -446,6 +459,7 @@
      duas alturas diferentes — ela fica onde o polegar não a cobre. */
   function faixaDeEstado(pronto, temDados, temChave) {
     var faixa = $('faixa');
+    if (recebeuEstado && !dados) { faixa.hidden = false; faixa.textContent = 'A maquete continua fechada: falta registrar a etiqueta da escrivaninha.'; return; }
     if (!pronto || !temDados) { faixa.hidden = true; return; }
     if (!online) { faixa.hidden = false; faixa.textContent = 'Aguardando seu colega voltar.'; return; }
     var texto;
@@ -721,6 +735,7 @@
     movimento = snapshot.keyMotion; movimentoEm = performance.now();
     var antes = dados, estavaOnline = online;
     dados = snapshot.maquete;
+    recebeuEstado = true;
     var papeis = (snapshot.percurso && snapshot.percurso.fragmento && snapshot.percurso.fragmento.membros.map(function (m) { return m.papel; })) || ['luz', 'conhecimento'];
     online = papeis.every(function (r) { return snapshot.online.indexOf(r) >= 0; });
     /* No Solo não há dupla: o painel de cooperação sai da tela em vez de
