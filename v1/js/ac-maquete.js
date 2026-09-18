@@ -422,9 +422,14 @@
     $('key-grip').hidden = !(podeExplorar() && dados && dados.key);
     if (mundo) mundo.chave.visible = !!(dados && dados.key && temChave && pronto);
     var acao = $('solo-action');
-    acao.hidden = !solo || !pronto || !temDados;
+    /* Com a chave na mão o botão SAI. O que depende de duas pessoas na Mesa é
+       a orientação — não o arrasto. Jogando sozinho, o jogador vê a chave e a
+       fechadura ao mesmo tempo, e arrastar é justamente a parte que a bancada
+       precisa exercitar. Um botão que encaixa sozinho tiraria do Solo o gesto
+       que ele existe para testar. */
+    acao.hidden = !solo || !pronto || !temDados || !!dados.key;
     acao.disabled = !online;
-    if (solo && temDados) acao.textContent = !dados.ready ? 'Ler a anotação' : (dados.key ? 'Levar a chave à fechadura' : 'Examinar por nome');
+    if (solo && temDados && !dados.key) acao.textContent = !dados.ready ? 'Ler a anotação' : 'Examinar por nome';
     if (!online && pronto) $('description').textContent = 'A dupla precisa estar conectada para continuar. O progresso está guardado.';
     faixaDeEstado(pronto, temDados, temChave);
   }
@@ -560,7 +565,15 @@
     on(pega, 'pointermove', function (e) {
       if (!arrastando) return;
       raio.setFromCamera(ndc(e.clientX, e.clientY), cameraAgora());
-      if (raio.ray.intersectPlane(planoDeArrasto, ponto)) mundo.chave.position.copy(mundo.raiz.worldToLocal(ponto.clone()));
+      /* Quem segue o dedo é a PONTA, não o corpo da chave.
+         Antes o dedo levava a origem da chave, e a ponta ficava um
+         comprimento de chave (0,036 da maquete, mais que a tolerância de
+         0,03) adiante. Na Mesa o colega absorvia isso guiando pela ponta; no
+         Solo, onde a pessoa vê a fechadura, ela punha a chave em cima dela e o
+         encaixe recusava sem explicar por quê. */
+      if (raio.ray.intersectPlane(planoDeArrasto, ponto)) {
+        mundo.chave.position.copy(mundo.raiz.worldToLocal(ponto.clone())).sub(mundo.chavePonta.position);
+      }
       poeira.trace(mundo.chave.position);
       publicarMovimento(false);
     });
@@ -625,7 +638,9 @@
     if (!mundo.chave.visible) return;
     mundo.raiz.updateMatrixWorld(true);
     var caixa = renderer.domElement.getBoundingClientRect();
-    var tela = mundo.chave.getWorldPosition(new THREE.Vector3()).project(cameraAgora());
+    /* A pega fica na PONTA: é o ponto que o colega enxerga e o único que
+       decide o encaixe. */
+    var tela = mundo.chavePonta.getWorldPosition(new THREE.Vector3()).project(cameraAgora());
     pega.style.left = caixa.left + (tela.x + 1) * caixa.width / 2 + 'px';
     pega.style.top = caixa.top + (1 - tela.y) * caixa.height / 2 + 'px';
     pega.hidden = !!vooDaChave || !podeExplorar() || !dados || !dados.key || tela.z < -1 || tela.z > 1;
@@ -701,7 +716,10 @@
     dados = snapshot.maquete;
     var papeis = (snapshot.percurso && snapshot.percurso.fragmento && snapshot.percurso.fragmento.membros.map(function (m) { return m.papel; })) || ['luz', 'conhecimento'];
     online = papeis.every(function (r) { return snapshot.online.indexOf(r) >= 0; });
-    $('coop-status').textContent = online ? 'Dupla conectada' : 'Aguardando seu colega';
+    /* No Solo não há dupla: o painel de cooperação sai da tela em vez de
+       anunciar um colega que não existe. */
+    if (solo) $('coop-status').hidden = true;
+    else $('coop-status').textContent = online ? 'Dupla conectada' : 'Aguardando seu colega';
 
     if (antes && dados && dados.mistakes > antes.mistakes) avisar('Não era este. Conversem outra vez antes de tentar.');
     if (antes && dados && dados.level > antes.level) {
@@ -771,9 +789,7 @@
       if (!solo || !dados || dados.complete) return;
       entrarAtividade();
       if (!dados.ready) { enviar('maquete_orientar'); return; }
-      if (!dados.key) { abrirListaDeObjetos(); return; }
-      mundo.chave.position.copy(vetorDaFechadura()).sub(new THREE.Vector3().fromArray(pontaRelativa()));
-      publicarMovimento(true).then(function (ok) { if (ok) enviar('maquete_encaixar'); });
+      abrirListaDeObjetos();
     });
     on($('help'), 'click', function (ev) {
       if (window.ACJanelas) { window.ACJanelas.ajuda(ev); return; }
@@ -782,12 +798,6 @@
     Array.prototype.forEach.call(document.querySelectorAll('[data-close]'), function (el) {
       on(el, 'click', function () { var d = el.closest('dialog'); if (d) { try { d.close(); } catch (e) {} } if (window.ACJanelas) window.ACJanelas.recolher(); });
     });
-  }
-
-  function pontaRelativa() {
-    mundo.raiz.updateMatrixWorld(true);
-    var ponta = mundo.raiz.worldToLocal(mundo.chavePonta.getWorldPosition(new THREE.Vector3()));
-    return ponta.sub(mundo.chave.position).toArray();
   }
 
   function abrirListaDeObjetos() {
@@ -816,6 +826,16 @@
 
     var voltar = new URLSearchParams(location.search); voltar.set('rever', '1');
     $('return-desk').href = 'AC-escrivaninha.html?' + voltar;
+    if (solo) {
+      $('coop-status').hidden = true;
+      /* O texto de ajuda é escrito para a dupla. Jogando sozinho, os dois
+         lados são a mesma pessoa, e dizer "seu colega" é mentira na tela. */
+      var doisOlhares = $('instructions').querySelector('h2');
+      if (doisOlhares) doisOlhares.textContent = 'A chave e a fechadura são suas.';
+      var explicacao = $('instructions').querySelectorAll('p');
+      if (explicacao[0]) explicacao[0].textContent = 'A maquete se abre por camadas, e cada camada é presa por uma fechadura. A anotação diz onde a chave daquela camada foi guardada; achada a chave, é levá-la até a fechadura acesa.';
+      if (explicacao[1]) explicacao[1].textContent = 'Na mesa, esta investigação é feita em dupla: um tem a chave e o outro a fechadura.';
+    }
 
     import(new URL('ac-maquete-state.mjs', MEU_SRC).href).then(function (m) {
       motor = m;
