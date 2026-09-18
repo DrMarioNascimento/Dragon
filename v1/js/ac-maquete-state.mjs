@@ -39,11 +39,11 @@ export const CAPITULOS = [
     chaveiro: 'luz',
     fechadura: 'fechadura-portada',
     fechaduraNome: 'a maçaneta da porta da frente',
-    esconderijo: 'pedra-do-portao',
-    dica: 'A estrada morre num portão de dois pilares. A última pedra do caminho não assentou como as outras — quem a levantou tinha pressa e não a devolveu no lugar.',
-    candidatos: ['pedra-do-portao', 'pilar-do-portao', 'moita-do-caminho', 'laje-de-chegada'],
+    esconderijo: 'pedra-do-caminho',
+    dica: 'O caminho que vem do portão termina no lajeado da porta. A última pedra antes dele não assentou como as outras — quem a levantou tinha pressa e não a devolveu no lugar.',
+    candidatos: ['pedra-do-caminho', 'pilar-do-portao', 'moita-do-caminho', 'laje-de-chegada'],
     rotulos: {
-      'pedra-do-portao': 'A pedra solta junto ao portão',
+      'pedra-do-caminho': 'A pedra solta do caminho, diante da porta',
       'pilar-do-portao': 'O pilar do portão',
       'moita-do-caminho': 'A moita ao lado da varanda',
       'laje-de-chegada': 'O lajeado diante da porta'

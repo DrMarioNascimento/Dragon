@@ -185,19 +185,11 @@ test('geometria real: fechaduras, alvos, camadas e o relógio do caso', async ()
       'a fechadura de ' + capitulo.id + ' está numa camada já retirada');
   });
 
-  /* 3. Dois alvos do mesmo capítulo não podem ocupar o mesmo palmo: se
-        ficarem juntos demais, o toque vira sorteio e o jogador perde ponto
-        por um defeito de posição, não por engano de dedução. */
-  for (const capitulo of CAPITULOS) {
-    const centros = capitulo.candidatos.map((id) => mundo.alvos[id].centro);
-    for (let i = 0; i < centros.length; i++) {
-      for (let j = i + 1; j < centros.length; j++) {
-        const d = centros[i].distanceTo(centros[j]);
-        assert.ok(d > 0.02, capitulo.id + ': "' + capitulo.candidatos[i] + '" e "' + capitulo.candidatos[j]
-          + '" estão a ' + d.toFixed(4) + ' um do outro (mínimo 0,02 da maquete)');
-      }
-    }
-  }
+  /* 3. (Havia aqui uma distância mínima entre centros. Saiu: é um proxy que
+        mente nos dois sentidos. A pedra do portão estava a 0,033 do pilar e
+        passava em qualquer limiar; a escrivaninha e o candelabro estão a
+        0,028 e são perfeitamente distinguíveis, porque um está EM CIMA do
+        outro. O que decide é o item 4b: mirar no alvo acerta o alvo.) */
 
   /* 4. Com as camadas anteriores retiradas, cada alvo E CADA FECHADURA são
         ALCANÇÁVEIS: existe um punhado de direções de onde o raio bate neles
@@ -254,6 +246,40 @@ test('geometria real: fechaduras, alvos, camadas e o relógio do caso', async ()
     const vistasFechadura = quantasDirecoesVeem(fechadura.grupo, capitulo.fechadura, 'fechadura');
     assert.ok(vistasFechadura >= PISO_DE_VISIBILIDADE, 'capítulo ' + capitulo.id + ': a fechadura "' + capitulo.fechadura
       + '" é atingível de ' + vistasFechadura + ' das ' + direcoes.length + ' direções — quem guia não consegue vê-la');
+  });
+  for (const nome of ordemDasCamadas) mundo.camadas[nome].visible = true;
+
+  /* 4b. MIRAR NO ALVO ACERTA O ALVO. A distância entre centros é só um proxy:
+         em 17/09/2026 a pedra do portão estava a 0,033 do pilar — passava em
+         qualquer limiar razoável — e um toque de verdade, mirado no centro da
+         pedra, acertava o pilar, que é alto e fica na frente. O jogador perdia
+         ponto por defeito de posição. Aqui a pergunta é a do dedo: apontando
+         para este alvo, quantas vezes eu pego OUTRO candidato do capítulo? */
+  CAPITULOS.forEach((capitulo, nivel) => {
+    const abertas = CAPITULOS.slice(0, nivel).map((c) => c.camada);
+    for (const nome of ordemDasCamadas) mundo.camadas[nome].visible = !abertas.includes(nome);
+    mundo.chave.visible = false;
+    for (const alvo of Object.values(mundo.alvos)) { alvo.halo.visible = false; alvo.pino.visible = false; }
+    for (const ancora of mundo.ancoras) { ancora.halo.visible = false; ancora.pino.visible = false; }
+    mundo.raiz.updateMatrixWorld(true);
+
+    for (const id of capitulo.candidatos) {
+      const alvo = mundo.alvos[id];
+      const centro = alvo.grupo.localToWorld(alvo.centro.clone());
+      let acertos = 0, trocas = 0, trocouPor = '';
+      for (const direcao of direcoes) {
+        raio.set(centro.clone().addScaledVector(direcao, 0.55), direcao.clone().negate());
+        const hits = raio.intersectObject(mundo.raiz, true).filter((h) => visivel(h.object) && h.object.geometry && !anel(h.object));
+        let dono = hits.length ? hits[0].object : null;
+        while (dono && !(dono.userData && dono.userData.object)) dono = dono.parent;
+        if (!dono) continue;
+        if (dono.userData.object === id) acertos++;
+        else if (capitulo.candidatos.includes(dono.userData.object)) { trocas++; trocouPor = dono.userData.object; }
+      }
+      assert.ok(acertos > 0, capitulo.id + ': mirar em "' + id + '" nunca acerta "' + id + '"');
+      assert.ok(trocas <= acertos * 0.2, capitulo.id + ': mirar em "' + id + '" acerta "' + trocouPor + '" em '
+        + trocas + ' direções contra ' + acertos + ' certas — os dois alvos estão colados e o toque vira sorteio');
+    }
   });
   for (const nome of ordemDasCamadas) mundo.camadas[nome].visible = true;
 

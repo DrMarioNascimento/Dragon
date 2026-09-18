@@ -29,7 +29,11 @@
   /* Cada alvo é um punhado de nós do GLB. A escolha é por nome e por
      ancestral — nunca por índice, que muda a cada reexportação do modelo. */
   var ALVOS = [
-    { id: 'pedra-do-portao', camada: 'terreno', nome: 'pedra-solta', extremo: 'menorX' },
+    /* A pedra da frente, não a do portão: aquela fica a 0,046 do pilar, e
+       mirar nela acertava o pilar — medido com um toque de verdade a 390×844,
+       em 17/09/2026. Dois alvos do mesmo capítulo colados são ponto perdido
+       por defeito de posição, não por engano de dedução. */
+    { id: 'pedra-do-caminho', camada: 'terreno', nome: 'pedra-solta', extremo: 'maiorZ' },
     { id: 'pilar-do-portao', camada: 'terreno', nomes: ['pilar-de-portao', 'capitel-de-portao'], extremo: 'menorX' },
     { id: 'moita-do-caminho', camada: 'terreno', nome: 'moita', extremo: 'menorX' },
     { id: 'laje-de-chegada', camada: 'terreno', nome: 'laje-de-chegada' },
@@ -427,7 +431,12 @@
       }
       pecas.push(o);
     });
-    if (regra.extremo === 'menorX') {
+    if (regra.extremo === 'maiorZ' || regra.extremo === 'menorX') {
+      var eixo = regra.extremo === 'maiorZ' ? 'z' : 'x', sinal = regra.extremo === 'maiorZ' ? -1 : 1;
+      /* `menorX` recolhe o CONJUNTO do extremo — é o pilar com o seu capitel.
+         `maiorZ` recolhe UMA peça: as pedras soltas estão espalhadas, e juntar
+         três põe o centro do alvo (e o alfinete) no chão entre elas. */
+      var folga = regra.extremo === 'menorX' ? 0.06 : 0.001;
       /* Vários nós com o mesmo nome espalhados pelo terreno: fica o CONJUNTO do
          portão, o de menor x. Ficar com uma peça só partia o pilar do seu
          capitel; ficar com todas punha o centro do alvo no vão ENTRE os dois
@@ -435,10 +444,10 @@
       var centros = [], menor = Infinity, i;
       for (i = 0; i < pecas.length; i++) {
         var c = new THREE.Box3().setFromObject(pecas[i]).getCenter(new THREE.Vector3());
-        centros.push(c); if (c.x < menor) menor = c.x;
+        centros.push(c); if (c[eixo] * sinal < menor) menor = c[eixo] * sinal;
       }
       var perto = [];
-      for (i = 0; i < pecas.length; i++) if (centros[i].x < menor + 0.06) perto.push(pecas[i]);
+      for (i = 0; i < pecas.length; i++) if (centros[i][eixo] * sinal < menor + folga) perto.push(pecas[i]);
       pecas = perto;
     }
     for (var j = 0; j < pecas.length; j++) {

@@ -205,7 +205,20 @@
       return true;
     }
 
-    function soltar() { posta = false; aoMudar(); }
+    function soltar() { posta = false; previa(); aoMudar(); }
+
+    /* A casa ANTES de ser posta. Sem isto a tela do portal é um retângulo
+       escuro: o modelo está carregado, mas fica na origem com a câmera dentro
+       dele. Aqui ele ganha uma pose de vitrine — e `posta` continua falso, que
+       é o que segura a atividade. */
+    function previa() {
+      pose.identity();
+      raiz.position.set(0, 0, 0);
+      raiz.quaternion.identity();
+      raiz.scale.setScalar(1);
+      raiz.position.y = -baseY;
+      raiz.updateMatrixWorld(true);
+    }
 
     function mudarEscala(fator) {
       escala = Math.min(ESCALA_MAX, Math.max(ESCALA_MIN, escala * fator));
@@ -246,7 +259,7 @@
     }
 
     return {
-      modosPossiveis: modosPossiveis, entrar: entrar, sair: sair, posicionar: posicionar,
+      modosPossiveis: modosPossiveis, entrar: entrar, sair: sair, posicionar: posicionar, previa: previa,
       soltar: soltar, mudarEscala: mudarEscala, girar: girar, atualizar: atualizar,
       estado: estado, aplicarPose: aplicarPose, mira: mira,
       sessao: function () { return sessao; }

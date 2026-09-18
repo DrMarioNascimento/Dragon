@@ -22,7 +22,16 @@ body.ra-camera,body.ra-webxr{background:transparent}
 .portal-botoes .portal-principal{background:linear-gradient(#3a6c5c,#1d4438);border-color:#8fc0ac;color:#fffaf0;font-size:15px;min-height:52px}
 .portal-aviso{font:13px/1.45 system-ui;color:#ffe7bd;margin:14px 0 0;min-height:1.45em}
 
-/* ---- linha de pouso ---- */
+/* ---- linha de pouso e faixa de estado ---- */
+#faixa{position:fixed;z-index:29;left:12px;right:12px;bottom:max(76px,calc(58px + env(safe-area-inset-bottom)));
+  margin:0;padding:10px 14px;border-radius:14px;background:#0b211de8;border:1px solid #6f8f83;
+  color:#ffffff;font:600 14px/1.35 system-ui;text-align:center;pointer-events:none}
+#faixa[hidden]{display:none!important}
+#faixa b{color:#ffe1ac;font-weight:700}
+@media(min-width:701px){#faixa{display:none!important}}
+/* Quem guia já tem o manuscrito aberto na mesma faixa de tela — medido a
+   390×844, os dois se sobrepunham (faixa 728–768, manuscrito 610–808). */
+body[data-role-mode="guide"] #faixa{display:none!important}
 #pousar{position:fixed;z-index:30;left:12px;right:12px;bottom:max(88px,calc(70px + env(safe-area-inset-bottom)));
   margin:0;padding:11px 14px;border-radius:14px;background:#0d2a24f2;border:1px solid #c9a66c55;
   color:#ffeccb;font:600 14px/1.35 system-ui;text-align:center;pointer-events:none}
