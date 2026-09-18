@@ -159,7 +159,7 @@ html[data-ac-casa] #loading{position:fixed;z-index:31;left:50%;right:auto;transf
    três `:not(#id)` de especificidade, e sem isto ele ganhava — o aviso saía
    com o cabeçalho grande (volta 1, 17/09/2026). */
 html[data-ac-casa] #notice#notice#notice[data-ac-priority],
-html[data-ac-casa] #sync-status#sync-status#sync-status[data-ac-priority]{padding:30px 14px 10px 58px!important;min-height:58px}
+html[data-ac-casa] #sync-status#sync-status#sync-status[data-ac-priority]{padding:30px 14px 10px 58px!important;min-height:58px;position:fixed}
 html[data-ac-casa] #notice#notice#notice[data-ac-priority]::before,
 html[data-ac-casa] #sync-status#sync-status#sync-status[data-ac-priority]::before{left:10px;top:10px;width:36px;height:36px;font-size:22px;border-radius:9px}
 html[data-ac-casa] #notice#notice#notice[data-ac-priority]::after,
@@ -204,6 +204,14 @@ html[data-ac-casa] .gesture-point{z-index:14}
     bottom:calc(var(--ac-rodape) + var(--ac-margem));width:min(18rem,32vw);max-height:none}
   html[data-ac-casa] #notice,html[data-ac-casa] #sync-status,html[data-ac-casa] #loading{
     left:calc(min(18rem, 32vw) + 2 * var(--ac-margem));right:var(--ac-margem);transform:none;width:auto;max-width:34rem;margin:0 auto}
+  /* Volta 2 (18/09/2026, Solo a 800×540): o cromo (três :not(#…)) deixava
+     o aviso com position:relative — ele ficava no fluxo da página com 34rem
+     a partir da coluna e saía 176 px pela direita. A mesma especificidade
+     do cromo devolve o aviso à faixa alta. */
+  html[data-ac-casa] #notice#notice#notice[data-ac-priority],
+  html[data-ac-casa] #sync-status#sync-status#sync-status[data-ac-priority]{
+    left:calc(min(18rem, 32vw) + 2 * var(--ac-margem))!important;right:var(--ac-margem)!important;transform:none!important;
+    width:auto!important;max-width:34rem!important;margin:0 auto!important}
   html[data-ac-casa] .chapter{left:calc(min(18rem, 32vw) + 2 * var(--ac-margem))}
   /* Na coluna estreita o "Como jogar" fica só com o 📖: com o texto, o nome
      do nível virava "D…" (medido a 800×540). */
