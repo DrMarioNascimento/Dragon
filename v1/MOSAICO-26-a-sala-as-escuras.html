@@ -109,6 +109,7 @@
     box-shadow:0 0 13px var(--ambar),0 0 28px rgba(255,178,102,.45);transform:scale(1.3)}
   .marca.cofre{border-style:dashed;border-color:rgba(255,178,102,.65)}
   #botoes{display:flex;gap:10px;pointer-events:auto}
+  #b-entrar-ra[hidden],#b-ra[hidden]{display:none!important}
   button{flex:1;min-height:54px;padding:15px 10px;border-radius:9px;
     border:1px solid #46596d;background:#080d14f2;color:var(--t-max);
     font-family:var(--sans);font-size:clamp(14px,3.6vw,16px);font-weight:700;
@@ -319,7 +320,7 @@
      especificidade, quem vem por ultimo vence, e o padrao tem de vencer. -->
 <link rel="stylesheet" href="css/profundidade.css?v=20260902-profundidade">
 <link rel="stylesheet" href="css/profundidade-1mais1.css?v=20260906-pf-all">
-<link rel="stylesheet" href="css/ac-janelas.css?v=20260918-papeis">
+<link rel="stylesheet" href="css/ac-janelas.css?v=20260918-ra">
 <style>
   /* O chevron d'A Casa também mora aqui, no mesmo canto das outras telas.
      Acima de TUDO: em jogo a camada visual da sala sobe para z-index 200001
@@ -359,6 +360,7 @@
     <div id="marcas"></div>
     <div id="botoes">
       <button id="b-luz" class="acc">Lanterna</button>
+      <button id="b-ra" type="button" hidden>Sair da RA</button>
       <button id="b-mestre">Mestre</button>
     </div>
   </div>
@@ -405,6 +407,10 @@
   <div id="rodada">RODADA <b id="cod-rodada">----</b></div>
   <div id="nota">Confiram: o código tem de ser o mesmo em todos os aparelhos.</div>
   </div>
+  <!-- A RA voltou (Mario, 18/09/2026). O botão só aparece no aparelho que a
+       tem: um "Entrar em RA" desabilitado na frente de quem não tem era um
+       botão morto. Quem não tem entra direto na sala. -->
+  <button class="go" id="b-entrar-ra" type="button" hidden>Entrar em RA</button>
   <button class="go" id="b-entrar" type="button">Entrar na sala</button>
   <button class="alt" id="b-sim">Estou no computador</button>
 </div>
@@ -428,9 +434,9 @@
 </div>
 
 <script src="js/three.min.js"></script>
-<script src="js/vendor/GLTFLoader.js"></script><script src="js/ac-desk.js"></script><script src="js/ac-room-layout.js"></script><script src="js/ac-room-art.js"></script><script src="js/ac-room.js"></script><script src="js/mosaico-ra-engine.js?v=20260918-papeis"></script>
+<script src="js/vendor/GLTFLoader.js"></script><script src="js/ac-desk.js"></script><script src="js/ac-room-layout.js"></script><script src="js/ac-room-art.js"></script><script src="js/ac-room.js"></script><script src="js/mosaico-ra-engine.js?v=20260918-ra"></script>
 <!-- Protocolo com a Mesa e ativacao de sensor: um so arquivo para as tres tarefas. -->
-<script src="js/tarefa-sensor.js?v=20260918-papeis"></script>
+<script src="js/tarefa-sensor.js?v=20260918-ra"></script>
 <script>
 (function(){
 "use strict";
@@ -1836,7 +1842,7 @@ async function entrarRA(){
     if(!MosaicoRA.ativo)alternarModo3DRA();
     var engine=MosaicoRA,renderer=engine.renderer;renderer.xr.enabled=true;renderer.xr.setReferenceSpaceType('local-floor');
     await renderer.xr.setSession(session);engine.xrSession=session;raPose=null;raOriginReady=false;document.body.classList.add('ac-xr-active');
-    var bRa=document.getElementById('b-ra');if(bRa)bRa.textContent='Sair da RA';
+    var bRa=document.getElementById('b-ra');if(bRa)bRa.hidden=false; /* a única saída da RA */
     engine.scene.background=null;engine.container.style.background='transparent';
     // Keep the canonical furniture; real surroundings replace opaque virtual walls.
     var visibleBefore=new Map();
@@ -1857,22 +1863,29 @@ async function entrarRA(){
       document.body.classList.remove('ac-xr-active');engine.xrSession=null;engine.xrUpdate=null;raPose=null;engine.salaGroup.position.set(0,0,0);visibleBefore.forEach((visible,child)=>child.visible=visible);
       engine.scene.background=new THREE.Color(0x04060a);engine.container.style.background='#04060a';var eye=engine.roomModel.layout.eye;engine.camera.position.set(eye[0],eye[2],-eye[1]);engine.spotlight.intensity=2.8;
       setStatus('RA encerrada. Continue em 3D, sem perder as pistas.');holdAcc=0;
-      if(bRa)bRa.textContent='Alternar visual';
+      if(bRa)bRa.hidden=true;
     },{once:true});
     entrarModoDedo('Mova o celular para procurar os objetos ao seu redor.');
     setStatus('RA ativa. Explore o espaço com cuidado.');
   }catch(error){
     if(session)await session.end().catch(()=>{});
+    /* A câmera não abriu (recusada ou indisponível): diz isso à vista, no
+       botão que sobra, e tira a porta da RA. A sala não tem #notice. */
     if(message)message.textContent='Não foi possível iniciar a RA. Você pode tentar novamente ou jogar sem RA.';
+    if(button)button.hidden=true;
+    var semRa=document.getElementById('b-entrar');if(semRa)semRa.textContent='A câmera não abriu · Entrar na sala';
     if(MosaicoRA.ativo&&!MosaicoRA.xrSession)MosaicoRA.encerrar();
   }finally{raBusy=false;if(button)button.disabled=false;}
 }
 var entrarRaBtn=document.getElementById('b-entrar-ra');
 if(entrarRaBtn)entrarRaBtn.addEventListener('click',entrarRA);
 (async function(){
-  var button=document.getElementById('b-entrar-ra'),message=document.getElementById('ra-disponibilidade');
-  if(!button||!message)return;
-  try{var supported=!!navigator.xr&&await navigator.xr.isSessionSupported('immersive-ar');button.disabled=!supported;message.textContent=supported?'A RA usa a câmera. Autorize ao entrar ou escolha jogar sem RA.':'RA não disponível neste navegador. Escolha jogar sem RA para continuar.';}catch(_){button.disabled=true;message.textContent='Não foi possível verificar a RA. Você pode jogar sem RA.';}
+  /* Sem linha explicativa: ela caía na rolagem da intro, abaixo da dobra
+     (y=1030 numa tela de 844, volta 2). O pedido de câmera do próprio
+     aparelho já diz o que a RA usa. */
+  var button=document.getElementById('b-entrar-ra');
+  if(!button)return;
+  try{button.hidden=!(!!navigator.xr&&await navigator.xr.isSessionSupported('immersive-ar'));}catch(_){button.hidden=true;}
 })();
 
 var bRa = document.getElementById("b-ra");
@@ -1903,5 +1916,5 @@ window.__sala={quadro:function(){loop(true);},alvo:alvo,
 
 })();
 </script>
-<script src="js/ac-janelas.js?v=20260918-papeis"></script></body>
+<script src="js/ac-janelas.js?v=20260918-ra"></script></body>
 </html>

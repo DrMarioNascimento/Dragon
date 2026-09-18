@@ -50,14 +50,13 @@ describe("Solo · Sala às Escuras jogável", () => {
   });
 
   it("não regressa RA de ensaio nem a ordem Janela → Sala", () => {
-    assert.doesNotMatch(SALA, /id="b-ra"/);
-    assert.doesNotMatch(SALA, /id="b-entrar-ra"/);
-    assert.doesNotMatch(SALA, />Entrar em RA</);
+    /* A RA voltou (18/09/2026), mas sem o rótulo de ensaio. */
     assert.doesNotMatch(SALA, />Alternar visual</);
+    assert.doesNotMatch(SALA, /Prefiro jogar sem RA/);
     assert.match(SOLO, /1 \/ 4 · Chegada pela estrada/);
     assert.match(SOLO, /2 \/ 4 · /);
     assert.match(SOLO, /MOSAICO-26-a-janela-do-norte\.html\?embed=1/);
-    assert.match(SOLO, /MOSAICO-26-a-sala-as-escuras\.html\?embed=1&v=20260918-papeis/);
+    assert.match(SOLO, /MOSAICO-26-a-sala-as-escuras\.html\?embed=1&v=20260918-ra/);
     assert.ok(
       SOLO.indexOf("MOSAICO-26-a-janela-do-norte.html") <
         SOLO.indexOf("MOSAICO-26-a-sala-as-escuras.html"),

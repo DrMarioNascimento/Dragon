@@ -54,8 +54,8 @@ test('Solo Casa preserva as etapas da experiência da Mesa',()=>{
 test('checkpoint e carimbo incluem o Solo integral',()=>{
   for(const campo of ['percursoEtapa','atividades','atividadeI','sensorPronto','sensorTempos','mosaico','mercadoEtapa','mercadoEscolhas','pontuacao','resultadoVista','apuracaoEtapa'])
     assert.ok(cloud.includes(campo),campo);
-  assert.match(html,/mesa-solo\.js\?v=20260918-papeis/);
-  assert.match(html,/estado-solo\.js\?v=20260918-papeis/);
+  assert.match(html,/mesa-solo\.js\?v=20260918-ra/);
+  assert.match(html,/estado-solo\.js\?v=20260918-ra/);
 });
 
 test('percurso solo mantém 3D, RA, escrivaninha e maquete com três chaves',()=>{
@@ -97,5 +97,7 @@ test('percurso solo mantém 3D, RA, escrivaninha e maquete com três chaves',()=
   for(const id of ['chave-exterior','chave-dos-quartos','passagem-sob-despensa'])
     assert.ok(motor.includes(id),id);
   assert.ok(!coop.includes('passagem-sob-despensa'),'o Solo não pode listar as evidências por conta própria');
-  assert.doesNotMatch(escrivaninha, /id="ar"|id="ar-ios"|Colocar em RA|Ver em RA|teste=sala3d/);
+  /* A RA da escrivaninha voltou em 18/09/2026; o atalho de ensaio, não. */
+  assert.doesNotMatch(escrivaninha, /teste=sala3d/);
+  assert.match(escrivaninha, /id="ar" hidden>Colocar em RA</);
 });

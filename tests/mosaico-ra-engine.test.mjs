@@ -81,9 +81,8 @@ describe("Mosaico RA & Sala 3D Volumétrica · Motor e Integração", () => {
     assert.match(salaHtml, /<script src="js\/three\.min\.js"><\/script>/);
     assert.match(salaHtml, /mosaico-ra-engine\.js/);
     assert.match(salaHtml, /alternarModo3DRA/);
-    assert.equal(/id="b-ra"/.test(salaHtml), false);
-    assert.equal(/id="b-entrar-ra"/.test(salaHtml), false);
-    assert.equal(/>Entrar em RA</.test(salaHtml), false);
+    /* RA de volta em 18/09/2026, só para quem tem e sem rótulo de ensaio. */
+    assert.match(salaHtml, /id="b-entrar-ra" type="button" hidden>Entrar em RA</);
     assert.equal(/>Alternar visual</.test(salaHtml), false);
     assert.equal(/Prefiro jogar sem RA/.test(salaHtml), false);
     assert.match(salaHtml, /id="b-entrar"/);
