@@ -21,7 +21,8 @@
 (function (global) {
   'use strict';
 
-  var ARQUIVO = 'assets/ac/casa-da-costa-pisos.glb';
+  /* O carimbo fura o cache do aparelho quando o modelo muda (18/09/2026). */
+  var ARQUIVO = 'assets/ac/casa-da-costa-pisos.glb?v=20260918-maquete-nova';
 
   /* Camadas, de cima para baixo. `terreno` nunca se solta. */
   var CAMADAS = ['telhado', 'piso-2', 'piso-1', 'porao', 'terreno'];
@@ -45,9 +46,9 @@
     { id: 'castical-do-quarto-distante', camada: 'piso-2', ancestral: 'quarto-oeste', nomes: ['castical', 'vela-de-cabeceira'] },
     { id: 'armario-do-quarto-vizinho', camada: 'piso-2', ancestral: 'quarto-sul', prefixo: 'armario' },
     { id: 'castical-do-quarto-vizinho', camada: 'piso-2', ancestral: 'quarto-sul', nomes: ['castical', 'vela-de-cabeceira'] },
-    { id: 'relogio-de-pendulo', camada: 'piso-1', ancestral: 'relogio-de-pendulo' },
+    { id: 'relogio-de-parede', camada: 'piso-1', ancestral: 'relogio-de-parede' },
     { id: 'escrivaninha', camada: 'piso-1', ancestral: 'escrivaninha' },
-    { id: 'candelabro', camada: 'piso-1', ancestral: 'candelabro' },
+    { id: 'quadro', camada: 'piso-1', ancestral: 'sala-escura', nomes: ['quadro', 'moldura-do-quadro'] },
     { id: 'espelho', camada: 'piso-1', ancestral: 'sala-escura', nomes: ['espelho', 'moldura-do-espelho'] }
   ];
 
@@ -57,9 +58,12 @@
      foram descartadas na medição: nenhuma das duas é visível no momento em que
      serviria de fechadura — a torre esconde uma, o assoalho esconde a outra. */
   var FECHADURAS = [
-    { id: 'fechadura-portada', camada: 'piso-1', nome: 'macaneta' },
+    /* A porta da frente, no modelo de 18/09/2026, recuou para dentro do arco
+       da torre: a maçaneta responde a 0 de 72 direções e a folha da porta a 2.
+       O degrau de pedra diante dela responde a 52 — a fechadura é o degrau. */
+    { id: 'fechadura-portada', camada: 'piso-1', ancestral: 'portada', nomes: ['degrau'] },
     { id: 'fechadura-chamine', camada: 'piso-2', nomes: ['peito-de-chamine-superior'] },
-    { id: 'fechadura-lareira', camada: 'piso-1', nomes: ['consolo-da-lareira', 'lareira-peito'] }
+    { id: 'fechadura-lareira', camada: 'piso-1', nomes: ['peito-de-chamine'] }
   ];
 
   /* Uma peça que o GLB põe num grupo e a ATIVIDADE precisa noutro. O forro do
@@ -150,7 +154,7 @@
   function acertarRelogio(raiz) {
     var mostrador = null, ponteiros = [];
     raiz.traverse(function (o) {
-      if (!temAncestral(o, 'relogio-de-pendulo')) return;
+      if (!temAncestral(o, 'relogio-de-parede')) return;
       if (o.name === 'mostrador') mostrador = o;
       if (o.name === 'ponteiro-das-horas') ponteiros.push({ objeto: o, alvo: ((RELOGIO.hora % 12) + RELOGIO.minuto / 60) * 30 });
       if (o.name === 'ponteiro-dos-minutos') ponteiros.push({ objeto: o, alvo: RELOGIO.minuto * 6 });
@@ -262,7 +266,24 @@
     }, null, function (e) { if (falhou) falhou(e || Error('Não foi possível carregar a maquete.')); });
   }
 
+  /* Os "botões" do editor. O modelo de 18/09/2026 veio com seis medalhões
+     de ponto clicável do editor de origem (`medalhao-relogio` "Base do
+     relógio", `medalhao-armario-oeste`…, com `extras.label`): discos dourados
+     flutuando sobre os objetos — dois deles em cima de esconderijos. Não são
+     do jogo: as marcas da atividade são os alfinetes daqui. Foram tirados do
+     arquivo, e quem reexportar o modelo com eles de volta não os vê em cena. */
+  function tirarBotoesDoEditor(cena) {
+    var fora = [];
+    cena.traverse(function (o) {
+      var u = o.userData || {};
+      if (/^medalhao/.test(o.name || '') || u.label || u.decoration) fora.push(o);
+    });
+    for (var i = 0; i < fora.length; i++) if (fora[i].parent) fora[i].parent.remove(fora[i]);
+    return fora.length;
+  }
+
   function montar(cena, opcoes) {
+    var botoesDoEditor = tirarBotoesDoEditor(cena);
     cena.updateMatrixWorld(true);
 
     /* 1 — normalizar para pegada 1, base em y=0, centro em x/z. */
@@ -386,7 +407,8 @@
       altura: completo.max.y - completo.min.y,
       escalaOriginal: escala,
       relogio: relogio,
-      desenhos: desenhos
+      desenhos: desenhos,
+      botoesDoEditor: botoesDoEditor
     };
   }
 

@@ -33,3 +33,23 @@ alterar o arquivo: os ponteiros do relógio de pêndulo marcavam ~7h32 e são
 girados para 21h29 no carregamento (é o horário do caso, F20 e F26); e a torre
 cobre os quartos norte e leste quando o telhado sai, então o capítulo do andar
 usa só os dois quartos que de fato se abrem.
+
+**Troca do modelo (18/09/2026).** `casa-da-costa-pisos.glb` foi substituído pela
+versão nova do editor (escada principal em dois lances, lustre, vestíbulo na
+torre, mirante com escada e guarda, relógio de PAREDE na sala escura). O que
+mudou na atividade por causa disso:
+
+- a porta da frente recuou para dentro do arco da torre: a maçaneta responde a
+  0 de 72 direções de olhar. A fechadura da primeira camada passou a ser o
+  **degrau de pedra da porta** (`portada/degrau`, 52 de 72);
+- a lareira e o candelabro saíram da sala escura: a fechadura do térreo é o
+  **peito da chaminé** (`piso-1/peito-de-chamine`) e o candelabro deu lugar ao
+  **quadro** entre os pontos da procura;
+- o relógio de pêndulo virou `relogio-de-parede` — o acerto para 21h29 continua;
+- o modelo veio com seis **medalhões de ponto clicável** do editor
+  (`medalhao-relogio` "Base do relógio", `medalhao-armario-*`,
+  `medalhao-escrivaninha`), dois deles em cima de esconderijos. Eram botões do
+  editor, não do jogo: foram apagados do arquivo (e o carregador descarta
+  qualquer um que volte numa reexportação). O `EXT_materials_bump` das quatro
+  texturas de pedra e tábua foi preservado;
+- com o mirante, a maquete normalizada tem 1,32 de altura (antes 1,08).

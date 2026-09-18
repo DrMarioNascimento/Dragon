@@ -31,9 +31,9 @@
    `ac-maquete.test.mjs` recalcula as três a partir do arquivo e reprova se
    alguém mexer no modelo sem mexer aqui. */
 export const FECHADURAS = [
-  [0.17400, 0.48890, 0.23018],   // maçaneta da portada
+  [0.18040, 0.44614, 0.25196],   // degrau de pedra da porta da frente
   [-0.28721, 0.67227, -0.03854], // peito da chaminé, no corredor dos quartos
-  [-0.23533, 0.52942, 0.02151]   // consolo da lareira, na sala escura
+  [-0.29202, 0.56017, -0.03854]  // peito da chaminé do térreo, na sala escura
 ];
 
 /* Encaixe: distância máxima entre a ponta da chave e a fechadura, na mesma
@@ -52,7 +52,7 @@ export const CAPITULOS = [
     camada: 'telhado',
     chaveiro: 'luz',
     fechadura: 'fechadura-portada',
-    fechaduraRotulo: 'A maçaneta da porta da frente',
+    fechaduraRotulo: 'O degrau da porta da frente',
     esconderijo: 'pedra-do-caminho',
     recorte: 'Onde o caminho do portão chega à casa.',
     candidatos: ['pedra-do-caminho', 'pilar-do-portao', 'moita-do-caminho', 'laje-de-chegada'],
@@ -64,7 +64,7 @@ export const CAPITULOS = [
     },
     achado: {
       chave: 'A pedra estava solta. Debaixo dela havia uma coisa pequena e fria.',
-      fechadura: 'A maçaneta não gira. No meio dela há um vão que não é de maçaneta.'
+      fechadura: 'O degrau de pedra está oco. No meio dele há um vão de ferro que não é de degrau.'
     },
     evidencia: 'chave-exterior',
     fecho: 'O telhado se soltou. Debaixo dele havia um andar de quartos.'
@@ -98,19 +98,19 @@ export const CAPITULOS = [
     camada: 'piso-1',
     chaveiro: 'luz',
     fechadura: 'fechadura-lareira',
-    fechaduraRotulo: 'O consolo da lareira',
-    esconderijo: 'relogio-de-pendulo',
+    fechaduraRotulo: 'O peito da chaminé, na sala escura',
+    esconderijo: 'relogio-de-parede',
     recorte: 'Na sala que ficou escura.',
-    candidatos: ['relogio-de-pendulo', 'escrivaninha', 'candelabro', 'espelho'],
+    candidatos: ['relogio-de-parede', 'escrivaninha', 'quadro', 'espelho'],
     rotulos: {
-      'relogio-de-pendulo': 'O relógio de pêndulo parado',
+      'relogio-de-parede': 'O relógio de parede parado',
       'escrivaninha': 'A escrivaninha',
-      'candelabro': 'O candelabro com a vela',
+      'quadro': 'O quadro emoldurado',
       'espelho': 'O espelho na parede'
     },
     achado: {
-      chave: 'O relógio parou às 21h29. A portinhola do mostrador guardava outra coisa.',
-      fechadura: 'Sob o consolo da lareira, uma placa de ferro com um vão estreito.'
+      chave: 'O relógio de parede parou às 21h29. Atrás do mostrador havia outra coisa.',
+      fechadura: 'No peito da chaminé da sala, uma placa de ferro com um vão estreito.'
     },
     evidencia: 'passagem-sob-despensa',
     fecho: 'O térreo se ergueu. Sob a despensa há um porão — e ele não termina onde a casa termina.'
