@@ -97,7 +97,16 @@ async function novaAba(cdp) {
       if (r.exceptionDetails) throw new Error("na página: " + (r.exceptionDetails.exception?.description || r.exceptionDetails.text));
       return r.result.value;
     },
-    async tamanho(l, a) { await aba.run("Emulation.setDeviceMetricsOverride", { width: l, height: a, deviceScaleFactor: 1, mobile: l < 700 }); },
+    /* Muda o tamanho e ESPERA a página confirmar: com a máquina carregada, o
+       evento de resize chegava depois da medida, e a planta dos papéis era
+       medida ainda no arranjo de 1280 px ("pedaço fora da tela" a 390). */
+    async tamanho(l, a) {
+      await aba.run("Emulation.setDeviceMetricsOverride", { width: l, height: a, deviceScaleFactor: 1, mobile: l < 700 });
+      /* about:blank (antes da primeira navegação) não tem meta viewport: em
+         modo móvel ele mede 980 px de largura e nunca confirmaria. */
+      await aba.esperar(`!document.querySelector('meta[name=viewport]')||(innerWidth===${l}&&innerHeight===${a})`);
+      await aba.avaliar("new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(()=>r(true))))");
+    },
     async ir(url) { await aba.run("Page.navigate", { url }); },
     async esperar(expr, ms = 20000) {
       const fim = Date.now() + ms;
@@ -164,13 +173,15 @@ async function conectarComo(base, sala, papel, chave) {
   res.body.getReader().read().catch(() => {});
   return () => ctl.abort();
 }
-async function agir(base, sala, papel, chave, evento) {
+async function agir(base, sala, papel, chave, evento, tentativa = 0) {
+  /* Um pedido derrubado pela carga da máquina (ECONNRESET) é tentado de
+     novo uma vez: é rede de teste, não regra do jogo. */
   const r = await fetch(`${base}/api/ac/action?${new URLSearchParams({ sala, papel, chave })}`, {
     method: "POST", headers: { "Content-Type": "application/json", Origin: base }, body: JSON.stringify(evento)
-  });
+  }).catch((e) => { if (tentativa) throw e; return null; });
+  if (!r) return agir(base, sala, papel, chave, evento, 1);
   return r.status;
 }
-
 /* Recolher a pilha pelo relógio acontece em 15 s: a medida quer as janelas
    ABERTAS, que é o pior caso de ocupação. */
 const ABRIR = "window.ACJanelas&&ACJanelas.abrir&&ACJanelas.abrir(),true";
@@ -226,8 +237,15 @@ test("janelas d'A Casa: nada se cruza, nada fica coberto, nada sai da tela", { s
         await agir(base, sala.id, cap.chaveiro, t[cap.chaveiro], { type: "maquete_examinar", object: cap.esconderijo });
         await agir(base, sala.id, dono, t[dono], { type: "maquete_examinar", object: cap.fechadura });
       }
-      await agir(base, sala.id, cap.chaveiro, t[cap.chaveiro], { type: "maquete_mover", tip: FECHADURAS[nivel] });
-      await agir(base, sala.id, cap.chaveiro, t[cap.chaveiro], { type: "maquete_encaixar" });
+      /* O servidor só aceita "encaixar" até 1,5 s depois do último "mover".
+         Com o Chrome sem tela carregando a máquina, os dois pedidos às vezes
+         chegavam mais afastados que isso, o encaixe era recusado (409) e a
+         maquete inteira ficava presa — o teste falhava conforme a carga.
+         Como um jogador faria: se não encaixou, arrasta de novo e solta. */
+      for (let tentativa = 0; tentativa < 4; tentativa++) {
+        await agir(base, sala.id, cap.chaveiro, t[cap.chaveiro], { type: "maquete_mover", tip: FECHADURAS[nivel] });
+        if (await agir(base, sala.id, cap.chaveiro, t[cap.chaveiro], { type: "maquete_encaixar" }) === 200) break;
+      }
     }
     await aba.esperar("document.getElementById('discovery').open");
     defeitos.push(...await medir(aba, "maquete · concluída"));
