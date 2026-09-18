@@ -44,6 +44,9 @@ body[data-role-mode="guide"] #faixa{display:none!important}
 /* O capítulo de abertura é a moldura do "antes": some quando a casa é posta,
    senão ele cruza com a pilha de painéis no meio da tela. */
 body.maquete-posta .chapter{display:none}
+/* Moldura baixa (dentro do percurso, ou telefone deitado): o capítulo cruza
+   com o cartão do portal. Some antes de atrapalhar. */
+@media(max-height:640px){.chapter{display:none}}
 
 /* ---- painéis ---- */
 .instruction{width:min(350px,35vw)}

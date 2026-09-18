@@ -98,12 +98,6 @@
     return false;
   }
 
-  function caixa(objetos) {
-    var b = new THREE.Box3();
-    for (var i = 0; i < objetos.length; i++) b.expandByObject(objetos[i]);
-    return b;
-  }
-
   /* ---- fusão por material -------------------------------------------- */
 
   function fundir(malhas, raiz) {

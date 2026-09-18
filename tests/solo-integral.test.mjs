@@ -63,8 +63,12 @@ test('percurso solo mantém 3D, RA, escrivaninha e maquete com três chaves',()=
   assert.match(desk,/iniciar_maquete/);
   assert.match(desk,/location\.replace\('AC-maquete\.html'/);
   assert.match(maquete,/ac-solo-maquete-completa/);
-  for(const cta of ['Ler a anotação','Examinar por nome','Levar a chave à fechadura'])
+  for(const cta of ['Ler a anotação','Examinar por nome'])
     assert.ok(maquete.includes(cta),cta);
+  /* Com a chave na mão o Solo ARRASTA, como na Mesa: o botão some. O atalho
+     que encaixava sozinho tirava da bancada o gesto que ela existe para
+     testar. Ver a volta 1 do Solo, 17/09/2026. */
+  assert.match(maquete,/acao\.hidden = !solo \|\| !pronto \|\| !temDados \|\| !!dados\.key/);
   /* As três evidências continuam sendo as mesmas do recibo; quem as define é
      o motor, e o Solo não pode ter uma segunda lista. */
   const motor=readFileSync(new URL('../v1/js/ac-maquete-state.mjs',import.meta.url),'utf8');

@@ -191,7 +191,14 @@
        cartão era um pedaço de telhado. */
     var vitrine = !posta();
     var l = larguraDaTela(), a = alturaDaTela();
-    if (vitrine) camera.setViewOffset(l, a, 0, a * (l <= 700 ? 0.19 : 0.08), l, a);
+    if (vitrine) {
+      /* O deslocamento sai da ALTURA DO CARTÃO, não de um ponto de quebra por
+         largura: dentro da moldura do percurso a tela é larga e baixa, e o
+         cartão come metade dela. Medido a 800×540 em 17/09/2026. */
+      var cartao = $('portal').querySelector('.portal-cartao');
+      var altoDoCartao = cartao ? cartao.getBoundingClientRect().height : a * 0.4;
+      camera.setViewOffset(l, a, 0, Math.min(a * 0.30, altoDoCartao * 0.55), l, a);
+    }
     else camera.clearViewOffset();
     controles.target.copy(centro);
     camera.position.copy(centro).add(lado.normalize().multiplyScalar(distancia * (vitrine ? 1.34 : 1.02)));
