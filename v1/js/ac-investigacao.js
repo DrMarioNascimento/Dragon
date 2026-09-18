@@ -500,6 +500,8 @@
   updateUI();renderer.setAnimationLoop(render);
   /* O painel do Claude congela o requestAnimationFrame: este gancho desenha um
      quadro avulso para conferir a tela parada (o mesmo da maquete). */
-  window.__escrivaninha={quadro:()=>{forcarQuadro=true;try{render(performance.now(),null);}finally{forcarQuadro=false;}},estado:()=>({stage:state.stage,role,vela:vela(),exposicao:renderer.toneMappingExposure,chama:flame.visible})};
+  window.__escrivaninha={quadro:()=>{forcarQuadro=true;try{render(performance.now(),null);}finally{forcarQuadro=false;}},estado:()=>({stage:state.stage,role,vela:vela(),exposicao:renderer.toneMappingExposure,chama:flame.visible}),
+    /* Onde a marca cai na tela deste aparelho (px do documento): para mirar o feixe na auditoria. */
+    onde:()=>{scene.updateMatrixWorld(true);return screenPoint(clue,new THREE.Vector3());}};
 
 })();

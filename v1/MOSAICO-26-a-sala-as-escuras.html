@@ -1883,6 +1883,12 @@ if(bRa){
   loop();
 })();
 
+/* Para a auditoria, como __escrivaninha e __maquete: no painel de testes a
+   aba fica sem requestAnimationFrame (≈4 quadros/s), e a sala só anda quadro
+   a quadro. `quadro()` roda um quadro sem agendar o próximo. */
+window.__sala={quadro:function(){loop(true);},alvo:alvo,
+  get view(){return view;},get raw(){return raw;},get jogando(){return jogando;},get achados(){return achados;},total:OBJETOS.length};
+
 })();
 </script>
 <script src="js/ac-janelas.js?v=20260918-papeis"></script></body>
