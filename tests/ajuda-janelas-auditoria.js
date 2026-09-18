@@ -21,7 +21,19 @@
     const r = el.getBoundingClientRect();
     return r.width > 0 && r.height > 0;
   }
-  function caixa(el) { const r = el.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height, b: r.bottom, d: r.right }; }
+  /* A caixa VISÍVEL: recortada por todo ancestral que rola ou corta. Um
+     painel maior que a pilha que rola não cruza o rodapé — a pilha o corta. */
+  function caixa(el) {
+    const r = el.getBoundingClientRect();
+    let x = r.left, y = r.top, d = r.right, b = r.bottom;
+    for (let n = el.parentElement; n && n !== document.body; n = n.parentElement) {
+      const cs = getComputedStyle(n);
+      if (!/(auto|scroll|hidden|clip)/.test(cs.overflow + cs.overflowY + cs.overflowX)) continue;
+      const c = n.getBoundingClientRect();
+      x = Math.max(x, c.left); y = Math.max(y, c.top); d = Math.min(d, c.right); b = Math.min(b, c.bottom);
+    }
+    return { x, y, w: Math.max(0, d - x), h: Math.max(0, b - y), b, d };
+  }
   function nome(el) {
     if (el.id) return '#' + el.id;
     return el.tagName.toLowerCase() + (el.className && typeof el.className === 'string' ? '.' + el.className.trim().split(/\s+/).join('.') : '');

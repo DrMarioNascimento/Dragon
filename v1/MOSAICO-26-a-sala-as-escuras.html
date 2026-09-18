@@ -322,10 +322,19 @@
 <link rel="stylesheet" href="css/ac-janelas.css?v=20260917-janelas">
 <style>
   /* O chevron d'A Casa também mora aqui, no mesmo canto das outras telas.
+     Acima de TUDO: em jogo a camada visual da sala sobe para z-index 200001
+     e a carta para 300005 — medido na volta 2, o toque no chevron caía nela.
      Dentro do percurso ele some: a barra que vale é a da moldura. Fora dela,
      o HUD desce uma barra para o botão não cair sobre a Investigação. */
-  html[data-ac-casa] #help.ac-chevron{position:fixed;z-index:30;top:max(calc((var(--ac-barra) - 44px) / 2),env(safe-area-inset-top));right:max(var(--ac-margem),env(safe-area-inset-right));text-transform:none;letter-spacing:0;pointer-events:auto}
+  html[data-ac-casa] #help.ac-chevron{position:fixed;z-index:2147483000;top:max(calc((var(--ac-barra) - 44px) / 2),env(safe-area-inset-top));right:max(var(--ac-margem),env(safe-area-inset-right));text-transform:none;letter-spacing:0;pointer-events:auto}
   html[data-ac-casa]:not(.ac-sob-moldura) #hud{padding-top:max(var(--ac-barra),env(safe-area-inset-top))}
+  /* O mesmo vale para o que cobre a sala: medido no quadro do Solo a
+     390×844 (volta 2, 17/09/2026), o chevron caía sobre a primeira linha da
+     intro. */
+  html[data-ac-casa]:not(.ac-sob-moldura) #intro,
+  html[data-ac-casa]:not(.ac-sob-moldura) #oito,
+  html[data-ac-casa]:not(.ac-sob-moldura) #falha,
+  html[data-ac-casa]:not(.ac-sob-moldura) #carta{padding-top:max(var(--ac-barra),env(safe-area-inset-top))!important}
   html.ac-sob-moldura #help{display:none!important}
   /* As Orientações são painel: o relógio de ociosidade as recolhe e o
      chevron as traz de volta. A Investigação é o objetivo e fica. */

@@ -141,7 +141,7 @@
     var pilha = document.querySelector('.ac-panel-stack');
     var paisagem = false;
     try { paisagem = matchMedia('(max-height:560px)').matches; } catch (e) {}
-    if (pilha && !paisagem && !document.body.classList.contains('ac-recolhido') && pilha.getBoundingClientRect().height > 0) base = Math.min(base, pilha.getBoundingClientRect().top);
+    if (pilha && !paisagem && getComputedStyle(pilha).visibility !== 'hidden' && pilha.getBoundingClientRect().height > 0) base = Math.min(base, pilha.getBoundingClientRect().top);
     var tools = document.querySelector('.tools');
     if (tools && tools.getBoundingClientRect().height > 0) base = Math.min(base, tools.getBoundingClientRect().top);
     if (base - topo < a * 0.3) { topo = 0; base = a; }
@@ -282,7 +282,7 @@
       raio.far = Infinity;
       for (var k = 0; k < hits.length; k++) {
         var h = hits[k];
-        if (!h.object.visible || (h.object.geometry && h.object.geometry.type === 'RingGeometry')) continue;
+        if (!h.object.isMesh || !h.object.visible || (h.object.geometry && h.object.geometry.type === 'RingGeometry')) continue;
         if (abertas.indexOf(camadaDoObjeto(h.object)) >= 0) continue;
         if (donoDoToque(h.object) === c.grupo || h.distance >= longe - 0.02) vistos++;
         break;
@@ -291,14 +291,23 @@
     }
     return vistos;
   }
+  /* Duas alturas: a de sempre e uma mais de cima, que olha para DENTRO dos
+     cômodos por cima das paredes. Medido na volta 2 (Solo, térreo): com
+     cinco pontos na sala escura, nenhum dos oito lados na altura de sempre
+     mostrava o relógio — e era ele o esconderijo. */
+  var ALTURAS = [0.86, 1.8];
   function ladoQueMostra(centro, distancia, base, conjuntos) {
     var melhor = null, melhorN = -1, eixo = new THREE.Vector3(0, 1, 0);
     mundo.raiz.updateMatrixWorld(true);
-    for (var k = 0; k < 8; k++) {
-      var d = base.clone().normalize().applyAxisAngle(eixo, k * Math.PI / 4);
-      var n = quantosSeVeem(centro.clone().add(d.clone().multiplyScalar(distancia)), conjuntos);
-      if (n > melhorN) { melhorN = n; melhor = d; }
-      if (n === conjuntos.length) break;
+    for (var h = 0; h < ALTURAS.length && melhorN < conjuntos.length; h++) {
+      var plano = new THREE.Vector3(base.x, 0, base.z).normalize();
+      for (var k = 0; k < 8; k++) {
+        var d = plano.clone().applyAxisAngle(eixo, k * Math.PI / 4);
+        d.y = ALTURAS[h]; d.normalize();
+        var n = quantosSeVeem(centro.clone().add(d.clone().multiplyScalar(distancia)), conjuntos);
+        if (n > melhorN) { melhorN = n; melhor = d; }
+        if (n === conjuntos.length) break;
+      }
     }
     return melhor || base;
   }
@@ -595,8 +604,12 @@
         var ang = (k / passos) * Math.PI * 2;
         var px = x + Math.cos(ang) * ANEIS[r], py = y + Math.sin(ang) * ANEIS[r];
         raio.setFromCamera(ndc(px, py), camera3);
+        /* Só MALHAS contam. A poeira dourada de um achado (um sistema de
+           pontos dentro da maquete) ficava na frente do raio por um ou dois
+           segundos e engolia o toque seguinte — medido na volta 2 do Solo,
+           tocando na maçaneta logo depois de achar a chave. */
         var acertos = raio.intersectObject(mundo.raiz, true).filter(function (h) {
-          return objetoVisivel(h.object) && h.object.geometry && h.object.geometry.type !== 'RingGeometry';
+          return h.object.isMesh && objetoVisivel(h.object) && h.object.geometry && h.object.geometry.type !== 'RingGeometry';
         });
         if (!acertos.length) continue;
         var dono = donoDoToque(acertos[0].object);
@@ -792,9 +805,24 @@
     /* No Solo, com a chave em movimento, a pega da fixa sai de baixo do dedo:
        as duas no mesmo ponto fariam o encaixe final cair na peça errada. */
     if (fechadura && podeExplorar() && ambosAcharam() && !(solo && arrastando)) {
-      var q = naTela(fechadura.grupo.localToWorld(fechadura.centro.clone()));
+      var pontoFixa = fechadura.grupo.localToWorld(fechadura.centro.clone());
+      var q = naTela(pontoFixa);
       fixa.style.left = q.x + 'px'; fixa.style.top = q.y + 'px';
       fixa.hidden = !q.dentro;
+      /* No Solo as duas pegas estão na mesma tela, e a chave nasce ao lado
+         da fechadura (a pedra fica diante da porta): medido na volta 2, as
+         pegas ficavam a 35 px, uma cobrindo o centro da outra. A que anda é a
+         chave — ela se afasta aos poucos até caber uma pega entre as duas. */
+      if (!pega.hidden && !arrastando && !vooDaChave) {
+        var pk = { x: parseFloat(pega.style.left), y: parseFloat(pega.style.top) };
+        if (Math.hypot(pk.x - q.x, pk.y - q.y) < 92) {
+          var ponta = mundo.chavePonta.getWorldPosition(new THREE.Vector3());
+          var fora = mundo.raiz.worldToLocal(ponta.clone()).sub(mundo.raiz.worldToLocal(pontoFixa.clone()));
+          fora.y = 0;
+          if (fora.lengthSq() < 1e-8) fora.set(1, 0, 1);
+          mundo.chave.position.addScaledVector(fora.normalize(), 0.006);
+        }
+      }
     } else fixa.hidden = true;
   }
 
@@ -911,11 +939,20 @@
     if (dados && dados.complete && !concluidoEnviado && posta()) {
       concluidoEnviado = true;
       $('final-score').textContent = '3 camadas · ' + dados.score + ' pontos. Nenhuma acusação foi concluída.';
-      try { $('discovery').showModal(); } catch (e) {}
-      if (params.get('demo') === 'solo') {
-        try { parent.postMessage({ mosaico: 'ac-solo-maquete-completa', score: dados.score, evidence: dados.evidence }, location.origin); } catch (e) {}
-      }
+      /* O Solo troca o quadro assim que recebe o recado. Mandado aqui, na
+         hora da conclusão, ele tirava a maquete da tela antes de o jogador
+         ler a descoberta ou ver a passagem (volta 2, 17/09/2026). Vai quando
+         a descoberta FECHA — pelo botão, por Esc ou por um toque fora. */
+      var aberto = false;
+      try { $('discovery').showModal(); aberto = true; } catch (e) {}
+      if (aberto) $('discovery').addEventListener('close', avisarSoloDaConclusao, { once: true });
+      else avisarSoloDaConclusao();
     }
+  }
+
+  function avisarSoloDaConclusao() {
+    if (params.get('demo') !== 'solo' || !dados || !dados.complete) return;
+    try { parent.postMessage({ mosaico: 'ac-solo-maquete-completa', score: dados.score, evidence: dados.evidence }, location.origin); } catch (e) {}
   }
 
   function vetorDaFechaduraDe(nivel) {
@@ -930,11 +967,7 @@
 
   function ligarBotoes() {
     on($('alternative'), 'click', function () { abrirListaDeObjetos(); });
-    on($('guardar'), 'click', function () {
-      if (params.get('demo') === 'solo' && dados && dados.complete) {
-        try { parent.postMessage({ mosaico: 'ac-solo-maquete-completa', score: dados.score, evidence: dados.evidence }, location.origin); } catch (e) {}
-      }
-    });
+
     /* Recolher ou abrir os painéis NÃO reenquadra a imagem. Medido na volta 1
        (17/09/2026): o toque na cena recolhe os painéis no pointerdown; se a
        imagem se recentrasse ali, a casa andava debaixo do dedo antes do
@@ -1008,10 +1041,15 @@
           var c = conjuntoDe(id); if (!c) return null;
           return naTela(c.grupo.localToWorld(c.centro.clone()));
         },
+        diag: function () {
+          return { online: online, pendente: pendente, posta: posta(), podeExplorar: podeExplorar(), procurando: procurando(),
+            alvos: alvosAtivos().map(function (a) { return a.id; }), toques: toques.size, tocouEm: !!tocouEm };
+        },
         /* O que o raio acerta num ponto da tela — os três primeiros. */
         raio: function (x, y) {
           raio.setFromCamera(ndc(x, y), cameraAgora());
           return raio.intersectObject(mundo.raiz, true).filter(function (h) { return objetoVisivel(h.object); }).slice(0, 3).map(function (h) {
+            if (!h.object.isMesh) return '(' + h.object.type + ') @' + h.distance.toFixed(3);
             var d = donoDoToque(h.object);
             return h.object.name + (d ? ' ← ' + (d.userData.object || d.userData.fechadura) : '') + ' @' + h.distance.toFixed(3);
           });

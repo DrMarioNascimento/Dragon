@@ -37,7 +37,10 @@ export function apply(room, role, event, now = Date.now()) {
       if(p.salaEncerrada?.includes(role))return false;
       if(p.ready.includes(role))return false;
       if(event.objetos!==undefined||event.total!==undefined||event.tempoMs!==undefined){
-        if(!Number.isInteger(event.objetos)||event.objetos!==9||event.total!==9||!Number.isFinite(event.tempoMs)||event.tempoMs<=0||event.tempoMs>3600000)return false;
+        /* O prazo da sala (50 s) encerra quem não achou os nove: ele segue com o
+           que achou. Exigir 9 prendia o jogador na sala para sempre (volta 2,
+           17/09/2026) — o percurso reenviava a cada 3 s e o motor recusava. */
+        if(!Number.isInteger(event.objetos)||event.objetos<0||event.objetos>9||event.total!==9||!Number.isFinite(event.tempoMs)||event.tempoMs<=0||event.tempoMs>3600000)return false;
         p.salaIndividual??={};p.salaIndividual[role]={pontos:event.objetos,tempoMs:Math.round(event.tempoMs)};
       }
       p.ready.push(role);return true;

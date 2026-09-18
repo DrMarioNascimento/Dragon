@@ -242,7 +242,9 @@ function mosaico(){
  let linhas=state.mosaico.map((x,i)=>'<button class="mosaico-item '+(state.mosaicoPick===i?'sel':'')+'" onclick="tocarMosaico('+i+')"><span>'+(i+1)+'</span><b>'+esc(x.rot)+'</b><small>'+esc(x.dica)+'</small></button>').join('');
  return '<span class="k">MOSAICO · RECONSTRUÇÃO INDIVIDUAL</span><h2>Coloque a noite em ordem.</h2><p class="lead">Organize individualmente os acontecimentos revelados. Toque em dois para trocar suas posições.</p><div class="mosaico-lista">'+linhas+'</div>'+(ok?'<div class="factbox pf-inset"><b>Linha factual validada</b><span>A sequência está coerente. Agora você pode acessar o Mercado de pistas.</span></div><button class="btn" onclick="state.phase=\'mercado\';render()">Entrar no Mercado</button>':'<p class="muted">A etapa só avança quando todos os acontecimentos estiverem na ordem factual.</p>');
 }
-function tocarMosaico(i){if(state.mosaicoPick===null){state.mosaicoPick=i;render();return;}if(state.mosaicoPick===i){state.mosaicoPick=null;render();return;}let a=state.mosaicoPick;[state.mosaico[a],state.mosaico[i]]=[state.mosaico[i],state.mosaico[a]];state.mosaicoPick=null;render();}
+function tocarMosaico(i){if(state.mosaicoPick===null){state.mosaicoPick=i;render();return;}if(state.mosaicoPick===i){state.mosaicoPick=null;render();return;}let a=state.mosaicoPick;[state.mosaico[a],state.mosaico[i]]=[state.mosaico[i],state.mosaico[a]];state.mosaicoPick=null;render();
+ /* A validação nasce ABAIXO da lista: a 390×844 o botão do Mercado ficava em y=937, e quem acertava a ordem não via nada mudar na tela (volta 2, 17/09/2026). */
+ let certo=itensMosaico();if(state.mosaico.every((x,k)=>x.id===certo[k].id)){const v=document.querySelector('#app .mosaico-lista ~ .factbox');if(v)v.scrollIntoView({behavior:'smooth',block:'center'});}}
 function ofertaMercado(){return conjunto(state.key).slice(0,3).map(evid).filter(Boolean);}
 function mercado(){
  let etapa=state.mercadoEtapa,ofertas=ofertaMercado();

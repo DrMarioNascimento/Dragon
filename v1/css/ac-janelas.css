@@ -117,6 +117,9 @@ html[data-ac-casa] .ac-panel-stack{position:fixed;z-index:12;left:50%;right:auto
   display:flex;flex-direction:column;gap:8px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
   padding:0;margin:0;box-sizing:border-box;pointer-events:none;transition:opacity .18s ease}
 html[data-ac-casa] body.ac-recolhido .ac-panel-stack{opacity:0;visibility:hidden}
+/* Diante de uma decisão obrigatória (o portal da maquete), a faixa baixa não
+   tem o que dizer: repetia a frase do portal e espremia a vitrine (volta 2). */
+html[data-ac-casa] body:has(dialog[open][data-ac-decisao]) .ac-panel-stack{visibility:hidden}
 html[data-ac-casa] .ac-panel-stack>*{position:relative!important;inset:auto!important;transform:none!important;margin:0!important;
   width:100%!important;max-width:none!important;max-height:none!important;flex:none;box-sizing:border-box;
   padding:var(--ac-cromo) var(--ac-respiro) var(--ac-respiro)!important;border-radius:14px;pointer-events:auto;text-align:left;

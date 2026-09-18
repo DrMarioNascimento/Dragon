@@ -39,6 +39,12 @@ test('sala individual valida conclusao, nao duplica e nao transfere pontos ao co
  assert.equal(apply(room,'luz',{type:'sala_concluida',objetos:9,total:9,tempoMs:15000}),true);
  assert.equal(apply(room,'luz',{type:'sala_concluida',objetos:9,total:9,tempoMs:1}),false);
  assert.deepEqual(room.percurso.salaIndividual,{luz:{pontos:9,tempoMs:15000}});
+ /* O prazo encerrou a sala do colega com 4 de 9: ele segue com os 4, em vez
+    de ficar preso na sala (o motor recusava tudo que não fosse 9). */
+ assert.equal(apply(room,'conhecimento',{type:'sala_concluida',objetos:4,total:9,tempoMs:50000}),true);
+ assert.deepEqual(room.percurso.salaIndividual.conhecimento,{pontos:4,tempoMs:50000});
+ assert.equal(room.percurso.ready.length,2,'os dois estão prontos: o percurso anda');
+ delete room.percurso.salaIndividual.conhecimento;room.percurso.ready=['luz'];
  const r={...receipt,salaIndividual:{luz:{pontos:9,tempoMs:15000},conhecimento:{pontos:9,tempoMs:25000}}};
  const points=P.apurar([task('ana'),task('bia')],[r]);
  assert.equal(points.ana.salaEscura,9);assert.equal(points.bia.salaEscura,9);
