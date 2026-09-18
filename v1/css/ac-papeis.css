@@ -12,6 +12,7 @@
 .peca{position:absolute;left:0;top:0;padding:0;margin:0;border:0;border-radius:0;min-height:0;background:none;box-shadow:none;
   cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none;
   transition:left .22s ease,top .22s ease,width .18s ease,height .18s ease;filter:drop-shadow(0 2px 3px #000a)}
+#mesa.sem-transicao .peca{transition:none}
 .peca>canvas{display:block;width:100%;height:100%;pointer-events:none}
 .peca:hover:not(:disabled){filter:drop-shadow(0 2px 3px #000a) brightness(1.06)}
 .peca:active:not(:disabled){transform:none}

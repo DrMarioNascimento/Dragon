@@ -217,6 +217,12 @@ test("janelas d'A Casa: nada se cruza, nada fica coberto, nada sai da tela", { s
     for (const [nivel, cap] of CAPITULOS.entries()) {
       const dono = cap.chaveiro === "luz" ? "conhecimento" : "luz";
       if (nivel > 0) {
+        /* O motor recusa dois toques do MESMO papel a menos de 700 ms
+           (INTERVALO_ENTRE_TOQUES). Sem esta pausa, o toque da luz na
+           fechadura da camada 2 e o no esconderijo da 3 saíam colados, o
+           segundo era recusado e a maquete nunca concluía — o teste passava
+           ou falhava conforme a velocidade da máquina. */
+        await new Promise((r) => setTimeout(r, 750));
         await agir(base, sala.id, cap.chaveiro, t[cap.chaveiro], { type: "maquete_examinar", object: cap.esconderijo });
         await agir(base, sala.id, dono, t[dono], { type: "maquete_examinar", object: cap.fechadura });
       }

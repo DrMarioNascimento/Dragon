@@ -423,8 +423,16 @@
     if(parent!==window){try{parent.postMessage(msg,location.origin);}catch(e){}}
   });
 
+  /* Girar o telefone rearruma a mesa NA HORA e sem animação: com a transição,
+     os pedaços atravessavam a tela vindos do arranjo antigo — e o teste de
+     sobreposição, numa máquina carregada, os pegou fora da tela no meio do
+     caminho (390×844). */
   let quadro=0;
-  addEventListener('resize',()=>{cancelAnimationFrame(quadro);quadro=requestAnimationFrame(()=>atual?.layout());});
+  addEventListener('resize',()=>{
+    if(!atual)return;
+    mesa.classList.add('sem-transicao');atual.layout();
+    cancelAnimationFrame(quadro);quadro=requestAnimationFrame(()=>requestAnimationFrame(()=>mesa.classList.remove('sem-transicao')));
+  });
 
   async function iniciar(){
     try{

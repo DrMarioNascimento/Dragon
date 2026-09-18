@@ -312,6 +312,9 @@ function prepararPontuacao(){
 function totalSolo(){return CATEGORIAS_SOLO.reduce((s,c)=>s+Number((state.pontuacao||{})[c[0]]||0),0);}
 function agendarApuracao(){if(state.apuracaoTimer)return;state.apuracaoTimer=setTimeout(function(){state.apuracaoTimer=null;if(state.phase!=='result'||state.resultadoVista!=='apuracao')return;if(state.apuracaoEtapa<CATEGORIAS_SOLO.length){state.apuracaoEtapa++;render();}else{state.resultadoVista='podio';render();}},1500);}
 function apuracao(){let vis=state.apuracaoEtapa;let cols=CATEGORIAS_SOLO.map((c,i)=>'<div class="apuracao-cat '+(i<vis?'visivel':'')+'"><span>'+esc(c[1])+'</span><b>'+(i<vis?esc(state.pontuacao[c[0]])+' pts':'—')+'</b></div>').join('');return '<span class="k">APURAÇÃO FINAL</span><h2>A investigação será recomposta.</h2><p class="lead">As categorias aparecem automaticamente, na mesma ordem do placar da Mesa.</p><div class="apuracao-grid">'+cols+'</div><div class="apuracao-total"><span>Total parcial</span><b>'+CATEGORIAS_SOLO.slice(0,vis).reduce((s,c)=>s+Number(state.pontuacao[c[0]]||0),0)+'</b></div>';}
+/* A figura do pódio sai do elenco do caso, como na Mesa: quem joga o Solo é
+   o Investigador. Antes o degrau só tinha o número (Mario, 18/09/2026). */
+function avatarSolo(){const e=((state.caso&&state.caso.elenco)||[]).find(x=>x.id==='investigador');return (e&&e.av)||'🔎';}
 function podio(){let p=state.caso.partidas[state.key],rows=p.campos.map(f=>'<div class="relation pf-inset"><span class="k">'+esc(f.rotulo)+'</span><p style="margin:.35rem 0"><b>Sua resposta:</b> '+esc(state.answers[f.id])+'</p><p class="muted" style="margin:0"><b>Canônica:</b> '+esc(f.resposta)+'</p></div>').join('');
   let processo='';
   try{
@@ -320,7 +323,7 @@ function podio(){let p=state.caso.partidas[state.key],rows=p.campos.map(f=>'<div
       processo=window.MosaicoHipotesesCamada.htmlRelatorioProcesso(sc,{caso:'casa-da-costa'})||'';
     }
   }catch(err){}
-  return '<span class="k">PÓDIO · RESULTADO FINAL</span><div class="podio-solo"><div class="podio-degrau"><span>1º</span><b>Investigador solo</b><strong>'+totalSolo()+' pts</strong></div></div><h2>'+esc(p.titulo)+'</h2><div class="result pf-inset"><div class="score">'+totalSolo()+'</div><p class="muted">Pontuação total da experiência completa</p><p class="lead">'+esc(p.revelacao)+'</p></div>'+processo+rows+'<div class="factbox pf-inset"><b>Realidade canônica</b><span>'+esc(state.caso.realidadeCanonica.sintese)+'</span></div><button class="btn" onclick="nextRun()">Nova partida</button>';
+  return '<span class="k">PÓDIO · RESULTADO FINAL</span><div class="podio-solo"><div class="podio-degrau"><span>1º</span><i class="podio-av" aria-hidden="true">'+esc(avatarSolo())+'</i><b>Investigador solo</b><strong>'+totalSolo()+' pts</strong></div></div><h2>'+esc(p.titulo)+'</h2><div class="result pf-inset"><div class="score">'+totalSolo()+'</div><p class="muted">Pontuação total da experiência completa</p><p class="lead">'+esc(p.revelacao)+'</p></div>'+processo+rows+'<div class="factbox pf-inset"><b>Realidade canônica</b><span>'+esc(state.caso.realidadeCanonica.sintese)+'</span></div><button class="btn" onclick="nextRun()">Nova partida</button>';
 }
 function result(){if(!state.pontuacao)prepararPontuacao();return state.resultadoVista==='podio'?podio():apuracao();}
 function nextRun(){if(state.apuracaoTimer){clearTimeout(state.apuracaoTimer);state.apuracaoTimer=null;}state.key=proxima();state.phase='home';state.answers={};state.papeisPronto=false;state.marco=null;state.percursoPronto=false;state.percursoResultado=null;state.percursoEtapa='janela';state.atividades=[];state.atividadeI=0;state.sensorPronto=false;state.sensorTempos=[];state.pontuacao=null;state.resultadoVista='apuracao';state.apuracaoEtapa=0;render();}

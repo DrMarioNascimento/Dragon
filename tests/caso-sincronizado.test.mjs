@@ -447,3 +447,17 @@ test("a Mesa carrega a camada do Mercado, e ela compila", async () => {
   assert.match(mkt, /faixaPreco:\s*"justo"/,
     "o Mercado parou de registrar negociação: a confiança morre e economia cai para 13");
 });
+
+/* O modo de teste da Mesa (iniciarTeste3D) monta jogadores de mentira. Eles
+   usavam "anfitria" e "viuva", personagens do cânone antigo: o pódio mostrava
+   👤 no lugar do avatar do Investigador e do Morador (Mario, 18/09/2026). */
+test("os jogadores do modo de teste da Mesa são personagens do elenco", () => {
+  const c = caso();
+  const html = readFileSync(new URL("../v1/MOSAICO-mesa.html", import.meta.url), "utf8");
+  const trecho = html.slice(html.indexOf('codigo: "TEST3D"'), html.indexOf("STATE.jogadores = [") + 4000);
+  const usados = [...trecho.matchAll(/personagem: "([^"]+)"/g)].map((m) => m[1]);
+  assert.ok(usados.length >= 3, "não achei os jogadores do modo de teste");
+  const elenco = new Set(c.elenco.map((e) => e.id));
+  for (const p of usados) assert.ok(elenco.has(p), `personagem fora do elenco no modo de teste: ${p}`);
+  assert.doesNotMatch(trecho, /anfitri/i, "o cânone antigo voltou ao modo de teste");
+});
