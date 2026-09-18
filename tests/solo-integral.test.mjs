@@ -65,6 +65,11 @@ test('percurso solo mantém 3D, RA, escrivaninha e maquete com três chaves',()=
   assert.match(desk,/iniciar_maquete/);
   assert.match(desk,/location\.replace\('AC-maquete\.html'/);
   assert.match(maquete,/ac-solo-maquete-completa/);
+  /* O recado de conclusão sai quando a descoberta FECHA — pelo botão também,
+     porque em segundo plano o evento close pode não chegar (volta 3). Antes,
+     o Solo tirava a maquete da tela antes de a descoberta ser lida. */
+  assert.match(maquete,/on\(\$\('guardar'\), 'click', avisarSoloDaConclusao\)/);
+  assert.doesNotMatch(maquete,/showModal\(\); \} catch \(e\) \{\}\s*if \(params\.get\('demo'\) === 'solo'\)/);
   /* O Solo ARRASTA, como na Mesa, e tenta arrastar a fixa, como na Mesa: as
      duas pegas. Não existe botão que encaixe sozinho. */
   assert.ok(!maquete.includes('solo-action'),'o botão de atalho do Solo voltou');

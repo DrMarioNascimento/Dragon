@@ -141,11 +141,17 @@
     var pilha = document.querySelector('.ac-panel-stack');
     var paisagem = false;
     try { paisagem = matchMedia('(max-height:560px)').matches; } catch (e) {}
-    if (pilha && !paisagem && getComputedStyle(pilha).visibility !== 'hidden' && pilha.getBoundingClientRect().height > 0) base = Math.min(base, pilha.getBoundingClientRect().top);
+    var esquerda = 0, largura = larguraDaTela();
+    var pilhaAberta = pilha && getComputedStyle(pilha).visibility !== 'hidden' && pilha.getBoundingClientRect().height > 0;
+    if (pilhaAberta && !paisagem) base = Math.min(base, pilha.getBoundingClientRect().top);
+    /* Na paisagem a faixa baixa é COLUNA à esquerda: o vão livre é o que
+       sobra à direita dela (medido a 800×540, a casa ficava meio atrás). */
+    if (pilhaAberta && paisagem) esquerda = Math.max(0, pilha.getBoundingClientRect().right);
     var tools = document.querySelector('.tools');
     if (tools && tools.getBoundingClientRect().height > 0) base = Math.min(base, tools.getBoundingClientRect().top);
     if (base - topo < a * 0.3) { topo = 0; base = a; }
-    return { topo: topo, base: base, altura: a };
+    if (largura - esquerda < largura * 0.4) esquerda = 0;
+    return { topo: topo, base: base, altura: a, esquerda: esquerda, largura: largura };
   }
   function aplicarMoldura() {
     if (!camera || !renderer || renderer.xr.isPresenting) return;
@@ -155,8 +161,9 @@
     var l = larguraDaTela(), livre = areaLivre();
     var centro = (livre.topo + livre.base) / 2;
     var desvio = Math.round(livre.altura / 2 - centro);
-    if (Math.abs(desvio) < 2) camera.clearViewOffset();
-    else camera.setViewOffset(l, livre.altura, 0, desvio, l, livre.altura);
+    var lado = -Math.round(livre.esquerda / 2);
+    if (Math.abs(desvio) < 2 && !lado) camera.clearViewOffset();
+    else camera.setViewOffset(l, livre.altura, lado, desvio, l, livre.altura);
   }
 
   /* Metade do MENOR ângulo da lente. No telefone em pé o ângulo horizontal é
@@ -168,7 +175,7 @@
     var livre = areaLivre();
     /* O vão livre entre as janelas encolhe o ângulo vertical útil. */
     var util = Math.atan(Math.tan(v) * Math.max(0.2, (livre.base - livre.topo) / Math.max(1, livre.altura)));
-    var h = Math.atan(Math.tan(v) * camera.aspect);
+    var h = Math.atan(Math.tan(v) * camera.aspect * Math.max(0.3, (livre.largura - livre.esquerda) / Math.max(1, livre.largura)));
     return Math.min(util, h);
   }
 

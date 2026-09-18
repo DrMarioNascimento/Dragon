@@ -142,7 +142,9 @@ html[data-ac-casa] .ac-panel-stack .ac-como-jogar{position:absolute!important;to
   padding:0 12px!important;background:#0b1f1bcc!important;border:1px solid #cad7e866!important;border-radius:22px!important;box-shadow:none!important;
   color:#e6eef8!important;font:600 13px/1 system-ui!important;z-index:2}
 /* O nome do nível não pode correr por baixo do botão. */
-html[data-ac-casa] .ac-panel-stack>[data-ac-priority]:has(.ac-como-jogar)::after{right:calc(var(--ac-respiro) + 140px)}
+/* Os três :not(#…) igualam a especificidade do cromo (parte 1), que conta
+   três ids — sem eles o nome continuava por baixo do botão na coluna estreita. */
+html[data-ac-casa] .ac-panel-stack>[data-ac-priority]:not(#ac-a):not(#ac-b):not(#ac-c):has(.ac-como-jogar)::after{right:calc(var(--ac-respiro) + 136px)}
 
 /* ---- faixa ALTO: aviso passageiro (níveis 3, 7, 9) ---- */
 html[data-ac-casa] #notice,
@@ -203,6 +205,11 @@ html[data-ac-casa] .gesture-point{z-index:14}
   html[data-ac-casa] #notice,html[data-ac-casa] #sync-status,html[data-ac-casa] #loading{
     left:calc(min(18rem, 32vw) + 2 * var(--ac-margem));right:var(--ac-margem);transform:none;width:auto;max-width:34rem;margin:0 auto}
   html[data-ac-casa] .chapter{left:calc(min(18rem, 32vw) + 2 * var(--ac-margem))}
+  /* Na coluna estreita o "Como jogar" fica só com o 📖: com o texto, o nome
+     do nível virava "D…" (medido a 800×540). */
+  html[data-ac-casa] .ac-panel-stack .ac-como-jogar{width:44px!important;padding:0!important;justify-content:center}
+  html[data-ac-casa] .ac-panel-stack .ac-como-jogar-texto{display:none}
+  html[data-ac-casa] .ac-panel-stack>[data-ac-priority]:not(#ac-a):not(#ac-b):not(#ac-c):has(.ac-como-jogar)::after{right:calc(var(--ac-respiro) + 50px)}
 }
 
 @media(prefers-reduced-motion:reduce){html[data-ac-casa] .ac-panel-stack.ac-pulso>*{animation:none}}

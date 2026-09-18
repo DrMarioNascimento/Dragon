@@ -12,6 +12,14 @@ body.fragment-themed #scene{border:var(--fragment-edge) solid var(--fragment-col
 @media(max-width:480px){body.fragment-themed{--fragment-edge:6px}}
 @media(max-width:520px){body.fragment-themed{--fragment-edge:3px}}
 #sync-status{background:#28230e;color:#ffe14a;border:1px solid #ffe14a}
+/* Moldura baixa (a Mesa abre o percurso a 800×540): a entrada inteira cabe na
+   tela. Com as fontes do Linux da CI, o "Entrar na dupla" caía abaixo da dobra. */
+#setup h1{font-size:clamp(22px,5.4dvh,34px);line-height:1.15;margin:0 0 8px}
+/* O botão que devolve à mesa nasce abaixo da dobra a 800×540 (y=647): ele
+   gruda no pé da tela enquanto o resumo é lido (volta 4). */
+#finish{position:sticky;bottom:var(--ac-margem);z-index:2;box-shadow:0 -10px 24px #091515,0 6px 0 #7c6331}
+#summary dl{margin:8px 0}#summary dd{margin:0 0 6px 28px}
+@media(max-height:560px){#setup{margin-top:calc(var(--ac-barra) + 6px);padding-top:6px;padding-bottom:6px}#setup p{font-size:14px;margin:0 0 6px}#setup button,#setup input{padding:10px;margin:4px 0}#setup label{margin-top:8px;font-size:15px}}
 </style><script src="js/ac-cloud.js"></script></head><body>
 <header><span id="fragment-identity" hidden></span><span id="stage">A Casa · Investigação em dupla</span><button id="help" class="ac-chevron" type="button" aria-label="Mostrar as janelas" aria-expanded="true">⌄</button></header>
 <main id="setup"><h1>Dois olhares, uma investigação.</h1><p>Um de vocês cria a dupla. O outro cola o convite abaixo, dentro da sua própria mesa.</p><button id="create">Criar dupla · 💡</button><label for="join-link">Convite do colega</label><input id="join-link" type="url" placeholder="Cole o link recebido"><button id="join">Entrar na dupla · 📜</button><p id="error" role="alert"></p></main>

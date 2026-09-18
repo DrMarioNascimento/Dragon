@@ -86,7 +86,7 @@ describe("A Casa · janelas", () => {
     for (const decl of FAIXAS.matchAll(/(?:^|[;{])\s*(top|bottom|left|right|width|height|max-height|max-width)\s*:\s*([^;}]+)/g)) {
       const [, prop, valor] = decl;
       if (!/\d+px/.test(valor) || /var\(|min\(|max\(|clamp\(|calc\(/.test(valor)) continue;
-      if (/^(44px|36px|58px|10px|8px)$/.test(valor.trim())) continue; // piso de toque e o selo compacto do aviso
+      if (/^(44px|36px|58px|10px|8px)$/.test(valor.replace(/!important/, '').trim())) continue; // piso de toque e o selo compacto do aviso
       cravados.push(prop + ":" + valor.trim());
     }
     assert.deepEqual(cravados, [], "medida de janela cravada em px na parte das faixas: " + cravados.join(", "));
