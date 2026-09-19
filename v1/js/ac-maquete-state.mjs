@@ -209,7 +209,7 @@ export function pontosDoLado(capitulo, lado) {
 
 export function actMaquette(state, role, event, now = Date.now()) {
   if (!state || state.level >= CAPITULOS.length) return false;
-  comRelogio(state, now);
+comRelogio(state, now); if (event.type !== 'maquete_prazo' && now - state.startedAt >= PRAZO_MAQUETE_MS) return false;
 
   /* O tempo total acabou: as camadas que faltavam se abrem sozinhas, sem
      ponto. Qualquer um dos dois pode avisar; o motor confere o relógio. */
