@@ -1107,6 +1107,8 @@
   body.encenacao-passiva #app{max-width:none;min-height:100dvh;padding:0;display:flex;
     align-items:center;justify-content:center}
   body.encenacao-passiva #btn-pistas{display:none!important}
+  body.encenacao-passiva #app{flex-direction:column;gap:22px;padding:0 16px}
+  body.encenacao-passiva .ac-giro{width:min(440px,100%);margin:0}
   .encenacao-aguarde{position:relative;z-index:2;padding:15px 24px;border:1px solid rgba(230,236,242,.48);
     border-radius:100px;background:rgba(5,7,12,.72);color:#fff;text-align:center;
     font:800 clamp(18px,5vw,27px) var(--sans);letter-spacing:.28em;text-indent:.28em;
@@ -1485,7 +1487,7 @@
 <script src="js/three.min.js"></script>
 <script src="js/vendor/GLTFLoader.js"></script><script src="js/ac-desk.js"></script><script src="js/ac-room-layout.js"></script><script src="js/ac-room-art.js"></script><script src="js/ac-room.js"></script><script src="js/mosaico-ra-engine.js?v=20260919-ra"></script>
 <script src="js/mosaico-3d-engine.js"></script>
-<script src="js/ac-ritmo.js?v=20260919-ra"></script>
+<script src="js/ac-ritmo.js?v=20260919-ra"></script><script src="js/ac-legenda-giro.js?v=20260919-ra"></script>
 <script src="js/ac-pontuacao.js?v=20260919-ra"></script>
 <script src="js/mosaico-v5.js?v=20260919-ra"></script>
 <script src="../hipoteses-por-camada.js?v=20260906-hpc-pf"></script>
@@ -2792,6 +2794,11 @@ function render(forcar){
     h=cabecalhoRodada((STATE.doc&&STATE.doc.fase)||"sala","rodada-celular topo-jogo")+h;
     if(modoAtual()==="sem-telao") h+=muralColetivoMovel();
   }
+  /* O giro dos ícones (19/09/2026): da sala de espera em diante, um ícone
+     por vez. Fica de fora: a apuração e o pódio (resultado/encerrada), a vez
+     de quem está encenando, e o quadro de uma tarefa em andamento — lá a
+     legenda está no "Como jogar" da própria tarefa. */
+  if(giroNaTela(h,encenacaoPassiva)) h+=ACGiro.html();
   if(STATE.eu&&!encenacaoPassiva) h+=painelCasoMovel();
   /* O MESTRE NUNCA FICA SEM CONTROLE DEPOIS QUE A PARTIDA COMEÇA.
      A condição antiga dava controles no painel SÓ no resultado, e só a partir
@@ -3314,6 +3321,16 @@ function telaEsperando(){
     '<div class="contagem-prontos">'+contaProntos()+' de '+js.length+' prontos</div>';
 }
 
+var TELAS_COM_GIRO={esperando:1,encenacao:1,revelacao:1,votacao:1,constelacao:1,inclinacao:1,mosaico:1,cooperacao:1,mercado:1,deducao:1};
+function giroNaTela(h,encenacaoPassiva){
+  if(!window.ACGiro||!STATE.eu) return false;
+  /* O mestre no celular espera no painel da sala (sem telão): lá também. */
+  var lobbyDoMestre=STATE.tela==="painel"&&((STATE.doc&&STATE.doc.fase)||"sala")==="sala"&&modoAtual()==="sem-telao";
+  if(!TELAS_COM_GIRO[STATE.tela]&&!lobbyDoMestre) return false;
+  if(/<iframe/i.test(h)) return false;
+  if(STATE.tela==="encenacao"&&!encenacaoPassiva&&!precisaElencoAntesEncenacao()) return false;
+  return true;
+}
 function telaEncenacao(){
   if(precisaElencoAntesEncenacao()) return telaElencoIntro();
   if(introducaoEncenacaoPendente()){

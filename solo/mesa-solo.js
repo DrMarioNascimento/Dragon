@@ -145,6 +145,8 @@ function medirPilulaDaConta(){
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',medirPilulaDaConta,{once:true});else medirPilulaDaConta();
 function render(){if(!state.caso)return;let h=header();if(state.phase==='home')h+=home();if(state.phase==='briefing')h+=briefing();if(state.phase==='percurso3d')h+=percurso3d();if(state.phase==='sensor')h+=sensor();if(state.phase==='marco')h+=marco();if(state.phase==='papeis')h+=papeisTela();if(state.phase==='mosaico')h+=mosaico();if(state.phase==='mercado')h+=mercado();if(state.phase==='map')h+=map();if(state.phase==='decision')h+=decision();if(state.phase==='result')h+=result();
+  /* O giro dos ícones: em toda etapa, menos na apuração e no pódio. */
+  if(state.phase!=='result'&&window.ACGiro)h+=ACGiro.html();
   try{
     /* O andaime de hipóteses pertence à análise/dedução. Na Mesa ele só
        aparece depois da coleta; no Solo deve obedecer à mesma sequência. */
