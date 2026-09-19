@@ -60,3 +60,12 @@ html,body{background:radial-gradient(900px 600px at 50% -10%,#1a3348 0%,transpar
 .solo-imersivo.encolhido .solo-imersivo-quadro{flex:none;height:min(72dvh,760px);min-height:540px}
 /* A trava de rolagem so vale na tela cheia: encolhida, a pagina precisa rolar. */
 html:has(.solo-imersivo:not(.encolhido)),html:has(.solo-imersivo:not(.encolhido)) body{overflow:hidden;overscroll-behavior:none}
+
+/* Tempo, dicas e a saída de socorro (ac-ritmo.js, 19/09/2026). */
+.solo-relogio{margin:10px 0 0;font:600 14px/1.4 var(--body);color:var(--gold2);font-variant-numeric:tabular-nums}
+.solo-relogio b{font-weight:700}
+.solo-dica{margin:12px 0 0;padding:11px 13px;border-left:3px solid #b18aff;border-radius:8px;background:#211a33;color:#e6dcff;font:600 14px/1.45 var(--body)}
+.mosaico-item.preso{border-color:#6fae7e;background:linear-gradient(145deg,#173424,#0b1a12);cursor:default}
+.mosaico-item.preso>span{color:#a8e6b6}
+.solo-socorro{flex:none;margin-left:auto;min-height:40px;padding:6px 12px;border-radius:999px;border:1px solid #e5a08f;background:#3a1512;color:#ffe3d8;font:600 12px/1.2 var(--body);cursor:pointer}
+.solo-legenda p{margin:6px 0 0}

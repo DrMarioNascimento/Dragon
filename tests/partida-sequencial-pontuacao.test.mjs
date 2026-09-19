@@ -66,8 +66,8 @@ test("o override v2 de finalizarPartida também aplica totais locais antes do re
   assert.match(trecho, /codigoSala/, "o override v2 voltou a depender só de STATE.mesa.codigo");
   assert.match(
     MOSAICO_V5,
-    /casa-da-costa-v2\.js\?v=20260906-fecho-local/,
-    "mosaico-v5.js não carrega o v2 com o carimbo do fecho local",
+    /casa-da-costa-v2\.js\?v=20260919-ra/,
+    "mosaico-v5.js não carrega o v2 com o carimbo atual (o fecho local e a apuração do percurso)",
   );
 });
 

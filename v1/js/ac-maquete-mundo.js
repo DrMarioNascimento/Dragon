@@ -196,28 +196,149 @@
     return giros;
   }
 
-  /* ---- chave ------------------------------------------------------------ */
+  /* ---- chaves ----------------------------------------------------------- */
+
+  /* Três chaves antigas, uma por camada (Mario, 18/09/2026: "as pontas não
+     lembram chaves, nenhuma delas"). Uma chave se lê por três coisas: o ANEL
+     (por onde se segura), a HASTE e o PALHETÃO — a bandeira recortada na ponta,
+     de lado, com os dentes que abrem a fechadura. Sem palhetão com dentes,
+     qualquer bastão com argola vira "uma coisa". As três são diferentes de
+     propósito: ferro com anel de trevo, latão com anel de cruz, bronze de
+     haste oca com anel oval.
+
+     A ORIGEM do grupo é a PONTA da chave: é o ponto que segue o dedo, o que o
+     colega vê como luz e o único que o motor confere. A chave inteira fica
+     para TRÁS da ponta (x negativo); o palhetão pende para -y; a face larga
+     é o plano XY. `orientarChave` vira esse plano para quem olha. */
+  var DESENHOS = [
+    { nome: 'ferro', cor: 0x4a4540, emissivo: 0x1a130a, metal: 0.75, aspereza: 0.48, anel: 'trevo', dentes: [[0.002, 0.004], [0.006, 0.0075]] },
+    { nome: 'latao', cor: 0xd8b25e, emissivo: 0x2a1c05, metal: 0.85, aspereza: 0.36, anel: 'cruz', dentes: [[0.0015, 0.005], [0.0055, 0.0035], [0.009, 0.006]] },
+    { nome: 'bronze', cor: 0x9a6232, emissivo: 0x21100a, metal: 0.8, aspereza: 0.42, anel: 'oval', dentes: [[0.003, 0.0065]], oca: true }
+  ];
+  var COMPRIMENTO_HASTE = 0.050, RAIO_HASTE = 0.0021;
+
+  function palhetao(desenho, material) {
+    /* A bandeira: 12 mm ao longo da haste, 13 mm de altura, com os dentes
+       recortados na borda de baixo. Extrudada na espessura (2,4 mm). */
+    var larg = 0.012, alt = 0.0125, x0 = -0.0135, forma = new THREE.Shape();
+    forma.moveTo(x0, 0.0015);
+    forma.lineTo(x0 + larg, 0.0015);
+    forma.lineTo(x0 + larg, -alt);
+    var dentes = desenho.dentes.slice().sort(function (a, b) { return b[0] - a[0]; });
+    /* Percorre a borda de baixo da direita para a esquerda abrindo cada dente
+       como um entalhe retangular. */
+    for (var i = 0; i < dentes.length; i++) {
+      var cx = x0 + larg - dentes[i][0] - 0.0018, prof = dentes[i][1] * 0.95;
+      forma.lineTo(cx + 0.0014, -alt);
+      forma.lineTo(cx + 0.0014, -alt + prof);
+      forma.lineTo(cx - 0.0014, -alt + prof);
+      forma.lineTo(cx - 0.0014, -alt);
+    }
+    forma.lineTo(x0, -alt);
+    forma.lineTo(x0, 0.0015);
+    var geo = new THREE.ExtrudeGeometry(forma, { depth: 0.0024, bevelEnabled: true, bevelThickness: 0.0004, bevelSize: 0.0004, bevelSegments: 1 });
+    geo.translate(0, 0, -0.0012);
+    return new THREE.Mesh(geo, material);
+  }
+
+  function anelDaChave(desenho, material) {
+    var g = new THREE.Group(), cx = -COMPRIMENTO_HASTE - 0.0115;
+    function aro(r, tubo, x, y, sx, sy) {
+      var m = new THREE.Mesh(new THREE.TorusGeometry(r, tubo, 10, 28), material);
+      m.position.set(x, y, 0); m.scale.set(sx || 1, sy || 1, 1); g.add(m); return m;
+    }
+    if (desenho.anel === 'trevo') {
+      /* Três laços em volta de um botão central: o anel de trevo das chaves
+         de porta de casa antiga. */
+      for (var k = 0; k < 3; k++) {
+        var a = Math.PI + (k - 1) * 2.1;
+        aro(0.0058, 0.0019, cx + Math.cos(a) * 0.0068, Math.sin(a) * 0.0068);
+      }
+      var botao = new THREE.Mesh(new THREE.SphereGeometry(0.0034, 14, 10), material);
+      botao.position.set(cx, 0, 0); g.add(botao);
+    } else if (desenho.anel === 'cruz') {
+      aro(0.0105, 0.0021, cx, 0);
+      var h = new THREE.Mesh(new THREE.BoxGeometry(0.019, 0.0024, 0.0024), material); h.position.set(cx, 0, 0); g.add(h);
+      var v = new THREE.Mesh(new THREE.BoxGeometry(0.0024, 0.019, 0.0024), material); v.position.set(cx, 0, 0); g.add(v);
+    } else {
+      aro(0.0098, 0.0024, cx - 0.001, 0, 1.3, 0.85);
+      for (var s = -1; s <= 1; s += 2) {
+        var conta = new THREE.Mesh(new THREE.SphereGeometry(0.0024, 10, 8), material);
+        conta.position.set(cx - 0.001, s * 0.0092, 0); g.add(conta);
+      }
+    }
+    return g;
+  }
+
+  function criarModeloDeChave(desenho) {
+    var material = new THREE.MeshStandardMaterial({ color: desenho.cor, roughness: desenho.aspereza, metalness: desenho.metal, emissive: desenho.emissivo });
+    var g = new THREE.Group();
+    g.name = 'chave-' + desenho.nome;
+    /* Haste: da ponta (x=0) até o anel. */
+    var haste = new THREE.Mesh(new THREE.CylinderGeometry(RAIO_HASTE, RAIO_HASTE, COMPRIMENTO_HASTE, 14), material);
+    haste.rotation.z = Math.PI / 2; haste.position.x = -COMPRIMENTO_HASTE / 2;
+    g.add(haste);
+    /* A ponta arredondada — ou a boca da haste oca. */
+    if (desenho.oca) {
+      var boca = new THREE.Mesh(new THREE.TorusGeometry(RAIO_HASTE * 0.95, 0.0007, 8, 18), material);
+      boca.rotation.y = Math.PI / 2; g.add(boca);
+    } else {
+      var cap = new THREE.Mesh(new THREE.SphereGeometry(RAIO_HASTE * 1.05, 12, 8), material);
+      g.add(cap);
+    }
+    /* Colar entre haste e anel. */
+    var colar = new THREE.Mesh(new THREE.TorusGeometry(RAIO_HASTE * 1.35, 0.0011, 8, 18), material);
+    colar.rotation.y = Math.PI / 2; colar.position.x = -COMPRIMENTO_HASTE + 0.004; g.add(colar);
+    g.add(palhetao(desenho, material));
+    g.add(anelDaChave(desenho, material));
+    g.traverse(function (o) { if (o.isMesh) { o.castShadow = true; o.userData.chave = true; } });
+    g.userData.material = material;
+    return g;
+  }
 
   function criarChave() {
     var grupo = new THREE.Group();
     grupo.name = 'chave';
-    var latao = new THREE.MeshStandardMaterial({ color: 0xd8b25e, roughness: 0.42, metalness: 0.85, emissive: 0x2a1c05 });
-    /* 7 cm de chave num modelo de 1 m. Medido na tela em 17/09/2026: com 4 cm
-       ela ocupava meia dúzia de pixels e o jogador via só o círculo do gesto. */
-    var haste = new THREE.Mesh(new THREE.CylinderGeometry(0.0040, 0.0040, 0.072, 12), latao);
-    haste.rotation.z = Math.PI / 2;
-    var argola = new THREE.Mesh(new THREE.TorusGeometry(0.0130, 0.0036, 10, 20), latao);
-    argola.position.x = -0.047; argola.rotation.y = Math.PI / 2;
-    var palheta = new THREE.Mesh(new THREE.BoxGeometry(0.0100, 0.0162, 0.0040), latao);
-    palheta.position.set(0.0279, -0.0081, 0);
-    var dente = new THREE.Mesh(new THREE.BoxGeometry(0.0040, 0.0100, 0.0040), latao);
-    dente.position.set(0.0153, -0.0063, 0);
-    grupo.add(haste, argola, palheta, dente);
+    var modelos = DESENHOS.map(criarModeloDeChave);
+    for (var i = 0; i < modelos.length; i++) { modelos[i].visible = i === 0; grupo.add(modelos[i]); }
+    /* A ponta é a origem do grupo. */
     var ponta = new THREE.Object3D();
-    ponta.position.set(0.0360, 0, 0);
+    ponta.name = 'ponta-da-chave';
     grupo.add(ponta);
     grupo.userData.exportExclude = true;
-    return { grupo: grupo, ponta: ponta, material: latao };
+    grupo.userData.modelos = modelos;
+    /* Pontos de colisão ao longo do corpo, em coordenadas do grupo: a ponta,
+       o meio da haste, o palhetão e o anel. */
+    grupo.userData.pontosDoCorpo = [
+      new THREE.Vector3(0, 0, 0), new THREE.Vector3(-0.007, -0.011, 0),
+      new THREE.Vector3(-COMPRIMENTO_HASTE / 2, 0, 0), new THREE.Vector3(-COMPRIMENTO_HASTE - 0.0115, 0, 0)
+    ];
+    return { grupo: grupo, ponta: ponta, material: modelos[0].userData.material, modelos: modelos };
+  }
+
+  /* Qual das três aparece: uma por camada. */
+  function escolherChave(grupo, nivel) {
+    var modelos = grupo.userData.modelos || [];
+    for (var i = 0; i < modelos.length; i++) modelos[i].visible = i === Math.min(modelos.length - 1, Math.max(0, nivel || 0));
+  }
+
+  /* A face larga da chave vira para quem olha, e a ponta aponta para longe e
+     um pouco para baixo — como uma chave na mão, a caminho da fechadura. */
+  function orientarChave(grupo, camera, raiz) {
+    var frente = new THREE.Vector3(), cima = new THREE.Vector3(0, 1, 0), direita = new THREE.Vector3();
+    camera.getWorldDirection(frente);
+    cima.applyQuaternion(camera.quaternion);
+    direita.crossVectors(frente, cima).normalize();
+    var eixo = frente.clone().multiplyScalar(0.35).addScaledVector(cima, -0.55).addScaledVector(direita, 0.75).normalize();
+    var normal = frente.clone().negate();
+    normal.addScaledVector(eixo, -normal.dot(eixo)).normalize();
+    var y = new THREE.Vector3().crossVectors(normal, eixo).normalize();
+    var m = new THREE.Matrix4().makeBasis(eixo, y, normal);
+    var q = new THREE.Quaternion().setFromRotationMatrix(m);
+    /* Para o espaço da maquete (que pode estar girada e escalada em RA). */
+    var qRaiz = new THREE.Quaternion();
+    raiz.getWorldQuaternion(qRaiz);
+    grupo.quaternion.copy(qRaiz.invert().multiply(q));
   }
 
   /* ---- halo dos alvos e das fechaduras ----------------------------------- */
@@ -255,6 +376,64 @@
     return m;
   }
 
+  /* ---- camadas no lugar ------------------------------------------------- */
+
+  /* O modelo de 18/09/2026 veio do editor com o TELHADO erguido 8,2 unidades
+     (a vista "explodida" do editor ficou gravada no nó `telhado`). A maquete
+     nascia com o telhado já fora — antes de qualquer chave (Mario, 18/09/2026:
+     "o telhado já apareceu fora (levantado) quando não deveria"). Toda camada
+     que se solta nasce ASSENTADA: quem ergue é a atividade, nunca o arquivo. */
+  function realinharCamadas(cena) {
+    var feitas = [];
+    cena.traverse(function (o) {
+      for (var i = 0; i < CAMADAS.length; i++) {
+        if (CAMADAS[i] === 'terreno' || o.name !== CAMADAS[i]) continue;
+        if (Math.abs(o.position.x) + Math.abs(o.position.y) + Math.abs(o.position.z) > 1e-6) {
+          feitas.push({ camada: o.name, desvio: o.position.toArray() });
+          o.position.set(0, 0, 0);
+          o.updateMatrix();
+        }
+      }
+    });
+    return feitas;
+  }
+
+  /* ---- a base ------------------------------------------------------------ */
+
+  /* A maquete é um penhasco sobre o mar: o fundo do modelo são rochedos e
+     poças soltos a alturas diferentes. Pousada numa mesa, ela ficava apoiada
+     em pedras — torta, sem chão (Mario, 18/09/2026: "se tem uma base que não é
+     reta, refaça"). Agora ela tem o que toda maquete de arquitetura tem: um
+     TABULEIRO plano de madeira, e sobre ele o mar como um bloco de resina
+     escura até o nível das poças. Os rochedos afundam no mar; o penhasco sobe
+     dele. A base fica fora das camadas: não se ergue e não vira fantasma. */
+  var NIVEL_DO_MAR = 2.55; // unidades do editor: logo abaixo das poças (2,61)
+  function criarBase(raiz, escala) {
+    var grupo = new THREE.Group();
+    grupo.name = 'base-da-maquete';
+    var caixa = new THREE.Box3();
+    raiz.traverse(function (o) { if (o.isMesh && !o.userData.exportExclude) caixa.expandByObject(o); });
+    var largura = caixa.max.x - caixa.min.x + 0.04, fundo = caixa.max.z - caixa.min.z + 0.04;
+    var cx = (caixa.max.x + caixa.min.x) / 2, cz = (caixa.max.z + caixa.min.z) / 2;
+    var espessura = 0.014, mar = NIVEL_DO_MAR * escala;
+    var madeira = new THREE.MeshStandardMaterial({ color: 0x0f0703, roughness: 0.55, metalness: 0.05 });
+    var tabua = new THREE.Mesh(new THREE.BoxGeometry(largura + 0.03, espessura, fundo + 0.03), madeira);
+    tabua.position.set(cx, espessura / 2, cz);
+    tabua.name = 'tabuleiro';
+    var resina = new THREE.MeshStandardMaterial({ color: 0x01080b, roughness: 0.28, metalness: 0.0 });
+    var agua = new THREE.Mesh(new THREE.BoxGeometry(largura, Math.max(0.002, mar - espessura), fundo), resina);
+    agua.position.set(cx, espessura + (mar - espessura) / 2, cz);
+    agua.name = 'mar';
+    var latao = new THREE.MeshStandardMaterial({ color: 0xc39b51, roughness: 0.3, metalness: 0.8 });
+    var placa = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.008, 0.0015), latao);
+    placa.position.set(cx, espessura / 2, cz + (fundo + 0.03) / 2 + 0.0008);
+    placa.name = 'placa';
+    grupo.add(tabua, agua, placa);
+    grupo.traverse(function (o) { if (o.isMesh) { o.receiveShadow = true; o.castShadow = o !== agua; o.userData.base = true; } });
+    raiz.add(grupo);
+    return { grupo: grupo, topo: mar, tabuleiro: tabua, mar: agua };
+  }
+
   /* ---- carregamento ------------------------------------------------------ */
 
   function carregar(opcoes, pronto, falhou) {
@@ -284,6 +463,7 @@
 
   function montar(cena, opcoes) {
     var botoesDoEditor = tirarBotoesDoEditor(cena);
+    var realinhadas = realinharCamadas(cena);
     cena.updateMatrixWorld(true);
 
     /* 1 — normalizar para pegada 1, base em y=0, centro em x/z. */
@@ -385,12 +565,15 @@
     var chave = criarChave();
     raiz.add(chave.grupo);
 
+    var base = criarBase(raiz, escala);
+
     raiz.updateMatrixWorld(true);
     /* A caixa que interessa é a da MAQUETE, não a da cena: a chave nasce na
        origem e desceria a base uns 9 mm, o que em RA enterraria a casa na
        mesa por conta de um objeto que nem está posto ainda. */
     var completo = new THREE.Box3();
     for (i = 0; i < CAMADAS.length; i++) completo.expandByObject(camadas[CAMADAS[i]]);
+    completo.expandByObject(base.grupo);
 
     return {
       raiz: raiz,
@@ -402,8 +585,11 @@
       chave: chave.grupo,
       chavePonta: chave.ponta,
       chaveMaterial: chave.material,
+      chaveModelos: chave.modelos,
+      base: base,
+      camadasRealinhadas: realinhadas,
       revelacao: revelacao,
-      baseY: completo.min.y,
+      baseY: Math.abs(completo.min.y) < 1e-6 ? 0 : completo.min.y,
       altura: completo.max.y - completo.min.y,
       escalaOriginal: escala,
       relogio: relogio,
@@ -529,8 +715,11 @@
 
   global.ACMaquetteMundo = {
     carregar: carregar,
+    escolherChave: escolherChave,
+    orientarChave: orientarChave,
     montar: montar,
     ARQUIVO: ARQUIVO,
+    _criarChave: criarChave,
     CAMADAS: CAMADAS,
     ALVOS: ALVOS,
     FECHADURAS: FECHADURAS,

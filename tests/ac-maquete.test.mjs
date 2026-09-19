@@ -9,8 +9,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import {
-  startMaquette, actMaquette, maquetteView, maquetteViewSolo, papelDoToqueSolo, ordemDosCandidatos, ordemDosAlvos,
-  papelDaFechadura, CAPITULOS, FECHADURAS, TOLERANCIA, SEGUNDA_PISTA
+  startMaquette, actMaquette, maquetteView, maquetteViewSolo, papelDoSolo, ordemDosCandidatos, ordemDosAlvos,
+  papelDaFechadura, CAPITULOS, FECHADURAS, TOLERANCIA, SEGUNDA_PISTA, PRAZO_MAQUETE_MS, FOLGA_DA_PRIMEIRA_S
 } from '../ferramentas/ac-maquete-state.mjs';
 import { createRoom, apply, snapshot } from '../ferramentas/ac-cooperacao.mjs';
 import { montarMundo } from './ajuda-maquete.mjs';
@@ -136,8 +136,8 @@ test('os lados se invertem a cada camada, e as três abrem em ordem', () => {
   assert.equal(s.score, 24, 'a maquete concluída não paga de novo');
 });
 
-test('engano tira ponto sem travar a camada; o toque repetido é de cada jogador', () => {
-  const s = startMaquette();
+test('engano não custa ponto — o tempo custa; o toque repetido é de cada jogador', () => {
+  const s = startMaquette(0);
   const c = CAPITULOS[0], dono = papelDaFechadura(c);
   const errado = c.candidatos.find((id) => id !== c.esconderijo);
   assert.equal(actMaquette(s, c.chaveiro, { type: 'maquete_examinar', object: errado }, 1000), true);
@@ -150,7 +150,64 @@ test('engano tira ponto sem travar a camada; o toque repetido é de cada jogador
   actMaquette(s, c.chaveiro, { type: 'maquete_examinar', object: c.esconderijo }, 13000);
   actMaquette(s, dono, { type: 'maquete_examinar', object: c.fechadura }, 13000);
   actMaquette(s, c.chaveiro, { type: 'maquete_encaixar' }, 14000);
-  assert.equal(s.score, 2, 'o piso de 2 pontos vale mesmo depois de doze enganos');
+  assert.equal(s.score, 8, 'doze enganos no primeiro minuto não tiram nada: sem marcas na maquete, tocar é procurar');
+});
+
+test('os pontos da camada são a corrida: 8 no primeiro minuto, −1 a cada 15 s, mínimo 3', () => {
+  const tempoDe = (segundos, nivel = 1) => {
+    const s = { ...startMaquette(0), level: nivel, layerAt: 0 };
+    const c = CAPITULOS[nivel];
+    actMaquette(s, c.chaveiro, { type: 'maquete_examinar', object: c.esconderijo }, 5000);
+    actMaquette(s, papelDaFechadura(c), { type: 'maquete_examinar', object: c.fechadura }, 5000);
+    actMaquette(s, c.chaveiro, { type: 'maquete_encaixar' }, segundos * 1000);
+    return s.score;
+  };
+  assert.equal(tempoDe(30), 8);
+  assert.equal(tempoDe(60), 8);
+  assert.equal(tempoDe(75), 7);
+  assert.equal(tempoDe(120), 4);
+  assert.equal(tempoDe(400), 3, 'nunca abaixo de 3 enquanto houver tempo');
+  /* A primeira camada tem meio minuto de folga: a caixa ainda precisa ser
+     posta na mesa. */
+  assert.equal(tempoDe(60 + FOLGA_DA_PRIMEIRA_S, 0), 8);
+  assert.equal(tempoDe(75 + FOLGA_DA_PRIMEIRA_S, 0), 7);
+});
+
+test('o tempo total da maquete: esgotado, as camadas que faltam se abrem sozinhas e não pontuam', () => {
+  const sala = salaDaMaquete();
+  const inicio = sala.maquete.startedAt;
+  assert.equal(abrirCamada(sala, 0, FECHADURAS[0], inicio + 1000), true);
+  assert.equal(sala.maquete.score, 8);
+  assert.equal(apply(sala, 'luz', { type: 'maquete_prazo' }, inicio + PRAZO_MAQUETE_MS - 1), false, 'antes do prazo o motor recusa');
+  assert.equal(apply(sala, 'conhecimento', { type: 'maquete_prazo' }, inicio + PRAZO_MAQUETE_MS + 10), true);
+  assert.equal(sala.maquete.level, 3);
+  assert.equal(sala.maquete.score, 8, 'as duas camadas abertas pelo prazo não pagam');
+  assert.deepEqual(sala.maquete.layerScores, [8, 0, 0]);
+  assert.deepEqual(sala.maquete.evidence, CAPITULOS.map((c) => c.evidencia), 'a história segue: a passagem aparece');
+  assert.equal(sala.maquete.expired, true);
+  const vista = snapshot(sala, inicio + PRAZO_MAQUETE_MS + 20, 'luz').maquete;
+  assert.equal(vista.complete, true);
+});
+
+test('as duas dicas chegam na hora e dizem mais na segunda, sem nomear o objeto', () => {
+  const s = startMaquette(0);
+  const c = CAPITULOS[1];
+  Object.assign(s, { level: 1, layerAt: 0 });
+  const chave = (t) => maquetteView(s, c.chaveiro, t).dica;
+  assert.equal(chave(10000).nivel, 0);
+  assert.equal(chave(46000).nivel, 1);
+  assert.equal(chave(91000).nivel, 2);
+  assert.equal(chave(91000).texto, c.dicas.busca.chave[1]);
+  for (const t of [...c.dicas.busca.chave, ...c.dicas.busca.fechadura]) {
+    assert.ok(!t.includes(c.esconderijo) && !t.toLowerCase().includes('fundo falso'), 'a dica não pode ser a resposta: ' + t);
+  }
+  /* Acharam os dois: as dicas do ENCAIXE contam de novo, desde ali. */
+  actMaquette(s, c.chaveiro, { type: 'maquete_examinar', object: c.esconderijo }, 100000);
+  actMaquette(s, papelDaFechadura(c), { type: 'maquete_examinar', object: c.fechadura }, 100000);
+  assert.equal(maquetteView(s, c.chaveiro, 110000).dica.nivel, 0);
+  assert.equal(maquetteView(s, c.chaveiro, 131000).dica.parte, 'encaixe');
+  assert.equal(maquetteView(s, c.chaveiro, 131000).dica.nivel, 1);
+  assert.equal(maquetteView(s, c.chaveiro, 161000).dica.nivel, 2);
 });
 
 test('o encaixe é conferido contra a fechadura DAQUELE capítulo, não contra um ponto fixo', () => {
@@ -174,22 +231,17 @@ test('a ponta da chave só chega ao aparelho de quem NÃO a está movendo', () =
   assert.deepEqual(snapshot(sala, 1002, papelDaFechadura(c)).keyMotion.tip, FECHADURAS[0]);
 });
 
-test('Solo: a mesma pessoa ocupa as duas metades, sem mecânica substituta', () => {
-  const s = startMaquette();
-  const c = CAPITULOS[0];
-  const v = maquetteViewSolo(s);
-  assert.equal(v.papel, 'ambos');
-  assert.ok(v.alvos.includes(c.fechadura) && v.alvos.includes(c.esconderijo), 'o Solo vasculha os dois objetos');
-  /* O toque vale pelo lado que ainda procura aquele ponto. */
-  assert.equal(papelDoToqueSolo(s, c.esconderijo), c.chaveiro);
-  assert.equal(papelDoToqueSolo(s, c.fechadura), papelDaFechadura(c));
-  actMaquette(s, c.chaveiro, { type: 'maquete_examinar', object: c.esconderijo }, 1000);
-  assert.equal(papelDoToqueSolo(s, c.esconderijo), papelDaFechadura(c),
-    'achada a chave, os outros pontos viram vazios da procura pela fechadura');
-  actMaquette(s, papelDaFechadura(c), { type: 'maquete_examinar', object: c.fechadura }, 1000);
-  assert.equal(maquetteViewSolo(s).pista, SEGUNDA_PISTA);
-  assert.equal(maquetteViewSolo(s).fechadura, c.fechadura, 'no Solo a fechadura achada acende');
-  assert.equal(papelDoToqueSolo(s, c.fechadura), null);
+test('Solo: quem joga fica com a chave; a fechadura é do parceiro automático', () => {
+  const s = startMaquette(0);
+  for (let nivel = 0; nivel < CAPITULOS.length; nivel++) {
+    const c = CAPITULOS[nivel];
+    s.level = nivel;
+    assert.equal(papelDoSolo(s), c.chaveiro, 'no Solo o jogador é o chaveiro de cada camada');
+    const v = maquetteViewSolo(s, 1000);
+    assert.equal(v.papel, 'chave');
+    assert.ok(!v.alvos.includes(c.fechadura), 'a fechadura não existe no aparelho de quem tem a chave — nem no Solo');
+    assert.equal(v.fechadura, null);
+  }
 });
 
 test('a lista por nome é sorteada: o esconderijo não nasce sempre em cima', () => {
@@ -406,6 +458,55 @@ test('geometria real: fechaduras, alvos, camadas e o relógio do caso', async ()
     'a fusão por camada e material devolveu ' + mundo.desenhos + ' malhas; acima de 120 a RA no telefone cai');
   assert.ok(mundo.altura > 0.9 && mundo.altura < 1.45, 'a maquete normalizada tem altura ' + mundo.altura);
   assert.ok(mundo.baseY >= 0, 'a base da maquete não pode ficar abaixo de zero: pousaria dentro da mesa');
+
+  /* 8. O telhado nasce ASSENTADO (18/09/2026: o GLB veio com ele erguido 8,2
+        unidades pelo editor, e a maquete abria com o telhado fora). */
+  const caixa = (n) => new THREE.Box3().setFromObject(mundo.camadas[n]);
+  assert.ok(caixa('telhado').min.y <= caixa('piso-2').max.y + 0.005,
+    'o telhado flutua ' + (caixa('telhado').min.y - caixa('piso-2').max.y).toFixed(3) + ' acima do andar de cima');
+
+  /* 9. A base é PLANA: um tabuleiro no chão (y = 0) do tamanho da maquete
+        inteira, e nada do modelo abaixo dele. */
+  const tab = new THREE.Box3().setFromObject(mundo.base.tabuleiro), tudo = new THREE.Box3();
+  for (const n of ordemDasCamadas) tudo.expandByObject(mundo.camadas[n]);
+  assert.ok(Math.abs(tab.min.y) < 1e-6, 'o tabuleiro não está no chão');
+  assert.ok(tab.min.x <= tudo.min.x && tab.max.x >= tudo.max.x && tab.min.z <= tudo.min.z && tab.max.z >= tudo.max.z,
+    'o tabuleiro não cobre a maquete inteira');
+  assert.ok(tudo.min.y >= -1e-6, 'há peça do modelo abaixo do tabuleiro');
+
+  /* 10. Três chaves de verdade: anel, haste e palhetão com dentes. */
+  assert.equal(mundo.chaveModelos.length, 3);
+  for (const modelo of mundo.chaveModelos) {
+    const malhas = []; modelo.traverse((o) => { if (o.isMesh) malhas.push(o); });
+    assert.ok(malhas.some((m) => m.geometry.type === 'ExtrudeGeometry'), modelo.name + ': sem palhetão');
+    assert.ok(malhas.some((m) => m.geometry.type === 'TorusGeometry'), modelo.name + ': sem anel');
+    const b = new THREE.Box3().setFromObject(modelo);
+    assert.ok(b.max.x <= 0.004, modelo.name + ': a ponta tem de ser a origem da chave (x ≤ 0), está em ' + b.max.x.toFixed(4));
+  }
+
+  /* 11. A chave que anda POR CIMA da casa (a ponta vai ao primeiro ponto sob
+         o dedo, com folga para fora) consegue entrar em cada fechadura: de
+         várias direções de olhar, mirar no vão deixa a ponta dentro da
+         tolerância. */
+  CAPITULOS.forEach((capitulo, nivel) => {
+    const abertas = CAPITULOS.slice(0, nivel).map((c) => c.camada);
+    for (const nome of ordemDasCamadas) mundo.camadas[nome].visible = !abertas.includes(nome);
+    mundo.chave.visible = false;
+    mundo.raiz.updateMatrixWorld(true);
+    const alvo = new THREE.Vector3(...FECHADURAS[nivel]);
+    let entra = 0;
+    for (const direcao of direcoes) {
+      raio.set(alvo.clone().addScaledVector(direcao, 0.6), direcao.clone().negate());
+      const h = raio.intersectObject(mundo.raiz, true).find((x) => visivel(x.object) && x.object.isMesh && x.object.geometry && !anel(x.object));
+      if (!h) continue;
+      const n = h.face.normal.clone().transformDirection(h.object.matrixWorld);
+      if (n.dot(raio.ray.direction) > 0) n.negate();
+      const ponta = h.point.clone().addScaledVector(n, 0.008);
+      if (ponta.distanceTo(alvo) < TOLERANCIA) entra++;
+    }
+    assert.ok(entra >= 8, capitulo.id + ': a chave por cima da casa entra no vão de só ' + entra + ' direções');
+  });
+  for (const nome of ordemDasCamadas) mundo.camadas[nome].visible = true;
 });
 
 /* ------------------------------------------------------------------ fiação */
@@ -413,8 +514,9 @@ test('geometria real: fechaduras, alvos, camadas e o relógio do caso', async ()
 test('o Solo lê o mesmo motor da Mesa, sem cópia dos capítulos', () => {
   const coop = ler('v1/js/ac-cooperacao.js');
   assert.match(coop, /ac-maquete-state\.mjs/, 'o Solo precisa importar o motor, não recriá-lo');
-  assert.match(coop, /M\.actMaquette/);
-  assert.match(coop, /M\.FECHADURAS/);
+  assert.match(coop, /ac-core\.mjs/, 'o Solo roda o MESMO motor da dupla (ac-core.mjs)');
+  assert.match(coop, /core\.apply\(room/);
+  assert.match(coop, /M\.CAPITULOS/);
   for (const capitulo of CAPITULOS) {
     assert.ok(!coop.includes(capitulo.recorte),
       'a pista de "' + capitulo.id + '" está copiada dentro de ac-cooperacao.js: duas verdades, uma delas fica velha');
@@ -435,8 +537,11 @@ test('a maquete publicada guarda os dois olhares na tela', () => {
     assert.ok(!js.includes(frase), 'a tela voltou a avisar o papel: "' + frase + '"');
   }
   assert.match(js, /posta\(\)/, 'a atividade depende da maquete estar posta no ambiente');
-  const ra = ler('v1/js/ac-maquete-ra.js');
-  for (const modo of ['webxr', 'camera', 'mesa']) assert.ok(ra.includes("'" + modo + "'"), 'falta o modo ' + modo);
-  assert.match(ra, /getUserMedia/, 'o iPhone não tem WebXR: sem câmera não há RA nele');
-  assert.match(ra, /requestPermission/, 'a orientação no iOS precisa ser pedida por gesto');
+  const ra = ler('v1/js/ac-maquete-ra.js'), motor = ler('v1/js/ac-ra.js');
+  for (const modo of ['ra', 'mesa']) assert.ok(ra.includes("'" + modo + "'"), 'falta o modo ' + modo);
+  assert.match(ra, /ACRA\.criar/, 'a maquete usa o motor de RA comum');
+  assert.ok(!/deviceorientation/.test(ra), 'o modo câmera+giroscópio (sem rastreio de posição) não pode voltar');
+  for (const m of ['immersive-ar', 'XR8', 'hitTest', 'requestPermission']) assert.ok(motor.includes(m), 'o motor de RA precisa de ' + m);
+  /* Nada marcado na procura: nenhum candidato acende. */
+  assert.match(js, /var ativos = \[\];/, 'os candidatos voltaram a ser marcados na maquete');
 });

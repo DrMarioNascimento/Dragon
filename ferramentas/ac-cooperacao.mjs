@@ -51,7 +51,7 @@ export function createServer(root,{stateFile=null}={}) {
     }
     if(url.pathname==='/api/ac/individual'&&req.method==='GET'){
       const run=url.searchParams.get('run');
-      return json(200,[...rooms.values()].filter(r=>r.percurso?.runId===run).map(r=>({version:1,kind:'individual',etapas:earnedStages(r),sala:r.id,runId:run,players:r.percurso.players||{},salaIndividual:r.percurso.salaIndividual||{}})));
+      return json(200,[...rooms.values()].filter(r=>r.percurso?.runId===run).flatMap(r=>Object.entries(r.percurso.players||{}).map(([role,jogador])=>{const e=earnedStages(r,role);return {version:2,kind:'individual',sala:r.id,runId:run,players:r.percurso.players||{},role,jogador,salaEscura:r.percurso.salaIndividual?.[role]?.pontos||0,vela:e.vela,chaves:e.chaves,papeis:e.papeis||0,evidence:e.evidence,velaConcluida:e.velaConcluida};})));
     }
     if(url.pathname==='/api/ac/results'&&req.method==='GET'){
       const run=url.searchParams.get('run');

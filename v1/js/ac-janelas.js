@@ -336,7 +336,27 @@
       if(records.some(r=>r.addedNodes.length)){recolherIntroCorpo();decorate();orderPanels();}
     }).observe(document.body,{attributes:true,attributeFilter:['class'],childList:true,subtree:true});
   }
-  window.ACJanelas={entrarAtividade,recolher,abrir,ajuda,vida,aviso,nivel,decorar:decorate,TEMPO_AVISO,TEMPO_PAINEIS};
+  /* A LEGENDA DOS ÍCONES (Mario, 19/09/2026: "ao final de como jogar inclua
+     o que significa os ícones padronizados"). Sai da mesma tabela `types`
+     que pinta as janelas — mudou um ícone, a legenda muda junto. Entra no fim
+     de todo "Como jogar" d'A Casa (dialog#instructions), antes do botão. */
+  const CONTROLES=[['⌄','Chevron (barra do topo): traz de volta as janelas recolhidas.'],['📖','Como jogar: estas instruções.'],['✕','Sair da realidade aumentada (só aparece durante a RA).'],['⏳','Tempo que resta e quanto a tarefa vale agora.'],['💡','Dica: a primeira é sutil; a segunda ajuda mais. Nenhuma entrega a resposta.'],['🤝','No Solo, a fala do seu parceiro automático.']];
+  function legendaHTML(){
+    const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    const janelas=Object.keys(types).map(n=>'<li><span aria-hidden="true">'+types[n][0]+'</span> <b>'+esc(types[n][1])+'</b></li>').join('');
+    const ctrl=CONTROLES.map(c=>'<li><span aria-hidden="true">'+c[0]+'</span> '+esc(c[1])+'</li>').join('');
+    return '<section class="ac-legenda" aria-label="O que significa cada ícone"><h3>O que significa cada ícone</h3><p>Cada janela traz o seu ícone e a sua cor:</p><ul>'+janelas+'</ul><p>E os sinais da tela:</p><ul>'+ctrl+'</ul></section>';
+  }
+  function legendas(){
+    document.querySelectorAll('dialog#instructions').forEach(d=>{
+      if(d.querySelector('.ac-legenda'))return;
+      const fim=d.querySelector('[data-ac-fechar],.ac-continuar');
+      const tmp=document.createElement('div');tmp.innerHTML=legendaHTML();
+      d.insertBefore(tmp.firstChild,fim||null);
+    });
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',legendas,{once:true});else legendas();
+  window.ACJanelas={entrarAtividade,recolher,abrir,ajuda,vida,aviso,nivel,decorar:decorate,legendaHTML,TEMPO_AVISO,TEMPO_PAINEIS};
   window.addEventListener('ac-atividade-iniciada',entrarAtividade);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();

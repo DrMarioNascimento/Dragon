@@ -26,6 +26,9 @@
    achada por um E a fechadura achada pelo outro, e só quem tem a chave move
    a chave. */
 
+import './ac-ritmo.js';
+const RITMO = globalThis.ACRitmo;
+
 /* Posições das fechaduras no modelo NORMALIZADO (pegada de 1×0,77, base em
    y=0). Saíram medidas do próprio `casa-da-costa-pisos.glb`; o teste
    `ac-maquete.test.mjs` recalcula as três a partir do arquivo e reprova se
@@ -66,6 +69,16 @@ export const CAPITULOS = [
       chave: 'A pedra estava solta. Debaixo dela havia uma coisa pequena e fria.',
       fechadura: 'O degrau de pedra está oco. No meio dele há um vão de ferro que não é de degrau.'
     },
+    dicas: {
+      busca: {
+        chave: ['Rente ao chão: nem tudo o que fica no caminho está preso.', 'Diante da porta, no fim do caminho: uma pedra ou uma laje saiu do lugar.'],
+        fechadura: ['A casa também tem uma entrada que se pisa.', 'Olhe o que se pisa para entrar pela porta da frente.']
+      },
+      encaixe: {
+        chave: ['Pergunte ao colega perto de quê o vão está, e leve a chave até lá.', 'O vão fica diante da porta da frente, embaixo do arco da torre.'],
+        fechadura: ['Diga ao colega onde está o vão: perto de quê, de que lado da casa.', 'Diga: “no degrau de pedra da porta da frente”. O ponto de luz é a chave dele.']
+      }
+    },
     evidencia: 'chave-exterior',
     fecho: 'O telhado se soltou. Debaixo dele havia um andar de quartos.'
   },
@@ -88,6 +101,16 @@ export const CAPITULOS = [
     achado: {
       chave: 'O armário tinha fundo falso. O que caiu lá dentro não era roupa.',
       fechadura: 'Um tijolo da chaminé está oco. Atrás dele, um vão de metal.'
+    },
+    dicas: {
+      busca: {
+        chave: ['Os quartos guardam roupa — e às vezes outra coisa atrás dela.', 'No quarto mais longe da torre: o armário ou o castiçal.'],
+        fechadura: ['O que aquece a casa sobe por dentro das paredes.', 'A chaminé atravessa o corredor dos quartos: procure o peito dela.']
+      },
+      encaixe: {
+        chave: ['O vão está numa coisa que sobe por dentro da casa inteira.', 'O vão fica no peito da chaminé, no corredor entre os quartos.'],
+        fechadura: ['Descreva ao colega o caminho até o vão, cômodo por cômodo.', 'Diga: “na chaminé, no corredor dos quartos”.']
+      }
     },
     evidencia: 'chave-dos-quartos',
     fecho: 'O andar dos quartos saiu inteiro. Embaixo está o térreo, com a sala escura e a despensa.'
@@ -112,22 +135,61 @@ export const CAPITULOS = [
       chave: 'O relógio de parede parou às 21h29. Atrás do mostrador havia outra coisa.',
       fechadura: 'No peito da chaminé da sala, uma placa de ferro com um vão estreito.'
     },
+    dicas: {
+      busca: {
+        chave: ['Na sala que ficou escura, uma coisa parou quando a casa apagou.', 'O relógio de parede ou o quadro da sala escura.'],
+        fechadura: ['A chaminé desce até o térreo.', 'Na sala escura, o peito da chaminé tem uma placa de ferro.']
+      },
+      encaixe: {
+        chave: ['O vão está na mesma sala do esconderijo.', 'O vão fica no peito da chaminé da sala escura.'],
+        fechadura: ['Diga ao colega em que parede da sala está o vão.', 'Diga: “no peito da chaminé, na sala escura”.']
+      }
+    },
     evidencia: 'passagem-sob-despensa',
     fecho: 'O térreo se ergueu. Sob a despensa há um porão — e ele não termina onde a casa termina.'
   }
 ];
 
-/* A maior pontuação é 8 por chave; cada engano tira 1, com piso em 2. Vinte e
-   quatro é o teto, e é o número que `ac-pontuacao.js` valida no recibo. */
-export const PONTOS_POR_CHAVE = 8;
-export const PISO_POR_CHAVE = 2;
+/* Pontos por chave: 8 se a camada abrir no primeiro minuto, depois perde 1 a
+   cada 15 s, nunca menos de 3 — e ZERO para a camada que o tempo total da
+   maquete (ac-ritmo.js) alcançar antes. Engano não custa ponto: sem marcas na
+   maquete, tocar no que não é faz parte de procurar; o que custa é o tempo
+   (Mario, 18/09/2026: "é a corrida que vale pelos pontos"). Vinte e quatro é o
+   teto. */
+export const PONTOS_POR_CHAVE = RITMO.maquete.max;
+export const PISO_POR_CHAVE = RITMO.maquete.min;
+export const PRAZO_MAQUETE_MS = RITMO.maquete.total * 1000;
 /* Dois toques do MESMO jogador em menos disto contam como um. Por jogador:
    os dois procuram ao mesmo tempo, e uma trava única engolia o toque do
    segundo sem dizer nada. */
 export const INTERVALO_ENTRE_TOQUES = 700;
+/* A primeira camada começa a contar com a caixa ainda fechada — cada um
+   precisa pôr a maquete na mesa antes. Meio minuto de folga, só nela. */
+export const FOLGA_DA_PRIMEIRA_S = 30;
+function segundosDaCamada(state, now) {
+  const t = Math.max(0, (now - (Number.isFinite(state.layerAt) ? state.layerAt : now)) / 1000);
+  return state.level === 0 ? Math.max(0, t - FOLGA_DA_PRIMEIRA_S) : t;
+}
 
-export function startMaquette() {
-  return { level: 0, key: false, lock: false, mistakes: 0, score: 0, evidence: [], lastAttempt: {} };
+export function startMaquette(now = Date.now()) {
+  return { level: 0, key: false, lock: false, mistakes: 0, score: 0, evidence: [], lastAttempt: {},
+    startedAt: now, layerAt: now, bothAt: null, expired: false, layerScores: [] };
+}
+
+/* Estado salvo antes dos relógios (checkpoint do Solo): ganha relógio agora. */
+function comRelogio(state, now) {
+  if (!Number.isFinite(state.startedAt)) state.startedAt = now;
+  if (!Number.isFinite(state.layerAt)) state.layerAt = now;
+  if (state.key && state.lock && !Number.isFinite(state.bothAt)) state.bothAt = now;
+  if (!Array.isArray(state.layerScores)) state.layerScores = [];
+  if (typeof state.expired !== 'boolean') state.expired = false;
+  return state;
+}
+
+/* O relógio parou enquanto a partida esteve pausada: tudo anda junto. */
+export function adiarMaquete(state, ms) {
+  if (!state || !(ms > 0)) return;
+  for (const k of ['startedAt', 'layerAt', 'bothAt']) if (Number.isFinite(state[k])) state[k] += ms;
 }
 
 /* Quem NÃO tem a chave no capítulo tem a fechadura. Dois papéis, sempre. */
@@ -147,6 +209,21 @@ export function pontosDoLado(capitulo, lado) {
 
 export function actMaquette(state, role, event, now = Date.now()) {
   if (!state || state.level >= CAPITULOS.length) return false;
+  comRelogio(state, now);
+
+  /* O tempo total acabou: as camadas que faltavam se abrem sozinhas, sem
+     ponto. Qualquer um dos dois pode avisar; o motor confere o relógio. */
+  if (event.type === 'maquete_prazo') {
+    if (now - state.startedAt < PRAZO_MAQUETE_MS) return false;
+    while (state.level < CAPITULOS.length) {
+      state.evidence.push(CAPITULOS[state.level].evidencia);
+      state.layerScores.push(0);
+      state.level++;
+    }
+    state.key = false; state.lock = false; state.bothAt = null; state.expired = true;
+    return true;
+  }
+
   const capitulo = CAPITULOS[state.level];
   const lado = role === capitulo.chaveiro ? 'chave' : 'fechadura';
   if (!state.lastAttempt || typeof state.lastAttempt !== 'object') state.lastAttempt = {};
@@ -160,32 +237,56 @@ export function actMaquette(state, role, event, now = Date.now()) {
     if (lado === 'chave' && event.object === capitulo.esconderijo) state.key = true;
     else if (lado === 'fechadura' && event.object === capitulo.fechadura) state.lock = true;
     else state.mistakes++;
+    if (state.key && state.lock && !Number.isFinite(state.bothAt)) state.bothAt = now;
     return true;
   }
 
   if (event.type === 'maquete_encaixar') {
     if (lado !== 'chave' || !state.key || !state.lock) return false;
-    state.score += Math.max(PISO_POR_CHAVE, PONTOS_POR_CHAVE - Math.min(PONTOS_POR_CHAVE - PISO_POR_CHAVE, state.mistakes));
+    const pontos = RITMO.pontos('maquete', segundosDaCamada(state, now), Infinity);
+    state.score += pontos;
+    state.layerScores.push(pontos);
     state.evidence.push(capitulo.evidencia);
     state.level++;
     state.key = false;
     state.lock = false;
     state.mistakes = 0;
     state.lastAttempt = {};
+    state.layerAt = now;
+    state.bothAt = null;
     return true;
   }
 
   return false;
 }
 
+/* O relógio e a dica de quem olha. A dica da PROCURA conta desde o começo da
+   camada; a do ENCAIXE, desde que os dois acharam. */
+function tempoDaVista(state, capitulo, lado, now) {
+  const total = RITMO.maquete.total;
+  const decorrido = Math.max(0, (now - (Number.isFinite(state.startedAt) ? state.startedAt : now)) / 1000);
+  const camada = segundosDaCamada(state, now);
+  const ambos = !!(state.key && state.lock);
+  const parte = ambos ? 'encaixe' : 'busca';
+  const desde = ambos && Number.isFinite(state.bothAt) ? Math.max(0, (now - state.bothAt) / 1000) : camada;
+  const nivel = RITMO.nivelDaDica(desde, parte === 'busca' ? RITMO.maquete.dicasBusca : RITMO.maquete.dicasEncaixe);
+  const textos = ((capitulo.dicas || {})[parte] || {})[lado === 'fechadura' ? 'fechadura' : 'chave'] || [];
+  return {
+    tempo: { total, decorrido, restante: Math.max(0, total - decorrido), camada, esgotado: decorrido >= total },
+    dica: { nivel, parte, texto: nivel ? textos[nivel - 1] || null : null, textos: textos.slice(0, nivel) },
+    pontosAgora: decorrido >= total ? 0 : RITMO.pontos('maquete', camada, Infinity)
+  };
+}
+
 /* O que cada aparelho recebe. O que não está aqui não existe para aquele
    jogador: quem tem a chave nunca recebe o identificador da fechadura, e quem
    tem a fechadura só a recebe ACESA depois de achá-la. */
-export function maquetteView(state, role) {
+export function maquetteView(state, role, now = Date.now()) {
   if (!state) return null;
   const capitulo = CAPITULOS[state.level];
   if (!capitulo) {
-    return { ...state, complete: true, name: 'A passagem revelada', chaveiro: null, papel: null,
+    return { ...state, complete: true, layerScores: (state.layerScores || []).slice(), expired: !!state.expired,
+      tempo: null, dica: { nivel: 0, parte: null, texto: null, textos: [] }, pontosAgora: 0, name: 'A passagem revelada', chaveiro: null, papel: null,
       capitulo: null, pista: null, ato: null, achou: false, achado: null, alvos: [], fechadura: null,
       candidatos: [], rotulos: {}, camadasAbertas: CAPITULOS.map(c => c.camada) };
   }
@@ -216,32 +317,26 @@ export function maquetteView(state, role) {
     candidatos: alvos,
     rotulos,
     fechadura: lado === 'fechadura' && state.lock ? capitulo.fechadura : null,
-    camadasAbertas: CAPITULOS.slice(0, state.level).map(c => c.camada)
+    camadasAbertas: CAPITULOS.slice(0, state.level).map(c => c.camada),
+    layerScores: (state.layerScores || []).slice(),
+    expired: !!state.expired,
+    fechaduraRotulo: lado === 'fechadura' ? capitulo.fechaduraRotulo : null,
+    ...tempoDaVista(state, capitulo, lado, now)
   };
 }
 
-/* O Solo é a mesma coisa com uma pessoa só: ela ocupa os dois lados. Nada de
-   mecânica substituta — a vista só junta as duas metades. */
-export function maquetteViewSolo(state) {
-  if (!state) return null;
-  const capitulo = CAPITULOS[state.level];
-  if (!capitulo) return maquetteView(state, 'luz');
-  const v = maquetteView(state, papelDaFechadura(capitulo));
-  v.papel = 'ambos';
-  v.achou = !!(state.key && state.lock);
-  v.achado = state.lock ? capitulo.achado.fechadura : state.key ? capitulo.achado.chave : null;
-  return v;
-}
-
-/* No Solo, um toque vale pelo lado que ainda procura aquele ponto. */
-export function papelDoToqueSolo(state, objeto) {
+/* O Solo joga com um PARCEIRO AUTOMÁTICO (Mario, 18/09/2026: "avalie se não
+   é melhor colocar uma forma de jogo automático só para preencher a vaga").
+   Quem joga sozinho fica sempre com a CHAVE — procura o esconderijo e leva a
+   chave; o parceiro fica com a fechadura, acha a dele e guia pela voz (frases
+   na tela). É a mesma vista da Mesa, do lado de quem tem a chave. */
+export function papelDoSolo(state) {
   const capitulo = state && CAPITULOS[state.level];
-  if (!capitulo) return null;
-  const chave = capitulo.chaveiro, fechadura = papelDaFechadura(capitulo);
-  if (objeto === capitulo.fechadura) return state.lock ? null : fechadura;
-  if (!state.key) return chave;
-  if (!state.lock) return fechadura;
-  return null;
+  return capitulo ? capitulo.chaveiro : 'luz';
+}
+export function maquetteViewSolo(state, now = Date.now()) {
+  if (!state) return null;
+  return maquetteView(state, papelDoSolo(state), now);
 }
 
 /* A lista de objetos por nome (a alternativa a tocar na cena) nasceria com a

@@ -226,17 +226,24 @@ test('a escrivaninha não expõe RA de ensaio; a maquete abre RA de produção',
   assert.doesNotMatch(maquete, /pontos de ensaio/);
   assert.doesNotMatch(maqueteJs, /pontos de ensaio/);
   assert.doesNotMatch(ler('v1/js/ac-percurso.js'), /Este ensaio foi aberto/);
-  /* A escrivaninha oferece RA a quem tem: WebXR ou Quick Look no iPhone. */
-  assert.match(html, /<button id="ar" hidden>Colocar em RA<\/button>/);
-  assert.match(html, /<a id="ar-ios" href="assets\/ac\/escrivaninha\.usdz" rel="ar"/);
-  assert.match(desk, /if\(ar\) ar\.hidden=!arSupported;/);
-  assert.match(desk, /navigator\.xr\.isSessionSupported\('immersive-ar'\)/);
+  /* A escrivaninha oferece RA a quem tem — e a RA é a TAREFA INTEIRA (Mario,
+     18/09/2026: "a escrivaninha em RA só coloca a escrivaninha e acabou").
+     O Quick Look (que só posiciona um modelo parado) saiu; o motor comum
+     (WebXR no Android, 8th Wall no iPhone) roda a vela, a luz e a etiqueta. */
+  assert.match(html, /id="portal-ra"/);
+  assert.match(html, /id="ra-entrar"[^>]*>Abrir a câmera</);
+  assert.match(html, /id="ra-tela" hidden>/, 'a tela é o caminho de quem não tem RA — só aparece se ela falhar');
+  assert.doesNotMatch(html, /rel="ar"/, 'o Quick Look estático voltou: nele a tarefa não acontece');
+  assert.match(html, /js\/ac-ra\.js/);
+  assert.match(desk, /ACRA\.criar/);
+  assert.match(desk, /ra\.entrar\(\)/);
 
-  /* E a porta de RA da maquete tem de existir, com as três saídas: sem a
-     terceira, um aparelho sem câmera fica sem atividade nenhuma. */
+  /* A porta de RA da maquete: a RA, e a tela SÓ como saída de quem não tem
+     RA ou de quem tentou e não deu. O modo câmera+giroscópio saiu. */
   assert.match(maquete, /id="portal-ra"/);
-  assert.match(maquete, /id="portal-camera"/);
-  assert.match(maquete, /id="portal-mesa"/);
+  assert.doesNotMatch(maquete, /id="portal-camera"/);
+  assert.match(maquete, /id="portal-mesa" hidden/);
+  assert.match(maquete, /id="sair-ra"/);
   assert.match(maqueteJs, /ACMaquetteRA\.criar/);
 
   const sala = ler('v1/MOSAICO-26-a-sala-as-escuras.html');

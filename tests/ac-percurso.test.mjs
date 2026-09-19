@@ -25,15 +25,19 @@ test('percurso da Mesa segue sala escura, escrivaninha e maquete depois da Janel
  assert.match(src,/papeis:'AC-papeis\.html'/);
 });
 
-test('prazo do percurso (15 min desde os papéis da passagem) vale somente para percurso novo e segue o documento da mesa',()=>{
- const c={STATE:{doc:{atividades:{inclinacao:'janela',constelacao:'salaEscura'},percursoAC:1,percursoLimiteSegundos:720}},CASO:{configuracao:{limitesSegundos:{inclinacao:150,constelacao:180}},tarefas:{}}};c.window=c;
+test('prazo do percurso (20 min: soma dos tempos de cada tarefa) vale somente para percurso novo e segue o documento da mesa',()=>{
+ const c={STATE:{doc:{atividades:{inclinacao:'janela',constelacao:'salaEscura'},percursoAC:1,percursoLimiteSegundos:1500}},CASO:{configuracao:{limitesSegundos:{inclinacao:150,constelacao:180}},tarefas:{}}};c.window=c;
+ vm.runInNewContext(readFileSync('v1/js/ac-ritmo.js','utf8'),c);
  vm.runInNewContext(readFileSync('v1/js/atividades-casa-da-costa.js','utf8'),c);
- assert.equal(c.limiteTarefaSensorMs('constelacao'),720000);
+ assert.equal(c.limiteTarefaSensorMs('constelacao'),1500000);
  assert.equal(c.limiteTarefaSensorMs('inclinacao'),150000);
- c.STATE.doc.percursoLimiteSegundos=900;assert.equal(c.limiteTarefaSensorMs('constelacao'),900000);
- c.STATE.doc.percursoLimiteSegundos=-1;assert.equal(c.limiteTarefaSensorMs('constelacao'),900000);
- delete c.STATE.doc.percursoAC;assert.equal(c.limiteTarefaSensorMs('constelacao'),900000);
+ /* Mesas abertas antes de 19/09/2026 gravaram 900 s — menos que a soma das
+    tarefas (sala 50 s + escrivaninha 4 min + maquete 9 min + papéis 4 min). */
+ c.STATE.doc.percursoLimiteSegundos=900;assert.equal(c.limiteTarefaSensorMs('constelacao'),1200000);
+ c.STATE.doc.percursoLimiteSegundos=-1;assert.equal(c.limiteTarefaSensorMs('constelacao'),1200000);
+ delete c.STATE.doc.percursoAC;assert.equal(c.limiteTarefaSensorMs('constelacao'),1200000);
  assert.equal(c.STATE.doc.percursoAC,1);
+ const R=c.ACRitmo;assert.ok(R.percursoMesa>=50+R.escrivaninha.total+R.maquete.total+R.papeis.total,'o percurso da Mesa não cabe a soma das tarefas');
 });
 
 test('navegador encaminha etapas e devolve apenas conclusao final da rodada correta',async()=>{

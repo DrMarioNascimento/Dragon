@@ -17,6 +17,17 @@
   const mesa=$('mesa'), tabuleiro=$('tabuleiro'), bandeja=$('bandeja');
   const DPR=Math.min(2,window.devicePixelRatio||1);
   let caso=null, papeis=null, pista=null, etapa=-1, atual=null, inicio=0, tempos=[], guardado=false;
+  /* Tempo, dicas e pontos (ac-ritmo.js): 4 minutos para os três papéis; cada
+     papel vale 5 se montado em 30 s e perde 1 a cada 20 s (mínimo 2); duas
+     dicas por papel, aos 40 s e aos 80 s. Esgotado o tempo, os papéis que
+     faltavam se montam sozinhos e não pontuam — a pista vai para o dossiê. */
+  const RITMO=window.ACRitmo;
+  let pontos=[], esgotado=false, dicaVista='', relogio=null;
+  const DICAS={
+    planta:['As paredes continuam de um pedaço para o outro. Comece pelos cantos da folha.','Em cima fica a fachada da casa; embaixo, o térreo com as marcas a lápis.'],
+    bilhete:['Comece pelos cantos: são os pedaços com dois lados retos.','A hora fica no canto de cima, à esquerda; o selo, embaixo, à direita.'],
+    relogio:['O XII fica em cima, no meio; o VI, embaixo, no meio.','Monte primeiro a fileira de cima, depois a do meio. A de baixo se acerta girando as três últimas casas.']
+  };
 
   /* ---------- as três imagens ---------- */
 
@@ -395,9 +406,41 @@
   }
   function resolver(){
     if(atual.feito)return;atual.feito=true;tempos[etapa]=Date.now()-atual.inicio;
+    pontos[etapa]=esgotado?0:RITMO.pontos('papeis',tempos[etapa]/1000,Infinity);
     mesa.classList.add('montado');setTimeout(()=>mesa.classList.remove('montado'),900);
-    painel(ETAPAS[etapa].depois());
+    const depois=ETAPAS[etapa].depois();
+    if(!esgotado)depois[2]=depois[2]+' ('+pontos[etapa]+' pontos)';
+    painel(depois);
+    $('dica').hidden=true;
     window.ACJanelas?.abrir?.();
+  }
+  /* O relógio dos papéis e as dicas do papel da vez. */
+  function tique(){
+    if(guardado||!atual)return;
+    const total=RITMO.papeis.total,decorrido=(Date.now()-inicio)/1000,resta=total-decorrido;
+    if(resta<=0&&!esgotado){esgotar();return;}
+    if(esgotado)return;
+    const doPapel=(Date.now()-atual.inicio)/1000;
+    $('timer').textContent=atual.feito?'⏳ '+RITMO.relogio(resta)+' · '+pontos.reduce((a,b)=>a+(b||0),0)+' pontos até aqui'
+      :'⏳ '+RITMO.relogio(resta)+' · este papel vale '+RITMO.pontos('papeis',doPapel,Infinity);
+    if(atual.feito)return;
+    const nivel=RITMO.nivelDaDica(doPapel,RITMO.papeis.dicas),textos=DICAS[atual.etapa]||[];
+    const el=$('dica');
+    if(!nivel||!textos[nivel-1]){el.hidden=true;return;}
+    el.hidden=false;el.textContent=(nivel===1?'💡 Dica: ':'💡 Dica 2: ')+textos[nivel-1];
+    const marca=atual.etapa+'/'+nivel;
+    if(marca!==dicaVista){dicaVista=marca;window.ACJanelas?.aviso?.((nivel===1?'Uma dica chegou. ':'Mais uma dica chegou. ')+textos[nivel-1],3);window.ACJanelas?.vida?.();}
+  }
+  /* O tempo acabou: os papéis se montam sozinhos, sem ponto. */
+  function esgotar(){
+    esgotado=true;
+    for(let i=0;i<ETAPAS.length;i++)if(pontos[i]==null)pontos[i]=0;
+    if(atual&&!atual.feito){atual.feito=true;tempos[etapa]=Date.now()-atual.inicio;}
+    limparMesa();$('dica').hidden=true;
+    $('timer').textContent='⏳ Tempo esgotado · os papéis que faltavam não pontuam';
+    painel(['A PASSAGEM','O tempo acabou.','Os papéis que faltavam se juntaram sozinhos. A pista segue para o dossiê.','Ver o que se juntou']);
+    etapa=ETAPAS.length-1;
+    window.ACJanelas?.aviso?.('O tempo dos papéis acabou. Os que faltavam se montaram sozinhos — sem pontos.',9);
   }
   $('primary').addEventListener('click',()=>{
     if(!atual||!atual.feito)return;
@@ -419,7 +462,10 @@
     const d=$('achado');try{d.close();}catch(e){d.removeAttribute('open');}
     if(guardado)return;guardado=true;
     painel(['A PASSAGEM','Os papéis estão guardados.','A pista foi para o dossiê: '+(pista.hora||'')+' · '+(pista.txt||'')]);
-    const msg={mosaico:'ac-papeis-completo',runId:params.get('run'),tempos:tempos.slice(),tempoMs:Date.now()-inicio};
+    clearInterval(relogio);
+    const total=pontos.reduce((a,b)=>a+(b||0),0);
+    $('timer').textContent='📜 Papéis: '+total+' pontos';
+    const msg={mosaico:'ac-papeis-completo',runId:params.get('run'),tempos:tempos.slice(),tempoMs:Date.now()-inicio,pontos:total,porPapel:pontos.slice(),esgotado};
     if(parent!==window){try{parent.postMessage(msg,location.origin);}catch(e){}}
   });
 
@@ -436,15 +482,16 @@
 
   async function iniciar(){
     try{
-      const r=await fetch('casos/casa-da-costa.json?v=20260918-ra');caso=await r.json();
+      const r=await fetch('casos/casa-da-costa.json?v=20260919-ra');caso=await r.json();
       papeis=caso.tarefas.salaEscura.papeis;pista=caso.tarefas.salaEscura.pista;
     }catch(e){$('loading').textContent='Os papéis não puderam ser abertos. Recarregue a página.';return;}
     inicio=Date.now();
     await abrirEtapa(0);
+    relogio=setInterval(tique,500);tique();
     $('loading').hidden=true;
     window.ACJanelas?.entrarAtividade?.();
   }
   /* Para a auditoria e os testes: o estado e um atalho para montar. */
-  window.__papeis={get etapa(){return ETAPAS[etapa]?.id;},get atual(){return atual;},tempos,abrirEtapa};
+  window.__papeis={get etapa(){return ETAPAS[etapa]?.id;},get atual(){return atual;},tempos,pontos,abrirEtapa,esgotar,adiantar:ms=>{inicio-=ms;if(atual)atual.inicio-=ms;tique();}};
   iniciar();
 })();

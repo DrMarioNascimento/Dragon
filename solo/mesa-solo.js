@@ -83,7 +83,8 @@ function conjunto(k){
  return dentro;
 }
 
-const state={phase:'home',caso:null,key:null,answers:{},marco:null,papeisPronto:false,
+const RITMO=window.ACRitmo;
+const state={phase:'home',caso:null,key:null,answers:{},marco:null,papeisPronto:false,pontosSolo:{},relogios:{},etapaDesde:0,
   percursoPronto:false,percursoResultado:null,percursoEtapa:'janela',atividades:[],atividadeI:0,sensorPronto:false,sensorTempos:[],mosaico:[],mosaicoPick:null,mercadoEtapa:0,mercadoEscolhas:[],pontuacao:null,resultadoVista:'apuracao',apuracaoEtapa:0,apuracaoTimer:null};
 const app=document.getElementById('app');
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -117,6 +118,7 @@ async function load(){try{const r=await fetch('../v1/casos/casa-da-costa.json?v=
     state.sensorPronto=false;
     state.sensorTempos=[];
     state.papeisPronto=false;
+    state.pontosSolo={};state.relogios={};
     state.phase='marco';
     state.marco='encenacao';
   }
@@ -163,9 +165,9 @@ function parAtividades(){
 const ATIVIDADE={
  janela:{titulo:'A Janela do Norte',arquivo:'../v1/MOSAICO-26-a-janela-do-norte.html?embed=1'},
  vidro:{titulo:'O Vidro Embaçado',arquivo:'../v1/MOSAICO-26-vidro-embacado.html?embed=1'},
- salaEscura:{titulo:'A Sala às Escuras',arquivo:'../v1/MOSAICO-26-a-sala-as-escuras.html?embed=1&v=20260918-ra'}
+ salaEscura:{titulo:'A Sala às Escuras',arquivo:'../v1/MOSAICO-26-a-sala-as-escuras.html?embed=1&v=20260919-ra'}
 };
-function briefing(){let p=state.caso.partidas[state.key];return '<span class="k">ENCENAÇÃO · PREPARAÇÃO</span><h2>A casa distribui os papéis.</h2><p class="lead">Você fará todas as tarefas da experiência. O sistema alternará a perspectiva cognitiva e assumirá somente as ações que dependeriam de outras pessoas.</p><div class="role-grid"><div class="relation pf-inset"><b>Você investiga</b><p class="muted">Observa, executa as atividades, organiza fatos e decide.</p></div><div class="relation pf-inset"><b>O sistema contrapõe</b><p class="muted">Distribui arquivos, oferece alternativas no Mercado e testa sua interpretação.</p></div></div><div class="question pf-inset"><b>'+esc(p.natureza)+'</b><p>'+esc(p.pergunta)+'</p></div><button class="btn" onclick="abrirPercurso3D()">Entrar na casa</button>';}
+function briefing(){let p=state.caso.partidas[state.key];return '<span class="k">ENCENAÇÃO · PREPARAÇÃO</span><h2>A casa distribui os papéis.</h2><p class="lead">Você fará todas as tarefas da experiência. O sistema alternará a perspectiva cognitiva e assumirá somente as ações que dependeriam de outras pessoas.</p><div class="role-grid"><div class="relation pf-inset"><b>Você investiga</b><p class="muted">Observa, executa as atividades, organiza fatos e decide.</p></div><div class="relation pf-inset"><b>O sistema contrapõe</b><p class="muted">Distribui arquivos, oferece alternativas no Mercado e testa sua interpretação.</p></div></div><div class="question pf-inset"><b>'+esc(p.natureza)+'</b><p>'+esc(p.pergunta)+'</p></div><div class="relation pf-inset solo-legenda"><b>Tempo, dicas e sinais</b><p class="muted">⏳ Cada etapa tem tempo total; quanto antes terminar, mais pontos. Esgotado, a etapa não pontua e o jogo segue.</p><p class="muted">💡 Duas dicas chegam no caminho: a primeira sutil, a segunda ajuda mais — nenhuma entrega a resposta.</p><p class="muted">🤝 Nas tarefas em dupla, um parceiro automático faz a parte do outro papel e fala com você.</p><p class="muted">📖 Como jogar: dentro de cada tarefa, o botão abre as instruções e o significado dos ícones das janelas. ⌄ traz de volta as janelas recolhidas; ✕ sai da realidade aumentada.</p></div><button class="btn" onclick="abrirPercurso3D()">Entrar na casa</button>';}
 function abrirPercurso3D(){try{sessionStorage.removeItem('ac:solo-integral:v1')}catch(_){ }state._partidaNova=true;state.percursoPronto=false;state.percursoResultado=null;state.percursoEtapa='janela';state.phase='percurso3d';render();}
 /* As etapas 3D e sensoriais são páginas de tela inteira (topbar, painéis e
    botões em position:fixed). Dentro de uma caixa de ~343×585 no meio da página
@@ -196,23 +198,30 @@ function alternarTelaCheia(btn){
      continuar —, nao o mesmo quadro de novo no topo da tela. */
   if(!cheia)window.scrollTo({top:0});
 }
-function percurso3d(){const e=state.percursoEtapa,scene=e==='janela'?imersivo('1 / 4 · Chegada pela estrada','<iframe id="solo-percurso" title="A Janela do Norte" src="../v1/MOSAICO-26-a-janela-do-norte.html?embed=1" allow="camera; accelerometer; gyroscope; magnetometer"></iframe>'):imersivo('3 / 4 · Sob outra luz','<iframe id="solo-percurso" title="Escrivaninha da Casa da Costa" src="../v1/AC-escrivaninha.html?demo=solo" allow="camera; xr-spatial-tracking; accelerometer; gyroscope; magnetometer; fullscreen" allowfullscreen></iframe>'),texto=e==='janela'?'Chegue pela estrada e aponte a Janela do Norte para entrar na casa.':'Na escrivaninha, siga até o registro: a maquete abre na sequência para fechar a etapa final do percurso.',quadro=state.percursoPronto?'<div class="result pf-inset"><div class="score">'+esc((state.percursoResultado&&state.percursoResultado.score)||0)+'</div><p class="lead">Janela do Norte, Sala às Escuras, escrivaninha e maquete foram concluídas.</p></div>':scene;return '<span class="k">PERCURSO 3D · '+(e==='janela'?'CHEGADA':'ESCRIVANINHA')+'</span><h2>Da estrada à maquete.</h2><p class="lead">'+texto+'</p>'+quadro+'<button class="btn ghost" onclick="abrirPapeis()" '+(state.percursoPronto?'':'disabled')+'>'+(state.percursoPronto?'Passagem revelada · continuar':'Conclua a etapa atual')+'</button>';}
+function percurso3d(){const e=state.percursoEtapa,scene=e==='janela'?imersivo('1 / 4 · Chegada pela estrada','<iframe id="solo-percurso" title="A Janela do Norte" src="../v1/MOSAICO-26-a-janela-do-norte.html?embed=1" allow="camera; accelerometer; gyroscope; magnetometer"></iframe>'):imersivo('3 / 4 · Sob outra luz','<iframe id="solo-percurso" title="Escrivaninha da Casa da Costa" src="../v1/AC-escrivaninha.html?demo=solo&v=20260919-ra" allow="camera; xr-spatial-tracking; accelerometer; gyroscope; magnetometer; fullscreen" allowfullscreen></iframe>'),texto=e==='janela'?'Chegue pela estrada e aponte a Janela do Norte para entrar na casa.':'Na escrivaninha, siga até o registro: a maquete abre na sequência para fechar a etapa final do percurso.',quadro=state.percursoPronto?'<div class="result pf-inset"><div class="score">'+esc((state.pontosSolo.vela||0)+(state.pontosSolo.chaves||0))+'</div><p class="lead">A vela valeu '+esc(state.pontosSolo.vela||0)+' e as três chaves, '+esc(state.pontosSolo.chaves||0)+'. A passagem sob a despensa foi revelada.</p></div>':scene;return '<span class="k">PERCURSO 3D · '+(e==='janela'?'CHEGADA':'ESCRIVANINHA')+'</span><h2>Da estrada à maquete.</h2><p class="lead">'+texto+'</p>'+quadro+'<button class="btn ghost" onclick="abrirPapeis()" '+(state.percursoPronto?'':'disabled')+'>'+(state.percursoPronto?'Passagem revelada · continuar':'Conclua a etapa atual')+'</button>';}
 function abrirAtividades(){state.atividades=parAtividades();state.atividadeI=0;state.sensorPronto=false;state.phase='sensor';render();}
 function sensor(){let id=state.atividades[state.atividadeI],a=ATIVIDADE[id];return '<span class="k">ATIVIDADE SENSORIAL 2 DE 4</span><h2>'+esc(a.titulo)+'</h2><p class="lead">Conclua esta etapa para seguir para a escrivaninha.</p>'+(state.sensorPronto?'<div class="result pf-inset"><p class="lead">Atividade concluída. A próxima etapa foi liberada.</p></div>':imersivo('2 / 4 · '+a.titulo,'<iframe id="solo-sensor" title="'+esc(a.titulo)+'" src="'+esc(a.arquivo)+'" allow="camera; xr-spatial-tracking; accelerometer; gyroscope; magnetometer"></iframe>'))+'<button class="btn ghost" onclick="confirmarSensor()" '+(state.sensorPronto?'':'disabled')+'>'+(state.sensorPronto?'Atividade concluída · continuar':'Conclua a tarefa no quadro')+'</button>';
 }
 function confirmarSensor(){if(!state.sensorPronto)return;if(state.atividadeI<state.atividades.length-1){state.atividadeI++;state.sensorPronto=false;render();return;}if(state.percursoEtapa==='janela'){state.percursoEtapa='escrivaninha';state.sensorPronto=false;state.phase='percurso3d';render();return;}abrirAnalise();}
-window.addEventListener('message',function(ev){if(ev.origin!==location.origin||!ev.data||ev.data.mosaico!=='tarefa-ok'||state.phase!=='sensor')return;state.sensorPronto=true;state.sensorTempos[state.atividadeI]=Math.max(0,Number(ev.data.tempoMs)||0);render();});
+window.addEventListener('message',function(ev){if(ev.origin!==location.origin||!ev.data||ev.data.mosaico!=='tarefa-ok'||state.phase!=='sensor')return;state.sensorPronto=true;state.sensorTempos[state.atividadeI]=Math.max(0,Number(ev.data.tempoMs)||0);
+ /* A sala vale um ponto por objeto achado (a Mesa conta igual). */
+ const obj=Number(ev.data.objetosEncontrados);state.pontosSolo.sala=Number.isFinite(obj)?Math.max(0,Math.min(9,Math.round(obj))):9;
+ render();});
 window.addEventListener('message',function(ev){
  if(ev.origin!==location.origin||!ev.data||state.phase!=='percurso3d')return;
  if(ev.data.mosaico==='tarefa-ok'&&state.percursoEtapa==='janela'){
-  try{const key='ac:solo-integral:v1',saved=JSON.parse(sessionStorage.getItem(key)||'{}');sessionStorage.setItem(key,JSON.stringify({...saved,version:1,stage:'posicionar',started:saved.started||Date.now(),janelaConcluida:true,maquete:null,keyMotion:null}));}catch(_){}
+  try{sessionStorage.setItem('ac:solo-integral:v1',JSON.stringify({version:1,janelaConcluida:true}));}catch(_){}
+  state.pontosSolo.janela=pontosJanela(Number(ev.data.tempoMs)||0);
   abrirAtividades();return;
  }
- if((ev.data.mosaico==='ac-solo-maquete-completa'||ev.data.mosaico==='ac-solo-completo')&&state.percursoEtapa==='escrivaninha'){state.percursoPronto=true;state.percursoResultado={score:Number(ev.data.score)||0,evidence:Array.isArray(ev.data.evidence)?ev.data.evidence:[]};render();}
+ if((ev.data.mosaico==='ac-solo-maquete-completa'||ev.data.mosaico==='ac-solo-completo')&&state.percursoEtapa==='escrivaninha'){if(state.percursoPronto)return;state.percursoPronto=true;state.percursoResultado={score:Number(ev.data.score)||0,evidence:Array.isArray(ev.data.evidence)?ev.data.evidence:[]};
+  state.pontosSolo.chaves=Math.max(0,Math.min(24,Math.round(Number(ev.data.score)||0)));
+  if(ev.data.vela!=null)state.pontosSolo.vela=Math.max(0,Math.min(30,Math.round(Number(ev.data.vela)||0)));
+  render();}
 });
 function start(){
   if(state.apuracaoTimer){clearTimeout(state.apuracaoTimer);state.apuracaoTimer=null;}
-  marcarUsada();state.answers={};state.papeisPronto=false;
+  marcarUsada();state.answers={};state.papeisPronto=false;state.pontosSolo={};state.relogios={};
   state._partidaNova=true;state.percursoPronto=false;state.percursoResultado=null;state.percursoEtapa='janela';state.atividades=[];state.atividadeI=0;state.sensorPronto=false;state.sensorTempos=[];state.mosaico=[];state.mosaicoPick=null;state.mercadoEtapa=0;state.mercadoEscolhas=[];state.pontuacao=null;state.resultadoVista='apuracao';state.apuracaoEtapa=0;
   abrirMarco('encenacao');
 }
@@ -251,39 +260,72 @@ function abrirPapeis(){if(!state.percursoPronto)return;state.papeisPronto=false;
 function papeisTela(){
   return '<span class="k">PERCURSO 3D · A PASSAGEM</span><h2>Os papéis da passagem.</h2><p class="lead">Debaixo da despensa, três papéis rasgados.</p>'+
     (state.papeisPronto?'<div class="result pf-inset"><p class="lead">A planta, o bilhete e o relógio foram montados. A pista foi para o dossiê.</p></div>':
-      imersivo('4 / 4 · Os papéis da passagem','<iframe id="solo-papeis" title="Os papéis da passagem" src="../v1/AC-papeis.html?demo=solo&v=20260918-ra"></iframe>'))+
+      imersivo('4 / 4 · Os papéis da passagem','<iframe id="solo-papeis" title="Os papéis da passagem" src="../v1/AC-papeis.html?demo=solo&v=20260919-ra"></iframe>'))+
     '<button class="btn ghost" onclick="abrirAnalise()" '+(state.papeisPronto?'':'disabled')+'>'+(state.papeisPronto?'Papéis guardados · continuar':'Monte os três papéis')+'</button>';
 }
 window.addEventListener('message',function(ev){
   if(ev.origin!==location.origin||!ev.data||ev.data.mosaico!=='ac-papeis-completo'||state.phase!=='papeis')return;
-  state.papeisPronto=true;render();
+  state.papeisPronto=true;state.pontosSolo.papeis=Math.max(0,Math.min(15,Math.round(Number(ev.data.pontos)||0)));render();
 });
 function itensMosaico(){
  const ids=(state.caso.mosaico&&state.caso.mosaico.ordemCorreta)||[];
  return ids.map(id=>({id:id,rot:(state.caso.mosaico.rotulos||{})[id]||id,dica:(state.caso.mosaico.dicas||{})[id]||''}));
 }
-function prepararMosaico(){state.mosaico=shuffle(itensMosaico());if(state.mosaico.every((x,i)=>x.id===itensMosaico()[i].id))state.mosaico.reverse();state.mosaicoPick=null;}
+function prepararMosaico(){state.mosaico=shuffle(itensMosaico());if(state.mosaico.every((x,i)=>x.id===itensMosaico()[i].id))state.mosaico.reverse();state.mosaicoPick=null;state.relogios.mosaico={inicio:Date.now(),fim:null,esgotado:false};}
+/* A noite em ordem (Mario, 18/09/2026: "a tarefa de colocar os fatos em ordem
+   está difícil"): agora ela tem tempo total e duas dicas. A primeira conta
+   quantos acontecimentos já estão no lugar; a segunda marca e prende os que
+   estão certos — o resto ainda é com quem joga. Terminar a tempo vale até
+   20 pontos (perde 1 a cada 12 s depois do primeiro minuto); esgotado o
+   tempo, a ordem certa aparece e a tarefa não pontua. */
+function segundosDe(r){return r?Math.max(0,((r.fim||Date.now())-r.inicio)/1000):0;}
+function nivelMosaico(){const r=state.relogios.mosaico;return r&&!r.fim?RITMO.nivelDaDica(segundosDe(r),RITMO.mosaico.dicas):(r&&r.nivel)||0;}
+function mosaicoCerto(){const certo=itensMosaico();return state.mosaico.length&&state.mosaico.every((x,i)=>x.id===certo[i].id);}
 function mosaico(){
- let certo=itensMosaico(),ok=state.mosaico.length&&state.mosaico.every((x,i)=>x.id===certo[i].id);
- let linhas=state.mosaico.map((x,i)=>'<button class="mosaico-item '+(state.mosaicoPick===i?'sel':'')+'" onclick="tocarMosaico('+i+')"><span>'+(i+1)+'</span><b>'+esc(x.rot)+'</b><small>'+esc(x.dica)+'</small></button>').join('');
- return '<span class="k">MOSAICO · RECONSTRUÇÃO INDIVIDUAL</span><h2>Coloque a noite em ordem.</h2><p class="lead">Organize individualmente os acontecimentos revelados. Toque em dois para trocar suas posições.</p><div class="mosaico-lista">'+linhas+'</div>'+(ok?'<div class="factbox pf-inset"><b>Linha factual validada</b><span>A sequência está coerente. Agora você pode acessar o Mercado de pistas.</span></div><button class="btn" onclick="abrirMarco(\'cooperacao\')">Continuar</button>':'<p class="muted">A etapa só avança quando todos os acontecimentos estiverem na ordem factual.</p>');
+ let certo=itensMosaico(),r=state.relogios.mosaico||{},ok=mosaicoCerto(),nivel=nivelMosaico(),noLugar=state.mosaico.filter((x,i)=>x.id===certo[i].id).length;
+ let linhas=state.mosaico.map((x,i)=>{const preso=nivel>=2&&x.id===certo[i].id&&!r.esgotado;return '<button class="mosaico-item '+(state.mosaicoPick===i?'sel ':'')+(preso?'preso':'')+'" onclick="tocarMosaico('+i+')" '+(preso||r.esgotado||ok?'aria-disabled="true"':'')+'><span>'+(preso?'✓':(i+1))+'</span><b>'+esc(x.rot)+'</b><small>'+esc(x.dica)+'</small></button>';}).join('');
+ let dica='';
+ if(!ok&&!r.esgotado&&nivel>=1)dica='<div class="solo-dica pf-inset">💡 '+(nivel===1?'Dica: '+noLugar+' de '+certo.length+' acontecimentos já estão no lugar certo. O apagão é o que divide a noite.':'Dica 2: os que estão no lugar ganharam ✓ e ficaram presos. Falta ordenar só os outros.')+'</div>';
+ let fim=r.esgotado?'<div class="factbox pf-inset"><b>O tempo acabou</b><span>A ordem certa apareceu. A noite em ordem não pontua nesta partida.</span></div><button class="btn" onclick="abrirMarco(\'cooperacao\')">Continuar</button>'
+   :ok?'<div class="factbox pf-inset"><b>Linha factual validada</b><span>A sequência está coerente ('+(state.pontosSolo.mosaico||0)+' pontos). Agora você pode acessar o Mercado de pistas.</span></div><button class="btn" onclick="abrirMarco(\'cooperacao\')">Continuar</button>'
+   :'<p class="muted">A etapa avança quando todos os acontecimentos estiverem na ordem factual.</p>';
+ return '<span class="k">MOSAICO · RECONSTRUÇÃO INDIVIDUAL</span><h2>Coloque a noite em ordem.</h2><p class="lead">Organize os acontecimentos revelados. Toque em dois para trocar suas posições.</p>'+relogioSolo('mosaico')+dica+'<div class="mosaico-lista">'+linhas+'</div>'+fim;
 }
-function tocarMosaico(i){if(state.mosaicoPick===null){state.mosaicoPick=i;render();return;}if(state.mosaicoPick===i){state.mosaicoPick=null;render();return;}let a=state.mosaicoPick;[state.mosaico[a],state.mosaico[i]]=[state.mosaico[i],state.mosaico[a]];state.mosaicoPick=null;render();
- /* A validação nasce ABAIXO da lista: a 390×844 o botão do Mercado ficava em y=937, e quem acertava a ordem não via nada mudar na tela (volta 2, 17/09/2026). */
- let certo=itensMosaico();if(state.mosaico.every((x,k)=>x.id===certo[k].id)){const v=document.querySelector('#app .mosaico-lista ~ .factbox');if(v)v.scrollIntoView({behavior:'smooth',block:'center'});}}
+function tocarMosaico(i){
+ const r=state.relogios.mosaico||{},certo=itensMosaico();
+ if(r.esgotado||mosaicoCerto())return;
+ const preso=k=>nivelMosaico()>=2&&state.mosaico[k].id===certo[k].id;
+ if(preso(i))return;
+ if(state.mosaicoPick===null){state.mosaicoPick=i;render();return;}if(state.mosaicoPick===i){state.mosaicoPick=null;render();return;}let a=state.mosaicoPick;[state.mosaico[a],state.mosaico[i]]=[state.mosaico[i],state.mosaico[a]];state.mosaicoPick=null;
+ if(mosaicoCerto()){r.fim=Date.now();r.nivel=nivelMosaico();state.pontosSolo.mosaico=RITMO.pontos('mosaico',segundosDe(r));}
+ render();
+ /* A validação nasce ABAIXO da lista: a 390×844 o botão do Mercado ficava em y=937 (volta 2, 17/09/2026). */
+ if(mosaicoCerto()){const v=document.querySelector('#app .mosaico-lista ~ .factbox');if(v)v.scrollIntoView({behavior:'smooth',block:'center'});}}
+/* O relógio de uma etapa sem iframe (mosaico, mercado, decisão). */
+function relogioSolo(qual){
+ const r=state.relogios[qual];if(!r)return '';
+ const total=RITMO[qual==='decision'?'decisao':qual].total;
+ const txt=r.esgotado?'Tempo esgotado':r.fim?'Concluído em '+RITMO.relogio(segundosDe(r)):RITMO.relogio(total-segundosDe(r))+' restantes';
+ return '<p class="solo-relogio" data-relogio="'+qual+'">⏳ <b>'+txt+'</b></p>';
+}
 function ofertaMercado(){return conjunto(state.key).slice(0,3).map(evid).filter(Boolean);}
 function mercado(){
  let etapa=state.mercadoEtapa,ofertas=ofertaMercado();
- if(etapa===0)return '<span class="k">MERCADO DE PISTAS · AÇÃO 1 DE 3</span><h2>Adquirir uma pista lacrada.</h2><p class="lead">Três arquivos lacrados estão disponíveis. Escolha um para aprofundar sua investigação.</p><div class="mercado-grid">'+ofertas.map((e,i)=>'<button class="mkt-card" onclick="acaoMercado(\'adquirir\','+i+')"><b>Arquivo lacrado '+(i+1)+'</b><span>'+esc(e.hora)+'</span></button>').join('')+'</div>';
- if(etapa===1)return '<span class="k">MERCADO DE PISTAS · AÇÃO 2 DE 3</span><h2>Avaliar a confiança.</h2><p class="lead">Avalie individualmente se a pista é central ou secundária para sua linha de investigação.</p><div class="opts pf-inset"><button class="opt" onclick="acaoMercado(\'manter\')">Manter: ela parece central</button><button class="opt" onclick="acaoMercado(\'consignar\')">Consignar: ela parece secundária</button></div>';
- if(etapa===2)return '<span class="k">MERCADO DE PISTAS · AÇÃO 3 DE 3</span><h2>Comprar informação ou preservar recursos?</h2><p class="lead">Faça uma revisão crítica antes de decidir, sem acesso à resposta canônica.</p><div class="relation pf-inset"><b>Revisão crítica</b><p class="muted">“Os fatos explicam presença, mas ainda não necessariamente entrada ou culpa.”</p></div><div class="opts pf-inset"><button class="opt" onclick="acaoMercado(\'comprar contraponto\')">Comprar o contraponto</button><button class="opt" onclick="acaoMercado(\'preservar recursos\')">Preservar os recursos</button></div>';
- return '<span class="k">MERCADO ENCERRADO</span><h2>Suas decisões foram registradas.</h2><div class="relation pf-inset">'+state.mercadoEscolhas.map(x=>'<p>• '+esc(x)+'</p>').join('')+'</div><button class="btn" onclick="state.phase=\'map\';render()">Abrir a planta da casa</button>';
+ if(!state.relogios.mercado)state.relogios.mercado={inicio:Date.now(),fim:null,esgotado:false};
+ const rel=relogioSolo('mercado');
+ if(state.relogios.mercado.esgotado&&etapa<3)etapa=3;
+ if(etapa===0)return '<span class="k">MERCADO DE PISTAS · AÇÃO 1 DE 3</span><h2>Adquirir uma pista lacrada.</h2>'+rel+'<p class="lead">Três arquivos lacrados estão disponíveis. Escolha um para aprofundar sua investigação.</p><div class="mercado-grid">'+ofertas.map((e,i)=>'<button class="mkt-card" onclick="acaoMercado(\'adquirir\','+i+')"><b>Arquivo lacrado '+(i+1)+'</b><span>'+esc(e.hora)+'</span></button>').join('')+'</div>';
+ if(etapa===1)return '<span class="k">MERCADO DE PISTAS · AÇÃO 2 DE 3</span><h2>Avaliar a confiança.</h2>'+rel+'<p class="lead">Avalie individualmente se a pista é central ou secundária para sua linha de investigação.</p><div class="opts pf-inset"><button class="opt" onclick="acaoMercado(\'manter\')">Manter: ela parece central</button><button class="opt" onclick="acaoMercado(\'consignar\')">Consignar: ela parece secundária</button></div>';
+ if(etapa===2)return '<span class="k">MERCADO DE PISTAS · AÇÃO 3 DE 3</span><h2>Comprar informação ou preservar recursos?</h2>'+rel+'<p class="lead">Faça uma revisão crítica antes de decidir, sem acesso à resposta canônica.</p><div class="relation pf-inset"><b>Revisão crítica</b><p class="muted">“Os fatos explicam presença, mas ainda não necessariamente entrada ou culpa.”</p></div><div class="opts pf-inset"><button class="opt" onclick="acaoMercado(\'comprar contraponto\')">Comprar o contraponto</button><button class="opt" onclick="acaoMercado(\'preservar recursos\')">Preservar os recursos</button></div>';
+ return '<span class="k">MERCADO ENCERRADO</span><h2>'+(state.relogios.mercado.esgotado?'O tempo do Mercado acabou.':'Suas decisões foram registradas.')+'</h2><div class="relation pf-inset">'+state.mercadoEscolhas.map(x=>'<p>• '+esc(x)+'</p>').join('')+'</div><button class="btn" onclick="abrirMapa()">Abrir a planta da casa</button>';
 }
-function acaoMercado(tipo,i){let txt=tipo;if(tipo==='adquirir'){let e=ofertaMercado()[i];txt='Adquiriu: '+(e?e.title:'arquivo')}state.mercadoEscolhas.push(txt);state.mercadoEtapa++;render();}
+function acaoMercado(tipo,i){const r=state.relogios.mercado;if(r&&(r.esgotado||r.fim))return;let txt=tipo;if(tipo==='adquirir'){let e=ofertaMercado()[i];txt='Adquiriu: '+(e?e.title:'arquivo')}state.mercadoEscolhas.push(txt);state.mercadoEtapa++;if(state.mercadoEtapa>=3&&r)r.fim=Date.now();render();}
+function abrirMapa(){state.phase='map';render();window.scrollTo({top:0});}
 function map(){let p=state.caso.partidas[state.key];return '<span class="k">MAPA DA CASA</span><h2>Onde os fatos se encontram?</h2><p class="lead">Use a planta como síntese espacial. Não procure um culpado: procure onde a pergunta começa a fechar.</p><div class="map pf-inset"><img src="../v1/img/casa-da-costa-planta-1867.svg" alt="Planta esquemática da Casa da Costa, construção de 1867"><div class="mapnote"><b>'+esc(p.titulo)+'</b><br>'+esc(p.pergunta)+'</div></div><button class="btn" onclick="state.phase=\'decision\';render()">Responder à pergunta</button>';}
-function decision(){let p=state.caso.partidas[state.key];let fields=p.campos.map(f=>'<div class="field pf-inset"><label>'+esc(f.rotulo)+'</label><select id="f-'+esc(f.id)+'"><option value="">Escolha…</option>'+f.opcoes.map(o=>'<option>'+esc(o)+'</option>').join('')+'</select></div>').join('');return '<span class="k">INFERÊNCIA → DECISÃO</span><h2>'+esc(p.pergunta)+'</h2><p class="lead">Preencha os campos derivados desta pergunta. Depois do envio, a resposta será comparada à realidade canônica.</p><div class="fields">'+fields+'</div><button class="btn red" onclick="finish()">Fechar minha conclusão</button><button class="btn ghost" onclick="state.phase=\'map\';render()">Rever a planta</button>';}
-function finish(){
-  try{
+function decision(){if(!state.relogios.decision)state.relogios.decision={inicio:Date.now(),fim:null,esgotado:false};let p=state.caso.partidas[state.key];state.rascunho=state.rascunho||{};let fields=p.campos.map(f=>'<div class="field pf-inset"><label>'+esc(f.rotulo)+'</label><select id="f-'+esc(f.id)+'" onchange="state.rascunho[\''+esc(f.id)+'\']=this.value"><option value="">Escolha…</option>'+f.opcoes.map(o=>'<option'+(state.rascunho[f.id]===o?' selected':'')+'>'+esc(o)+'</option>').join('')+'</select></div>').join('');return '<span class="k">INFERÊNCIA → DECISÃO</span><h2>'+esc(p.pergunta)+'</h2><p class="lead">Preencha os campos derivados desta pergunta. Depois do envio, a resposta será comparada à realidade canônica.</p>'+relogioSolo('decision')+'<div class="fields">'+fields+'</div><button class="btn red" onclick="finish()">Fechar minha conclusão</button><button class="btn ghost" onclick="state.phase=\'map\';render()">Rever a planta</button>';}
+function finish(forcado){
+  forcado=forcado===true;
+  if(!forcado)try{
     if(window.MosaicoPapelCamada&&window.MosaicoHipotesesCamada){
       const e=window.MosaicoPapelCamada.carregar('casa-da-costa');
       const sc=window.MosaicoHipotesesCamada.carregarScaffold('casa-da-costa',{partidaId:state.key,playerId:'local'});
@@ -300,14 +342,17 @@ function finish(){
       if(!gate.ok){alert(gate.reason);return;}
     }
   }catch(err){}
-  let p=state.caso.partidas[state.key],all=true,correct=0;state.answers={};p.campos.forEach(f=>{let el=document.getElementById('f-'+f.id),v=el?el.value:'';if(!v)all=false;state.answers[f.id]=v;if(v===f.resposta)correct++});if(!all){alert('Preencha todos os campos antes de fechar a conclusão.');return;}state.correct=correct;prepararPontuacao();state.resultadoVista='apuracao';state.apuracaoEtapa=0;state.phase='result';render();
+  let p=state.caso.partidas[state.key],all=true,correct=0;state.answers={};p.campos.forEach(f=>{let el=document.getElementById('f-'+f.id),v=el?el.value:'';if(!v)all=false;state.answers[f.id]=v;if(v===f.resposta)correct++});if(!all&&!forcado){alert('Preencha todos os campos antes de fechar a conclusão.');return;}state.correct=forcado?0:correct;if(state.relogios.decision)state.relogios.decision.fim=Date.now();prepararPontuacao();state.resultadoVista='apuracao';state.apuracaoEtapa=0;state.phase='result';render();
 }
-const CATEGORIAS_SOLO=[['performance','Percurso individual'],['tempo','Investigações cronometradas'],['revisao','Mosaico e revisão crítica'],['economia','Mercado de pistas'],['qualidade','Decisão contra o caso']];
+/* O placar do Solo, na ordem da partida. Cada tarefa pontua se terminar no
+   tempo; esgotado o tempo, aquela tarefa vale zero (Mario, 18/09/2026). */
+const CATEGORIAS_SOLO=[['janela','A Janela do Norte'],['sala','A Sala às Escuras'],['vela','A escrivaninha e a vela'],['chaves','As três chaves'],['papeis','Os papéis da passagem'],['mosaico','A noite em ordem'],['economia','Mercado de pistas'],['qualidade','Decisão contra o caso']];
+function pontosJanela(ms){const s=ms/1000;return !(s>0)||s>=50?0:s<=25?5:s<=35?4:s<=45?3:2;}
 function prepararPontuacao(){
- let p=state.caso.partidas[state.key],rota=Math.min(20,Math.round((((state.percursoResultado&&state.percursoResultado.score)||0)/24)*20));
- let tempo=(state.sensorTempos||[]).slice(0,2).reduce((s,ms)=>s+(ms<=60000?10:ms<=120000?8:ms<=180000?6:4),0);
- let revisao=state.mosaico.length?20:0,economia=Math.min(20,(state.mercadoEscolhas||[]).length*7),qualidade=Math.round(20*state.correct/Math.max(1,p.campos.length));
- state.pontuacao={performance:rota,tempo:tempo,revisao:revisao,economia:economia,qualidade:qualidade};
+ let p=state.caso.partidas[state.key],P=state.pontosSolo||{};
+ const merc=state.relogios.mercado,economia=merc&&merc.esgotado?Math.min(20,(state.mercadoEscolhas||[]).length*6):Math.min(20,(state.mercadoEscolhas||[]).length*7);
+ const dec=state.relogios.decision,qualidade=dec&&dec.esgotado?0:Math.round(20*(state.correct||0)/Math.max(1,p.campos.length));
+ state.pontuacao={janela:P.janela||0,sala:P.sala||0,vela:P.vela||0,chaves:P.chaves||0,papeis:P.papeis||0,mosaico:P.mosaico||0,economia:economia,qualidade:qualidade};
 }
 function totalSolo(){return CATEGORIAS_SOLO.reduce((s,c)=>s+Number((state.pontuacao||{})[c[0]]||0),0);}
 function agendarApuracao(){if(state.apuracaoTimer)return;state.apuracaoTimer=setTimeout(function(){state.apuracaoTimer=null;if(state.phase!=='result'||state.resultadoVista!=='apuracao')return;if(state.apuracaoEtapa<CATEGORIAS_SOLO.length){state.apuracaoEtapa++;render();}else{state.resultadoVista='podio';render();}},1500);}
@@ -326,5 +371,44 @@ function podio(){let p=state.caso.partidas[state.key],rows=p.campos.map(f=>'<div
   return '<span class="k">PÓDIO · RESULTADO FINAL</span><div class="podio-solo"><div class="podio-degrau"><span>1º</span><i class="podio-av" aria-hidden="true">'+esc(avatarSolo())+'</i><b>Investigador solo</b><strong>'+totalSolo()+' pts</strong></div></div><h2>'+esc(p.titulo)+'</h2><div class="result pf-inset"><div class="score">'+totalSolo()+'</div><p class="muted">Pontuação total da experiência completa</p><p class="lead">'+esc(p.revelacao)+'</p></div>'+processo+rows+'<div class="factbox pf-inset"><b>Realidade canônica</b><span>'+esc(state.caso.realidadeCanonica.sintese)+'</span></div><button class="btn" onclick="nextRun()">Nova partida</button>';
 }
 function result(){if(!state.pontuacao)prepararPontuacao();return state.resultadoVista==='podio'?podio():apuracao();}
-function nextRun(){if(state.apuracaoTimer){clearTimeout(state.apuracaoTimer);state.apuracaoTimer=null;}state.key=proxima();state.phase='home';state.answers={};state.papeisPronto=false;state.marco=null;state.percursoPronto=false;state.percursoResultado=null;state.percursoEtapa='janela';state.atividades=[];state.atividadeI=0;state.sensorPronto=false;state.sensorTempos=[];state.pontuacao=null;state.resultadoVista='apuracao';state.apuracaoEtapa=0;render();}
+function nextRun(){if(state.apuracaoTimer){clearTimeout(state.apuracaoTimer);state.apuracaoTimer=null;}state.pontosSolo={};state.rascunho={};state.relogios={};state.mercadoEtapa=0;state.mercadoEscolhas=[];state.mosaico=[];state.key=proxima();state.phase='home';state.answers={};state.papeisPronto=false;state.marco=null;state.percursoPronto=false;state.percursoResultado=null;state.percursoEtapa='janela';state.atividades=[];state.atividadeI=0;state.sensorPronto=false;state.sensorTempos=[];state.pontuacao=null;state.resultadoVista='apuracao';state.apuracaoEtapa=0;render();}
+/* O relógio das etapas. Nas etapas com iframe ele NÃO redesenha a página
+   (recriar o HTML recarregaria a atividade): só mostra a saída de socorro se
+   a etapa passar muito do tempo dela sem responder. */
+const SOCORRO={janela:150,sensor:150,escrivaninha:RITMO.escrivaninha.total+RITMO.maquete.total+240,papeis:RITMO.papeis.total+90};
+function etapaComIframe(){return state.phase==='percurso3d'?(state.percursoEtapa==='janela'?'janela':'escrivaninha'):state.phase==='sensor'?'sensor':state.phase==='papeis'?'papeis':null;}
+let etapaVista=null;
+setInterval(function(){
+ if(!state.caso)return;
+ const et=etapaComIframe();
+ if(et){
+  const marca=et+'|'+state.phase+'|'+state.percursoEtapa;
+  if(marca!==etapaVista){etapaVista=marca;state.etapaDesde=Date.now();}
+  const pronto=(et==='janela'&&false)||(et==='sensor'&&state.sensorPronto)||(et==='escrivaninha'&&state.percursoPronto)||(et==='papeis'&&state.papeisPronto);
+  const bar=document.querySelector('.solo-imersivo-barra');
+  if(bar&&!pronto&&(Date.now()-state.etapaDesde)/1000>SOCORRO[et]&&!bar.querySelector('.solo-socorro')){
+   const b=document.createElement('button');b.type='button';b.className='solo-socorro';b.textContent='A etapa travou? Seguir sem os pontos dela';b.onclick=function(){socorro(et);};bar.appendChild(b);
+  }
+  return;
+ }
+ etapaVista=null;
+ ['mosaico','mercado','decision'].forEach(function(q){
+  const r=state.relogios[q];if(!r||r.fim||r.esgotado||state.phase!==q)return;
+  const total=RITMO[q==='decision'?'decisao':q].total,decorrido=segundosDe(r);
+  const el=document.querySelector('[data-relogio="'+q+'"] b');if(el)el.textContent=RITMO.relogio(total-decorrido)+' restantes';
+  if(decorrido>=total){r.esgotado=true;r.fim=Date.now();
+   if(q==='mosaico'){state.mosaico=itensMosaico();state.mosaicoPick=null;state.pontosSolo.mosaico=0;render();}
+   else if(q==='mercado'){render();}
+   else if(q==='decision'){finish(true);}
+   return;}
+  if(q==='mosaico'){const n=RITMO.nivelDaDica(decorrido,RITMO.mosaico.dicas);if(n!==r.nivelVisto){r.nivelVisto=n;if(n)render();}}
+ });
+},1000);
+/* Saída de socorro: a etapa que não respondeu segue sem pontos. */
+function socorro(et){
+ if(et==='janela'){try{sessionStorage.setItem('ac:solo-integral:v1',JSON.stringify({version:1,janelaConcluida:true}));}catch(_){}state.pontosSolo.janela=0;abrirAtividades();return;}
+ if(et==='sensor'){state.sensorPronto=true;state.pontosSolo.sala=state.pontosSolo.sala||0;render();return;}
+ if(et==='escrivaninha'){state.percursoPronto=true;state.percursoResultado={score:0,evidence:[]};render();return;}
+ if(et==='papeis'){state.papeisPronto=true;state.pontosSolo.papeis=0;render();}
+}
 load();

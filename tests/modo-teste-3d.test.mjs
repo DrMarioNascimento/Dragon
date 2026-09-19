@@ -58,8 +58,8 @@ describe("A Casa · sem botões extras", () => {
   it("olhar por baixo é tocar nas gavetas, não um botão", () => {
     const js = ler("v1/js/ac-investigacao.js");
     assert.match(js, /function olharPorBaixo\(\)/);
-    assert.match(js, /if\(local\.y<alto\*\.85\)olharPorBaixo\(\);/, "o toque nas gavetas deixou de levar para baixo do móvel");
-    assert.match(js, /Math\.hypot\(event\.clientX-t\.x,event\.clientY-t\.y\)>8\)return;/, "arrastar (girar/mirar) não pode contar como toque");
+    assert.match(js, /if \(local\.y < alto \* \.85\) olharPorBaixo\(\);/, "o toque nas gavetas deixou de levar para baixo do móvel");
+    assert.match(js, /Math\.hypot\(event\.clientX - t\.x, event\.clientY - t\.y\) > 8\) return;/, "arrastar (girar/mirar) não pode contar como toque");
   });
 
   it("dentro da Mesa e do Solo, a sala às escuras não mostra o painel do Mestre", () => {

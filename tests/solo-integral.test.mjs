@@ -17,8 +17,15 @@ test('Solo Casa preserva as etapas da experiência da Mesa',()=>{
     assert.ok(js.includes(tarefa),tarefa);
   assert.match(js,/disabled.*sensorPronto|sensorPronto.*disabled/s);
   assert.match(js,/MERCADO DE PISTAS · AÇÃO 3 DE 3/);
-  for(const categoria of ['Percurso individual','Investigações cronometradas','Mosaico e revisão crítica','Mercado de pistas','Decisão contra o caso'])
+  for(const categoria of ['A Janela do Norte','A Sala às Escuras','A escrivaninha e a vela','As três chaves','Os papéis da passagem','A noite em ordem','Mercado de pistas','Decisão contra o caso'])
     assert.ok(js.includes(categoria),categoria);
+  /* Tempo total, duas dicas e pontos (ac-ritmo.js): cada tarefa do Solo tem
+     prazo, e esgotar zera só aquela tarefa. */
+  assert.match(html,/ac-ritmo\.js/);
+  for(const q of ['mosaico','mercado','decision'])assert.ok(js.includes("relogioSolo('"+q+"')"),'sem relógio: '+q);
+  assert.match(js,/RITMO\.nivelDaDica\(/);
+  assert.match(js,/state\.pontosSolo\.mosaico=0/,'mosaico esgotado não pontua');
+  assert.match(js,/A etapa travou\? Seguir sem os pontos dela/,'toda etapa com iframe tem saída de socorro');
   assert.match(js,/APURAÇÃO FINAL/);
   assert.match(js,/PÓDIO · RESULTADO FINAL/);
   assert.match(js,/setTimeout/);
@@ -54,8 +61,8 @@ test('Solo Casa preserva as etapas da experiência da Mesa',()=>{
 test('checkpoint e carimbo incluem o Solo integral',()=>{
   for(const campo of ['percursoEtapa','atividades','atividadeI','sensorPronto','sensorTempos','mosaico','mercadoEtapa','mercadoEscolhas','pontuacao','resultadoVista','apuracaoEtapa'])
     assert.ok(cloud.includes(campo),campo);
-  assert.match(html,/mesa-solo\.js\?v=20260918-ra/);
-  assert.match(html,/estado-solo\.js\?v=20260918-ra/);
+  assert.match(html,/mesa-solo\.js\?v=20260919-ra/);
+  assert.match(html,/estado-solo\.js\?v=20260919-ra/);
 });
 
 test('percurso solo mantém 3D, RA, escrivaninha e maquete com três chaves',()=>{
@@ -66,31 +73,26 @@ test('percurso solo mantém 3D, RA, escrivaninha e maquete com três chaves',()=
   assert.match(js,/MOSAICO-26-a-janela-do-norte\.html\?embed=1/);
   assert.match(js,/AC-escrivaninha\.html\?demo=solo/);
   assert.match(js,/xr-spatial-tracking/);
-  for(const acao of ['posicionar','encaixar','descobrir','registrar','iniciar_maquete','maquete_mover','maquete_encaixar'])
+  for(const acao of ['posicionar','encaixar','descobrir','registrar','iniciar_maquete','maquete_examinar'])
     assert.ok(coop.includes(acao),acao);
-  /* O Solo não tem motor próprio: o toque vai ao MESMO motor da Mesa, pelo
-     lado que ainda procura aquele ponto. */
-  assert.match(coop,/M\.papelDoToqueSolo\(/);
-  assert.match(coop,/M\.actMaquette/);
-  assert.match(coop,/M\.maquetteViewSolo\(/);
-  /* A vela apaga e reacende no Solo como na Mesa. */
-  assert.match(coop,/type==='reacender'/);
-  assert.match(desk,/MODO SOLO · PERCURSO COMPLETO/);
-  assert.match(desk,/Procurar bilhete sob as gavetas/);
-  assert.match(desk,/Ler e guardar bilhete/);
+  /* O Solo não tem motor próprio: roda o MESMO ac-core.mjs da Mesa numa sala
+     local, com o PARCEIRO AUTOMÁTICO na outra metade (19/09/2026). */
+  assert.match(coop,/ac-core\.mjs/);
+  assert.match(coop,/core\.apply\(room,/);
+  assert.match(coop,/M\.papelDoSolo\(/);
+  /* A vela apaga e o parceiro risca o fósforo. */
+  assert.match(coop,/type:'reacender'/);
+  assert.match(desk,/SOLO · COM PARCEIRO/);
+  assert.doesNotMatch(desk,/Procurar bilhete sob as gavetas/,'o atalho que achava a etiqueta sem procurar voltou');
   assert.match(desk,/iniciar_maquete/);
   assert.match(desk,/location\.replace\('AC-maquete\.html'/);
   assert.match(maquete,/ac-solo-maquete-completa/);
-  /* O recado de conclusão sai quando a descoberta FECHA — pelo botão também,
-     porque em segundo plano o evento close pode não chegar (volta 3). Antes,
-     o Solo tirava a maquete da tela antes de a descoberta ser lida. */
   assert.match(maquete,/on\(\$\('guardar'\), 'click', avisarSoloDaConclusao\)/);
   assert.doesNotMatch(maquete,/showModal\(\); \} catch \(e\) \{\}\s*if \(params\.get\('demo'\) === 'solo'\)/);
-  /* O Solo ARRASTA, como na Mesa, e tenta arrastar a fixa, como na Mesa: as
-     duas pegas. Não existe botão que encaixe sozinho. */
+  /* O Solo ARRASTA a chave, como na Mesa. Não existe botão que encaixe sozinho. */
   assert.ok(!maquete.includes('solo-action'),'o botão de atalho do Solo voltou');
   assert.match(maquete,/\$\('key-grip'\)\.hidden = !podeMoverChave\(\)/);
-  assert.match(maquete,/\$\('lock-grip'\)\.hidden = !\(podeExplorar\(\) && temLadoDaFechadura\(\) && ambosAcharam\(\)\)/);
+  assert.match(maquete,/function guiaDoParceiro\(/,'o parceiro guia a chave pela voz');
   /* As três evidências continuam sendo as mesmas do recibo; quem as define é
      o motor, e o Solo não pode ter uma segunda lista. */
   const motor=readFileSync(new URL('../v1/js/ac-maquete-state.mjs',import.meta.url),'utf8');
@@ -99,5 +101,5 @@ test('percurso solo mantém 3D, RA, escrivaninha e maquete com três chaves',()=
   assert.ok(!coop.includes('passagem-sob-despensa'),'o Solo não pode listar as evidências por conta própria');
   /* A RA da escrivaninha voltou em 18/09/2026; o atalho de ensaio, não. */
   assert.doesNotMatch(escrivaninha, /teste=sala3d/);
-  assert.match(escrivaninha, /id="ar" hidden>Colocar em RA</);
+  assert.match(escrivaninha, /id="ra-entrar"/);
 });

@@ -22,8 +22,15 @@ export function replay(group,events){
    apply(room,e.role,e.event,e.at);
  }return room;
 }
+/* Um recibo por integrante, com o que ELE ganhou em cada tarefa do percurso:
+   a sala (individual), a vela e as chaves (da dupla) e os papéis (individual).
+   Sai sempre — terminado o percurso ou não: o prazo de uma tarefa só zera
+   aquela tarefa (Mario, 18/09/2026). */
 export function receipts(group,events){
- const r=replay(group,events),common={version:1,sala:group.id,runId:group.runId,players:group.players,salaIndividual:r.percurso.salaIndividual||{}};
- return [{...common,kind:'individual',etapas:earnedStages(r)},...(r.maquete?.level===3?[{...common,vela:snapshot(r).bonus,chaves:r.maquete.score,evidence:r.maquete.evidence}]:[])];
+ const r=replay(group,events),common={version:2,sala:group.id,runId:group.runId,players:group.players};
+ return Object.entries(group.players||{}).map(([role,jogador])=>{
+  const e=earnedStages(r,role),sala=r.percurso.salaIndividual?.[role]?.pontos||0;
+  return {...common,kind:'individual',role,jogador,salaEscura:sala,vela:e.vela,chaves:e.chaves,papeis:e.papeis||0,evidence:e.evidence,velaConcluida:e.velaConcluida};
+ });
 }
 export {apply,snapshot};
