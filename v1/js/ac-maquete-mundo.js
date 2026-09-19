@@ -398,6 +398,75 @@
     return feitas;
   }
 
+  /* ---- o penhasco -------------------------------------------------------- */
+
+  /* O penhasco saía alto demais: a casa ficava num pedestal de rocha mais
+     alto que o próprio térreo (Mario, 19/09/2026: "as rochas e penhascos
+     estão muito altos"). A rocha entre o mar e o CORTE (logo abaixo do fundo
+     do porão, 9,84) é achatada por `ALTURA_DO_PENHASCO`; tudo acima do corte
+     — o terreiro, o porão, a casa — só desce junto, sem deformar. Abaixo do
+     mar nada muda: fica dentro da resina. Unidades do editor.
+     Quem mudar o fator TEM de remedir FECHADURAS (ac-maquete-state.mjs): a
+     casa desce e a pegada normalizada muda um pouco. O teste da geometria
+     diz os pontos novos. */
+  var ALTURA_DO_PENHASCO = 0.45; // fração da rocha que fica (1 = original)
+  var CORTE_DO_PENHASCO = 9.5;
+  function baixarPenhasco(cena, fator) {
+    if (!(fator > 0 && fator < 1)) return 0;
+    var mar = NIVEL_DO_MAR, corte = CORTE_DO_PENHASCO, queda = (corte - mar) * (1 - fator);
+    cena.updateMatrixWorld(true);
+    var malhas = [], antes = new Map();
+    cena.traverse(function (o) {
+      if (!o.isMesh || !o.geometry || !o.geometry.attributes.position) return;
+      malhas.push(o); antes.set(o, o.matrixWorld.clone());
+    });
+    /* 1 — o que está inteiro acima do corte só DESCE, como peça: a origem de
+       cada objeto continua no objeto (os alvos e o teste de alcance medem por
+       ela). Descendente de quem já desceu vai junto. */
+    var desceu = new Set(), caixa = new THREE.Box3(), delta = new THREE.Vector3(), m3 = new THREE.Matrix3();
+    function ancestralDesceu(o) { for (var n = o.parent; n; n = n.parent) if (desceu.has(n)) return true; return false; }
+    for (var k = 0; k < malhas.length; k++) {
+      var o = malhas[k];
+      if (!o.geometry.boundingBox) o.geometry.computeBoundingBox();
+      caixa.copy(o.geometry.boundingBox).applyMatrix4(antes.get(o));
+      if (caixa.min.y <= corte) continue;
+      desceu.add(o);
+      if (ancestralDesceu(o)) continue;
+      delta.set(0, -queda, 0);
+      if (o.parent) delta.applyMatrix3(m3.setFromMatrix4(o.parent.matrixWorld).invert());
+      o.position.add(delta); o.updateMatrix(); o.updateMatrixWorld(true);
+    }
+    /* 2 — a rocha que atravessa o corte é deformada vértice a vértice. */
+    var v = new THREE.Vector3(), n = new THREE.Vector3(), inv = new THREE.Matrix4(), nm = new THREE.Matrix3(), nmInv = new THREE.Matrix3();
+    for (k = 0; k < malhas.length; k++) {
+      o = malhas[k];
+      if (desceu.has(o)) continue;
+      var M = antes.get(o), g = o.geometry.clone(), pos = g.attributes.position, nor = g.attributes.normal;
+      inv.copy(o.matrixWorld).invert(); nm.getNormalMatrix(M); nmInv.getNormalMatrix(o.matrixWorld).invert();
+      var mexeu = false;
+      for (var i = 0; i < pos.count; i++) {
+        v.fromBufferAttribute(pos, i).applyMatrix4(M);
+        var achatado = v.y > mar && v.y <= corte;
+        if (v.y > corte) { v.y -= queda; mexeu = true; }
+        else if (achatado) { v.y = mar + (v.y - mar) * fator; mexeu = true; }
+        v.applyMatrix4(inv);
+        pos.setXYZ(i, v.x, v.y, v.z);
+        /* Achatar em y inclina as normais: a rocha tem de continuar recebendo
+           a luz como uma parede, não como um degrau liso. */
+        if (achatado && nor) {
+          n.fromBufferAttribute(nor, i).applyMatrix3(nm);
+          n.y /= fator; n.normalize().applyMatrix3(nmInv).normalize();
+          nor.setXYZ(i, n.x, n.y, n.z);
+        }
+      }
+      if (!mexeu && o.matrixWorld.equals(M)) continue;
+      pos.needsUpdate = true; if (nor) nor.needsUpdate = true;
+      g.computeBoundingBox(); g.computeBoundingSphere();
+      o.geometry = g;
+    }
+    return queda;
+  }
+
   /* ---- a base ------------------------------------------------------------ */
 
   /* A maquete é um penhasco sobre o mar: o fundo do modelo são rochedos e
@@ -464,6 +533,7 @@
   function montar(cena, opcoes) {
     var botoesDoEditor = tirarBotoesDoEditor(cena);
     var realinhadas = realinharCamadas(cena);
+    var quedaDoPenhasco = baixarPenhasco(cena, opcoes.alturaDoPenhasco != null ? opcoes.alturaDoPenhasco : ALTURA_DO_PENHASCO);
     cena.updateMatrixWorld(true);
 
     /* 1 — normalizar para pegada 1, base em y=0, centro em x/z. */
@@ -594,7 +664,8 @@
       escalaOriginal: escala,
       relogio: relogio,
       desenhos: desenhos,
-      botoesDoEditor: botoesDoEditor
+      botoesDoEditor: botoesDoEditor,
+      quedaDoPenhasco: quedaDoPenhasco * escala
     };
   }
 

@@ -33,10 +33,11 @@ const RITMO = globalThis.ACRitmo;
    y=0). Saíram medidas do próprio `casa-da-costa-pisos.glb`; o teste
    `ac-maquete.test.mjs` recalcula as três a partir do arquivo e reprova se
    alguém mexer no modelo sem mexer aqui. */
+/* Remedidas em 19/09/2026, com o penhasco baixado (ac-maquete-mundo.js). */
 export const FECHADURAS = [
-  [0.18040, 0.44614, 0.25196],   // degrau de pedra da porta da frente
-  [-0.28721, 0.67227, -0.03854], // peito da chaminé, no corredor dos quartos
-  [-0.29202, 0.56017, -0.03854]  // peito da chaminé do térreo, na sala escura
+  [0.17836, 0.32582, 0.25301],   // degrau de pedra da porta da frente
+  [-0.29224, 0.55338, -0.03934], // peito da chaminé, no corredor dos quartos
+  [-0.29708, 0.44057, -0.03934]  // peito da chaminé do térreo, na sala escura
 ];
 
 /* Encaixe: distância máxima entre a ponta da chave e a fechadura, na mesma
