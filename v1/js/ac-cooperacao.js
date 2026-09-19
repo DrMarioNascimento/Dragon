@@ -5,60 +5,89 @@
      tinha de ser feita duas vezes — e a segunda vez nunca é feita. */
   var MEU_SRC=(document.currentScript&&document.currentScript.src)||location.href;
   var motorSolo=null;
-  function motor(){return motorSolo||(motorSolo=Promise.all([import(new URL('ac-maquete-state.mjs',MEU_SRC).href),import(new URL('ac-vela.mjs',MEU_SRC).href)]).then(function(m){return Object.assign({},m[0],{vela:m[1]});}));}
+  function motor(){return motorSolo||(motorSolo=Promise.all([import(new URL('ac-core.mjs',MEU_SRC).href),import(new URL('ac-maquete-state.mjs',MEU_SRC).href)]).then(function(m){return Object.assign({},m[1],{core:m[0]});}));}
+
+  /* O PARCEIRO AUTOMÁTICO do Solo (Mario, 18/09/2026: "avalie se não é melhor
+     colocar uma forma de jogo automático só para preencher a vaga — talvez a
+     falta disso esteja embolando tudo"). Estava: o Solo ocupava as duas
+     metades no mesmo aparelho — duas pegas na mesma tela, uma sobre a outra,
+     e uma pessoa fazendo de conta que não sabia o que a outra metade sabia.
+
+     Agora o Solo roda o MESMO motor da Mesa (ac-core.mjs), numa sala local, e
+     a outra metade é do parceiro:
+     · na escrivaninha, quem joga põe a mesa, a vela e procura a etiqueta; o
+       parceiro está com o fósforo — quando a vela apaga, ele risca;
+     · na maquete, quem joga fica com a CHAVE (procura o esconderijo e leva a
+       chave); o parceiro fica com a FECHADURA: acha a dele depois de um
+       tempo, diz onde ela está e guia (a fala do guia é da página, que sabe
+       para onde o jogador olha).
+     O que ele diz chega em `snapshot.parceiro`. */
+  const TEMPO_DA_FECHADURA=[16000,22000,19000]; // quanto o parceiro leva para achar a fechadura de cada camada
+  const FOSFORO_MS=3500;
 
   global.ACCooperation = async function(onState,onStatus,options={}){
     let params=new URLSearchParams(location.search),tokens;
-    // Percurso solo integral: os dois papeis continuam existindo, mas o mesmo
-    // aparelho ocupa os dois. Estado local, sem API e sem cortar 3D/RA.
     if(params.get('demo')==='solo'&&!params.has('sala')){
-      const M=await motor();
+      const M=await motor(),core=M.core;
       const KEY='ac:solo-integral:v1';
       let saved=null;try{saved=JSON.parse(sessionStorage.getItem(KEY)||'null')}catch(_){ }
-      let local=saved&&saved.version===1?saved:{version:1,stage:'posicionar',started:Date.now(),janelaConcluida:false,maquete:null,keyMotion:null,vela:null};
-      /* Checkpoint de antes da maquete por descoberta: sem as metades, ele
-         não serve — recomeça a camada em que estava, com o que já abriu. */
-      if(local.maquete&&typeof local.maquete.lock!=='boolean'){local.maquete=Object.assign(M.startMaquette(),{level:local.maquete.level||0,score:local.maquete.score||0,evidence:(local.maquete.evidence||[]).slice()});}
-      const persist=()=>{try{sessionStorage.setItem(KEY,JSON.stringify(local))}catch(_){ }};
-      /* O papel na escrivaninha: a mesma pessoa põe a vela (luz) e depois
-         procura sob as gavetas (conhecimento). Na maquete ela é os dois ao
-         mesmo tempo — a vista junta as metades, e cada toque vale pelo lado
-         que ainda procura aquele ponto. */
+      const janelaConcluida=!!(saved&&saved.janelaConcluida);
+      const novo=()=>({id:'solo',stage:'posicionar',startedAt:Date.now(),finishedAt:null,beam:null,vela:null,maquete:null,keyMotion:null,papeis:null,velaEsgotada:false,percurso:null});
+      let room=saved&&saved.version===2&&saved.room?Object.assign(novo(),saved.room):novo();
+      room.peers=new Map([['eu',{role:'luz'}],['parceiro',{role:'conhecimento'}]]);
+      let fala=saved&&saved.version===2&&saved.fala||null;
+      const persist=()=>{try{const {peers,beam,keyMotion,...resto}=room;sessionStorage.setItem(KEY,JSON.stringify({version:2,janelaConcluida,room:resto,fala}));}catch(_){ }};
+      persist();
+      const dizer=(texto,tipo)=>{fala={texto,tipo:tipo||'fala',at:Date.now()};persist();};
+      /* O papel de quem joga, pelo que falta fazer. */
       const soloRole=()=>{
-        if(!local.maquete)return ['posicionar','castical'].includes(local.stage)?'luz':'conhecimento';
-        const c=M.CAPITULOS[local.maquete.level];return c?c.chaveiro:'conhecimento';
+        if(!room.maquete)return ['posicionar','castical'].includes(room.stage)?'luz':'conhecimento';
+        return M.papelDoSolo(room.maquete);
       };
-      const snapshot=()=>({stage:local.stage,soloRole:soloRole(),online:['luz','conhecimento'],started:true,elapsed:Math.max(0,(Date.now()-local.started)/1000),bonus:0,
-        beam:['iluminar','encontrado','registrado'].includes(local.stage)?{origin:[.47,.025,.25],target:[.47,.098,.10],age:0}:null,
-        vela:M.vela.vistaDaVela(local.vela,local.stage,Date.now()),keyMotion:local.keyMotion,maquete:M.maquetteViewSolo(local.maquete)});
-      const tick=setInterval(()=>onState(snapshot()),200);
-      setTimeout(()=>{onStatus(true);onState(snapshot());},0);
-      return {role:soloRole(),invite:null,demo:true,close(){clearInterval(tick);},async send(type,extra={}){
-        let ok=false;const now=Date.now();
-        if(type==='iniciar')ok=true;
-        else if(type==='posicionar'&&local.stage==='posicionar'){local.stage='castical';ok=true;}
-        else if(type==='encaixar'&&local.stage==='castical'){local.stage='iluminar';local.vela=M.vela.acenderVela(now);ok=true;}
-        else if(type==='feixe'&&local.stage==='iluminar')ok=true;
-        else if(type==='reacender'&&M.vela.podeReacender(local.vela,local.stage,now)){local.vela=M.vela.acenderVela(now);ok=true;}
-        else if(type==='descobrir'&&local.stage==='iluminar'&&M.vela.velaAcesa(local.vela,local.stage,now)){local.stage='encontrado';ok=true;}
-        else if(type==='registrar'&&local.stage==='encontrado'){local.stage='registrado';ok=true;}
-        else if(type==='iniciar_maquete'&&local.janelaConcluida&&!local.maquete){local.maquete=M.startMaquette();ok=true;}
-        else if(type==='maquete_examinar'&&local.maquete){
-          const quem=M.papelDoToqueSolo(local.maquete,extra.object);
-          ok=!!quem&&M.actMaquette(local.maquete,quem,{type,...extra},now);
-        }
-        else if(type==='maquete_mover'&&local.maquete&&local.maquete.key&&local.maquete.lock){local.keyMotion={tip:extra.tip,age:0};ok=true;}
-        else if(type==='maquete_encaixar'&&local.maquete){
-          /* O encaixe também é conferido no Solo: sem isto o arrasto vira
-             enfeite e a bancada deixaria de medir o que a Mesa mede. */
-          const alvo=M.FECHADURAS[local.maquete.level],m=local.keyMotion;
-          if(alvo&&m&&Array.isArray(m.tip)&&Math.hypot(...m.tip.map((n,i)=>n-alvo[i]))<M.TOLERANCIA){
-            ok=M.actMaquette(local.maquete,soloRole(),{type},now);
-            if(ok)local.keyMotion=null;
+      /* Cada gesto vale pelo papel que o faz na Mesa. */
+      const papelDoGesto=type=>{
+        if(['iniciar','posicionar','encaixar','feixe'].includes(type))return 'luz';
+        if(['descobrir','registrar','reacender'].includes(type))return 'conhecimento';
+        return soloRole();
+      };
+      const snapshot=()=>{
+        const now=Date.now(),v=core.snapshot(room,now,soloRole());
+        v.soloRole=soloRole();v.online=['luz','conhecimento'];v.parceiro=fala;v.solo=true;
+        return v;
+      };
+      /* O relógio do parceiro. */
+      let fosforoEm=null,fechaduraMarcada=null;
+      function parceiro(){
+        const now=Date.now();
+        /* O fósforo: a vela apagou, o parceiro risca. */
+        if(room.stage==='iluminar'&&room.vela&&now>=room.vela.ate){
+          if(fosforoEm===null){fosforoEm=now+FOSFORO_MS;dizer('A vela apagou. Espere — estou riscando um fósforo.');}
+          else if(now>=fosforoEm&&core.apply(room,'conhecimento',{type:'reacender'},now)){fosforoEm=null;dizer('Pronto, acendi de novo. Rápido, antes que apague.');persist();}
+        }else fosforoEm=null;
+        /* A fechadura: o parceiro acha a dele depois de um tempo. */
+        const m=room.maquete;
+        if(m&&m.level<3&&!m.lock){
+          const marca=m.level+':'+m.layerAt;
+          if(fechaduraMarcada!==marca){fechaduraMarcada=marca;dizer(m.level===0?'Estou procurando do meu lado da maquete.':'Nova camada. Vou procurar do meu lado.');}
+          const cap=M.CAPITULOS[m.level],lado=M.papelDaFechadura(cap);
+          if(now-m.layerAt>=TEMPO_DA_FECHADURA[m.level]&&now-(m.lastAttempt?.[lado]||0)>=M.INTERVALO_ENTRE_TOQUES){
+            core.apply(room,lado,{type:'maquete_examinar',object:cap.fechadura},now);
+            if(m.lock){dizer(m.key?'Achei a minha também: '+cap.achado.fechadura:'Achei uma coisa do meu lado: '+cap.achado.fechadura+' E você?','achou');persist();}
           }
         }
-        if(ok)persist();onState(snapshot());return ok;
-      }};
+      }
+      const tick=setInterval(()=>{parceiro();onState(snapshot());},200);
+      setTimeout(()=>{onStatus(true);onState(snapshot());},0);
+      return {role:soloRole(),invite:null,demo:true,parceiro:true,close(){clearInterval(tick);},
+        falar(texto,tipo){dizer(texto,tipo);onState(snapshot());},
+        async send(type,extra={}){
+          const now=Date.now();let ok=false;
+          if(type==='iniciar_maquete'&&!janelaConcluida)ok=false;
+          else ok=core.apply(room,papelDoGesto(type),{type,...extra},now);
+          if(ok&&type!=='feixe'&&type!=='maquete_mover')persist();
+          if(ok&&type==='iniciar_maquete')dizer('Vamos à maquete. Eu fico do outro lado da mesa.');
+          onState(snapshot());return ok;
+        }};
     }
 
     const scenario=window.ACRoom?ACRoom.seed():params.get('cenario');

@@ -277,13 +277,15 @@ test("janelas d'A Casa: nada se cruza, nada fica coberto, nada sai da tela", { s
     await aba.esperar(prontaMesa);
     defeitos.push(...await medir(aba, "escrivaninha · no escuro", ABRIR));
 
-    /* Vela apagada e dossiê: pelo Solo, que guarda o estado na sessão. */
-    const solo = (estado) => "sessionStorage.setItem('ac:solo-integral:v1'," +
-      JSON.stringify(JSON.stringify({ version: 1, started: 1, janelaConcluida: true, maquete: null, keyMotion: null, ...estado })) +
+    /* Vela apagada e dossiê: pelo Solo, que guarda a sala local na sessão.
+       No Solo o fósforo é do PARCEIRO automático: quando a vela apaga, é a
+       fala dele que aparece (19/09/2026). */
+    const solo = (room) => "sessionStorage.setItem('ac:solo-integral:v1'," +
+      JSON.stringify(JSON.stringify({ version: 2, janelaConcluida: true, room: { startedAt: Date.now(), ...room } })) +
       "),location.reload(),true";
     await aba.ir(`${base}/v1/AC-escrivaninha.html?demo=solo`); await aba.esperar(prontaMesa);
     await aba.avaliar(solo({ stage: "iluminar", vela: { ate: 1 } }));
-    await aba.esperar(prontaMesa + "&&!document.getElementById('fosforo').hidden");
+    await aba.esperar(prontaMesa + "&&!document.getElementById('fala-parceiro').hidden");
     defeitos.push(...await medir(aba, "escrivaninha · a vela apagou", ABRIR));
     await aba.avaliar(solo({ stage: "encontrado", vela: { ate: 1 } }));
     await aba.esperar(prontaMesa + "&&document.getElementById('fragment').open");
@@ -321,45 +323,56 @@ test("janelas d'A Casa: nada se cruza, nada fica coberto, nada sai da tela", { s
 
     await aba.fechar();
 
-    /* ---------- com RA (18/09/2026: a RA voltou à escrivaninha e à sala) ----------
+    /* ---------- com RA ----------
        O Chrome sem tela não tem RA; aqui ele FINGE ter. Uma aba finge WebXR
-       (Android), outra finge Quick Look (iPhone). Os botões têm de APARECER e
-       não podem cruzar nada. */
+       (Android); outra finge ser iPhone (a RA vai pela 8th Wall). A porta da
+       RA tem de APARECER e não pode cruzar nada; o 3D só aparece como saída
+       quando a RA falha (Mario, 18/09/2026: "os botões têm que aparecer se não
+       funcionou RA"). */
     const XR = "Object.defineProperty(navigator,'xr',{configurable:true,value:{isSessionSupported:async()=>true,requestSession:async()=>{throw new Error('sem câmera no teste')}}});";
-    const IOS = "Object.defineProperty(navigator,'xr',{configurable:true,value:undefined});const _s=DOMTokenList.prototype.supports;DOMTokenList.prototype.supports=function(t){return t==='ar'||(_s?_s.call(this,t):false);};";
+    const IOS = "Object.defineProperty(navigator,'xr',{configurable:true,value:undefined});";
     const aparece = (sel) => `(()=>{const e=document.querySelector('${sel}');return !!e&&!e.hidden&&e.getBoundingClientRect().width>0;})()`;
     for (const [nome, fingir] of [["WebXR", XR], ["iPhone", IOS]]) {
       const abaRa = await novaAba(cdp);
       await abaRa.run("Page.addScriptToEvaluateOnNewDocument", { source: fingir });
+      if (nome === "iPhone") await abaRa.run("Emulation.setUserAgentOverride", { userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1" });
       await abaRa.tamanho(390, 844);
       const sala2 = await (await fetch(base + "/api/ac/rooms", { method: "POST" })).json();
       desligar.push(await conectarComo(base, sala2.id, "conhecimento", sala2.tokens.conhecimento));
       await abaRa.ir(`${base}/v1/AC-escrivaninha.html?sala=${sala2.id}&papel=luz&chave=${sala2.tokens.luz}`);
       await abaRa.esperar(prontaMesa);
-      const botao = nome === "WebXR" ? "#ar" : "#ar-ios";
-      try { await abaRa.esperar(aparece(botao), 8000); } catch { defeitos.push(`escrivaninha · RA ${nome}: ${botao} não apareceu`); }
-      defeitos.push(...await medir(abaRa, `escrivaninha · RA ${nome}`, ABRIR));
-      /* A RA é opcional: no aparelho que a tem, tocar no chão ainda põe a
-         escrivaninha em 3D (antes só ligava o 3D se a RA falhasse). */
-      await abaRa.tamanho(390, 844);
-      for (const tipo of ["mousePressed", "mouseReleased"])
-        await abaRa.run("Input.dispatchMouseEvent", { type: tipo, x: 195, y: 300, button: "left", clickCount: 1 });
-      try { await abaRa.esperar("window.__escrivaninha.estado().stage==='castical'", 8000); }
-      catch { defeitos.push(`escrivaninha · RA ${nome}: tocar no chão não pôs a escrivaninha (o 3D está desligado?)`); }
+      try { await abaRa.esperar(aparece("#ra-entrar"), 8000); } catch { defeitos.push(`escrivaninha · RA ${nome}: a porta da RA não apareceu`); }
+      if (await abaRa.avaliar(aparece("#ra-tela"))) defeitos.push(`escrivaninha · RA ${nome}: o atalho para a tela apareceu antes de a RA falhar`);
+      defeitos.push(...await medir(abaRa, `escrivaninha · porta da RA ${nome}`));
       if (nome === "WebXR") {
+        /* A RA falhou: aparece "Continuar na tela", e o 3D funciona. */
+        await abaRa.avaliar("document.getElementById('ra-entrar').click(),true");
+        try { await abaRa.esperar(aparece("#ra-tela"), 8000); } catch { defeitos.push("escrivaninha · RA recusada: a saída para a tela não apareceu"); }
+        defeitos.push(...await medir(abaRa, "escrivaninha · RA recusada"));
+        await abaRa.avaliar("document.getElementById('ra-tela').click(),true");
+        await abaRa.esperar("!document.getElementById('portal-ra').open");
+        for (const tipo of ["mousePressed", "mouseReleased"])
+          await abaRa.run("Input.dispatchMouseEvent", { type: tipo, x: 195, y: 300, button: "left", clickCount: 1 });
+        try { await abaRa.esperar("window.__escrivaninha.estado().stage==='castical'", 8000); }
+        catch { defeitos.push("escrivaninha · sem RA: tocar no chão não pôs a escrivaninha"); }
         await abaRa.ir(`${base}/v1/MOSAICO-26-a-sala-as-escuras.html`);
         await abaRa.esperar("!!document.getElementById('b-entrar')");
         try { await abaRa.esperar(aparece("#b-entrar-ra"), 8000); } catch { defeitos.push("sala · RA: Entrar em RA não apareceu"); }
         defeitos.push(...await medir(abaRa, "sala · abertura com RA"));
-        /* Câmera recusada: a porta da RA sai e o botão que sobra avisa. */
         await abaRa.avaliar("document.getElementById('b-entrar-ra').click(),true");
         try { await abaRa.esperar("document.getElementById('b-entrar-ra').hidden&&/A câmera não abriu/.test(document.getElementById('b-entrar').textContent)", 8000); }
         catch { defeitos.push("sala · RA recusada: nada mudou na tela"); }
         defeitos.push(...await medir(abaRa, "sala · RA recusada"));
-        /* Durante a RA a saída aparece no HUD (a sessão de verdade não abre
-           aqui: o estado é o do botão). */
         await abaRa.avaliar("document.getElementById('b-entrar').click(),document.getElementById('b-ra').hidden=false,true");
         defeitos.push(...await medir(abaRa, "sala · durante a RA"));
+      } else {
+        /* A maquete no iPhone: a porta da RA, sem atalho de tela. */
+        const salaM = await (await fetch(base + "/api/ac/rooms?atividade=maquete", { method: "POST" })).json();
+        await abaRa.ir(`${base}/v1/AC-maquete.html?sala=${salaM.id}&papel=luz&chave=${salaM.tokens.luz}`);
+        await abaRa.esperar(prontaMaquete);
+        try { await abaRa.esperar("document.getElementById('portal').open&&" + aparece("#portal-ra"), 8000); } catch { defeitos.push("maquete · RA iPhone: a porta da RA não apareceu"); }
+        if (await abaRa.avaliar(aparece("#portal-mesa"))) defeitos.push("maquete · RA iPhone: o atalho para a tela apareceu antes de a RA falhar");
+        defeitos.push(...await medir(abaRa, "maquete · porta da RA iPhone"));
       }
       await abaRa.fechar();
     }

@@ -3,20 +3,11 @@
    da RA, a imagem da câmera e as pegas. ONDE cada janela mora é assunto de
    `ac-janelas.css` — nenhuma posição de janela é decidida aqui. */
 
-/* ---- a imagem da câmera, atrás de tudo ---- */
-#ac-camera{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2;background:#04100e}
-body.in-ar #scene canvas{background:transparent}
-body.ra-camera,body.ra-webxr{background:transparent}
-
 /* ---- a porta: pôr a maquete no ambiente (diálogo da faixa tela) ---- */
 html[data-ac-casa] #portal{background:linear-gradient(145deg,#18352f,#091b18)}
 html[data-ac-casa] #portal::backdrop{background:linear-gradient(180deg,#04100ecc 0%,#04100e22 60%,#04100e55 100%);backdrop-filter:none}
 #portal h2{color:#f4f1e6}
 #portal p{color:#e7eee6}
-.portal-botoes{display:flex;flex-direction:column;gap:10px}
-.portal-botoes button{width:100%}
-.portal-botoes .portal-principal{background:linear-gradient(#3a6c5c,#1d4438);border-color:#8fc0ac;color:#fffaf0;font-size:15px;min-height:52px}
-.portal-aviso{font:13px/1.45 system-ui;color:#ffe7bd;margin:14px 0 0;min-height:1.45em}
 
 /* ---- painéis ---- */
 #score{font-size:12px;color:#f0dcb4;margin-bottom:0}
@@ -24,7 +15,6 @@ html[data-ac-casa] #portal::backdrop{background:linear-gradient(180deg,#04100ecc
 #object-list{display:grid;gap:10px;margin-bottom:15px}
 #objects #object-list button{width:100%}
 #return-desk{color:#edd4a5;text-decoration:underline}
-.in-ar #alternative{display:block}
 .chapter{text-shadow:0 2px 12px #000,0 1px 3px #000}
 .chapter p{color:#cfdbcd}
 @media(max-width:700px){.chapter h1{font-size:27px;line-height:1.15}.chapter .eyebrow{font-size:8px}}

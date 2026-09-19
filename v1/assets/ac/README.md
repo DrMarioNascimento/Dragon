@@ -53,3 +53,20 @@ mudou na atividade por causa disso:
   qualquer um que volte numa reexportação). O `EXT_materials_bump` das quatro
   texturas de pedra e tábua foi preservado;
 - com o mirante, a maquete normalizada tem 1,32 de altura (antes 1,08).
+
+## Realidade aumentada no iPhone (19/09/2026)
+
+O Safari do iPhone não tem WebXR. A escrivaninha e a maquete usam, nele, o
+**8th Wall Engine** (binário distribuído, `@8thwall/engine-binary@1`, carregado
+de `cdn.jsdelivr.net` só quando a página roda num celular sem WebXR), para o
+rastreamento de superfície (SLAM). No Android o caminho continua sendo o WebXR
+do Chrome. Tudo passa por `v1/js/ac-ra.js` (`ACRA.criar`).
+
+Licença: Copyright © 2026 Niantic Spatial, Inc. Uso sob a XR Engine License
+Agreement (https://github.com/8thwall/engine/blob/main/LICENSE), fornecido sem
+garantias. A atribuição exigida (seção 1.3) está no "Como jogar" das duas
+páginas (`.ac-credito`). Este projeto não é afiliado nem endossado pela
+Niantic Spatial. A licença não permite uso em produto pago cujo valor venha,
+inteira ou substancialmente, do motor — o jogo usa o motor só para apoiar a
+maquete e a escrivaninha na mesa. Para desligar: `window.AC_SEM_SLAM = true`
+antes de `ac-ra.js`; para servir outra cópia do binário: `window.AC_XR8_SRC`.

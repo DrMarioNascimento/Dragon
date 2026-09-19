@@ -309,7 +309,8 @@
       const stack=document.createElement('section');stack.className='ac-panel-stack';stack.setAttribute('aria-label','Investigação e orientações');document.body.append(stack);
       for(const el of [document.getElementById('manuscript'),desk,document.getElementById('coop-status')].filter(Boolean))stack.append(el);
     }
-    portaDaIntro();ancorarCtaDaIntro();
+    portaDaIntro();ancorarCtaDaIntro();legendas();
+    window.addEventListener('load',legendas,{once:true});setTimeout(legendas,1500);
     if(!CASA&&telefone()) document.body.classList.add('ac-cena-livre');
     if(!CASA&&document.getElementById('loading')&&!document.getElementById('loading').hidden)entrarAtividade();
     document.addEventListener('click',function(ev){
@@ -336,7 +337,43 @@
       if(records.some(r=>r.addedNodes.length)){recolherIntroCorpo();decorate();orderPanels();}
     }).observe(document.body,{attributes:true,attributeFilter:['class'],childList:true,subtree:true});
   }
-  window.ACJanelas={entrarAtividade,recolher,abrir,ajuda,vida,aviso,nivel,decorar:decorate,TEMPO_AVISO,TEMPO_PAINEIS};
+  /* A LEGENDA DOS ÍCONES (Mario, 19/09/2026: "ao final de como jogar inclua
+     o que significa os ícones padronizados"). Sai da mesma tabela `types`
+     que pinta as janelas — mudou um ícone, a legenda muda junto. Entra no fim
+     de todo "Como jogar" d'A Casa (dialog#instructions), antes do botão. */
+  const CONTROLES=[['⌄','Chevron (barra do topo): traz de volta as janelas recolhidas.'],['📖','Como jogar: estas instruções.'],['✕','Sair da realidade aumentada (só aparece durante a RA).'],['⏳','Tempo que resta e quanto a tarefa vale agora.'],['💡','Dica: a primeira é sutil; a segunda ajuda mais. Nenhuma entrega a resposta.'],['🤝','No Solo, a fala do seu parceiro automático.']];
+  function legendaHTML(){
+    const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    const janelas=Object.keys(types).map(n=>'<li><span aria-hidden="true">'+types[n][0]+'</span> <b>'+esc(types[n][1])+'</b></li>').join('');
+    const ctrl=CONTROLES.map(c=>'<li><span aria-hidden="true">'+c[0]+'</span> '+esc(c[1])+'</li>').join('');
+    return '<section class="ac-legenda" aria-label="O que significa cada ícone"><h3>O que significa cada ícone</h3><p>Cada janela traz o seu ícone e a sua cor:</p><ul>'+janelas+'</ul><p>E os sinais da tela:</p><ul>'+ctrl+'</ul></section>';
+  }
+  /* A legenda entra no fim de TODO "Como jogar": o dialog#instructions das
+     páginas d'A Casa e a janela de entrada (#intro) das tarefas sensoriais
+     — Janela do Norte, Sala às Escuras, Vidro Embaçado. Na #intro ela vai
+     para o fim do corpo que rola, acima do botão de entrar. */
+  function legendas(){
+    const tmp=()=>{const t=document.createElement('div');t.innerHTML=legendaHTML();return t.firstChild;};
+    document.querySelectorAll('dialog#instructions').forEach(d=>{
+      if(d.querySelector('.ac-legenda'))return;
+      const fim=d.querySelector('[data-ac-fechar],.ac-continuar');
+      d.insertBefore(tmp(),fim||null);
+    });
+    const intro=document.getElementById('intro');
+    if(intro&&intro.tagName!=='DIALOG'){
+      /* Se a página acrescenta conteúdo à intro depois, a legenda é levada
+         de novo para o fim (appendChild/insertBefore movem o nó). */
+      const leg=intro.querySelector('.ac-legenda')||tmp();
+      const corpo=intro.querySelector('#intro-corpo');
+      if(corpo){if(corpo.lastElementChild!==leg)corpo.appendChild(leg);}
+      /* Sem corpo que rola (Vidro Embaçado): a própria intro rola; a
+         legenda fica depois dos botões, para o botão de entrar continuar
+         à vista na primeira tela. */
+      else if(intro.lastElementChild!==leg)intro.appendChild(leg);
+    }
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',legendas,{once:true});else legendas();
+  window.ACJanelas={entrarAtividade,recolher,abrir,ajuda,vida,aviso,nivel,decorar:decorate,legendaHTML,TEMPO_AVISO,TEMPO_PAINEIS};
   window.addEventListener('ac-atividade-iniciada',entrarAtividade);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();

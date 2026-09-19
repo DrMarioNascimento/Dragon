@@ -29,23 +29,25 @@ test('inclinar e virar atuam em elementos separados no cartao real',()=>{
   assert.match(html,/<button type="button"[^>]*aria-controls="card-3d-teste"/);
 });
 
-test('acabamento compartilhado conserva a base da pista e a altura do castical',()=>{
+test('a escrivaninha é a original (com o sextante) e ganha só as folhas sobre o tampo',()=>{
   const paint=new Proxy({}, {get:(o,k)=>o[k]??(()=>{}),set:(o,k,v)=>(o[k]=v,true)});
-  const context=vm.createContext({window:{},document:{currentScript:{src:'http://localhost/v1/js/ac-desk.js'},createElement:()=>({getContext:()=>paint})},URL,console});
+  const context=vm.createContext({window:{},document:{currentScript:{src:'http://localhost/v1/js/ac-desk.js'},createElement:()=>({getContext:()=>paint})},URL,console,Math});
   vm.runInContext(readFileSync(new URL('../v1/js/three.min.js',import.meta.url),'utf8'),context);
   const T=context.THREE;context.window.THREE=T;
   vm.runInContext(readFileSync(new URL('../v1/js/ac-desk.js',import.meta.url),'utf8'),context);
   const root=new T.Group();
-  for(const name of ['Tampo','Madeira','Metal','Gaveta']){const mesh=new T.Mesh(new T.BoxGeometry(.2,.2,.2),new T.MeshStandardMaterial());mesh.name=name;root.add(mesh);}
+  for(const name of ['Tampo','Madeira','Metal','Gaveta','Sextante','Braco']){const mesh=new T.Mesh(new T.BoxGeometry(.2,.2,.2),new T.MeshStandardMaterial());mesh.name=name;root.add(mesh);}
   const pedestal=root.getObjectByName('Madeira'),geometry=pedestal.geometry;
   const drawer=root.getObjectByName('Gaveta');drawer.position.set(.412,.207833,.286);
   context.window.ACDesk.finish(root);root.updateMatrixWorld(true);
   assert.equal(pedestal.geometry,geometry,'base original preservada para a etiqueta');
   assert.deepEqual(Array.from(drawer.position.toArray()),[.412,.207833,.286]);
-  const top=root.getObjectByName('Tampo-arredondado'),box=new T.Box3().setFromObject(top);
-  assert.ok(Math.abs(box.max.y-.765)<.00001,'castical continua apoiado no tampo');
-  assert.ok(Math.abs(box.min.y-.727)<.00001);
-  assert.equal(root.getObjectByName('Metal').visible,false,'puxadores antigos nao se sobrepoem aos novos');
+  /* Mario, 18/09/2026: "a escrivaninha original com o sextante está perfeita". */
+  for(const n of ['Tampo','Metal','Sextante','Braco'])assert.notEqual(root.getObjectByName(n).visible,false,n+' tem de continuar à vista');
+  const folhas=[];root.traverse(o=>{if(/^folha-/.test(o.name))folhas.push(o);});
+  assert.ok(folhas.length>=3,'faltam as folhas de papel sobre o tampo');
+  for(const f of folhas){const b=new T.Box3().setFromObject(f);assert.ok(b.min.y>=.765-1e-6,'a folha '+f.name+' entrou no tampo');
+    assert.ok(b.min.x>-.195||b.max.x<-.313||b.min.z>.032||b.max.z<-.072,'a folha '+f.name+' cobre o sextante');}
 });
 
 test('a planta canonica e os objetos sao compartilhados entre sala e vela',()=>{

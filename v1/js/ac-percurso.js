@@ -18,7 +18,7 @@
   }
   function showScene(name){
     if(current===name)return;current=name;
-    const q=new URLSearchParams(params);q.set('run',run);q.set('embed','1');q.set('cenario',params.get('cenario')||'AC-COSTA');q.set('v','20260918-ra');
+    const q=new URLSearchParams(params);q.set('run',run);q.set('embed','1');q.set('cenario',params.get('cenario')||'AC-COSTA');q.set('v','20260919-ra');
     if(name!=='sala'){q.set('percurso','1');for(const [k,v]of Object.entries(credentials))q.set(k,v);}
     /* Ordem canônica das primeiras atividades (Mesa e Solo):
        1. Janela do Norte (fase inclinacao, fora deste iframe)
@@ -71,7 +71,7 @@
     /* Depois da maquete, a passagem: os papéis rasgados são de cada um, e o
        resumo espera o jogador montar os três e guardar o que juntou. */
     if(s.maquete?.complete&&!papeisMontados()){showScene('papeis');return;}
-    if(s.maquete?.complete){$('points-sala').textContent=(p.salaIndividual?.[credentials.papel]?.pontos??0)+' pontos';$('points-candle').textContent=s.bonus+' pontos';$('points-keys').textContent=s.maquete.score+' pontos';frame.hidden=true;bloquear(null);$('summary').hidden=false;
+    if(s.maquete?.complete){$('points-sala').textContent=(p.salaIndividual?.[credentials.papel]?.pontos??0)+' pontos';$('points-candle').textContent=s.velaEsgotada?'0 pontos · o tempo acabou':s.bonus+' pontos';$('points-keys').textContent=s.maquete.score+' pontos'+(s.maquete.expired?' · o tempo acabou antes da última camada':'');$('points-papeis').textContent=(s.papeis?.[credentials.papel]!==undefined?s.papeis[credentials.papel]+' pontos':'sincronizando…');frame.hidden=true;bloquear(null);$('summary').hidden=false;
       /* A tela de dentro saiu: o chevron não pode ficar com o estado dela. */
       $('help').textContent='⌄';$('help').setAttribute('aria-expanded','true');$('stage').textContent='Investigação concluída';return;}
     showScene(!p.ready.includes(credentials.papel)?'sala':s.maquete?'maquete':'mesa');
@@ -92,11 +92,12 @@
   }
   let pending=[],sending=false,retry=null;
   const pendingKey=key+':pending';
-  try{const saved=JSON.parse(sessionStorage.getItem(pendingKey)||'[]');if(Array.isArray(saved))pending=saved.filter(e=>['sala_progresso','sala_concluida','sala_encerrar'].includes(e.type)).slice(0,12);}catch{}
+  try{const saved=JSON.parse(sessionStorage.getItem(pendingKey)||'[]');if(Array.isArray(saved))pending=saved.filter(e=>['sala_progresso','sala_concluida','sala_encerrar','papeis_concluidos'].includes(e.type)).slice(0,12);}catch{}
   function persistPending(){try{sessionStorage.setItem(pendingKey,JSON.stringify(pending));}catch{}}
   function acknowledged(e,s){const p=s.percurso;if(!p)return false;const role=credentials.papel;
     if(e.type==='sala_progresso')return (p.salaIndividual?.[role]?.pontos||0)>=e.objetos;
     if(e.type==='sala_concluida')return p.ready.includes(role);
+    if(e.type==='papeis_concluidos')return s.papeis&&s.papeis[role]!==undefined;
     return p.salaEncerrada?.includes(role);
   }
   async function flushProgress(){
@@ -161,7 +162,12 @@
     }
     if(e.source!==frame.contentWindow||paused)return;
     if(e.data.mosaico==='ac-maquete-descoberta-vista'){try{sessionStorage.setItem(vistaKey,'1');}catch{}if(state)receive(state);return;}
-    if(e.data.mosaico==='ac-papeis-completo'&&current==='papeis'){try{sessionStorage.setItem(papeisKey,'1');}catch{}if(state)receive(state);return;}
+    if(e.data.mosaico==='ac-papeis-completo'&&current==='papeis'){
+      try{sessionStorage.setItem(papeisKey,'1');}catch{}
+      const pontos=Math.max(0,Math.min(15,Math.round(Number(e.data.pontos)||0)));
+      queueProgress('papeis_concluidos',{pontos});
+      if(state)receive(state);return;
+    }
     if(e.data.mosaico==='ac-sala-progresso'&&current==='sala')queueProgress('sala_progresso',{objetos:e.data.objetos,total:e.data.total});
     if(e.data.mosaico==='tarefa-status')tell(e.data);
     if(e.data.mosaico==='tarefa-ok'&&current==='sala'&&Number(e.data.tempoMs)>0)queueProgress('sala_concluida',{tempoMs:e.data.tempoMs,objetos:e.data.objetosEncontrados,total:e.data.objetosTotal});
@@ -175,7 +181,39 @@
     $('result').textContent='Conclusão enviada à mesa.';
   });
   window.addEventListener('pagehide',()=>{stream?.close();if(retry)clearTimeout(retry);persistPending();});
+  /* MESA DE UM SÓ: o percurso é de dupla, e com um jogador só a Mesa
+     travava na Janela ("esta atividade precisa de dois"). Agora ele joga com
+     o PARCEIRO AUTOMÁTICO do Solo, as mesmas cenas, e os pontos vão para a
+     Mesa junto com a conclusão (pontosAC). */
+  function iniciarSolo(){
+    $('setup').hidden=true;
+    const soloKey=key+':solo',pts={salaEscura:0,vela:0,chaves:0,papeis:0};
+    let etapa='sala';
+    try{const salvo=JSON.parse(sessionStorage.getItem(soloKey)||'null');if(salvo&&salvo.etapa){etapa=salvo.etapa;Object.assign(pts,salvo.pts||{});}}catch{}
+    if(etapa==='sala'){try{sessionStorage.setItem('ac:solo-integral:v1',JSON.stringify({version:1,janelaConcluida:true}));}catch{}}
+    const guardar=()=>{try{sessionStorage.setItem(soloKey,JSON.stringify({etapa,pts}));}catch{}};
+    const cena={sala:'MOSAICO-26-a-sala-as-escuras.html',mesa:'AC-escrivaninha.html',papeis:'AC-papeis.html'};
+    function mostrar(){
+      guardar();
+      if(etapa==='fim'){frame.hidden=true;$('points-sala').textContent=pts.salaEscura+' pontos';$('points-candle').textContent=pts.vela+' pontos';$('points-keys').textContent=pts.chaves+' pontos';$('points-papeis').textContent=pts.papeis+' pontos';$('summary').hidden=false;$('stage').textContent='Investigação concluída';return;}
+      const q=new URLSearchParams({run,embed:'1',cenario:params.get('cenario')||'AC-COSTA',v:'20260919-ra'});
+      if(etapa!=='sala')q.set('demo','solo');
+      current=etapa;frame.src=cena[etapa]+'?'+q;frame.hidden=false;
+      $('stage').textContent={sala:'1 / 4 · A sala às escuras',mesa:'2 / 4 · Sob outra luz · com parceiro',papeis:'4 / 4 · Os papéis da passagem'}[etapa];
+    }
+    window.addEventListener('message',e=>{
+      if(e.origin!==location.origin||!e.data||e.source!==frame.contentWindow)return;
+      const d=e.data;
+      if(d.mosaico==='tarefa-status')tell(d);
+      if(etapa==='sala'&&d.mosaico==='tarefa-ok'){const o=Number(d.objetosEncontrados);pts.salaEscura=Number.isFinite(o)?Math.max(0,Math.min(9,Math.round(o))):0;etapa='mesa';mostrar();}
+      else if(etapa==='mesa'&&(d.mosaico==='ac-solo-maquete-completa'||d.mosaico==='ac-solo-completo')){pts.chaves=Math.max(0,Math.min(24,Math.round(Number(d.score)||0)));pts.vela=Math.max(0,Math.min(30,Math.round(Number(d.vela)||0)));etapa='papeis';mostrar();}
+      else if(etapa==='papeis'&&d.mosaico==='ac-papeis-completo'){pts.papeis=Math.max(0,Math.min(15,Math.round(Number(d.pontos)||0)));etapa='fim';mostrar();}
+    });
+    $('finish').onclick=()=>{if(finished)return;if(parent===window){$('result').textContent='Percurso concluído fora de uma mesa: não altera a pontuação.';return;}finished=true;tell({mosaico:'tarefa-ok',tempoMs:Math.max(1,Math.min(3600000,Date.now()-started)),pontosAC:{...pts}});$('result').textContent='Conclusão enviada à mesa.';};
+    mostrar();
+  }
   attempt(async()=>{
+    if(params.get('solo')==='1'){iniciarSolo();return;}
     if(params.get('auto')==='1'){
       $('create').hidden=true;$('join').hidden=true;$('join-link').hidden=true;
       const response=await (globalThis.ACFetch||fetch)('/api/ac/fragmentos/entrar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({run,roster:JSON.parse(params.get('elenco')),jogador:player})});

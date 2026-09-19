@@ -56,9 +56,10 @@
      21h29, O Vidro é a contagem das xícaras às 22h40, A Sala é a travessia. */
   var HORA   = { janela: "21:29", vidro: "22:40", salaEscura: "21:31" };
   var PAR_CANONICO = { inclinacao: "janela", constelacao: "salaEscura" };
-  /* 15 min: sala, vela, maquete e — desde 18/09/2026 — os três papéis da
-     passagem, que medem de dois a cinco minutos a mais. */
-  var PERCURSO_LIMITE = 900;
+  /* 20 min: sala (50 s), escrivaninha (4 min), maquete (9 min), papéis
+     (4 min) e a folga da dupla entre as cenas — os tempos de cada tarefa
+     moram em ac-ritmo.js. */
+  var PERCURSO_LIMITE = (global.ACRitmo && ACRitmo.percursoMesa) || 1200;
 
   function partidaId() {
     var c = global.CASO;
@@ -83,7 +84,9 @@
 
   function limitePercursoSegundos(doc) {
     var segundos = Number(doc && doc.percursoLimiteSegundos);
-    return (Number.isFinite(segundos) && segundos >= 300 && segundos <= 1800) ? segundos : PERCURSO_LIMITE;
+    /* Mesas abertas antes de 19/09/2026 gravaram 900 s: menos que a soma dos
+       tempos das tarefas. Abaixo do limite atual, vale o limite atual. */
+    return (Number.isFinite(segundos) && segundos >= PERCURSO_LIMITE && segundos <= 1800) ? segundos : PERCURSO_LIMITE;
   }
 
   /* Alinha o documento local ao par canônico. Salas antigas com Vidro na
@@ -134,7 +137,7 @@
     atividades();
     if(doc.percursoAC===1&&atividadeDaFase(tipo)==='salaEscura'){
       var segundos=Number(doc.percursoLimiteSegundos);
-      return (Number.isFinite(segundos)&&segundos>=300&&segundos<=1800?segundos:PERCURSO_LIMITE)*1000;
+      return limitePercursoSegundos(doc)*1000;
     }
     return (Number(cfg[tipo])||180)*1000;
   };
@@ -146,7 +149,7 @@
     if(at==='salaEscura' && global.STATE && STATE.doc && STATE.doc.percursoAC===1){
       var jogador=(STATE.eu&&STATE.eu.id)||'visitante';
       var elenco=STATE.doc.acElencoAtividade;
-      var extra=elenco&&elenco.fase===tipo?'&auto=1&elenco='+encodeURIComponent(JSON.stringify(elenco.jogadores)):'';
+      var extra=elenco&&elenco.fase===tipo?(elenco.solo?'&solo=1':'&auto=1&elenco='+encodeURIComponent(JSON.stringify(elenco.jogadores))):'';
       return Object.assign({},cfg,{titulo:'A investigação da casa',arquivo:'AC-percurso.html?embed=1&jogador='+encodeURIComponent(jogador)+extra});
     }
     return cfg;
@@ -191,7 +194,7 @@
   function alinharRotulos() {
     var c = global.CASO; if (!c) return;
     if(global.CATEGORIAS_APURACAO){
-      var extras=[{id:'salaEscura',curto:'Investigação',titulo:'Individual · sala escura'},{id:'vela',curto:'Vela',titulo:'Cooperação · vela'},{id:'chaves',curto:'Chaves',titulo:'Cooperação · chaves'}];
+      var extras=[{id:'salaEscura',curto:'Investigação',titulo:'Individual · sala escura'},{id:'vela',curto:'Vela',titulo:'Cooperação · vela'},{id:'chaves',curto:'Chaves',titulo:'Cooperação · chaves'},{id:'papeis',curto:'Papéis',titulo:'Individual · papéis da passagem'}];
       extras.forEach(function(e){var i=CATEGORIAS_APURACAO.findIndex(function(x){return x.id===e.id;});if(STATE.doc&&STATE.doc.percursoAC===1){if(i<0)CATEGORIAS_APURACAO.push(e);}else if(i>=0)CATEGORIAS_APURACAO.splice(i,1);});
     }
     ["inclinacao", "constelacao"].forEach(function (fase) {
@@ -227,9 +230,11 @@
     global[item[1]]=async function(){
       if(!STATE.doc||STATE.doc.percursoAC!==1||atividadeDaFase(item[0])!=='salaEscura')return anterior.apply(this,arguments);
       var elenco=STATE.jogadores.map(function(j){return {id:j.id,nome:j.nome};});
-      if(elenco.length<2){avisa('Esta atividade cooperativa precisa de pelo menos dois jogadores. Para testar sozinho, use a demonstração individual.');return;}
-      var FB=await esperarFB(),dados={fase:item[0],acElencoAtividade:{fase:item[0],jogadores:elenco}};dados[item[2]]=Date.now();dados.acElencoAtividade.runId=[STATE.mesa.codigo,'salaEscura',dados[item[2]]].join('-');
-      if(global.ACPrepareGroups&&!/^(localhost|127\.0\.0\.1)$/.test(location.hostname))await ACPrepareGroups(STATE.mesa.codigo,[STATE.mesa.codigo,'salaEscura',dados[item[2]]].join('-'),elenco,item[0],limiteTarefaSensorMs(item[0]));
+      /* Um jogador só: o percurso segue com o parceiro automático (antes a
+         Mesa parava aqui e a automação não tentava de novo — a partida
+         ficava presa na Janela). */
+      var FB=await esperarFB(),dados={fase:item[0],acElencoAtividade:{fase:item[0],jogadores:elenco,solo:elenco.length<2}};dados[item[2]]=Date.now();dados.acElencoAtividade.runId=[STATE.mesa.codigo,'salaEscura',dados[item[2]]].join('-');
+      if(elenco.length>=2&&global.ACPrepareGroups&&!/^(localhost|127\.0\.0\.1)$/.test(location.hostname))await ACPrepareGroups(STATE.mesa.codigo,[STATE.mesa.codigo,'salaEscura',dados[item[2]]].join('-'),elenco,item[0],limiteTarefaSensorMs(item[0]));
       await FB.atualizarMesa(STATE.mesa.codigo,dados);
     };
   });

@@ -10,9 +10,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../v1/css/profundidade-1mais1.css?v=20260907-playtest-ux">
-<link rel="stylesheet" href="mesa-solo.css?v=20260918-ra">
+<link rel="stylesheet" href="mesa-solo.css?v=20260919-ra">
+<script src="../v1/js/ac-ritmo.js?v=20260919-ra"></script>
+<script src="../v1/js/ac-legenda-giro.js?v=20260919-ra"></script>
 <script src="../hipoteses-por-camada.js?v=20260914-mobile-reading"></script>
-<script src="../papel-camada.js?v=20260918-ra"></script>
+<script src="../papel-camada.js?v=20260919-ra"></script>
 </head>
 <body>
 <main id="app"></main>
@@ -37,10 +39,10 @@
   }
   function carregarJogo(){
     var jogo=document.createElement('script');
-    jogo.src='mesa-solo.js?v=20260918-ra';
+    jogo.src='mesa-solo.js?v=20260919-ra';
     jogo.onload=function(){
       var ponte=document.createElement('script');
-      ponte.src='estado-solo.js?v=20260918-ra';
+      ponte.src='estado-solo.js?v=20260919-ra';
       document.body.appendChild(ponte);
     };
     document.body.appendChild(jogo);

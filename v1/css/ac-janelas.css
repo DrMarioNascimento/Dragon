@@ -45,6 +45,11 @@ body #carta-in{max-width:var(--ac-window-width)}
    o chrome + ::before/::after virava um cartão de tela cheia no iframe do
    Solo e empurrava o CTA para fora da dobra. */
 [data-ac-priority]:not(#intro):not(#oito):not(#falha):not(.busca-caixa){position:relative;border-color:var(--ac-accent)!important;border-top:4px solid var(--ac-accent)!important;background:linear-gradient(145deg,#18352f,#091b18)!important;color:#f4f1e6!important;box-shadow:inset 0 1px #ffffff22,0 6px 0 #04110e,0 18px 40px #0006!important;padding-top:var(--ac-cromo)!important}
+/* As camadas de tela inteira continuam presas à tela (19/09/2026): a regra
+   acima as tornava position:relative, e o Arquivo (#pistas), mesmo
+   invisível, ocupava ~400 px no topo da Mesa — no celular o quadro da
+   tarefa sensorial ficava com 2 px de altura. */
+#pistas[data-ac-priority],#portao[data-ac-priority],#master[data-ac-priority],#mestre[data-ac-priority],#dragonRoomGate[data-ac-priority],.partida-pausada[data-ac-priority]{position:fixed!important}
 [data-ac-priority]:not(#intro):not(#oito):not(#falha):not(.busca-caixa)::before{content:attr(data-ac-symbol);display:inline-flex!important;align-items:center;justify-content:center;position:absolute;left:16px;top:calc((var(--ac-cromo) - var(--ac-selo)) / 2);width:var(--ac-selo);height:var(--ac-selo);margin:0!important;border:2px solid var(--ac-accent);border-radius:12px;font:calc(var(--ac-selo) * .66)/1 'Apple Color Emoji','Segoe UI Emoji',sans-serif;flex:none!important}
 [data-ac-priority]:not(#intro):not(#oito):not(#falha):not(.busca-caixa)::after{content:attr(data-ac-title);display:block;position:absolute;top:calc(var(--ac-cromo) / 2 - .65em);left:calc(var(--ac-selo) + 30px);right:16px;color:var(--ac-accent);font:700 clamp(14px,3.8vw,18px)/1.3 system-ui;margin:0;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* HUD da sala: texto informativo, sem interceptar a lanterna/3D. */
@@ -221,3 +226,11 @@ html[data-ac-casa] .gesture-point{z-index:14}
 }
 
 @media(prefers-reduced-motion:reduce){html[data-ac-casa] .ac-panel-stack.ac-pulso>*{animation:none}}
+/* Legenda dos ícones no fim de todo "Como jogar" (também nas tarefas sensoriais). */
+.ac-legenda{margin:18px 0 14px;padding-top:14px;border-top:1px solid #baa06b44}
+.ac-legenda h3{margin:0 0 6px;font:600 15px/1.3 system-ui;color:#f4e6c6}
+.ac-legenda p{font:12px/1.5 system-ui!important;margin:8px 0 4px!important}
+.ac-legenda ul{list-style:none;margin:0;padding:0;display:grid;gap:5px}
+.ac-legenda li{font:13px/1.45 system-ui;color:#dfe7df}
+.ac-legenda li span{display:inline-block;width:1.6em;text-align:center}
+.ac-legenda{text-align:left}

@@ -12,7 +12,8 @@ test('replay converge em tres clientes com eventos fora de ordem e preserva prem
    const explorer=i===1?'conhecimento':'luz',guide=i===1?'luz':'conhecimento';
    add(explorer,{type:'maquete_examinar',object});add(guide,{type:'maquete_examinar',object:CAPITULOS[i].fechadura});add(explorer,{type:'maquete_mover',tip:FECHADURAS[i]});add(explorer,{type:'maquete_encaixar'});
  }
- const result=receipts(group,events);assert.equal(result[1].chaves,24);assert.equal(Object.keys(result[1].salaIndividual).length,3);
+ const result=receipts(group,events);assert.equal(result.length,3,'um recibo por integrante');
+ for(const r of result){assert.equal(r.chaves,24);assert.equal(r.salaEscura,9);assert.ok(r.vela>0);}
  assert.deepEqual(receipts(group,[...events].reverse()),result);
  assert.deepEqual(receipts(group,[...events,{id:'fake',uid:'fora',role:'luz',event:{type:'sala_progresso',objetos:9,total:9},at:999}]),result);
  assert.equal(replay(group,events).maquete.level,3);

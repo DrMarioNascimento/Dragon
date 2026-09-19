@@ -1,44 +1,45 @@
+/* Os pontos do percurso d'A Casa na apuração da Mesa.
+
+   Cada integrante de cada Fragmento tem um recibo (ac-replay.mjs, versão 2)
+   com o que ganhou: sala (0–9), vela (0–30), chaves (0–24) e papéis (0–15).
+   A apuração SOMA — nunca trava. Até 18/09/2026 ela exigia a dupla inteira
+   concluída e os nove objetos da sala, e lançava erro no resto: quem saía da
+   sala pelo prazo com oito objetos travava a Mesa inteira na decisão, e quem
+   não chegava ao fim do percurso perdia os pontos que já tinha ganhado. */
 (function(global){
  'use strict';
- const evidence=['chave-exterior','chave-dos-quartos','passagem-sob-despensa'];
- function validar(r){return r&&r.version===1&&typeof r.sala==='string'&&typeof r.runId==='string'&&Number.isInteger(r.vela)&&r.vela>=0&&r.vela<=30&&Number.isInteger(r.chaves)&&r.chaves>=6&&r.chaves<=24&&JSON.stringify(r.evidence)===JSON.stringify(evidence);}
- function etapasConfirmadas(e){
-   if(!e)return {vela:0,chaves:0};
-   const n=e.evidence?.length;
-   if(typeof e.velaConcluida!=='boolean'||!Number.isInteger(e.vela)||e.vela<0||e.vela>30||(!e.velaConcluida&&e.vela!==0)||!Array.isArray(e.evidence)||n>3||JSON.stringify(e.evidence)!==JSON.stringify(evidence.slice(0,n))||!Number.isInteger(e.chaves)||e.chaves<2*n||e.chaves>8*n||(n>0&&!e.velaConcluida))throw Error('Etapas cooperativas inconsistentes.');
-   return {vela:e.vela,chaves:e.chaves};
- }
- function apurar(tarefas,resultados){
+ const LIMITES={salaEscura:9,vela:30,chaves:24,papeis:15};
+ function inteiro(n,max){n=Number(n);return Number.isFinite(n)?Math.max(0,Math.min(max,Math.round(n))):0;}
+ /* Um recibo que não se sustenta não conta — e não derruba a apuração. */
+ function validar(r){return !!(r&&r.version===2&&r.kind==='individual'&&typeof r.runId==='string'&&typeof r.jogador==='string'&&r.jogador);}
+ function apurar(resultados){
    const out={},seen=new Set();
-   for(const t of [...tarefas].sort((a,b)=>Number(Boolean(b.concluidoEm||b.status==='concluida'))-Number(Boolean(a.concluidoEm||a.status==='concluida')))){
-     if(!t.concluidoEm&&t.status!=='concluida'){
-       const k=t.jogadorId+'|'+t.runId;if(seen.has(k))continue;seen.add(k);
-       const rows=resultados.filter(r=>r.kind==='individual'&&r.runId===t.runId&&Object.values(r.players||{}).includes(t.jogadorId));
-       if(rows.length>1)throw Error('Registro individual ambíguo.');
-       if(rows.length){const r=rows[0],role=Object.keys(r.players).find(k=>r.players[k]===t.jogadorId),p=r.salaIndividual?.[role]?.pontos??0;
-         if(!Number.isInteger(p)||p<0||p>9)throw Error('Registro individual inválido.');
-         out[t.jogadorId]??={vela:0,chaves:0,salaEscura:0};out[t.jogadorId].salaEscura=(out[t.jogadorId].salaEscura||0)+p;const earned=etapasConfirmadas(r.etapas);out[t.jogadorId].vela+=earned.vela;out[t.jogadorId].chaves+=earned.chaves;}
-       continue;
-     }
-     const id=t.jogadorId,run=t.runId,k=id+'|'+run;if(seen.has(k))continue;seen.add(k);
-     const matches=resultados.filter(r=>validar(r)&&r.runId===run&&Object.values(r.players||{}).includes(id));
-     if(matches.length!==1)throw Error('Resultado da dupla ausente ou ambíguo. A apuração não foi encerrada.');
-     const r=matches[0];out[id]??={vela:0,chaves:0};out[id].vela+=r.vela;out[id].chaves+=r.chaves;
-     if(r.salaIndividual&&Object.keys(r.salaIndividual).length){
-       const role=Object.keys(r.players).find(role=>r.players[role]===id),own=r.salaIndividual[role];
-       if(!own||!Number.isInteger(own.pontos)||own.pontos!==9)throw Error('Pontuação individual da sala ausente ou inválida.');
-       out[id].salaEscura=(out[id].salaEscura||0)+own.pontos;
-     }
+   for(const r of resultados||[]){
+     if(!validar(r))continue;
+     const k=r.jogador+'|'+r.runId;if(seen.has(k))continue;seen.add(k);
+     const p=out[r.jogador]??={salaEscura:0,vela:0,chaves:0,papeis:0};
+     for(const [campo,max] of Object.entries(LIMITES))p[campo]+=inteiro(r[campo],max);
    }
    return out;
  }
- async function carregar(tarefas,ativo){
+ /* As rodadas do percurso: as das tarefas gravadas E a que a Mesa abriu
+    (acElencoAtividade.runId) — se ninguém concluiu, a rodada ainda existe e
+    os pontos ganhos nela ainda contam. */
+ async function carregar(tarefas,ativo,runsExtra){
    if(!ativo)return {};
-   const ts=tarefas.filter(t=>String(t.runId||'').includes('-salaEscura-'));
+   const runs=new Set((tarefas||[]).map(t=>String(t.runId||'')).filter(r=>r.includes('-salaEscura-')));
+   for(const r of runsExtra||[])if(r&&String(r).includes('-salaEscura-'))runs.add(String(r));
    const rows=[];
-   for(const run of new Set(ts.map(t=>t.runId))){const r=await (globalThis.ACFetch||fetch)('/api/ac/results?'+new URLSearchParams({run}));if(!r.ok)throw Error('Reconecte o servidor da AC antes de encerrar a apuração.');const data=await r.json();if(!Array.isArray(data))throw Error('Resposta inválida do servidor da AC.');rows.push(...data);const individual=await (globalThis.ACFetch||fetch)('/api/ac/individual?'+new URLSearchParams({run}));if(!individual.ok)throw Error('Reconecte para recuperar os pontos individuais.');const partial=await individual.json();if(!Array.isArray(partial))throw Error('Registro individual inválido.');rows.push(...partial);}
-   return apurar(ts,rows);
+   /* Percurso jogado com o parceiro automático (Mesa de um só): os pontos
+      vêm na própria tarefa. */
+   for(const t of tarefas||[])if(t&&t.pontosAC&&typeof t.jogadorId==='string')rows.push({version:2,kind:'individual',runId:String(t.runId||'solo'),jogador:t.jogadorId,...t.pontosAC});
+   for(const run of runs){
+     const r=await (globalThis.ACFetch||fetch)('/api/ac/individual?'+new URLSearchParams({run}));
+     if(!r.ok)throw Error('Reconecte para recuperar os pontos do percurso.');
+     const data=await r.json();if(Array.isArray(data))rows.push(...data);
+   }
+   return apurar(rows);
  }
- function aplicar(placar,pontos){return placar.map(l=>{const p=pontos[l.id];if(!p)return l;const componentes={...l.componentes,vela:p.vela,chaves:p.chaves,...(p.salaEscura!==undefined?{salaEscura:p.salaEscura}:{})};return {...l,componentes,total:Object.values(componentes).reduce((s,n)=>s+n,0)};}).sort((a,b)=>b.total-a.total||String(a.nome).localeCompare(String(b.nome)));}
- global.ACPontuacao={validar,apurar,carregar,aplicar};
+ function aplicar(placar,pontos){return placar.map(l=>{const p=pontos[l.id];if(!p)return l;const componentes={...l.componentes,salaEscura:p.salaEscura,vela:p.vela,chaves:p.chaves,papeis:p.papeis};return {...l,componentes,total:Object.values(componentes).reduce((s,n)=>s+(Number(n)||0),0)};}).sort((a,b)=>b.total-a.total||String(a.nome).localeCompare(String(b.nome)));}
+ global.ACPontuacao={validar,apurar,carregar,aplicar,LIMITES};
 })(typeof window==='undefined'?globalThis:window);

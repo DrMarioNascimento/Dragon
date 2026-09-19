@@ -150,7 +150,7 @@ describe("Sala às Escuras · a intro no Solo tem saída e CTA visível", () => 
   it("o Solo continua abrindo a sala no iframe 2/4, depois da Janela do Norte", () => {
     assert.match(SOLO, /percursoEtapa==='janela'/);
     assert.match(SOLO, /salaEscura:\{titulo:'A Sala às Escuras'/);
-    assert.match(SOLO, /MOSAICO-26-a-sala-as-escuras\.html\?embed=1&v=20260918-ra/);
+    assert.match(SOLO, /MOSAICO-26-a-sala-as-escuras\.html\?embed=1&v=20260919-ra/);
     assert.doesNotMatch(SOLO, /id="b-entrar-ra"/);
     assert.doesNotMatch(SOLO, /PERCURSO 3D E RA/);
   });

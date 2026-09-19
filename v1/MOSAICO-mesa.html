@@ -1107,6 +1107,8 @@
   body.encenacao-passiva #app{max-width:none;min-height:100dvh;padding:0;display:flex;
     align-items:center;justify-content:center}
   body.encenacao-passiva #btn-pistas{display:none!important}
+  body.encenacao-passiva #app{flex-direction:column;gap:22px;padding:0 16px}
+  body.encenacao-passiva .ac-giro{width:min(440px,100%);margin:0}
   .encenacao-aguarde{position:relative;z-index:2;padding:15px 24px;border:1px solid rgba(230,236,242,.48);
     border-radius:100px;background:rgba(5,7,12,.72);color:#fff;text-align:center;
     font:800 clamp(18px,5vw,27px) var(--sans);letter-spacing:.28em;text-indent:.28em;
@@ -1400,6 +1402,16 @@
   body.fase-sensor:has(.tarefa-frame[src*="AC-percurso.html"]) #app{padding:4px 4px 0;width:100%;box-sizing:border-box}
   body.fase-sensor:has(.tarefa-frame[src*="AC-percurso.html"]) .tarefa-frame{border-radius:10px 10px 0 0}
   body.fase-sensor:has(.tarefa-frame[src*="AC-percurso.html"]) .sensor-play{align-self:stretch;width:100%}
+/* A barra do jogo (Caso · Arquivo · Sala) fica POR CIMA dos painéis de tela
+   cheia do Caso, do Arquivo e da Sala do mestre (z-index 45 contra 42/43).
+   Com o respiro antigo de 18 px, o topo de cada painel — o título e o botão
+   de fechar — nascia debaixo da barra (volta de 19/09/2026, 360×640). O
+   respiro agora é a altura MEDIDA da barra (--barra-topo, atualizada em
+   medirBarraTopo). */
+.caso-fundo,#pistas,.menu-mestre-fundo{padding-top:calc(var(--barra-topo,86px) + 10px)!important}
+.ac-legenda{margin:16px 0;text-align:left}.ac-legenda h3{margin:0 0 6px;font-size:16px}.ac-legenda ul{list-style:none;padding:0;margin:0;display:grid;gap:5px}.ac-legenda li span{display:inline-block;width:1.6em;text-align:center}.ac-legenda p{margin:8px 0 4px;color:var(--muted,#aab)}
+.mosaico-prazo{font:700 15px/1.2 var(--mono,monospace);color:#ffd36a;font-variant-numeric:tabular-nums}
+.mosaico-dica-prazo{margin:10px 0;padding:10px 12px;border-left:3px solid #b18aff;border-radius:8px;background:#211a33;color:#e6dcff;font:600 14px/1.45 system-ui,sans-serif}
 </style>
 
 <!-- O volume dos botoes mora num arquivo so, lido por esta pagina e pelas
@@ -1407,13 +1419,13 @@
      especificidade, quem vem por ultimo vence, e o padrao tem de vencer. -->
 <link rel="stylesheet" href="css/profundidade.css?v=20260902-profundidade">
 <link rel="stylesheet" href="css/profundidade-1mais1.css?v=20260907-playtest-ux">
-<link rel="stylesheet" href="css/ac-janelas.css?v=20260918-ra">
-<script src="js/ac-cloud.js?v=20260918-ra"></script>
+<link rel="stylesheet" href="css/ac-janelas.css?v=20260919-ra">
+<script src="js/ac-cloud.js?v=20260919-ra"></script>
 <!-- A abertura da Mesa (vídeo vertical + voz, um passo de cada vez). Moravam
      pendurados no js/ac-cloud.js, que é o adaptador de nuvem d'A Casa — e por
      isso entravam também na escrivaninha, na maquete e no percurso. -->
-<script defer src="js/abertura-video-casa.js?v=20260918-ra"></script>
-<script defer src="js/mesa-fluxo-abertura.js?v=20260918-ra"></script></head>
+<script defer src="js/abertura-video-casa.js?v=20260919-ra"></script>
+<script defer src="js/mesa-fluxo-abertura.js?v=20260919-ra"></script></head>
 <body>
 <div id="arte">
   <!-- Coloque o video em img/abertura.mp4 e ele assume a abertura sozinho.
@@ -1473,14 +1485,15 @@
      enxerga esta pagina. Dentro desta, o caso e o video releem o mesmo
      valor de window.MOSAICO_VERSAO, que sai da tag do mosaico-v5.js. -->
 <script src="js/three.min.js"></script>
-<script src="js/vendor/GLTFLoader.js"></script><script src="js/ac-desk.js"></script><script src="js/ac-room-layout.js"></script><script src="js/ac-room-art.js"></script><script src="js/ac-room.js"></script><script src="js/mosaico-ra-engine.js?v=20260918-ra"></script>
+<script src="js/vendor/GLTFLoader.js"></script><script src="js/ac-desk.js"></script><script src="js/ac-room-layout.js"></script><script src="js/ac-room-art.js"></script><script src="js/ac-room.js"></script><script src="js/mosaico-ra-engine.js?v=20260919-ra"></script>
 <script src="js/mosaico-3d-engine.js"></script>
-<script src="js/ac-pontuacao.js"></script>
-<script src="js/mosaico-v5.js?v=20260918-ra"></script>
+<script src="js/ac-ritmo.js?v=20260919-ra"></script><script src="js/ac-legenda-giro.js?v=20260919-ra"></script>
+<script src="js/ac-pontuacao.js?v=20260919-ra"></script>
+<script src="js/mosaico-v5.js?v=20260919-ra"></script>
 <script src="../hipoteses-por-camada.js?v=20260906-hpc-pf"></script>
-<script src="../papel-camada.js?v=20260918-ra"></script>
-<script src="js/qr.js?v=20260918-ra"></script>
-<script src="js/casa-firebase-room-bridge.js?v=20260918-ra"></script>
+<script src="../papel-camada.js?v=20260919-ra"></script>
+<script src="js/qr.js?v=20260919-ra"></script>
+<script src="js/casa-firebase-room-bridge.js?v=20260919-ra"></script>
 <script type="module" src="../firebase-room.js?v=20260907-playtest-ux"
         data-project="mesa"
         data-root="mosaico"
@@ -2288,9 +2301,13 @@ function controlesMestreMovel(){
   var fase=(STATE.doc&&STATE.doc.fase)||"sala", js=ordenados(STATE.jogadores), botoes="", autoInfo="";
   var acaoNecessaria=false, todos=false, conduzido=ritmoConduzido(), pausada=partidaPausada();
   function statusOuAcao(prontos,total,titulo,rotulo,acao){
-    if(conduzido&&total>0&&prontos>=total){
+    /* No ritmo conduzido o Mestre avança quando todos concluem — OU quando o
+       prazo da fase acaba: sem isso, um jogador que saiu da mesa prendia a
+       partida inteira (não havia botão nem prazo). */
+    var dAuto=dadosAutomacao(),prazoAcabou=!!(dAuto&&dAuto.inicio&&Date.now()>=dAuto.inicio+dAuto.limite);
+    if(conduzido&&total>0&&(prontos>=total||prazoAcabou)){
       acaoNecessaria=true;
-      botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();'+acao+'()">'+rotulo+'</button>';
+      botoes+='<button class="btn btn-ambar" onclick="alternarMenuMestre();'+acao+'()">'+rotulo+(prontos<total?' · prazo encerrado':'')+'</button>';
     }else{
       autoInfo='<div class="card"><b>'+titulo+'</b><p class="muted">'+prontos+' de '+total+' concluíram. '+
         (conduzido?'A Sala avisará quando for hora de avançar.':'A próxima rodada abrirá automaticamente.')+'</p></div>';
@@ -2387,6 +2404,12 @@ function dadosAutomacao(){
   if(fase==="votacao") return {fase:fase,recebidos:STATE.votos.length,total:STATE.jogadores.length,inicio:STATE.doc.votacaoAbertaMs||0,limite:(cfg.performance||60)*1000,acao:abrirInclinacao};
   if(fase==="inclinacao") return {fase:fase,recebidos:tarefasConcluidas('inclinacao').length,total:STATE.jogadores.length,inicio:STATE.doc.inclinacaoAbertaMs||0,limite:(typeof limiteTarefaSensorMs==="function"?limiteTarefaSensorMs("inclinacao"):(cfg.inclinacao||180)*1000),acao:abrirConstelacao};
   if(fase==="constelacao") return {fase:fase,recebidos:tarefasConcluidas('constelacao').length,total:STATE.jogadores.length,inicio:STATE.doc.constelacaoAbertaMs||0,limite:(typeof limiteTarefaSensorMs==="function"?limiteTarefaSensorMs("constelacao"):(cfg.constelacao||180)*1000),acao:prepararMosaico};
+  /* A noite em ordem e o voto de cooperação também têm prazo (Mario,
+     18/09/2026: "todas as atividades era para ter tempos totais"). Terminar
+     a tempo segue por verificarEtapasColetivas; o prazo segue por aqui, e o
+     Fragmento que não enviou fica sem os pontos do Mosaico. */
+  if(fase==="mosaico"&&STATE.doc.fragmentosLiberados) return {fase:fase,recebidos:0,total:1,inicio:inicioMosaicoMs(),limite:limiteMosaicoMs(),acao:STATE.jogadores.length<=3?abrirMercado:abrirVotoCooperacao,somentePrazo:true};
+  if(fase==="cooperacao") return {fase:fase,recebidos:0,total:1,inicio:STATE.doc.cooperacaoAbertaMs||0,limite:(cfg.cooperacao||60)*1000,acao:abrirMercado,somentePrazo:true};
   if(fase==="mercado") return {fase:fase,recebidos:0,total:1,inicio:STATE.doc.mercadoAbertoMs||0,limite:(cfg.mercado||480)*1000,acao:abrirDeducao,somentePrazo:true};
   if(fase==="deducao") return {fase:fase,recebidos:STATE.v5.deducoes.length,total:STATE.jogadores.length,inicio:STATE.doc.deducaoAbertaMs||0,limite:(cfg.deducao||300)*1000,acao:finalizarPartida};
   return null;
@@ -2454,8 +2477,17 @@ function agendarAutomacoes(){
   var d=dadosAutomacao();
   if(!d){if(_autoTimer)clearTimeout(_autoTimer);_autoTimer=null;_autoTimerChave="";return;}
   verificarAutomacoes();
-  if(!d.inicio||(!d.somentePrazo&&d.recebidos>=d.total)||ritmoConduzido()) return;
+  if(!d.inicio||(!d.somentePrazo&&d.recebidos>=d.total)) return;
   var chave=d.fase+":"+d.inicio;
+  /* Conduzido: não avança sozinho, mas redesenha no fim do prazo para o
+     botão "· prazo encerrado" aparecer na Sala do mestre. */
+  if(ritmoConduzido()){
+    if(_autoTimerChave===chave) return;
+    if(_autoTimer)clearTimeout(_autoTimer);
+    _autoTimerChave=chave;
+    _autoTimer=setTimeout(function(){_autoTimer=null;render();},Math.max(0,d.inicio+d.limite-Date.now())+200);
+    return;
+  }
   if(_autoTimerChave===chave) return;
   if(_autoTimer)clearTimeout(_autoTimer);
   _autoTimerChave=chave;
@@ -2526,6 +2558,14 @@ function painelCasoMovel(){
         '<p>&Agrave;s 21h03, a luz oscilou pela primeira vez. N&atilde;o foi queda. Foi aviso. &Agrave;s 21h07, a porta da sala estava entreaberta e a cortina balan&ccedil;ava com a janela trancada. &Agrave;s 21h12, o cofre com marca recente de dedo na trava.</p>'+
         '<p>&Agrave;s 21h29, a energia caiu por dois minutos e dois segundos. Detetive viu os rastros de lama de dentro para fora sob a mesa lateral. Inventariante viu a press&atilde;o sobreposta no cofre. Jornalista sentiu a respira&ccedil;&atilde;o e a barra da cortina &uacute;mida na fresta. Residente conhecia a passagem atr&aacute;s da cozinha e o forro. Policial ouviu o quarto degrau refor&ccedil;ado com chapa met&aacute;lica. Crian&ccedil;a encontrou o copo excedente no rodap&eacute; da pia.</p>'+
         '<p style="color:#ffd9a0;font-weight:600;border-left:3px solid var(--ambar);padding-left:8px">N&atilde;o havia seis pessoas na Casa da Costa. Havia sete. E a s&eacute;tima n&atilde;o entrou durante a tempestade &mdash; j&aacute; estava dentro antes da primeira batida no port&atilde;o.</p>'+
+      '</div>'+
+    '</details>'+
+    '<details class="card m3d-tilt-box" style="margin-top:8px">'+
+      '<summary style="cursor:pointer;font-weight:700;color:var(--frio)">&#9432; Como jogar &middot; siglas e &iacute;cones</summary>'+
+      '<div style="margin-top:10px;font-size:13px;line-height:1.45;display:grid;gap:8px">'+
+        '<div><b>Siglas:</b> JxJ jogador contra jogador &middot; JcJ jogador com jogador (dupla ou Fragmento) &middot; J individual &middot; JxC jogadores contra o caso.</div>'+
+        '<div><b>Tempo e dicas:</b> toda tarefa tem tempo total (⏳). Duas dicas chegam no caminho (💡): a primeira sutil, a segunda ajuda mais. Esgotou o tempo, a tarefa n&atilde;o pontua &mdash; e o jogo segue.</div>'+
+        (window.ACJanelas&&ACJanelas.legendaHTML?ACJanelas.legendaHTML():'')+
       '</div>'+
     '</details>'+
     '</div></div>':'';
@@ -2754,6 +2794,11 @@ function render(forcar){
     h=cabecalhoRodada((STATE.doc&&STATE.doc.fase)||"sala","rodada-celular topo-jogo")+h;
     if(modoAtual()==="sem-telao") h+=muralColetivoMovel();
   }
+  /* O giro dos ícones (19/09/2026): da sala de espera em diante, um ícone
+     por vez. Fica de fora: a apuração e o pódio (resultado/encerrada), a vez
+     de quem está encenando, e o quadro de uma tarefa em andamento — lá a
+     legenda está no "Como jogar" da própria tarefa. */
+  if(giroNaTela(h,encenacaoPassiva)) h+=ACGiro.html();
   if(STATE.eu&&!encenacaoPassiva) h+=painelCasoMovel();
   /* O MESTRE NUNCA FICA SEM CONTROLE DEPOIS QUE A PARTIDA COMEÇA.
      A condição antiga dava controles no painel SÓ no resultado, e só a partir
@@ -2989,6 +3034,9 @@ function modalOrientacaoParticipante(){
       '<div class="orientacao-item"><b>Mercado de pistas</b><span>Compre e venda pistas. O pre&ccedil;o e a import&acirc;ncia real delas influenciam o resultado.</span></div>'+
       '<div class="orientacao-item"><b>Jogadores contra o caso</b><span>Use as evid&ecirc;ncias reunidas para montar e enviar sua acusa&ccedil;&atilde;o final.</span></div>'+
     '</div>'+
+    '<div class="orientacao-item"><b>Siglas das tarefas</b><span>JxJ: jogador contra jogador &middot; JcJ: jogador com jogador (em dupla ou Fragmento) &middot; J: individual, sem disputa direta &middot; JxC: jogadores contra o caso.</span></div>'+
+    '<div class="orientacao-item"><b>Tempo e dicas</b><span>Toda tarefa tem tempo total (⏳). Duas dicas chegam no caminho (💡): a primeira sutil, a segunda ajuda mais. Esgotou o tempo, a tarefa n&atilde;o pontua &mdash; e o jogo segue.</span></div>'+
+    (window.ACJanelas&&ACJanelas.legendaHTML?ACJanelas.legendaHTML():'')+
     '<button class="btn btn-ambar" onclick="fecharOrientacaoParticipante()">Entendi &middot; entrar no jogo</button>'+
     '</div></div>';
 }
@@ -3273,6 +3321,16 @@ function telaEsperando(){
     '<div class="contagem-prontos">'+contaProntos()+' de '+js.length+' prontos</div>';
 }
 
+var TELAS_COM_GIRO={esperando:1,encenacao:1,revelacao:1,votacao:1,constelacao:1,inclinacao:1,mosaico:1,cooperacao:1,mercado:1,deducao:1};
+function giroNaTela(h,encenacaoPassiva){
+  if(!window.ACGiro||!STATE.eu) return false;
+  /* O mestre no celular espera no painel da sala (sem telão): lá também. */
+  var lobbyDoMestre=STATE.tela==="painel"&&((STATE.doc&&STATE.doc.fase)||"sala")==="sala"&&modoAtual()==="sem-telao";
+  if(!TELAS_COM_GIRO[STATE.tela]&&!lobbyDoMestre) return false;
+  if(/<iframe/i.test(h)) return false;
+  if(STATE.tela==="encenacao"&&!encenacaoPassiva&&!precisaElencoAntesEncenacao()) return false;
+  return true;
+}
 function telaEncenacao(){
   if(precisaElencoAntesEncenacao()) return telaElencoIntro();
   if(introducaoEncenacaoPendente()){
@@ -3746,6 +3804,45 @@ function tempoFragmentoMs(){
   var agora=STATE.doc&&STATE.doc.pausada?(Number(STATE.doc.pausaIniciadaMs)||Date.now()):Date.now();
   return Math.max(0,(fim||agora)-inicio);
 }
+/* ── O PRAZO DA NOITE EM ORDEM (ac-ritmo.js) ─────────────────────────
+   Conta desde que os Fragmentos são liberados. Aos 90 s chega uma dica
+   (quantos horários já estão certos e onde o apagão divide a noite); aos
+   160 s, a segunda (QUAIS horários estão certos). Nenhuma entrega a
+   resposta. No fim do prazo a Mesa segue, e o Fragmento que não enviou
+   fica sem os pontos do Mosaico. */
+function inicioMosaicoMs(){return Number(STATE.doc&&(STATE.doc.fragmentosLiberadosMs||STATE.doc.mosaicoAbertoMs))||0;}
+function limiteMosaicoMs(){return ((window.ACRitmo&&ACRitmo.mosaico.total)||240)*1000;}
+function restanteMosaicoMs(){
+  var i=inicioMosaicoMs();if(!i)return limiteMosaicoMs();
+  var agora=STATE.doc&&STATE.doc.pausada?(Number(STATE.doc.pausaIniciadaMs)||Date.now()):Date.now();
+  return Math.max(0,i+limiteMosaicoMs()-agora);
+}
+function dicaMosaicoMesaTexto(){
+  var n=documentoMeuFragmento();if(!n||nucleoJaEnviado(n)||!window.ACRitmo)return '';
+  var decorrido=(limiteMosaicoMs()-restanteMosaicoMs())/1000,nivel=ACRitmo.nivelDaDica(decorrido,ACRitmo.mosaico.dicas);
+  if(!nivel)return '';
+  var r=n.rascunho||{},correta=(CASO.mosaico&&CASO.mosaico.ordemCorreta)||[],dicas=dicasMosaico(),certos=[];
+  for(var i=0;i<correta.length;i++)if(r[String(i)]===correta[i]&&dicas[i])certos.push(dicas[i].hora);
+  if(nivel===1)return '💡 Dica: '+certos.length+' de '+correta.length+' horários já estão com a pista certa. O apagão divide a noite — o que aconteceu no escuro fica entre 21h29 e 21h31.';
+  return '💡 Dica 2: '+(certos.length?'estão certos '+certos.join(', ')+'. Revejam só os outros.':'nenhum horário está certo ainda. Comecem pelo apagão, às 21h29.');
+}
+function prazoMosaicoHTML(){
+  return '<span class="mosaico-prazo" data-prazo-mosaico>⏳ '+formatarCronometroFragmento(restanteMosaicoMs())+'</span>';
+}
+function atualizarPrazoMosaico(){
+  if(!STATE.doc||STATE.doc.fase!=='mosaico')return;
+  document.querySelectorAll('[data-prazo-mosaico]').forEach(function(el){el.textContent='⏳ '+formatarCronometroFragmento(restanteMosaicoMs());});
+  var t=dicaMosaicoMesaTexto();
+  document.querySelectorAll('[data-dica-mosaico]').forEach(function(el){if(el.textContent!==t){el.textContent=t;el.hidden=!t;}});
+}
+setInterval(atualizarPrazoMosaico,1000);
+function medirBarraTopo(){
+  var b=document.querySelector('.barra-jogo');
+  var r=b&&getComputedStyle(b).display!=='none'?b.getBoundingClientRect():null;
+  var alto=r&&r.height&&r.top<120?Math.ceil(r.bottom):0;
+  document.documentElement.style.setProperty('--barra-topo',(alto||18)+'px');
+}
+setInterval(medirBarraTopo,500);addEventListener('resize',medirBarraTopo);
 function cronometroFragmentoHTML(){
   return '<span class="fragmento-cronometro" data-cronometro-fragmento>'+formatarCronometroFragmento(tempoFragmentoMs())+'</span>';
 }
@@ -3916,7 +4013,8 @@ function telaMosaico(){
     return '<div class="mosaico-tarefa"><div class="mosaico-tarefa-topo"><span class="fragmento-nome">'+esc(fragmento.nome)+'</span>'+cronometroFragmentoHTML()+'</div><div class="fragmento-confirmado"><b>MOSAICO CONCLU&Iacute;DO &#10003;</b><span>'+mensagem+'</span></div></div>';
   }
   var dicas=dicasMosaico(), rascunho=(n&&n.rascunho)||{};
-  var topo='<div class="mosaico-tarefa-topo"><span class="fragmento-nome">'+esc(fragmento.nome)+'</span>'+cronometroFragmentoHTML()+'<span class="cronometro-legenda">O tempo continua contando</span></div>';
+  var dicaTxt=dicaMosaicoMesaTexto();
+  var topo='<div class="mosaico-tarefa-topo"><span class="fragmento-nome">'+esc(fragmento.nome)+'</span>'+prazoMosaicoHTML()+'<span class="cronometro-legenda">Tempo total do Mosaico: 4 min. Depois disso, a resposta não pontua.</span></div><div class="mosaico-dica-prazo" data-dica-mosaico'+(dicaTxt?'':' hidden')+'>'+esc(dicaTxt)+'</div>';
   var voto=pedidoEnvioAtivo()?htmlVotoEnvioModal():'';
   var preenchidos=chavesRespostaMosaico(rascunho).filter(function(k){return !!rascunho[k];}).length;
   var tabuleiro3D=(typeof Mosaico3D !== "undefined" && Mosaico3D.htmlTabuleiroMosaico)
@@ -4582,7 +4680,7 @@ async function abrirInclinacao(){
    assumir que da para confiar nele. Se algum dia o tempo das tarefas
    entrar na pontuacao, ele tera de vir de serverTimestamp nas duas pontas,
    na abertura e na conclusao.                                          */
-async function concluirTarefaSensor(tipo,tempoMs,runId){
+async function concluirTarefaSensor(tipo,tempoMs,runId,pontosAC){
   if(!STATE.eu||!STATE.doc||STATE.doc.pausada||STATE.doc.fase!==tipo) return;
   var esperado=execucaoTarefaSensor(tipo).runId;
   tempoMs=Number(tempoMs);
@@ -4605,7 +4703,11 @@ async function concluirTarefaSensor(tipo,tempoMs,runId){
   }
   /* O registro que pode disparar o avanço vem por último: assim o
      fragmento já está no Arquivo quando a rodada termina. */
-  await FB.gravarServidor(STATE.eu.codigo,"tarefas",id,{tarefa:tipo,jogadorId:STATE.eu.id,runId:esperado},"concluidoEm");
+  /* Percurso jogado com o parceiro automático (Mesa de um só): os pontos
+     de cada tarefa vêm junto e a apuração os lê daqui (ac-pontuacao.js). */
+  var dados={tarefa:tipo,jogadorId:STATE.eu.id,runId:esperado};
+  if(pontosAC&&typeof pontosAC==='object'){var pa={};[['salaEscura',9],['vela',30],['chaves',24],['papeis',15]].forEach(function(c){var n=Math.round(Number(pontosAC[c[0]])||0);pa[c[0]]=Math.max(0,Math.min(c[1],n));});dados.pontosAC=pa;}
+  await FB.gravarServidor(STATE.eu.codigo,"tarefas",id,dados,"concluidoEm");
 }
 window.addEventListener('message',function(event){
   if(event.origin!==location.origin||!event.data) return;
@@ -4618,7 +4720,7 @@ window.addEventListener('message',function(event){
   if(tipo!=='constelacao'&&tipo!=='inclinacao') return;
   var frame=document.querySelector('iframe.tarefa-frame[data-tarefa="'+tipo+'"]');
   if(!frame||event.source!==frame.contentWindow) return;
-  concluirTarefaSensor(tipo,event.data.tempoMs,event.data.runId).catch(function(e){console.error('concluir tarefa',e);});
+  concluirTarefaSensor(tipo,event.data.tempoMs,event.data.runId,event.data.pontosAC).catch(function(e){console.error('concluir tarefa',e);});
 });
 
 async function prepararMosaico(){
@@ -4757,7 +4859,7 @@ function tentarFecharEnvioFragmento(){
   if(!acordoEnvioUnanime()||nucleoJaEnviado()) return;
   finalizarEnvioFragmento().catch(function(e){console.error(e);});
 }
-async function abrirVotoCooperacao(){ var FB=await esperarFB(); await FB.atualizarMesa(STATE.mesa.codigo,{fase:'cooperacao'}); }
+async function abrirVotoCooperacao(){ var FB=await esperarFB(); await FB.atualizarMesa(STATE.mesa.codigo,{fase:'cooperacao',cooperacaoAbertaMs:Date.now()}); }
 async function votarCooperacao(paraId){
   var eu=meuJogador(), alvo=STATE.jogadores.find(function(j){return j.id===paraId;});
   if(!eu||!alvo||alvo.id===eu.id||alvo.nucleo!==eu.nucleo) return;
@@ -5468,5 +5570,5 @@ if(CONFIGURADO) window.MosaicoFB = {
 window.dispatchEvent(new Event("mosaicofb-ready"));
 console.log("MosaicoFB ready");
 </script>
-<script src="js/ac-janelas.js?v=20260918-ra"></script></body>
+<script src="js/ac-janelas.js?v=20260919-ra"></script></body>
 </html>

@@ -538,7 +538,8 @@ test('AC Firestore: trio percorre nove objetos, vela e tres chaves com resultado
  }
  const results=[];for(const db of Object.values(clients)){const s=await getDocs(collection(db,...path,'eventos'));results.push(receipts(g,s.docs.map(d=>({...d.data(),id:d.id,at:d.data().at.toMillis()}))));}
  const assert=(await import('node:assert/strict')).default;
- assert.deepEqual(results[0],results[1]);assert.deepEqual(results[1],results[2]);assert.equal(results[0][1].chaves,24);assert.equal(results[0][1].salaIndividual.apoio.pontos,9);
+ assert.deepEqual(results[0],results[1]);assert.deepEqual(results[1],results[2]);/* Recibo v2: um por integrante, com a sala individual em salaEscura. */
+ const porPapel=Object.fromEntries(results[0].map(r=>[r.role,r]));assert.deepEqual(Object.keys(porPapel).sort(),['apoio','conhecimento','luz']);assert.equal(porPapel.luz.chaves,24);assert.equal(porPapel.conhecimento.chaves,24);assert.equal(porPapel.apoio.salaEscura,9);
 });
 
 
@@ -561,6 +562,6 @@ test('AC adaptador Firebase executa entrada e progresso sem API Node',async()=>{
   const sent=await m.request('/api/ac/action?'+q,{body:JSON.stringify({type:'sala_progresso',objetos:5,total:9})});assert.equal(sent.status,200);
   const state=await(await m.request('/api/ac/state?'+q)).json();assert.equal(state.percurso.salaIndividual[c.papel].pontos,5);
   const wrong=new URLSearchParams(q);wrong.set('papel',c.papel==='luz'?'conhecimento':'luz');assert.equal((await m.request('/api/ac/state?'+wrong)).status,403);
-  select(master,MESTRE);const rows=await(await m.request('/api/ac/individual?run=adapter-run')).json();assert.equal(rows[0].salaIndividual[c.papel].pontos,5);
+  select(master,MESTRE);const rows=await(await m.request('/api/ac/individual?run=adapter-run')).json();assert.equal(rows.find(r=>r.role===c.papel).salaEscura,5);
  }finally{globalThis.window=previousWindow;globalThis.location=previousLocation;}
 });

@@ -3,7 +3,7 @@ import {readFileSync,mkdirSync,openSync,writeFileSync,fsyncSync,closeSync,rename
 import {dirname} from 'node:path';
 export const ROOM_RETENTION=7*24*3600000;
 export function roomRecord(room){
- return {percurso:room.percurso?structuredClone(room.percurso):null,id:room.id,tokens:{...room.tokens},stage:room.stage,startedAt:room.startedAt,finishedAt:room.finishedAt,createdAt:room.createdAt,updatedAt:room.updatedAt??room.createdAt,maquete:room.maquete?structuredClone(room.maquete):null,vela:room.vela?{ate:room.vela.ate}:null};
+ return {percurso:room.percurso?structuredClone(room.percurso):null,id:room.id,tokens:{...room.tokens},stage:room.stage,startedAt:room.startedAt,finishedAt:room.finishedAt,createdAt:room.createdAt,updatedAt:room.updatedAt??room.createdAt,maquete:room.maquete?structuredClone(room.maquete):null,vela:room.vela?{ate:room.vela.ate}:null,papeis:room.papeis?structuredClone(room.papeis):null,velaEsgotada:!!room.velaEsgotada};
 }
 function valid(r){
  const stamp=n=>n===null||(Number.isFinite(n)&&n>=0),hex=(v,n)=>typeof v==='string'&&new RegExp('^[a-f0-9]{'+n+'}$').test(v);

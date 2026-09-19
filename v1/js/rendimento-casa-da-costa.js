@@ -84,11 +84,11 @@
 
   /* ── A chegada: fragmentos por colocação ───────────────────────────── */
   var concluirBase = global.concluirTarefaSensor;
-  global.concluirTarefaSensor = async function (tipo, tempoMs, runId) {
+  global.concluirTarefaSensor = async function (tipo, tempoMs, runId, pontosAC) {
     var jaTinha = (STATE.v5.tarefas || []).filter(function (t) {
       return t.tarefa === tipo && tarefaConcluida(t);
     }).length;
-    await concluirBase(tipo, tempoMs, runId);
+    await concluirBase(tipo, tempoMs, runId, pontosAC);
     try { await premiar(tipo, jaTinha + 1); }
     catch (e) { console.error("lote da tarefa", e); }
   };

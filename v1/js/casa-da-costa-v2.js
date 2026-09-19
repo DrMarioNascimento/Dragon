@@ -21,7 +21,7 @@
     c.tarefas=c.tarefas||{};
     c.tarefas.inclinacao=Object.assign({titulo:"A Janela do Norte",arquivo:"MOSAICO-26-a-janela-do-norte.html?embed=1"},c.tarefas.inclinacao||{});
     c.tarefas.constelacao=Object.assign({titulo:"O Vidro Embaçado",arquivo:"MOSAICO-26-vidro-embacado.html?embed=1"},c.tarefas.constelacao||{});
-    c.tarefas.salaEscura=Object.assign({titulo:"A Sala às Escuras",arquivo:"MOSAICO-26-a-sala-as-escuras.html?embed=1&v=20260918-ra"},c.tarefas.salaEscura||{});
+    c.tarefas.salaEscura=Object.assign({titulo:"A Sala às Escuras",arquivo:"MOSAICO-26-a-sala-as-escuras.html?embed=1&v=20260919-ra"},c.tarefas.salaEscura||{});
     CASO=c;
     PERSONAGENS=c.elenco||PERSONAGENS;
     ROTEIRO=c.roteiros||ROTEIRO;
@@ -178,7 +178,7 @@
     if(STATE.jogadores.length<=3){var inicio=Number(STATE.doc&&STATE.doc.mosaicoAbertoMs)||0,dur=concluidos.length&&inicio?Math.max(0,msNucleo(concluidos[0])-inicio):Infinity,bonus=dur<=150000?2:dur<=300000?1:0,pontosAbs=Math.min(20,(concluidos[0]?acertosMosaico(concluidos[0]):0)*3+bonus);STATE.jogadores.forEach(function(j){coletivo[j.id]=pontosAbs;});}
     else STATE.jogadores.forEach(function(j){var pos=concluidos.findIndex(function(n){return Number(n.id)===Number(j.nucleo);});coletivo[j.id]=pos<0?0:(escala[pos]==null?4:escala[pos]);});
     var negociacoes=STATE.v5.negociacoes.map(function(n){var pistaObj=Object.keys(CASO.pistas||{}).map(function(k){return CASO.pistas[k];}).find(function(x){return x.id===n.pistaId;});return Object.assign({},n,{qualidade:(pistaObj&&pistaObj.qualidade)||'mediana'});});
-    var pontosPercurso=await ACPontuacao.carregar(STATE.v5.tarefas||[],STATE.doc&&STATE.doc.percursoAC===1);
+    var pontosPercurso=await ACPontuacao.carregar(STATE.v5.tarefas||[],STATE.doc&&STATE.doc.percursoAC===1,[STATE.doc&&STATE.doc.acElencoAtividade&&STATE.doc.acElencoAtividade.runId]);
     var placar=MosaicoV5.calcular({jogadores:STATE.jogadores,deducoes:deducoes,negociacoes:negociacoes,coopColetiva:coletivo,coopIndividual:coopInd,performance:perf});
     placar=ACPontuacao.aplicar(placar,pontosPercurso);
     /* Aplique o placar no STATE local ANTES de publicar a fase resultado.
