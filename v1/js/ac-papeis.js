@@ -406,7 +406,7 @@
   }
   function resolver(){
     if(atual.feito)return;atual.feito=true;tempos[etapa]=Date.now()-atual.inicio;
-    pontos[etapa]=esgotado?0:RITMO.pontos('papeis',tempos[etapa]/1000,Infinity);
+pontos[etapa]=esgotado||Date.now()-inicio>=RITMO.papeis.total*1000?0:RITMO.pontos('papeis',tempos[etapa]/1000);
     mesa.classList.add('montado');setTimeout(()=>mesa.classList.remove('montado'),900);
     const depois=ETAPAS[etapa].depois();
     if(!esgotado)depois[2]=depois[2]+' ('+pontos[etapa]+' pontos)';
