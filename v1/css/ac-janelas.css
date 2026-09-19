@@ -226,3 +226,11 @@ html[data-ac-casa] .gesture-point{z-index:14}
 }
 
 @media(prefers-reduced-motion:reduce){html[data-ac-casa] .ac-panel-stack.ac-pulso>*{animation:none}}
+/* Legenda dos ícones no fim de todo "Como jogar" (também nas tarefas sensoriais). */
+.ac-legenda{margin:18px 0 14px;padding-top:14px;border-top:1px solid #baa06b44}
+.ac-legenda h3{margin:0 0 6px;font:600 15px/1.3 system-ui;color:#f4e6c6}
+.ac-legenda p{font:12px/1.5 system-ui!important;margin:8px 0 4px!important}
+.ac-legenda ul{list-style:none;margin:0;padding:0;display:grid;gap:5px}
+.ac-legenda li{font:13px/1.45 system-ui;color:#dfe7df}
+.ac-legenda li span{display:inline-block;width:1.6em;text-align:center}
+.ac-legenda{text-align:left}
