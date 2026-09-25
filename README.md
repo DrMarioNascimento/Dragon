@@ -306,6 +306,12 @@ Esta estória ainda não possui pasta ou experiência jogável publicada. Sua im
 
 Antes de mudar regra, narrativa ou pontuação: consultar este README, `HANDOFF.md` e o histórico Git. Ao criar uma nova perspectiva, preservar a realidade factual e redefinir a pergunta antes de definir campos ou atividades.
 
+## Modo · Papel · Camada
+
+Fluxo: hub → caso → **Celular / Telão / Solo**. Em Celular e Solo, cada aparelho escolhe **papel cognitivo** + **camada** (Livre / Assistida / Guiada). Implementação: `papel-camada.js` — ver `MOSAICO-ACESSIBILIDADE-PAPEIS.md` §14.
+
+**Hipóteses por camada:** mesmas chaves de hipótese/decisão em Livre · Assistida · Guiada; a camada só muda o andaime (`hipoteses-por-camada.js` + §14.1–14.2). Assistida/Guiada persistem A/B/C, favor/contra e “não examinada”; o placar mostra métricas de **processo** (sem spoiler). Sem probabilidades nem ranking de solução.
+
 ## Licença e uso
 
 Repositório público para consulta e GitHub Pages — **não é código aberto**. A visibilidade não autoriza copiar, adaptar, redistribuir, comercializar, treinar IA ou criar obra derivada. Ver [Licença Proprietária](LICENSE.md).
@@ -313,8 +319,3 @@ Repositório público para consulta e GitHub Pages — **não é código aberto*
 ---
 
 **Prof. Mário César Nascimento, PhD ©**
-### Modo · Papel · Camada
-
-Fluxo: hub → caso → **Celular / Telão / Solo**. Em Celular e Solo, cada aparelho escolhe **papel cognitivo** + **camada** (Livre / Assistida / Guiada). Implementação: `papel-camada.js` — ver `MOSAICO-ACESSIBILIDADE-PAPEIS.md` §14.
-
-**Hipóteses por camada:** mesmas chaves de hipótese/decisão em Livre · Assistida · Guiada; a camada só muda o andaime (`hipoteses-por-camada.js` + §14.1–14.2). Assistida/Guiada persistem A/B/C, favor/contra e “não examinada”; o placar mostra métricas de **processo** (sem spoiler). Sem probabilidades nem ranking de solução.
