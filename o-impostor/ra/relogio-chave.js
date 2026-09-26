@@ -18,7 +18,7 @@
     vista: { alvo: [0, 0.78, 0], dist: 2.5, distRetrato: 3.6 },
     alturaDoAparelho: 1.35, miraEscala: 3,
     textoMira: 'Aponte para o chão, onde o relógio ficaria, e toque em Pôr aqui.',
-    textoInicio: 'A chave está no chão, perto do relógio. Os círculos dourados se seguram com o dedo.',
+    textoInicio: 'O relógio de caixa alta.',
     deNovo: deNovo
   });
 
@@ -72,16 +72,17 @@
   function pegaDaChave() {
     b.pega({
       rotulo: 'Chave',
+      alvo: function () { return chave; },
       ancora: function () { return chave.getWorldPosition(new THREE.Vector3()); },
       ativa: function () { return !aberta && !animando; },
-      inicio: function () { b.estado('Leve a ponta da chave até a fechadura.'); },
+      inicio: function () { b.estado(''); },
       mover: function (x, y) { var r = pontaNoDedo(x, y); if (r) porChave(r.p, r.n); },
       fim: function (x, y, cancelou) {
         if (cancelou) return;
         var d = chave.getWorldPosition(new THREE.Vector3()).distanceTo(centro(furo)) / b.escala();
         if (d < TOLERANCIA) return encaixar();
         b.vibrar([12, 40, 12]);
-        b.estado(d < 0.08 ? 'Quase. A ponta bateu na madeira, perto.' : 'A chave não entrou em nada.');
+        b.estado('');
       }
     });
   }
@@ -90,7 +91,7 @@
     var n = new THREE.Vector3(0, 0, 1).transformDirection(portaLonga.matrixWorld);
     var de = chave.getWorldPosition(new THREE.Vector3());
     var fora = alvo.clone().addScaledVector(n, 0.004 * s), dentro = alvo.clone().addScaledVector(n, -0.009 * s), t = 0;
-    b.estado('A chave entrou.');
+    
     animando = function (dt) {
       t += dt;
       if (t < 0.3) porChave(de.clone().lerp(fora, b.suave(t / 0.3)), n);
@@ -105,7 +106,7 @@
         b.tocarClipe(relogio, clipPorta);
         b.vibrar([20, 50, 70]);
         aberta = true; animando = null;
-        b.estado('A lingueta cedeu. O lacre se partiu.');
+        b.estado('');
         b.mostrarDeNovo(true);
       }
     };
@@ -125,6 +126,7 @@
     }
     b.pega({
       rotulo: 'Puxador da gaveta',
+      alvo: function () { return gaveta; },
       ancora: function () { return centro(puxador); },
       ativa: function () { return !animando; },
       inicio: function () {
@@ -137,9 +139,7 @@
         gaveta.position.copy(gav0).add(new THREE.Vector3(0, 0, abertura));
       },
       fim: function () {
-        if (abertura >= CURSO - 0.005) { b.vibrar(15); b.estado('A gaveta chegou ao fim do trilho.'); }
-        else if (abertura > 0.01) b.estado('A gaveta ficou entreaberta.');
-        else b.estado('A gaveta está fechada.');
+        if (abertura >= CURSO - 0.005) b.vibrar(15);
         b.mostrarDeNovo(true);
       }
     });
@@ -150,9 +150,9 @@
     aberta = false; animando = null; pousarChave();
     abertura = 0; gaveta.position.copy(gav0);
     b.mostrarDeNovo(false);
-    b.estado('A chave está no chão, perto do relógio. Os círculos dourados se seguram com o dedo.');
+    b.estado('O relógio de caixa alta.');
   }
 
-  window.OIRelogio = { furoNaTela: function () { return b.naTela(centro(furo)); }, aberta: function () { return aberta; },
+  window.OIRelogio = { chaveNaTela: function () { return b.naTela(chave.getWorldPosition(new THREE.Vector3())); }, furoNaTela: function () { return b.naTela(centro(furo)); }, aberta: function () { return aberta; },
     puxadorNaTela: function () { return b.naTela(centro(puxador)); }, abertura: function () { return abertura; } };
 })();

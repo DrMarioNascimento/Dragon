@@ -11,7 +11,7 @@
    jogador: são estado do mundo, que o motor liga pelo nome do nó. */
 (function () {
   'use strict';
-  var DESCE = -38 * Math.PI / 180, LINGUETA = -28 * Math.PI / 180;
+  var DESCE = -38 * Math.PI / 180, LINGUETA = -34 * Math.PI / 180;
   var ENCOSTADA = 0, DESENCOSTA = -14 * Math.PI / 180, TODA = -92 * Math.PI / 180;
 
   var b = OIBase.criar({
@@ -19,7 +19,7 @@
     giroRA: Math.PI,   /* quem olha fica do lado da janela-fundo, de frente para a porta */
     raioDoChao: 2.4, alturaDoAparelho: 0.45, escalaRA: 0.2, miraEscala: 1.4,
     textoMira: 'Aponte para uma mesa e toque em Pôr aqui. O quarto vira uma maquete.',
-    textoInicio: 'A porta do corredor está fechada. A maçaneta se segura com o dedo.',
+    textoInicio: 'O quarto de serviço.',
     deNovo: deNovo
   });
 
@@ -34,6 +34,7 @@
     /* a alavanca, pelo lado de dentro do quarto (alavanca 1) */
     b.pega({
       rotulo: 'Maçaneta',
+      alvo: function () { return macaneta; },
       ancora: function () { return macaneta.localToWorld(new THREE.Vector3(0.1, -0.004, -0.07)); },
       ativa: function () { return !destrancada && !animando; },
       mover: function (x, y) {
@@ -49,11 +50,11 @@
         if (anguloAlavanca <= LINGUETA) {
           destrancada = true; b.vibrar([15, 30, 15]);
           animar(0.45, function (k) { porAlavanca(DESCE * (1 - k)); porPorta(DESENCOSTA * k); }, function () {
-            b.estado('A lingueta soltou. A porta desencostou.'); b.mostrarDeNovo(true);
+            b.mostrarDeNovo(true);
           });
         } else {
           animar(0.2, function (k) { porAlavanca(anguloAlavanca * (1 - k)); });
-          b.estado('A maçaneta voltou. Precisa descer mais.');
+          
         }
       }
     });
@@ -61,6 +62,7 @@
     /* a folha, pela borda livre, depois de destrancada */
     b.pega({
       rotulo: 'Borda da porta',
+      alvo: function () { return porta; },
       ancora: function () { return porta.localToWorld(new THREE.Vector3(-0.74, 1.55, -0.05)); },
       ativa: function () { return destrancada && !animando; },
       mover: function (x, y) {
@@ -75,7 +77,7 @@
         porPorta(Math.max(TODA, Math.min(ENCOSTADA, a)));
       },
       fim: function () {
-        b.estado(anguloPorta < -80 * Math.PI / 180 ? 'A porta está toda aberta.' : 'A porta ficou entreaberta.');
+        
       }
     });
     b.comecar();
@@ -93,7 +95,7 @@
 
   function deNovo() {
     animando = null; destrancada = false; porAlavanca(0); porPorta(ENCOSTADA);
-    b.mostrarDeNovo(false); b.estado('A porta do corredor está fechada. A maçaneta se segura com o dedo.');
+    b.mostrarDeNovo(false); b.estado('O quarto de serviço.');
   }
 
   window.OIQuarto = {

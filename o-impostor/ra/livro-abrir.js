@@ -12,7 +12,7 @@
     vista: { alvo: [0.03, 0.02, 0.0], dist: 0.8, distRetrato: 1.3, dir: [0.0, 1.0, 0.7] },
     raioDoChao: 0.5, alturaDoAparelho: 0.45, miraEscala: 1.2, exposicao: 1.1,
     textoMira: 'Aponte para uma mesa e toque em Pôr aqui.',
-    textoInicio: 'O livro está fechado. A borda da capa se segura com o dedo.',
+    textoInicio: 'O livro do farol.',
     deNovo: deNovo
   });
 
@@ -26,6 +26,7 @@
     b.aCadaQuadro(function (dt) { if (animando) animando(dt); });
     b.pega({
       rotulo: 'Borda da capa',
+      alvo: function () { return metade; },
       ancora: function () { return metade.localToWorld(new THREE.Vector3(-0.2, 0.0, 0.1)); },
       ativa: function () { return !animando; },
       mover: function (x, y) { var a = anguloNoDedo(x, y); if (a !== null) por(a); },
@@ -56,13 +57,13 @@
       por(de + (alvo - de) * b.suave(t / dur));
       if (t >= dur) {
         animando = null; por(alvo);
-        if (alvo === ABERTO) { b.vibrar(12); b.estado('O livro está aberto. Chegue perto para ler.'); b.mostrarDeNovo(true); }
-        else b.estado('O livro está fechado. A borda da capa se segura com o dedo.');
+        if (alvo === ABERTO) { b.vibrar(12); b.estado(''); b.mostrarDeNovo(true); }
+        else b.estado('O livro do farol.');
       }
     };
   }
 
-  function deNovo() { animando = null; por(FECHADO); b.mostrarDeNovo(false); b.estado('O livro está fechado. A borda da capa se segura com o dedo.'); }
+  function deNovo() { animando = null; por(FECHADO); b.mostrarDeNovo(false); b.estado('O livro do farol.'); }
 
   window.OILivro = { bordaNaTela: function () { return b.naTela(metade.localToWorld(new THREE.Vector3(-0.2, 0.0, 0.1))); }, angulo: function () { return angulo; } };
 })();
