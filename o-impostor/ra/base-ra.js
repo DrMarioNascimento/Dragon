@@ -32,6 +32,7 @@
     renderer.xr.enabled = true;
     var FUNDO = 0x0c0907;
     var cena = new THREE.Scene(); cena.background = new THREE.Color(FUNDO);
+    if (global.OIAmbiente) cena.environment = OIAmbiente(renderer);   /* reflexos para os metais do padrão */
     var camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.005, 50);
     cena.add(camera);
     cena.add(new THREE.HemisphereLight(0xffe8c0, 0x201008, 0.9));
