@@ -56,6 +56,7 @@ footer{padding:20px 0 36px;border-top:1px solid var(--line);text-align:center;co
         <button data-a="gaveta_entreabre_2cm" data-once>Gaveta</button>
         <button data-stop>Parar</button>
       </div>
+      <p style="margin:12px 0 0"><a href="relogio.html" style="display:flex;min-height:44px;align-items:center;justify-content:center;border-radius:9px;background:linear-gradient(180deg,#f3d078,#e0b13a);color:#1a1206;font:700 13px var(--mono);text-transform:uppercase;text-decoration:none">A chave e a gaveta com a mão · RA</a></p>
     </div>
   </section>
 
@@ -63,7 +64,10 @@ footer{padding:20px 0 36px;border-top:1px solid var(--line);text-align:center;co
     <model-viewer id="livro" src="modelos/livro_do_farol_v2.glb" alt="Livro do farol" camera-controls touch-action="pan-y" ar ar-modes="webxr scene-viewer quick-look" ar-placement="floor" shadow-intensity="1" exposure="1.1">
       <button slot="ar-button" class="ar">Ver na mesa</button>
     </model-viewer>
-    <div class="info"><b>O livro do farol</b><p>Registro do faroleiro. Aproxime para ler.</p></div>
+    <div class="info"><b>O livro do farol</b><p>Registro do faroleiro. Chega fechado.</p>
+      <div class="ctl" data-mv="livro"><button data-a="livro_abrir" data-once>Abrir</button><button data-a="livro_fechar" data-once>Fechar</button></div>
+      <p style="margin:12px 0 0"><a href="livro.html" style="display:flex;min-height:44px;align-items:center;justify-content:center;border-radius:9px;background:linear-gradient(180deg,#f3d078,#e0b13a);color:#1a1206;font:700 13px var(--mono);text-transform:uppercase;text-decoration:none">Abrir com a mão · RA</a></p>
+    </div>
   </section>
 
   <section class="piece">
@@ -91,6 +95,7 @@ footer{padding:20px 0 36px;border-top:1px solid var(--line);text-align:center;co
         <button data-a="variante_remedio_das_oito" data-once>Remédio</button>
         <button data-reset>Estado inicial</button>
       </div>
+      <p style="margin:12px 0 0"><a href="quarto.html" style="display:flex;min-height:44px;align-items:center;justify-content:center;border-radius:9px;background:linear-gradient(180deg,#f3d078,#e0b13a);color:#1a1206;font:700 13px var(--mono);text-transform:uppercase;text-decoration:none">A porta com a mão · RA</a></p>
     </div>
   </section>
 </main>
