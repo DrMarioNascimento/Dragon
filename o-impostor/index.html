@@ -74,6 +74,25 @@ footer{padding:20px 0 36px;border-top:1px solid var(--line);text-align:center;co
       <div class="ctl" data-mv="farol"><button data-a="feixe_giro_20s" class="on">Feixe</button><button data-stop>Parar</button></div>
     </div>
   </section>
+  <section class="piece">
+    <model-viewer id="quarto" src="modelos/quarto_de_servico_v2.glb" alt="Quarto de serviço" scale="0.2 0.2 0.2" camera-controls touch-action="pan-y" ar ar-modes="webxr scene-viewer quick-look" ar-placement="floor" ar-scale="auto" shadow-intensity="1" exposure="1.0" camera-orbit="200deg 55deg auto">
+      <button slot="ar-button" class="ar">Ver na mesa</button>
+    </model-viewer>
+    <div class="info"><b>O quarto de serviço</b><p>Miniatura. Porta, maçaneta e variantes sorteadas:</p>
+      <div class="ctl" data-mv="quarto">
+        <button data-a="macaneta_desce" data-once>Maçaneta</button>
+        <button data-a="porta_corredor_entreabrir" data-once>Entreabrir</button>
+        <button data-a="porta_corredor_abrir" data-once>Abrir porta</button>
+        <button data-a="variante_cama_feita" data-once>Cama feita</button>
+        <button data-a="variante_gato" data-once>Gato</button>
+        <button data-a="variante_flor_jasmim" data-once>Jasmim</button>
+        <button data-a="variante_flor_acacia" data-once>Acácia</button>
+        <button data-a="variante_flor_lirio" data-once>Lírio</button>
+        <button data-a="variante_remedio_das_oito" data-once>Remédio</button>
+        <button data-reset>Estado inicial</button>
+      </div>
+    </div>
+  </section>
 </main>
 
 <footer>Dragon Games · Mario Nascimento &amp; Osana Melo Nascimento · protótipo</footer>
@@ -85,6 +104,7 @@ document.querySelectorAll('.ctl').forEach(ctl=>{
     const b=e.target.closest('button'); if(!b) return;
     ctl.querySelectorAll('button').forEach(x=>x.classList.remove('on'));
     if(b.hasAttribute('data-stop')){mv.pause();return;}
+    if(b.hasAttribute('data-reset')){mv.src=mv.src.split('?')[0]+'?r='+Date.now();return;}
     b.classList.add('on');
     mv.animationName=b.dataset.a;
     await mv.updateComplete;
