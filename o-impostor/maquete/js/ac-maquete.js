@@ -39,6 +39,10 @@
   var params = new URLSearchParams(location.search);
   var papel = params.get('papel') || 'luz';
   var solo = params.get('demo') === 'solo' && !params.has('sala');
+  /* O IMPOSTOR: sem porão revelado no fim, sem parceiro, sem pontos na tela. */
+  var OI = true;
+  function avisarMesa(evento, extra) { try { parent.postMessage(Object.assign({ oi: 'maquete', evento: evento }, extra || {}), location.origin); } catch (e) {} }
+  if (params.get('embed') === '1') document.documentElement.classList.add('oi-embed');
   var reduzido = false;
   try { reduzido = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
 
@@ -225,7 +229,7 @@
     /* No fim a câmera vai para a passagem: é a única coisa que a atividade
        inteira serviu para achar. */
     var foco = null;
-    if (dados && dados.complete && mundo.revelacao && mundo.revelacao.pecas.length) {
+    if (!OI && dados && dados.complete && mundo.revelacao && mundo.revelacao.pecas.length) {
       tudo = new THREE.Box3().expandByObject(mundo.camadas['porao']);
       var alvoFinal = mundo.revelacao.grupo.localToWorld(mundo.revelacao.centro.clone());
       tudo.expandByPoint(alvoFinal);
@@ -382,7 +386,7 @@
     /* O terreno nunca se levanta — ele vira FANTASMA no fim. A passagem sai da
        fundação e corre por baixo do chão: com o terreno sólido ela não é vista
        de ângulo nenhum. */
-    var fantasma = !!(dados && dados.complete);
+    var fantasma = !OI && !!(dados && dados.complete);
     var alvoTerreno = fantasma ? 0.20 : 1;
     fantasmaTerreno += (alvoTerreno - fantasmaTerreno) * (reduzido ? 1 : 1 - Math.exp(-dt * 2.2));
     if (Math.abs(alvoTerreno - fantasmaTerreno) < 0.005) fantasmaTerreno = alvoTerreno;
@@ -485,7 +489,7 @@
       a.pino.visible = ligado;
       if (a.acender) a.acender(ligado ? 0x1d6b58 : 0x000000, ligado ? 0.55 + 0.35 * Math.sin(tempo * 3.2) : 0);
     }
-    var revelada = !!(dados && dados.complete);
+    var revelada = !OI && !!(dados && dados.complete);
     if (mundo.revelacao && mundo.revelacao.pino) {
       mundo.revelacao.pino.userData.marca.opacity = revelada ? 0.62 + 0.3 * Math.sin(tempo * 2.2) : 0;
       mundo.revelacao.pino.visible = revelada;
@@ -547,6 +551,17 @@
     enviar('maquete_examinar', { object: id });
   }
 
+  /* Só para teste automático (?teste=1): leva a ponta da chave até a fechadura e encaixa. */
+  if (params.get('teste') === '1') window.__oiEncaixar = function () {
+    if (!mundo || !podeMoverChave()) return false;
+    mundo.raiz.updateMatrixWorld(true);
+    var tip = new THREE.Vector3().fromArray(pontaLocal()), alvo = vetorDaFechaduraDe(dados.level);
+    var p = mundo.chave.parent ? mundo.chave.parent : mundo.raiz;
+    var d = mundo.raiz.localToWorld(alvo.clone()).sub(mundo.raiz.localToWorld(tip.clone()));
+    var pw = mundo.chave.getWorldPosition(new THREE.Vector3()).add(d);
+    mundo.chave.position.copy(p.worldToLocal(pw)); mundo.chave.updateMatrixWorld(true);
+    encaixar(); return true;
+  };
   function encaixar() {
     if (terminando || !podeMoverChave()) return;
     terminando = true;
@@ -590,12 +605,12 @@
       titulo.textContent = 'A maquete espera.';
       descricao.textContent = 'A pista da escrivaninha é o que abre esta caixa.';
     } else if (dados.complete) {
-      passo.textContent = 'O PORÃO';
-      titulo.textContent = 'O espaço que faltava.';
-      descricao.textContent = dados.expired ? 'O tempo acabou e a maquete se abriu sozinha até o porão. A descoberta foi guardada.' : 'A maquete se abriu até o porão. A descoberta foi guardada.';
-      $('score').textContent = 'Camadas 3 de 3 · ' + dados.score + ' pontos';
+      passo.textContent = OI ? 'A CASA ABERTA' : 'O PORÃO';
+      titulo.textContent = OI ? 'Explore a casa.' : 'O espaço que faltava.';
+      descricao.textContent = OI ? 'Gire a maquete, aproxime o celular ou use a pinça para ver os detalhes.' : dados.expired ? 'O tempo acabou e a maquete se abriu sozinha até o porão. A descoberta foi guardada.' : 'A maquete se abriu até o porão. A descoberta foi guardada.';
+      $('score').textContent = OI ? '' : 'Camadas 3 de 3 · ' + dados.score + ' pontos';
     } else {
-      passo.textContent = 'Camada ' + (dados.evidence.length + 1) + ' de 3 · ' + dados.name;
+      passo.textContent = OI ? dados.name : 'Camada ' + (dados.evidence.length + 1) + ' de 3 · ' + dados.name;
       $('score').textContent = relogioDaTela();
       /* A pista é a mesma nos dois aparelhos: é ela que manda no painel, que
          vira "Dica da pista" enquanto ela vale. */
@@ -616,6 +631,7 @@
 
   /* O relógio da maquete e o que a camada vale agora. */
   function relogioDaTela() {
+    if (OI) return '';
     if (!dados || dados.complete || !dados.tempo) return '';
     var r = window.ACRitmo;
     return '⏳ ' + r.relogio(dados.tempo.restante) + ' · camada ' + (dados.evidence.length + 1) + ' de 3 vale ' + dados.pontosAgora + ' · ' + dados.score + ' pontos até aqui';
@@ -660,7 +676,7 @@
     $('reposition').hidden = true;
     $('portal-voltar').hidden = !(recebeuEstado && !dados);
     $('key-grip').hidden = !podeMoverChave();
-    $('lock-grip').hidden = !(podeExplorar() && temLadoDaFechadura() && ambosAcharam());
+    $('lock-grip').hidden = OI || !(podeExplorar() && temLadoDaFechadura() && ambosAcharam());
     if (mundo) mundo.chave.visible = !!(temDados && dados.key && temLadoDaChave() && pronto);
   }
 
@@ -902,6 +918,7 @@
      de onde o jogador está olhando: "mais para a esquerda" é a esquerda da
      tela dele. */
   function guiaDoParceiro(agora) {
+    if (OI) return;
     if (!solo || !dados || dados.complete || !ambosAcharam() || !mundo || !posta()) return;
     if (agora - guiaEm < 2300) return;
     var fech = mundo.raiz.localToWorld(vetorDaFechadura());
@@ -1181,6 +1198,7 @@
     }
     /* A chave saiu do esconderijo — só onde a chave existe. */
     if (antes && dados && !antes.key && dados.key && temLadoDaChave()) {
+      if (OI) { avisarMesa('chave-achada'); mostrarChaveGrande(); }
       var conj = mundo && mundo.alvos[ultimoExaminado];
       var origem = conj ? conj.centro.clone() : new THREE.Vector3(0, 0.55, 0.2);
       var camada = conj ? mundo.camadas[conj.camada] : null;
@@ -1218,6 +1236,7 @@
     /* A descoberta só abre com a maquete posta. */
     if (dados && dados.complete && !concluidoEnviado && posta()) {
       concluidoEnviado = true;
+      if (OI) avisarMesa('telhado-aberto');
       $('final-score').textContent = '3 camadas · ' + dados.score + ' pontos. Nenhuma acusação foi concluída.';
       /* O Solo troca o quadro assim que recebe o recado. Mandado aqui, na
          hora da conclusão, ele tirava a maquete da tela antes de o jogador
@@ -1233,6 +1252,11 @@
     }
   }
 
+  /* A chave vem grande ao centro, com a instrução do arrasto. */
+  function mostrarChaveGrande() {
+    var d = $('chave-grande'); if (!d) return;
+    try { d.showModal(); } catch (e) { d.setAttribute('open', ''); }
+  }
   function ambosAcharamEm(v) { return !!(v && v.key && v.lock); }
   var conclusaoAvisada = false;
   function avisarSoloDaConclusao() {
@@ -1260,6 +1284,7 @@
   function ligarBotoes() {
     on($('alternative'), 'click', function () { abrirListaDeObjetos(); });
     on($('guardar'), 'click', avisarSoloDaConclusao);
+    if ($('chave-grande-ok')) on($('chave-grande-ok'), 'click', function () { $('chave-grande').close(); });
     on($('discovery'), 'click', function (e) {
       if (e.target !== $('discovery')) return;
       var r = $('discovery').getBoundingClientRect();

@@ -1,7 +1,18 @@
 <!doctype html>
 <!-- CÓPIA INDEPENDENTE da maquete de A Casa da Costa (v1/AC-maquete.html), trazida para o O Impostor em 27/09/2026. Nenhum arquivo é compartilhado com v1/: tudo o que a página usa está dentro de o-impostor/maquete/. Mudanças aqui não afetam a AC, e vice-versa. -->
 <html lang="pt-BR" data-ac-casa><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#091515"><title>A Casa · O lar em miniatura</title><link rel="stylesheet" href="css/ac-investigacao.css?v=20260919-ra"><link rel="stylesheet" href="css/ac-ra.css?v=20260919-ra"><link rel="stylesheet" href="css/ac-maquete.css?v=20260919-ra"><link rel="stylesheet" href="css/ac-janelas.css?v=20260919-ra">
-<script src="js/ac-cloud.js?v=20260919-ra"></script></head>
+<script src="js/ac-cloud.js?v=20260919-ra"></script><style>
+/* O IMPOSTOR */
+.oi-embed .topbar{display:none!important}
+dialog.oi-chave{width:min(420px,calc(100% - 28px));border:1px solid #d6aa58;border-radius:18px;background:linear-gradient(160deg,#2b2114,#120e09);color:#f0dcb4;text-align:center;padding:22px 18px;box-shadow:0 20px 60px #000c}
+dialog.oi-chave::backdrop{background:#000b}
+dialog.oi-chave svg{width:72%;max-width:260px;margin:4px auto 10px;display:block;filter:drop-shadow(0 0 14px #efc87888);animation:oiChave 1.8s ease-in-out infinite}
+dialog.oi-chave h2{margin:0 0 6px;font:700 24px Georgia,serif;color:#efc878}
+dialog.oi-chave p{margin:0 0 16px;font-size:16px;line-height:1.45}
+@keyframes oiChave{0%,100%{transform:scale(1) rotate(-4deg)}50%{transform:scale(1.06) rotate(4deg)}}
+@media (prefers-reduced-motion:reduce){dialog.oi-chave svg{animation:none}}
+</style>
+</head>
 <body>
   <div id="scene" data-ac-cena aria-label="Maquete tridimensional da Casa da Costa"></div>
   <header class="topbar"><a class="brand" href="../index.html">AC<span>A CASA<br>DA COSTA</span></a><span class="edition">O JARDIM · A MAQUETE</span><button id="sair-ra" class="ac-sair-ra" type="button" aria-label="Sair da realidade aumentada" hidden>✕</button><button id="help" class="ac-chevron" type="button" aria-label="Mostrar as janelas" aria-expanded="true">⌄</button></header>
@@ -31,13 +42,11 @@
 
   <nav class="tools"><button id="alternative" hidden>Examinar por nome</button><button id="reposition" hidden>Reposicionar</button><button id="portal-voltar" hidden>Voltar à escolha</button></nav>
 
-  <dialog id="instructions" data-ac-priority="10"><span class="eyebrow">A MAQUETE</span><h2>Um lar dentro do lar.</h2>
-    <p>A maquete se abre por camadas, e cada camada está presa. O que prende uma camada não se resolve de um lado só da mesa.</p>
-    <p>Conversem em voz alta: o que aparece no seu aparelho pode não aparecer no do colega.</p>
+  <dialog id="instructions" data-ac-priority="10"><span class="eyebrow">A MAQUETE</span><h2>A casa na sua mesa.</h2>
+    <p>A maquete fica disponível o jogo todo. Procure como entrar na casa.</p>
     <p id="fallback-note"></p>
     <p>Toque nos detalhes da casa para examinar. Nada vem marcado: procure. Em realidade aumentada, ande em volta e chegue perto; dois dedos aumentam ou diminuem a maquete e um dedo a gira.</p>
-    <p>Achou a chave? Segure o círculo dourado e arraste: a chave passa por cima da casa, sem entrar em parede nem em chão, e para onde o dedo aponta. Solte no vão.</p>
-    <p>A maquete inteira tem 9 minutos. Cada camada vale 8 pontos se abrir no primeiro minuto e perde 1 a cada 15 s (mínimo 3). Se o tempo acabar, as camadas que faltam se abrem sozinhas e não pontuam. Duas dicas chegam em cada parte: primeiro uma sutil, depois uma que ajuda mais.</p>
+    <p>Achou a chave? Ponha o dedo sobre ela e arraste até a fechadura. Solte no vão.</p>
     <p id="ra-opcoes" hidden><button type="button" id="reposicionar-ra">Reposicionar a maquete</button></p>
     <p class="ac-credito">A realidade aumentada no iPhone usa o 8th Wall Engine (© 2026 Niantic Spatial, Inc.), sob a <a href="https://github.com/8thwall/engine/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">XR Engine License</a>, fornecido sem garantias.</p>
     <p><a id="invite" hidden target="_blank" rel="noopener noreferrer">Abrir a tela do colega ↗</a></p>
@@ -46,11 +55,20 @@
 
   <dialog id="objects" data-ac-priority="5"><h2>Examinar por nome</h2><p>Se o toque na cena estiver difícil, escolha pelo nome.</p><div id="object-list"></div><button type="button" class="ac-continuar" data-ac-fechar>Voltar à maquete</button></dialog>
 
-  <dialog id="discovery" data-ac-priority="8"><span class="eyebrow">O ESPAÇO QUE FALTAVA</span><h2>A casa não termina onde a casa termina.</h2>
-    <p>Sob a despensa há um porão, e do porão sai uma passagem de pedra que atravessa a fundação e some para fora do terreno. Nenhuma planta da Casa da Costa registra esse trecho.</p>
-    <p>Encontrar o caminho não prova quem o usou, nem quando. Essa é a próxima pergunta.</p>
-    <p id="final-score"></p>
-    <button type="button" id="guardar" class="ac-continuar" data-ac-fechar>Guardar e voltar</button></dialog>
+  <dialog id="discovery" data-ac-priority="8"><span class="eyebrow">O TELHADO SAIU</span><h2>A casa está aberta.</h2>
+    <p>Explore os cômodos. Gire a maquete, aproxime o celular ou use a pinça dos dedos para ver os detalhes.</p>
+    <p id="final-score" hidden></p>
+    <button type="button" id="guardar" class="ac-continuar" data-ac-fechar>Explorar</button></dialog>
+
+  <!-- O IMPOSTOR: a chave achada vem grande ao centro, com a instrução do arrasto. -->
+  <dialog id="chave-grande" class="oi-chave" aria-labelledby="chave-grande-titulo">
+    <svg viewBox="0 0 200 90" aria-hidden="true"><defs><linearGradient id="ouro" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe7a3"/><stop offset=".5" stop-color="#e0b13a"/><stop offset="1" stop-color="#8a6420"/></linearGradient></defs>
+      <circle cx="42" cy="45" r="30" fill="none" stroke="url(#ouro)" stroke-width="12"/><circle cx="42" cy="45" r="9" fill="url(#ouro)"/>
+      <rect x="70" y="39" width="115" height="12" rx="4" fill="url(#ouro)"/><rect x="150" y="51" width="11" height="22" rx="2" fill="url(#ouro)"/><rect x="168" y="51" width="11" height="15" rx="2" fill="url(#ouro)"/></svg>
+    <h2 id="chave-grande-titulo">Você achou uma chave.</h2>
+    <p>Ponha o dedo sobre a chave e arraste até a fechadura.</p>
+    <button type="button" id="chave-grande-ok" class="ac-continuar">Entendi</button>
+  </dialog>
 
   <div id="notice" data-ac-priority="3" role="status"></div>
 

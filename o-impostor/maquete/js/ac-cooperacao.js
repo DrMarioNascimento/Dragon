@@ -43,7 +43,8 @@
       let fala=saved&&saved.version===2&&saved.fala||null;
       const persist=()=>{try{const {peers,beam,keyMotion,...resto}=room;sessionStorage.setItem(KEY,JSON.stringify({version:2,janelaConcluida,room:resto,fala}));}catch(_){ }};
       persist();
-      const dizer=(texto,tipo)=>{fala={texto,tipo:tipo||'fala',at:Date.now()};persist();};
+      /* O IMPOSTOR: não há parceiro falando. O jogador é sozinho na maquete. */
+      const dizer=()=>{};
       /* O papel de quem joga, pelo que falta fazer. */
       const soloRole=()=>{
         if(!room.maquete)return ['posicionar','castical'].includes(room.stage)?'luz':'conhecimento';
@@ -57,6 +58,9 @@
       };
       const snapshot=()=>{
         const now=Date.now(),v=core.snapshot(room,now,soloRole());
+        /* O IMPOSTOR: com as duas metades achadas, quem joga vê a chave E a fechadura. */
+        const mq=room.maquete;
+        if(v.maquete&&!v.maquete.complete&&mq&&mq.key&&mq.lock){const cap=M.CAPITULOS[mq.level];v.maquete.papel='ambos';v.maquete.fechadura=cap.fechadura;v.maquete.fechaduraRotulo=cap.fechaduraRotulo;}
         v.soloRole=soloRole();v.online=['luz','conhecimento'];v.parceiro=fala;v.solo=true;
         return v;
       };
@@ -71,7 +75,11 @@
         }else fosforoEm=null;
         /* A fechadura: o parceiro acha a dele depois de um tempo. */
         const m=room.maquete;
-        if(m&&m.level<3&&!m.lock){
+        /* O IMPOSTOR: achou a chave, a fechadura acende na hora, no mesmo aparelho. */
+        if(m&&m.level<M.CAPITULOS.length&&m.key&&!m.lock){
+          const cap=M.CAPITULOS[m.level];core.apply(room,M.papelDaFechadura(cap),{type:'maquete_examinar',object:cap.fechadura},now);persist();
+        }
+        if(false){
           const marca=m.level+':'+m.layerAt;
           if(fechaduraMarcada!==marca){fechaduraMarcada=marca;dizer(m.level===0?'Estou procurando do meu lado da maquete.':'Nova camada. Vou procurar do meu lado.');}
           const cap=M.CAPITULOS[m.level],lado=M.papelDaFechadura(cap);

@@ -50,7 +50,7 @@ button,input,textarea{font:inherit;color:inherit}
 .turnline{min-height:36px;margin-top:6px;display:flex;align-items:center;justify-content:space-between;gap:7px;font-family:var(--mono)}
 .turnline>span{display:flex;align-items:center;gap:8px;min-width:0}
 .turnline small{width:32px;height:32px;flex:0 0 32px;display:grid;place-items:center;border:1px solid #56768a;background:#102330;color:var(--gold2);font:900 12px var(--mono)}
-.turnline b{font:800 13px var(--mono);letter-spacing:.08em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.turnline b{font:800 12px var(--mono);letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .turnline-right{display:flex;align-items:center;gap:5px;flex:0 0 auto}
 .tempo{position:relative;overflow:hidden}
 .tempo i{position:absolute;left:0;bottom:0;height:3px;background:var(--gold2);border-radius:0 2px 2px 0;transition:width 1s linear}
@@ -169,7 +169,8 @@ button,input,textarea{font:inherit;color:inherit}
 .brand{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
 .brand div{min-width:0;display:flex;flex-direction:column;line-height:1}
 .brand .mark-name{font-size:14px;font-weight:800;letter-spacing:.04em;color:#f1f8fc;white-space:nowrap}
-.brand small{font:600 9.5px/1.05 var(--sans);letter-spacing:.03em;color:var(--muted);white-space:nowrap;margin-top:5px;overflow:hidden;text-overflow:ellipsis;text-transform:uppercase}
+.brand small{font:700 10px/1 var(--sans);letter-spacing:.08em;color:var(--muted);white-space:nowrap;margin-top:4px;text-transform:uppercase}
+.brand small.modo{color:var(--gold2);margin-top:3px}
 .mc-i{width:36px;height:36px;min-width:36px;padding:0;border-radius:10px;cursor:pointer;border:1px solid #7394a4;border-bottom-color:#0a202c;background:linear-gradient(#567e93,#305367 48%,#193748);box-shadow:inset 0 2px 1px #d9f3ff66,inset 0 -3px 4px #071a27aa,0 4px 0 #061823,0 7px 8px #0008;font-family:Georgia,"Times New Roman",serif;font-style:italic;font-weight:700;font-size:19px;line-height:1;color:#65d5cc;text-shadow:0 2px 1px #17372f,0 0 2px #071b18,0 0 7px #65d5cc77}
 .mc-i:active{transform:translateY(3px);box-shadow:inset 0 2px 5px #0006,0 1px 0 #071b25}
 /* "Como jogar": mesmo desenho do Mosaico Card (passos numerados e caixas) */
@@ -188,6 +189,11 @@ button,input,textarea{font:inherit;color:inherit}
 .how-box h2{font-size:20px;line-height:1.25;margin:0 0 10px;color:#65d5cc}
 .how-box p{margin:0 0 8px;line-height:1.55} .how-box p:last-child{margin:0}
 #comoJogarOk{width:100%;min-height:46px;margin:8px 0 4px;border-radius:13px;border:1px solid #7394a4;border-bottom-color:#0a202c;color:#f1f8fc;font-weight:700;cursor:pointer;background:linear-gradient(#518f82,#28685d,#153c37);box-shadow:inset 0 2px 1px #d9f3ff66,inset 0 -3px 4px #071a27aa,0 4px 0 #061823,0 7px 8px #0008}
+
+/* ── a maquete dentro da tela do jogo ──────────────────────────────── */
+.tela-ra{position:fixed;inset:0;z-index:85;background:#050b12}
+.tela-ra iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.tela-ra .sair-ra{position:absolute;z-index:2;left:10px;top:calc(env(safe-area-inset-top) + 10px);min-height:40px;padding:0 14px;border-radius:10px;border:1px solid #46667a;background:#0c1b26e6;color:var(--gold2);font:700 13px var(--sans);cursor:pointer;box-shadow:0 3px 0 #020609}
 </style>
 </head>
 <body>
@@ -202,7 +208,7 @@ button,input,textarea{font:inherit;color:inherit}
 <div class="janela" id="janela" hidden><div class="caixa-j"><small id="janelaRot">PARA COMEÇAR</small><p id="janelaTxt"></p><button id="janelaOk">Entendi</button></div></div>
 <header class="topbar">
   <div class="topline">
-    <div class="brand"><div class="mc-outer"><div class="mc-inner">M</div></div><div><span class="mark-name">Mosaico</span><small>A Casa da Costa · O Impostor</small></div></div>
+    <div class="brand"><div class="mc-outer"><div class="mc-inner">M</div></div><div><span class="mark-name">Mosaico</span><small>A Casa da Costa</small><small class="modo">O Impostor</small></div></div>
     <div class="hud">
       <button class="mc-i" id="infoBtn" type="button" aria-label="Como jogar" aria-haspopup="dialog" title="Como jogar">i</button>
       <button class="icon-btn persona" id="fichaBtn" type="button" aria-label="Sua ficha de personagem"><img src="icones/mini/investigador.webp" alt="" /></button>
@@ -284,6 +290,9 @@ button,input,textarea{font:inherit;color:inherit}
   <section class="how-box destaque"><h2>A pergunta final.</h2><p>Quem é o impostor? E quem ajudou o traidor? Acertar vale pontos.</p></section>
   <button type="button" id="comoJogarOk">Entendi</button>
 </dialog>
+<div class="tela-ra" id="telaRA" hidden>
+  <button class="sair-ra" id="sairRA" type="button">‹ Voltar</button>
+</div>
 <div class="veu" id="veu" hidden><div class="folha" id="folha"></div></div>
 
 <script>
@@ -452,7 +461,7 @@ function pintarSusp(){
 
 /* ── RA ──────────────────────────────────────────────────────────────── */
 var PECAS=[
-  {cap:'PRÓLOGO',nome:'A maquete',txt:'A casa inteira, por camadas',href:'maquete/?demo=solo',ico:'🏠'},
+  {cap:'PRÓLOGO',nome:'A maquete',txt:'A casa inteira, por camadas',abrir:'maquete',ico:'🏠'},
   {cap:'CAP. 1',nome:'A bandeja',txt:'No hall de entrada',ico:'🍽️',tranca:true},
   {cap:'CAP. 2',nome:'A escrivaninha',txt:'No escritório',ico:'🖋️',tranca:true},
   {cap:'CAP. 3',nome:'O relógio',txt:'Na sala',href:'relogio.html',ico:'🕰️',tranca:true},
@@ -460,7 +469,7 @@ var PECAS=[
   {cap:'CAP. 6',nome:'O quarto',txt:'O quarto de serviço',href:'quarto.html',ico:'🚪',tranca:true}
 ];
 $('#gradeRA').innerHTML=PECAS.map(function(p){
-  return '<a class="peca'+(p.tranca?' trancada':'')+'" '+(p.href&&!p.tranca?'href="'+p.href+'"':'')+'><span class="ico">'+(p.tranca?'🔒':p.ico)+'</span><small>'+p.cap+'</small><b>'+p.nome+'</b><span>'+p.txt+'</span></a>';
+  return '<a class="peca'+(p.tranca?' trancada':'')+'" '+(p.abrir&&!p.tranca?'data-abrir="'+p.abrir+'" href="#"':(p.href&&!p.tranca?'href="'+p.href+'"':''))+'><span class="ico">'+(p.tranca?'🔒':p.ico)+'</span><small>'+p.cap+'</small><b>'+p.nome+'</b><span>'+p.txt+'</span></a>';
 }).join('');
 
 /* ── ⓘ e ficha ───────────────────────────────────────────────────────── */
@@ -494,16 +503,43 @@ var video=$('#videoAbertura');
 function janela(rot,txt,depois){$('#janelaRot').textContent=rot;$('#janelaTxt').textContent=txt;$('#janela').hidden=false;$('#janelaOk').onclick=function(){$('#janela').hidden=true;if(depois)depois()}}
 function liberarAba(a){var o=document.querySelector('[data-aba="'+a+'"]');o.classList.remove('muda');o.classList.add('nasce');setTimeout(function(){o.classList.remove('nasce')},3400)}
 function inicioDoJogo(){
-  $('#abertura').remove();try{video.pause()}catch(e){}
+  var ab=$('#abertura');if(!ab)return;ab.remove();try{video.pause()}catch(e){}
   ['grupo','privadas','suspeitos'].forEach(function(a){document.querySelector('[data-aba="'+a+'"]').classList.add('muda')});
   irPara('ra');
   janela('PARA COMEÇAR','Toque em RA. Ponha a maquete da casa na sua mesa, em realidade aumentada. Ela fica disponível o jogo todo para você explorar. Procure como entrar na casa.');
 }
-$('#comecar').onclick=function(){$('#comecar').hidden=true;$('#pular').hidden=false;video.play().catch(inicioDoJogo)};
+$('#comecar').onclick=function(){$('#comecar').hidden=true;$('#pular').hidden=false;var pr=video.play();if(pr&&pr.catch)pr.catch(inicioDoJogo);
+  /* se em 4 s o vídeo não tiver começado, segue sem ele */
+  setTimeout(function(){if(video.readyState<2||video.networkState===3)inicioDoJogo()},4000)};
 $('#pular').onclick=inicioDoJogo;
 video.addEventListener('ended',inicioDoJogo);
-video.addEventListener('error',function(){$('#comecar').textContent='▶ Entrar';$('#comecar').onclick=inicioDoJogo});
-window.OIMesa={liberarAba:liberarAba,janela:janela};
+/* Sem vídeo (arquivo ausente ou bloqueado): o botão vira "Entrar" e o jogo segue. */
+function semVideo(){var c=$('#comecar');if(!c)return;if(!c.hidden){c.textContent='▶ Entrar';c.onclick=inicioDoJogo}else inicioDoJogo()}
+var fontes=video.querySelectorAll('source');if(fontes.length)fontes[fontes.length-1].addEventListener('error',semVideo);
+video.addEventListener('error',semVideo);
+if(video.networkState===3)semVideo();
+
+/* ── A maquete dentro da tela do jogo ────────────────────────────────────
+   Ela é aberta uma vez e fica carregada: sair e voltar não perde nada. O
+   código da partida e o número do jogador vão junto, para o esconderijo da
+   chave ser o desta partida e deste jogador. A maquete avisa a tela pelo
+   postMessage ({oi:'maquete', evento}). */
+var PARTIDA=(new URLSearchParams(location.search)).get('partida')||(function(){try{var k='oi:partida';var v=sessionStorage.getItem(k);if(!v){v='P-'+Date.now().toString(36).toUpperCase();sessionStorage.setItem(k,v)}return v}catch(e){return 'P-DEMO'}})();
+var estadoPrologo={chave:false,telhado:false};
+function abrirMaquete(){
+  var t=$('#telaRA');
+  if(!t.querySelector('iframe')){var f=document.createElement('iframe');f.title='A maquete da casa';f.allow='xr-spatial-tracking; camera; gyroscope; accelerometer; fullscreen';
+    f.src='maquete/?demo=solo&embed=1&partida='+encodeURIComponent(PARTIDA)+'&jogador='+encodeURIComponent(EU);t.appendChild(f)}
+  t.hidden=false;
+}
+$('#sairRA').onclick=function(){$('#telaRA').hidden=true};
+document.addEventListener('click',function(e){var a=e.target.closest('[data-abrir]');if(!a)return;e.preventDefault();if(a.dataset.abrir==='maquete')abrirMaquete()});
+window.addEventListener('message',function(e){
+  if(e.origin!==location.origin||!e.data||e.data.oi!=='maquete')return;
+  if(e.data.evento==='chave-achada')estadoPrologo.chave=true;
+  if(e.data.evento==='telhado-aberto')estadoPrologo.telhado=true;
+});
+window.OIMesa={liberarAba:liberarAba,janela:janela,estado:function(){return estadoPrologo}};
 pintarGrupo();pintarListaPriv();
 })();
 </script>

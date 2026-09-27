@@ -49,7 +49,10 @@ export const TOLERANCIA = 0.03;
 /* A segunda pista é a mesma nas três camadas: ela não diz onde, diz COMO. */
 export const SEGUNDA_PISTA = 'Uma é fixa que nem a casa, e a outra mexe igual onda.';
 
-export const CAPITULOS = [
+/* O IMPOSTOR (27/09/2026): no Prólogo só o TELHADO abre com chave e
+   fechadura. As outras camadas da AC ficam guardadas em CAPITULOS_AC (não
+   foram apagadas) e passam a abrir pelas plantas de cada andar. */
+export const CAPITULOS_AC = [
   {
     id: 'portada',
     nome: 'A casa fechada',
@@ -180,6 +183,8 @@ export const CAPITULOS = [
     fecho: 'O térreo se ergueu. Sob a despensa há um porão — e ele não termina onde a casa termina.'
   }
 ];
+export const CAPITULOS = CAPITULOS_AC.slice(0, 1);
+
 
 /* Pontos por chave: 8 se a camada abrir no primeiro minuto, depois perde 1 a
    cada 15 s, nunca menos de 3 — e ZERO para a camada que o tempo total da
@@ -189,7 +194,8 @@ export const CAPITULOS = [
    teto. */
 export const PONTOS_POR_CHAVE = RITMO.maquete.max;
 export const PISO_POR_CHAVE = RITMO.maquete.min;
-export const PRAZO_MAQUETE_MS = RITMO.maquete.total * 1000;
+/* O IMPOSTOR: o Prólogo não tem prazo (explora-se sem pressa). */
+export const PRAZO_MAQUETE_MS = Infinity;
 /* Dois toques do MESMO jogador em menos disto contam como um. Por jogador:
    os dois procuram ao mesmo tempo, e uma trava única engolia o toque do
    segundo sem dizer nada. */
