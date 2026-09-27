@@ -194,6 +194,25 @@ button,input,textarea{font:inherit;color:inherit}
 .tela-ra{position:fixed;inset:0;z-index:85;background:#050b12}
 .tela-ra iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .tela-ra .sair-ra{position:absolute;z-index:2;left:10px;top:calc(env(safe-area-inset-top) + 10px);min-height:40px;padding:0 14px;border-radius:10px;border:1px solid #46667a;background:#0c1b26e6;color:var(--gold2);font:700 13px var(--sans);cursor:pointer;box-shadow:0 3px 0 #020609}
+
+/* ── caixa dos papéis (Prólogo) ─────────────────────────────────────── */
+#papeis{width:min(560px,calc(100% - 24px));max-height:calc(100dvh - 32px);padding:20px 16px;color:#dcebf3;background:#12313f;border:1px solid #65d5cc66;border-radius:20px;box-shadow:0 24px 70px #0009;z-index:95}
+#papeis::backdrop{background:#031319d9;backdrop-filter:blur(4px)}
+#papeis .kicker{margin:0 0 6px;font:700 11px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:#65d5cc}
+#papeis h1{margin:0 0 4px;font:800 24px/1.2 var(--sans);color:#f1f8fc}
+#papeis .lede{margin:0 0 14px;color:#aec6d5;line-height:1.5;font-size:14px}
+.elenco{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.elenco div{display:flex;flex-direction:column;align-items:center;text-align:center;padding:10px 6px;border-radius:12px;border:1px solid #65d5cc33;background:#0a252d}
+.elenco img{width:52px;height:52px;object-fit:contain}
+.elenco b{font-size:12.5px;margin-top:5px;color:#f1f8fc}
+.elenco span{font-size:11px;color:#aec6d5;margin-top:2px}
+.elenco div.meu{border-color:#efc878;box-shadow:0 0 0 1px #efc87855 inset}
+.o-seu{display:flex;align-items:center;gap:14px;padding:14px;border-radius:16px;border:1px solid #efc878;background:linear-gradient(135deg,#2b2114,#18140e);box-shadow:0 0 22px #efc87833,0 5px 0 #08222b}
+.o-seu img{width:84px;height:84px;object-fit:contain;filter:drop-shadow(0 0 10px #efc87866)}
+.o-seu small{display:block;font:700 11px var(--sans);letter-spacing:.14em;color:#c89a50;text-transform:uppercase}
+.o-seu b{display:block;font:700 26px Georgia,serif;color:#efc878;margin:2px 0}
+.o-seu span{font-size:13.5px;color:#f0dcb4;line-height:1.4}
+#papeisOk{width:100%;min-height:46px;margin-top:14px;border-radius:13px;border:1px solid #7394a4;border-bottom-color:#0a202c;color:#f1f8fc;font-weight:700;cursor:pointer;background:linear-gradient(#518f82,#28685d,#153c37);box-shadow:inset 0 2px 1px #d9f3ff66,inset 0 -3px 4px #071a27aa,0 4px 0 #061823,0 7px 8px #0008}
 </style>
 </head>
 <body>
@@ -293,6 +312,14 @@ button,input,textarea{font:inherit;color:inherit}
 <div class="tela-ra" id="telaRA" hidden>
   <button class="sair-ra" id="sairRA" type="button">‹ Voltar</button>
 </div>
+<dialog id="papeis" aria-labelledby="papeisTitulo">
+  <p class="kicker">A casa está aberta</p>
+  <h1 id="papeisTitulo">Nesta partida há <span id="nJogadores">4</span> jogadores.</h1>
+  <p class="lede">Estes são os convocados da lista do proprietário, cada um com a sua função.</p>
+  <div class="elenco" id="elenco"></div>
+  <div class="o-seu"><img id="seuIcone" alt="" /><div><small>O seu é:</small><b id="seuNome"></b><span id="seuFuncao"></span></div></div>
+  <button type="button" id="papeisOk">Entendi</button>
+</dialog>
 <div class="veu" id="veu" hidden><div class="folha" id="folha"></div></div>
 
 <script>
@@ -529,15 +556,40 @@ var estadoPrologo={chave:false,telhado:false};
 function abrirMaquete(){
   var t=$('#telaRA');
   if(!t.querySelector('iframe')){var f=document.createElement('iframe');f.title='A maquete da casa';f.allow='xr-spatial-tracking; camera; gyroscope; accelerometer; fullscreen';
-    f.src='maquete/?demo=solo&embed=1&partida='+encodeURIComponent(PARTIDA)+'&jogador='+encodeURIComponent(EU);t.appendChild(f)}
+    f.src='maquete/?demo=solo&embed=1&partida='+encodeURIComponent(PARTIDA)+'&jogador='+encodeURIComponent(EU)+((new URLSearchParams(location.search)).get('teste')==='1'?'&teste=1':'');t.appendChild(f)}
   t.hidden=false;
 }
 $('#sairRA').onclick=function(){$('#telaRA').hidden=true};
 document.addEventListener('click',function(e){var a=e.target.closest('[data-abrir]');if(!a)return;e.preventDefault();if(a.dataset.abrir==='maquete')abrirMaquete()});
+
+/* ── Caixa dos papéis: aparece quando o jogador fecha "A casa está aberta".
+   Mostra os convocados da lista do proprietário (a Acompanhante não está na
+   lista: ninguém sabe que ela existe). Não diz quem é jogado por gente e quem
+   é jogado pelo sistema: isso entregaria o impostor. */
+var CONVOCADOS=[
+  {id:'investigador',nome:'Investigador',funcao:'conferir'},
+  {id:'herdeira',nome:'Herdeira',funcao:'herdar'},
+  {id:'residente',nome:'Residente',funcao:'explicar a casa'},
+  {id:'jornalista',nome:'Jornalista',funcao:'dar publicidade'},
+  {id:'policial',nome:'Policial',funcao:'manter a ordem'},
+  {id:'observadora',nome:'Observadora',funcao:'avaliar'}
+];
+var MEU='investigador';
+var N_JOGADORES=+(new URLSearchParams(location.search)).get('jogadores')||4;
+function mostrarPapeis(){
+  var d=$('#papeis');if(d.open)return;
+  $('#nJogadores').textContent=N_JOGADORES;
+  $('#elenco').innerHTML=CONVOCADOS.map(function(c){return '<div'+(c.id===MEU?' class="meu"':'')+'><img src="icones/mini/'+c.id+'.webp" alt=""/><b>'+c.nome+'</b><span>'+c.funcao+'</span></div>'}).join('');
+  var eu=CONVOCADOS.filter(function(c){return c.id===MEU})[0];
+  $('#seuIcone').src='icones/mini/'+eu.id+'.webp';$('#seuNome').textContent=eu.nome;$('#seuFuncao').textContent='Na lista do proprietário, sua função é '+eu.funcao+'.';
+  try{d.showModal()}catch(e){d.setAttribute('open','')}
+}
+$('#papeisOk').onclick=function(){$('#papeis').close();estadoPrologo.papeisVistos=true};
 window.addEventListener('message',function(e){
   if(e.origin!==location.origin||!e.data||e.data.oi!=='maquete')return;
   if(e.data.evento==='chave-achada')estadoPrologo.chave=true;
   if(e.data.evento==='telhado-aberto')estadoPrologo.telhado=true;
+  if(e.data.evento==='casa-aberta-lida'&&!estadoPrologo.papeisVistos)mostrarPapeis();
 });
 window.OIMesa={liberarAba:liberarAba,janela:janela,estado:function(){return estadoPrologo}};
 pintarGrupo();pintarListaPriv();

@@ -1262,6 +1262,7 @@
   function avisarSoloDaConclusao() {
     if (!dados || !dados.complete || conclusaoAvisada) return;
     conclusaoAvisada = true;
+    if (OI) avisarMesa('casa-aberta-lida');
     /* Dentro do percurso da Mesa vale o mesmo: a moldura só troca para o
        resumo depois que a descoberta foi lida (volta 3). */
     if (params.get('percurso') === '1') {
