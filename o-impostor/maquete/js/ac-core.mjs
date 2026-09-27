@@ -85,7 +85,7 @@ export function apply(room, role, event, now = Date.now()) {
      tocava e nada acontecia. */
   if(event.type==='iniciar_maquete'){
     if(room.stage!=='registrado'||room.maquete)return false;
-    room.maquete=startMaquette(now);return true;
+    room.maquete=startMaquette(now,room.partida||room.id||'',room.jogador||'');return true;
   }
   if(event.type.startsWith('maquete_')){
     if(!(room.percurso?.fragmento?.membros.map(m=>m.papel)||['luz','conhecimento']).every(r=>[...room.peers.values()].some(p=>p.role===r)))return false;

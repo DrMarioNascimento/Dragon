@@ -80,6 +80,16 @@ export const CAPITULOS = [
         fechadura: ['Diga ao colega onde está o vão: perto de quê, de que lado da casa.', 'Diga: “no degrau de pedra da porta da frente”. O ponto de luz é a chave dele.']
       }
     },
+    porEsconderijo: {
+      'pedra-do-caminho': { achado: 'A pedra estava solta. Debaixo dela havia uma coisa pequena e fria.',
+        busca: ['Rente ao chão: nem tudo o que fica no caminho está preso.', 'Diante da porta, no fim do caminho: uma pedra ou uma laje saiu do lugar.'] },
+      'laje-de-chegada': { achado: 'Uma laje balançou sob o dedo. Debaixo dela havia uma coisa pequena e fria.',
+        busca: ['Rente ao chão: nem tudo o que fica no caminho está preso.', 'Diante da porta, no fim do caminho: uma laje ou uma pedra saiu do lugar.'] },
+      'pilar-do-portao': { achado: 'Uma pedra do pilar estava solta. Atrás dela havia uma coisa pequena e fria.',
+        busca: ['Onde o terreno começa, antes da porta: nem toda pedra está presa.', 'Na entrada: o pilar do portão ou a moita ao lado da varanda.'] },
+      'moita-do-caminho': { achado: 'Entre as folhas, rente à terra, havia uma coisa pequena e fria.',
+        busca: ['Nem tudo o que cresce no caminho é só planta.', 'Perto da entrada: a moita ao lado da varanda ou o pilar do portão.'] }
+    },
     evidencia: 'chave-exterior',
     fecho: 'O telhado se soltou. Debaixo dele havia um andar de quartos.'
   },
@@ -113,8 +123,18 @@ export const CAPITULOS = [
         fechadura: ['Descreva ao colega o caminho até o vão, cômodo por cômodo.', 'Diga: “na chaminé, no corredor dos quartos”.']
       }
     },
+    porEsconderijo: {
+      'armario-do-quarto-distante': { achado: 'O armário tinha fundo falso. O que caiu lá dentro não era roupa.',
+        busca: ['Os quartos guardam roupa — e às vezes outra coisa atrás dela.', 'No quarto mais longe da torre: o armário ou o castiçal.'] },
+      'castical-do-quarto-distante': { achado: 'O castiçal tinha a base oca. O que estava lá dentro não era vela.',
+        busca: ['Nos quartos, o que ilumina também guarda.', 'No quarto mais longe da torre: o castiçal ou o armário.'] },
+      'armario-do-quarto-vizinho': { achado: 'O armário tinha fundo falso. O que caiu lá dentro não era roupa.',
+        busca: ['Os quartos guardam roupa — e às vezes outra coisa atrás dela.', 'No quarto ao lado: o armário ou o castiçal.'] },
+      'castical-do-quarto-vizinho': { achado: 'O castiçal tinha a base oca. O que estava lá dentro não era vela.',
+        busca: ['Nos quartos, o que ilumina também guarda.', 'No quarto ao lado: o castiçal ou o armário.'] }
+    },
     evidencia: 'chave-dos-quartos',
-    fecho: 'O andar dos quartos saiu inteiro. Embaixo está o térreo, com a sala escura e a despensa.'
+    fecho: 'O andar dos quartos saiu inteiro. Embaixo está o térreo: a sala, a biblioteca, o escritório, a cozinha e o quarto de serviço.'
   },
   {
     id: 'terreo',
@@ -122,29 +142,39 @@ export const CAPITULOS = [
     camada: 'piso-1',
     chaveiro: 'luz',
     fechadura: 'fechadura-lareira',
-    fechaduraRotulo: 'O peito da chaminé, na sala escura',
-    esconderijo: 'relogio-de-parede',
-    recorte: 'Na sala que ficou escura.',
-    candidatos: ['relogio-de-parede', 'escrivaninha', 'quadro', 'espelho'],
+    fechaduraRotulo: 'O peito da chaminé, na sala',
+    esconderijo: 'relogio-caixa-alta',
+    recorte: 'No térreo.',
+    candidatos: ['relogio-caixa-alta', 'escrivaninha', 'quadro', 'espelho'],
     rotulos: {
-      'relogio-de-parede': 'O relógio de parede parado',
-      'escrivaninha': 'A escrivaninha',
+      'relogio-caixa-alta': 'O relógio de caixa alta',
+      'escrivaninha': 'A escrivaninha do escritório',
       'quadro': 'O quadro emoldurado',
       'espelho': 'O espelho na parede'
     },
     achado: {
-      chave: 'O relógio de parede parou às 21h29. Atrás do mostrador havia outra coisa.',
+      chave: 'Em cima do relógio de caixa alta, atrás do remate, havia outra coisa.',
       fechadura: 'No peito da chaminé da sala, uma placa de ferro com um vão estreito.'
     },
     dicas: {
       busca: {
-        chave: ['Na sala que ficou escura, uma coisa parou quando a casa apagou.', 'O relógio de parede ou o quadro da sala escura.'],
-        fechadura: ['A chaminé desce até o térreo.', 'Na sala escura, o peito da chaminé tem uma placa de ferro.']
+        chave: ['Na sala, olhe o que é mais alto que todos.', 'O relógio de caixa alta ou o quadro ao lado dele.'],
+        fechadura: ['A chaminé desce até o térreo.', 'Na sala, o peito da chaminé tem uma placa de ferro.']
       },
       encaixe: {
-        chave: ['O vão está na mesma sala do esconderijo.', 'O vão fica no peito da chaminé da sala escura.'],
-        fechadura: ['Diga ao colega em que parede da sala está o vão.', 'Diga: “no peito da chaminé, na sala escura”.']
+        chave: ['O vão está na mesma sala do esconderijo.', 'O vão fica no peito da chaminé da sala.'],
+        fechadura: ['Diga ao colega em que parede da sala está o vão.', 'Diga: “no peito da chaminé, na sala”.']
       }
+    },
+    porEsconderijo: {
+      'relogio-caixa-alta': { achado: 'Em cima do relógio de caixa alta, atrás do remate, havia outra coisa.',
+        busca: ['Na sala, olhe o que é mais alto que todos.', 'O relógio de caixa alta ou o quadro ao lado dele.'] },
+      'escrivaninha': { achado: 'Uma gaveta da escrivaninha tinha fundo duplo. Embaixo dos papéis havia outra coisa.',
+        busca: ['No escritório, nem toda gaveta é do tamanho que parece.', 'A escrivaninha do escritório ou o espelho da sala.'] },
+      'quadro': { achado: 'Presa em cima da moldura do quadro havia outra coisa.',
+        busca: ['Na sala, uma moldura guarda mais do que a pintura.', 'O quadro ou o relógio de caixa alta, na sala.'] },
+      'espelho': { achado: 'Presa em cima da moldura do espelho havia outra coisa.',
+        busca: ['Na sala, uma coisa devolve a sala a quem olha.', 'O espelho da sala ou a escrivaninha do escritório.'] }
     },
     evidencia: 'passagem-sob-despensa',
     fecho: 'O térreo se ergueu. Sob a despensa há um porão — e ele não termina onde a casa termina.'
@@ -172,9 +202,58 @@ function segundosDaCamada(state, now) {
   return state.level === 0 ? Math.max(0, t - FOLGA_DA_PRIMEIRA_S) : t;
 }
 
-export function startMaquette(now = Date.now()) {
+export function startMaquette(now = Date.now(), partida = '', jogador = '') {
   return { level: 0, key: false, lock: false, mistakes: 0, score: 0, evidence: [], lastAttempt: {},
-    startedAt: now, layerAt: now, bothAt: null, expired: false, layerScores: [] };
+    startedAt: now, layerAt: now, bothAt: null, expired: false, layerScores: [],
+    esconderijos: sortearEsconderijos(partida, jogador) };
+}
+
+/* ===== O IMPOSTOR · ESCONDERIJO SORTEADO (27/09/2026) =====================
+   Mario: "para não ficar manjado a posição". Na AC o esconderijo de cada
+   camada era fixo. Aqui ele é sorteado entre os CANDIDATOS da camada, por
+   partida e por jogador: o mesmo par (partida, jogador) dá sempre o mesmo
+   lugar; outra partida ou outro jogador, outro lugar. Os candidatos são os
+   mesmos pontos que já existiam no modelo — nenhum sumiu, só o certo muda.
+   Mesmo hash e gerador de o-impostor/ra/sorteio.js (cópia, não import: o
+   motor é módulo e não depende de janela). */
+function hashTexto(texto) {
+  let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  for (let i = 0; i < texto.length; i++) {
+    const c = texto.charCodeAt(i);
+    h1 = Math.imul(h1 ^ c, 2654435761);
+    h2 = Math.imul(h2 ^ c, 1597334677);
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  return h1 >>> 0;
+}
+function gerador(semente) {
+  let a = hashTexto(semente);
+  return () => {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+export function sortearEsconderijos(partida = '', jogador = '') {
+  const escolhidos = {};
+  for (const c of CAPITULOS) {
+    const rnd = gerador([partida, jogador, 'chave-maquete', c.id].map(String).join('|'));
+    escolhidos[c.id] = c.candidatos[Math.floor(rnd() * c.candidatos.length)];
+  }
+  return escolhidos;
+}
+/* O esconderijo desta partida; estado antigo (sem sorteio) cai no da AC. */
+export function esconderijoDe(state, capitulo) {
+  const e = state && state.esconderijos && state.esconderijos[capitulo.id];
+  return capitulo.candidatos.includes(e) ? e : capitulo.esconderijo;
+}
+/* O que se acha e as dicas da procura dependem de ONDE a chave está. */
+function textosDaChave(state, capitulo) {
+  const e = esconderijoDe(state, capitulo);
+  const t = (capitulo.porEsconderijo || {})[e];
+  return t ? { achado: t.achado, busca: t.busca }
+    : { achado: capitulo.achado.chave, busca: capitulo.dicas.busca.chave };
 }
 
 /* Estado salvo antes dos relógios (checkpoint do Solo): ganha relógio agora. */
@@ -235,7 +314,7 @@ comRelogio(state, now); if (event.type !== 'maquete_prazo' && now - state.starte
     if (!pontosDoLado(capitulo, lado).includes(event.object)) return false;
     if (now - (state.lastAttempt[role] || 0) < INTERVALO_ENTRE_TOQUES) return false;
     state.lastAttempt[role] = now;
-    if (lado === 'chave' && event.object === capitulo.esconderijo) state.key = true;
+    if (lado === 'chave' && event.object === esconderijoDe(state, capitulo)) state.key = true;
     else if (lado === 'fechadura' && event.object === capitulo.fechadura) state.lock = true;
     else state.mistakes++;
     if (state.key && state.lock && !Number.isFinite(state.bothAt)) state.bothAt = now;
@@ -271,7 +350,8 @@ function tempoDaVista(state, capitulo, lado, now) {
   const parte = ambos ? 'encaixe' : 'busca';
   const desde = ambos && Number.isFinite(state.bothAt) ? Math.max(0, (now - state.bothAt) / 1000) : camada;
   const nivel = RITMO.nivelDaDica(desde, parte === 'busca' ? RITMO.maquete.dicasBusca : RITMO.maquete.dicasEncaixe);
-  const textos = ((capitulo.dicas || {})[parte] || {})[lado === 'fechadura' ? 'fechadura' : 'chave'] || [];
+  const textos = (lado === 'chave' && parte === 'busca') ? textosDaChave(state, capitulo).busca
+    : ((capitulo.dicas || {})[parte] || {})[lado === 'fechadura' ? 'fechadura' : 'chave'] || [];
   return {
     tempo: { total, decorrido, restante: Math.max(0, total - decorrido), camada, esgotado: decorrido >= total },
     dica: { nivel, parte, texto: nivel ? textos[nivel - 1] || null : null, textos: textos.slice(0, nivel) },
@@ -313,7 +393,7 @@ export function maquetteView(state, role, now = Date.now()) {
     pista: ambos ? SEGUNDA_PISTA : capitulo.recorte,
     ato: ambos ? 2 : 1,
     achou,
-    achado: achou ? capitulo.achado[lado] : null,
+    achado: achou ? (lado === 'chave' ? textosDaChave(state, capitulo).achado : capitulo.achado[lado]) : null,
     alvos,
     candidatos: alvos,
     rotulos,

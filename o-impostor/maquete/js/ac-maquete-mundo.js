@@ -22,7 +22,12 @@
   'use strict';
 
   /* O carimbo fura o cache do aparelho quando o modelo muda (18/09/2026). */
-  var ARQUIVO = 'assets/ac/casa-da-costa-pisos.glb?v=20260918-maquete-nova';
+  /* O IMPOSTOR (27/09/2026): a casa com os cômodos do cânone — biblioteca,
+     escritório, quarto de serviço com sacada, corredor de serviço (porta para o
+     jardim e quadro de luz), jardim interno, farol e guarita; o relógio de
+     parede deu lugar ao relógio de caixa alta, ao lado do quadro; a
+     escrivaninha foi para o escritório. O porão continua. */
+  var ARQUIVO = 'assets/ac/casa-o-impostor-pisos.glb?v=20260927-comodos';
 
   /* Camadas, de cima para baixo. `terreno` nunca se solta. */
   var CAMADAS = ['telhado', 'piso-2', 'piso-1', 'porao', 'terreno'];
@@ -46,7 +51,7 @@
     { id: 'castical-do-quarto-distante', camada: 'piso-2', ancestral: 'quarto-oeste', nomes: ['castical', 'vela-de-cabeceira'] },
     { id: 'armario-do-quarto-vizinho', camada: 'piso-2', ancestral: 'quarto-sul', prefixo: 'armario' },
     { id: 'castical-do-quarto-vizinho', camada: 'piso-2', ancestral: 'quarto-sul', nomes: ['castical', 'vela-de-cabeceira'] },
-    { id: 'relogio-de-parede', camada: 'piso-1', ancestral: 'relogio-de-parede' },
+    { id: 'relogio-caixa-alta', camada: 'piso-1', ancestral: 'relogio-caixa-alta' },
     { id: 'escrivaninha', camada: 'piso-1', ancestral: 'escrivaninha' },
     { id: 'quadro', camada: 'piso-1', ancestral: 'sala-escura', nomes: ['quadro', 'moldura-do-quadro'] },
     { id: 'espelho', camada: 'piso-1', ancestral: 'sala-escura', nomes: ['espelho', 'moldura-do-espelho'] }

@@ -29,10 +29,15 @@
     let params=new URLSearchParams(location.search),tokens;
     if(params.get('demo')==='solo'&&!params.has('sala')){
       const M=await motor(),core=M.core;
-      const KEY='ac:solo-integral:v1';
-      let saved=null;try{saved=JSON.parse(sessionStorage.getItem(KEY)||'null')}catch(_){ }
-      const janelaConcluida=!!(saved&&saved.janelaConcluida);
-      const novo=()=>({id:'solo',stage:'posicionar',startedAt:Date.now(),finishedAt:null,beam:null,vela:null,maquete:null,keyMotion:null,papeis:null,velaEsgotada:false,percurso:null});
+      /* O IMPOSTOR (27/09/2026): chave própria na sessão, para não misturar com a
+         AC no mesmo endereço; ?nova=1 começa outra partida. A maquete é o
+         Prólogo, a porta de entrada: não espera a escrivaninha. */
+      const KEY='oi:maquete-solo:v1';
+      let saved=null;try{saved=params.has('nova')?null:JSON.parse(sessionStorage.getItem(KEY)||'null')}catch(_){ }
+      if(saved&&params.has('partida')&&saved.room&&saved.room.partida!==params.get('partida'))saved=null;
+      const janelaConcluida=true;
+      const codigoNovo=()=>params.get('partida')||('P-'+Date.now().toString(36).toUpperCase()+'-'+Math.floor(Math.random()*1e6).toString(36).toUpperCase());
+      const novo=()=>({id:'solo',partida:codigoNovo(),jogador:params.get('jogador')||'solo',stage:'registrado',startedAt:Date.now(),finishedAt:null,beam:null,vela:null,maquete:null,keyMotion:null,papeis:null,velaEsgotada:false,percurso:null});
       let room=saved&&saved.version===2&&saved.room?Object.assign(novo(),saved.room):novo();
       room.peers=new Map([['eu',{role:'luz'}],['parceiro',{role:'conhecimento'}]]);
       let fala=saved&&saved.version===2&&saved.fala||null;
