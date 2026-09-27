@@ -7,7 +7,7 @@
 <title>MOSAICO — A Casa da Costa · O Impostor (protótipo da tela)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@900&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
 <!-- PROTÓTIPO VISUAL (27/09/2026). Só a tela: as mensagens são de exemplo e
      nada aqui decide regra. A linha de cima é cópia (não compartilhada) do
      topo do celular do MOSAICO · A Manhã do Carro-Forte. -->
@@ -16,12 +16,13 @@
  --bg:#050b12;--ink:#f3f6f4;--ink-2:#dce6ea;--muted:#9aa9b3;
  --gold:#d6aa58;--gold2:#efc878;--green:#70d6a0;--blue:#7faac1;--red:#dd968a;
  --panel:#0d1a24;--line:#273946;--edge:#32485a;
- --display:'Cormorant Garamond',Georgia,serif;--sans:Inter,system-ui,sans-serif;--mono:'IBM Plex Mono',Consolas,monospace;
+ /* fontes do Mosaico Card: Inter no texto, Cinzel Decorative na marca, Georgia no serifado */
+ --display:Georgia,'Times New Roman',serif;--sans:Inter,'Segoe UI',system-ui,sans-serif;--mono:Inter,'Segoe UI',system-ui,sans-serif;
  --alvo-de-toque:44px;
  color-scheme:dark;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:var(--sans)}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-text-size-adjust:100%}
 body{overflow:hidden;display:flex;flex-direction:column}
 button,input,textarea{font:inherit;color:inherit}
 [hidden]{display:none!important}
@@ -44,7 +45,7 @@ button,input,textarea{font:inherit;color:inherit}
 .icon-btn::after{content:'';position:absolute;left:50%;top:50%;width:max(100%,var(--alvo-de-toque));height:max(100%,var(--alvo-de-toque));transform:translate(-50%,-50%)}
 .icon-btn:active,.orelha:active,.chip:active{transform:translateY(2px)}
 .hud-pill{display:flex;align-items:center;gap:4px;padding:0 7px;font:800 12px var(--mono)}
-.persona{width:32px;height:32px;padding:0;overflow:hidden;border-color:#d6aa5899}
+.persona{width:36px;height:36px;padding:0;overflow:hidden;border-color:#d6aa5899}
 .persona img{width:30px;height:30px;object-fit:contain;display:block;margin:auto}
 .turnline{min-height:36px;margin-top:6px;display:flex;align-items:center;justify-content:space-between;gap:7px;font-family:var(--mono)}
 .turnline>span{display:flex;align-items:center;gap:8px;min-width:0}
@@ -161,6 +162,32 @@ button,input,textarea{font:inherit;color:inherit}
 .janela small{display:block;font:700 11px var(--mono);letter-spacing:.08em;color:#c89a50;margin-bottom:6px}
 .janela p{margin:0 0 14px;font:500 20px/1.35 var(--display);color:#f0dcb4}
 .janela button{width:100%;min-height:46px;border-radius:10px;border:1px solid #d6aa58;background:linear-gradient(180deg,#f3d078,#e0b13a);color:#1a1206;font:700 13px var(--mono);letter-spacing:.06em;cursor:pointer}
+
+/* ── Marca e "i": cópia do padrão do Mosaico Card (mc-mark.css, abertura.css) ── */
+.mc-outer{width:42px;height:42px;display:grid;place-items:center;padding:3px;border:1.5px solid #e0b36d;background:linear-gradient(145deg,#d5b18a,#a67c55 55%,#6f4d32);border-radius:5px;box-shadow:inset 0 2px 1px #fff8,inset 0 -3px 5px #3b251799,0 3px 0 #51351f,0 6px 10px #0007;flex:0 0 auto}
+.mc-inner{width:100%;height:100%;display:grid;place-items:center;background:linear-gradient(145deg,#c9a47c,#9a704b 58%,#65462f);box-shadow:inset 0 0 0 1px #efd09e,inset 1px 1px 2px #fff6,inset -2px -2px 4px #3b251777;color:#65d5cc;font-family:"Cinzel Decorative",Cinzel,serif;font-weight:900;font-size:19px;letter-spacing:-0.07em;line-height:1;padding:1px 0 0;border-radius:2px;text-shadow:0 2px 1px #17372f,0 0 2px #071b18,0 0 7px #65d5cc77}
+.brand{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
+.brand div{min-width:0;display:flex;flex-direction:column;line-height:1}
+.brand .mark-name{font-size:14px;font-weight:800;letter-spacing:.04em;color:#f1f8fc;white-space:nowrap}
+.brand small{font:600 9.5px/1.05 var(--sans);letter-spacing:.03em;color:var(--muted);white-space:nowrap;margin-top:5px;overflow:hidden;text-overflow:ellipsis;text-transform:uppercase}
+.mc-i{width:36px;height:36px;min-width:36px;padding:0;border-radius:10px;cursor:pointer;border:1px solid #7394a4;border-bottom-color:#0a202c;background:linear-gradient(#567e93,#305367 48%,#193748);box-shadow:inset 0 2px 1px #d9f3ff66,inset 0 -3px 4px #071a27aa,0 4px 0 #061823,0 7px 8px #0008;font-family:Georgia,"Times New Roman",serif;font-style:italic;font-weight:700;font-size:19px;line-height:1;color:#65d5cc;text-shadow:0 2px 1px #17372f,0 0 2px #071b18,0 0 7px #65d5cc77}
+.mc-i:active{transform:translateY(3px);box-shadow:inset 0 2px 5px #0006,0 1px 0 #071b25}
+/* "Como jogar": mesmo desenho do Mosaico Card (passos numerados e caixas) */
+#comoJogar{width:min(760px,calc(100% - 24px));max-height:calc(100dvh - 32px);padding:22px 18px;color:#dcebf3;background:#12313f;border:1px solid #65d5cc66;border-radius:20px;box-shadow:0 24px 70px #0009}
+#comoJogar::backdrop{background:#031319bf;backdrop-filter:blur(4px)}
+#comoJogar .kicker{margin:0 0 6px;font:700 11px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:#65d5cc}
+#comoJogar h1{margin:0 0 10px;font:800 clamp(24px,5vw,34px)/1.15 var(--sans);color:#f1f8fc}
+#comoJogar .lede{margin:0;line-height:1.6;color:#aec6d5}
+.how-steps{list-style:none;counter-reset:step;padding:0;margin:22px 0}
+.how-steps li{counter-increment:step;position:relative;padding:0 0 14px 46px}
+.how-steps li::before{content:counter(step);position:absolute;left:0;top:0;width:30px;height:30px;display:grid;place-items:center;border:1px solid #65d5cc;border-radius:50%;color:#65d5cc;font-weight:800;background:radial-gradient(circle at 30% 20%,#438e7e,#20584e 55%,#123a36);box-shadow:inset 0 1px 2px #d9fff955,inset 0 -2px 3px #001e2a88,0 3px 0 #082c2c,0 6px 10px #02182066}
+.how-steps strong{color:#65d5cc;font-size:17px}
+.how-steps p{margin:6px 0 0;line-height:1.55}
+.how-box{padding:18px;margin:14px 0;border:1px solid #65d5cc45;border-radius:18px;background:#0a252dc9;background-image:linear-gradient(145deg,#ffffff09,#00000018);border-top-color:#8ae7d766;border-bottom-color:#031a24;box-shadow:inset 0 1px 0 #ffffff14,inset 0 -2px 0 #00000028,0 5px 0 #08222b,0 12px 22px #04171f55}
+.how-box.destaque{background:linear-gradient(135deg,#174f43,#102f36);border-color:#65d5cc88}
+.how-box h2{font-size:20px;line-height:1.25;margin:0 0 10px;color:#65d5cc}
+.how-box p{margin:0 0 8px;line-height:1.55} .how-box p:last-child{margin:0}
+#comoJogarOk{width:100%;min-height:46px;margin:8px 0 4px;border-radius:13px;border:1px solid #7394a4;border-bottom-color:#0a202c;color:#f1f8fc;font-weight:700;cursor:pointer;background:linear-gradient(#518f82,#28685d,#153c37);box-shadow:inset 0 2px 1px #d9f3ff66,inset 0 -3px 4px #071a27aa,0 4px 0 #061823,0 7px 8px #0008}
 </style>
 </head>
 <body>
@@ -168,16 +195,16 @@ button,input,textarea{font:inherit;color:inherit}
 <div class="rain" aria-hidden="true"></div>
 
 <div class="abertura" id="abertura">
-  <video id="videoAbertura" src="Mosaico_O_Impostor.mp4" playsinline preload="auto"></video>
+  <video id="videoAbertura" playsinline preload="auto" poster="media/aguardando.jpg"><source src="media/Mosaico_O_Impostor.mp4" type="video/mp4" /><source src="Mosaico_O_Impostor.mp4" type="video/mp4" /></video>
   <button class="comecar" id="comecar">▶ Começar</button>
   <button class="pular" id="pular" hidden>Pular ›</button>
 </div>
 <div class="janela" id="janela" hidden><div class="caixa-j"><small id="janelaRot">PARA COMEÇAR</small><p id="janelaTxt"></p><button id="janelaOk">Entendi</button></div></div>
 <header class="topbar">
   <div class="topline">
-    <div class="brand"><span class="mark">M</span><div><b>MOSAICO</b><small>A CASA DA COSTA · O IMPOSTOR</small></div></div>
+    <div class="brand"><div class="mc-outer"><div class="mc-inner">M</div></div><div><span class="mark-name">Mosaico</span><small>A Casa da Costa · O Impostor</small></div></div>
     <div class="hud">
-      <button class="icon-btn" id="infoBtn" type="button" aria-label="Regras">ⓘ</button>
+      <button class="mc-i" id="infoBtn" type="button" aria-label="Como jogar" aria-haspopup="dialog" title="Como jogar">i</button>
       <button class="icon-btn persona" id="fichaBtn" type="button" aria-label="Sua ficha de personagem"><img src="icones/mini/investigador.webp" alt="" /></button>
     </div>
   </div>
@@ -243,6 +270,20 @@ button,input,textarea{font:inherit;color:inherit}
 </main>
 
 
+<dialog id="comoJogar" aria-labelledby="cjTitulo">
+  <p class="kicker">Mosaico · O Impostor · Como jogar</p>
+  <h1 id="cjTitulo" tabindex="-1">Um de vocês não é quem diz.</h1>
+  <p class="lede">Na casa há um traidor, e ele pode ser qualquer um. Explore, converse e desconfie. No fim, você aponta quem foi.</p>
+  <ol class="how-steps">
+    <li><strong>Entre na casa</strong><p>A aba RA põe a maquete na sua mesa. Procure a chave e abra a casa. A maquete fica disponível o jogo todo para você explorar.</p></li>
+    <li><strong>Comunique-se</strong><p>No Grupo estão todos da casa, cada um só pelo final do número. Toque num número para conversar no privado ou salvá-lo com um nome: o nome é o seu palpite e só você vê.</p></li>
+    <li><strong>Investigue</strong><p>As peças da casa se abrem conforme os capítulos. O que você achar vai para o inventário, no clipe da conversa. Anexar um item para alguém gasta 1 envio.</p></li>
+    <li><strong>Desconfie</strong><p>Em Suspeitos, anote o que acha de cada número. No fim do capítulo, o caderno vira a votação.</p></li>
+  </ol>
+  <section class="how-box"><h2>O tempo é do capítulo.</h2><p>A barra no alto é o tempo do capítulo. Quando ela acaba, o capítulo fecha.</p></section>
+  <section class="how-box destaque"><h2>A pergunta final.</h2><p>Quem é o impostor? E quem ajudou o traidor? Acertar vale pontos.</p></section>
+  <button type="button" id="comoJogarOk">Entendi</button>
+</dialog>
 <div class="veu" id="veu" hidden><div class="folha" id="folha"></div></div>
 
 <script>
@@ -423,13 +464,8 @@ $('#gradeRA').innerHTML=PECAS.map(function(p){
 }).join('');
 
 /* ── ⓘ e ficha ───────────────────────────────────────────────────────── */
-$('#infoBtn').onclick=function(){folha('<h2>Como jogar</h2><div class="ficha">'+
-  '<div><small>O GRUPO</small><p>Sete números, só o final. Ninguém sabe qual é o de quem, nem qual era o do proprietário.</p></div>'+
-  '<div><small>CONTATOS</small><p>Toque num número para conversar no privado ou salvá-lo com um nome. O nome é seu palpite e só você vê.</p></div>'+
-  '<div><small>ENVIOS</small><p>Anexar um item do inventário (📎) gasta 1 envio.</p></div>'+
-  '<div><small>SUSPEITOS</small><p>Anote o que desconfia. No fim do capítulo, o caderno vira a votação.</p></div>'+
-  '<div><small>RA</small><p>As peças da casa se abrem conforme os capítulos.</p></div>'+
-  '<div><small>PROTÓTIPO</small><p>Esta tela é só visual. As mensagens são de exemplo.</p></div></div>')};
+$('#infoBtn').onclick=function(){var d=$('#comoJogar');if(d.showModal)d.showModal();else d.setAttribute('open','');d.scrollTop=0;$('#cjTitulo').focus()};
+$('#comoJogarOk').onclick=function(){$('#comoJogar').close()};
 $('#fichaBtn').onclick=function(){folha('<div class="topo-ficha"><img src="icones/mini/investigador.webp" alt=""/><div><h2>Investigador</h2><p class="sub" style="margin:0">Na lista do proprietário: <b>conferir</b></p></div></div><div class="ficha">'+
   '<div><small>FRAGMENTO</small><p>Laudo do óbito e cópia da lista de bens.</p></div>'+
   '<div><small>SEGREDO INOCENTE</small><p>Trabalha para a seguradora do espólio, não para a família.</p></div>'+
@@ -438,7 +474,7 @@ $('#fichaBtn').onclick=function(){folha('<div class="topo-ficha"><img src="icone
 
 /* ── Tempo (demonstração) ────────────────────────────────────────────── */
 var TOTAL=8*60,resta=TOTAL;
-setInterval(function(){if(resta>0)resta--;$('#relogio').textContent=('0'+Math.floor(resta/60)).slice(-2)+':'+('0'+resta%60).slice(-2);$('#barra').style.width=(resta/TOTAL*100)+'%';$('#tempo').classList.toggle('pouco',resta<60)},1000);
+function iniciarRelogio(){setInterval(function(){if(resta>0)resta--;$('#relogio').textContent=('0'+Math.floor(resta/60)).slice(-2)+':'+('0'+resta%60).slice(-2);$('#barra').style.width=(resta/TOTAL*100)+'%';$('#tempo').classList.toggle('pouco',resta<60)},1000);}
 
 function toast(t){var d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(function(){d.remove()},2600)}
 
@@ -447,7 +483,7 @@ function demoMensagens(){setTimeout(function(){chegaPrivada('19','Você viu o qu
 /* PROTÓTIPO: o telefone vermelho do hall será achado na maquete. Até lá, um
    botão na aba RA faz de conta que o jogador o achou. */
 $('#achouTelefone').onclick=function(){$('#achouTelefone').remove();
-  janela('O TELEFONE DO HALL','Você achou como se comunicar. Todos da casa estão no mesmo grupo, mas cada um aparece só pelo final do número.',function(){liberarAba('grupo');liberarAba('privadas');irPara('grupo');demoMensagens()});};
+  janela('O TELEFONE DO HALL','Você achou como se comunicar. Todos da casa estão no mesmo grupo, mas cada um aparece só pelo final do número.',function(){liberarAba('grupo');liberarAba('privadas');irPara('grupo');demoMensagens();iniciarRelogio()});};
 
 
 /* ── Abertura e primeira orientação ──────────────────────────────────────
