@@ -43,6 +43,14 @@ footer{padding:20px 0 36px;border-top:1px solid var(--line);text-align:center;co
 
 <main class="shell grid">
   <section class="piece">
+    <model-viewer id="maquete" src="maquete/assets/ac/casa-da-costa-pisos.glb" alt="Maquete da casa" camera-controls touch-action="pan-y" ar ar-modes="webxr scene-viewer quick-look" ar-placement="floor" shadow-intensity="1" exposure="1.05" camera-orbit="30deg 65deg auto">
+      <button slot="ar-button" class="ar">Ver na sala</button>
+    </model-viewer>
+    <div class="info"><b>A maquete · Prólogo</b><p>Cópia independente da maquete de A Casa da Costa (pasta maquete/). Ainda com a lógica da AC; será adaptada para o Prólogo.</p>
+      <p style="margin:12px 0 0"><a href="maquete/?demo=solo" style="display:flex;min-height:44px;align-items:center;justify-content:center;border-radius:9px;background:linear-gradient(180deg,#f3d078,#e0b13a);color:#1a1206;font:700 13px var(--mono);text-transform:uppercase;text-decoration:none">Abrir a maquete · RA</a></p>
+    </div>
+  </section>
+  <section class="piece">
     <model-viewer id="relogio" src="modelos/relogio_caixa_alta_v2.glb" alt="Relógio de caixa alta" camera-controls touch-action="pan-y" ar ar-modes="webxr scene-viewer quick-look" ar-placement="floor" shadow-intensity="1" exposure="1.05" camera-orbit="20deg 80deg auto">
       <button slot="ar-button" class="ar">Ver na sala</button>
     </model-viewer>
