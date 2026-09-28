@@ -390,6 +390,187 @@ button:active,.caixa:active,.chip:active,.redondo:active{
  transform:translateZ(4px);
 }
 
+
+/* ── 3D PASS 2 · PEÇAS, CAMADAS E PROFUNDIDADE ─────────────────────── */
+:root{
+ --z-face:linear-gradient(145deg,#1b3445 0%,#112532 48%,#09151e 100%);
+ --z-edge:#476579;
+ --z-bottom:#050d13;
+ --z-lift:0 5px 0 var(--z-bottom),0 12px 22px #0009;
+ --z-lift-hi:0 7px 0 var(--z-bottom),0 18px 30px #000b;
+}
+
+/* Base: transforma o painel em uma mesa sobre a qual as peças repousam */
+.painel{
+ background:
+   linear-gradient(180deg,#ffffff06,#00000010),
+   radial-gradient(80% 45% at 50% 0%,#17324555,transparent 70%),
+   #07111acc;
+ border-color:#4b687a;
+ box-shadow:inset 0 2px 0 #ffffff0d,inset 0 -8px 16px #0009,0 7px 0 #020609,0 18px 36px #000b;
+}
+.rolagem{
+ background:linear-gradient(180deg,#07131c22,transparent 20%);
+}
+
+/* Abas: placas com espessura */
+.orelhas{perspective:1000px}
+.orelha{
+ transform:translateZ(10px);
+ background:linear-gradient(180deg,#1b3445 0%,#112532 55%,#09161f 100%);
+ border-color:#49677a;
+ border-bottom:3px solid #050d13;
+ box-shadow:inset 0 2px 0 #ffffff16,inset 0 -4px 7px #02070baa,0 5px 0 #020609,0 10px 17px #0009;
+}
+.orelha:hover{transform:translateY(-3px) translateZ(16px)}
+.orelha.ativa{
+ transform:translateY(-3px) translateZ(20px);
+ border-color:#8aa5b6;
+ border-bottom-color:#071019;
+ box-shadow:inset 0 2px 0 #ffffff22,inset 0 -5px 8px #02070bbb,0 7px 0 #020609,0 17px 25px #000b,0 -2px 0 #d6aa58 inset;
+}
+.orelha .n{
+ background:radial-gradient(circle at 30% 25%,#a2f2c5,#48bd7f 58%,#21724d);
+ border:1px solid #8de0b1;
+ box-shadow:inset 0 2px 2px #ffffff66,inset 0 -2px 3px #063b24aa,0 2px 0 #0b321f,0 4px 7px #0008;
+}
+
+/* Conversas: cartões independentes, inclusive em telas touch */
+#listaPriv{padding:4px 2px 10px}
+.conversa{
+ position:relative;
+ margin:7px 2px;
+ padding:10px 9px;
+ border:1px solid #3b586b;
+ border-bottom:3px solid #050e15;
+ border-radius:13px;
+ background:var(--z-face);
+ box-shadow:inset 0 2px 0 #ffffff14,inset 0 -4px 7px #02070b99,var(--z-lift);
+ transform:translateZ(7px);
+}
+.conversa:hover{transform:translateY(-3px) translateZ(14px);box-shadow:inset 0 2px 0 #ffffff1b,inset 0 -5px 8px #02070baa,var(--z-lift-hi)}
+.conversa:active{transform:translateY(3px) translateZ(1px);box-shadow:inset 0 4px 8px #000a,0 1px 0 #020609}
+.avatar{
+ background:linear-gradient(145deg,#304c5d,#142733 60%,#0a151d);
+ border-color:#557487;
+ border-bottom:2px solid #050d13;
+ box-shadow:inset 0 2px 2px #ffffff18,inset 0 -4px 5px #02070baa,0 3px 0 #020609,0 6px 9px #0008;
+}
+
+/* Bolhas com volumes diferentes: sistema, outro jogador e eu */
+.msg .bolha{
+ background:linear-gradient(145deg,#213b4c 0%,#152a38 52%,#0b1822 100%);
+ border-color:#3b596b;
+ border-bottom:3px solid #050e15;
+ box-shadow:inset 0 2px 0 #ffffff15,inset 0 -4px 6px #02070baa,0 4px 0 #020609,0 9px 15px #0008;
+ transform:translateZ(6px);
+}
+.msg.eu .bolha{
+ background:linear-gradient(145deg,#1e523c 0%,#14382a 52%,#0a2017 100%);
+ border-color:#4b8e6d;
+ border-bottom-color:#07160f;
+ box-shadow:inset 0 2px 0 #ffffff18,inset 0 -4px 6px #03150daa,0 4px 0 #020609,0 9px 15px #0008;
+}
+.sistema{
+ background:linear-gradient(145deg,#2b4555,#1a303d 55%,#0e1b24);
+ border-color:#547286;
+ border-bottom:3px solid #050e15;
+ box-shadow:inset 0 2px 0 #ffffff18,inset 0 -4px 6px #02070baa,0 5px 0 #020609,0 11px 18px #0009;
+}
+
+/* Grid RA: cartas com espessura física */
+.grade{perspective:1200px;transform-style:preserve-3d;gap:11px}
+.peca{
+ min-height:128px;
+ background:
+  linear-gradient(145deg,#213c4e 0%,#142a38 50%,#091720 100%);
+ border-color:#4b697b;
+ border-bottom:4px solid #050e15;
+ box-shadow:inset 0 2px 0 #ffffff18,inset 0 -5px 9px #02070baa,0 6px 0 #020609,0 14px 23px #000a;
+ transform:translateZ(7px);
+}
+.peca:hover{transform:translateY(-5px) translateZ(18px) rotateX(1deg);box-shadow:inset 0 2px 0 #ffffff20,inset 0 -6px 10px #02070cbb,0 9px 0 #020609,0 21px 32px #000b}
+.peca:active{transform:translateY(3px) translateZ(2px);box-shadow:inset 0 5px 9px #000a,0 2px 0 #020609}
+.peca .ico{text-shadow:0 4px 6px #000c;filter:drop-shadow(0 2px 2px #0008)}
+
+/* Suspeitos e ficha: cartões sobre cartões */
+.suspeito{
+ background:var(--z-face);
+ border-color:#456276;
+ border-bottom:3px solid #050e15;
+ box-shadow:inset 0 2px 0 #ffffff14,inset 0 -4px 7px #02070baa,0 5px 0 #020609,0 11px 18px #0009;
+ transform:translateZ(5px);
+}
+.suspeito textarea{
+ background:linear-gradient(180deg,#0b1822,#07121a);
+ border-color:#3b5667;
+ box-shadow:inset 0 3px 6px #0009,0 2px 0 #020609;
+}
+.nivel button{
+ background:linear-gradient(180deg,#1a303e,#0b1923);
+ border-color:#4a6678;
+ border-bottom:2px solid #050d13;
+ box-shadow:inset 0 2px 0 #ffffff12,0 3px 0 #020609,0 6px 9px #0007;
+}
+.voto{
+ background:linear-gradient(180deg,#19402f,#0d261b);
+ border-color:#63ce92;
+ border-bottom:3px solid #06160e;
+ box-shadow:inset 0 2px 0 #ffffff14,0 4px 0 #020609,0 8px 13px #0008;
+}
+
+/* Grid do elenco — antes era o ponto mais plano */
+.elenco{perspective:1000px;transform-style:preserve-3d}
+.elenco div{
+ position:relative;
+ border-color:#426174;
+ border-bottom:3px solid #050e15;
+ background:linear-gradient(145deg,#183344,#0d202c 60%,#08131b);
+ box-shadow:inset 0 2px 0 #ffffff14,inset 0 -4px 6px #02070baa,0 4px 0 #020609,0 9px 15px #0008;
+ transform:translateZ(5px);
+ transition:transform .15s ease,box-shadow .15s ease;
+}
+.elenco div:hover{transform:translateY(-3px) translateZ(12px);box-shadow:inset 0 2px 0 #ffffff19,inset 0 -4px 7px #02070baa,0 7px 0 #020609,0 14px 21px #0009}
+.elenco div.meu{border-color:#efc878;border-bottom-color:#654c1b;box-shadow:inset 0 2px 0 #fff5,inset 0 -4px 7px #22170699,0 5px 0 #020609,0 12px 20px #000a,0 0 18px #efc8782b}
+.elenco img{filter:drop-shadow(0 4px 4px #000b)}
+
+/* Folhas, fichas e caixas: níveis de profundidade */
+.folha{
+ background:linear-gradient(170deg,#183344,#0b1821);
+ border-color:#567486;
+ border-bottom:3px solid #040c12;
+ box-shadow:inset 0 2px 0 #ffffff16,inset 0 -8px 14px #02070baa,0 10px 0 #020609,0 28px 50px #000d;
+}
+.folha .item,.ficha div{
+ background:linear-gradient(145deg,#172f3f,#0c1b25);
+ border-color:#3d5b6d;
+ border-bottom:2px solid #050d14;
+ box-shadow:inset 0 2px 0 #ffffff13,inset 0 -4px 6px #02070b88,0 4px 0 #020609,0 9px 14px #0008;
+}
+#papeis{
+ box-shadow:inset 0 2px 0 #ffffff16,inset 0 -8px 14px #02070baa,0 10px 0 #020609,0 28px 50px #000d;
+}
+#papeis .elenco div{transform:translateZ(4px)}
+#comoJogar{
+ box-shadow:inset 0 2px 0 #ffffff16,inset 0 -8px 14px #02070baa,0 10px 0 #020609,0 28px 50px #000d;
+}
+
+/* Botões: peça física, com estado pressionado consistente */
+button,.caixa,.redondo,.chip{
+ border-bottom-width:2px;
+ box-shadow:inset 0 2px 0 #ffffff14,inset 0 -3px 5px #02070b77,0 4px 0 #020609,0 8px 12px #0008;
+}
+button:active,.caixa:active,.redondo:active,.chip:active{
+ transform:translateY(3px);
+ box-shadow:inset 0 4px 8px #000a,0 1px 0 #020609;
+}
+.redondo.enviar{background:linear-gradient(180deg,#55b87f,#286a4a);border-color:#76dca4;border-bottom-color:#0a2819}
+
+/* Pequenos detalhes que reforçam materialidade */
+.dia{box-shadow:inset 0 1px 0 #ffffff14,0 2px 0 #020609,0 5px 9px #0008}
+.anexo{box-shadow:inset 0 2px 0 #ffffff12,inset 0 -3px 5px #0008,0 3px 0 #020609,0 6px 10px #0007}
+.compositor{box-shadow:inset 0 2px 0 #ffffff0a,0 -8px 20px #0009}
+
 </style>
 </head>
 <body>
