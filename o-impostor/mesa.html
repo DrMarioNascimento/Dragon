@@ -770,7 +770,7 @@ button:active,.caixa:active,.redondo:active,.chip:active{
 <nav class="orelhas" role="tablist">
   <button class="orelha ativa" data-aba="grupo" role="tab">Grupo</button>
   <button class="orelha" data-aba="privadas" role="tab">Privadas <span class="n" id="nPriv" hidden>0</span></button>
-  <button class="orelha" data-aba="suspeitos" role="tab">Suspeitos</button>
+  <button class="orelha" data-aba="suspeitos" role="tab">Nota</button>
   <button class="orelha" data-aba="ra" role="tab">RA</button>
 </nav>
 
@@ -827,7 +827,7 @@ button:active,.caixa:active,.redondo:active,.chip:active{
     <li><strong>Comunique-se</strong><p>No Grupo estão todos da casa, cada um só pelo final do número. Em Privadas estão todos do grupo: escreva só para quem você quiser questionar. Toque num número para salvá-lo com um nome: o nome é o seu palpite e só você vê. Os números e as cores mudam a cada partida.</p></li>
     <li><strong>Investigue</strong><p>As peças da casa se abrem conforme os capítulos. O que você achar vai para o inventário, no clipe da conversa. Anexar um item para alguém gasta 1 envio.</p></li>
     <li><strong>Envie com cuidado</strong><p>Cada capítulo dá <b>3 envios</b> (✉ no alto). Cada mensagem ou anexo que você manda gasta 1. Mande pelo menos 1 por capítulo. Há envios extras escondidos em objetos da casa: cada um achado vale +1.</p></li>
-    <li><strong>Desconfie</strong><p>Em Suspeitos, marque de 1 (pouca) a 3 (muita) a sua suspeita sobre cada número e anote o porquê. Só você vê. No fim do capítulo, o caderno vira a aposta.</p></li>
+    <li><strong>Desconfie</strong><p>Na aba Nota, marque de 1 (pouca) a 3 (muita) a sua suspeita sobre cada número e anote o porquê. Só você vê. No fim do capítulo, o caderno vira a aposta.</p></li>
     <li><strong>Sua ficha</strong><p>O ícone no alto, à direita, é o seu personagem: o que só você sabe, o seu segredo e o que você não pode fazer sem se expor.</p></li>
   </ol>
   <section class="how-box"><h2>Primeiro, o prólogo.</h2><p>O prólogo é a apresentação do cenário, da história e da tela do jogo. Nele não há tempo, mandar mensagem é livre e nada conta pontos. Os envios extras que você achar na casa vão com você para o Capítulo 1.</p></section>
@@ -912,7 +912,7 @@ var grupo=[
   {de:S(0),txt:'Alguém sabe onde acende a luz do corredor?'},
   {de:S(5),txt:'Tem luz na cozinha.'},
   {de:S(4),txt:'Quem trouxe a lista?'},
-  {de:S(6),txt:'Estou na biblioteca.'}
+  {de:S(1),txt:'Estou na biblioteca.'}
 ].concat(['Cheguei pelos fundos. Que chuva.','Alguém tem sinal aqui?','A luz acabou de piscar.','Estou perto da escada.','Tem alguém lá em cima?','Estou na sala de jantar.'].slice(0,N_CONTATOS-7).map(function(t,i){return {de:S(7+i),txt:t}}));
 var privadas={
 };
@@ -986,7 +986,7 @@ var capitulo=0;            // 0 = prólogo (apresentação: nada conta)
 var avisouPrologoLivre=false;
 function gastarEnvio(){
   if(capitulo===0){if(!avisouPrologoLivre){avisouPrologoLivre=true;toast('No prólogo, mandar é livre: é treino.')}return true}
-  if(envios<=0){toast('Sem envios neste capítulo.');return false}envios--;pintarEnvios();if(envios===0)toast('Esse foi o seu último envio do capítulo.');return true}
+  if(envios<=0){toast('Sem envios neste capítulo.');return false}envios--;enviosNoCap++;pintarEnvios();if(envios===0)toast('Esse foi o seu último envio do capítulo.');return true}
 function ganharEnvio(){envios++;pintarEnvios();var p=$('#enviosPill');if(p){p.classList.add('nasce');setTimeout(function(){p.classList.remove('nasce')},2400)}}
 $('#enviosPill').onclick=function(){janela('OS ENVIOS',TXT_ENVIOS)};
 var TXT_TEMPO='O ⏱ no alto é o tempo do capítulo. Quando ele acaba, o capítulo fecha e vem a pergunta do capítulo, mesmo que você não tenha terminado.';
@@ -1003,11 +1003,12 @@ function montarRespostas(id,lista,destino){
     var m={de:EU,txt:c.textContent,h:hora()};
     if(destino==='grupo'){grupo.push(m);pintarGrupo()}else{privadas[abertaPriv].msgs.push(m);privadas[abertaPriv].ordem=++ordemPriv;pintarConv();pintarListaPriv()}
     el.hidden=true;
+    if(capitulo===1)responderC1(c.textContent,destino==='grupo'?null:abertaPriv);
   }});
 }
 document.querySelectorAll('[data-respostas]').forEach(function(b){b.onclick=function(){
   var id=b.dataset.respostas,el=$('#'+id);
-  if(el.hidden){montarRespostas(id,id==='respGrupo'?RESP_GRUPO:RESP_PRIV,id==='respGrupo'?'grupo':'priv');el.hidden=false}else el.hidden=true;
+  if(el.hidden){montarRespostas(id,id==='respGrupo'?(capitulo===1?liberadas(C1.respGrupo):RESP_GRUPO):(capitulo===1?liberadas(C1.respPriv):RESP_PRIV),id==='respGrupo'?'grupo':'priv');el.hidden=false}else el.hidden=true;
 }});
 
 /* ── Inventário (clipe) ──────────────────────────────────────────────── */
@@ -1060,19 +1061,28 @@ function pintarSusp(){
   var topo=fimDeCapitulo
     ?'<div class="aviso ouro"><b>Fim do capítulo.</b> O caderno travou. Em quem você aposta como impostor? É opcional e só você vê.</div>'+
      '<div class="conf-aposta">'+[['certeza','Com certeza'],['sem','Sem certeza'],['naosei','Não sei']].map(function(c){return '<button type="button" data-aposta-conf="'+c[0]+'" class="'+(apostaConf===c[0]?'on':'')+'">'+c[1]+'</button>'}).join('')+'</div>'
-    :'<div class="aviso">Seu caderno. Só você vê. Marque 1 (pouca), 2 (média) ou 3 (muita) suspeita e anote o porquê. No fim do capítulo, ele vira a aposta.</div>';
+    :'<div class="aviso">Seu caderno. Só você vê. Marque 1 (pouca), 2 (média) ou 3 (muita) suspeita e anote o porquê. No fim do capítulo, ele vira a aposta.</div>'+
+     (capitulo&&!capituloFechado[capitulo]?'<button class="voto" id="concluirCap" style="margin:0 0 10px">Concluí este capítulo</button>':'');
   $('#listaSusp').innerHTML=topo+outros.map(function(f){
     var v=suspeita[f]||0;
     var niveis=['baixa','média','alta'].map(function(n,i){return '<button data-susp="'+f+'" data-v="'+(i+1)+'" class="'+(v===i+1?'on':'')+'" '+(fimDeCapitulo?'disabled':'')+' aria-label="'+n+'">'+(i+1)+'</button>'}).join('');
     return '<div class="suspeito"><div class="l1"><span class="avatar" style="width:34px;height:34px;flex-basis:34px">'+SIL+'</span><b style="color:'+CORES[f]+'">···'+f+'</b>'+(rotulo[f]?'<em>'+rotulo[f]+'?</em>':'')+'<span class="nivel">'+niveis+'</span></div>'+
       (fimDeCapitulo?'<button class="voto'+(votoEm===f?' on':'')+'" data-votar="'+f+'">'+(votoEm===f?'Sua aposta ✓':'Apostar neste número')+'</button>'
                     :'<textarea data-nota="'+f+'" placeholder="Nota rápida…">'+(notas[f]||'')+'</textarea>')+'</div>';
-  }).join('')+'<button class="voto" id="simFim" style="margin-top:4px;border-style:dashed">'+(fimDeCapitulo?'Voltar ao caderno (protótipo)':'Simular fim do capítulo (protótipo)')+'</button>';
+  }).join('')+(capituloFechado[capitulo]
+    ?'<button class="voto" id="seguirCap" style="margin-top:4px">Seguir para o Capítulo '+(capitulo+1)+'</button>'
+    :capitulo?'':'<button class="voto" id="simFim" style="margin-top:4px;border-style:dashed">'+(fimDeCapitulo?'Voltar ao caderno (protótipo)':'Simular fim do capítulo (protótipo)')+'</button>');
   document.querySelectorAll('[data-susp]').forEach(function(b){b.onclick=function(){var f=b.dataset.susp,v=+b.dataset.v;suspeita[f]=suspeita[f]===v?0:v;pintarSusp()}});
   document.querySelectorAll('[data-nota]').forEach(function(t){t.oninput=function(){notas[t.dataset.nota]=t.value}});
   document.querySelectorAll('[data-votar]').forEach(function(b){b.onclick=function(){votoEm=b.dataset.votar;if(apostaConf==='naosei')apostaConf=null;pintarSusp()}});
   document.querySelectorAll('[data-aposta-conf]').forEach(function(b){b.onclick=function(){apostaConf=b.dataset.apostaConf;if(apostaConf==='naosei')votoEm=null;pintarSusp()}});
-  $('#simFim').onclick=function(){
+  if($('#concluirCap'))$('#concluirCap').onclick=function(){
+    folha('<h2>Concluir o capítulo?</h2><p class="sub">Você vai para a pergunta do capítulo agora, sem esperar o tempo acabar. Não dá para voltar.'+(enviosNoCap?'':' Atenção: você ainda não mandou nenhuma mensagem neste capítulo.')+'</p>'+
+      '<button class="item" id="simConcluir"><span style="font-size:22px">✓</span><span><b>Sim, concluir agora</b><span>O tempo que sobrou não conta a mais</span></span></button>');
+    $('#simConcluir').onclick=function(){fecharFolha();fimDoCapitulo()};
+  };
+  if($('#seguirCap'))$('#seguirCap').onclick=function(){janela('CAPÍTULO '+(capitulo+1),'O Capítulo 2, A Sétima Voz, ainda está sendo montado. A sua resposta e a sua aposta do Capítulo 1 ficaram guardadas.')};
+  if($('#simFim'))$('#simFim').onclick=function(){
     function virar(){fimDeCapitulo=!fimDeCapitulo;document.querySelector('[data-aba="suspeitos"]').classList.toggle('glow',fimDeCapitulo&&aba!=='suspeitos');pintarSusp()}
     if(!fimDeCapitulo)abrirSimulacao(virar);else virar();
   };
@@ -1081,29 +1091,33 @@ function pintarSusp(){
 /* ── RA ──────────────────────────────────────────────────────────────── */
 var PECAS=[
   {cap:'PRÓLOGO',nome:'A maquete',txt:'A casa inteira, por camadas',abrir:'maquete',ico:'🏠'},
-  {cap:'CAP. 1',nome:'A bandeja',txt:'No hall de entrada',ico:'🍽️',tranca:true},
+  {cap:'CAP. 1',nome:'A bandeja',txt:'Sete xícaras',abrir:'bandeja',ico:'🍽️',tranca:true},
   {cap:'CAP. 2',nome:'A escrivaninha',txt:'No escritório',ico:'🖋️',tranca:true},
   {cap:'CAP. 3',nome:'O relógio',txt:'Na sala',href:'relogio.html',ico:'🕰️',tranca:true},
   {cap:'CAP. 4',nome:'O jardim interno',txt:'E o farol ao longe',href:'livro.html',ico:'🌿',tranca:true},
   {cap:'CAP. 6',nome:'O quarto',txt:'O quarto de serviço',href:'quarto.html',ico:'🚪',tranca:true}
 ];
-$('#gradeRA').innerHTML=PECAS.map(function(p){
+function pintarPecas(){$('#gradeRA').innerHTML=PECAS.map(function(p){
   return '<a class="peca'+(p.tranca?' trancada':'')+'" '+(p.abrir&&!p.tranca?'data-abrir="'+p.abrir+'" href="#"':(p.href&&!p.tranca?'href="'+p.href+'"':''))+'><span class="ico">'+(p.tranca?'🔒':p.ico)+'</span><small>'+p.cap+'</small><b>'+p.nome+'</b><span>'+p.txt+'</span></a>';
-}).join('');
+}).join('');}
+pintarPecas();
 
 /* ── Simulação do fim de capítulo (sem pontos: só mostra como funcionará) ──
    A pergunta nunca cita personagem e tem sempre uma hipótese confortável
    (falsa em toda partida). O resultado não é mostrado: na partida, só no fim. */
-var SIM={pergunta:'O que prova que alguém usa esta casa?',opcoes:[
-  'Alguém vive escondido na casa e cuida dela.',
-  'A equipe de limpeza esqueceu uma xícara.',
-  'Um dos convidados chegou antes e andou pela casa.',
-  'O relógio é elétrico e a energia nunca foi cortada.']};
+/* A simulação usa uma pergunta de exemplo sobre o prólogo, para não
+   adiantar a pergunta de verdade do Capítulo 1. */
+var SIM={pergunta:'Exemplo: quantos andares tem a casa, contando o porão?',opcoes:[
+  'Três: porão, térreo e andar de cima.',
+  'Dois: térreo e andar de cima.',
+  'Quatro: há um sótão acima dos quartos.',
+  'Um só, com um mezanino.']};
 var CONF=[
   {id:'certeza',nome:'Com certeza',dica:'Os fatos fecham',certa:'Ganha o máximo',errada:'Perde o mesmo tanto',cc:['ganha','perde']},
   {id:'sem',nome:'Sem certeza',dica:'Parece, mas falta algo',certa:'Ganha a metade',errada:'Perde pouco',cc:['ganha','perde']},
   {id:'naosei',nome:'Não sei',dica:'Ainda não dá para dizer',certa:'Ganha um pouquinho',errada:'Não perde nada',cc:['nada','nada']}];
-var simEsc=null,simConf=null,simOrdem=[],depoisSim=null;
+var simEsc=null,simConf=null,simOrdem=[],depoisSim=null,perguntaReal=false;
+var PERGUNTA_SIM=SIM,respostas={};
 function embaralhar(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
 function abrirSimulacao(depois){
   depoisSim=depois||null;simEsc=null;simConf=null;simOrdem=embaralhar([0,1,2,3]);
@@ -1119,13 +1133,13 @@ function pintarSimIntro(){
 }
 function pintarSimPergunta(){
   var L='ABCD';
-  $('#fechoCorpo').innerHTML='<p class="kicker">Simulação · pergunta do capítulo</p><h1 id="fechoTitulo">'+SIM.pergunta+'</h1>'+
+  $('#fechoCorpo').innerHTML='<p class="kicker">'+(perguntaReal?'Capítulo '+capitulo+' · pergunta':'Simulação · pergunta do capítulo')+'</p><h1 id="fechoTitulo">'+SIM.pergunta+'</h1>'+
     '<div class="opcoes">'+simOrdem.map(function(k,i){return '<button type="button" class="op'+(simEsc===k?' on':'')+'" data-op="'+k+'"'+(simConf==='naosei'?' disabled':'')+'><i>'+L[i]+'</i><span>'+SIM.opcoes[k]+'</span></button>'}).join('')+'</div>'+
     '<h2>O quanto você tem certeza?</h2><div class="conf">'+CONF.map(function(c){return '<button type="button" data-conf="'+c.id+'" class="'+(simConf===c.id?'on':'')+'">'+c.nome+'<small>'+c.dica+'</small></button>'}).join('')+'</div>'+
     '<div class="acoes"><button type="button" id="simResp"'+((simConf&&(simEsc!==null||simConf==='naosei'))?'':' disabled')+'>Responder</button></div>';
   document.querySelectorAll('#fecho [data-op]').forEach(function(b){b.onclick=function(){simEsc=+b.dataset.op;pintarSimPergunta()}});
   document.querySelectorAll('#fecho [data-conf]').forEach(function(b){b.onclick=function(){simConf=b.dataset.conf;if(simConf==='naosei')simEsc=null;pintarSimPergunta()}});
-  $('#simResp').onclick=pintarSimResultado;
+  $('#simResp').onclick=perguntaReal?pintarRealResultado:pintarSimResultado;
 }
 function pintarSimResultado(){
   var c=CONF.filter(function(x){return x.id===simConf})[0];
@@ -1135,7 +1149,7 @@ function pintarSimResultado(){
     '<h2>Como vai contar</h2><div class="tabela"><div class="linha cab"><span></span><span>Se acertar</span><span>Se errar</span></div>'+
     CONF.map(function(x){return '<div class="linha'+(x.id===simConf?' sua':'')+'"><span><b>'+x.nome+'</b></span><span class="'+x.cc[0]+'">'+x.certa+'</span><span class="'+x.cc[1]+'">'+x.errada+'</span></div>'}).join('')+'</div>'+
     '<p class="lede">Use “com certeza” só quando os fatos fecham. Chutar com certeza é o jeito mais rápido de perder. Dizer “não sei” nunca tira ponto.</p>'+
-    '<h2>Depois da pergunta</h2><p class="lede">O seu caderno de Suspeitos vira a aposta: em quem você aposta como impostor, também com certeza, sem certeza ou não sei. A aposta é só sua, é opcional e o resultado também só sai no fim.</p>'+
+    '<h2>Depois da pergunta</h2><p class="lede">A sua aba Nota vira a aposta: em quem você aposta como impostor, também com certeza, sem certeza ou não sei. A aposta é só sua, é opcional e o resultado também só sai no fim.</p>'+
     '<div class="acoes"><button type="button" id="simFim2">Entendi</button><button type="button" class="sec" id="simDeNovo">Refazer a simulação</button></div>';
   $('#simFim2').onclick=fecharSim;$('#simDeNovo').onclick=function(){simEsc=null;simConf=null;simOrdem=embaralhar([0,1,2,3]);pintarSimPergunta()};
 }
@@ -1153,7 +1167,7 @@ $('#fichaBtn').onclick=function(){folha('<div class="topo-ficha"><img src="icone
 /* ── Tempo (demonstração) ────────────────────────────────────────────── */
 var TOTAL=8*60,resta=TOTAL;
 var relogioAtivo=false;
-function iniciarRelogio(){if(relogioAtivo)return;relogioAtivo=true;setInterval(function(){if(resta>0)resta--;$('#relogio').textContent=('0'+Math.floor(resta/60)).slice(-2)+':'+('0'+resta%60).slice(-2);$('#barra').style.width=(resta/TOTAL*100)+'%';$('#tempo').classList.toggle('pouco',resta<60)},1000);}
+function iniciarRelogio(){if(relogioAtivo)return;relogioAtivo=true;setInterval(function(){if(resta>0){resta--;if(resta===0)fimDoCapitulo();if(resta===Math.min(60,Math.floor(TOTAL/4))&&capitulo&&!enviosNoCap&&!avisouMinimo){avisouMinimo=true;janela('FALTA 1 MINUTO','Você ainda não mandou nada neste capítulo. Mande pelo menos 1 mensagem ou anexo antes de o tempo acabar.')}}$('#relogio').textContent=('0'+Math.floor(resta/60)).slice(-2)+':'+('0'+resta%60).slice(-2);$('#barra').style.width=(resta/TOTAL*100)+'%';$('#tempo').classList.toggle('pouco',resta<60)},1000);}
 
 function toast(t){var d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(function(){d.remove()},2600)}
 
@@ -1186,6 +1200,86 @@ function achouEnvio(){
   if(enviosExtras===1)janela('UM ENVIO EXTRA','Você achou um envio escondido na casa: +1'+(capitulo===0?', que vai com você para o Capítulo 1.':' neste capítulo.')+' Há outros pela casa.');
   else toast('Envio extra achado: +1');
 }
+/* ── Capítulo 1 · A Reabertura ─────────────────────────────────────────
+   Três sinais, todos da Acompanhante: a xícara de outro jogo com café frio,
+   o relógio que bate atrás do lacre e a maçaneta do quarto de serviço que
+   desce por dentro. Caps. 1 e 2 não têm contradição. S(6) fica calado até o
+   Cap. 2 (a sétima voz). Tempos em segundos desde o começo do capítulo. */
+var C1={
+  roteiro:[
+    [8,'sis','A casa estava fechada havia cinco meses. Os lacres ainda estão na porta da sala e no móvel do relógio.'],
+    [30,S(0),'Alguém mais sentiu cheiro de café?'],
+    [55,S(5),'Na cozinha tem uma bandeja com sete xícaras. Uma ainda cheira a café.'],
+    [70,S(3),'Deve ser da limpeza.'],
+    [90,S(5),'Qual delas? Por fora são todas iguais.'],
+    [130,'sis','Da sala lacrada vem um som: o relógio de caixa alta bate oito vezes.'],
+    [145,S(4),'Esse relógio está andando? A casa não estava fechada?'],
+    [165,S(0),'Dá para ouvir o pêndulo daqui.'],
+    [215,'sis','No corredor de serviço, alguém tenta a porta do quarto de serviço. Trancada.'],
+    [230,S(1),'Tentei a porta do fim do corredor de serviço. Trancada.'],
+    [250,S(1),'Mas a maçaneta desceu sozinha. Por dentro.'],
+    [265,S(3),'Deve ser o vento.'],
+    [320,'priv:'+S(4),'Você acha que tem alguém morando aqui?'],
+    [400,'sis','A chuva engrossa. Faltam poucos minutos para o fim do capítulo.']
+  ],
+  /* [a partir de quantos segundos a opção aparece, texto]: só se fala do que já aconteceu */
+  respGrupo:[[55,'De quem é essa xícara?'],[70,'Pode ser a equipe de limpeza.'],[130,'Alguém ouviu o relógio?'],[230,'Quem tentou a porta de serviço?'],[0,'Alguém chegou antes de todos?'],[0,'Vamos ficar juntos.']],
+  respPriv:[[55,'O que você viu na cozinha?'],[130,'Você ouviu o relógio?'],[0,'Onde você estava agora?'],[0,'Não confio em ninguém aqui.']],
+  replica:{
+    'De quem é essa xícara?':[S(5),'Ninguém assumiu até agora.'],
+    'Alguém ouviu o relógio?':[S(4),'Ouvi. Vinha da sala lacrada.'],
+    'Quem tentou a porta de serviço?':[S(1),'Fui eu. Estava trancada, mas a maçaneta mexeu.'],
+    'Pode ser a equipe de limpeza.':[S(0),'Limpeza que deixa café na xícara?'],
+    'Alguém chegou antes de todos?':[S(3),'Com essa chuva, ninguém viu quem chegou quando.'],
+    'Vamos ficar juntos.':[S(5),'Concordo.'],
+    'O que você viu na cozinha?':'A bandeja com as sete xícaras. Uma cheirava a café.',
+    'Você ouviu o relógio?':'Ouvi. Não devia estar andando.',
+    'Onde você estava agora?':'Perto da escada. E você?',
+    'Não confio em ninguém aqui.':'Nem eu.'
+  },
+  pergunta:{pergunta:'O que prova que alguém usa esta casa?',opcoes:[
+    'Alguém vive escondido na casa e cuida dela.',
+    'A equipe de limpeza esqueceu uma xícara.',
+    'Um dos convidados chegou antes e andou pela casa.',
+    'O relógio é elétrico e a energia nunca foi cortada.']}
+};
+var roteiroTimers=[],inicioCap=0,escalaCap=1;
+function liberadas(l){var t=(Date.now()-inicioCap)/1000/escalaCap;return l.filter(function(x){return x[0]<=t}).map(function(x){return x[1]})}
+function tocarRoteiro(r,escala){
+  r.forEach(function(ev){roteiroTimers.push(setTimeout(function(){
+    if(ev[1]==='sis'){grupo.push({sis:ev[2]});pintarGrupo();if(aba!=='grupo')document.querySelector('[data-aba="grupo"]').classList.add('glow')}
+    else if(ev[1].indexOf('priv:')===0)chegaPrivada(ev[1].slice(5),ev[2]);
+    else{grupo.push({de:ev[1],txt:ev[2],h:hora()});pintarGrupo()}
+  },ev[0]*1000*escala))});
+}
+function responderC1(txt,priv){
+  var r=C1.replica[txt];if(!r)return;
+  setTimeout(function(){
+    if(priv)chegaPrivada(priv,typeof r==='string'?r:r[1]);
+    else{grupo.push({de:r[0],txt:r[1],h:hora()});pintarGrupo()}
+  },2500+Math.random()*2000);
+}
+var capituloFechado={},bandejaEnvio=false,enviosNoCap=0,avisouMinimo=false;
+function fimDoCapitulo(){
+  if(!capitulo||capituloFechado[capitulo])return;capituloFechado[capitulo]=true;
+  roteiroTimers.forEach(clearTimeout);roteiroTimers=[];
+  $('#telaRA').hidden=true;
+  janela('FIM DO CAPÍTULO '+capitulo,(resta>0?'Você concluiu o capítulo.':'O tempo acabou.')+' Agora vem a pergunta do capítulo e, depois, a sua aposta.',function(){
+    SIM=C1.pergunta;perguntaReal=true;simEsc=null;simConf=null;simOrdem=embaralhar([0,1,2,3]);depoisSim=null;
+    var d=$('#fecho');pintarSimPergunta();try{d.showModal()}catch(e){d.setAttribute('open','')}d.scrollTop=0;
+  });
+}
+function pintarRealResultado(){
+  respostas[capitulo]={opcao:simEsc,confianca:simConf};
+  var c=CONF.filter(function(x){return x.id===simConf})[0];
+  $('#fechoCorpo').innerHTML='<p class="kicker">Capítulo '+capitulo+' · resposta guardada</p><h1 id="fechoTitulo">Resposta guardada.</h1>'+
+    '<p class="lede">'+(simConf==='naosei'?'Você disse que <b>não sabe</b>.':'Você respondeu <b>'+c.nome.toLowerCase()+'</b>.')+' O resultado só aparece no fim do jogo.</p>'+
+    '<p class="lede">Agora a sua aba Nota vira a aposta: em quem você aposta como impostor? É opcional e só você vê.</p>'+
+    '<div class="acoes"><button type="button" id="irAposta">Ir para a aposta</button></div>';
+  $('#irAposta').onclick=function(){var d=$('#fecho');try{d.close()}catch(e){d.removeAttribute('open')}
+    SIM=PERGUNTA_SIM;perguntaReal=false;fimDeCapitulo=true;liberarAba('suspeitos');irPara('suspeitos')};
+}
+
 /* ── Fim do prólogo: a apresentação acabou; começa O Impostor ─────────── */
 var CAPITULOS=[null,{n:1,nome:'A REABERTURA'}];
 function fimDoPrologo(){
@@ -1205,8 +1299,12 @@ function fimDoPrologo(){
 function comecarCapitulo(n){
   capitulo=n;var c=CAPITULOS[n];
   $('#capNum').textContent=c.n;$('#capNome').textContent=c.nome;
-  resta=TOTAL;iniciarRelogio();
-  janela('CAPÍTULO '+c.n,'O relógio do capítulo começou. '+TXT_TEMPO+' Agora cada mensagem ou anexo gasta 1 envio.');
+  var teste=Q.get('teste')==='1',escala=teste?0.12:1;
+  TOTAL=teste?60:8*60;resta=TOTAL;iniciarRelogio();
+  inicioCap=Date.now();escalaCap=escala;
+  if(n===1){tocarRoteiro(C1.roteiro,escala);PECAS[1].tranca=false;pintarPecas();document.querySelector('[data-aba="ra"]').classList.add('glow');liberarAba('suspeitos')}
+  enviosNoCap=0;avisouMinimo=false;
+  janela('CAPÍTULO '+c.n,'O relógio do capítulo começou. '+TXT_TEMPO+' Agora cada mensagem ou anexo gasta 1 envio.'+(n===1?' Uma peça nova abriu na aba RA.':''));
 }
 var comunicacaoAberta=false;
 function achouTelefone(){
@@ -1221,7 +1319,7 @@ function achouTelefone(){
 /* ── Abertura e primeira orientação ──────────────────────────────────────
    Depois do vídeo, só a orelha RA tem nome. As outras ganham nome quando o
    jogador acha o que as abre (o telefone da casa abre Grupo e Privadas; o
-   primeiro fim de capítulo abre Suspeitos). */
+   Capítulo 1 abre a aba Nota). */
 var video=$('#videoAbertura');
 /* Uma janela por vez: se já há uma aberta, a próxima espera a vez. */
 var filaJanelas=[];
@@ -1254,14 +1352,21 @@ if(video.networkState===3)semVideo();
    postMessage ({oi:'maquete', evento}). */
 /* PARTIDA é definida no alto (os números e as cores dependem dela). */
 var estadoPrologo={chave:false,telhado:false};
+function mostrarPeca(id){var t=$('#telaRA');t.querySelectorAll('iframe').forEach(function(f){f.hidden=f.dataset.peca!==id});t.hidden=false}
+function abrirBandeja(){
+  var t=$('#telaRA');
+  if(!t.querySelector('iframe[data-peca="bandeja"]')){var f=document.createElement('iframe');f.dataset.peca='bandeja';f.title='A bandeja de xícaras';f.allow='xr-spatial-tracking; camera; gyroscope; accelerometer; fullscreen';
+    f.src='bandeja.html?embed=1&partida='+encodeURIComponent(PARTIDA)+'&jogador='+encodeURIComponent(EU);t.appendChild(f)}
+  mostrarPeca('bandeja');
+}
 function abrirMaquete(){
   var t=$('#telaRA');
-  if(!t.querySelector('iframe')){var f=document.createElement('iframe');f.title='A maquete da casa';f.allow='xr-spatial-tracking; camera; gyroscope; accelerometer; fullscreen';
+  if(!t.querySelector('iframe[data-peca="maquete"]')){var f=document.createElement('iframe');f.dataset.peca='maquete';f.title='A maquete da casa';f.allow='xr-spatial-tracking; camera; gyroscope; accelerometer; fullscreen';
     f.src='maquete/?demo=solo&embed=1&partida='+encodeURIComponent(PARTIDA)+'&jogador='+encodeURIComponent(EU)+((new URLSearchParams(location.search)).get('teste')==='1'?'&teste=1':'');t.appendChild(f)}
-  t.hidden=false;
+  mostrarPeca('maquete');
 }
 $('#sairRA').onclick=function(){$('#telaRA').hidden=true};
-document.addEventListener('click',function(e){var a=e.target.closest('[data-abrir]');if(!a)return;e.preventDefault();if(a.dataset.abrir==='maquete')abrirMaquete()});
+document.addEventListener('click',function(e){var a=e.target.closest('[data-abrir]');if(!a)return;e.preventDefault();if(a.dataset.abrir==='maquete')abrirMaquete();if(a.dataset.abrir==='bandeja')abrirBandeja()});
 
 /* ── Caixa dos papéis: aparece quando o jogador fecha "A casa está aberta".
    Mostra os convocados da lista do proprietário (a Acompanhante não está na
@@ -1289,6 +1394,15 @@ function mostrarPapeis(){
 $('#papeisOk').onclick=function(){$('#papeis').close();estadoPrologo.papeisVistos=true;
   janela('EXPLORE A CASA','Toque nos objetos. Aproxime o celular ou use a pinça dos dedos para ver os detalhes. Procure como falar com os outros. Sua ficha de personagem fica no ícone do alto, à direita.')};
 window.addEventListener('message',function(e){
+  if(e.origin===location.origin&&e.data&&e.data.oi==='bandeja'){
+    if(e.data.evento==='envio'&&!bandejaEnvio){bandejaEnvio=true;achouEnvio()}
+    if(e.data.evento==='pista'&&!INVENTARIO.some(function(it){return it.nome===e.data.nome})){
+      INVENTARIO.push({ico:'☕',nome:e.data.nome,desc:'Achado na bandeja',img:e.data.img});
+      var clipe=document.querySelector('[data-anexo="grupo"]');if(clipe){clipe.classList.add('nasce');setTimeout(function(){clipe.classList.remove('nasce')},3400)}
+      setTimeout(function(){janela('A BANDEJA','Seis xícaras têm a marca da casa e pó de meses. Uma é de outro jogo, e o fundo dela está limpo. A imagem do fundo foi para o seu inventário.')},1200);
+    }
+    return;
+  }
   if(e.origin!==location.origin||!e.data||e.data.oi!=='maquete')return;
   if(e.data.evento==='chave-achada')estadoPrologo.chave=true;
   if(e.data.evento==='telhado-aberto')estadoPrologo.telhado=true;
