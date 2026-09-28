@@ -241,6 +241,18 @@ function gerador(semente) {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
+/* O IMPOSTOR: as plantas de cada andar. Achar a planta de um andar ergue esse
+   andar e mostra o de baixo. O porão não tem planta (de propósito). */
+export const PLANTAS = [
+  { andar: 'andar-de-cima', camada: 'piso-2', nome: 'Planta do andar de cima',
+    candidatos: ['armario-do-quarto-distante', 'castical-do-quarto-distante', 'armario-do-quarto-vizinho', 'castical-do-quarto-vizinho'] },
+  { andar: 'terreo', camada: 'piso-1', nome: 'Planta do térreo',
+    candidatos: ['escrivaninha', 'estante-da-biblioteca', 'espelho', 'armario-do-quarto-de-servico'] }
+];
+export function sortearPlanta(partida, jogador, planta) {
+  const rnd = gerador([partida, jogador, 'planta', planta.andar].map(String).join('|'));
+  return planta.candidatos[Math.floor(rnd() * planta.candidatos.length)];
+}
 export function sortearEsconderijos(partida = '', jogador = '') {
   const escolhidos = {};
   for (const c of CAPITULOS) {

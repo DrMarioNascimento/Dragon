@@ -24,10 +24,10 @@
   /* O carimbo fura o cache do aparelho quando o modelo muda (18/09/2026). */
   /* O IMPOSTOR (27/09/2026): a casa com os cômodos do cânone — biblioteca,
      escritório, quarto de serviço com sacada, corredor de serviço (porta para o
-     jardim e quadro de luz), jardim interno, farol e guarita; o relógio de
+     jardim e quadro de luz), jardim interno e guarita (o farol fica longe, fora da maquete); o relógio de
      parede deu lugar ao relógio de caixa alta, ao lado do quadro; a
      escrivaninha foi para o escritório. O porão continua. */
-  var ARQUIVO = 'assets/ac/casa-o-impostor-pisos.glb?v=20260927-comodos';
+  var ARQUIVO = 'assets/ac/casa-o-impostor-pisos.glb?v=20260927-plantas';
 
   /* Camadas, de cima para baixo. `terreno` nunca se solta. */
   var CAMADAS = ['telhado', 'piso-2', 'piso-1', 'porao', 'terreno'];
@@ -54,7 +54,12 @@
     { id: 'relogio-caixa-alta', camada: 'piso-1', ancestral: 'relogio-caixa-alta' },
     { id: 'escrivaninha', camada: 'piso-1', ancestral: 'escrivaninha' },
     { id: 'quadro', camada: 'piso-1', ancestral: 'sala-escura', nomes: ['quadro', 'moldura-do-quadro'] },
-    { id: 'espelho', camada: 'piso-1', ancestral: 'sala-escura', nomes: ['espelho', 'moldura-do-espelho'] }
+    { id: 'espelho', camada: 'piso-1', ancestral: 'sala-escura', nomes: ['espelho', 'moldura-do-espelho'] },
+    /* O IMPOSTOR: o telefone vermelho do corredor de cima (não é esconderijo; é o que abre a comunicação). */
+    { id: 'telefone', camada: 'piso-2', ancestral: 'telefone-vermelho' },
+    /* Esconderijos das plantas do térreo (além da escrivaninha e do espelho, que já são alvos). */
+    { id: 'estante-da-biblioteca', camada: 'piso-1', ancestral: 'estante-leste' },
+    { id: 'armario-do-quarto-de-servico', camada: 'piso-1', ancestral: 'quarto-de-servico', prefixo: 'qs-armario' }
   ];
 
   /* As três fechaduras correm pela CHAMINÉ da casa: a porta abre a caixa, o

@@ -156,8 +156,8 @@ button,input,textarea{font:inherit;color:inherit}
 .abertura .pular{right:12px;bottom:calc(env(safe-area-inset-bottom) + 14px);min-height:40px;padding:0 14px;border:1px solid #46667a;background:#0c1b26cc;color:var(--gold2)}
 .orelha.muda{color:transparent;pointer-events:none;opacity:.55}
 .orelha.muda .n{display:none}
-.orelha.nasce{animation:glow 1.1s ease-in-out 3}
-.janela{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:18px;background:#000b}
+.orelha.nasce,.redondo.nasce{animation:glow 1.1s ease-in-out 3}
+.janela{position:fixed;inset:0;z-index:96;display:flex;align-items:center;justify-content:center;padding:18px;background:#000b}
 .janela .caixa-j{width:min(460px,100%);border-radius:14px;border:1px solid #725b35;border-left:4px solid #d6aa58;background:linear-gradient(155deg,#2b2114,#18140e 58%,#0e0c09);padding:16px;box-shadow:0 8px 0 #020609,0 20px 40px #000c}
 .janela small{display:block;font:700 11px var(--mono);letter-spacing:.08em;color:#c89a50;margin-bottom:6px}
 .janela p{margin:0 0 14px;font:500 20px/1.35 var(--display);color:#f0dcb4}
@@ -213,6 +213,14 @@ button,input,textarea{font:inherit;color:inherit}
 .o-seu b{display:block;font:700 26px Georgia,serif;color:#efc878;margin:2px 0}
 .o-seu span{font-size:13.5px;color:#f0dcb4;line-height:1.4}
 #papeisOk{width:100%;min-height:46px;margin-top:14px;border-radius:13px;border:1px solid #7394a4;border-bottom-color:#0a202c;color:#f1f8fc;font-weight:700;cursor:pointer;background:linear-gradient(#518f82,#28685d,#153c37);box-shadow:inset 0 2px 1px #d9f3ff66,inset 0 -3px 4px #071a27aa,0 4px 0 #061823,0 7px 8px #0008}
+
+.folha .item .mini{flex:0 0 auto;min-height:36px;padding:0 12px;border-radius:9px;border:1px solid #46667a;background:#0c1b26;color:var(--gold2);font:700 12px var(--sans);cursor:pointer}
+.folha .item .mini.ok{border-color:#58c78a;background:#10271f;color:#bff5d6}
+.visor{position:fixed;inset:0;z-index:97;background:#050b12f2;display:flex;flex-direction:column}
+.visor header{display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top) + 8px) 10px 8px;border-bottom:1px solid #2a4152}
+.visor header b{flex:1;font:700 15px var(--sans);color:var(--gold2)}
+.visor .area{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y pinch-zoom}
+.visor img{display:block;width:100%;height:auto}
 </style>
 </head>
 <body>
@@ -289,7 +297,6 @@ button,input,textarea{font:inherit;color:inherit}
     <div class="rolagem">
       <div class="aviso ouro">As peças se abrem conforme os capítulos. Toque para pôr na mesa.</div>
       <div class="grade" id="gradeRA"></div>
-      <button class="voto" id="achouTelefone" style="margin-top:12px;border-style:dashed">☎ Fazer de conta que achei o telefone (protótipo)</button>
     </div>
   </section>
 </main>
@@ -320,6 +327,10 @@ button,input,textarea{font:inherit;color:inherit}
   <div class="o-seu"><img id="seuIcone" alt="" /><div><small>O seu é:</small><b id="seuNome"></b><span id="seuFuncao"></span></div></div>
   <button type="button" id="papeisOk">Entendi</button>
 </dialog>
+<div class="visor" id="visorDoc" hidden>
+  <header><b id="docTitulo"></b><button class="icon-btn" id="docMenos" aria-label="Afastar">−</button><button class="icon-btn" id="docMais" aria-label="Aproximar">+</button><button class="icon-btn" id="docFechar" aria-label="Fechar">✕</button></header>
+  <div class="area" id="docArea"><img id="docImg" alt="" /></div>
+</div>
 <div class="veu" id="veu" hidden><div class="folha" id="folha"></div></div>
 
 <script>
@@ -365,7 +376,7 @@ function bolha(m){
   if(m.dia)return '<div class="dia">'+m.dia+'</div>';
   var eu=m.de===EU;
   var quem=eu?'':'<button class="quem" data-contato="'+m.de+'" style="color:'+CORES[m.de]+'">'+nomeDe(m.de)+'</button>';
-  var anexo=m.anexo?'<div class="anexo">📎 '+m.anexo+'</div>':'';
+  var anexo=m.anexo?'<div class="anexo"'+(m.img?' data-ver="'+m.img+'" data-nome="'+m.anexo+'" style="cursor:pointer"':'')+'>📎 '+m.anexo+(m.img?' · ver':'')+'</div>':'';
   return '<div class="msg'+(eu?' eu':'')+'"><div class="bolha">'+quem+anexo+(m.txt||'')+'<span class="hora">'+(m.h||hora())+'</span></div></div>';
 }
 function pintarGrupo(){var el=$('#chatGrupo');el.innerHTML=grupo.map(bolha).join('');el.scrollTop=el.scrollHeight}
@@ -428,27 +439,31 @@ document.querySelectorAll('[data-respostas]').forEach(function(b){b.onclick=func
 }});
 
 /* ── Inventário (clipe) ──────────────────────────────────────────────── */
-var INVENTARIO=[
-  {ico:'🗺️',nome:'Planta do térreo',desc:'Achada na maquete'},
-  {ico:'🗺️',nome:'Planta do andar de cima',desc:'Achada na maquete'},
-  {ico:'🗝️',nome:'Chave da maquete',desc:'Abriu a porta da casa'},
-  {ico:'✉️',nome:'Bilhete dobrado',desc:'Na letra do proprietário'}
-];
+var INVENTARIO=[];   // o que o jogador achou (as plantas entram quando achadas na maquete)
 function folha(html){$('#folha').innerHTML=html+'<button class="fechar" data-fechar>Fechar</button>';$('#veu').hidden=false;$('#folha [data-fechar]').onclick=fecharFolha}
 function fecharFolha(){$('#veu').hidden=true}
 $('#veu').onclick=function(e){if(e.target.id==='veu')fecharFolha()};
 document.querySelectorAll('[data-anexo]').forEach(function(b){b.onclick=function(){
   var destino=b.dataset.anexo;
-  folha('<h2>Inventário</h2><p class="sub">Tocar num item anexa na conversa. Cada anexo gasta 1 envio. Restam <b>'+envios+'</b>.</p>'+
-    INVENTARIO.map(function(it,i){return '<button class="item" data-it="'+i+'"><span style="font-size:24px">'+it.ico+'</span><span><b>'+it.nome+'</b><span>'+it.desc+'</span></span></button>'}).join(''));
+  folha('<h2>Inventário</h2><p class="sub">“Ver” abre o item. “Anexar” manda na conversa e gasta 1 envio. Restam <b>'+envios+'</b>.</p>'+
+    (INVENTARIO.length?'':'<p class="sub">Nada ainda. O que você achar na casa aparece aqui.</p>')+INVENTARIO.map(function(it,i){return '<div class="item"><span style="font-size:24px">'+it.ico+'</span><span style="flex:1"><b>'+it.nome+'</b><span>'+it.desc+'</span></span>'+(it.img?'<button class="mini" data-ver-it="'+i+'">Ver</button>':'')+'<button class="mini ok" data-it="'+i+'">Anexar</button></div>'}).join(''));
+  document.querySelectorAll('[data-ver-it]').forEach(function(x){x.onclick=function(){var it=INVENTARIO[+x.dataset.verIt];verDocumento(it.nome,it.img)}});
   document.querySelectorAll('[data-it]').forEach(function(x){x.onclick=function(){
     if(envios<=0){toast('Sem envios neste capítulo.');return}
     var it=INVENTARIO[+x.dataset.it];envios--;$('#envios').textContent=envios;
-    var m={de:EU,anexo:it.nome,h:hora()};
+    var m={de:EU,anexo:it.nome,img:it.img,h:hora()};
     if(destino==='grupo'){grupo.push(m);pintarGrupo()}else{privadas[abertaPriv].msgs.push(m);pintarConv();pintarListaPriv()}
     fecharFolha();
   }});
 }});
+/* Visor de documentos (plantas etc.): tela cheia, com aproximar/afastar. */
+var zoomDoc=1;
+function verDocumento(nome,img){
+  fecharFolha();zoomDoc=innerWidth<innerHeight?2.5:1;$('#docTitulo').textContent=nome;var im=$('#docImg');im.src=img;im.style.width=(zoomDoc*100)+'%';$('#visorDoc').hidden=false;$('#docArea').scrollTo(0,0);
+}
+function zoom(d){zoomDoc=Math.max(1,Math.min(4,zoomDoc+d));$('#docImg').style.width=(zoomDoc*100)+'%'}
+$('#docMais').onclick=function(){zoom(.75)};$('#docMenos').onclick=function(){zoom(-.75)};$('#docFechar').onclick=function(){$('#visorDoc').hidden=true};
+document.addEventListener('click',function(e){var a=e.target.closest('[data-ver]');if(a)verDocumento(a.dataset.nome,a.dataset.ver)});
 
 /* ── Contato: salvar como… (só neste aparelho) ────────────────────────── */
 document.addEventListener('click',function(e){
@@ -516,10 +531,25 @@ function toast(t){var d=document.createElement('div');d.className='toast';d.text
 
 /* Demonstração: chega uma mensagem no privado depois de alguns segundos. */
 function demoMensagens(){setTimeout(function(){chegaPrivada('19','Você viu o que estava escrito no bilhete da escrivaninha?')},6000);setTimeout(function(){chegaPrivada('47','Estou na sala. Você?')},16000)}
-/* PROTÓTIPO: o telefone vermelho do hall será achado na maquete. Até lá, um
-   botão na aba RA faz de conta que o jogador o achou. */
-$('#achouTelefone').onclick=function(){$('#achouTelefone').remove();
-  janela('O TELEFONE DO HALL','Você achou como se comunicar. Todos da casa estão no mesmo grupo, mas cada um aparece só pelo final do número.',function(){liberarAba('grupo');liberarAba('privadas');irPara('grupo');demoMensagens();iniciarRelogio()});};
+/* O telefone vermelho da maquete (corredor de cima) abre a comunicação:
+   Grupo e Privadas ganham nome e o relógio do capítulo começa. */
+function achouPlanta(d){
+  if(INVENTARIO.some(function(it){return it.nome===d.nome}))return;
+  var primeira=!INVENTARIO.length;
+  INVENTARIO.push({ico:'🗺️',nome:d.nome,desc:'Achada na maquete',img:'plantas/planta-'+d.andar+'.svg'});
+  var clipe=document.querySelector('[data-anexo="grupo"]');if(clipe){clipe.classList.add('nasce');setTimeout(function(){clipe.classList.remove('nasce')},3400)}
+  var txt=primeira?'Guardado. Tudo o que você achar fica no inventário: toque no clipe 📎 da conversa. Dali você pode anexar para outro jogador (gasta 1 envio).':'Guardado no inventário.';
+  if(d.andar==='andar-de-cima')txt+=' O andar de cima se ergueu: agora procure a planta do térreo.';
+  if(d.andar==='terreo')txt+=' O térreo se ergueu.';
+  janela(d.nome.toUpperCase(),txt);
+}
+var comunicacaoAberta=false;
+function achouTelefone(){
+  if(comunicacaoAberta)return;comunicacaoAberta=true;
+  $('#telaRA').hidden=true;
+  janela('O TELEFONE','Você achou como se comunicar. Todos da casa estão no mesmo grupo, mas cada um aparece só pelo final do número.',function(){liberarAba('grupo');liberarAba('privadas');irPara('grupo');demoMensagens();iniciarRelogio();
+    setTimeout(function(){janela('AS PLANTAS','Cada andar da casa tem a sua planta, escondida em algum objeto daquele andar. Na maquete (aba RA), procure a do andar de cima.')},1500)});
+}
 
 
 /* ── Abertura e primeira orientação ──────────────────────────────────────
@@ -584,12 +614,15 @@ function mostrarPapeis(){
   $('#seuIcone').src='icones/mini/'+eu.id+'.webp';$('#seuNome').textContent=eu.nome;$('#seuFuncao').textContent='Na lista do proprietário, sua função é '+eu.funcao+'.';
   try{d.showModal()}catch(e){d.setAttribute('open','')}
 }
-$('#papeisOk').onclick=function(){$('#papeis').close();estadoPrologo.papeisVistos=true};
+$('#papeisOk').onclick=function(){$('#papeis').close();estadoPrologo.papeisVistos=true;
+  janela('EXPLORE A CASA','Toque nos objetos. Aproxime o celular ou use a pinça dos dedos para ver os detalhes. Procure como falar com os outros.')};
 window.addEventListener('message',function(e){
   if(e.origin!==location.origin||!e.data||e.data.oi!=='maquete')return;
   if(e.data.evento==='chave-achada')estadoPrologo.chave=true;
   if(e.data.evento==='telhado-aberto')estadoPrologo.telhado=true;
   if(e.data.evento==='casa-aberta-lida'&&!estadoPrologo.papeisVistos)mostrarPapeis();
+  if(e.data.evento==='telefone')achouTelefone();
+  if(e.data.evento==='planta')achouPlanta(e.data);
 });
 window.OIMesa={liberarAba:liberarAba,janela:janela,estado:function(){return estadoPrologo}};
 pintarGrupo();pintarListaPriv();
