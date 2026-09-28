@@ -189,6 +189,47 @@ button,input,textarea{font:inherit;color:inherit}
 .how-box.destaque{background:linear-gradient(135deg,#174f43,#102f36);border-color:#65d5cc88}
 .how-box h2{font-size:20px;line-height:1.25;margin:0 0 10px;color:#65d5cc}
 .how-box p{margin:0 0 8px;line-height:1.55} .how-box p:last-child{margin:0}
+/* Simulação do fim de capítulo: mesmo desenho do "Como jogar" */
+#fecho{width:min(620px,calc(100% - 24px));max-height:calc(100dvh - 32px);padding:22px 18px;color:#dcebf3;background:#12313f;border:1px solid #65d5cc66;border-radius:20px;box-shadow:0 24px 70px #0009}
+#fecho::backdrop{background:#031319d9;backdrop-filter:blur(4px)}
+#fecho .kicker{margin:0 0 6px;font:700 11px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:#65d5cc}
+#fecho h1{margin:0 0 10px;font:800 clamp(22px,5vw,30px)/1.2 var(--sans);color:#f1f8fc}
+#fecho .lede{margin:0 0 14px;line-height:1.55;color:#aec6d5;font-size:15px}
+#fecho .opcoes{display:grid;gap:8px;margin:0 0 16px}
+#fecho .op{display:flex;gap:10px;align-items:flex-start;width:100%;min-height:52px;padding:11px 12px;border-radius:12px;border:1px solid #46667a;background:#0d1f2b;color:#dcebf3;font:500 15px/1.4 var(--sans);text-align:left;cursor:pointer}
+#fecho .op i{flex:0 0 26px;height:26px;display:grid;place-items:center;border-radius:50%;border:1px solid #65d5cc88;color:#65d5cc;font:800 12px var(--mono);font-style:normal}
+#fecho .op.on{border-color:#65d5cc;background:#174f43}
+#fecho .op.on i{background:#65d5cc;color:#0b2530}
+#fecho .op:disabled{opacity:.45;cursor:default}
+#fecho h2{margin:4px 0 8px;font:700 14px var(--sans);letter-spacing:.06em;text-transform:uppercase;color:#65d5cc}
+#fecho .conf{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 16px}
+#fecho .conf button{min-height:64px;padding:8px 6px;border-radius:12px;border:1px solid #46667a;background:#0d1f2b;color:#f1f8fc;font:700 14px var(--sans);cursor:pointer}
+#fecho .conf button small{display:block;margin-top:3px;font:500 11.5px/1.3 var(--sans);color:#aec6d5}
+#fecho .conf button.on{border-color:#efc878;background:#3a2d14}
+#fecho .tabela{display:grid;gap:8px;margin:0 0 14px}
+#fecho .linha{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:6px;align-items:stretch}
+#fecho .linha>*{padding:9px 8px;border-radius:10px;background:#0d1f2b;border:1px solid #2c4a5a;font-size:13px;line-height:1.35}
+#fecho .linha.cab>*{background:none;border:0;padding:0 8px;font:700 11px var(--mono);letter-spacing:.06em;color:#65d5cc;text-transform:uppercase}
+#fecho .linha.sua>*{border-color:#efc878;background:#2b2114}
+#fecho .linha b{color:#f1f8fc}
+#fecho .ganha{color:#9ff0c4} #fecho .perde{color:#f0a89a} #fecho .nada{color:#aec6d5}
+#fecho .acoes{display:grid;gap:8px}
+#fecho .acoes button{width:100%;min-height:46px;border-radius:13px;border:1px solid #7394a4;color:#f1f8fc;font-weight:700;cursor:pointer;background:linear-gradient(#518f82,#28685d,#153c37)}
+#fecho .acoes button.sec{background:#0c1b26;color:var(--gold2);border-color:#46667a}
+#fecho .acoes button:disabled{opacity:.4;cursor:default}
+/* confiança da aposta no fim do capítulo */
+.conf-aposta{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:0 2px 10px}
+.conf-aposta button{min-height:40px;border-radius:9px;border:1px solid #725b35;background:#18140e;color:#f0dcb4;font:700 12.5px var(--sans);cursor:pointer}
+.conf-aposta button.on{background:#3a2d14;border-color:#efc878;color:#fff}
+#comoJogar .ver-sim{width:100%;min-height:44px;margin-top:10px;border-radius:12px;border:1px solid #65d5cc88;background:#0a252d;color:#65d5cc;font:700 14px var(--sans);cursor:pointer}
+.hud-pill[role=button]{cursor:pointer}
+/* Simulação e aposta no mesmo padrão de volume 3D da tela */
+#fecho{box-shadow:inset 0 2px 0 #ffffff12,inset 0 -4px 8px #0007,0 6px 0 #020609,0 24px 70px #0009}
+#fecho .op,#fecho .conf button,.conf-aposta button{box-shadow:inset 0 2px 0 #ffffff14,inset 0 -3px 5px #0008,0 3px 0 #020609,0 6px 10px #0007}
+#fecho .op.on,#fecho .conf button.on,.conf-aposta button.on{box-shadow:inset 0 2px 0 #ffffff22,inset 0 -3px 5px #0006,0 2px 0 #020609,0 4px 8px #0007;transform:translateY(1px)}
+#fecho .linha>*{box-shadow:inset 0 1px 0 #ffffff14,0 2px 0 #020609,0 5px 9px #0008}
+#fecho .linha.cab>*{box-shadow:none}
+#fecho .op i{box-shadow:inset 0 1px 0 #ffffff22,0 2px 0 #020609}
 #comoJogarOk{width:100%;min-height:46px;margin:8px 0 4px;border-radius:13px;border:1px solid #7394a4;border-bottom-color:#0a202c;color:#f1f8fc;font-weight:700;cursor:pointer;background:linear-gradient(#518f82,#28685d,#153c37);box-shadow:inset 0 2px 1px #d9f3ff66,inset 0 -3px 4px #071a27aa,0 4px 0 #061823,0 7px 8px #0008}
 
 /* ── a maquete dentro da tela do jogo ──────────────────────────────── */
@@ -714,8 +755,8 @@ button:active,.caixa:active,.redondo:active,.chip:active{
   <div class="turnline">
     <span><small>1</small><b>A CHEGADA</b></span>
     <span class="turnline-right">
-      <span class="hud-pill tempo" id="tempo" title="Tempo do capítulo">⏱ <b id="relogio">08:00</b><i id="barra" style="width:100%"></i></span>
-      <span class="hud-pill" title="Pontos">★ <b id="pontos">0</b></span>
+      <span class="hud-pill tempo" id="tempo" role="button" tabindex="0" title="Tempo do capítulo: toque para saber como funciona">⏱ <b id="relogio">08:00</b><i id="barra" style="width:100%"></i></span>
+      <span class="hud-pill" id="pontosPill" role="button" tabindex="0" title="Pontos: escondidos até o fim">★ <b id="pontos">?</b></span>
       <span class="hud-pill" id="enviosPill" role="button" tabindex="0" title="Envios: toque para saber como funcionam">✉ <b id="envios">3</b></span>
     </span>
   </div>
@@ -781,12 +822,16 @@ button:active,.caixa:active,.redondo:active,.chip:active{
     <li><strong>Comunique-se</strong><p>No Grupo estão todos da casa, cada um só pelo final do número. Toque num número para conversar no privado ou salvá-lo com um nome: o nome é o seu palpite e só você vê.</p></li>
     <li><strong>Investigue</strong><p>As peças da casa se abrem conforme os capítulos. O que você achar vai para o inventário, no clipe da conversa. Anexar um item para alguém gasta 1 envio.</p></li>
     <li><strong>Envie com cuidado</strong><p>Cada capítulo dá <b>3 envios</b> (✉ no alto). Cada mensagem ou anexo que você manda gasta 1. Mande pelo menos 1 por capítulo. Há envios extras escondidos em objetos da casa: cada um achado vale +1.</p></li>
-    <li><strong>Desconfie</strong><p>Em Suspeitos, anote o que acha de cada número. No fim do capítulo, o caderno vira a votação.</p></li>
+    <li><strong>Desconfie</strong><p>Em Suspeitos, marque de 1 (pouca) a 3 (muita) a sua suspeita sobre cada número e anote o porquê. Só você vê. No fim do capítulo, o caderno vira a aposta.</p></li>
+    <li><strong>Sua ficha</strong><p>O ícone no alto, à direita, é o seu personagem: o que só você sabe, o seu segredo e o que você não pode fazer sem se expor.</p></li>
   </ol>
-  <section class="how-box"><h2>O tempo é do capítulo.</h2><p>A barra no alto é o tempo do capítulo. Quando ela acaba, o capítulo fecha.</p></section>
-  <section class="how-box destaque"><h2>A pergunta final.</h2><p>Quem é o impostor? E quem ajudou o traidor? Acertar vale pontos.</p></section>
+  <section class="how-box"><h2>O tempo é do capítulo.</h2><p>A barra ⏱ no alto é o tempo do capítulo. Quando ela acaba, o capítulo fecha, mesmo que você não tenha terminado.</p></section>
+  <section class="how-box"><h2>O fim de cada capítulo.</h2><p>Vem uma pergunta sobre o que aconteceu, com quatro respostas. Depois você diz o quanto tem certeza: <b>com certeza</b>, <b>sem certeza</b> ou <b>não sei</b>. Em seguida, se quiser, aposta em quem é o impostor.</p><p>Você só descobre se acertou no fim do jogo.</p><button type="button" class="ver-sim" data-simular>Ver uma simulação</button></section>
+  <section class="how-box"><h2>Os pontos ficam escondidos.</h2><p>O ★ no alto não mostra nada durante a partida. Os pontos só aparecem no fim, capítulo por capítulo.</p></section>
+  <section class="how-box destaque"><h2>A pergunta final.</h2><p>Quem é o impostor? Ele pode ser qualquer um, e muda a cada partida. Acertar com certeza vale mais; errar com certeza custa mais; dizer “não sei” nunca tira ponto.</p></section>
   <button type="button" id="comoJogarOk">Entendi</button>
 </dialog>
+<dialog id="fecho" aria-labelledby="fechoTitulo"><div id="fechoCorpo"></div></dialog>
 <div class="tela-ra" id="telaRA" hidden>
   <button class="sair-ra" id="sairRA" type="button">‹ Voltar</button>
 </div>
@@ -816,7 +861,7 @@ var NUMEROS=['08','19','23','31','47','62','74'];
 var CORES={'08':'#6fa8ff','19':'#d8dee4','23':'#5fd68a','31':'#e6c36a','47':'#b9a6ff','62':'#3cc9a8','74':'#5fd8ec'};
 var PAPEIS=['Investigador','Herdeira','Residente','Jornalista','Policial','Observadora','Número do proprietário'];
 var rotulo={};                      // o que ESTE jogador salvou: final -> papel
-var suspeita={}, notas={}, votoEm=null, fimDeCapitulo=false;
+var suspeita={}, notas={}, votoEm=null, fimDeCapitulo=false, apostaConf=null;
 var envios=3;
 
 function nomeDe(f){
@@ -902,6 +947,10 @@ function pintarEnvios(){$('#envios').textContent=envios}
 function gastarEnvio(){if(envios<=0){toast('Sem envios neste capítulo.');return false}envios--;pintarEnvios();if(envios===0)toast('Esse foi o seu último envio do capítulo.');return true}
 function ganharEnvio(){envios++;pintarEnvios();var p=$('#enviosPill');if(p){p.classList.add('nasce');setTimeout(function(){p.classList.remove('nasce')},2400)}}
 $('#enviosPill').onclick=function(){janela('OS ENVIOS',TXT_ENVIOS)};
+var TXT_TEMPO='O ⏱ no alto é o tempo do capítulo. Quando ele acaba, o capítulo fecha e vem a pergunta do capítulo, mesmo que você não tenha terminado.';
+var TXT_PONTOS='Seus pontos ficam escondidos a partida toda. Eles só aparecem no fim, capítulo por capítulo.';
+$('#tempo').onclick=function(){janela('O TEMPO',TXT_TEMPO)};
+$('#pontosPill').onclick=function(){janela('OS PONTOS',TXT_PONTOS)};
 
 /* ── Respostas prontas ───────────────────────────────────────────────── */
 function montarRespostas(id,lista,destino){
@@ -967,8 +1016,9 @@ document.addEventListener('click',function(e){var p=e.target.closest('[data-priv
 function pintarSusp(){
   var outros=NUMEROS.filter(function(f){return f!==EU});
   var topo=fimDeCapitulo
-    ?'<div class="aviso ouro"><b>Fim do capítulo.</b> O caderno travou. Em quem você aposta?</div>'
-    :'<div class="aviso">Seu caderno. Só você vê. No fim do capítulo, ele vira a votação.</div>';
+    ?'<div class="aviso ouro"><b>Fim do capítulo.</b> O caderno travou. Em quem você aposta como impostor? É opcional e só você vê.</div>'+
+     '<div class="conf-aposta">'+[['certeza','Com certeza'],['sem','Sem certeza'],['naosei','Não sei']].map(function(c){return '<button type="button" data-aposta-conf="'+c[0]+'" class="'+(apostaConf===c[0]?'on':'')+'">'+c[1]+'</button>'}).join('')+'</div>'
+    :'<div class="aviso">Seu caderno. Só você vê. Marque 1 (pouca), 2 (média) ou 3 (muita) suspeita e anote o porquê. No fim do capítulo, ele vira a aposta.</div>';
   $('#listaSusp').innerHTML=topo+outros.map(function(f){
     var v=suspeita[f]||0;
     var niveis=['baixa','média','alta'].map(function(n,i){return '<button data-susp="'+f+'" data-v="'+(i+1)+'" class="'+(v===i+1?'on':'')+'" '+(fimDeCapitulo?'disabled':'')+' aria-label="'+n+'">'+(i+1)+'</button>'}).join('');
@@ -978,8 +1028,12 @@ function pintarSusp(){
   }).join('')+'<button class="voto" id="simFim" style="margin-top:4px;border-style:dashed">'+(fimDeCapitulo?'Voltar ao caderno (protótipo)':'Simular fim do capítulo (protótipo)')+'</button>';
   document.querySelectorAll('[data-susp]').forEach(function(b){b.onclick=function(){var f=b.dataset.susp,v=+b.dataset.v;suspeita[f]=suspeita[f]===v?0:v;pintarSusp()}});
   document.querySelectorAll('[data-nota]').forEach(function(t){t.oninput=function(){notas[t.dataset.nota]=t.value}});
-  document.querySelectorAll('[data-votar]').forEach(function(b){b.onclick=function(){votoEm=b.dataset.votar;pintarSusp()}});
-  $('#simFim').onclick=function(){fimDeCapitulo=!fimDeCapitulo;document.querySelector('[data-aba="suspeitos"]').classList.toggle('glow',fimDeCapitulo&&aba!=='suspeitos');pintarSusp()};
+  document.querySelectorAll('[data-votar]').forEach(function(b){b.onclick=function(){votoEm=b.dataset.votar;if(apostaConf==='naosei')apostaConf=null;pintarSusp()}});
+  document.querySelectorAll('[data-aposta-conf]').forEach(function(b){b.onclick=function(){apostaConf=b.dataset.apostaConf;if(apostaConf==='naosei')votoEm=null;pintarSusp()}});
+  $('#simFim').onclick=function(){
+    function virar(){fimDeCapitulo=!fimDeCapitulo;document.querySelector('[data-aba="suspeitos"]').classList.toggle('glow',fimDeCapitulo&&aba!=='suspeitos');pintarSusp()}
+    if(!fimDeCapitulo)abrirSimulacao(virar);else virar();
+  };
 }
 
 /* ── RA ──────────────────────────────────────────────────────────────── */
@@ -994,6 +1048,56 @@ var PECAS=[
 $('#gradeRA').innerHTML=PECAS.map(function(p){
   return '<a class="peca'+(p.tranca?' trancada':'')+'" '+(p.abrir&&!p.tranca?'data-abrir="'+p.abrir+'" href="#"':(p.href&&!p.tranca?'href="'+p.href+'"':''))+'><span class="ico">'+(p.tranca?'🔒':p.ico)+'</span><small>'+p.cap+'</small><b>'+p.nome+'</b><span>'+p.txt+'</span></a>';
 }).join('');
+
+/* ── Simulação do fim de capítulo (sem pontos: só mostra como funcionará) ──
+   A pergunta nunca cita personagem e tem sempre uma hipótese confortável
+   (falsa em toda partida). O resultado não é mostrado: na partida, só no fim. */
+var SIM={pergunta:'O que prova que alguém usa esta casa?',opcoes:[
+  'Alguém vive escondido na casa e cuida dela.',
+  'A equipe de limpeza esqueceu uma xícara.',
+  'Um dos convidados chegou antes e andou pela casa.',
+  'O relógio é elétrico e a energia nunca foi cortada.']};
+var CONF=[
+  {id:'certeza',nome:'Com certeza',dica:'Os fatos fecham',certa:'Ganha o máximo',errada:'Perde o mesmo tanto',cc:['ganha','perde']},
+  {id:'sem',nome:'Sem certeza',dica:'Parece, mas falta algo',certa:'Ganha a metade',errada:'Perde pouco',cc:['ganha','perde']},
+  {id:'naosei',nome:'Não sei',dica:'Ainda não dá para dizer',certa:'Ganha um pouquinho',errada:'Não perde nada',cc:['nada','nada']}];
+var simEsc=null,simConf=null,simOrdem=[],depoisSim=null;
+function embaralhar(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
+function abrirSimulacao(depois){
+  depoisSim=depois||null;simEsc=null;simConf=null;simOrdem=embaralhar([0,1,2,3]);
+  var d=$('#fecho');pintarSimIntro();try{d.showModal()}catch(e){d.setAttribute('open','')}d.scrollTop=0;
+}
+function fecharSim(){var d=$('#fecho');try{d.close()}catch(e){d.removeAttribute('open')}if(depoisSim){var f=depoisSim;depoisSim=null;f()}}
+function pintarSimIntro(){
+  $('#fechoCorpo').innerHTML='<p class="kicker">Simulação · fim do capítulo</p><h1 id="fechoTitulo">Assim o capítulo fecha.</h1>'+
+    '<p class="lede">Quando o tempo acaba, vem uma pergunta sobre o que aconteceu no capítulo. São quatro respostas e só uma é certa. Depois você diz o quanto tem certeza.</p>'+
+    '<p class="lede">Nesta simulação nada vale ponto: é só para você ver como vai funcionar.</p>'+
+    '<div class="acoes"><button type="button" id="simIr">Começar a simulação</button><button type="button" class="sec" id="simSair">Agora não</button></div>';
+  $('#simIr').onclick=pintarSimPergunta;$('#simSair').onclick=fecharSim;
+}
+function pintarSimPergunta(){
+  var L='ABCD';
+  $('#fechoCorpo').innerHTML='<p class="kicker">Simulação · pergunta do capítulo</p><h1 id="fechoTitulo">'+SIM.pergunta+'</h1>'+
+    '<div class="opcoes">'+simOrdem.map(function(k,i){return '<button type="button" class="op'+(simEsc===k?' on':'')+'" data-op="'+k+'"'+(simConf==='naosei'?' disabled':'')+'><i>'+L[i]+'</i><span>'+SIM.opcoes[k]+'</span></button>'}).join('')+'</div>'+
+    '<h2>O quanto você tem certeza?</h2><div class="conf">'+CONF.map(function(c){return '<button type="button" data-conf="'+c.id+'" class="'+(simConf===c.id?'on':'')+'">'+c.nome+'<small>'+c.dica+'</small></button>'}).join('')+'</div>'+
+    '<div class="acoes"><button type="button" id="simResp"'+((simConf&&(simEsc!==null||simConf==='naosei'))?'':' disabled')+'>Responder</button></div>';
+  document.querySelectorAll('#fecho [data-op]').forEach(function(b){b.onclick=function(){simEsc=+b.dataset.op;pintarSimPergunta()}});
+  document.querySelectorAll('#fecho [data-conf]').forEach(function(b){b.onclick=function(){simConf=b.dataset.conf;if(simConf==='naosei')simEsc=null;pintarSimPergunta()}});
+  $('#simResp').onclick=pintarSimResultado;
+}
+function pintarSimResultado(){
+  var c=CONF.filter(function(x){return x.id===simConf})[0];
+  var resp=simConf==='naosei'?'Você disse que <b>não sabe</b>.':'Você respondeu “'+SIM.opcoes[simEsc]+'” <b>'+c.nome.toLowerCase()+'</b>.';
+  $('#fechoCorpo').innerHTML='<p class="kicker">Simulação · resposta guardada</p><h1 id="fechoTitulo">Resposta guardada.</h1>'+
+    '<p class="lede">'+resp+' Na partida, você só descobre se acertou no fim do jogo, na Revelação.</p>'+
+    '<h2>Como vai contar</h2><div class="tabela"><div class="linha cab"><span></span><span>Se acertar</span><span>Se errar</span></div>'+
+    CONF.map(function(x){return '<div class="linha'+(x.id===simConf?' sua':'')+'"><span><b>'+x.nome+'</b></span><span class="'+x.cc[0]+'">'+x.certa+'</span><span class="'+x.cc[1]+'">'+x.errada+'</span></div>'}).join('')+'</div>'+
+    '<p class="lede">Use “com certeza” só quando os fatos fecham. Chutar com certeza é o jeito mais rápido de perder. Dizer “não sei” nunca tira ponto.</p>'+
+    '<h2>Depois da pergunta</h2><p class="lede">O seu caderno de Suspeitos vira a aposta: em quem você aposta como impostor, também com certeza, sem certeza ou não sei. A aposta é só sua, é opcional e o resultado também só sai no fim.</p>'+
+    '<div class="acoes"><button type="button" id="simFim2">Entendi</button><button type="button" class="sec" id="simDeNovo">Refazer a simulação</button></div>';
+  $('#simFim2').onclick=fecharSim;$('#simDeNovo').onclick=function(){simEsc=null;simConf=null;simOrdem=embaralhar([0,1,2,3]);pintarSimPergunta()};
+}
+document.addEventListener('click',function(e){if(e.target.closest('[data-simular]')){try{$('#comoJogar').close()}catch(x){}abrirSimulacao()}});
 
 /* ── ⓘ e ficha ───────────────────────────────────────────────────────── */
 $('#infoBtn').onclick=function(){var d=$('#comoJogar');if(d.showModal)d.showModal();else d.setAttribute('open','');d.scrollTop=0;$('#cjTitulo').focus()};
@@ -1044,7 +1148,7 @@ function achouTelefone(){
   if(comunicacaoAberta)return;comunicacaoAberta=true;
   $('#telaRA').hidden=true;
   janela('O TELEFONE','Você achou como se comunicar. Todos da casa estão no mesmo grupo, mas cada um aparece só pelo final do número.',function(){liberarAba('grupo');liberarAba('privadas');irPara('grupo');demoMensagens();iniciarRelogio();
-    setTimeout(function(){janela('OS ENVIOS',TXT_ENVIOS,function(){
+    setTimeout(function(){janela('O TEMPO','O relógio do capítulo começou. '+TXT_TEMPO);janela('OS ENVIOS',TXT_ENVIOS,function(){
       setTimeout(function(){janela('AS PLANTAS','Cada andar da casa tem a sua planta, escondida em algum objeto daquele andar. Na maquete (aba RA), procure a do andar de cima.')},600)})},1500)});
 }
 
@@ -1117,7 +1221,7 @@ function mostrarPapeis(){
   try{d.showModal()}catch(e){d.setAttribute('open','')}
 }
 $('#papeisOk').onclick=function(){$('#papeis').close();estadoPrologo.papeisVistos=true;
-  janela('EXPLORE A CASA','Toque nos objetos. Aproxime o celular ou use a pinça dos dedos para ver os detalhes. Procure como falar com os outros.')};
+  janela('EXPLORE A CASA','Toque nos objetos. Aproxime o celular ou use a pinça dos dedos para ver os detalhes. Procure como falar com os outros. Sua ficha de personagem fica no ícone do alto, à direita.')};
 window.addEventListener('message',function(e){
   if(e.origin!==location.origin||!e.data||e.data.oi!=='maquete')return;
   if(e.data.evento==='chave-achada')estadoPrologo.chave=true;
