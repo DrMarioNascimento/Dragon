@@ -221,6 +221,175 @@ button,input,textarea{font:inherit;color:inherit}
 .visor header b{flex:1;font:700 15px var(--sans);color:var(--gold2)}
 .visor .area{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y pinch-zoom}
 .visor img{display:block;width:100%;height:auto}
+
+/* ── PROFUNDIDADE 3D · MOSAICO O IMPOSTOR ───────────────────────────── */
+:root{
+ --z-shadow:0 8px 0 #020609,0 16px 28px #0009;
+ --z-shadow-soft:0 5px 0 #020609,0 10px 20px #0008;
+ --z-highlight:inset 0 1px 0 #ffffff18,inset 0 -2px 0 #00000038;
+}
+.orelhas{perspective:900px;transform-style:preserve-3d}
+.orelha{
+ transform:translateZ(8px);
+ border-width:1px 1px 2px;
+ border-bottom-color:#06131d;
+ box-shadow:inset 0 2px 0 #ffffff12,inset 0 -4px 5px #02070b99,0 4px 0 #020609,0 8px 12px #0007;
+ background:linear-gradient(180deg,#1a3143 0%,#102331 45%,#09151f 100%);
+ transition:transform .16s ease,box-shadow .16s ease,filter .16s ease;
+}
+.orelha:hover{transform:translateY(-2px) translateZ(12px);filter:brightness(1.08);box-shadow:inset 0 2px 0 #ffffff18,inset 0 -4px 6px #02070baa,0 5px 0 #020609,0 12px 18px #0009}
+.orelha:active{transform:translateY(3px) translateZ(2px);box-shadow:inset 0 3px 7px #0009,0 1px 0 #020609}
+.orelha.ativa{
+ transform:translateY(-2px) translateZ(16px);
+ background:linear-gradient(180deg,#27485d 0%,#173246 48%,#0c1d2a 100%);
+ border-color:#7897aa;
+ box-shadow:inset 0 2px 0 #ffffff22,inset 0 -5px 8px #02070baa,0 6px 0 #020609,0 14px 22px #000a,0 0 18px #d6aa581c;
+}
+.orelha .n{
+ box-shadow:inset 0 2px 2px #ffffff55,inset 0 -2px 3px #03201488,0 2px 0 #06140c,0 4px 7px #0008;
+}
+.painel{
+ position:relative;
+ perspective:1200px;
+ border-width:1px 1px 2px;
+ border-color:#4c697c;
+ background:linear-gradient(165deg,#0b1822e8,#061019ed);
+ box-shadow:inset 0 1px 0 #ffffff10,inset 0 -4px 10px #0008,0 6px 0 #020609,0 16px 32px #000a;
+}
+.rolagem{perspective:1000px;transform-style:preserve-3d}
+
+/* bolhas: aparência de peças/objetos elevados */
+.msg{perspective:700px}
+.msg .bolha{
+ border-width:1px 1px 2px;
+ background:linear-gradient(145deg,#1d3443 0%,#132532 52%,#0d1a24 100%);
+ box-shadow:inset 0 2px 0 #ffffff13,inset 0 -3px 5px #02070b88,0 3px 0 #020609,0 7px 12px #0008;
+ transform:translateZ(5px);
+ transition:transform .14s ease,box-shadow .14s ease;
+}
+.msg .bolha:hover{
+ transform:translateY(-1px) translateZ(9px);
+ box-shadow:inset 0 2px 0 #ffffff18,inset 0 -3px 6px #02070baa,0 4px 0 #020609,0 10px 17px #0009;
+}
+.msg.eu .bolha{
+ background:linear-gradient(145deg,#194633 0%,#123126 52%,#0b2118 100%);
+ border-color:#39795c;
+ box-shadow:inset 0 2px 0 #ffffff14,inset 0 -3px 5px #03150d88,0 3px 0 #020609,0 7px 12px #0008;
+}
+.sistema{
+ border-width:1px 1px 2px;
+ background:linear-gradient(145deg,#263d4c,#172a36 55%,#101d26);
+ box-shadow:inset 0 2px 0 #ffffff16,inset 0 -3px 5px #02070b88,0 4px 0 #020609,0 9px 16px #0008;
+ transform:translateZ(6px);
+}
+.dia{
+ border:1px solid #3a5363;
+ box-shadow:inset 0 1px 0 #ffffff12,0 2px 0 #020609,0 4px 8px #0007;
+}
+
+/* cards, grids e blocos */
+.grade{perspective:1100px;transform-style:preserve-3d}
+.peca{
+ border-width:1px 1px 2px;
+ background:linear-gradient(145deg,#1b3343 0%,#10222e 52%,#09141c 100%);
+ box-shadow:inset 0 2px 0 #ffffff15,inset 0 -4px 7px #02070b99,0 5px 0 #020609,0 12px 20px #0009;
+ transform:translateZ(6px);
+ transition:transform .16s ease,box-shadow .16s ease,filter .16s ease;
+}
+.peca:hover{
+ transform:translateY(-4px) translateZ(16px) rotateX(1deg);
+ filter:brightness(1.08);
+ box-shadow:inset 0 2px 0 #ffffff1c,inset 0 -5px 8px #02070baa,0 8px 0 #020609,0 18px 28px #000b;
+}
+.peca:active{transform:translateY(2px) translateZ(2px);box-shadow:inset 0 4px 8px #0009,0 2px 0 #020609}
+.peca .ico{text-shadow:0 3px 5px #000b}
+.suspeito{
+ border-width:1px 1px 2px;
+ background:linear-gradient(145deg,#1b3343 0%,#10222e 54%,#09141c 100%);
+ box-shadow:inset 0 2px 0 #ffffff14,inset 0 -4px 7px #02070b99,0 4px 0 #020609,0 10px 17px #0008;
+ transform:translateZ(5px);
+}
+.aviso{
+ border-width:1px 1px 2px;
+ box-shadow:inset 0 2px 0 #ffffff12,inset 0 -3px 5px #02070b66,0 4px 0 #020609,0 9px 15px #0008;
+ transform:translateZ(4px);
+}
+
+/* lista de conversas: cada conversa vira uma pequena placa elevada */
+#listaPriv{perspective:900px;transform-style:preserve-3d}
+.conversa{
+ position:relative;
+ margin:6px 2px;
+ width:calc(100% - 4px);
+ border:1px solid #314b5c;
+ border-bottom:2px solid #07131c;
+ border-radius:12px;
+ background:linear-gradient(145deg,#172b39 0%,#0e1e2a 55%,#09141c 100%);
+ box-shadow:inset 0 2px 0 #ffffff12,inset 0 -3px 5px #02070b88,0 4px 0 #020609,0 9px 15px #0008;
+ transform:translateZ(5px);
+ transition:transform .15s ease,box-shadow .15s ease,filter .15s ease;
+}
+.conversa:hover{
+ transform:translateY(-3px) translateZ(11px);
+ filter:brightness(1.06);
+ box-shadow:inset 0 2px 0 #ffffff17,inset 0 -4px 6px #02070baa,0 6px 0 #020609,0 13px 20px #0009;
+}
+.conversa:active{transform:translateY(2px) translateZ(1px);box-shadow:inset 0 3px 7px #0009,0 1px 0 #020609}
+.avatar{
+ border-width:1px 1px 2px;
+ background:linear-gradient(145deg,#294352,#172a37);
+ box-shadow:inset 0 2px 2px #ffffff16,inset 0 -3px 4px #02070b99,0 3px 0 #020609,0 5px 8px #0007;
+}
+.cab-conversa{
+ border-width:1px 1px 2px;
+ border-radius:10px 10px 0 0;
+ background:linear-gradient(180deg,#173043,#0d1d29);
+ box-shadow:inset 0 2px 0 #ffffff12,0 4px 0 #020609,0 8px 14px #0008;
+}
+
+/* controles e botões: mesma linguagem de objeto físico */
+button,.caixa,.redondo,.chip{
+ box-shadow:inset 0 2px 0 #ffffff12,inset 0 -3px 5px #02070b66,0 3px 0 #020609,0 6px 10px #0007;
+ transition:transform .12s ease,box-shadow .12s ease,filter .12s ease;
+}
+button:hover,.caixa:hover,.chip:hover,.redondo:hover{filter:brightness(1.08);transform:translateY(-1px)}
+button:active,.caixa:active,.chip:active,.redondo:active{
+ transform:translateY(2px);
+ box-shadow:inset 0 3px 7px #0009,0 1px 0 #020609;
+}
+.compositor{
+ border-top:2px solid #294353;
+ background:linear-gradient(180deg,#0d1d28,#07121a);
+ box-shadow:inset 0 2px 0 #ffffff09,0 -7px 18px #0008;
+}
+.caixa{
+ background:linear-gradient(180deg,#142b39,#0b1923);
+ border-width:1px 1px 2px;
+}
+.chip{
+ background:linear-gradient(180deg,#153326,#0c2118);
+ border-bottom-color:#163b29;
+}
+.redondo{
+ background:linear-gradient(180deg,#1b3444,#0d1d29);
+ border-bottom-color:#06131c;
+}
+.redondo.enviar{
+ background:linear-gradient(180deg,#3e9969,#276c4b);
+ border-color:#6bd69a;
+}
+
+/* folhas e modais */
+.folha,#comoJogar,.janela .caixa-j{
+ border-width:1px 1px 3px;
+ box-shadow:inset 0 2px 0 #ffffff16,inset 0 -5px 10px #02070b88,0 8px 0 #020609,0 24px 48px #000d;
+}
+.folha .item,.ficha div,.how-box{
+ border-width:1px 1px 2px;
+ box-shadow:inset 0 2px 0 #ffffff12,inset 0 -3px 5px #02070b66,0 3px 0 #020609,0 8px 14px #0007;
+ transform:translateZ(4px);
+}
+
 </style>
 </head>
 <body>
