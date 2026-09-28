@@ -223,6 +223,11 @@ button,input,textarea{font:inherit;color:inherit}
 .conf-aposta button.on{background:#3a2d14;border-color:#efc878;color:#fff}
 #comoJogar .ver-sim{width:100%;min-height:44px;margin-top:10px;border-radius:12px;border:1px solid #65d5cc88;background:#0a252d;color:#65d5cc;font:700 14px var(--sans);cursor:pointer}
 .hud-pill[role=button]{cursor:pointer}
+/* Vídeo da revelação do impostor (fim do prólogo) */
+#fecho .revela{position:relative;width:min(240px,62%);aspect-ratio:1;margin:0 auto 16px;border-radius:18px;overflow:hidden;border:1px solid #65d5cc66;
+  box-shadow:inset 0 2px 0 #ffffff22,0 4px 0 #020609,0 12px 24px #000a;transform:translateZ(6px)}
+#fecho .revela video{width:100%;height:100%;object-fit:cover;display:block;background:#f3f1ea}
+#fecho .revela .som{position:absolute;right:8px;bottom:8px;width:36px;height:36px;border-radius:50%;border:1px solid #46667a;background:#0c1b26d9;color:#f1f8fc;font-size:16px;cursor:pointer;box-shadow:inset 0 2px 0 #ffffff14,0 3px 0 #020609}
 /* Simulação e aposta no mesmo padrão de volume 3D da tela */
 #fecho{box-shadow:inset 0 2px 0 #ffffff12,inset 0 -4px 8px #0007,0 6px 0 #020609,0 24px 70px #0009}
 #fecho .op,#fecho .conf button,.conf-aposta button{box-shadow:inset 0 2px 0 #ffffff14,inset 0 -3px 5px #0008,0 3px 0 #020609,0 6px 10px #0007}
@@ -753,9 +758,9 @@ button:active,.caixa:active,.redondo:active,.chip:active{
     </div>
   </div>
   <div class="turnline">
-    <span><small>1</small><b>A CHEGADA</b></span>
+    <span><small id="capNum">0</small><b id="capNome">PRÓLOGO</b></span>
     <span class="turnline-right">
-      <span class="hud-pill tempo" id="tempo" role="button" tabindex="0" title="Tempo do capítulo: toque para saber como funciona">⏱ <b id="relogio">08:00</b><i id="barra" style="width:100%"></i></span>
+      <span class="hud-pill tempo" id="tempo" role="button" tabindex="0" title="Tempo do capítulo: toque para saber como funciona">⏱ <b id="relogio">livre</b><i id="barra" style="width:100%"></i></span>
       <span class="hud-pill" id="pontosPill" role="button" tabindex="0" title="Pontos: escondidos até o fim">★ <b id="pontos">?</b></span>
       <span class="hud-pill" id="enviosPill" role="button" tabindex="0" title="Envios: toque para saber como funcionam">✉ <b id="envios">3</b></span>
     </span>
@@ -825,6 +830,7 @@ button:active,.caixa:active,.redondo:active,.chip:active{
     <li><strong>Desconfie</strong><p>Em Suspeitos, marque de 1 (pouca) a 3 (muita) a sua suspeita sobre cada número e anote o porquê. Só você vê. No fim do capítulo, o caderno vira a aposta.</p></li>
     <li><strong>Sua ficha</strong><p>O ícone no alto, à direita, é o seu personagem: o que só você sabe, o seu segredo e o que você não pode fazer sem se expor.</p></li>
   </ol>
+  <section class="how-box"><h2>Primeiro, o prólogo.</h2><p>O prólogo é a apresentação do cenário, da história e da tela do jogo. Nele não há tempo, mandar mensagem é livre e nada conta pontos. Os envios extras que você achar na casa vão com você para o Capítulo 1.</p></section>
   <section class="how-box"><h2>O tempo é do capítulo.</h2><p>A barra ⏱ no alto é o tempo do capítulo. Quando ela acaba, o capítulo fecha, mesmo que você não tenha terminado.</p></section>
   <section class="how-box"><h2>O fim de cada capítulo.</h2><p>Vem uma pergunta sobre o que aconteceu, com quatro respostas. Depois você diz o quanto tem certeza: <b>com certeza</b>, <b>sem certeza</b> ou <b>não sei</b>. Em seguida, se quiser, aposta em quem é o impostor.</p><p>Você só descobre se acertou no fim do jogo.</p><button type="button" class="ver-sim" data-simular>Ver uma simulação</button></section>
   <section class="how-box"><h2>Os pontos ficam escondidos.</h2><p>O ★ no alto não mostra nada durante a partida. Os pontos só aparecem no fim, capítulo por capítulo.</p></section>
@@ -976,12 +982,16 @@ document.querySelectorAll('.orelha').forEach(function(o){o.onclick=function(){ir
    envios extras ficam escondidos em objetos da casa (separados das plantas). */
 var TXT_ENVIOS='Cada capítulo você tem 3 envios (o ✉ no alto). Cada mensagem ou anexo que você manda gasta 1. Mande pelo menos 1 por capítulo. Há envios extras escondidos em objetos da casa: procure, cada um achado vale +1.';
 function pintarEnvios(){$('#envios').textContent=envios}
-function gastarEnvio(){if(envios<=0){toast('Sem envios neste capítulo.');return false}envios--;pintarEnvios();if(envios===0)toast('Esse foi o seu último envio do capítulo.');return true}
+var capitulo=0;            // 0 = prólogo (apresentação: nada conta)
+var avisouPrologoLivre=false;
+function gastarEnvio(){
+  if(capitulo===0){if(!avisouPrologoLivre){avisouPrologoLivre=true;toast('No prólogo, mandar é livre: é treino.')}return true}
+  if(envios<=0){toast('Sem envios neste capítulo.');return false}envios--;pintarEnvios();if(envios===0)toast('Esse foi o seu último envio do capítulo.');return true}
 function ganharEnvio(){envios++;pintarEnvios();var p=$('#enviosPill');if(p){p.classList.add('nasce');setTimeout(function(){p.classList.remove('nasce')},2400)}}
 $('#enviosPill').onclick=function(){janela('OS ENVIOS',TXT_ENVIOS)};
 var TXT_TEMPO='O ⏱ no alto é o tempo do capítulo. Quando ele acaba, o capítulo fecha e vem a pergunta do capítulo, mesmo que você não tenha terminado.';
 var TXT_PONTOS='Seus pontos ficam escondidos a partida toda. Eles só aparecem no fim, capítulo por capítulo.';
-$('#tempo').onclick=function(){janela('O TEMPO',TXT_TEMPO)};
+$('#tempo').onclick=function(){janela('O TEMPO',capitulo===0?'O prólogo não tem tempo: explore à vontade. O relógio começa no Capítulo 1. '+TXT_TEMPO:TXT_TEMPO)};
 $('#pontosPill').onclick=function(){janela('OS PONTOS',TXT_PONTOS)};
 
 /* ── Respostas prontas ───────────────────────────────────────────────── */
@@ -1142,7 +1152,8 @@ $('#fichaBtn').onclick=function(){folha('<div class="topo-ficha"><img src="icone
 
 /* ── Tempo (demonstração) ────────────────────────────────────────────── */
 var TOTAL=8*60,resta=TOTAL;
-function iniciarRelogio(){setInterval(function(){if(resta>0)resta--;$('#relogio').textContent=('0'+Math.floor(resta/60)).slice(-2)+':'+('0'+resta%60).slice(-2);$('#barra').style.width=(resta/TOTAL*100)+'%';$('#tempo').classList.toggle('pouco',resta<60)},1000);}
+var relogioAtivo=false;
+function iniciarRelogio(){if(relogioAtivo)return;relogioAtivo=true;setInterval(function(){if(resta>0)resta--;$('#relogio').textContent=('0'+Math.floor(resta/60)).slice(-2)+':'+('0'+resta%60).slice(-2);$('#barra').style.width=(resta/TOTAL*100)+'%';$('#tempo').classList.toggle('pouco',resta<60)},1000);}
 
 function toast(t){var d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(function(){d.remove()},2600)}
 
@@ -1166,21 +1177,43 @@ function achouPorao(){
   if(INVENTARIO.some(function(it){return it.nome==='Planta do porão'}))return;
   INVENTARIO.push({ico:'🗺️',nome:'Planta do porão',desc:'O porão da casa',img:'plantas/planta-porao.svg'});
   var clipe=document.querySelector('[data-anexo="grupo"]');if(clipe){clipe.classList.add('nasce');setTimeout(function(){clipe.classList.remove('nasce')},3400)}
-  janela('O PORÃO','Porão, um ótimo esconderijo! Última peça da casa explorada! A planta do porão está no seu inventário.');
+  janela('O PORÃO','Porão, um ótimo esconderijo! Última peça da casa explorada! A planta do porão está no seu inventário.',function(){setTimeout(fimDoPrologo,500)});
 }
 /* Envio extra achado num objeto da maquete: +1 neste capítulo. */
 var enviosExtras=0;
 function achouEnvio(){
   enviosExtras++;ganharEnvio();
-  if(enviosExtras===1)janela('UM ENVIO EXTRA','Você achou um envio escondido na casa: +1 neste capítulo. Há outros pela casa.');
+  if(enviosExtras===1)janela('UM ENVIO EXTRA','Você achou um envio escondido na casa: +1'+(capitulo===0?', que vai com você para o Capítulo 1.':' neste capítulo.')+' Há outros pela casa.');
   else toast('Envio extra achado: +1');
+}
+/* ── Fim do prólogo: a apresentação acabou; começa O Impostor ─────────── */
+var CAPITULOS=[null,{n:1,nome:'A REABERTURA'}];
+function fimDoPrologo(){
+  if(capitulo!==0)return;
+  var extra=enviosExtras?' ('+3+' do capítulo + '+enviosExtras+' achado'+(enviosExtras>1?'s':'')+' na casa)':'';
+  $('#fechoCorpo').innerHTML='<div class="revela"><video id="videoRevela" src="media/impostor-revela.mp4" poster="media/impostor.webp" playsinline muted autoplay preload="auto" aria-label="O boneco de vidro vira o impostor, de chapéu e capa"></video><button type="button" class="som" id="somRevela" aria-label="Ver de novo com som">🔊</button></div>'+
+    '<p class="kicker">Fim do prólogo</p><h1 id="fechoTitulo">Agora começa O Impostor.</h1>'+
+    '<p class="lede">O prólogo foi a apresentação: o cenário, a história e a tela do jogo. Até aqui nada contou pontos.</p>'+
+    '<p class="lede">A partir de agora, cada capítulo tem tempo, os envios contam e, no fim de cada um, vem uma pergunta. Um de vocês não é quem diz.</p>'+
+    '<p class="lede">Você começa o Capítulo 1 com <b>'+envios+' envios</b>'+extra+'.</p>'+
+    '<div class="acoes"><button type="button" id="irCap1">Começar o Capítulo 1</button></div>';
+  depoisSim=null;var d=$('#fecho');try{d.showModal()}catch(e){d.setAttribute('open','')}d.scrollTop=0;
+  var v=$('#videoRevela');if(v){var pr=v.play();if(pr&&pr.catch)pr.catch(function(){});
+    $('#somRevela').onclick=function(){v.muted=false;v.currentTime=0;v.play()}}
+  $('#irCap1').onclick=function(){if(v)try{v.pause()}catch(e){}try{d.close()}catch(e){d.removeAttribute('open')}comecarCapitulo(1)};
+}
+function comecarCapitulo(n){
+  capitulo=n;var c=CAPITULOS[n];
+  $('#capNum').textContent=c.n;$('#capNome').textContent=c.nome;
+  resta=TOTAL;iniciarRelogio();
+  janela('CAPÍTULO '+c.n,'O relógio do capítulo começou. '+TXT_TEMPO+' Agora cada mensagem ou anexo gasta 1 envio.');
 }
 var comunicacaoAberta=false;
 function achouTelefone(){
   if(comunicacaoAberta)return;comunicacaoAberta=true;
   $('#telaRA').hidden=true;
-  janela('O TELEFONE','Você achou como se comunicar. Todos da casa estão no mesmo grupo, mas cada um aparece só pelo final do número.',function(){liberarAba('grupo');liberarAba('privadas');irPara('grupo');demoMensagens();iniciarRelogio();
-    setTimeout(function(){janela('O TEMPO','O relógio do capítulo começou. '+TXT_TEMPO);janela('OS ENVIOS',TXT_ENVIOS,function(){
+  janela('O TELEFONE','Você achou como se comunicar. Todos da casa estão no mesmo grupo, mas cada um aparece só pelo final do número.',function(){liberarAba('grupo');liberarAba('privadas');irPara('grupo');demoMensagens();
+    setTimeout(function(){janela('OS ENVIOS',TXT_ENVIOS+' No prólogo, mandar é livre: os envios só começam a contar no Capítulo 1, e os extras que você achar agora vão junto.',function(){
       setTimeout(function(){janela('AS PLANTAS','Cada andar da casa tem a sua planta, escondida em algum objeto daquele andar. Na maquete (aba RA), procure a do andar de cima.')},600)})},1500)});
 }
 
