@@ -571,6 +571,118 @@ button:active,.caixa:active,.redondo:active,.chip:active{
 .anexo{box-shadow:inset 0 2px 0 #ffffff12,inset 0 -3px 5px #0008,0 3px 0 #020609,0 6px 10px #0007}
 .compositor{box-shadow:inset 0 2px 0 #ffffff0a,0 -8px 20px #0009}
 
+
+/* ── AVATARES 3D · BONECOS CENTRALIZADOS NOS CÍRCULOS ─────────────── */
+.avatar{
+  position:relative;
+  display:grid !important;
+  place-items:center !important;
+  align-items:center !important;
+  justify-items:center !important;
+  overflow:hidden;
+  isolation:isolate;
+  line-height:0;
+  padding:0 !important;
+  border-radius:50%;
+  background:
+    radial-gradient(circle at 32% 24%,#557486 0%,#304c5d 28%,#172a37 64%,#09151d 100%);
+  border:2px solid #668699;
+  border-bottom:3px solid #050d13;
+  box-shadow:
+    inset 0 3px 3px #ffffff22,
+    inset 0 -5px 7px #02070baa,
+    inset 2px 0 3px #ffffff08,
+    0 3px 0 #020609,
+    0 7px 11px #0009;
+  transform:translateZ(6px);
+  transition:transform .15s ease,filter .15s ease,box-shadow .15s ease;
+}
+
+/* aro interno para reforçar que o boneco está dentro de uma peça física */
+.avatar::before{
+  content:"";
+  position:absolute;
+  inset:3px;
+  border-radius:50%;
+  border:1px solid #ffffff12;
+  box-shadow:inset 0 2px 4px #0007;
+  pointer-events:none;
+  z-index:0;
+}
+
+/* O SVG passa a ser uma pequena peça elevada, perfeitamente centrada. */
+.avatar svg{
+  position:relative;
+  z-index:1;
+  display:block;
+  width:28px !important;
+  height:28px !important;
+  max-width:72%;
+  max-height:72%;
+  margin:0 !important;
+  align-self:center;
+  justify-self:center;
+  transform:translateZ(8px) scale(1.06);
+  transform-origin:center center;
+  fill:#9bb2bf;
+  filter:
+    drop-shadow(0 2px 0 #050d13)
+    drop-shadow(0 4px 3px #000b);
+}
+
+/* destaque superior do boneco, dando volume sem deslocá-lo do centro */
+.avatar svg path,
+.avatar svg g{
+  transform-box:fill-box;
+  transform-origin:center;
+}
+
+.conversa .avatar{
+  width:46px;
+  height:46px;
+  flex:0 0 46px;
+}
+
+.conversa:hover .avatar{
+  transform:translateY(-1px) translateZ(11px) scale(1.03);
+  filter:brightness(1.08);
+  box-shadow:
+    inset 0 3px 3px #ffffff28,
+    inset 0 -5px 7px #02070bbb,
+    0 4px 0 #020609,
+    0 9px 14px #000b;
+}
+
+.cab-conversa .avatar{
+  width:36px;
+  height:36px;
+  flex:0 0 36px;
+}
+
+.cab-conversa .avatar svg{
+  width:24px !important;
+  height:24px !important;
+  transform:translateZ(7px) scale(1.04);
+}
+
+.suspeito .avatar{
+  width:34px;
+  height:34px;
+  flex-basis:34px;
+}
+
+.suspeito .avatar svg{
+  width:22px !important;
+  height:22px !important;
+  transform:translateZ(6px) scale(1.03);
+}
+
+/* No toque, o avatar afunda junto com a placa. */
+.conversa:active .avatar{
+  transform:translateY(2px) translateZ(2px);
+  box-shadow:inset 0 4px 7px #000a,0 1px 0 #020609;
+}
+
 </style>
 </head>
 <body>
