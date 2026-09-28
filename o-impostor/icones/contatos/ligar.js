@@ -3,7 +3,7 @@
   function preencher(el, id) {
     if (!el || !id) return;
     if (el.querySelector('img[data-oi-contato]')) return;
-    el.innerHTML = '<img data-oi-contato src="icones/contatos/' + id + '.svg" alt="">';
+    el.innerHTML = '<img data-oi-contato src="icones/contatos/' + id + '.webp" alt="">';
   }
   function varrer() {
     document.querySelectorAll('[data-priv]').forEach(function (b) {
