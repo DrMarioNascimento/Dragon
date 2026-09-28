@@ -819,7 +819,7 @@ button:active,.caixa:active,.redondo:active,.chip:active{
   <p class="lede">Na casa há um traidor, e ele pode ser qualquer um. Explore, converse e desconfie. No fim, você aponta quem foi.</p>
   <ol class="how-steps">
     <li><strong>Entre na casa</strong><p>A aba RA põe a maquete na sua mesa. Procure a chave e abra a casa. A maquete fica disponível o jogo todo para você explorar.</p></li>
-    <li><strong>Comunique-se</strong><p>No Grupo estão todos da casa, cada um só pelo final do número. Toque num número para conversar no privado ou salvá-lo com um nome: o nome é o seu palpite e só você vê.</p></li>
+    <li><strong>Comunique-se</strong><p>No Grupo estão todos da casa, cada um só pelo final do número. Em Privadas estão todos do grupo: escreva só para quem você quiser questionar. Toque num número para salvá-lo com um nome: o nome é o seu palpite e só você vê. Os números e as cores mudam a cada partida.</p></li>
     <li><strong>Investigue</strong><p>As peças da casa se abrem conforme os capítulos. O que você achar vai para o inventário, no clipe da conversa. Anexar um item para alguém gasta 1 envio.</p></li>
     <li><strong>Envie com cuidado</strong><p>Cada capítulo dá <b>3 envios</b> (✉ no alto). Cada mensagem ou anexo que você manda gasta 1. Mande pelo menos 1 por capítulo. Há envios extras escondidos em objetos da casa: cada um achado vale +1.</p></li>
     <li><strong>Desconfie</strong><p>Em Suspeitos, marque de 1 (pouca) a 3 (muita) a sua suspeita sobre cada número e anote o porquê. Só você vê. No fim do capítulo, o caderno vira a aposta.</p></li>
@@ -855,11 +855,39 @@ button:active,.caixa:active,.redondo:active,.chip:active{
 var $=function(s){return document.querySelector(s)};
 var SIL='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4.2"/><path d="M3.5 21c.8-4.6 4.2-7 8.5-7s7.7 2.4 8.5 7z"/></svg>';
 
-/* Os sete números do grupo: só o final. Um deles é o seu. */
-var EU='23';
-var NUMEROS=['08','19','23','31','47','62','74'];
-var CORES={'08':'#6fa8ff','19':'#d8dee4','23':'#5fd68a','31':'#e6c36a','47':'#b9a6ff','62':'#3cc9a8','74':'#5fd8ec'};
-var PAPEIS=['Investigador','Herdeira','Residente','Jornalista','Policial','Observadora','Número do proprietário'];
+/* ── Números e cores: mudam a cada partida ──────────────────────────────
+   Cada personagem tem um número (só o final aparece) e um boneco de vidro de
+   uma cor. Os dois são sorteados pela partida: o 08 azul de uma noite é outro
+   personagem na seguinte. Há um contato por personagem; a Acompanhante usa o
+   celular do proprietário. Mesa base: 7 contatos; com extras, até 13.
+   (?contatos=N no endereço simula mesas maiores.) */
+var Q=new URLSearchParams(location.search);
+var PARTIDA=Q.get('partida')||(function(){try{var k='oi:partida';var v=sessionStorage.getItem(k);if(!v){v='P-'+Date.now().toString(36).toUpperCase();sessionStorage.setItem(k,v)}return v}catch(e){return 'P-DEMO'}})();
+function gerador(semente){var h=1779033703^semente.length;for(var i=0;i<semente.length;i++){h=Math.imul(h^semente.charCodeAt(i),3432918353);h=h<<13|h>>>19}
+  return function(){h=Math.imul(h^h>>>16,2246822507);h=Math.imul(h^h>>>13,3266489909);h^=h>>>16;var t=(h+=0x6D2B79F5);t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
+var PALETA=[
+  {arq:'azul',cor:'#6fa8ff'},{arq:'transparente',cor:'#d8dee4'},{arq:'esmeralda',cor:'#5fd68a'},{arq:'dourado',cor:'#e6c36a'},
+  {arq:'roxo',cor:'#b9a6ff'},{arq:'verde-agua',cor:'#3cc9a8'},{arq:'ciano',cor:'#5fd8ec'},{arq:'vermelho',cor:'#ff8a80'},
+  {arq:'rosa',cor:'#f28cc0'},{arq:'laranja',cor:'#ffa05a'},{arq:'lima',cor:'#b8e05a'},{arq:'cobre',cor:'#d49a6a'},{arq:'indigo',cor:'#9a9eff'}];
+var N_CONTATOS=Math.max(7,Math.min(PALETA.length,+Q.get('contatos')||7));
+var SLOTS=(function(){var r=gerador(PARTIDA+'|numeros'),out=[];while(out.length<N_CONTATOS){var n=('0'+Math.floor(r()*100)).slice(-2);if(out.indexOf(n)<0)out.push(n)}return out})();
+var CORES={},ARQ={};
+(function(){var r=gerador(PARTIDA+'|cores');
+  /* As 8 artes originais vêm primeiro; as 5 coloridas só entram em mesas maiores. */
+  function mist(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(r()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
+  var p=mist(PALETA.slice(0,8)).concat(mist(PALETA.slice(8)));
+  SLOTS.forEach(function(n,i){CORES[n]=p[i].cor;ARQ[n]=p[i].arq})})();
+window.OIContatos=ARQ;
+var NUMEROS=SLOTS.slice().sort();          // nas listas, em ordem de número
+var EU=SLOTS[2];                            // o seu número nesta partida
+function S(i){return SLOTS[i]}             // o i-ésimo contato do roteiro de demonstração
+/* Extras entram com mais gente na mesa (um contato a mais para cada um). */
+var EXTRAS=[
+  {id:'tabeliao',nome:'Tabelião',funcao:'oficializar'},{id:'advogado',nome:'Advogado',funcao:'validar a vontade'},
+  {id:'governanta',nome:'Governanta',funcao:'preparar a casa'},{id:'chefe_de_cozinha',nome:'Chefe de Cozinha',funcao:'preparar a casa'},
+  {id:'jardineiro',nome:'Jardineiro',funcao:'preparar a casa'},{id:'eletricista',nome:'Eletricista',funcao:'preparar a casa'}];
+var EXTRAS_NA_MESA=EXTRAS.slice(0,N_CONTATOS-7);
+var PAPEIS=['Investigador','Herdeira','Residente','Jornalista','Policial','Observadora'].concat(EXTRAS_NA_MESA.map(function(e){return e.nome}),['Número do proprietário']);
 var rotulo={};                      // o que ESTE jogador salvou: final -> papel
 var suspeita={}, notas={}, votoEm=null, fimDeCapitulo=false, apostaConf=null;
 var envios=3;
@@ -874,16 +902,15 @@ function hora(){var d=new Date();return ('0'+d.getHours()).slice(-2)+':'+('0'+d.
 var grupo=[
   {sis:'O céu desabou, e a névoa já tinha avançado muito. Quem chegava mal sabia como se proteger ao sair do carro. Ninguém viu quantos carros já estavam ali. Só se viram quando já estavam protegidos dentro da casa.'},
   {dia:'HOJE'},
-  {de:'31',txt:'Cheguei. Estou no hall.'},
-  {de:'08',txt:'Alguém sabe onde acende a luz do corredor?'},
-  {de:'62',txt:'Tem luz na cozinha.'},
-  {de:'47',txt:'Quem trouxe a lista?'},
-  {de:'74',txt:'Estou na biblioteca.'}
-];
+  {de:S(3),txt:'Cheguei. Estou no hall.'},
+  {de:S(0),txt:'Alguém sabe onde acende a luz do corredor?'},
+  {de:S(5),txt:'Tem luz na cozinha.'},
+  {de:S(4),txt:'Quem trouxe a lista?'},
+  {de:S(6),txt:'Estou na biblioteca.'}
+].concat(['Cheguei pelos fundos. Que chuva.','Alguém tem sinal aqui?','A luz acabou de piscar.','Estou perto da escada.','Tem alguém lá em cima?','Estou na sala de jantar.'].slice(0,N_CONTATOS-7).map(function(t,i){return {de:S(7+i),txt:t}}));
 var privadas={
-  '47':{nao:0,msgs:[{de:'47',txt:'Você chegou antes ou depois de mim?'}]},
-  '08':{nao:0,msgs:[]}
 };
+privadas[S(4)]={nao:0,msgs:[{de:S(4),txt:'Você chegou antes ou depois de mim?'}]};
 var RESP_GRUPO=['Cheguei. Estou na sala.','Quem mais já chegou?','A lista está comigo.','Alguém viu o relógio da sala?'];
 var RESP_PRIV=['Cheguei depois.','Não reparei.','Por quê?','Te digo depois.'];
 
@@ -900,12 +927,16 @@ function pintarGrupo(){var el=$('#chatGrupo');el.innerHTML=grupo.map(bolha).join
 /* ── Privadas ────────────────────────────────────────────────────────── */
 var abertaPriv=null;
 function pintarListaPriv(){
-  var fs=Object.keys(privadas);
+  /* Todos os números do grupo estão na lista: dá para escrever no privado a
+     qualquer um. Primeiro quem tem conversa (a mais recente no alto). */
+  var fs=NUMEROS.filter(function(f){return f!==EU});
+  function ult(f){var p=privadas[f];return p&&p.msgs.length?p.msgs.length+(p.ordem||0):0}
+  fs.sort(function(a,b){return ult(b)-ult(a)});
   $('#listaPriv').innerHTML=fs.map(function(f){
-    var p=privadas[f],u=p.msgs[p.msgs.length-1];
+    var p=privadas[f]||{nao:0,msgs:[]},u=p.msgs[p.msgs.length-1];
     return '<button class="conversa" data-priv="'+f+'"><span class="avatar">'+SIL+'</span><span class="t"><b style="color:'+CORES[f]+'">'+nomeDe(f)+'</b><span>'+(u?(u.de===EU?'Você: ':'')+(u.txt||'📎 '+u.anexo):'Sem mensagens')+'</span></span><span class="lado">'+(u?(u.h||hora()):'')+(p.nao?'<i>'+p.nao+'</i>':'')+'</span></button>';
-  }).join('')+'<p style="padding:14px;color:var(--muted);font-size:12.5px;text-align:center">Toque num nome no Grupo para abrir uma conversa privada.</p>';
-  var total=fs.reduce(function(a,f){return a+privadas[f].nao},0);
+  }).join('')+'<p style="padding:14px;color:var(--muted);font-size:12.5px;text-align:center">Todos do grupo estão aqui. Toque num número para escrever só para ele.</p>';
+  var total=fs.reduce(function(a,f){return a+(privadas[f]?privadas[f].nao:0)},0);
   $('#nPriv').hidden=!total;$('#nPriv').textContent=total;
   document.querySelector('[data-aba="privadas"]').classList.toggle('glow',total>0&&aba!=='privadas');
 }
@@ -919,9 +950,10 @@ function abrirPriv(f){
 function pintarConv(){var el=$('#chatPriv');el.innerHTML=privadas[abertaPriv].msgs.map(bolha).join('')||'<div class="dia">CONVERSA PRIVADA</div>';el.scrollTop=el.scrollHeight}
 $('#voltarPriv').onclick=function(){abertaPriv=null;$('#convPriv').hidden=true;$('#listaPriv').hidden=false;pintarListaPriv()};
 
+var ordemPriv=0;
 function chegaPrivada(f,txt){
   if(!privadas[f])privadas[f]={nao:0,msgs:[]};
-  privadas[f].msgs.push({de:f,txt:txt,h:hora()});
+  privadas[f].msgs.push({de:f,txt:txt,h:hora()});privadas[f].ordem=++ordemPriv;
   if(!(aba==='privadas'&&abertaPriv===f))privadas[f].nao++;
   if(abertaPriv===f)pintarConv();
   pintarListaPriv();
@@ -959,7 +991,7 @@ function montarRespostas(id,lista,destino){
   el.querySelectorAll('.chip').forEach(function(c){c.onclick=function(){
     if(!gastarEnvio())return;
     var m={de:EU,txt:c.textContent,h:hora()};
-    if(destino==='grupo'){grupo.push(m);pintarGrupo()}else{privadas[abertaPriv].msgs.push(m);pintarConv();pintarListaPriv()}
+    if(destino==='grupo'){grupo.push(m);pintarGrupo()}else{privadas[abertaPriv].msgs.push(m);privadas[abertaPriv].ordem=++ordemPriv;pintarConv();pintarListaPriv()}
     el.hidden=true;
   }});
 }
@@ -982,7 +1014,7 @@ document.querySelectorAll('[data-anexo]').forEach(function(b){b.onclick=function
     if(!gastarEnvio())return;
     var it=INVENTARIO[+x.dataset.it];
     var m={de:EU,anexo:it.nome,img:it.img,h:hora()};
-    if(destino==='grupo'){grupo.push(m);pintarGrupo()}else{privadas[abertaPriv].msgs.push(m);pintarConv();pintarListaPriv()}
+    if(destino==='grupo'){grupo.push(m);pintarGrupo()}else{privadas[abertaPriv].msgs.push(m);privadas[abertaPriv].ordem=++ordemPriv;pintarConv();pintarListaPriv()}
     fecharFolha();
   }});
 }});
@@ -1115,7 +1147,7 @@ function iniciarRelogio(){setInterval(function(){if(resta>0)resta--;$('#relogio'
 function toast(t){var d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(function(){d.remove()},2600)}
 
 /* Demonstração: chega uma mensagem no privado depois de alguns segundos. */
-function demoMensagens(){setTimeout(function(){chegaPrivada('19','Você viu o que estava escrito no bilhete da escrivaninha?')},6000);setTimeout(function(){chegaPrivada('47','Estou na sala. Você?')},16000)}
+function demoMensagens(){setTimeout(function(){chegaPrivada(S(1),'Você viu o que estava escrito no bilhete da escrivaninha?')},6000);setTimeout(function(){chegaPrivada(S(4),'Estou na sala. Você?')},16000)}
 /* O telefone vermelho da maquete (sala da torre) abre a comunicação:
    Grupo e Privadas ganham nome e o relógio do capítulo começa. */
 function achouPlanta(d){
@@ -1187,7 +1219,7 @@ if(video.networkState===3)semVideo();
    código da partida e o número do jogador vão junto, para o esconderijo da
    chave ser o desta partida e deste jogador. A maquete avisa a tela pelo
    postMessage ({oi:'maquete', evento}). */
-var PARTIDA=(new URLSearchParams(location.search)).get('partida')||(function(){try{var k='oi:partida';var v=sessionStorage.getItem(k);if(!v){v='P-'+Date.now().toString(36).toUpperCase();sessionStorage.setItem(k,v)}return v}catch(e){return 'P-DEMO'}})();
+/* PARTIDA é definida no alto (os números e as cores dependem dela). */
 var estadoPrologo={chave:false,telhado:false};
 function abrirMaquete(){
   var t=$('#telaRA');
@@ -1210,6 +1242,7 @@ var CONVOCADOS=[
   {id:'policial',nome:'Policial',funcao:'manter a ordem'},
   {id:'observadora',nome:'Observadora',funcao:'avaliar'}
 ];
+CONVOCADOS=CONVOCADOS.concat(EXTRAS_NA_MESA);
 var MEU='investigador';
 var N_JOGADORES=+(new URLSearchParams(location.search)).get('jogadores')||4;
 function mostrarPapeis(){
