@@ -156,7 +156,8 @@ button,input,textarea{font:inherit;color:inherit}
 .abertura .pular{right:12px;bottom:calc(env(safe-area-inset-bottom) + 14px);min-height:40px;padding:0 14px;border:1px solid #46667a;background:#0c1b26cc;color:var(--gold2)}
 .orelha.muda{color:transparent;pointer-events:none;opacity:.55}
 .orelha.muda .n{display:none}
-.orelha.nasce,.redondo.nasce{animation:glow 1.1s ease-in-out 3}
+.orelha.nasce,.redondo.nasce,.hud-pill.nasce{animation:glow 1.1s ease-in-out 3}
+#enviosPill{cursor:pointer}
 .janela{position:fixed;inset:0;z-index:96;display:flex;align-items:center;justify-content:center;padding:18px;background:#000b}
 .janela .caixa-j{width:min(460px,100%);border-radius:14px;border:1px solid #725b35;border-left:4px solid #d6aa58;background:linear-gradient(155deg,#2b2114,#18140e 58%,#0e0c09);padding:16px;box-shadow:0 8px 0 #020609,0 20px 40px #000c}
 .janela small{display:block;font:700 11px var(--mono);letter-spacing:.08em;color:#c89a50;margin-bottom:6px}
@@ -715,7 +716,7 @@ button:active,.caixa:active,.redondo:active,.chip:active{
     <span class="turnline-right">
       <span class="hud-pill tempo" id="tempo" title="Tempo do capítulo">⏱ <b id="relogio">08:00</b><i id="barra" style="width:100%"></i></span>
       <span class="hud-pill" title="Pontos">★ <b id="pontos">0</b></span>
-      <span class="hud-pill" title="Envios">✉ <b id="envios">3</b></span>
+      <span class="hud-pill" id="enviosPill" role="button" tabindex="0" title="Envios: toque para saber como funcionam">✉ <b id="envios">3</b></span>
     </span>
   </div>
 </header>
@@ -779,6 +780,7 @@ button:active,.caixa:active,.redondo:active,.chip:active{
     <li><strong>Entre na casa</strong><p>A aba RA põe a maquete na sua mesa. Procure a chave e abra a casa. A maquete fica disponível o jogo todo para você explorar.</p></li>
     <li><strong>Comunique-se</strong><p>No Grupo estão todos da casa, cada um só pelo final do número. Toque num número para conversar no privado ou salvá-lo com um nome: o nome é o seu palpite e só você vê.</p></li>
     <li><strong>Investigue</strong><p>As peças da casa se abrem conforme os capítulos. O que você achar vai para o inventário, no clipe da conversa. Anexar um item para alguém gasta 1 envio.</p></li>
+    <li><strong>Envie com cuidado</strong><p>Cada capítulo dá <b>3 envios</b> (✉ no alto). Cada mensagem ou anexo que você manda gasta 1. Mande pelo menos 1 por capítulo. Há envios extras escondidos em objetos da casa: cada um achado vale +1.</p></li>
     <li><strong>Desconfie</strong><p>Em Suspeitos, anote o que acha de cada número. No fim do capítulo, o caderno vira a votação.</p></li>
   </ol>
   <section class="how-box"><h2>O tempo é do capítulo.</h2><p>A barra no alto é o tempo do capítulo. Quando ela acaba, o capítulo fecha.</p></section>
@@ -892,11 +894,21 @@ function irPara(a){
 }
 document.querySelectorAll('.orelha').forEach(function(o){o.onclick=function(){irPara(o.dataset.aba)}});
 
+/* ── Envios: a moeda da conversa ─────────────────────────────────────────
+   3 por capítulo; cada mensagem ou anexo gasta 1; mínimo de 1 por capítulo;
+   envios extras ficam escondidos em objetos da casa (separados das plantas). */
+var TXT_ENVIOS='Cada capítulo você tem 3 envios (o ✉ no alto). Cada mensagem ou anexo que você manda gasta 1. Mande pelo menos 1 por capítulo. Há envios extras escondidos em objetos da casa: procure, cada um achado vale +1.';
+function pintarEnvios(){$('#envios').textContent=envios}
+function gastarEnvio(){if(envios<=0){toast('Sem envios neste capítulo.');return false}envios--;pintarEnvios();if(envios===0)toast('Esse foi o seu último envio do capítulo.');return true}
+function ganharEnvio(){envios++;pintarEnvios();var p=$('#enviosPill');if(p){p.classList.add('nasce');setTimeout(function(){p.classList.remove('nasce')},2400)}}
+$('#enviosPill').onclick=function(){janela('OS ENVIOS',TXT_ENVIOS)};
+
 /* ── Respostas prontas ───────────────────────────────────────────────── */
 function montarRespostas(id,lista,destino){
   var el=$('#'+id);
   el.innerHTML=lista.map(function(t){return '<button class="chip">'+t+'</button>'}).join('');
   el.querySelectorAll('.chip').forEach(function(c){c.onclick=function(){
+    if(!gastarEnvio())return;
     var m={de:EU,txt:c.textContent,h:hora()};
     if(destino==='grupo'){grupo.push(m);pintarGrupo()}else{privadas[abertaPriv].msgs.push(m);pintarConv();pintarListaPriv()}
     el.hidden=true;
@@ -914,12 +926,12 @@ function fecharFolha(){$('#veu').hidden=true}
 $('#veu').onclick=function(e){if(e.target.id==='veu')fecharFolha()};
 document.querySelectorAll('[data-anexo]').forEach(function(b){b.onclick=function(){
   var destino=b.dataset.anexo;
-  folha('<h2>Inventário</h2><p class="sub">“Ver” abre o item. “Anexar” manda na conversa e gasta 1 envio. Restam <b>'+envios+'</b>.</p>'+
+  folha('<h2>Inventário</h2><p class="sub">“Ver” abre o item. “Anexar” manda na conversa e gasta 1 envio. Restam <b>'+envios+'</b> neste capítulo.</p>'+
     (INVENTARIO.length?'':'<p class="sub">Nada ainda. O que você achar na casa aparece aqui.</p>')+INVENTARIO.map(function(it,i){return '<div class="item"><span style="font-size:24px">'+it.ico+'</span><span style="flex:1"><b>'+it.nome+'</b><span>'+it.desc+'</span></span>'+(it.img?'<button class="mini" data-ver-it="'+i+'">Ver</button>':'')+'<button class="mini ok" data-it="'+i+'">Anexar</button></div>'}).join(''));
   document.querySelectorAll('[data-ver-it]').forEach(function(x){x.onclick=function(){var it=INVENTARIO[+x.dataset.verIt];verDocumento(it.nome,it.img)}});
   document.querySelectorAll('[data-it]').forEach(function(x){x.onclick=function(){
-    if(envios<=0){toast('Sem envios neste capítulo.');return}
-    var it=INVENTARIO[+x.dataset.it];envios--;$('#envios').textContent=envios;
+    if(!gastarEnvio())return;
+    var it=INVENTARIO[+x.dataset.it];
     var m={de:EU,anexo:it.nome,img:it.img,h:hora()};
     if(destino==='grupo'){grupo.push(m);pintarGrupo()}else{privadas[abertaPriv].msgs.push(m);pintarConv();pintarListaPriv()}
     fecharFolha();
@@ -1000,7 +1012,7 @@ function toast(t){var d=document.createElement('div');d.className='toast';d.text
 
 /* Demonstração: chega uma mensagem no privado depois de alguns segundos. */
 function demoMensagens(){setTimeout(function(){chegaPrivada('19','Você viu o que estava escrito no bilhete da escrivaninha?')},6000);setTimeout(function(){chegaPrivada('47','Estou na sala. Você?')},16000)}
-/* O telefone vermelho da maquete (corredor de cima) abre a comunicação:
+/* O telefone vermelho da maquete (sala da torre) abre a comunicação:
    Grupo e Privadas ganham nome e o relógio do capítulo começa. */
 function achouPlanta(d){
   if(INVENTARIO.some(function(it){return it.nome===d.nome}))return;
@@ -1012,12 +1024,28 @@ function achouPlanta(d){
   if(d.andar==='terreo')txt+=' O térreo se ergueu.';
   janela(d.nome.toUpperCase(),txt);
 }
+/* O porão não se procura: quando o térreo se ergue, ele aparece e a planta
+   dele vai direto para o inventário. */
+function achouPorao(){
+  if(INVENTARIO.some(function(it){return it.nome==='Planta do porão'}))return;
+  INVENTARIO.push({ico:'🗺️',nome:'Planta do porão',desc:'O porão da casa',img:'plantas/planta-porao.svg'});
+  var clipe=document.querySelector('[data-anexo="grupo"]');if(clipe){clipe.classList.add('nasce');setTimeout(function(){clipe.classList.remove('nasce')},3400)}
+  janela('O PORÃO','Porão, um ótimo esconderijo! Última peça da casa explorada! A planta do porão está no seu inventário.');
+}
+/* Envio extra achado num objeto da maquete: +1 neste capítulo. */
+var enviosExtras=0;
+function achouEnvio(){
+  enviosExtras++;ganharEnvio();
+  if(enviosExtras===1)janela('UM ENVIO EXTRA','Você achou um envio escondido na casa: +1 neste capítulo. Há outros pela casa.');
+  else toast('Envio extra achado: +1');
+}
 var comunicacaoAberta=false;
 function achouTelefone(){
   if(comunicacaoAberta)return;comunicacaoAberta=true;
   $('#telaRA').hidden=true;
   janela('O TELEFONE','Você achou como se comunicar. Todos da casa estão no mesmo grupo, mas cada um aparece só pelo final do número.',function(){liberarAba('grupo');liberarAba('privadas');irPara('grupo');demoMensagens();iniciarRelogio();
-    setTimeout(function(){janela('AS PLANTAS','Cada andar da casa tem a sua planta, escondida em algum objeto daquele andar. Na maquete (aba RA), procure a do andar de cima.')},1500)});
+    setTimeout(function(){janela('OS ENVIOS',TXT_ENVIOS,function(){
+      setTimeout(function(){janela('AS PLANTAS','Cada andar da casa tem a sua planta, escondida em algum objeto daquele andar. Na maquete (aba RA), procure a do andar de cima.')},600)})},1500)});
 }
 
 
@@ -1026,7 +1054,12 @@ function achouTelefone(){
    jogador acha o que as abre (o telefone da casa abre Grupo e Privadas; o
    primeiro fim de capítulo abre Suspeitos). */
 var video=$('#videoAbertura');
-function janela(rot,txt,depois){$('#janelaRot').textContent=rot;$('#janelaTxt').textContent=txt;$('#janela').hidden=false;$('#janelaOk').onclick=function(){$('#janela').hidden=true;if(depois)depois()}}
+/* Uma janela por vez: se já há uma aberta, a próxima espera a vez. */
+var filaJanelas=[];
+function janela(rot,txt,depois){
+  if(!$('#janela').hidden){filaJanelas.push([rot,txt,depois]);return}
+  $('#janelaRot').textContent=rot;$('#janelaTxt').textContent=txt;$('#janela').hidden=false;
+  $('#janelaOk').onclick=function(){$('#janela').hidden=true;if(depois)depois();var prox=filaJanelas.shift();if(prox)setTimeout(function(){janela(prox[0],prox[1],prox[2])},250)}}
 function liberarAba(a){var o=document.querySelector('[data-aba="'+a+'"]');o.classList.remove('muda');o.classList.add('nasce');setTimeout(function(){o.classList.remove('nasce')},3400)}
 function inicioDoJogo(){
   var ab=$('#abertura');if(!ab)return;ab.remove();try{video.pause()}catch(e){}
@@ -1092,6 +1125,8 @@ window.addEventListener('message',function(e){
   if(e.data.evento==='casa-aberta-lida'&&!estadoPrologo.papeisVistos)mostrarPapeis();
   if(e.data.evento==='telefone')achouTelefone();
   if(e.data.evento==='planta')achouPlanta(e.data);
+  if(e.data.evento==='porao')achouPorao();
+  if(e.data.evento==='envio')achouEnvio();
 });
 window.OIMesa={liberarAba:liberarAba,janela:janela,estado:function(){return estadoPrologo}};
 pintarGrupo();pintarListaPriv();

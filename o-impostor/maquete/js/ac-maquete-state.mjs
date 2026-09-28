@@ -242,7 +242,8 @@ function gerador(semente) {
   };
 }
 /* O IMPOSTOR: as plantas de cada andar. Achar a planta de um andar ergue esse
-   andar e mostra o de baixo. O porão não tem planta (de propósito). */
+   andar e mostra o de baixo. O porão não se procura: a planta dele vem sozinha
+   quando o térreo se ergue (e, de propósito, não desenha a passagem). */
 export const PLANTAS = [
   { andar: 'andar-de-cima', camada: 'piso-2', nome: 'Planta do andar de cima',
     candidatos: ['armario-do-quarto-distante', 'castical-do-quarto-distante', 'armario-do-quarto-vizinho', 'castical-do-quarto-vizinho'] },
@@ -252,6 +253,28 @@ export const PLANTAS = [
 export function sortearPlanta(partida, jogador, planta) {
   const rnd = gerador([partida, jogador, 'planta', planta.andar].map(String).join('|'));
   return planta.candidatos[Math.floor(rnd() * planta.candidatos.length)];
+}
+/* O IMPOSTOR: envios extras escondidos pela casa — separados das plantas.
+   São presentes para estimular a procura no começo: muitos não serão usados.
+   `quantos` por andar; nunca no mesmo lugar da planta daquele andar. */
+export const ENVIOS_EXTRAS = [
+  { andar: 'andar-de-cima', quantos: 2,
+    candidatos: ['armario-do-quarto-distante', 'castical-do-quarto-distante', 'armario-do-quarto-vizinho', 'castical-do-quarto-vizinho',
+                 'armario-do-quarto-norte', 'castical-do-quarto-norte', 'armario-do-quarto-leste', 'castical-do-quarto-leste'] },
+  { andar: 'terreo', quantos: 2,
+    candidatos: ['escrivaninha', 'estante-da-biblioteca', 'espelho', 'armario-do-quarto-de-servico', 'relogio-caixa-alta', 'quadro'] },
+  { andar: 'porao', quantos: 1, candidatos: ['pipas', 'caixotes', 'adega'] }
+];
+export function sortearEnvios(partida, jogador) {
+  const saida = [];
+  ENVIOS_EXTRAS.forEach(function (e) {
+    const pl = PLANTAS.filter(function (p) { return p.andar === e.andar; })[0];
+    const daPlanta = pl ? sortearPlanta(partida, jogador, pl) : null;
+    const livres = e.candidatos.filter(function (c) { return c !== daPlanta; });
+    const rnd = gerador([partida, jogador, 'envio', e.andar].map(String).join('|'));
+    for (let i = 0; i < e.quantos && livres.length; i++) saida.push({ id: livres.splice(Math.floor(rnd() * livres.length), 1)[0], andar: e.andar });
+  });
+  return saida;
 }
 export function sortearEsconderijos(partida = '', jogador = '') {
   const escolhidos = {};

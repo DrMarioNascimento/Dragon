@@ -27,7 +27,7 @@
      jardim e quadro de luz), jardim interno e guarita (o farol fica longe, fora da maquete); o relógio de
      parede deu lugar ao relógio de caixa alta, ao lado do quadro; a
      escrivaninha foi para o escritório. O porão continua. */
-  var ARQUIVO = 'assets/ac/casa-o-impostor-pisos.glb?v=20260927-plantas';
+  var ARQUIVO = 'assets/ac/casa-o-impostor-pisos.glb?v=20260928-cabeceiras';
 
   /* Camadas, de cima para baixo. `terreno` nunca se solta. */
   var CAMADAS = ['telhado', 'piso-2', 'piso-1', 'porao', 'terreno'];
@@ -55,11 +55,19 @@
     { id: 'escrivaninha', camada: 'piso-1', ancestral: 'escrivaninha' },
     { id: 'quadro', camada: 'piso-1', ancestral: 'sala-escura', nomes: ['quadro', 'moldura-do-quadro'] },
     { id: 'espelho', camada: 'piso-1', ancestral: 'sala-escura', nomes: ['espelho', 'moldura-do-espelho'] },
-    /* O IMPOSTOR: o telefone vermelho do corredor de cima (não é esconderijo; é o que abre a comunicação). */
+    /* O IMPOSTOR: o telefone vermelho da sala da torre (não é esconderijo; é o que abre a comunicação). */
     { id: 'telefone', camada: 'piso-2', ancestral: 'telefone-vermelho' },
     /* Esconderijos das plantas do térreo (além da escrivaninha e do espelho, que já são alvos). */
     { id: 'estante-da-biblioteca', camada: 'piso-1', ancestral: 'estante-leste' },
-    { id: 'armario-do-quarto-de-servico', camada: 'piso-1', ancestral: 'quarto-de-servico', prefixo: 'qs-armario' }
+    { id: 'armario-do-quarto-de-servico', camada: 'piso-1', ancestral: 'quarto-de-servico', prefixo: 'qs-armario' },
+    /* O IMPOSTOR: esconderijos dos envios extras (presentes para quem procura). */
+    { id: 'armario-do-quarto-norte', camada: 'piso-2', ancestral: 'quarto-norte', prefixo: 'armario' },
+    { id: 'castical-do-quarto-norte', camada: 'piso-2', ancestral: 'quarto-norte', nomes: ['castical', 'vela-de-cabeceira'] },
+    { id: 'armario-do-quarto-leste', camada: 'piso-2', ancestral: 'quarto-leste', prefixo: 'armario' },
+    { id: 'castical-do-quarto-leste', camada: 'piso-2', ancestral: 'quarto-leste', nomes: ['castical', 'vela-de-cabeceira'] },
+    { id: 'pipas', camada: 'porao', ancestral: 'porao', nomes: ['pipa', 'arco-da-pipa'] },
+    { id: 'caixotes', camada: 'porao', ancestral: 'porao', nomes: ['caixote'] },
+    { id: 'adega', camada: 'porao', ancestral: 'porao', nomes: ['prateleira-do-porao', 'garrafa'] }
   ];
 
   /* As três fechaduras correm pela CHAMINÉ da casa: a porta abre a caixa, o

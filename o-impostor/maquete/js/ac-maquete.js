@@ -503,13 +503,13 @@
       if (a.acender) a.acender(ligado ? 0x1d6b58 : 0x000000, ligado ? 0.55 + 0.35 * Math.sin(tempo * 3.2) : 0);
     }
     var revelada = !OI && !!(dados && dados.complete);
-    /* O telefone chama a atenção (brilho e alfinete) até ser tocado. */
+    /* O telefone NÃO tem marca (nada de brilho, alfinete ou anel): ele se
+       mostra sozinho — grande, vermelho, com abajur aceso na sala da torre. */
     var tel = OI && mundo.alvos && mundo.alvos.telefone;
-    if (tel && tel.acender) {
-      var chama = !!(dados && dados.complete) && !telefoneAchado;
-      tel.acender(chama ? 0x8a0c0c : 0x000000, chama ? 0.45 + 0.4 * Math.sin(tempo * 3.4) : 0);
-      if (tel.pino) { tel.pino.visible = chama; if (tel.pino.userData.marca) tel.pino.userData.marca.opacity = chama ? pulso(tempo) : 0; }
-      if (tel.halo) { tel.halo.visible = chama; tel.halo.material.opacity = chama ? 0.4 : 0; }
+    if (tel) {
+      if (tel.acender) tel.acender(0x000000, 0);
+      if (tel.pino) { tel.pino.visible = false; if (tel.pino.userData.marca) tel.pino.userData.marca.opacity = 0; }
+      if (tel.halo) { tel.halo.visible = false; tel.halo.material.opacity = 0; }
     }
     if (mundo.revelacao && mundo.revelacao.pino) {
       mundo.revelacao.pino.userData.marca.opacity = revelada ? 0.62 + 0.3 * Math.sin(tempo * 2.2) : 0;
@@ -575,6 +575,8 @@
   /* Só para teste automático (?teste=1): leva a ponta da chave até a fechadura e encaixa. */
   if (params.get('teste') === '1') window.__oiTelefone = function () { if (!(dados && dados.complete)) return false; telefoneAchado = true; guardarOI(); avisarMesa('telefone'); return true; };
   if (params.get('teste') === '1') window.__oiPlanta = function () { var pl = plantaDaVez(); if (!pl) return null; return motor.sortearPlanta(params.get('partida') || '', params.get('jogador') || '', pl); };
+  if (params.get('teste') === '1') window.__oiEnvios = function () { return motor && motor.sortearEnvios ? motor.sortearEnvios(params.get('partida') || '', params.get('jogador') || '') : null; };
+  if (params.get('teste') === '1') window.__oiTocarEnvio = function (id) { var a = mundo.alvos[id]; if (!a) return 'sem alvo'; return procurarEnvio([{ object: a.grupo.children[0] }]); };
   if (params.get('teste') === '1') window.__oiTocarAlvo = function (id) { var a = mundo.alvos[id]; if (!a) return 'sem alvo'; var falso = [{ object: a.grupo.children[0] }]; return procurarPlanta(falso); };
   if (params.get('teste') === '1') window.__oiEncaixar = function () {
     if (!mundo || !podeMoverChave()) return false;
@@ -724,11 +726,11 @@
     return null;
   }
   /* O IMPOSTOR: depois que o telhado sai, a casa é explorada livre. Por ora o
-     único objeto que responde é o telefone vermelho do corredor de cima. */
+     único objeto que responde é o telefone vermelho da sala da torre. */
   var CHAVE_OI = 'oi:maquete:' + (params.get('partida') || '') + ':' + (params.get('jogador') || '');
-  var telefoneAchado = false, plantasAchadas = [];
-  try { var salvo = JSON.parse(sessionStorage.getItem(CHAVE_OI) || 'null'); if (salvo) { telefoneAchado = !!salvo.telefone; plantasAchadas = salvo.plantas || []; } } catch (e) {}
-  function guardarOI() { try { sessionStorage.setItem(CHAVE_OI, JSON.stringify({ telefone: telefoneAchado, plantas: plantasAchadas })); } catch (e) {} }
+  var telefoneAchado = false, plantasAchadas = [], enviosAchados = [];
+  try { var salvo = JSON.parse(sessionStorage.getItem(CHAVE_OI) || 'null'); if (salvo) { telefoneAchado = !!salvo.telefone; plantasAchadas = salvo.plantas || []; enviosAchados = salvo.envios || []; } } catch (e) {}
+  function guardarOI() { try { sessionStorage.setItem(CHAVE_OI, JSON.stringify({ telefone: telefoneAchado, plantas: plantasAchadas, envios: enviosAchados })); } catch (e) {} }
   /* A planta que falta achar agora (uma por vez, de cima para baixo). */
   function plantaDaVez() {
     if (!motor || !motor.PLANTAS) return null;
@@ -738,6 +740,22 @@
   function tocouEmAlvo(acertos, id) {
     var a = mundo.alvos && mundo.alvos[id];
     return !!(a && a.grupo && acertos.some(function (h) { return donoDoToque(h.object) === a.grupo; }));
+  }
+  /* Envio extra: um presente escondido num objeto; tocar nele dá +1 envio. */
+  function procurarEnvio(acertos) {
+    if (!motor || !motor.sortearEnvios) return false;
+    var lista = motor.sortearEnvios(params.get('partida') || '', params.get('jogador') || '');
+    for (var i = 0; i < lista.length; i++) {
+      var id = lista[i].id;
+      if (enviosAchados.indexOf(id) >= 0 || !tocouEmAlvo(acertos.slice(0, 1), id)) continue;
+      var a = mundo.alvos[id];
+      poeira.burst(a.grupo.localToWorld(a.centro.clone()));
+      enviosAchados.push(id); guardarOI();
+      avisar('Um envio extra! +1', 3);
+      avisarMesa('envio', { andar: lista[i].andar });
+      return true;
+    }
+    return false;
   }
   function procurarPlanta(acertos) {
     var pl = plantaDaVez(); if (!pl) return false;
@@ -751,6 +769,8 @@
     plantasAchadas.push(pl.andar); guardarOI();
     avisar(pl.nome + ' achada.', 3);
     avisarMesa('planta', { andar: pl.andar, nome: pl.nome });
+    /* A última planta ergue o térreo e descobre o porão: a última peça da casa. */
+    if (!plantaDaVez()) setTimeout(function () { avisarMesa('porao', { andar: 'porao', nome: 'Planta do porão' }); }, 2600);
     setTimeout(enquadrar, 900);
     return true;
   }
@@ -766,8 +786,8 @@
         var acertos = raio.intersectObject(mundo.raiz, true).filter(function (h) {
           return h.object.isMesh && objetoVisivel(h.object) && h.object.geometry && h.object.geometry.type !== 'RingGeometry';
         });
-        /* Tolerante: o telefone fica num corredor estreito; vale acertá-lo mesmo atrás de uma parede. */
-        if (telefoneAchado && acertos.length && procurarPlanta(acertos)) return;
+        /* Tolerante: vale acertar o telefone mesmo atrás de uma parede da torre. */
+        if (telefoneAchado && acertos.length && (procurarEnvio(acertos) || procurarPlanta(acertos))) return;
         if (acertos.some(function (h) { return donoDoToque(h.object) === tel.grupo; })) {
           poeira.burst(tel.grupo.localToWorld(tel.centro.clone()));
           if (!telefoneAchado) { telefoneAchado = true; guardarOI(); }
