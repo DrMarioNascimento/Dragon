@@ -34,6 +34,7 @@ Texto do medalhão e do carimbo: **ARQUIVO DRAGON GAMES ©** em cima, **Primaver
 | Quarto de serviço | Etiqueta 6 × 2,25 cm | Travessa da frente da mesa, junto ao pé direito |
 | Quarto de serviço | Carimbo | Canto inferior direito da planta do quarto |
 | Livro do farol | Carimbo | Página esquerda, abaixo da rubrica |
+| Escrivaninha | Etiqueta 6 × 2,25 cm | Costas do móvel, canto baixo à direita (textura da etiqueta em `marcas/etiqueta_*.png`) |
 | Bandeja das sete xícaras | Carimbo (como marca de fábrica da louça) | Fundo das seis xícaras da casa; aparece quando a ordem é resolvida. A sétima, de outro jogo, não tem. Pedido do Mario em 28/09/2026: aqui o carimbo é o próprio emblema da louça, então a bandeja não leva etiqueta |
 
 ## Ferramenta

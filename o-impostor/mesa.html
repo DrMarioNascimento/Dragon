@@ -223,6 +223,11 @@ button,input,textarea{font:inherit;color:inherit}
 .conf-aposta button.on{background:#3a2d14;border-color:#efc878;color:#fff}
 #comoJogar .ver-sim{width:100%;min-height:44px;margin-top:10px;border-radius:12px;border:1px solid #65d5cc88;background:#0a252d;color:#65d5cc;font:700 14px var(--sans);cursor:pointer}
 .hud-pill[role=button]{cursor:pointer}
+.msg.op .bolha{border-style:dashed;background:linear-gradient(180deg,#141e28,#0c141b)}
+.op-selo{margin:2px 0 5px;font:700 10.5px var(--mono);letter-spacing:.06em;color:#8fb3c7;text-transform:uppercase}
+.grupo-topo{margin:6px 8px 0;padding:7px 12px;border-radius:10px;border:1px solid #2c4a5a;background:linear-gradient(180deg,#132433,#0b1822);color:#aec6d5;font:600 12.5px var(--sans);text-align:center;
+  box-shadow:inset 0 1px 0 #ffffff14,0 2px 0 #020609,0 5px 9px #0008}
+.grupo-topo b{color:var(--gold2)}
 /* Vídeo da revelação do impostor (fim do prólogo) */
 #fecho .revela{position:relative;width:min(240px,62%);aspect-ratio:1;margin:0 auto 16px;border-radius:18px;overflow:hidden;border:1px solid #65d5cc66;
   box-shadow:inset 0 2px 0 #ffffff22,0 4px 0 #020609,0 12px 24px #000a;transform:translateZ(6px)}
@@ -777,6 +782,7 @@ button:active,.caixa:active,.redondo:active,.chip:active{
 <main class="painel">
   <!-- GRUPO -->
   <section class="vista" id="v-grupo">
+    <div class="grupo-topo" id="grupoTopo"></div>
     <div class="rolagem" id="chatGrupo"></div>
     <div class="compositor">
       <div class="respostas" id="respGrupo" hidden></div>
@@ -926,9 +932,10 @@ function bolha(m){
   var eu=m.de===EU;
   var quem=eu?'':'<button class="quem" data-contato="'+m.de+'" style="color:'+CORES[m.de]+'">'+nomeDe(m.de)+'</button>';
   var anexo=m.anexo?'<div class="anexo"'+(m.img?' data-ver="'+m.img+'" data-nome="'+m.anexo+'" style="cursor:pointer"':'')+'>📎 '+m.anexo+(m.img?' · ver':'')+'</div>':'';
-  return '<div class="msg'+(eu?' eu':'')+'"><div class="bolha">'+quem+anexo+(m.txt||'')+'<span class="hora">'+(m.h||hora())+'</span></div></div>';
+  var op=m.op?'<div class="op-selo">📶 '+m.op+' · mensagem automática</div>':'';
+  return '<div class="msg'+(eu?' eu':'')+(m.op?' op':'')+'"><div class="bolha">'+quem+op+(m.txt||'')+anexo+'<span class="hora">'+(m.h||hora())+'</span></div></div>';
 }
-function pintarGrupo(){var el=$('#chatGrupo');el.innerHTML=grupo.map(bolha).join('');el.scrollTop=el.scrollHeight}
+function pintarGrupo(){$('#grupoTopo').innerHTML='Grupo da casa · <b>'+N_CONTATOS+' números</b>';var el=$('#chatGrupo');el.innerHTML=grupo.map(bolha).join('');el.scrollTop=el.scrollHeight}
 
 /* ── Privadas ────────────────────────────────────────────────────────── */
 var abertaPriv=null;
@@ -1003,12 +1010,12 @@ function montarRespostas(id,lista,destino){
     var m={de:EU,txt:c.textContent,h:hora()};
     if(destino==='grupo'){grupo.push(m);pintarGrupo()}else{privadas[abertaPriv].msgs.push(m);privadas[abertaPriv].ordem=++ordemPriv;pintarConv();pintarListaPriv()}
     el.hidden=true;
-    if(capitulo===1)responderC1(c.textContent,destino==='grupo'?null:abertaPriv);
+    if(ROTEIROS[capitulo])responder(c.textContent,destino==='grupo'?null:abertaPriv);
   }});
 }
 document.querySelectorAll('[data-respostas]').forEach(function(b){b.onclick=function(){
   var id=b.dataset.respostas,el=$('#'+id);
-  if(el.hidden){montarRespostas(id,id==='respGrupo'?(capitulo===1?liberadas(C1.respGrupo):RESP_GRUPO):(capitulo===1?liberadas(C1.respPriv):RESP_PRIV),id==='respGrupo'?'grupo':'priv');el.hidden=false}else el.hidden=true;
+  if(el.hidden){montarRespostas(id,id==='respGrupo'?(ROTEIROS[capitulo]?liberadas(ROTEIROS[capitulo].respGrupo):RESP_GRUPO):(ROTEIROS[capitulo]?liberadas(ROTEIROS[capitulo].respPriv):RESP_PRIV),id==='respGrupo'?'grupo':'priv');el.hidden=false}else el.hidden=true;
 }});
 
 /* ── Inventário (clipe) ──────────────────────────────────────────────── */
@@ -1081,7 +1088,11 @@ function pintarSusp(){
       '<button class="item" id="simConcluir"><span style="font-size:22px">✓</span><span><b>Sim, concluir agora</b><span>O tempo que sobrou não conta a mais</span></span></button>');
     $('#simConcluir').onclick=function(){fecharFolha();fimDoCapitulo()};
   };
-  if($('#seguirCap'))$('#seguirCap').onclick=function(){janela('CAPÍTULO '+(capitulo+1),'O Capítulo 2, A Sétima Voz, ainda está sendo montado. A sua resposta e a sua aposta do Capítulo 1 ficaram guardadas.')};
+  if($('#seguirCap'))$('#seguirCap').onclick=function(){
+    apostas[capitulo]={numero:votoEm,confianca:apostaConf};
+    if(ROTEIROS[capitulo+1]){irPara('grupo');comecarCapitulo(capitulo+1)}
+    else janela('CAPÍTULO '+(capitulo+1),'O Capítulo '+(capitulo+1)+' ainda está sendo montado. As suas respostas e apostas até aqui ficaram guardadas.');
+  };
   if($('#simFim'))$('#simFim').onclick=function(){
     function virar(){fimDeCapitulo=!fimDeCapitulo;document.querySelector('[data-aba="suspeitos"]').classList.toggle('glow',fimDeCapitulo&&aba!=='suspeitos');pintarSusp()}
     if(!fimDeCapitulo)abrirSimulacao(virar);else virar();
@@ -1092,7 +1103,7 @@ function pintarSusp(){
 var PECAS=[
   {cap:'PRÓLOGO',nome:'A maquete',txt:'A casa inteira, por camadas',abrir:'maquete',ico:'🏠'},
   {cap:'CAP. 1',nome:'A bandeja',txt:'Sete xícaras',abrir:'bandeja',ico:'🍽️',tranca:true},
-  {cap:'CAP. 2',nome:'A escrivaninha',txt:'No escritório',ico:'🖋️',tranca:true},
+  {cap:'CAP. 2',nome:'A escrivaninha',txt:'No escritório',abrir:'escrivaninha',ico:'🖋️',tranca:true},
   {cap:'CAP. 3',nome:'O relógio',txt:'Na sala',href:'relogio.html',ico:'🕰️',tranca:true},
   {cap:'CAP. 4',nome:'O jardim interno',txt:'E o farol ao longe',href:'livro.html',ico:'🌿',tranca:true},
   {cap:'CAP. 6',nome:'O quarto',txt:'O quarto de serviço',href:'quarto.html',ico:'🚪',tranca:true}
@@ -1117,7 +1128,7 @@ var CONF=[
   {id:'sem',nome:'Sem certeza',dica:'Parece, mas falta algo',certa:'Ganha a metade',errada:'Perde pouco',cc:['ganha','perde']},
   {id:'naosei',nome:'Não sei',dica:'Ainda não dá para dizer',certa:'Ganha um pouquinho',errada:'Não perde nada',cc:['nada','nada']}];
 var simEsc=null,simConf=null,simOrdem=[],depoisSim=null,perguntaReal=false;
-var PERGUNTA_SIM=SIM,respostas={};
+var PERGUNTA_SIM=SIM,respostas={},apostas={};
 function embaralhar(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
 function abrirSimulacao(depois){
   depoisSim=depois||null;simEsc=null;simConf=null;simOrdem=embaralhar([0,1,2,3]);
@@ -1244,28 +1255,39 @@ var C1={
     'O relógio é elétrico e a energia nunca foi cortada.']}
 };
 var roteiroTimers=[],inicioCap=0,escalaCap=1;
-function liberadas(l){var t=(Date.now()-inicioCap)/1000/escalaCap;return l.filter(function(x){return x[0]<=t}).map(function(x){return x[1]})}
+/* A Acompanhante escreve pelo celular do proprietário: é S(6), calado até o
+   Cap. 2. A personalidade é sorteada pela partida e muda o jeito de falar,
+   nunca o que ela faz (inocente ou culpada, age igual). */
+var ACOMP=S(6);
+var PERSONALIDADE=['guardia','explosiva','ardilosa','quieta'][Math.floor(gerador(PARTIDA+'|personalidade')()*4)];
+var N_SALA=N_CONTATOS-1;   // pessoas na sala: todos menos a voz nas sombras
+function liberadas(l){var t=(Date.now()-inicioCap)/1000/escalaCap;return l.filter(function(x){return typeof x[0]==='string'?fotografou(x[0].slice(5)):x[0]<=t}).map(function(x){return x[1]})}
+function fotografou(nome){return INVENTARIO.some(function(it){return it.nome===nome})}
 function tocarRoteiro(r,escala){
   r.forEach(function(ev){roteiroTimers.push(setTimeout(function(){
     if(ev[1]==='sis'){grupo.push({sis:ev[2]});pintarGrupo();if(aba!=='grupo')document.querySelector('[data-aba="grupo"]').classList.add('glow')}
     else if(ev[1].indexOf('priv:')===0)chegaPrivada(ev[1].slice(5),ev[2]);
+    else if(ev[1].indexOf('op:')===0){grupo.push({de:ev[1].slice(3),op:'TELEFÔNICA MOSAICO',txt:ev[2],h:hora()});pintarGrupo()}
     else{grupo.push({de:ev[1],txt:ev[2],h:hora()});pintarGrupo()}
   },ev[0]*1000*escala))});
 }
-function responderC1(txt,priv){
-  var r=C1.replica[txt];if(!r)return;
+function responder(txt,priv){
+  var R=ROTEIROS[capitulo],r=R.replica[txt];
+  /* no privado, a Acompanhante responde do jeito dela (personalidade) */
+  if(priv&&priv===ACOMP&&R.acompPriv)r=R.acompPriv[txt]||R.acompPriv['*'];
+  if(!r)return;
   setTimeout(function(){
     if(priv)chegaPrivada(priv,typeof r==='string'?r:r[1]);
     else{grupo.push({de:r[0],txt:r[1],h:hora()});pintarGrupo()}
   },2500+Math.random()*2000);
 }
-var capituloFechado={},bandejaEnvio=false,enviosNoCap=0,avisouMinimo=false;
+var capituloFechado={},bandejaEnvio=false,escrivEnvio=false,avisouFoto=false,enviosNoCap=0,avisouMinimo=false;
 function fimDoCapitulo(){
   if(!capitulo||capituloFechado[capitulo])return;capituloFechado[capitulo]=true;
   roteiroTimers.forEach(clearTimeout);roteiroTimers=[];
   $('#telaRA').hidden=true;
   janela('FIM DO CAPÍTULO '+capitulo,(resta>0?'Você concluiu o capítulo.':'O tempo acabou.')+' Agora vem a pergunta do capítulo e, depois, a sua aposta.',function(){
-    SIM=C1.pergunta;perguntaReal=true;simEsc=null;simConf=null;simOrdem=embaralhar([0,1,2,3]);depoisSim=null;
+    SIM=ROTEIROS[capitulo].pergunta;perguntaReal=true;simEsc=null;simConf=null;simOrdem=embaralhar([0,1,2,3]);depoisSim=null;
     var d=$('#fecho');pintarSimPergunta();try{d.showModal()}catch(e){d.setAttribute('open','')}d.scrollTop=0;
   });
 }
@@ -1280,8 +1302,70 @@ function pintarRealResultado(){
     SIM=PERGUNTA_SIM;perguntaReal=false;fimDeCapitulo=true;liberarAba('suspeitos');irPara('suspeitos')};
 }
 
+/* ── Capítulo 2 · A Sétima Voz ──────────────────────────────────────────
+   O rádio anuncia a estrada interditada; uma luz breve acende no corredor de
+   serviço sem registro no painel. A chamada conta N_SALA pessoas na sala, mas
+   o grupo tem N_CONTATOS números: sempre um a mais. Um final escreve e reage
+   ao que acontece dentro da casa, mas não está em cômodo nenhum. */
+var FALAS_ACOMP={
+  guardia:{luz:'A luz do corredor de serviço volta sozinha. Não precisa ninguém ir lá.',batida:'Fiquem na sala. Está tudo bem.',priv:'Posso confiar em você?'},
+  explosiva:{luz:'Quem mexeu no corredor de serviço?!',batida:'PAREM de bater nas portas.',priv:'Se vocês vieram levar alguma coisa desta casa, desistam.'},
+  ardilosa:{luz:'Alguém aí acendeu a luz do corredor de serviço?',batida:'Interessante. Quem estava perto da porta?',priv:'Você e eu podemos nos ajudar. O que você achou até agora?'},
+  quieta:{luz:'luz',batida:'...',priv:'não vão lá'}
+}[PERSONALIDADE];
+var RESP_ACOMP={
+  guardia:{'Quem é esse número?':'Alguém que não quer problema.','*':'Não posso dizer. Fiquem tranquilos.'},
+  explosiva:{'Quem é esse número?':'Não interessa.','*':'Não é da sua conta.'},
+  ardilosa:{'Quem é esse número?':'Quem vocês acham?','*':'Depende do que você me der.'},
+  quieta:{'Quem é esse número?':'...','*':'...'}
+}[PERSONALIDADE];
+var C2={
+  roteiro:[
+    [8,'sis','O rádio da cozinha chia e anuncia: a estrada da costa está interditada pela chuva. Ninguém sai esta noite.'],
+    [18,'sis','A porta do escritório ficou entreaberta. Lá dentro, papéis por toda parte, e uma gaveta que não fecha direito.'],
+    [25,S(3),'Então vamos passar a noite aqui.'],
+    [40,S(0),'Vamos fazer uma chamada. Cada um diz onde está.']
+  ].concat([S(4),S(1),S(3),S(5)].concat(SLOTS.slice(7)).map(function(n,i){return [50+i*6,n,'Na sala.']}))
+   .concat([
+    [50+(N_SALA-1)*6+8,S(0),'Na sala. Somos '+N_SALA+' aqui, contando comigo.'],
+    [110,'sis','No painel da cozinha, nenhuma luz marcada. Mas no fim do corredor de serviço uma lâmpada acende por dois segundos e apaga.'],
+    [122,ACOMP,FALAS_ACOMP.luz],
+    [135,S(4),'Quem escreveu isso? Estamos todos aqui.'],
+    [150,S(3),'Deve ser um número antigo que ficou no grupo.'],
+    [185,'sis','Alguém bate de leve numa porta, lá no corredor de serviço.'],
+    [195,ACOMP,FALAS_ACOMP.batida],
+    [230,S(5),'Contei de novo: somos '+N_SALA+' na sala e '+N_CONTATOS+' números no grupo.'],
+    [270,'priv:'+ACOMP,FALAS_ACOMP.priv],
+    [330,S(0),'Ninguém sai da sala sozinho.'],
+    [360,'op:'+ACOMP,'Recebemos o pagamento da sua fatura de agosto. Obrigado por usar a Telefônica Mosaico.'],
+    [400,'sis','A chuva não para. Faltam poucos minutos para o fim do capítulo.']
+  ]),
+  respGrupo:[['foto:Conta de celular (gaveta)','Achei no escritório uma conta do celular do dono, paga em setembro.'],['foto:Recibo da mercearia','Tem um recibo de mercearia recente no escritório.'],[40,'Na sala.'],[122,'Quem escreveu sobre a luz?'],[122,'Quem é esse número?'],[150,'Pode ser um número antigo.'],[195,'Quem está no corredor de serviço?'],[0,'Vamos ficar juntos.']],
+  respPriv:[[0,'Onde você está agora?'],[122,'Foi você que escreveu sobre a luz?'],[122,'Quem é esse número?'],[0,'Não confio em ninguém aqui.']],
+  replica:{
+    'Na sala.':[S(0),'Anotado.'],
+    'Achei no escritório uma conta do celular do dono, paga em setembro.':[S(4),'Paga depois que ele morreu? Então alguém usa o celular dele.'],
+    'Tem um recibo de mercearia recente no escritório.':[S(5),'Recente? A casa não estava fechada?'],
+    'Quem escreveu sobre a luz?':[S(4),'Não fui eu. Ninguém aqui pegou o celular.'],
+    'Quem é esse número?':[ACOMP,RESP_ACOMP['Quem é esse número?']],
+    'Pode ser um número antigo.':[S(1),'Pode. Mas quem está escrevendo agora?'],
+    'Quem está no corredor de serviço?':[S(3),'Ninguém saiu da sala.'],
+    'Vamos ficar juntos.':[S(5),'Concordo.'],
+    'Onde você está agora?':'Na sala, com todo mundo.',
+    'Foi você que escreveu sobre a luz?':'Não. Eu estava aqui.',
+    'Não confio em ninguém aqui.':'Nem eu.'
+  },
+  acompPriv:RESP_ACOMP,
+  pergunta:{pergunta:'O que explica o sétimo contato?',opcoes:[
+    'Alguém que não está na sala escreve de dentro da casa.',
+    'Um número antigo, esquecido ligado, que ficou no grupo.',
+    'Alguém lá fora, na estrada, entrou no grupo.',
+    'Uma mensagem programada, que sai sozinha.']}
+};
+var ROTEIROS={1:C1,2:C2};
+
 /* ── Fim do prólogo: a apresentação acabou; começa O Impostor ─────────── */
-var CAPITULOS=[null,{n:1,nome:'A REABERTURA'}];
+var CAPITULOS=[null,{n:1,nome:'A REABERTURA'},{n:2,nome:'A SÉTIMA VOZ'}];
 function fimDoPrologo(){
   if(capitulo!==0)return;
   var extra=enviosExtras?' ('+3+' do capítulo + '+enviosExtras+' achado'+(enviosExtras>1?'s':'')+' na casa)':'';
@@ -1302,9 +1386,12 @@ function comecarCapitulo(n){
   var teste=Q.get('teste')==='1',escala=teste?0.12:1;
   TOTAL=teste?60:8*60;resta=TOTAL;iniciarRelogio();
   inicioCap=Date.now();escalaCap=escala;
-  if(n===1){tocarRoteiro(C1.roteiro,escala);PECAS[1].tranca=false;pintarPecas();document.querySelector('[data-aba="ra"]').classList.add('glow');liberarAba('suspeitos')}
+  if(ROTEIROS[n])tocarRoteiro(ROTEIROS[n].roteiro,escala);
+  if(n===2){PECAS[2].tranca=false;pintarPecas();document.querySelector('[data-aba="ra"]').classList.add('glow')}
+  if(n===1){PECAS[1].tranca=false;pintarPecas();document.querySelector('[data-aba="ra"]').classList.add('glow');liberarAba('suspeitos')}
   enviosNoCap=0;avisouMinimo=false;
-  janela('CAPÍTULO '+c.n,'O relógio do capítulo começou. '+TXT_TEMPO+' Agora cada mensagem ou anexo gasta 1 envio.'+(n===1?' Uma peça nova abriu na aba RA.':''));
+  if(n>1){envios=3;pintarEnvios();fimDeCapitulo=false;votoEm=null;apostaConf=null;if(aba==='suspeitos')pintarSusp()}
+  janela('CAPÍTULO '+c.n,'O relógio do capítulo começou. '+TXT_TEMPO+' Agora cada mensagem ou anexo gasta 1 envio.'+(n===1||n===2?' Uma peça nova abriu na aba RA.':''));
 }
 var comunicacaoAberta=false;
 function achouTelefone(){
@@ -1353,6 +1440,12 @@ if(video.networkState===3)semVideo();
 /* PARTIDA é definida no alto (os números e as cores dependem dela). */
 var estadoPrologo={chave:false,telhado:false};
 function mostrarPeca(id){var t=$('#telaRA');t.querySelectorAll('iframe').forEach(function(f){f.hidden=f.dataset.peca!==id});t.hidden=false}
+function abrirEscrivaninha(){
+  var t=$('#telaRA');
+  if(!t.querySelector('iframe[data-peca="escrivaninha"]')){var f=document.createElement('iframe');f.dataset.peca='escrivaninha';f.title='A escrivaninha';f.allow='xr-spatial-tracking; camera; gyroscope; accelerometer; fullscreen';
+    f.src='escrivaninha.html?embed=1&partida='+encodeURIComponent(PARTIDA)+'&jogador='+encodeURIComponent(EU);t.appendChild(f)}
+  mostrarPeca('escrivaninha');
+}
 function abrirBandeja(){
   var t=$('#telaRA');
   if(!t.querySelector('iframe[data-peca="bandeja"]')){var f=document.createElement('iframe');f.dataset.peca='bandeja';f.title='A bandeja de xícaras';f.allow='xr-spatial-tracking; camera; gyroscope; accelerometer; fullscreen';
@@ -1366,7 +1459,13 @@ function abrirMaquete(){
   mostrarPeca('maquete');
 }
 $('#sairRA').onclick=function(){$('#telaRA').hidden=true};
-document.addEventListener('click',function(e){var a=e.target.closest('[data-abrir]');if(!a)return;e.preventDefault();if(a.dataset.abrir==='maquete')abrirMaquete();if(a.dataset.abrir==='bandeja')abrirBandeja()});
+document.addEventListener('click',function(e){var a=e.target.closest('[data-abrir]');if(!a)return;e.preventDefault();if(a.dataset.abrir==='maquete')abrirMaquete();if(a.dataset.abrir==='bandeja')abrirBandeja();if(a.dataset.abrir==='escrivaninha')antesDaPeca('escrivaninha',abrirEscrivaninha)});
+/* Uma novidade de uso aparece UMA vez, antes de a peça abrir (antes da câmera).
+   Só se ensina o que é da tela (ler de perto, fotografar); o que se mexe na peça
+   continua para o jogador descobrir. */
+var NOVIDADES={escrivaninha:['A ESCRIVANINHA','Há muitos papéis escritos à mão. Chegue perto com o celular (ou abra com dois dedos) para ler. Novidade: um toque rápido num papel tira uma foto dele. A foto vai para o seu inventário, no clipe 📎 da conversa, e pode ser anexada a outro jogador.']};
+var novidadeVista={};
+function antesDaPeca(id,abrir){if(novidadeVista[id]||!NOVIDADES[id]){abrir();return}novidadeVista[id]=true;avisouFoto=true;janela(NOVIDADES[id][0],NOVIDADES[id][1],abrir)}
 
 /* ── Caixa dos papéis: aparece quando o jogador fecha "A casa está aberta".
    Mostra os convocados da lista do proprietário (a Acompanhante não está na
@@ -1394,6 +1493,16 @@ function mostrarPapeis(){
 $('#papeisOk').onclick=function(){$('#papeis').close();estadoPrologo.papeisVistos=true;
   janela('EXPLORE A CASA','Toque nos objetos. Aproxime o celular ou use a pinça dos dedos para ver os detalhes. Procure como falar com os outros. Sua ficha de personagem fica no ícone do alto, à direita.')};
 window.addEventListener('message',function(e){
+  if(e.origin===location.origin&&e.data&&e.data.oi==='escrivaninha'){
+    if(e.data.evento==='envio'&&!escrivEnvio){escrivEnvio=true;achouEnvio()}
+    if(e.data.evento==='foto'){
+      var ja=INVENTARIO.some(function(it){return it.nome===e.data.nome});
+      if(!ja){INVENTARIO.push({ico:'📄',nome:e.data.nome,desc:'Fotografado na escrivaninha',img:e.data.img});
+        var cl=document.querySelector('[data-anexo="grupo"]');if(cl){cl.classList.add('nasce');setTimeout(function(){cl.classList.remove('nasce')},3400)}
+        toast('Foto guardada no inventário: '+e.data.nome)}
+    }
+    return;
+  }
   if(e.origin===location.origin&&e.data&&e.data.oi==='bandeja'){
     if(e.data.evento==='envio'&&!bandejaEnvio){bandejaEnvio=true;achouEnvio()}
     if(e.data.evento==='pista'&&!INVENTARIO.some(function(it){return it.nome===e.data.nome})){
