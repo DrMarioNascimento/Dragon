@@ -1304,15 +1304,12 @@ function fimDoCapitulo(){
 var filaPerguntas=[];
 function perguntasDo(n){
   var R=ROTEIROS[n],r=gerador(PARTIDA+'|pergunta|'+n),out=[];
-  if(n===1){
-    var outros=[S(0),S(1),S(3),S(4),S(5)];for(var i=outros.length-1;i>0;i--){var j=Math.floor(r()*(i+1)),t=outros[i];outros[i]=outros[j];outros[j]=t}
-    out.push({rotulo:'principal',pergunta:'Qual número ainda não se manifestou no grupo?',opcoes:[ACOMP].concat(outros.slice(0,3)).map(function(f){return 'O número ···'+f})});
-  }
+  /* Cap. 1: a principal ("Em quem caiu a primeira suspeita?", da culpa plantada) entra quando o roteiro tiver as sementes. */
   if(n===2){
     var P=['guardia','explosiva','ardilosa','quieta'],T={guardia:'Recua com calma: educada, desconversa.',explosiva:'Explode: acusa e ataca quem pergunta.',ardilosa:'Negocia: pergunta de volta e pede troca.',quieta:'Some: silêncio e respostas curtas.'};
     out.push({rotulo:'principal',pergunta:'Como a voz nas sombras reage quando é questionada?',opcoes:[T[PERSONALIDADE]].concat(P.filter(function(k){return k!==PERSONALIDADE}).map(function(k){return T[k]}))});
   }
-  if(R&&R.pergunta)out.push({rotulo:'secundária',pergunta:R.pergunta.pergunta,opcoes:R.pergunta.opcoes});
+  if(R&&R.pergunta)out.push({rotulo:out.length?'secundária':'do capítulo',pergunta:R.pergunta.pergunta,opcoes:typeof R.pergunta.opcoes==='function'?R.pergunta.opcoes():R.pergunta.opcoes});
   return out;
 }
 function proximaPergunta(){
@@ -1384,11 +1381,9 @@ var C2={
     'Não confio em ninguém aqui.':'Nem eu.'
   },
   acompPriv:RESP_ACOMP,
-  pergunta:{pergunta:'O que explica o sétimo contato?',opcoes:[
-    'Alguém que não está na sala escreve de dentro da casa.',
-    'Um número antigo, esquecido ligado, que ficou no grupo.',
-    'Alguém lá fora, na estrada, entrou no grupo.',
-    'Uma mensagem programada, que sai sozinha.']}
+  /* Muda com a mesa: a certa é sempre N_CONTATOS (os da sala + a voz nas sombras). */
+  pergunta:{pergunta:'Quantas pessoas há na casa?',opcoes:function(){
+    return [N_CONTATOS,N_SALA,N_CONTATOS+1,N_SALA-1].map(function(n){return n+' pessoas'})}}
 };
 var ROTEIROS={1:C1,2:C2};
 
