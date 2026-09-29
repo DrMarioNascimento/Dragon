@@ -223,6 +223,12 @@ button,input,textarea{font:inherit;color:inherit}
 .conf-aposta button.on{background:#3a2d14;border-color:#efc878;color:#fff}
 #comoJogar .ver-sim{width:100%;min-height:44px;margin-top:10px;border-radius:12px;border:1px solid #65d5cc88;background:#0a252d;color:#65d5cc;font:700 14px var(--sans);cursor:pointer}
 .hud-pill[role=button]{cursor:pointer}
+/* Aba com novidade: pisca alternando verde e vermelho */
+.orelha.glow{animation:alerta-aba 1.2s steps(1,end) infinite !important}
+@keyframes alerta-aba{
+  0%{box-shadow:0 0 16px 3px #70d6a0bb,inset 0 0 10px #70d6a066;border-color:#70d6a0;color:#bff5d6}
+  50%{box-shadow:0 0 16px 3px #ff5a4ebb,inset 0 0 10px #ff5a4e66;border-color:#ff6b5e;color:#ffd0cb}}
+@media (prefers-reduced-motion:reduce){.orelha.glow{animation:none !important;box-shadow:0 0 12px 2px #ff5a4e99;border-color:#ff6b5e}}
 .msg.op .bolha{border-style:dashed;background:linear-gradient(180deg,#141e28,#0c141b)}
 .op-selo{margin:2px 0 5px;font:700 10.5px var(--mono);letter-spacing:.06em;color:#8fb3c7;text-transform:uppercase}
 .grupo-topo{margin:6px 8px 0;padding:7px 12px;border-radius:10px;border:1px solid #2c4a5a;background:linear-gradient(180deg,#132433,#0b1822);color:#aec6d5;font:600 12.5px var(--sans);text-align:center;
@@ -838,7 +844,7 @@ button:active,.caixa:active,.redondo:active,.chip:active{
   </ol>
   <section class="how-box"><h2>Primeiro, o prólogo.</h2><p>O prólogo é a apresentação do cenário, da história e da tela do jogo. Nele não há tempo, mandar mensagem é livre e nada conta pontos. Os envios extras que você achar na casa vão com você para o Capítulo 1.</p></section>
   <section class="how-box"><h2>O tempo é do capítulo.</h2><p>A barra ⏱ no alto é o tempo do capítulo. Quando ela acaba, o capítulo fecha, mesmo que você não tenha terminado.</p></section>
-  <section class="how-box"><h2>O fim de cada capítulo.</h2><p>Vem uma pergunta sobre o que aconteceu, com quatro respostas. Depois você diz o quanto tem certeza: <b>com certeza</b>, <b>sem certeza</b> ou <b>não sei</b>. Em seguida, se quiser, aposta em quem é o impostor.</p><p>Você só descobre se acertou no fim do jogo.</p><button type="button" class="ver-sim" data-simular>Ver uma simulação</button></section>
+  <section class="how-box"><h2>O fim de cada capítulo.</h2><p>Vem uma pergunta principal sobre esta partida e uma secundária sobre a história (que vale menos), cada uma com quatro respostas. Depois você diz o quanto tem certeza: <b>com certeza</b>, <b>sem certeza</b> ou <b>não sei</b>. Em seguida, se quiser, aposta em quem é o impostor.</p><p>Você só descobre se acertou no fim do jogo.</p><button type="button" class="ver-sim" data-simular>Ver uma simulação</button></section>
   <section class="how-box"><h2>Os pontos ficam escondidos.</h2><p>O ★ no alto não mostra nada durante a partida. Os pontos só aparecem no fim, capítulo por capítulo.</p></section>
   <section class="how-box destaque"><h2>A pergunta final.</h2><p>Quem é o impostor? Ele pode ser qualquer um, e muda a cada partida. Acertar com certeza vale mais; errar com certeza custa mais; dizer “não sei” nunca tira ponto.</p></section>
   <button type="button" id="comoJogarOk">Entendi</button>
@@ -932,7 +938,7 @@ function bolha(m){
   var eu=m.de===EU;
   var quem=eu?'':'<button class="quem" data-contato="'+m.de+'" style="color:'+CORES[m.de]+'">'+nomeDe(m.de)+'</button>';
   var anexo=m.anexo?'<div class="anexo"'+(m.img?' data-ver="'+m.img+'" data-nome="'+m.anexo+'" style="cursor:pointer"':'')+'>📎 '+m.anexo+(m.img?' · ver':'')+'</div>':'';
-  var op=m.op?'<div class="op-selo">📶 '+m.op+' · mensagem automática</div>':'';
+  var op='';
   return '<div class="msg'+(eu?' eu':'')+(m.op?' op':'')+'"><div class="bolha">'+quem+op+(m.txt||'')+anexo+'<span class="hora">'+(m.h||hora())+'</span></div></div>';
 }
 function pintarGrupo(){$('#grupoTopo').innerHTML='Grupo da casa · <b>'+N_CONTATOS+' números</b>';var el=$('#chatGrupo');el.innerHTML=grupo.map(bolha).join('');el.scrollTop=el.scrollHeight}
@@ -1144,7 +1150,7 @@ function pintarSimIntro(){
 }
 function pintarSimPergunta(){
   var L='ABCD';
-  $('#fechoCorpo').innerHTML='<p class="kicker">'+(perguntaReal?'Capítulo '+capitulo+' · pergunta':'Simulação · pergunta do capítulo')+'</p><h1 id="fechoTitulo">'+SIM.pergunta+'</h1>'+
+  $('#fechoCorpo').innerHTML='<p class="kicker">'+(perguntaReal?'Capítulo '+capitulo+' · pergunta '+(SIM.rotulo||'')+(SIM.rotulo==='secundária'?' (vale menos)':''):'Simulação · pergunta do capítulo')+'</p><h1 id="fechoTitulo">'+SIM.pergunta+'</h1>'+
     '<div class="opcoes">'+simOrdem.map(function(k,i){return '<button type="button" class="op'+(simEsc===k?' on':'')+'" data-op="'+k+'"'+(simConf==='naosei'?' disabled':'')+'><i>'+L[i]+'</i><span>'+SIM.opcoes[k]+'</span></button>'}).join('')+'</div>'+
     '<h2>O quanto você tem certeza?</h2><div class="conf">'+CONF.map(function(c){return '<button type="button" data-conf="'+c.id+'" class="'+(simConf===c.id?'on':'')+'">'+c.nome+'<small>'+c.dica+'</small></button>'}).join('')+'</div>'+
     '<div class="acoes"><button type="button" id="simResp"'+((simConf&&(simEsc!==null||simConf==='naosei'))?'':' disabled')+'>Responder</button></div>';
@@ -1287,15 +1293,37 @@ function fimDoCapitulo(){
   roteiroTimers.forEach(clearTimeout);roteiroTimers=[];
   $('#telaRA').hidden=true;
   janela('FIM DO CAPÍTULO '+capitulo,(resta>0?'Você concluiu o capítulo.':'O tempo acabou.')+' Agora vem a pergunta do capítulo e, depois, a sua aposta.',function(){
-    SIM=ROTEIROS[capitulo].pergunta;perguntaReal=true;simEsc=null;simConf=null;simOrdem=embaralhar([0,1,2,3]);depoisSim=null;
-    var d=$('#fecho');pintarSimPergunta();try{d.showModal()}catch(e){d.setAttribute('open','')}d.scrollTop=0;
+    filaPerguntas=perguntasDo(capitulo);respostas[capitulo]=[];proximaPergunta();
+    var d=$('#fecho');try{d.showModal()}catch(e){d.setAttribute('open','')}d.scrollTop=0;
   });
 }
+/* Critério (Mario): "em 10 partidas jogadas, o que faz sentido e o que mantém a
+   curiosidade ainda?". A PRINCIPAL de cada capítulo tem resposta que muda a cada
+   partida e só se descobre jogando; a SECUNDÁRIA é de compreensão da história
+   (fixa) e vale menos. A opção certa é sempre a de índice 0 (a tela embaralha). */
+var filaPerguntas=[];
+function perguntasDo(n){
+  var R=ROTEIROS[n],r=gerador(PARTIDA+'|pergunta|'+n),out=[];
+  if(n===1){
+    var outros=[S(0),S(1),S(3),S(4),S(5)];for(var i=outros.length-1;i>0;i--){var j=Math.floor(r()*(i+1)),t=outros[i];outros[i]=outros[j];outros[j]=t}
+    out.push({rotulo:'principal',pergunta:'Qual número ainda não se manifestou no grupo?',opcoes:[ACOMP].concat(outros.slice(0,3)).map(function(f){return 'O número ···'+f})});
+  }
+  if(n===2){
+    var P=['guardia','explosiva','ardilosa','quieta'],T={guardia:'Recua com calma: educada, desconversa.',explosiva:'Explode: acusa e ataca quem pergunta.',ardilosa:'Negocia: pergunta de volta e pede troca.',quieta:'Some: silêncio e respostas curtas.'};
+    out.push({rotulo:'principal',pergunta:'Como a voz nas sombras reage quando é questionada?',opcoes:[T[PERSONALIDADE]].concat(P.filter(function(k){return k!==PERSONALIDADE}).map(function(k){return T[k]}))});
+  }
+  if(R&&R.pergunta)out.push({rotulo:'secundária',pergunta:R.pergunta.pergunta,opcoes:R.pergunta.opcoes});
+  return out;
+}
+function proximaPergunta(){
+  SIM=filaPerguntas.shift();perguntaReal=true;simEsc=null;simConf=null;simOrdem=embaralhar([0,1,2,3]);depoisSim=null;
+  pintarSimPergunta();$('#fecho').scrollTop=0;
+}
 function pintarRealResultado(){
-  respostas[capitulo]={opcao:simEsc,confianca:simConf};
-  var c=CONF.filter(function(x){return x.id===simConf})[0];
-  $('#fechoCorpo').innerHTML='<p class="kicker">Capítulo '+capitulo+' · resposta guardada</p><h1 id="fechoTitulo">Resposta guardada.</h1>'+
-    '<p class="lede">'+(simConf==='naosei'?'Você disse que <b>não sabe</b>.':'Você respondeu <b>'+c.nome.toLowerCase()+'</b>.')+' O resultado só aparece no fim do jogo.</p>'+
+  respostas[capitulo].push({pergunta:SIM.pergunta,tipo:SIM.rotulo,opcao:simEsc,certa:simEsc===0,confianca:simConf});
+  if(filaPerguntas.length){proximaPergunta();return}
+  $('#fechoCorpo').innerHTML='<p class="kicker">Capítulo '+capitulo+' · respostas guardadas</p><h1 id="fechoTitulo">Respostas guardadas.</h1>'+
+    '<p class="lede">Suas respostas foram guardadas. O resultado só aparece no fim do jogo.</p>'+
     '<p class="lede">Agora a sua aba Nota vira a aposta: em quem você aposta como impostor? É opcional e só você vê.</p>'+
     '<div class="acoes"><button type="button" id="irAposta">Ir para a aposta</button></div>';
   $('#irAposta').onclick=function(){var d=$('#fecho');try{d.close()}catch(e){d.removeAttribute('open')}
@@ -1337,7 +1365,7 @@ var C2={
     [230,S(5),'Contei de novo: somos '+N_SALA+' na sala e '+N_CONTATOS+' números no grupo.'],
     [270,'priv:'+ACOMP,FALAS_ACOMP.priv],
     [330,S(0),'Ninguém sai da sala sozinho.'],
-    [360,'op:'+ACOMP,'Recebemos o pagamento da sua fatura de agosto. Obrigado por usar a Telefônica Mosaico.'],
+    [360,'op:'+ACOMP,'<b>Telefônica:</b> Mensagem automática. Recebemos o pagamento da sua fatura de agosto. Obrigado por usar a Telefônica Mosaico.'],
     [400,'sis','A chuva não para. Faltam poucos minutos para o fim do capítulo.']
   ]),
   respGrupo:[['foto:Conta de celular (gaveta)','Achei no escritório uma conta do celular do dono, paga em setembro.'],['foto:Recibo da mercearia','Tem um recibo de mercearia recente no escritório.'],[40,'Na sala.'],[122,'Quem escreveu sobre a luz?'],[122,'Quem é esse número?'],[150,'Pode ser um número antigo.'],[195,'Quem está no corredor de serviço?'],[0,'Vamos ficar juntos.']],
