@@ -1313,7 +1313,8 @@ else $('#fichaBtn').onclick=function(){folha('<div class="topo-ficha"><img src="
 /* ── Tempo (demonstração) ────────────────────────────────────────────── */
 var TOTAL=8*60,resta=TOTAL;
 var relogioAtivo=false;
-function iniciarRelogio(){if(relogioAtivo)return;relogioAtivo=true;setInterval(function(){if(resta>0){resta--;if(resta===0)fimDoCapitulo();if(resta===Math.min(60,Math.floor(TOTAL/4))&&capitulo&&!enviosNoCap&&!avisouMinimo){avisouMinimo=true;janela('FALTA 1 MINUTO','Você ainda não mandou nada neste capítulo. Mande pelo menos 1 mensagem ou anexo antes de o tempo acabar.')}}$('#relogio').textContent=('0'+Math.floor(resta/60)).slice(-2)+':'+('0'+resta%60).slice(-2);$('#barra').style.width=(resta/TOTAL*100)+'%';$('#tempo').classList.toggle('pouco',resta<60)},1000);}
+var relogioParado=false;   /* no fim do capítulo o relógio para (vem o debate e as perguntas) */
+function iniciarRelogio(){if(relogioAtivo)return;relogioAtivo=true;setInterval(function(){if(resta>0&&!relogioParado){resta--;if(resta===0)fimDoCapitulo();if(resta===Math.min(60,Math.floor(TOTAL/4))&&capitulo&&!enviosNoCap&&!avisouMinimo){avisouMinimo=true;janela('FALTA 1 MINUTO','Você ainda não mandou nada neste capítulo. Mande pelo menos 1 mensagem ou anexo antes de o tempo acabar.')}}$('#relogio').textContent=('0'+Math.floor(resta/60)).slice(-2)+':'+('0'+resta%60).slice(-2);$('#barra').style.width=(resta/TOTAL*100)+'%';$('#tempo').classList.toggle('pouco',resta<60)},1000);}
 
 function toast(t){var d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(function(){d.remove()},2600)}
 
@@ -1432,11 +1433,44 @@ function fimDoCapitulo(){
   if(!capitulo||capituloFechado[capitulo])return;capituloFechado[capitulo]=true;
   roteiroTimers.forEach(clearTimeout);roteiroTimers=[];
   $('#telaRA').hidden=true;
-  janela('FIM DO CAPÍTULO '+capitulo,(resta>0?'Você concluiu o capítulo.':'O tempo acabou.')+' Agora vem a pergunta do capítulo e, depois, a sua aposta.',function(){
-    filaPerguntas=perguntasDo(capitulo);respostas[capitulo]=[];proximaPergunta();
+  relogioParado=true;$('#tempo').classList.add('parado');
+  var R=ROTEIROS[capitulo];
+  janela('FIM DO CAPÍTULO '+capitulo,(resta>0?'Você concluiu o capítulo.':'O tempo acabou.')+' O relógio do capítulo parou.'+(R&&R.debate?' Antes das perguntas, a mesa tem um tempo extra para debater.':' Agora vem a pergunta do capítulo e, depois, a sua aposta.'),function(){
     var d=$('#fecho');try{d.showModal()}catch(e){d.setAttribute('open','')}d.scrollTop=0;
+    if(R&&R.debate)abrirDebate(R.debate,irParaPerguntas);else irParaPerguntas();
   });
 }
+function irParaPerguntas(){filaPerguntas=perguntasDo(capitulo);respostas[capitulo]=[];proximaPergunta();$('#fecho').scrollTop=0}
+/* ── Debate de mesa (Mario, 30/09) ─────────────────────────────────────
+   Fora do tempo do capítulo: o relógio do capítulo fica parado e abre outro,
+   de outra cor, com 60 s. Ninguém pontua aqui; é para trocar razões em voz
+   alta. Quem quiser pode ir direto para as perguntas. Jogando sozinho, a tela
+   mostra o que os outros da mesa dizem. */
+var DEBATE_S=60,timerDebate=null;
+function abrirDebate(D,depois){
+  var total=Q.get('teste')==='1'?10:DEBATE_S,t=total,falas=(D.falas||[]).filter(Boolean);
+  $('#fechoCorpo').innerHTML='<p class="kicker">Debate da mesa · fora do tempo do capítulo</p><h1 id="fechoTitulo">'+D.pergunta+'</h1>'+
+    '<div class="debate-relogio"><b id="debateT">01:00</b><i id="debateBarra"></i></div>'+
+    '<p class="lede">Vocês têm '+total+' segundos para discutir em voz alta. Aqui ninguém ganha nem perde pontos: é para trocar razões. Quem preferir pode só ouvir.</p>'+
+    (falas.length?'<div class="debate-falas" id="debateFalas"><small>NA MESA</small></div>':'')+
+    '<div class="acoes"><button type="button" id="debateFim">Ir para as perguntas</button></div>';
+  function fim(){clearInterval(timerDebate);timerDebate=null;depois()}
+  $('#debateFim').onclick=fim;
+  falas.forEach(function(f,i){setTimeout(function(){var el=$('#debateFalas');if(!el||!timerDebate)return;
+    el.insertAdjacentHTML('beforeend','<div class="debate-fala"><b style="color:'+CORES[f[0]]+'">'+nomeDe(f[0])+'</b> '+f[1]+'</div>')},(i+1)*Math.max(1500,total*1000/(falas.length+2)))});
+  function pinta(){var el=$('#debateT');if(!el)return;el.textContent=('0'+Math.floor(t/60)).slice(-2)+':'+('0'+t%60).slice(-2);$('#debateBarra').style.width=(t/total*100)+'%'}
+  pinta();timerDebate=setInterval(function(){t--;pinta();if(t<=0)fim()},1000);
+}
+(function(){document.head.insertAdjacentHTML('beforeend','<style>'+
+  '.debate-relogio{position:relative;overflow:hidden;display:inline-flex;align-items:center;gap:6px;margin:4px 0 10px;padding:6px 14px;border-radius:999px;border:1px solid #6e5bd6;background:#1b1640;color:#cfc4ff;font:600 16px var(--sans)}'+
+  '.debate-relogio::before{content:"🗣"}'+
+  '.debate-relogio i{position:absolute;left:0;bottom:0;height:3px;background:#9d8cff;transition:width 1s linear}'+
+  '.debate-falas{border:1px solid #3a3470;border-radius:10px;padding:8px 10px;margin:8px 0;background:#141131}'+
+  '.debate-falas small{color:#a79cf0;letter-spacing:.06em}'+
+  '.debate-fala{padding:6px 0;border-top:1px solid #2a2656;font-size:14px;line-height:1.4}'+
+  '.debate-fala:first-of-type{border-top:0}'+
+  '.tempo.parado{opacity:.55}'+
+  '</style>')})();
 /* Critério (Mario): "em 10 partidas jogadas, o que faz sentido e o que mantém a
    curiosidade ainda?". A PRINCIPAL de cada capítulo tem resposta que muda a cada
    partida e só se descobre jogando; a SECUNDÁRIA é de compreensão da história
@@ -1630,7 +1664,7 @@ var C1=(function(){
   sis(345,Na(presente('eletricista')?'eletricista':'residente')+' foi o primeiro a falar, e falou baixo: <i>"Essa porta não tem mola."</i>');
   chat(360,voz(['policial','residente']),'Ninguém vai até aquela porta sozinho.');
   priv(380,voz(['herdeira','jornalista','observadora'],M.macaneta),'Você viu quem foi até aquela porta antes?');
-  sis(400,'A lareira estalou. O relógio seguiu batendo, quatro minutos na frente de todos. Antes da pergunta do capítulo, a mesa discute: <b>o que, nesta sala, prova que alguém mora aqui?</b>');
+  sis(400,'A lareira estalou. O relógio seguiu batendo, quatro minutos na frente de todos.');
   sis(440,'A chuva engrossa. Faltam poucos minutos para o fim do capítulo.');
 
   var fala=function(ids,txt,exceto){var id=voz(ids,exceto);return id?[SLOT_DE[id],txt]:null};
@@ -1656,6 +1690,10 @@ var C1=(function(){
     respPriv:[[40,'Você viu alguém chegar antes?'],[170,'Você reconheceu aquela xícara?'],[330,'Você ouviu a maçaneta?'],[0,'Não confio em ninguém aqui.']],
     replica:replica,
     acompPriv:{},              /* o celular do proprietário fica calado até o Cap. 2 */
+    debate:{pergunta:'O que, nesta sala, prova que alguém mora aqui?',falas:[
+      (function(){var id=voz(['residente','herdeira','jornalista']);return id?[SLOT_DE[id],FUNCIONARIOS.length?'A xícara. A louça foi recolhida ontem à noite, e hoje tinha café frio numa xícara que não é da sala.':'A xícara com café. A casa estava fechada havia cinco meses.']:null})(),
+      (function(){var id=voz(['policial','observadora','tabeliao']);return id?[SLOT_DE[id],'O relógio. Relógio de corda não anda cinco meses sozinho. Alguém dá corda nele.']:null})(),
+      (function(){var id=voz(['jornalista','advogado','herdeira','residente'],voz(['residente','herdeira','jornalista']));return id?[SLOT_DE[id],'A maçaneta. Desceu por dentro, e a porta não tem mola. Tem alguém naquele quarto.']:null})()]},
     perguntas:function(){return [
       {rotulo:'principal',pergunta:'Quem deixou escapar, neste capítulo, que já tinha voltado a esta casa depois da morte do proprietário?',opcoes:opcoesPessoa(vq,'voltou')},
       {rotulo:'secundária',pergunta:'Quem percebeu primeiro que a xícara era de outro jogo de louça?',opcoes:opcoesPessoa(xq,'xicara')},
@@ -1690,7 +1728,7 @@ function fimDoPrologo(){
   $('#irCap1').onclick=function(){if(v)try{v.pause()}catch(e){}try{d.close()}catch(e){d.removeAttribute('open')}comecarCapitulo(1)};
 }
 function comecarCapitulo(n){
-  capitulo=n;var c=CAPITULOS[n];
+  capitulo=n;var c=CAPITULOS[n];relogioParado=false;$('#tempo').classList.remove('parado');
   $('#capNum').textContent=c.n;$('#capNome').textContent=c.nome;
   var teste=Q.get('teste')==='1',escala=teste?0.12:1;
   TOTAL=teste?60:8*60;resta=TOTAL;iniciarRelogio();
