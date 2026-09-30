@@ -1,38 +1,185 @@
 # Dragon Games
 
-Casa de jogos. O primeiro é o **MOSAICO**.
+**English** · [Português](#português)
 
-**Entrar:** [drmarionascimento.github.io/Dragon/](https://drmarionascimento.github.io/Dragon/)
+Dragon Games is a home for deduction and investigation games. The first title is **MOSAICO — A Verdade é um Fragmento** ("The Truth Is a Fragment"), a distributed-deduction mystery for groups on smartphones, with an optional shared screen. No one holds all the facts: players observe, trade, negotiate and deduce.
+
+**Play:** [drmarionascimento.github.io/Dragon/](https://drmarionascimento.github.io/Dragon/)
+
+Proprietary project in development. The repository is public so that GitHub Pages can serve the game; it is **not** open source.
+
+## Who it is for
+
+- Groups of 1 to 12 people in the same room, each on their own phone.
+- Game hosts who want to project the table on a TV or projector (optional).
+- Individual players who want to rehearse a case alone.
+
+## What is available from the hub
+
+| Case | Doors on the hub |
+|---|---|
+| **A Casa da Costa** | [Phone](https://drmarionascimento.github.io/Dragon/v1/MOSAICO-mesa.html) · [Shared screen](https://drmarionascimento.github.io/Dragon/telao.html?jogo=casa-da-costa) · [Solo](https://drmarionascimento.github.io/Dragon/solo/) |
+| **A Casa da Costa: O Impostor** (in development) | [Phone: Prologue](https://drmarionascimento.github.io/Dragon/o-impostor/mesa.html) · [AR lab](https://drmarionascimento.github.io/Dragon/o-impostor/) |
+| **A Manhã do Carro-Forte** | [Phone](https://drmarionascimento.github.io/Dragon/carro-forte/celular.html) · [Shared screen](https://drmarionascimento.github.io/Dragon/telao.html?jogo=carro-forte) · [Solo](https://drmarionascimento.github.io/Dragon/carro-forte/celular.html?soloLab=1&bots=max&modo=sem-telao) |
+
+After the morning session, *A Manhã do Carro-Forte* continues into its evening closing game, [A Noite](https://drmarionascimento.github.io/Dragon/carro-forte/noite/), with the same room code. The former AR lab now lives in its own repository: [lab-ra](https://drmarionascimento.github.io/lab-ra/).
+
+## How it works
+
+- **One canonical reality per case.** Facts never change between sessions; what changes is the question asked about them (who, what, how much, when, where, how, why, what kind).
+- **Fact is not interpretation.** A true fact may support a wrong reading. Doubt comes from possible relations between true facts, not from arbitrary false clues.
+- **Characters are archetypes**, never proper names. A character stays secret, even from the player who performs it, until the reveal.
+- **Sensory tasks** (pointing the phone, wiping a fogged glass, searching a dark room with a flashlight) are isolated HTML pages opened by the table.
+- **Cognitive roles and support layers** (Free / Assisted / Guided) change the scaffolding, never the facts or the answer keys.
+
+## Technology
+
+Static HTML, CSS and JavaScript published on GitHub Pages; multiplayer rooms on Firebase (Firestore + Authentication: anonymous sign-in for players, Google sign-in for the host who opens a room), one Firebase project per case. A separate React/Vite client lives in `mosaico-web/`. Automated checks (`npm test`, `npm run test:regras`, and `typecheck`/`test` in `mosaico-web/`) run on GitHub Actions. Details in the Portuguese section.
+
+## Authors, license and contact
+
+**Created by** Mário César Nascimento and Osana Melo Nascimento. Maintained by [DrMarioNascimento](https://github.com/DrMarioNascimento).
+
+**License:** see [LICENSE.md](LICENSE.md) (all rights reserved; playing and evaluating on the official deployment is allowed; any other use requires prior written permission).
 
 ---
 
-# MOSAICO — A Verdade é um Fragmento
+## Português
+
+**Dragon Games** — casa de jogos de dedução e investigação. O primeiro é o **MOSAICO — A Verdade é um Fragmento**.
+
+**Entrar:** [drmarionascimento.github.io/Dragon/](https://drmarionascimento.github.io/Dragon/)
+
+## Visão geral
 
 > Jogo de dedução distribuída com experiências presenciais, multitelas e individuais. Projeto autoral proprietário em desenvolvimento.
 
 O **MOSAICO** transforma uma realidade factual em informações fragmentadas entre os participantes. Ninguém recebe sozinho todos os fatos. Os jogadores observam, encenam, negociam, recordam, relacionam, interpretam, arriscam e deduzem.
 
-**Entrar:** [drmarionascimento.github.io/Dragon/](https://drmarionascimento.github.io/Dragon/)
+Cada pessoa joga no próprio celular; um telão (TV ou projetor) é opcional. O repositório é público para que o GitHub Pages sirva o jogo — **não é código aberto** (ver [Licença](#autoria-licença-e-contato)).
 
-O hub segue o recorte visual do [Learning-lab](https://github.com/DrMarioNascimento/Learning-lab), com a paleta da noite.
+## Acesso
 
-## Essência canônica do MOSAICO
+Tudo o que está descrito abaixo é alcançado a partir do hub: [drmarionascimento.github.io/Dragon/](https://drmarionascimento.github.io/Dragon/) (`index.html`).
+
+| Caso | Portas no hub | Firebase |
+|---|---|---|
+| **A Casa da Costa** | [Celular](https://drmarionascimento.github.io/Dragon/v1/MOSAICO-mesa.html) · [Telão](https://drmarionascimento.github.io/Dragon/telao.html?jogo=casa-da-costa) · [Solo](https://drmarionascimento.github.io/Dragon/solo/) | `mosaico-game` |
+| **A Casa da Costa: O Impostor** — em construção | [Celular — Prólogo](https://drmarionascimento.github.io/Dragon/o-impostor/mesa.html) · [Laboratório de RA](https://drmarionascimento.github.io/Dragon/o-impostor/) | — |
+| **A Manhã do Carro-Forte** | [Celular](https://drmarionascimento.github.io/Dragon/carro-forte/celular.html) · [Telão](https://drmarionascimento.github.io/Dragon/telao.html?jogo=carro-forte) · [Solo](https://drmarionascimento.github.io/Dragon/carro-forte/celular.html?soloLab=1&bots=max&modo=sem-telao) | `mosaico-noite` |
+
+- A escolha **Celular · Telão · Solo** existe só no hub. As pastas `casa-da-costa/` e `carro-forte/` redirecionam direto para o gate Celular.
+- **A Noite** do Carro-Forte ([`carro-forte/noite/`](https://drmarionascimento.github.io/Dragon/carro-forte/noite/)) é aberta pelo botão **Ir para a Noite** ao fim do relatório da Manhã, com o mesmo código de sala.
+- O **Lab RA** mudou-se para repositório próprio: [drmarionascimento.github.io/lab-ra](https://drmarionascimento.github.io/lab-ra/) ([código](https://github.com/DrMarioNascimento/lab-ra)). A pasta `laboratorio-ra/` apenas redireciona para lá.
+- Endereços antigos continuam funcionando por redirecionamento, para não quebrar QR codes e favoritos: `MOSAICO-mesa.html` (raiz) → `v1/MOSAICO-mesa.html`; `carro-forte-mesa/` → `carro-forte/celular.html`; `carro-forte-noite/` → `carro-forte/noite/`; `v3/` → `solo/`.
+
+## Para quem
+
+- Grupos de **1 a 12 pessoas** na mesma sala, cada uma com seu celular.
+- Quem conduz a mesa (**Mestre**) e quer, opcionalmente, projetar código da sala, QR, cronologia, revelação e pódio num telão.
+- Quem quer **ensaiar sozinho** um caso (porta Solo).
+
+## O que tem
+
+### A Casa da Costa — Celular (A Mesa)
+
+HTML + Firebase. Telão opcional. QR na sala.
+
+- **Com telão:** código, QR, cronologia, revelação, apuração e pódio.
+- **Sem telão:** o criador joga no celular; os controles de mestre ficam em **Sala**.
+- **Barra móvel:** **Caso | Sala | Arquivo** — rodada e cronologia; comandos do mestre; pistas privadas.
+- **Ritmo**, escolhido na criação da sala: **Automaticamente** (avança quando todos terminam) ou **Com minha liberação**. Nos dois, o mestre pode pausar e retomar.
+- Áudio de abertura em `v1/audio/`. A sirene toca só no aparelho do mestre, para evitar eco entre os celulares.
+
+**Fluxo:**
+
+1. criação da sala e abertura;
+2. apresentação — Entenda, Faça, Fale;
+3. voto da cena;
+4. **A Janela do Norte**;
+5. **O Vidro Embaçado** ou **A Sala às Escuras** (alternam entre partidas);
+6. encontro dos Fragmentos pela cor;
+7. reconstrução coletiva;
+8. mercado de pistas;
+9. acusação;
+10. revelação e pódio.
+
+**Fragmentos:** Névoa, Tempestade, Farol e Noite. Com 1–3 pessoas, um único Fragmento; de 4 a 12, grupos de 2 ou 3, cada um com um Portador.
+
+**Pontuação — máximo 100** (motor `v1/js/mosaico-v5.js`):
+
+| Componente | Máximo |
+|---|---:|
+| Tempo de resolução | 29 |
+| Cooperação | 28 |
+| Economia (mercado) | 20 |
+| Qualidade da resolução | 13 |
+| Rodadas sensoriais | 5 |
+| Performance (apresentação) | 5 |
+
+Pontos inteiros. O escore Z não entra no placar.
+
+### A Casa da Costa — Telão
+
+`telao.html?jogo=casa-da-costa`: tela somente de exibição, que entra com o código da sala aberta pelo Mestre.
+
+### A Casa da Costa — Solo
+
+Pasta própria ([`solo/`](./solo)): adaptação individual da sequência canônica da Mesa, sem segunda realidade factual — caso, fragmentos, relações, perguntas e respostas vêm de `v1/casos/casa-da-costa.json`. Ações que na Mesa dependem de várias pessoas viram decisão, revisão ou execução individual. O progresso fica vinculado ao usuário (`usuarios/{uid}` no Firestore). Não misturar com A Mesa.
+
+### A Casa da Costa: O Impostor — em construção
+
+Nova experiência sobre a mesma casa. No hub estão disponíveis:
+
+- **Celular — Prólogo** ([`o-impostor/mesa.html`](./o-impostor/mesa.html)): vídeo, maquete em RA, a chave, os papéis e o telefone;
+- **Laboratório de RA** ([`o-impostor/`](./o-impostor)): objetos do caso em 3D (relógio, livro, farol, quarto e outros) para ver no celular, sobre a mesa.
+
+### A Manhã do Carro-Forte — Celular (A Mesa)
+
+Partida coletiva e investigativa sobre uma única manhã num banco, com **seis perguntas-mãe** sobre a mesma realidade — entre elas *O Peso do Malote 41* —, cobrindo as naturezas QUANTO, QUANDO, O QUÊ/COMO, QUAL/QUE TIPO, QUEM (composto) e POR QUÊ. **A mesa não escolhe a pergunta: o sistema sorteia**, sem repetir nenhuma antes que as seis tenham saído.
+
+1. prólogo — investigadores, ritmo e duração (Curta, Padrão ou Longa);
+2. abertura audiovisual e pauta sorteada: pergunta-mãe, dossiê, campos e atividades;
+3. atividades sensoriais próprias da pergunta, em fila;
+4. dossiê em três terços;
+5. hipótese provisória, com apoio e contraprova visíveis;
+6. mosaico de relações;
+7. decisão final nos campos próprios da pergunta;
+8. revelação pelo corte daquela pergunta;
+9. relatório em 100 pontos.
+
+| Eixo | Máximo |
+|---|---:|
+| Campos da pergunta | 45 |
+| Relações costuradas | 20 |
+| Hipótese sustentada no fechamento | 15 |
+| Leitura do dossiê | 10 |
+| Atividades sensoriais | 10 |
+| Revisão de hipótese | +5 |
+
+> Os campos desta experiência pertencem à perspectiva específica da partida e não constituem um formulário universal do MOSAICO.
+
+### A Manhã do Carro-Forte — Telão, Solo e A Noite
+
+- **Telão:** `telao.html?jogo=carro-forte`, somente exibição.
+- **Solo:** a mesma página Celular em modo de ensaio (`?soloLab=1&bots=max&modo=sem-telao`): você ocupa uma vaga e as demais são preenchidas por bots de teste.
+- **A Noite** (`carro-forte/noite/`): fechamento com economia de fragmentos (comprar, capturar, arriscar). Aberta a partir da Manhã, herda a pergunta e um resumo do fecho; o orçamento inicial deriva do resultado da Manhã. Os valores econômicos da entrada avulsa ainda são experimentais. Detalhes em [`carro-forte/noite/README.md`](./carro-forte/noite/README.md).
+
+## Como funciona
+
+### Essência canônica do MOSAICO
 
 > **A perspectiva muda a pergunta. Não muda o que aconteceu.**
 
-Cada história possui uma **realidade factual única e canônica**. Os fatos não são trocados, sorteados novamente ou contraditos para produzir replay. O que muda entre partidas é o **ângulo de análise**: a pergunta feita sobre a mesma realidade.
+Cada história possui uma **realidade factual única e canônica**. Os fatos não são trocados, sorteados novamente ou contraditos para produzir replay. O que muda entre partidas é o **ângulo de análise**: a pergunta feita sobre a mesma realidade — **quem** articulou um acontecimento, **quanto** foi retirado, **quando** algo ocorreu, **o que aconteceu durante uma janela temporal**, **quem tinha acesso**, **qual foi o percurso de um objeto**, **por que** um personagem se atrasou, **qual decisão ou falha** tornou um evento possível.
 
-Uma partida pode perguntar **quem** articulou um acontecimento; outra, **quanto** foi retirado; outra, **quando** determinada ação ocorreu; outra, **o que aconteceu durante uma janela temporal**; outra, **quem tinha acesso**; outra, **qual foi o percurso de um objeto**; outra, **por que um personagem se atrasou**; outra, **qual decisão ou falha tornou um evento possível**.
-
-Assim, **dedução não é sinônimo de descobrir culpado**. O modelo `autor → motivo → ação → prova → lacuna` é uma perspectiva possível, não um formulário universal do MOSAICO. Os campos finais, as atividades e a própria natureza da resposta devem nascer da perspectiva específica de cada partida.
+Assim, **dedução não é sinônimo de descobrir culpado**. O modelo `autor → motivo → ação → prova → lacuna` é uma perspectiva possível, não um formulário universal. Os campos finais, as atividades e a própria natureza da resposta nascem da perspectiva de cada partida.
 
 ### Fato não é interpretação
 
-O jogo distingue:
-
 **FATO → INTERPRETAÇÃO → RELAÇÃO → INFERÊNCIA**
 
-Um fato prova apenas aquilo que efetivamente pode provar. Se o pneu de um personagem furou, por exemplo, isso não o torna automaticamente inocente nem culpado. O pneu pode ter furado independentemente de sua participação ou não em outro acontecimento.
+Um fato prova apenas aquilo que efetivamente pode provar. Um pneu furado não torna ninguém automaticamente inocente nem culpado.
 
 > **O MOSAICO deve explorar a distância entre aquilo que parece ter acontecido e aquilo que os fatos permitem concluir.**
 
@@ -40,33 +187,25 @@ Um fato prova apenas aquilo que efetivamente pode provar. Se o pneu de um person
 
 > **No MOSAICO, os jogadores constroem decisões com base nas evidências disponíveis. Novas evidências podem alterar a interpretação sem alterar nenhum fato já revelado.**
 
-Por isso, a dúvida deve surgir preferencialmente de relações possíveis entre fatos verdadeiros — coexistência × causalidade, presença × participação, oportunidade × autoria, coincidência × planejamento — e não de *red herrings* arbitrariamente falsos.
-
-Nem todo acontecimento precisa ter relação com a pergunta principal. Uma pessoa pode caminhar com seu cachorro diante do banco e isso simplesmente ter acontecido. **O mundo da história é maior do que o mistério investigado.**
+A dúvida deve surgir preferencialmente de relações possíveis entre fatos verdadeiros — coexistência × causalidade, presença × participação, oportunidade × autoria, coincidência × planejamento — e não de *red herrings* arbitrariamente falsos. Nem todo acontecimento precisa ter relação com a pergunta principal: **o mundo da história é maior do que o mistério investigado.** A surpresa deve ser retrospectivamente justa: ao final, o jogador deve poder reconhecer que os fatos necessários já estavam disponíveis.
 
 ### Fatos são do universo; pistas são da perspectiva
 
-Um mesmo fato pode ser central em uma partida, complementar em outra, gerar dúvida em uma terceira e ser incidental em uma quarta. Sua verdade não muda; muda sua relevância diante da pergunta.
-
-Isso permite que a mesma manhã sustente várias partidas sem trocar a realidade. Conhecer quem articulou um crime não significa saber quanto saiu, o que ocorreu durante uma janela de 87 segundos, qual foi o percurso de um objeto ou por que determinado procedimento falhou.
+Um mesmo fato pode ser central numa partida, complementar em outra, gerar dúvida numa terceira e ser incidental numa quarta. Sua verdade não muda; muda sua relevância diante da pergunta. Por isso a mesma realidade sustenta várias partidas.
 
 > **Conhecer uma resposta não significa conhecer a história inteira.**
 
 ### Regra de criação
 
-Antes de criar ou revisar uma partida, seguir esta ordem conceitual:
-
 `REALIDADE CANÔNICA → PERSPECTIVA → PERGUNTA → FRAGMENTOS → RELAÇÕES → INFERÊNCIA → DECISÃO`
 
-A criação não deve começar por “quais são os cinco campos?” nem por “qual atividade ainda não usamos?”. A mecânica, os campos, a economia, o risco e a pontuação devem servir ao tipo de raciocínio exigido pela perspectiva.
+A criação não começa por "quais são os cinco campos?" nem por "qual atividade ainda não usamos?". Mecânica, campos, economia, risco e pontuação servem ao tipo de raciocínio exigido pela perspectiva.
 
 **No MOSAICO, a verdade não precisa mudar para que a experiência mude.**
 
 ### Pergunta-mãe e natureza da incógnita
 
-A pergunta da partida é também a **venda psicológica da experiência**. Ela precisa dizer com precisão o que o jogador procura, sem revelar o caminho da solução, e deve criar curiosidade suficiente para que uma hipótese surja antes mesmo de todos os fragmentos estarem disponíveis.
-
-A incógnita não precisa ser uma pessoa. Uma partida pode procurar:
+A pergunta da partida é também a **venda psicológica da experiência**: diz com precisão o que se procura, sem revelar o caminho, e provoca uma hipótese antes de todos os fragmentos estarem disponíveis. A incógnita não precisa ser uma pessoa:
 
 - **QUEM** — pessoa, grupo, papel funcional ou cadeia de papéis;
 - **O QUÊ** — evento, objeto, ação, informação, estado ou natureza da ocorrência;
@@ -77,15 +216,11 @@ A incógnita não precisa ser uma pessoa. Uma partida pode procurar:
 - **POR QUÊ** — finalidade, motivo, causa explicativa ou razão de uma escolha;
 - **QUAL / QUE TIPO** — classificação ou natureza correta de um fenômeno.
 
-A própria ocorrência pode estar em dúvida. “Há um cadáver” não prova automaticamente que a pessoa presumida morreu naquele local ou naquele momento; “a joia não está na caixa” não prova furto; “há diferença no caixa” não prova roubo. A investigação pode começar perguntando **se aquilo realmente aconteceu da forma como todos acreditam**.
+A própria ocorrência pode estar em dúvida: "a joia não está na caixa" não prova furto; "há diferença no caixa" não prova roubo.
 
-Em perguntas **QUEM**, é obrigatório definir a relação procurada: quem decidiu, ordenou, iniciou, coordenou, executou, sabia, ocultou, poderia impedir ou esteve presente. Quando a realidade contém funções distintas, a partida pode investigar uma posição ou a cadeia completa:
+Em perguntas **QUEM**, é obrigatório definir a relação procurada: quem decidiu, ordenou, iniciou, coordenou, executou, sabia, ocultou, poderia impedir ou esteve presente. A partida pode investigar uma posição ou a cadeia completa — `MANDANTE / CONTRATANTE → INTERMEDIÁRIO → EXECUTOR`. Identificar o executor não resolve quem ordenou; identificar quem tinha interesse não prova quem executou.
 
-`MANDANTE / CONTRATANTE → INTERMEDIÁRIO → EXECUTOR`
-
-Identificar o executor não resolve automaticamente quem ordenou; identificar quem tinha interesse não prova quem executou.
-
-Os **campos de resolução não são universais**. “Culpado”, “motivo”, “ação”, “prova” e “lacuna” podem ser adequados a uma determinada partida, mas outra pode exigir valor inicial, diferença aparente e diferença real; outra, evento aparente e evento real; outra, origem, percurso e destino. **Os campos nascem da pergunta.**
+Os **campos de resolução não são universais**: **os campos nascem da pergunta.**
 
 Uma boa pergunta-mãe deve:
 
@@ -96,225 +231,126 @@ Uma boa pergunta-mãe deve:
 5. fazer o jogador formular uma hipótese cedo;
 6. ser sustentada pela realidade canônica e pelas relações entre evidências.
 
----
+### Personagens e elenco
 
-## Catálogo jogável
+- Personagens são apresentados por **arquétipos e funções**, nunca por nomes próprios, e sem marcação obrigatória de gênero; a entrada oferece forma masculina, feminina ou indiferente.
+- O personagem é segredo **inclusive para quem o interpreta**, até o fim de sua vez. Antes da vez da pessoa, a interface não anuncia a surpresa.
+- Durante o mistério, o telão mostra apenas o arquétipo; o nome do jogador volta no placar final.
+- Nenhum README, commit ou material público deve revelar soluções de casos.
 
-| Caso | Pasta | Portas | Firebase |
-|---|---|---|---|
-| **A Casa da Costa** | [`casa-da-costa/`](./casa-da-costa) → [`v1/MOSAICO-mesa.html`](./v1/MOSAICO-mesa.html) | Celular · Telão · Solo (só no hub) | `mosaico-game` |
-| **A Manhã do Carro-Forte** | [`carro-forte/`](./carro-forte) → [`carro-forte/celular.html`](./carro-forte/celular.html) | Celular · Telão · Solo (só no hub) | `mosaico-noite` |
+### Modo · Papel · Camada
 
-**Lab RA** (AR) vive em repositório próprio: [lab-ra](https://github.com/DrMarioNascimento/lab-ra).
+Fluxo: hub → caso → **Celular / Telão / Solo**. Em Celular e Solo, cada aparelho escolhe um **papel cognitivo** e uma **camada** (Livre / Assistida / Guiada). Implementação: `papel-camada.js` — ver `MOSAICO-ACESSIBILIDADE-PAPEIS.md` §14.
 
-A escolha **Celular · Telão · Solo** existe só no hub (`index.html`). `/casa-da-costa/` e `/carro-forte/` redirecionam ao gate Celular.
+**Hipóteses por camada:** as mesmas chaves de hipótese e decisão valem em Livre, Assistida e Guiada; a camada só muda o andaime (`hipoteses-por-camada.js` + §14.1–14.2). Assistida e Guiada persistem A/B/C, favor/contra e "não examinada"; o placar mostra métricas de **processo**, sem spoiler, sem probabilidades nem ranking de solução.
 
-Endereços antigos (`v1/`, `v2/`, `solo/`, `carro-forte-noite/`, `MOSAICO-mesa.html`) permanecem com redirect ou conteúdo para não quebrar QR/bookmarks.
+### Atividades sensoriais
 
-## Autoria
+Cada atividade exige um gesto próprio, sem atalho: apontar o aparelho (**A Janela do Norte**; sem bússola, a roda é girada com o dedo), passar o dedo sobre o vidro (**O Vidro Embaçado**) ou procurar com o facho de luz (**A Sala às Escuras**).
 
-**Concepção:** Mário César Nascimento e Osana Melo Nascimento  
-**Perfil:** [DrMarioNascimento](https://github.com/DrMarioNascimento)
+- **A Casa da Costa:** cada tarefa é um HTML isolado, embutido por `iframe` (`?embed=1`), que recebe pela URL a semente e o identificador da execução (`s`, `run`) e devolve à Mesa por `postMessage` apenas o tempo de conclusão, validado contra esse identificador.
+- **A Manhã do Carro-Forte:** as atividades recebem pela URL o lote de fragmentos da partida e devolvem o que a mesa alcançou; o que ficar para trás não entra no dossiê. O texto de um fragmento não existe na página antes de ser alcançado.
 
----
+## Tecnologia
 
-## A Mesa — A Casa da Costa
+- **HTML, CSS e JavaScript estáticos**, publicados pelo GitHub Pages, sem etapa de build (exceto o cliente `mosaico-web/`).
+- **Firebase** (Firestore + Authentication), carregado por CDN. Jogadores entram com login anônimo; quem **abre** a sala entra com Google e precisa constar em `config/mestres` do projeto correspondente. O gate de sala (Abrir mesa | Entrar) é compartilhado em `firebase-room.js`.
+- **Um projeto Firebase por caso**: `mosaico-game` (A Casa da Costa) e `mosaico-noite` (A Manhã do Carro-Forte), com coleções de sala `mosaico/{codigo}` e `noite/{codigo}`. Ver `FIREBASE-SECURITY.md`, `FIREBASE-ISOLAMENTO.md` e `FIREBASE-NOITE.md`.
+- **QR code** gerado localmente (`v1/js/qr.js`), sem serviço externo.
+- **3D e RA** com three.js (cópias locais) e, no laboratório de RA de O Impostor, o componente `<model-viewer>` por CDN.
 
-HTML + Firebase. Telão opcional. QR na sala.
+O `firebaseConfig` presente no HTML é público por natureza; a proteção dos dados depende das regras do Firestore (`firestore.rules`).
 
-- **Com telão:** código, QR, cronologia, revelação, apuração e pódio.
-- **Sem telão:** o criador joga no celular; os controles de mestre ficam em **Sala**.
+## Estrutura (manutenção)
 
-Áudio canônico em `v1/audio/`. Sirene e anúncios só no aparelho do mestre. `encerramento.mp3` entre acusação e revelação.
-
-### Barra móvel
-
-**Caso | Sala | Arquivo** — rodada e cronologia; comandos do mestre; pistas privadas.
-
-### Ritmo
-
-Na criação da sala: **Automaticamente** (avança quando todos terminam) ou **Com minha liberação**. Nos dois, o mestre pode pausar e retomar.
-
-### Fluxo
-
-1. criação da sala e abertura  
-2. Encenação — Entenda, Faça, Fale  
-3. voto da cena  
-4. **A Janela do Norte**  
-5. **O Vidro Embaçado** ou **A Sala às Escuras**  
-6. encontro dos Fragmentos pela cor  
-7. reconstrução coletiva  
-8. mercado de pistas  
-9. acusação  
-10. revelação e pódio  
-
-Fragmentos: Névoa, Tempestade, Farol, Noite. Cronômetro dourado na formação. 1–3 pessoas = um Fragmento, todos Portadores. 4–12 = grupos de 2 ou 3, um Portador sorteado.
-
-### Pontuação — máximo 100
-
-| Componente | Técnico | Máximo |
-|---|---|---:|
-| Encenação | Performance | 5 |
-| J × J | Tempo | 32 |
-| J + J | Cooperação | 30 |
-| Mercado | Economia | 20 |
-| Caso | Qualidade | 13 |
-
-Pontos inteiros. O escore Z não entra no placar.
-
-### Arquitetura da mesa
-
-| Arquivo | Responsabilidade |
+| Caminho | Conteúdo |
 |---|---|
-| `v1/MOSAICO-mesa.html` | interface, fluxo, Firebase |
-| `v1/casos/casa-da-costa.json` | caso piloto |
-| `v1/js/mosaico-v5.js` | pontuação |
-| `v1/js/qr.js` | QR local |
-| `v1/js/tarefa-sensor.js` | protocolo das lanternas |
-| `v1/MOSAICO-26-a-janela-do-norte.html` | janela |
-| `v1/MOSAICO-26-vidro-embacado.html` | vidro |
-| `v1/MOSAICO-26-a-sala-as-escuras.html` | sala escura |
-| `firestore.rules` | autorização (raiz) |
-| `v1/sw.js` | cache — desligado |
-| `tests/` | motor, QR, caso, regras |
-| `FIREBASE-SECURITY.md` | segurança |
-| `HANDOFF.md` | continuidade |
+| `index.html` | hub Dragon Games |
+| `telao.html` | Telão dos dois casos (`?jogo=casa-da-costa` / `?jogo=carro-forte`) |
+| `firebase-room.js` · `firebase-user.js` | gate de sala compartilhado · sessão do usuário (Solo) |
+| `papel-camada.js` · `hipoteses-por-camada.js/.json` | papéis cognitivos, camadas e hipóteses por camada |
+| `v1/MOSAICO-mesa.html` | A Casa da Costa — Celular (interface, fluxo, Firebase) |
+| `v1/casos/casa-da-costa.json` | caso canônico da Casa da Costa |
+| `v1/js/mosaico-v5.js` | motor de pontuação V5 |
+| `v1/js/tarefa-sensor.js` | protocolo das tarefas sensoriais |
+| `v1/MOSAICO-26-*.html` | Janela do Norte, Vidro Embaçado, Sala às Escuras |
+| `v1/AC-*.html` | módulos auxiliares da Casa (percurso, maquete, papéis, escrivaninha, RA) |
+| `v1/sw.js` | service worker — desligado |
+| `solo/` | A Casa da Costa — Solo |
+| `o-impostor/` | O Impostor: Prólogo (`mesa.html`), laboratório de RA, modelos 3D, mídia |
+| `carro-forte/` | A Manhã do Carro-Forte — Celular (`celular.html`, `game.js`, `fragmentos.js`, atividades) |
+| `carro-forte/noite/` | A Noite do Carro-Forte |
+| `mosaico-web/` · `v2/` | cliente React/Vite de A Noite da Casa da Costa (fonte) · build publicado |
+| `casos/` | material de histórias em desenvolvimento |
+| `ferramentas/` | bancadas de economia e duração, teste das regras, laboratório de bots |
+| `tests/` | testes automatizados da raiz |
+| `firestore.rules` · `.firebaserc` · `firebase.json` | regras e aliases Firebase (`mesa` → `mosaico-game`, `noite` → `mosaico-noite`) |
+| `brand/` | marca Dragon Games |
+| `HANDOFF.md` | documento de passagem e continuidade |
+| `MOSAICO-ACESSIBILIDADE-PAPEIS.md` · `PADRAO-SALA-MULTIPLAYER.md` · `OVERLAP-DECISOES.md` | normas de papéis, de sala multiplayer e de sobreposição |
+
+### A Noite da Casa da Costa (`mosaico-web/` → `v2/`)
+
+A Mesa (`v1/`) e A Noite (`mosaico-web/`, publicada em `v2/`) são **projetos independentes**: não compartilham código, mídia nem regras, e a duplicação entre eles é aceita. O build em `v2/` **não é porta de produção** — o hub e o redirect `casa-da-costa/` não apontam para ele.
+
+```bash
+cd mosaico-web
+npm install
+npm run dev        # desenvolvimento (abrir no celular por HTTPS — sem HTTPS o iPhone bloqueia o giroscópio)
+npm run publicar   # build de Pages e cópia limpa para ../v2/
+```
+
+- Nada se escreve à mão em `v2/`: a pasta é apagada inteira a cada publicação. Arquivos que precisam chegar lá moram em `mosaico-web/public/`.
+- No Pages o roteador anda por hash (`.../v2/#/noite`); para mandar alguém a uma rota, use `.../v2/?ir=noite`.
+- Caminho de mídia em JavaScript nunca começa com `/` (o site mora em `/Dragon/v2/`): use `import.meta.env.BASE_URL`.
+
+### Testes e CI
+
+Na raiz:
 
 ```bash
 npm install
+npm test               # motor, QR, caso sincronizado, fluxos e integridade (sem emulador)
+npm run test:regras    # regras do Firestore no emulador (requer Java)
+npm run test:tudo      # as duas verificações em sequência
+npm run economia       # bancada da economia do mercado
+npm run duracao        # bancada da duração sensorial
+```
+
+Em `mosaico-web/`:
+
+```bash
+cd mosaico-web
+npm install
+npm run typecheck
 npm test
 ```
 
-O motor, o QR e a sincronia `v1/casos/casa-da-costa.json` ↔ HTML rodam sem
-emulador. As regras do Firestore precisam do emulador (`npm run test:regras`).
-Para executar as duas verificações em sequência, use `npm run test:tudo`.
+O GitHub Actions (`.github/workflows/ci.yml`, Node 24) roda três verificações a cada push, pull request ou disparo manual: `npm test`; `npm run test:regras` no emulador do Firestore (Java 17); e `typecheck` + `test` de `mosaico-web/`.
 
----
-
-## A Noite — A Casa da Costa
-
-App em [`mosaico-web/`](./mosaico-web) (React / Vite). **Não substitui A Mesa.**
-
-- criação da mesa: **noite curta** (~20 min) ou **noite cheia** (~40 min)
-- QR na sala
-- encene, lanternas, procura da cor, foto partida (encaixe), tarja no ímpar
-- acusação em três linhas, a casa reparte o campo
-- cronômetro âmbar com glow; a casa vira sozinha
-- arquétipo (emoji) em vez de nome de personagem na porta
-
-O GitHub Pages ainda serve o build estático em [`v2/`](https://drmarionascimento.github.io/Dragon/v2/). **Não é porta de produção do playtest** — o hub e o redirect `/casa-da-costa/` não apontam para `/v2/`. Código-fonte: [`mosaico-web/`](./mosaico-web).
+### Publicação das regras
 
 ```bash
-cd mosaico-web && MOSAICO_PAGES=1 npx vite build
-# copiar dist/client para ../v2/, e depois, dentro de v2/:
-#   cp _shell.html index.html   — a casca do roteador é a página de entrada
-#   cp _shell.html 404.html
-#   touch .nojekyll             — senão o Pages ignora /__grok e afins
+firebase deploy --only firestore:rules -P mesa    # A Casa da Costa (mosaico-game)
+firebase deploy --only firestore:rules -P noite   # A Manhã do Carro-Forte (mosaico-noite)
 ```
 
-No Pages o roteador anda por hash (`.../v2/#/noite`): só existe arquivo na
-raiz do app, então endereço de rota digitado à mão devolve 404. Quem precisa
-mandar alguém para uma rota manda `.../v2/?ir=noite`.
+Quando a alteração valer para os dois casos, publique nos dois projetos.
 
-Caminho de mídia em JavaScript nunca começa com `/`: o site mora em
-`/Dragon/v2/`, e `"/media/foto.jpg"` cai na raiz do domínio. O Vite reescreve
-a base dentro do CSS, mas não dentro de string — use `import.meta.env.BASE_URL`.
-
----
-
-## Modo Solo — A Casa da Costa
-
-Pasta **própria**. Não misturar com A Mesa nem com A Noite. Não é o arquivo `v3.ts` de A Noite.
-
-Cada pista nasce em quatro fragmentos. Só a carta inteira entra no mosaico.
-
-- pasta: [`solo/`](./solo) → [solo/](https://drmarionascimento.github.io/Dragon/solo/)
-
-O endereço antigo [`v3/`](./v3) redireciona para o modo solo.
-
----
-
-## A Mesa — A Manhã do Carro-Forte
-
-Experiência jogável em HTML, CSS e JavaScript, sem dependência de Firebase. Os
-investigadores alternam perspectivas no mesmo dispositivo e montam Fragmentos
-rotacionáveis sob pressão de tempo.
-
-### Fluxo
-
-1. prólogo e oito fragmentos narrativos
-2. montagem das perspectivas distribuídas
-3. três rodadas de investigação: observar, cruzar e autenticar
-4. Hipótese I
-5. Mercado Cego
-6. Mosaico coletivo e escolha da rota probatória
-7. dedução final nos campos próprios desta perspectiva
-8. revelação modular e placar fechado em 100 pontos
-
-> Os campos desta experiência pertencem à perspectiva específica da partida e não constituem um formulário universal do MOSAICO.
-
-### Arquitetura
-
-| Arquivo | Responsabilidade |
-|---|---|
-| `carro-forte/index.html` | redirect para o gate Celular (`celular.html`) |
-| `carro-forte/celular.html` | estrutura e telas do jogo |
-| `carro-forte/styles.css` | identidade visual, profundidade e responsividade |
-| `carro-forte/game.js` | estado, quebra-cabeça, investigação e pontuação |
-| `carro-forte/assets/` | cenas das seis perspectivas |
-| `carro-forte/tiles/` | imagens do card no catálogo |
-| `carro-forte/README.md` | documentação específica do caso |
-
-O estado da partida é salvo localmente pelo navegador. A Noite e o Modo Solo
-de A Manhã do Carro-Forte ainda não estão publicados.
-
----
-
-## O Peso do Malote 41 — estória em desenvolvimento
-
-Nova estória concebida diretamente a partir da gramática consolidada do MOSAICO. Em vez de partir de “quem roubou?”, a partida desloca o mistério para a magnitude e a natureza do acontecimento.
-
-**Pergunta-mãe:**
-
-> **O banco anuncia que faltam quatrocentos e oitenta mil reais. Quanto realmente desapareceu?**
-
-A natureza principal da incógnita é **QUANTO**, com uma segunda camada de **QUAL / QUE TIPO**. Identificar quem esteve no corredor, quem alterou um lacre ou quem preparou uma janela operacional não resolve automaticamente a partida.
-
-Os campos de resolução foram derivados da pergunta: valor declarado, valor físico real, movimentações legítimas, diferença aparente, diferença real, origem da diferença e fechamento. Não existe campo universal “culpado”.
-
-A estória foi construída para explorar de forma explícita os princípios:
-
-- um fato verdadeiro pode estar associado à interpretação errada;
-- a evidência nova pode mudar a interpretação sem reescrever nenhum fato anterior;
-- irregularidade não equivale automaticamente a subtração;
-- presença, oportunidade, omissão e execução material são relações distintas;
-- a surpresa deve ser retrospectivamente justa: ao final, o jogador deve poder reconhecer que os fatos necessários já estavam disponíveis.
-
-O elenco usa **funções sem nomes próprios e sem marcação obrigatória de gênero**, permitindo que cada mesa projete os arquétipos livremente.
-
-Esta estória ainda não possui pasta ou experiência jogável publicada. Sua implementação deverá nascer da pergunta e dos campos próprios, e não copiar automaticamente a estrutura de acusação de A Casa da Costa ou de A Manhã do Carro-Forte.
-
----
-
-## Estado
-
-- **A Casa da Costa:** A Mesa, A Noite e Modo Solo jogáveis.
-- **A Manhã do Carro-Forte:** A Mesa jogável; A Noite e Modo Solo em construção.
-- **O Peso do Malote 41:** documento de estória estruturado pela nova gramática; implementação jogável ainda não publicada.
+### Antes de mudar regra, narrativa ou pontuação
 
 > **Tudo se adapta, nada se perde.**
 
-Antes de mudar regra, narrativa ou pontuação: consultar este README, `HANDOFF.md` e o histórico Git. Ao criar uma nova perspectiva, preservar a realidade factual e redefinir a pergunta antes de definir campos ou atividades.
+Consultar este README, `HANDOFF.md` e o histórico Git. Ao criar uma nova perspectiva, preservar a realidade factual e redefinir a pergunta antes de definir campos ou atividades. Uma nova história não copia automaticamente a estrutura de acusação de outro caso: nasce da sua pergunta e dos seus campos.
 
-## Modo · Papel · Camada
+## Autoria, licença e contato
 
-Fluxo: hub → caso → **Celular / Telão / Solo**. Em Celular e Solo, cada aparelho escolhe **papel cognitivo** + **camada** (Livre / Assistida / Guiada). Implementação: `papel-camada.js` — ver `MOSAICO-ACESSIBILIDADE-PAPEIS.md` §14.
+**Concepção e autoria:** Mário César Nascimento e Osana Melo Nascimento  
+**Manutenção e publicação:** [DrMarioNascimento](https://github.com/DrMarioNascimento)
 
-**Hipóteses por camada:** mesmas chaves de hipótese/decisão em Livre · Assistida · Guiada; a camada só muda o andaime (`hipoteses-por-camada.js` + §14.1–14.2). Assistida/Guiada persistem A/B/C, favor/contra e “não examinada”; o placar mostra métricas de **processo** (sem spoiler). Sem probabilidades nem ranking de solução.
+**Licença:** ver [LICENSE.md](LICENSE.md) (todos os direitos reservados; permitido jogar e avaliar na implantação oficial; demais usos dependem de autorização prévia e escrita). A visibilidade pública do repositório não autoriza copiar, adaptar, redistribuir, comercializar, treinar IA ou criar obra derivada.
 
-## Licença e uso
-
-Repositório público para consulta e GitHub Pages — **não é código aberto**. A visibilidade não autoriza copiar, adaptar, redistribuir, comercializar, treinar IA ou criar obra derivada. Ver [Licença Proprietária](LICENSE.md).
+**Contato:** pelo perfil [github.com/DrMarioNascimento](https://github.com/DrMarioNascimento).
 
 ---
 
