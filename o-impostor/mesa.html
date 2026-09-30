@@ -1440,7 +1440,7 @@ function falaNoGrupo(ids,txt){var id=voz(ids);if(!id)return;grupo.push({de:SLOT_
 /* ── O relógio (Cap. 3) dentro da tela do jogo ───────────────────────────
    modo: parar (a Herdeira jogada por você) · religar (quem religa, jogado por
    você) · ver (os outros). estado: andando · parado · religado. */
-var relogioModo='ver',relogioEstado='andando',portaAvisada=false;
+var relogioModo='ver',relogioEstado='andando',portaAvisada=false,relogioEnvio=false;
 function destravarRelogio(){if(!PECAS[3].tranca)return;PECAS[3].tranca=false;pintarPecas();document.querySelector('[data-aba="ra"]').classList.add('glow')}
 function atualizarRelogio(modo,est){relogioModo=modo;relogioEstado=est;
   var f=document.querySelector('#telaRA iframe[data-peca="relogio"]');
@@ -1458,6 +1458,9 @@ function grafiteNosDedos(){
 }
 function recadoDoRelogio(ev){
   if(ev==='pronto'){atualizarRelogio(relogioModo,relogioEstado);return}
+  /* a chave de corda (muda de lugar a cada partida): envio extra do capítulo */
+  if(ev==='chave'&&!relogioEnvio){relogioEnvio=true;
+    INVENTARIO.push({ico:'🗝️',nome:'Chave de corda',desc:'Achada no relógio'});achouEnvio();return}
   if(capitulo!==3||capituloFechado[3])return;
   var g=portaoAtivo;
   if(ev==='porta'&&g&&g.acao==='parar'&&!portaAvisada){portaAvisada=true;
@@ -1986,6 +1989,7 @@ var C3_R2=(function(){
       'Você ouviu o estalo?':'Ouvi. Veio do fundo do móvel.',
       'Não confio em ninguém aqui.':'Nem eu.'
     },
+    achar:{itens:['1 envio extra, escondido no relógio (aba RA, depois que ele destravar)'],dica:'Dá para girar o relógio com o dedo e olhar por todos os lados, até de cima e de baixo.'},
     acompPriv:RESP_ACOMP_R2,
     debate:{pergunta:'O que a marca molhada prova, e o que ela não prova?',falas:[
       fala(['policial','residente','tabeliao'],'Prova que alguém entrou pelo jardim no minuto em que todos estavam na biblioteca.'),
