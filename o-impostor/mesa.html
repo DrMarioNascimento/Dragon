@@ -1692,6 +1692,7 @@ var C1=(function(){
     respPriv:[[40,'Você viu alguém chegar antes?'],[170,'Você reconheceu aquela xícara?'],[330,'Você ouviu a maçaneta?'],[0,'Não confio em ninguém aqui.']],
     replica:replica,
     acompPriv:{},              /* o celular do proprietário fica calado até o Cap. 2 */
+    achar:{itens:['1 pista escondida na bandeja da sala (aba RA)','1 envio extra, também na bandeja'],dica:'Na RA, o que se abre ou se vira, se move arrastando com o dedo, como a chave da casa no prólogo.'},
     debate:{pergunta:'O que, nesta sala, prova que alguém mora aqui?',falas:[
       (function(){var id=voz(['residente','herdeira','jornalista']);return id?[SLOT_DE[id],FUNCIONARIOS.length?'A xícara. A louça foi recolhida ontem à noite, e hoje tinha café frio numa xícara que não é da sala.':'A xícara com café. A casa estava fechada havia cinco meses.']:null})(),
       (function(){var id=voz(['policial','observadora','tabeliao']);return id?[SLOT_DE[id],'O relógio. Relógio de corda não anda cinco meses sozinho. Alguém dá corda nele.']:null})(),
@@ -1787,8 +1788,6 @@ var C2_R2=(function(){
     'Quem viu a luz no corredor?':fala([M.luz],'Eu vi. Azul, como tela de celular.'),
     'Pode ser o número novo do dono.':fala(['herdeira','advogado'],'Se for, quem está com o celular dele?'),
     'Quem estava perto do corredor de serviço?':fala(['policial','residente','jornalista'],'Mais de um. Eu não vi quem falou.',fq),
-    'Achei no escritório uma conta do celular do dono, paga em setembro.':fala(['policial','jornalista'],'Paga depois que ele morreu? Então alguém usa o número dele.'),
-    'Tem um recibo de mercearia recente no escritório.':fala(['observadora','herdeira'],'Recente? A casa não estava fechada?'),
     'Vamos ficar juntos.':fala(['policial','herdeira'],'Concordo.'),
     'Onde você está agora?':'Na sala, com todo mundo.',
     'Você ouviu a frase perto do corredor?':'Ouvi a resposta no grupo. A frase, não.',
@@ -1796,10 +1795,11 @@ var C2_R2=(function(){
   };
   return {
     roteiro:ev,
-    respGrupo:[['foto:Conta de celular (gaveta)','Achei no escritório uma conta do celular do dono, paga em setembro.'],['foto:Recibo da mercearia','Tem um recibo de mercearia recente no escritório.'],[100,'Aqui.'],[78,'Quem é esse número?'],[50,'Quem viu a luz no corredor?'],[tc,'Pode ser o número novo do dono.'],[t+34,'Quem estava perto do corredor de serviço?'],[0,'Vamos ficar juntos.']],
+    respGrupo:[[100,'Aqui.'],[78,'Quem é esse número?'],[50,'Quem viu a luz no corredor?'],[tc,'Pode ser o número novo do dono.'],[t+34,'Quem estava perto do corredor de serviço?'],[0,'Vamos ficar juntos.']],
     respPriv:[[0,'Onde você está agora?'],[78,'Quem é esse número?'],[t+34,'Você ouviu a frase perto do corredor?'],[0,'Não confio em ninguém aqui.']],
     replica:replica,
     acompPriv:RESP_ACOMP_R2,
+    achar:{itens:['papéis para ler e fotografar, no tampo e nas seis gavetas da escrivaninha (aba RA)','1 envio extra, escondido entre os papéis do tampo'],dica:'As gavetas se abrem arrastando para a frente. Um toque rápido num papel tira a foto dele, e ela vai para o seu inventário.'},
     debate:{pergunta:'Por que ninguém sabe o número do dono, nem a filha?',falas:[
       fala(['herdeira','advogado'],'Ele trocou de chip nos últimos meses. Ninguém da família tinha o número novo.'),
       fala(['policial','tabeliao','residente'],'O cartório montou o grupo com a lista que ele deixou, sem nomes. Um dos números não é de ninguém daqui.'),
@@ -1849,6 +1849,9 @@ function comecarCapitulo(n){
   enviosNoCap=0;avisouMinimo=false;
   if(n>1){envios=3;pintarEnvios();fimDeCapitulo=false;votoEm=null;votoPers=null;apostaConf=null;if(aba==='suspeitos')pintarSusp()}
   if(n===1){marcas.filter(function(x){return x.cap===0}).forEach(function(x){if(MSGS[x.id])MSGS[x.id].marca=false});marcas=marcas.filter(function(x){return x.cap!==0});treinoMarca=false;pintarGrupo()}
+  /* Dica para quem está começando (Mario, 30/09): o que dá para achar no
+     capítulo, sem dizer onde está nem o que significa. ?dicas=0 desliga. */
+  var RA_=ROTEIROS[n];if(RA_&&RA_.achar&&Q.get('dicas')!=='0')setTimeout(function(){janela('PARA ACHAR NESTE CAPÍTULO','Dica para quem está começando. Neste capítulo dá para achar: '+RA_.achar.itens.join('; ')+'. '+RA_.achar.dica)},300);
   janela('CAPÍTULO '+c.n,'O relógio do capítulo começou. '+TXT_TEMPO+' Agora cada mensagem ou anexo gasta 1 envio.'+(n===1||n===2?' Uma peça nova abriu na aba RA.':'')+' Lembre: toque e segure uma fala para marcá-la (até '+MAX_MARCAS+' neste capítulo).');
 }
 /* Tarefa explicativa + execução: no prólogo, o jogador aprende a marcar uma fala
