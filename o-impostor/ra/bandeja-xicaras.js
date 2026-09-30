@@ -6,7 +6,7 @@
    formam uma sequência; a sétima não se encaixa em lugar nenhum. As xícaras se
    ARRASTAM para os lados na bandeja: quando as seis ficam em ordem e a sétima
    sobra numa ponta, a poeira do fundo sai e aparece a pista — a xícara que
-   sobra é de OUTRO jogo (sem o carimbo Dragon Games das outras seis, uma florzinha de jasmim, fundo
+   sobra é de OUTRO jogo, o de borda verde do quarto dos fundos (sem o carimbo Dragon Games das outras seis, uma florzinha de jasmim, fundo
    limpo; as da casa têm pó de cinco meses). Debaixo de uma das seis, junto do
    sinal, há um envio extra (muda por partida e por jogador).
 
@@ -205,6 +205,10 @@
     g.font = '800 ' + (t.length > 3 ? 40 : t.length > 2 ? 52 : 72) + 'px Georgia, serif';
     g.fillText(t, U / 2, it.envio ? 84 : 96);
     if (it.envio) { g.font = '700 17px Georgia, serif'; g.fillStyle = '#7a5a10'; g.fillText('✉ +1 envio', U / 2, 124); }
+    if (it.intruso) {                                    /* o jogo de borda verde, do quarto dos fundos */
+      g.strokeStyle = '#3f8a5c'; g.lineWidth = 7; g.beginPath(); g.arc(U / 2, U / 2, U / 2 - 7, 0, Math.PI * 2); g.stroke();
+      g.strokeStyle = '#2f6e48'; g.lineWidth = 1.5; g.beginPath(); g.arc(U / 2, U / 2, U / 2 - 13, 0, Math.PI * 2); g.stroke();
+    }
     (it.intruso ? marcaDeFora : marcaDaCasa)(g, U / 2, MARCA_Y);
   }
 

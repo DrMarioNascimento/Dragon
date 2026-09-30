@@ -259,3 +259,12 @@
   letter-spacing:.04em;
   line-height:1.15;
 }
+
+/* Foco visível pelo teclado (e por controle remoto no telão).
+   :where() tem especificidade zero: todo componente que já desenha o próprio
+   foco continua mandando; isto só aparece onde antes não aparecia nada.
+   :focus-visible não dispara em toque nem em clique de mouse. */
+:where(a,button,input,select,textarea,summary,[role="button"],[tabindex]:not([tabindex="-1"])):focus-visible{
+  outline:2px solid var(--gold2,#efc878);
+  outline-offset:3px;
+}

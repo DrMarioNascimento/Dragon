@@ -3,6 +3,9 @@
 <meta name="theme-color" content="#0a1119">
 <title>O Vidro Embaçado — Carro-Forte</title>
 <link rel="stylesheet" href="atividade.css?v=20260907-pista-arquivo">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,500;7..72,600&display=swap" rel="stylesheet">
 <style>
 /* ==========================================================================
    O VIDRO EMBAÇADO — A MANHÃ DO CARRO-FORTE
@@ -237,6 +240,12 @@ function cava(x,y,r,forca){
 
 /* ── O TEXTO ATRÁS DO VIDRO ─────────────────────────────────────────────── */
 var FONTE='"Literata","Charter","Iowan Old Style",Georgia,"Noto Serif",serif';
+/* A Literata agora é carregada no <head>. O texto vai para o canvas uma vez;
+   se a fonte chegar depois, repinta — mesmo cuidado do Vidro da Casa da Costa. */
+if(document.fonts && document.fonts.load){
+  /* o canvas não pede a fonte sozinho: carrega explicitamente e repinta */
+  document.fonts.load('600 20px "Literata"').then(function(){ if(atual) pintaTexto(atual); });
+}
 function quebra(x,texto,larg){
   var pal=texto.split(' '), linhas=[], cur='';
   for(var i=0;i<pal.length;i++){
