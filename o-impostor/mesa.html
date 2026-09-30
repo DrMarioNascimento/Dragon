@@ -891,7 +891,14 @@ var PALETA=[
   {arq:'azul',cor:'#6fa8ff'},{arq:'transparente',cor:'#d8dee4'},{arq:'esmeralda',cor:'#5fd68a'},{arq:'dourado',cor:'#e6c36a'},
   {arq:'roxo',cor:'#b9a6ff'},{arq:'verde-agua',cor:'#3cc9a8'},{arq:'ciano',cor:'#5fd8ec'},{arq:'vermelho',cor:'#ff8a80'},
   {arq:'rosa',cor:'#f28cc0'},{arq:'laranja',cor:'#ffa05a'},{arq:'lima',cor:'#b8e05a'},{arq:'cobre',cor:'#d49a6a'},{arq:'indigo',cor:'#9a9eff'}];
-var N_CONTATOS=Math.max(7,Math.min(PALETA.length,+Q.get('contatos')||7));
+/* Revisão 2 (Mario, 30/09/2026): a casa tem 6, 8, 10 ou 12 personagens, e cada
+   bloco entra junto: 8 = +Tabelião e Governanta; 10 = +Advogado e Jardineiro;
+   12 = +Chefe de Cozinha e Eletricista. (A casa de 4 ainda não roda neste
+   protótipo, que parte de 7 contatos.) ?casa=N escolhe a casa; ?p=N força uma
+   das partidas da Matriz (e a casa dela); ?contatos=N, o antigo, ainda vale. */
+var PARTIDAS_R2={1:6,2:8,4:12,5:10,6:6,7:8,8:12,9:6,10:10,12:12,13:8,14:10,15:12};   /* P3 e P11 são de casa 4 */
+var CASA=(function(){var p=+Q.get('p');if(PARTIDAS_R2[p])return PARTIDAS_R2[p];var c=+Q.get('casa')||((+Q.get('contatos')||7)-1);c=Math.max(6,Math.min(12,c));return c-c%2})();
+var N_CONTATOS=CASA+1;   /* todos da casa + o celular do proprietário */
 var SLOTS=(function(){var r=gerador(PARTIDA+'|numeros'),out=[];while(out.length<N_CONTATOS){var n=('0'+Math.floor(r()*100)).slice(-2);if(out.indexOf(n)<0)out.push(n)}return out})();
 var CORES={},ARQ={};
 (function(){var r=gerador(PARTIDA+'|cores');
@@ -903,13 +910,32 @@ window.OIContatos=ARQ;
 var NUMEROS=SLOTS.slice().sort();          // nas listas, em ordem de número
 var EU=SLOTS[2];                            // o seu número nesta partida
 function S(i){return SLOTS[i]}             // o i-ésimo contato do roteiro de demonstração
-/* Extras entram com mais gente na mesa (um contato a mais para cada um). */
+/* Extras entram com mais gente na mesa, na ordem dos blocos da revisão 2.
+   Os funcionários (Governanta, Chefe de Cozinha, Jardineiro, Eletricista)
+   vieram preparar a casa para a leitura e a chuva os prendeu; não estão na
+   lista do proprietário, os convocados não sabiam deles, e os números deles
+   só entram no grupo depois do encontro, no Cap. 1 (Mario, 30/09/2026). */
 var EXTRAS=[
-  {id:'tabeliao',nome:'Tabelião',funcao:'oficializar'},{id:'advogado',nome:'Advogado',funcao:'validar a vontade'},
-  {id:'governanta',nome:'Governanta',funcao:'preparar a casa'},{id:'chefe_de_cozinha',nome:'Chefe de Cozinha',funcao:'preparar a casa'},
-  {id:'jardineiro',nome:'Jardineiro',funcao:'preparar a casa'},{id:'eletricista',nome:'Eletricista',funcao:'preparar a casa'}];
+  {id:'tabeliao',nome:'Tabelião',funcao:'oficializar'},
+  {id:'governanta',nome:'Governanta',funcao:'preparar a casa',funcionario:true},
+  {id:'advogado',nome:'Advogado',funcao:'validar a vontade'},
+  {id:'jardineiro',nome:'Jardineiro',funcao:'preparar a casa',funcionario:true},
+  {id:'chefe_de_cozinha',nome:'Chefe de Cozinha',funcao:'preparar a casa',funcionario:true},
+  {id:'eletricista',nome:'Eletricista',funcao:'preparar a casa',funcionario:true}];
 var EXTRAS_NA_MESA=EXTRAS.slice(0,N_CONTATOS-7);
-var PAPEIS=['Investigador','Herdeira','Residente','Jornalista','Policial','Observadora'].concat(EXTRAS_NA_MESA.map(function(e){return e.nome}),['Número do proprietário']);
+var EU_PAPEL='investigador';               // o seu personagem nesta demonstração
+/* Quem é cada número: só o jogo sabe. O seu é SLOTS[2]; a Acompanhante usa o
+   do proprietário (SLOTS[6]); os demais da base são sorteados pela partida;
+   os extras ficam de SLOTS[7] em diante. */
+var SLOT_DE={};SLOT_DE[EU_PAPEL]=EU;
+(function(){var r=gerador(PARTIDA+'|papeis'),ids=['herdeira','residente','jornalista','policial','observadora'],s=[0,1,3,4,5];
+  for(var i=ids.length-1;i>0;i--){var j=Math.floor(r()*(i+1)),t=ids[i];ids[i]=ids[j];ids[j]=t}
+  ids.forEach(function(id,i){SLOT_DE[id]=S(s[i])});
+  EXTRAS_NA_MESA.forEach(function(e,i){SLOT_DE[e.id]=S(7+i)})})();
+var foraDoGrupo={},encontroFeito=false;
+EXTRAS_NA_MESA.forEach(function(e){if(e.funcionario)foraDoGrupo[SLOT_DE[e.id]]=true});
+function membros(){return NUMEROS.filter(function(f){return !foraDoGrupo[f]})}   // quem está no grupo agora
+function papeisSalvar(){return ['Investigador','Herdeira','Residente','Jornalista','Policial','Observadora'].concat(EXTRAS_NA_MESA.filter(function(e){return !e.funcionario||encontroFeito}).map(function(e){return e.nome}),['Número do proprietário'])}
 var rotulo={};                      // o que ESTE jogador salvou: final -> papel
 var suspeita={}, notas={}, votoEm=null, fimDeCapitulo=false, apostaConf=null;
 var envios=3;
@@ -929,7 +955,7 @@ var grupo=[
   {de:S(5),txt:'Tem luz na cozinha.'},
   {de:S(4),txt:'Quem trouxe a lista?'},
   {de:S(1),txt:'Estou na biblioteca.'}
-].concat(['Cheguei pelos fundos. Que chuva.','Alguém tem sinal aqui?','A luz acabou de piscar.','Estou perto da escada.','Tem alguém lá em cima?','Estou na sala de jantar.'].slice(0,N_CONTATOS-7).map(function(t,i){return {de:S(7+i),txt:t}}));
+].concat(['Cheguei pelos fundos. Que chuva.','Alguém tem sinal aqui?','A luz acabou de piscar.','Estou perto da escada.','Tem alguém lá em cima?','Estou na sala de jantar.'].slice(0,N_CONTATOS-7).map(function(t,i){return {de:S(7+i),txt:t}}).filter(function(m){return !foraDoGrupo[m.de]}));
 var privadas={
 };
 privadas[S(4)]={nao:0,msgs:[{de:S(4),txt:'Você chegou antes ou depois de mim?'}]};
@@ -945,14 +971,14 @@ function bolha(m){
   var op='';
   return '<div class="msg'+(eu?' eu':'')+(m.op?' op':'')+'"><div class="bolha">'+quem+op+(m.txt||'')+anexo+'<span class="hora">'+(m.h||hora())+'</span></div></div>';
 }
-function pintarGrupo(){$('#grupoTopo').innerHTML='Grupo da casa · <b>'+N_CONTATOS+' números</b>';var el=$('#chatGrupo');el.innerHTML=grupo.map(bolha).join('');el.scrollTop=el.scrollHeight}
+function pintarGrupo(){$('#grupoTopo').innerHTML='Grupo da casa · <b>'+membros().length+' números</b>';var el=$('#chatGrupo');el.innerHTML=grupo.map(bolha).join('');el.scrollTop=el.scrollHeight}
 
 /* ── Privadas ────────────────────────────────────────────────────────── */
 var abertaPriv=null;
 function pintarListaPriv(){
   /* Todos os números do grupo estão na lista: dá para escrever no privado a
      qualquer um. Primeiro quem tem conversa (a mais recente no alto). */
-  var fs=NUMEROS.filter(function(f){return f!==EU});
+  var fs=membros().filter(function(f){return f!==EU});
   function ult(f){var p=privadas[f];return p&&p.msgs.length?p.msgs.length+(p.ordem||0):0}
   fs.sort(function(a,b){return ult(b)-ult(a)});
   $('#listaPriv').innerHTML=fs.map(function(f){
@@ -1062,7 +1088,7 @@ document.addEventListener('click',function(e){
   folha('<h2 style="color:'+CORES[f]+'">···'+f+'</h2><p class="sub">Só você vê o nome que salvar. Ele pode estar errado.</p>'+
     '<button class="item" data-abrirpriv="'+f+'"><span style="font-size:22px">💬</span><span><b>Conversar no privado</b></span></button>'+
     '<p class="sub" style="margin-top:10px">Salvar como…</p>'+
-    PAPEIS.map(function(p){return '<button class="item" data-salvar="'+p+'"><span><b>'+p+(rotulo[f]===p?' ✓':'')+'</b></span></button>'}).join('')+
+    papeisSalvar().map(function(p){return '<button class="item" data-salvar="'+p+'"><span><b>'+p+(rotulo[f]===p?' ✓':'')+'</b></span></button>'}).join('')+
     '<button class="item" data-salvar=""><span><b>Sem nome</b><span>Volta a mostrar só o número</span></span></button>');
   document.querySelectorAll('[data-salvar]').forEach(function(b){b.onclick=function(){
     if(b.dataset.salvar)rotulo[f]=b.dataset.salvar;else delete rotulo[f];
@@ -1074,7 +1100,7 @@ document.addEventListener('click',function(e){var p=e.target.closest('[data-priv
 
 /* ── Suspeitos: caderno durante o capítulo; votação no fim ─────────────── */
 function pintarSusp(){
-  var outros=NUMEROS.filter(function(f){return f!==EU});
+  var outros=membros().filter(function(f){return f!==EU});
   var topo=fimDeCapitulo
     ?'<div class="aviso ouro"><b>Fim do capítulo.</b> O caderno travou. Em quem você aposta como impostor? É opcional e só você vê.</div>'+
      '<div class="conf-aposta">'+[['certeza','Com certeza'],['sem','Sem certeza'],['naosei','Não sei']].map(function(c){return '<button type="button" data-aposta-conf="'+c[0]+'" class="'+(apostaConf===c[0]?'on':'')+'">'+c[1]+'</button>'}).join('')+'</div>'
@@ -1112,7 +1138,7 @@ function pintarSusp(){
 /* ── RA ──────────────────────────────────────────────────────────────── */
 var PECAS=[
   {cap:'PRÓLOGO',nome:'A maquete',txt:'A casa inteira, por camadas',abrir:'maquete',ico:'🏠'},
-  {cap:'CAP. 1',nome:'A bandeja',txt:'Sete xícaras',abrir:'bandeja',ico:'🍽️',tranca:true},
+  {cap:'CAP. 1',nome:'A bandeja',txt:'No aparador da sala',abrir:'bandeja',ico:'🍽️',tranca:true},
   {cap:'CAP. 2',nome:'A escrivaninha',txt:'No escritório',abrir:'escrivaninha',ico:'🖋️',tranca:true},
   {cap:'CAP. 3',nome:'O relógio',txt:'Na sala',href:'relogio.html',ico:'🕰️',tranca:true},
   {cap:'CAP. 4',nome:'O jardim interno',txt:'E o farol ao longe',href:'livro.html',ico:'🌿',tranca:true},
@@ -1226,7 +1252,9 @@ function achouEnvio(){
    o relógio que bate atrás do lacre e a maçaneta do quarto de serviço que
    desce por dentro. Caps. 1 e 2 não têm contradição. S(6) fica calado até o
    Cap. 2 (a sétima voz). Tempos em segundos desde o começo do capítulo. */
-var C1={
+/* SUBSTITUÍDO em 30/09/2026 pelo Cap. 1 da revisão 2 (logo abaixo). Guardado
+   por regra do Mario: nada se apaga sem substituição formal. Não é tocado. */
+var C1_V31_SUBSTITUIDO={
   roteiro:[
     [8,'sis','A casa estava fechada havia cinco meses. Os lacres ainda estão na porta da sala e no móvel do relógio.'],
     [30,S(0),'Alguém mais sentiu cheiro de café?'],
@@ -1276,6 +1304,7 @@ function fotografou(nome){return INVENTARIO.some(function(it){return it.nome===n
 function tocarRoteiro(r,escala){
   r.forEach(function(ev){roteiroTimers.push(setTimeout(function(){
     if(ev[1]==='sis'){grupo.push({sis:ev[2]});pintarGrupo();if(aba!=='grupo')document.querySelector('[data-aba="grupo"]').classList.add('glow')}
+    else if(ev[1]==='add'){foraDoGrupo={};encontroFeito=true;grupo.push({sis:ev[2]});pintarGrupo();pintarListaPriv();if(aba==='suspeitos')pintarSusp()}
     else if(ev[1].indexOf('priv:')===0)chegaPrivada(ev[1].slice(5),ev[2]);
     else if(ev[1].indexOf('op:')===0){grupo.push({de:ev[1].slice(3),op:'TELEFÔNICA MOSAICO',txt:ev[2],h:hora()});pintarGrupo()}
     else{grupo.push({de:ev[1],txt:ev[2],h:hora()});pintarGrupo()}
@@ -1308,6 +1337,7 @@ function fimDoCapitulo(){
 var filaPerguntas=[];
 function perguntasDo(n){
   var R=ROTEIROS[n],r=gerador(PARTIDA+'|pergunta|'+n),out=[];
+  if(R&&R.perguntas)return R.perguntas();
   /* Cap. 1: a principal ("Em quem caiu a primeira suspeita?", da culpa plantada) entra quando o roteiro tiver as sementes. */
   if(n===2){
     var P=['guardia','explosiva','ardilosa','quieta'],T={guardia:'Recua com calma: educada, desconversa.',explosiva:'Explode: acusa e ataca quem pergunta.',ardilosa:'Negocia: pergunta de volta e pede troca.',quieta:'Some: silêncio e respostas curtas.'};
@@ -1389,6 +1419,132 @@ var C2={
   pergunta:{pergunta:'Quantas pessoas há na casa?',opcoes:function(){
     return [N_CONTATOS,N_SALA,N_CONTATOS+1,N_SALA-1].map(function(n){return n+' pessoas'})}}
 };
+/* ── Capítulo 1 · A Reabertura (revisão 2) ──────────────────────────────
+   Substitui, em 30/09/2026, o C1 da v3.1 (guardado acima, em
+   C1_V31_SUBSTITUIDO). Decisões do Mario (30/09):
+   - o narrador nomeia os personagens; o chat segue pelo final do número;
+   - os funcionários vieram preparar a casa para a leitura e a chuva os prendeu;
+     os convocados não sabiam deles. O Faroleiro chama pelo rádio, vem o
+     encontro e o Tabelião põe os números deles no grupo, "para a ata";
+   - na casa de 6 não há funcionários: o farol só fala da luz na ala de serviço.
+   Os trechos ◆ vêm da Matriz da revisão 2: a semente sorteia uma partida
+   entre as da casa (?p=N força uma). Tempos em segundos desde o começo. */
+var MATRIZ_C1={
+  1:{voltou:['herdeira','O piano mudou de lugar desde as fotos.'],xicara:['observadora'],macaneta:'residente'},
+  2:{voltou:['governanta','A janela da copa agora emperra.'],xicara:['governanta'],macaneta:'jornalista'},
+  4:{voltou:['jardineiro','O gato está gordo.'],xicara:['governanta'],macaneta:'chefe_de_cozinha'},
+  5:{voltou:['jornalista','Da última vez, o portão tinha corrente.'],xicara:['observadora'],macaneta:'jardineiro'},
+  6:{voltou:['observadora','A cortina da biblioteca foi lavada.'],xicara:['herdeira','É o jogo da minha avó. Não é desta sala.'],macaneta:'jornalista'},
+  7:{voltou:['policial','A fechadura do vestíbulo eu mesmo troquei.'],xicara:['governanta','Eu servi o último café dele nessa xícara. Na última noite.'],macaneta:'investigador'},
+  8:{voltou:['chefe_de_cozinha','porto'],xicara:['governanta'],macaneta:'eletricista'},
+  9:{voltou:['investigador','O sensor da janela ainda está aqui.'],xicara:['observadora'],macaneta:'herdeira'},
+  10:{voltou:['governanta','Na terça, estas janelas estavam fechadas…'],xicara:['herdeira'],macaneta:'residente'},
+  12:{voltou:['chefe_de_cozinha','porto'],xicara:['governanta'],macaneta:'jardineiro'},
+  13:{voltou:['jornalista','Da última vez, o portão tinha corrente.'],xicara:['governanta'],macaneta:'observadora'},
+  14:{voltou:['advogado','A gaveta da escrivaninha agora fecha.'],xicara:['observadora'],macaneta:'governanta'},
+  15:{voltou:['eletricista','O medidor girou este mês.'],xicara:['chefe_de_cozinha'],macaneta:'investigador',relogioP15:true}
+};
+var P_R2=(function(){var p=+Q.get('p');if(MATRIZ_C1[p]&&PARTIDAS_R2[p]===CASA)return p;
+  var ps=Object.keys(PARTIDAS_R2).filter(function(k){return PARTIDAS_R2[k]===CASA});
+  return +ps[Math.floor(gerador(PARTIDA+'|matriz')()*ps.length)]})();
+var NOMES={investigador:['o','Investigador'],herdeira:['a','Herdeira'],residente:['o','Residente'],jornalista:['o','Jornalista'],
+  policial:['o','Policial'],observadora:['a','Observadora'],tabeliao:['o','Tabelião'],advogado:['o','Advogado'],
+  governanta:['a','Governanta'],chefe_de_cozinha:['o','Chefe de Cozinha'],jardineiro:['o','Jardineiro'],eletricista:['o','Eletricista']};
+function na(id){return id===EU_PAPEL?'você':NOMES[id][0]+' '+NOMES[id][1]}          // "a Governanta" · "você"
+function Na(id){var t=na(id);return t.charAt(0).toUpperCase()+t.slice(1)}
+function rotuloDe(id){return NOMES[id][1]+(id===EU_PAPEL?' (você)':'')}
+var NA_CASA=['investigador','herdeira','residente','jornalista','policial','observadora'].concat(EXTRAS_NA_MESA.map(function(e){return e.id}));
+var FUNCIONARIOS=EXTRAS_NA_MESA.filter(function(e){return e.funcionario}).map(function(e){return e.id});
+function presente(id){return NA_CASA.indexOf(id)>=0}
+function listaNomes(ids){var n=ids.map(na);return n.length<2?n.join(''):n.slice(0,-1).join(', ')+' e '+n[n.length-1]}
+/* Opções de pessoa: a certa (índice 0) e três outras da casa, sorteadas pela partida. */
+function opcoesPessoa(certo,chave){var r=gerador(PARTIDA+'|opcoes|'+chave),o=NA_CASA.filter(function(id){return id!==certo});
+  for(var i=o.length-1;i>0;i--){var j=Math.floor(r()*(i+1)),t=o[i];o[i]=o[j];o[j]=t}
+  return [rotuloDe(certo)].concat(o.slice(0,3).map(rotuloDe))}
+/* Quem responde no chat: o primeiro da lista que está na casa, não é você e não é quem se exclui. */
+function voz(ids,exceto){for(var i=0;i<ids.length;i++){var id=ids[i];if(presente(id)&&id!==EU_PAPEL&&id!==exceto)return id}return null}
+
+var C1=(function(){
+  var M=MATRIZ_C1[P_R2],cond=presente('tabeliao')?'tabeliao':'policial',nConv=NA_CASA.length-FUNCIONARIOS.length,ev=[];
+  function sis(t,txt){ev.push([t,'sis',txt])}
+  function chat(t,id,txt){if(id&&presente(id)&&id!==EU_PAPEL)ev.push([t,SLOT_DE[id],txt])}
+  function priv(t,id,txt){if(id&&presente(id)&&id!==EU_PAPEL)ev.push([t,'priv:'+SLOT_DE[id],txt])}
+
+  sis(6,'A chuva tinha começado na estrada e não parou nem quando a porta se fechou atrás do último que entrou. No cabide do vestíbulo, casacos pingando: uma capa bege, um impermeável com faixa refletiva, um casaco de lã escuro que alguém sacudiu com raiva'+(presente('jardineiro')?'. E um oleado amarelo que ninguém ali tinha trazido.':'.'));
+  sis(20,Na(cond)+' contou os convocados duas vezes e anotou '+nConv+'. Depois conferiu os lacres das portas internas, um por um, com a lanterna do celular. <i>"Até a leitura, nada sai do lugar. Nem vocês."</i>');
+  if(FUNCIONARIOS.length){
+    sis(40,'O velho rádio VHF chia. É o farol: <i>"Casa da Costa, aqui é o farol. Tem luz na cozinha e na ala de serviço desde as quatro da tarde. Está tudo bem aí?"</i>');
+    chat(52,'residente','Ninguém de nós chegou às quatro.');
+    chat(62,'jornalista','Quem acendeu a cozinha?');
+    var um=FUNCIONARIOS.length===1,lf=listaNomes(FUNCIONARIOS);   /* um só = a Governanta (casa de 8) */
+    sis(85,'Na cozinha, o fogão aceso e '+(um?'alguém':'gente')+' de avental. '+lf.charAt(0).toUpperCase()+lf.slice(1)+(um?' veio':' vieram')+' preparar a casa para a leitura, e a chuva '+(um?'a':'os')+' prendeu aqui. Nenhum convocado sabia '+(um?'dela. Ela também não sabia':'deles. Eles também não sabiam')+' quem viria.');
+    sis(100,Na('tabeliao')+' anotou mais '+FUNCIONARIOS.length+' e pôs '+(um?'o número dela':'os números deles')+' no grupo do cartório: <i>"Para a ata, todos que estão na casa."</i>');
+    ev.push([102,'add','<b>+'+FUNCIONARIOS.length+(FUNCIONARIOS.length>1?' números entraram':' número entrou')+' no grupo.</b> Agora são '+N_CONTATOS+'.']);
+    chat(112,FUNCIONARIOS[0],(um?'Boa noite. Ninguém me avisou que vinha tanta gente.':'Boa noite. Ninguém nos avisou que vinha tanta gente.'));
+    chat(125,'policial','E ninguém nos avisou que tinha alguém aqui.');
+  }else{
+    sis(40,'O velho rádio VHF chia. É o farol: <i>"Casa da Costa, aqui é o farol. Vi luz na ala de serviço desde a tarde. Está tudo bem aí?"</i>');
+    chat(52,'residente','Ninguém de nós chegou à tarde.');
+    chat(62,'jornalista','E a ala de serviço estava trancada.');
+  }
+  sis(145,'Foram para a sala do relógio, a única com lareira acesa. Alguém a tinha acendido.'+(presente('governanta')?' '+Na(cond)+' olhou para a lenha, depois para a Governanta, depois de novo para a lenha, e decidiu não perguntar.':' Ninguém disse quem.'));
+  /* ◆ a xícara */
+  var xq=M.xicara[0],xfala=M.xicara[1];
+  var xtxt='No aparador, uma bandeja com sete xícaras. Numa delas, um dedo de café frio, com uma película por cima. ';
+  if(xq==='governanta'&&!xfala)xtxt+='A Governanta foi quem viu primeiro: <i>"Essa não é daqui. Não é da louça da sala. É o jogo de borda verde, o que ficava no quarto dos fundos."</i> <i>"A senhora conhece bem a louça de uma casa fechada há cinco meses"</i>, disse o Policial. <i>"Conheço a louça. A casa, eu já não sei."</i>';
+  else xtxt+=Na(xq)+' foi quem viu primeiro: <i>"Essa não é da louça da sala. É de outro jogo, de borda verde."</i>'+(xfala?' E depois, mais baixo: <i>"'+xfala+'"</i>':'');
+  sis(170,xtxt);
+  chat(190,voz(['herdeira','observadora','residente'],xq),'Xícara com café numa casa fechada. Alguém esteve aqui hoje.');
+  /* o relógio */
+  sis(205,'O relógio bateu sete horas. O som encheu a sala e se demorou nas vigas. '+(M.relogioP15
+    ?'O Policial acertou o pulso: <i>"Continua quatro minutos na frente. Ele gostava assim."</i> <i>"Continua?"</i>, disse a Herdeira. <i>"O senhor disse que nunca tinha entrado aqui."</i> <i>"Ouvi dizer."</i>'
+    :'O Policial olhou o próprio pulso: <i>"Está quatro minutos na frente."</i> <i>"Sempre esteve"</i>, disse a Herdeira, e se arrependeu de ter dito.'));
+  sis(222,'Mas o que incomodava era o óbvio que ninguém dizia: um relógio de corda, numa casa lacrada havia cinco meses, não bate hora nenhuma. Alguém dava corda nele.');
+  sis(240,'A Observadora se aproximou do móvel com as mãos para trás, como se tivesse medo de tocar. <i>"Nunca vi esta peça de perto. Só pelas fotografias do inventário. É mais bonita do que parece no papel."</i>');
+  chat(255,voz(['jornalista','residente','herdeira']),'Relógio de corda andando sozinho. Anotem isso.');
+  /* ◆ quem deixa escapar que voltou à casa */
+  var vq=M.voltou[0],vf=M.voltou[1];
+  if(vf==='porto')sis(275,'O Chefe de Cozinha tinha ido à adega procurar alguma coisa que esquentasse. Voltou com duas garrafas e uma cara estranha: <i>"Levaram o Porto. Das três garrafas de oitenta e dois, não sobrou nenhuma."</i> <i>"Como é que o senhor sabe que eram três?"</i>, perguntou '+na('investigador')+'. O Chefe ficou vermelho, depois pálido, depois resolveu abrir uma das garrafas.');
+  else sis(275,Na(vq)+' olhou em volta e deixou escapar: <i>"'+vf+'"</i> Ninguém comentou. Ainda.');
+  /* ◆ quem experimenta a maçaneta */
+  sis(300,Na(M.macaneta)+' não tinha tirado o olho do corredor de serviço. Quando achou que ninguém via, foi até a porta do quarto do fundo e experimentou a maçaneta. Trancada. Voltou devagar, como quem volta de lugar nenhum.');
+  sis(330,'Dez minutos depois, todos ouviram. Um estalo seco, metálico, vindo do corredor. A maçaneta do quarto de serviço desceu, lenta, até o fim do curso. E subiu de novo. <b>Por dentro.</b>');
+  sis(345,(presente('eletricista')?'O Eletricista':'O Residente')+' foi o primeiro a falar, e falou baixo: <i>"Essa porta não tem mola."</i>');
+  chat(360,voz(['policial','residente']),'Ninguém vai até aquela porta sozinho.');
+  priv(380,voz(['herdeira','jornalista','observadora'],M.macaneta),'Você viu quem foi até aquela porta antes?');
+  sis(400,'A lareira estalou. O relógio seguiu batendo, quatro minutos na frente de todos. Antes da pergunta do capítulo, a mesa discute: <b>o que, nesta sala, prova que alguém mora aqui?</b>');
+  sis(440,'A chuva engrossa. Faltam poucos minutos para o fim do capítulo.');
+
+  var fala=function(ids,txt,exceto){var id=voz(ids,exceto);return id?[SLOT_DE[id],txt]:null};
+  var replica={
+    'Alguém aqui chegou à tarde?':fala(['residente','herdeira'],'Eu cheguei com a chuva, já de noite.'),
+    'De quem é a xícara com café?':fala(['herdeira','residente','jornalista'],'Ninguém assumiu até agora.',xq),
+    'O relógio não devia estar parado?':fala(['policial','residente'],'Devia. E ainda está adiantado.'),
+    'Quem estava perto do quarto de serviço?':fala(['jornalista','herdeira','policial','residente'],'Eu estava na sala. Não vi ninguém sair.',M.macaneta),
+    'A xícara prova que alguém mora aqui.':fala(['observadora','herdeira'],'Ou que alguém esteve aqui hoje.'),
+    'Alguém dá corda no relógio. Isso prova.':fala(['residente','policial'],'Relógio de corda não anda cinco meses sozinho.'),
+    'Vamos ficar juntos.':fala(['policial','herdeira'],'Concordo.'),
+    'Você viu alguém chegar antes?':'Não. Com essa chuva, ninguém viu nada.',
+    'Você reconheceu aquela xícara?':'Não. Mas não é da louça da sala.',
+    'Você ouviu a maçaneta?':'Ouvi. Veio de dentro.',
+    'Não confio em ninguém aqui.':'Nem eu.'
+  };
+  var respGrupo=[[40,'Alguém aqui chegou à tarde?'],[170,'De quem é a xícara com café?'],[205,'O relógio não devia estar parado?'],[330,'Quem estava perto do quarto de serviço?'],[400,'A xícara prova que alguém mora aqui.'],[400,'Alguém dá corda no relógio. Isso prova.'],[0,'Vamos ficar juntos.']];
+  if(FUNCIONARIOS.length){respGrupo.splice(1,0,[100,'Por que ninguém avisou que havia funcionários?']);
+    replica['Por que ninguém avisou que havia funcionários?']=[SLOT_DE[FUNCIONARIOS[0]],(FUNCIONARIOS.length===1?'Fui chamada para preparar a casa. Ninguém disse para quem.':'Fomos chamados para preparar a casa. Ninguém disse para quem.')]}
+  return {
+    roteiro:ev,
+    respGrupo:respGrupo,
+    respPriv:[[40,'Você viu alguém chegar antes?'],[170,'Você reconheceu aquela xícara?'],[330,'Você ouviu a maçaneta?'],[0,'Não confio em ninguém aqui.']],
+    replica:replica,
+    acompPriv:{},              /* o celular do proprietário fica calado até o Cap. 2 */
+    perguntas:function(){return [
+      {rotulo:'principal',pergunta:'Quem deixou escapar, neste capítulo, que já tinha voltado a esta casa depois da morte do proprietário?',opcoes:opcoesPessoa(vq,'voltou')},
+      {rotulo:'secundária',pergunta:'Quem percebeu primeiro que a xícara era de outro jogo de louça?',opcoes:opcoesPessoa(xq,'xicara')},
+      {rotulo:'secundária',pergunta:'Quem experimentou a maçaneta do quarto de serviço antes de ela descer sozinha?',opcoes:opcoesPessoa(M.macaneta,'macaneta')}]}
+  };
+})();
+
 var ROTEIROS={1:C1,2:C2};
 
 /* ── Fim do prólogo: a apresentação acabou; começa O Impostor ─────────── */
@@ -1506,8 +1662,8 @@ var CONVOCADOS=[
   {id:'policial',nome:'Policial',funcao:'manter a ordem'},
   {id:'observadora',nome:'Observadora',funcao:'avaliar'}
 ];
-CONVOCADOS=CONVOCADOS.concat(EXTRAS_NA_MESA);
-var MEU='investigador';
+CONVOCADOS=CONVOCADOS.concat(EXTRAS_NA_MESA.filter(function(e){return !e.funcionario}));   /* os funcionários não estão na lista */
+var MEU=EU_PAPEL;
 var N_JOGADORES=+(new URLSearchParams(location.search)).get('jogadores')||4;
 function mostrarPapeis(){
   var d=$('#papeis');if(d.open)return;
