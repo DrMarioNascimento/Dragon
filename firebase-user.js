@@ -53,7 +53,7 @@ function css(){
   #mosaico-login button{width:100%;min-height:52px;border:0;border-radius:10px;padding:13px 16px;background:linear-gradient(#ffd979,#dba22f);color:#201503;font:800 14px Inter,system-ui,sans-serif;letter-spacing:.07em;text-transform:uppercase;box-shadow:inset 0 1px #fff7cc,0 5px 0 #77500d;cursor:pointer}
   #mosaico-login .ml-status{min-height:22px;margin-top:14px;color:#f0c990;font-size:13px}
   #mosaico-account{position:fixed;z-index:99990;right:10px;top:max(9px,env(safe-area-inset-top));display:flex;align-items:center;gap:7px;max-width:min(66vw,360px);padding:7px 9px;border:1px solid rgba(232,187,85,.32);border-radius:999px;background:rgba(7,6,5,.88);backdrop-filter:blur(10px);color:#f4ead7;font:600 11px/1.15 Inter,system-ui,sans-serif;box-shadow:0 5px 18px #0008}
-  #mosaico-account span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#mosaico-account button{border:0;background:transparent;color:#ffd982;font:800 10px Inter,system-ui,sans-serif;text-transform:uppercase;cursor:pointer;padding:4px}
+  #mosaico-account span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#mosaico-account button{border:0;background:transparent;color:#ffd982;font:800 10px Inter,system-ui,sans-serif;text-transform:uppercase;cursor:pointer;padding:0 12px;align-self:stretch;min-width:44px;margin:-7px -9px -7px 0;border-radius:0 999px 999px 0}
   #mosaico-account.warn{border-color:#b85b46}#mosaico-account.warn:before{content:"!";color:#ff9b7e;font-weight:900}
   `;document.head.appendChild(s);
 }
