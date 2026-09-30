@@ -986,6 +986,7 @@ var RESP_PRIV=['Cheguei depois.','Não reparei.','Por quê?','Te digo depois.'];
    das perguntas e voltam no Cap. 6, ao lado do caderno. No prólogo é treino:
    a marcação some quando o Capítulo 1 começa. */
 var MSGS={},seqMsg=0,marcas=[],MAX_MARCAS=3,treinoMarca=false,ensinouMarca=false;
+var ensinouFoto=false;
 function idMsg(m){if(!m._id){m._id=++seqMsg;MSGS[m._id]=m}return m._id}
 function limpo(h){var d=document.createElement('div');d.innerHTML=h||'';return (d.textContent||'').trim()}
 function marcasDoCap(c){return marcas.filter(function(x){return x.cap===c})}
@@ -1982,7 +1983,9 @@ window.addEventListener('message',function(e){
       var ja=INVENTARIO.some(function(it){return it.nome===e.data.nome});
       if(!ja){INVENTARIO.push({ico:'📄',nome:e.data.nome,desc:'Fotografado na escrivaninha',img:e.data.img});
         var cl=document.querySelector('[data-anexo="grupo"]');if(cl){cl.classList.add('nasce');setTimeout(function(){cl.classList.remove('nasce')},3400)}
-        toast('Foto guardada no inventário: '+e.data.nome)}
+        /* Mario, 30/09: a primeira foto ensina, com uma janela; as seguintes só avisam. */
+        if(!ensinouFoto){ensinouFoto=true;janela('PRIMEIRA FOTO','Pronto: a foto de "'+e.data.nome+'" está no seu inventário, no clipe 📎 da conversa. Lá, "Ver" abre o papel em tela cheia, e "Anexar" manda a foto para o Grupo ou para uma conversa privada (gasta 1 envio).')}
+        else toast('Foto guardada no inventário: '+e.data.nome)}
     }
     return;
   }
