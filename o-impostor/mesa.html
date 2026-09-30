@@ -1227,7 +1227,8 @@ var PECAS=[
   {cap:'PRÓLOGO',nome:'A maquete',txt:'A casa inteira, por camadas',abrir:'maquete',ico:'🏠'},
   {cap:'CAP. 1',nome:'A bandeja',txt:'No aparador da sala',abrir:'bandeja',ico:'🍽️',tranca:true},
   {cap:'CAP. 2',nome:'A escrivaninha',txt:'No escritório',abrir:'escrivaninha',ico:'🖋️',tranca:true},
-  {cap:'CAP. 3',nome:'O relógio',txt:'Na sala',href:'relogio.html',ico:'🕰️',tranca:true},
+  /* SUBSTITUIDO (30/09): {cap:'CAP. 3',nome:'O relógio',txt:'Na sala',href:'relogio.html',ico:'🕰️',tranca:true}, */
+  {cap:'CAP. 3',nome:'O relógio',txt:'Na sala',abrir:'relogio',ico:'🕰️',tranca:true},
   {cap:'CAP. 4',nome:'O jardim interno',txt:'E o farol ao longe',href:'livro.html',ico:'🌿',tranca:true},
   {cap:'CAP. 6',nome:'O quarto',txt:'O quarto de serviço',href:'quarto.html',ico:'🚪',tranca:true}
 ];
@@ -1404,6 +1405,71 @@ var PERSONALIDADE=['guardia','explosiva','ardilosa','quieta'][Math.floor(gerador
 var N_SALA=N_CONTATOS-1;   // pessoas na sala: todos menos a voz nas sombras
 function liberadas(l){var t=(Date.now()-inicioCap)/1000/escalaCap;return l.filter(function(x){return typeof x[0]==='string'?fotografou(x[0].slice(5)):x[0]<=t}).map(function(x){return x[1]})}
 function fotografou(nome){return INVENTARIO.some(function(it){return it.nome===nome})}
+/* ── Portões do roteiro (Mario, 30/09) ─────────────────────────────────
+   Quando o gesto de uma cena é do papel que o jogador tem (a Herdeira que
+   para o pêndulo, quem o religa), a história para naquele ponto e espera o
+   gesto na peça de RA. O que vem depois continua dali, na mesma ordem. Se o
+   papel é de outro, a narração faz a cena, como antes.
+   portão = {t, retoma, papel, acao, pula:[ids], abrir(), lembrete(), depois:[eventos]} */
+var portaoAtivo=null,portaoDesde=0,portoesPendentes=[],restoRoteiro=[],escalaRoteiro=1;
+function copiaEv(ev,t){var x=ev.slice();x[0]=t;if(ev.id)x.id=ev.id;return x}
+function tocarComPortoes(R,escala){
+  escalaRoteiro=escala;
+  var ps=(R.portoes||[]).filter(function(g){return g.papel===EU_PAPEL}).sort(function(a,b){return a.t-b.t});
+  portoesPendentes=ps;
+  if(!ps.length){tocarRoteiro(R.roteiro,escala);return}
+  tocarRoteiro(R.roteiro.filter(function(ev){return ev[0]<ps[0].t}),escala);
+  restoRoteiro=R.roteiro.filter(function(ev){return ev[0]>=ps[0].t});
+  roteiroTimers.push(setTimeout(function(){abrirPortao(ps[0])},ps[0].t*1000*escala));
+}
+function abrirPortao(g){
+  portaoAtivo=g;portaoDesde=Date.now();g.abrir();
+  roteiroTimers.push(setTimeout(function(){if(portaoAtivo===g&&g.lembrete)g.lembrete()},Math.max(8,40*escalaRoteiro)*1000));
+}
+function fecharPortao(){
+  var g=portaoAtivo;if(!g)return;portaoAtivo=null;
+  inicioCap=Date.now()-g.retoma*1000*escalaCap;          /* as respostas liberadas pelo tempo seguem a história */
+  portoesPendentes.shift();var prox=portoesPendentes[0];
+  var resto=restoRoteiro.filter(function(ev){return (g.pula||[]).indexOf(ev.id)<0});
+  var agora=resto.filter(function(ev){return !prox||ev[0]<prox.t}).map(function(ev){return copiaEv(ev,Math.max(1,ev[0]-g.retoma))});
+  tocarRoteiro((g.depois||[]).concat(agora),escalaRoteiro);
+  if(prox){restoRoteiro=resto.filter(function(ev){return ev[0]>=prox.t});
+    roteiroTimers.push(setTimeout(function(){abrirPortao(prox)},(prox.t-g.retoma)*1000*escalaRoteiro))}
+}
+function falaNoGrupo(ids,txt){var id=voz(ids);if(!id)return;grupo.push({de:SLOT_DE[id],txt:txt,h:hora()});pintarGrupo();if(aba!=='grupo')document.querySelector('[data-aba="grupo"]').classList.add('glow')}
+/* ── O relógio (Cap. 3) dentro da tela do jogo ───────────────────────────
+   modo: parar (a Herdeira jogada por você) · religar (quem religa, jogado por
+   você) · ver (os outros). estado: andando · parado · religado. */
+var relogioModo='ver',relogioEstado='andando',portaAvisada=false;
+function destravarRelogio(){if(!PECAS[3].tranca)return;PECAS[3].tranca=false;pintarPecas();document.querySelector('[data-aba="ra"]').classList.add('glow')}
+function atualizarRelogio(modo,est){relogioModo=modo;relogioEstado=est;
+  var f=document.querySelector('#telaRA iframe[data-peca="relogio"]');
+  if(f&&f.contentWindow)try{f.contentWindow.postMessage({oi:'mesa',relogio:true,modo:modo,estado:est},location.origin)}catch(e){}}
+function abrirRelogio(){
+  var t=$('#telaRA');
+  if(!t.querySelector('iframe[data-peca="relogio"]')){var f=document.createElement('iframe');f.dataset.peca='relogio';f.title='O relógio';f.allow='xr-spatial-tracking; camera; gyroscope; accelerometer; fullscreen';
+    f.src='relogio.html?embed=1&partida='+encodeURIComponent(PARTIDA)+'&jogador='+encodeURIComponent(EU)+'&modo='+relogioModo+'&estado='+relogioEstado;t.appendChild(f)}
+  mostrarPeca('relogio');
+}
+function grafiteNosDedos(){
+  if(INVENTARIO.some(function(it){return it.nome==='Grafite nos dedos'}))return;
+  INVENTARIO.push({ico:'✋',nome:'Grafite nos dedos',desc:'Você tocou o pêndulo com a mão nua. Ficou grafite e óleo nos dedos.'});
+  toast('Ficou grafite nos seus dedos (inventário).');
+}
+function recadoDoRelogio(ev){
+  if(ev==='pronto'){atualizarRelogio(relogioModo,relogioEstado);return}
+  if(capitulo!==3||capituloFechado[3])return;
+  var g=portaoAtivo;
+  if(ev==='porta'&&g&&g.acao==='parar'&&!portaAvisada){portaAvisada=true;
+    grupo.push({sis:'A portinhola de vidro cedeu fácil demais. <i>"Estava só encostada"</i>, disse '+na('investigador')+'. <i>"Alguém já abriu isto hoje."</i>'});pintarGrupo()}
+  if(ev==='parou'&&g&&g.acao==='parar'){relogioEstado='parado';relogioModo='ver';grafiteNosDedos();fecharPortao()}
+  if(ev==='religou'&&g&&g.acao==='religar'){relogioEstado='religado';relogioModo='ver';grafiteNosDedos();fecharPortao()}
+}
+/* marcos narrados: quem não é da cena passa a poder olhar o relógio */
+function aoMarco(id){
+  if(id==='parar'){destravarRelogio();atualizarRelogio(relogioModo==='religar'?'religar':'ver','parado');toast('O relógio abriu na aba RA.')}
+  if(id==='religar')atualizarRelogio('ver','religado');
+}
 function tocarRoteiro(r,escala){
   r.forEach(function(ev){roteiroTimers.push(setTimeout(function(){
     if(ev[1]==='sis'){grupo.push({sis:ev[2]});if(SOU_FUNC&&!encontroFeito)grupoServ.push({sis:ev[2]});pintarGrupo();if(aba!=='grupo')document.querySelector('[data-aba="grupo"]').classList.add('glow')}
@@ -1417,6 +1483,7 @@ function tocarRoteiro(r,escala){
     else if(ev[1].indexOf('priv:')===0)chegaPrivada(ev[1].slice(5),ev[2]);
     else if(ev[1].indexOf('op:')===0){grupo.push({de:ev[1].slice(3),op:'TELEFÔNICA MOSAICO',txt:ev[2],h:hora()});pintarGrupo()}
     else{grupo.push({de:ev[1],txt:ev[2],h:hora()});pintarGrupo()}
+    if(ev.id)aoMarco(ev.id);
   },ev[0]*1000*escala))});
 }
 function responder(txt,priv){
@@ -1812,10 +1879,129 @@ var C2_R2=(function(){
   };
 })();
 
-var ROTEIROS={1:C1,2:C2_R2};
+/* ── Capítulo 3 · O Inventário (revisão 2) ──────────────────────────────
+   Às oito e dez, o último lacre; o minuto na biblioteca; a mão molhada no
+   móvel; a carta com "pare o pêndulo" marcado à força; o estalo do trinco; a
+   gaveta de pesos vazia; e o pêndulo religado, com os ponteiros devolvidos aos
+   quatro minutos adiantados (regra do cânone). Trechos ◆ da Matriz. */
+var MATRIZ_C3={
+  1:{mao:'jornalista',palavras:'investigador',religa:'observadora',fala:'p1'},
+  2:{mao:'herdeira',palavras:'observadora',religa:'governanta',fala:'p2'},
+  4:{mao:'herdeira',palavras:'observadora',religa:'tabeliao',fala:'p4'},
+  5:{mao:'jardineiro',palavras:'jornalista',religa:'observadora',fala:'p5'},
+  6:{mao:'jornalista',palavras:'observadora',religa:'residente'},
+  7:{mao:'residente',palavras:'tabeliao',religa:'observadora',fala:'p7'},
+  8:{mao:'jornalista',palavras:'advogado',religa:'eletricista',fala:'p8'},
+  9:{mao:'policial',palavras:'policial',religa:'herdeira',fala:'p9'},
+  10:{mao:'jardineiro',palavras:'tabeliao',religa:'governanta',fala:'p10'},
+  12:{mao:'jornalista',palavras:'advogado',religa:'eletricista',fala:'p12'},
+  13:{mao:'governanta',palavras:'herdeira',religa:'governanta',fala:'p13'},
+  14:{mao:'investigador',palavras:'herdeira',religa:'tabeliao',fala:'p14'},
+  15:{mao:'chefe_de_cozinha',palavras:'jornalista',religa:'chefe_de_cozinha'}
+};
+/* A marca e o rastro de quem a deixou (Matriz, coluna "como se sabe"). */
+var MAO_C3={
+  jornalista:{detalhe:'uma mancha azul na palma. Tinta',dono:function(){return Na('jornalista')+' enfiou as mãos nos bolsos. Tinha os dedos azuis desde o vestíbulo, de uma caneta que vazava, e a manga direita da jaqueta estava mais escura que a esquerda.'}},
+  herdeira:{detalhe:'um fio de lã escura, preso na umidade',dono:function(){return Na('herdeira')+' cruzou os braços. A manga do casaco de lã ainda pingava.'}},
+  jardineiro:{detalhe:'barro vermelho entre os dedos. E é uma mão grande',dono:function(){return Na('jardineiro')+' escondeu as mãos no oleado. Tinha barro vermelho sob as unhas.'}},
+  residente:{detalhe:'pó de cal molhado, branco, na palma',dono:function(){return Na('residente')+' limpou a palma no impermeável e deixou uma listra branca.'}},
+  policial:{detalhe:'o desenho de uma luva de couro',dono:function(){return Na('policial')+' guardou o celular no bolso da jaqueta de couro. Os ombros estavam molhados.'}},
+  governanta:{detalhe:'cheiro de sabão de cozinha',dono:function(){return Na('governanta')+' enxugou as mãos no avental, que tinha um canto molhado.'}},
+  investigador:{detalhe:'a marca da alça de uma câmera na lateral da mão',dono:function(){return Na('investigador')+' guardou a câmera na capa bege. A barra da capa estava molhada.'}},
+  chefe_de_cozinha:{detalhe:'cheiro de tabaco',dono:function(){return Na('chefe_de_cozinha')+' tinha cheiro de cigarro no dólmã branco.'}}
+};
+var C3_R2=(function(){
+  var M=MATRIZ_C3[P_R2],ev=[],cond=presente('tabeliao')?'tabeliao':'policial';
+  function sis(t,txt){ev.push([t,'sis',txt])}
+  function chat(t,id,txt){if(id&&presente(id)&&id!==EU_PAPEL)ev.push([t,SLOT_DE[id],txt])}
+  function priv(t,id,txt){if(id&&presente(id)&&id!==EU_PAPEL)ev.push([t,'priv:'+SLOT_DE[id],txt])}
+  function marco(id){ev[ev.length-1].id=id}   /* cena que um portão pode trocar pelo gesto do jogador */
+  var FALA={
+    p1:[160,Na('residente')+': <i>"Não puxa de frente. Se forçar de frente, trava."</i> <i>"Trava o quê?"</i>, perguntou '+na('investigador')+'. <i>"O que tiver de travar. Móvel velho é tudo igual."</i> <i>"Não é"</i>, disse '+na('observadora')+'. <i>"Este nunca saiu do lugar em cem anos. Cera por baixo, poeira em volta. A sua reforma não chegou nele."</i>'],
+    p4:[50,'<i>"Alguém tentou afastar"</i>, disse '+na('chefe_de_cozinha')+'. <i>"Afastar?"</i>, disse '+na('observadora')+'. <i>"Os dedos estão para baixo. É mão de quem se apoiou."</i> <i>"Força de expressão."</i>'],
+    p5:[24,'<i>"Se for um direito de moradia, isso trava a venda"</i>, disse '+na('advogado')+'. <i>"Quem falou em moradia?"</i>, perguntou '+na('herdeira')+'. <i>"Hipótese. É o que costuma haver nesses casos."</i>'],
+    p7:[195,'<i>"Por enquanto"</i>, disse '+na('governanta')+'. <i>"Por enquanto?"</i>, perguntou '+na('herdeira')+'. <i>"Nesta casa nada fica vazio muito tempo."</i>'],
+    p8:[236,'<i>"Deve ter uma mola atrás, puxando pra frente quando o móvel sai"</i>, disse '+na('eletricista')+'. <i>"Não tem mola de fundo nenhuma nesta oficina"</i>, disse '+na('observadora')+'. <i>"Todo relógio tem." "Este não."</i>'],
+    p9:[105,Na('jornalista')+' já estava agachado, filmando. <i>"Por que você está filmando a base, e não a carta?"</i>, perguntou '+na('observadora')+'. <i>"Hábito. A etiqueta do fabricante fica embaixo." "Não nesta oficina. Fica no mostrador."</i>'],
+    p10:[195,'<i>"Então é embaixo que cai"</i>, disse '+na('jardineiro')+', da porta. <i>"Que cai o quê?" "Peso. Peso cai."</i>'],
+    p12:[160,'<i>"Não é o trinco que importa"</i>, disse '+na('observadora')+', e a voz saiu mais rápida do que ela quis. <i>"É o quanto o móvel sai da parede."</i> <i>"Sai da parede?"</i>, perguntou '+na('investigador')+'. <i>"Caixa-alta desta oficina tem fundo falso. É padrão." "Achei que a senhora só conhecia a peça por fotografia."</i> Ela sorriu, curta: <i>"Conheço a oficina."</i>'],
+    p13:[160,'<i>"Agora a apólice cobre o conteúdo também"</i>, disse '+na('investigador')+'. <i>"Conteúdo de um relógio?"</i>, perguntou '+na('tabeliao')+'. <i>"Força de expressão."</i> '+Na('observadora')+' pediu a apólice. Estava lá: "relógio de caixa alta e conteúdo". A apólice que ele mesmo redigiu, três semanas antes da morte.'],
+    p14:[160,'<i>"Agora é tirar da parede"</i>, disse '+na('herdeira')+'. <i>"Tirar?"</i>, perguntou '+na('advogado')+'. <i>"É o que se faz com relógio que não anda. Leva para o conserto." "Mas ele anda"</i>, disse '+na('investigador')+'.']
+  };
+  var gov=presente('governanta'),adv=presente('advogado');
+  sis(6,'Às oito e dez, '+na(cond)+' rompeu o último lacre, o da biblioteca, e leu em voz alta o procedimento: antes de tocar em qualquer bem, todos conferem juntos a lista do inventário contra o que está nas estantes. Um minuto, não mais. Todos na biblioteca, ninguém fica para trás.');
+  sis(18,'Foram. O minuto se esticou em dois'+(gov&&adv?', porque a Governanta achou um livro fora do lugar e o Advogado quis saber por quê.':'.'));
+  sis(32,'Quando voltaram à sala do relógio, quem entrou primeiro parou tão de repente que quem vinha atrás esbarrou nas costas. No flanco do móvel, do lado da porta-janela do jardim, havia uma marca de mão. Molhada. Ainda escorria.');
+  sis(42,'<i>"Alguém veio do jardim"</i>, disse '+na(presente('jardineiro')?'jardineiro':'residente')+'. <i>"A porta-janela está só encostada."</i>');
+  var mao=MAO_C3[M.mao];
+  sis(58,Na('observadora')+' se inclinou sobre a marca sem tocá-la. <i>"Recente. Minutos. '+(M.fala==='p4'?'':'É a mão de quem se apoiou, não de quem empurrou. ')+'E tem '+mao.detalhe+'."</i>');
+  sis(70,mao.dono()+' Ninguém disse nada. Ainda.');
+  chat(84,voz(['policial','residente','advogado'],M.mao),'Alguém saiu da biblioteca no minuto do inventário.');
+  sis(96,Na(cond)+' entregou '+(EU_PAPEL==='herdeira'?'a você':'à Herdeira')+' o envelope com a última carta do pai. '+(EU_PAPEL==='herdeira'?'Você leu':'Ela leu')+' só o começo, em voz alta, e parou na metade de uma frase, porque o resto não era para ser lido por estranhos.');
+  var pq=M.palavras;
+  sis(116,(pq==='herdeira'?Na('herdeira')+' inclinou a folha contra a luz da lanterna, quase rente ao papel':Na(pq)+' pediu a folha e a inclinou contra a luz da lanterna, quase rente ao papel')+': <i>"Tem palavras escritas com força. Só com força, sem tinta."</i> E leu devagar: <i>"Pare". "O". "Pêndulo".</i>');
+  sis(132,Na('herdeira')+' olhou para o relógio como se fosse a primeira vez e abriu a portinhola de vidro, que cedeu fácil demais. <i>"Estava só encostada"</i>, disse '+na('investigador')+'. <i>"Alguém já abriu isto hoje."</i>');marco('portinhola');
+  sis(146,Na('herdeira')+' segurou o pêndulo com dois dedos. O tique-taque parou. A sala inteira pareceu perder o fôlego. E, do fundo do móvel, veio um estalo seco. Metálico. <b>Como um trinco que solta.</b>');marco('parar');
+  ev.push([152,ACOMP,{guardia:'Cuidado com o que vocês acordam.',explosiva:'Cinco meses e só agora vocês param o relógio.',ardilosa:'Parar é fácil. E depois?',quieta:'Ainda não.'}[PERSONALIDADE]]);
+  if(M.fala==='p2')sis(185,'<i>"Móvel de relógio, caixa alta, com gaveta de pesos"</i>, leu '+na('tabeliao')+' na ata. <i>"Gaveta?"</i>, disse '+na('governanta')+'. <i>"Limpei esse móvel trinta anos e nunca vi gaveta."</i> '+Na('observadora')+' a achou, rente à base: uma gaveta rasa, vazia. '+Na('investigador')+' pegou a lista impressa: <i>"Aqui diz \'móvel de relógio, caixa alta, nogueira\'. Onde está a gaveta?" "No original. No cartório."</i>');
+  else sis(185,'Foi '+na('observadora')+' quem apontou a base do móvel: uma gaveta rasa, embutida, quase invisível, onde se guardavam os pesos de reserva. '+Na(cond)+' a abriu com a ponta de uma caneta. Vazia. Anotou: gaveta de pesos, vazia, vinte horas e catorze.');
+  if(FALA[M.fala]&&M.fala!=='p2')sis(FALA[M.fala][0],FALA[M.fala][1]);
+  var quemAfasta=cond==='policial'?(voz(['residente','jornalista'])||'residente'):'policial';
+  sis(212,'<i>"Então vamos afastar isso de uma vez"</i>, disse '+na(quemAfasta)+'. <i>"Não"</i>, disse '+na(cond)+'. <i>"Nada se move sem ata e sem todos. Reabro esta sala às nove e meia, depois do caldo, com a lista na mão. Até lá, o móvel fica onde está e alguém fica nesta porta."</i> <i>"E o relógio parado?"</i>');
+  var rq=M.religa;
+  sis(228,(rq==='eletricista'?'<i>"Relógio desses parado muito tempo força a mola"</i>, disse '+na('eletricista')+', já com a mão no vidro. <i>"Deixa comigo, tenho mão boa pra mecanismo."</i> ':Na(rq)+' não esperou resposta e pôs a mão no vidro. ')+'O pêndulo voltou a balançar, e do fundo do móvel veio outro estalo, menor, de coisa que se tranca. '+Na(rq)+' limpou os dedos. Ficou uma listra escura de grafite.');marco('religar');
+  sis(246,'<i>"Ficou parado uns minutos. Vou devolver o que perdeu."</i> '+Na(rq)+' empurrou o ponteiro com a unha, olhando para '+(EU_PAPEL==='policial'?'o seu pulso':'o pulso do Policial')+'. <i>"Quatro na frente"</i>, conferiu '+na('policial')+'. <i>"Como estava."</i> <i>"Como ele deixava"</i>, disse '+na('herdeira')+', baixo. '+Na(cond)+' anotou: relógio religado às vinte horas e dezessete, acertado para quatro minutos adiantado, como antes.');
+  sis(266,Na('policial')+' se encostou no batente da porta da sala e cruzou os braços. A partir daquele momento, a sala do relógio não ficou mais sozinha.');
+  chat(280,voz(['jornalista','herdeira','residente']),'Pare o pêndulo. Ele queria que alguém parasse o relógio. Por quê?');
+  chat(300,voz(['advogado','tabeliao','observadora']),'O trinco soltou quando o pêndulo parou. Tem alguma coisa atrás daquele fundo.');
+  priv(330,voz(['residente','jornalista','herdeira'],M.mao),'Você viu quem saiu da biblioteca no minuto do inventário?');
+  sis(440,'A lareira estalou. O relógio seguia batendo, quatro minutos na frente. Faltam poucos minutos para o fim do capítulo.');
+
+  var fala=function(ids,txt,exceto){var id=voz(ids,exceto);return id?[SLOT_DE[id],txt]:null};
+  return {
+    roteiro:ev,
+    /* Portões (Mario, 30/09): se o jogador é a Herdeira, é ele quem para o
+       pêndulo; se é quem religa, é ele quem religa. A história espera. */
+    portoes:[
+      {t:132,retoma:146,papel:'herdeira',acao:'parar',pula:['portinhola','parar'],
+        abrir:function(){portaAvisada=false;atualizarRelogio('parar','andando');destravarRelogio();
+          janela('A CARTA','A carta é do seu pai. O relógio está na sua frente. A peça do relógio abriu na aba RA.')},
+        lembrete:function(){falaNoGrupo(['policial','jornalista','advogado','residente'],'E então? Vai parar ou não?')},
+        depois:[[0,'sis','Você segurou o pêndulo com dois dedos. O tique-taque parou. A sala inteira pareceu perder o fôlego. E, do fundo do móvel, veio um estalo seco. Metálico. <b>Como um trinco que solta.</b>']]},
+      {t:228,retoma:228,papel:rq,acao:'religar',pula:['religar'],
+        abrir:function(){atualizarRelogio('religar','parado');destravarRelogio();
+          janela('O RELÓGIO PARADO','Ninguém respondeu sobre o relógio parado. Você está perto dele. A peça do relógio está na aba RA.')},
+        lembrete:function(){falaNoGrupo(['herdeira','policial','jornalista','advogado'],'E o relógio? Vai ficar parado?')},
+        depois:[[0,'sis','Você pôs a mão no vidro. O pêndulo voltou a balançar, e do fundo do móvel veio outro estalo, menor, de coisa que se tranca. Você limpou os dedos. Ficou uma listra escura de grafite.']]}
+    ],
+    respGrupo:[[70,'De quem é a mão no móvel?'],[116,'O que mais está escrito na carta?'],[146,'O que foi esse estalo?'],[212,'Por que não afastar o móvel agora?'],[0,'Vamos ficar juntos.']],
+    respPriv:[[70,'Quem saiu da biblioteca?'],[146,'Você ouviu o estalo?'],[0,'Não confio em ninguém aqui.']],
+    replica:{
+      'De quem é a mão no móvel?':fala(['policial','advogado','residente'],'Olhe as mãos de todo mundo. A marca diz muito.',M.mao),
+      'O que mais está escrito na carta?':fala(['advogado','tabeliao','observadora'],'O resto é para a filha. Só "pare o pêndulo" estava escondido.',pq),
+      'O que foi esse estalo?':fala(['residente','eletricista','observadora'],'Um trinco. Quando o pêndulo parou, alguma coisa soltou lá atrás.'),
+      'Por que não afastar o móvel agora?':fala(['tabeliao','advogado','policial'],'Sem ata, nada se move. Às nove e meia, com todos.'),
+      'Vamos ficar juntos.':fala(['policial','herdeira'],'Concordo.'),
+      'Quem saiu da biblioteca?':'Não vi. O minuto virou dois, e todo mundo andou entre as estantes.',
+      'Você ouviu o estalo?':'Ouvi. Veio do fundo do móvel.',
+      'Não confio em ninguém aqui.':'Nem eu.'
+    },
+    acompPriv:RESP_ACOMP_R2,
+    debate:{pergunta:'O que a marca molhada prova, e o que ela não prova?',falas:[
+      fala(['policial','residente','tabeliao'],'Prova que alguém entrou pelo jardim no minuto em que todos estavam na biblioteca.'),
+      fala(['advogado','observadora','herdeira'],'Não prova que mexeu no relógio. É a mão de quem se apoiou, não de quem empurrou.'),
+      fala(['jornalista','jardineiro','governanta'],'E não prova que foi para esconder alguma coisa. Pode ter ido ao jardim por outro motivo.')]},
+    perguntas:function(){return [
+      {rotulo:'principal',pergunta:'De quem é a mão molhada no móvel do relógio?',opcoes:opcoesPessoa(M.mao,'c3mao')},
+      {rotulo:'secundária',pergunta:'Quem achou as palavras escondidas na carta?',opcoes:opcoesPessoa(pq,'c3palavras')},
+      {rotulo:'secundária',pergunta:'Quem religou o pêndulo depois do estalo?',opcoes:opcoesPessoa(rq,'c3religa')}]}
+  };
+})();
+
+var ROTEIROS={1:C1,2:C2_R2,3:C3_R2};
 
 /* ── Fim do prólogo: a apresentação acabou; começa O Impostor ─────────── */
-var CAPITULOS=[null,{n:1,nome:'A REABERTURA'},{n:2,nome:'A VOZ A MAIS'}];
+var CAPITULOS=[null,{n:1,nome:'A REABERTURA'},{n:2,nome:'A VOZ A MAIS'},{n:3,nome:'O INVENTÁRIO'}];
 var farolNoite=false;
 function fimDoPrologo(){
   if(capitulo!==0)return;
@@ -1844,7 +2030,8 @@ function comecarCapitulo(n){
   var teste=Q.get('teste')==='1',escala=teste?0.12:1;
   TOTAL=teste?60:8*60;resta=TOTAL;iniciarRelogio();
   inicioCap=Date.now();escalaCap=escala;
-  if(ROTEIROS[n])tocarRoteiro(ROTEIROS[n].roteiro,escala);
+  /* SUBSTITUIDO (30/09): if(ROTEIROS[n])tocarRoteiro(ROTEIROS[n].roteiro,escala); */
+  portaoAtivo=null;if(ROTEIROS[n])tocarComPortoes(ROTEIROS[n],escala);
   if(n===2){PECAS[2].tranca=false;pintarPecas();document.querySelector('[data-aba="ra"]').classList.add('glow')}
   if(n===1){PECAS[1].tranca=false;pintarPecas();document.querySelector('[data-aba="ra"]').classList.add('glow');liberarAba('suspeitos')}
   enviosNoCap=0;avisouMinimo=false;
@@ -1935,7 +2122,7 @@ function abrirMaquete(){
   mostrarPeca('maquete');
 }
 $('#sairRA').onclick=function(){$('#telaRA').hidden=true};
-document.addEventListener('click',function(e){var a=e.target.closest('[data-abrir]');if(!a)return;e.preventDefault();if(a.dataset.abrir==='maquete')abrirMaquete();if(a.dataset.abrir==='bandeja')abrirBandeja();if(a.dataset.abrir==='escrivaninha')antesDaPeca('escrivaninha',abrirEscrivaninha)});
+document.addEventListener('click',function(e){var a=e.target.closest('[data-abrir]');if(!a)return;e.preventDefault();if(a.dataset.abrir==='maquete')abrirMaquete();if(a.dataset.abrir==='bandeja')abrirBandeja();if(a.dataset.abrir==='escrivaninha')antesDaPeca('escrivaninha',abrirEscrivaninha);if(a.dataset.abrir==='relogio')abrirRelogio()});
 /* Uma novidade de uso aparece UMA vez, antes de a peça abrir (antes da câmera).
    Só se ensina o que é da tela (ler de perto, fotografar); o que se mexe na peça
    continua para o jogador descobrir. */
@@ -1989,6 +2176,7 @@ window.addEventListener('message',function(e){
     }
     return;
   }
+  if(e.origin===location.origin&&e.data&&e.data.oi==='relogio'){recadoDoRelogio(e.data.evento);return}
   if(e.origin===location.origin&&e.data&&e.data.oi==='bandeja'){
     if(e.data.evento==='envio'&&!bandejaEnvio){bandejaEnvio=true;achouEnvio()}
     if(e.data.evento==='pista'&&!INVENTARIO.some(function(it){return it.nome===e.data.nome})){
