@@ -1519,7 +1519,9 @@ var RESP_ACOMP={
   ardilosa:{'Quem é esse número?':'Quem vocês acham?','*':'Depende do que você me der.'},
   quieta:{'Quem é esse número?':'...','*':'...'}
 }[PERSONALIDADE];
-var C2={
+/* SUBSTITUÍDO em 30/09/2026 pelo Cap. 2 da revisão 2 (C2_R2, mais abaixo). Guardado
+   por regra do Mario: nada se apaga sem substituição formal. Não é tocado. */
+var C2_V31_SUBSTITUIDO={
   roteiro:[
     [8,'sis','O rádio da cozinha chia e anuncia: a estrada da costa está interditada pela chuva. Ninguém sai esta noite.'],
     [18,'sis','A porta do escritório ficou entreaberta. Lá dentro, papéis por toda parte, e uma gaveta que não fecha direito.'],
@@ -1701,10 +1703,118 @@ var C1=(function(){
   };
 })();
 
-var ROTEIROS={1:C1,2:C2};
+/* ── Capítulo 2 · A Voz a Mais (revisão 2) ──────────────────────────────
+   Substitui, em 30/09/2026, o C2 da v3.1 (guardado acima, em
+   C2_V31_SUBSTITUIDO). O Faroleiro avisa que a ponte caiu; uma luz acende no
+   fundo do corredor de serviço; o grupo ganha uma voz que ninguém reconhece;
+   alguém conduz a chamada e a conta dá um número a mais; as lembranças sobre o
+   proprietário (uma delas pode ser a mentira do impostor); e a voz responde a
+   uma frase dita baixinho perto do corredor de serviço. A personalidade da voz
+   vem da partida da Matriz. Trechos ◆ vêm da Matriz da revisão 2. */
+var VOZ_R2={1:'guardia',2:'ardilosa',4:'quieta',5:'guardia',6:'ardilosa',7:'explosiva',8:'guardia',9:'quieta',10:'ardilosa',12:'explosiva',13:'guardia',14:'quieta',15:'ardilosa'};
+PERSONALIDADE=VOZ_R2[P_R2]||PERSONALIDADE;
+var MATRIZ_C2={
+  1:{frase:['herdeira','Ele nunca me disse que estava tão mal.','Ele disse a quem estava aqui.'],luz:'jornalista',conduz:'investigador',mentira:['residente','Eu vinha toda semana ver a infiltração. No fim ele nem descia mais, ficava lá em cima, no quarto dele.']},
+  2:{frase:['policial','Ninguém sai desta casa até eu dizer.','Nem quem já está do lado de dentro?'],luz:'residente',conduz:'tabeliao'},
+  4:{frase:['advogado','Adendo manuscrito vale se for dele.','Vale.'],luz:'residente',conduz:'investigador',mentira:['chefe_de_cozinha','Fiz o caldo dele até o último dia. Com peixe, que ele não abria mão.']},
+  5:{frase:['governanta','Alguém tem comido aqui.','Ninguém passou fome nesta casa.'],luz:'governanta',conduz:'advogado'},
+  6:{frase:['jornalista','Alguém aqui está gravando isso?','Por que perguntar, se você sabe a resposta?'],luz:'policial',conduz:'policial'},
+  7:{frase:['tabeliao','Pelo que consta, ninguém morava aqui.','Consta errado. Como tudo o que vocês escreveram sobre ele.'],luz:'investigador',conduz:'tabeliao'},
+  8:{frase:['herdeira','Se alguém mora aqui, está invadindo o que é meu.','Ninguém invadiu. Cuidaram.'],luz:'jardineiro',conduz:'policial',mentira:['eletricista','Vim na última semana dele, ligar uma tomada no quarto de cima.']},
+  9:{frase:['residente','Essa obra ficou pela metade.','Ficou.'],luz:'policial',conduz:'jornalista'},
+  10:{frase:['observadora','Esse jasmim tem idade para ter visto muita coisa.','E você viu junto com ele, não viu?'],luz:'governanta',conduz:'tabeliao',mentira:['jardineiro','Plantei o jasmim pra ele no fim. Ele ficava olhando da janela de cima.']},
+  12:{frase:['herdeira','Ele nunca me chamou. Nem no fim.','Chamou. Três vezes. Você não veio.'],luz:'residente',conduz:'investigador',mentira:['observadora','Eu cuidei dele nas últimas semanas. Vinha avaliar a coleção e acabava ficando. Lia para ele à noite, ali na biblioteca, até ele dormir na poltrona.']},
+  13:{frase:['residente','Alguém anda pela ala de serviço.','Não anda: mora. Deixem.'],luz:'herdeira',conduz:'investigador',extra:['tabeliao','Falei com ele por telefone na última semana. Estava lúcido.']},
+  14:{frase:['tabeliao','Ninguém entra na sala do relógio sem que eu registre.','Registre.'],luz:'jardineiro',conduz:'policial'},
+  15:{frase:['jardineiro','O gato não é de rua.','E de quem você acha que é?'],luz:'governanta',conduz:'advogado',mentira:['policial','Estive com ele na última noite. Ele lia na biblioteca, de óculos, e me acenou com o livro quando saí.'],chefeCaldo:true}
+};
+/* A mensagem de chegada da voz é igual para todas as personalidades. */
+var RESP_ACOMP_R2={
+  guardia:{'Quem é esse número?':'Alguém que não quer problema.','*':'Não posso dizer. Fiquem tranquilos.'},
+  explosiva:{'Quem é esse número?':'Não interessa.','*':'Não é da sua conta.'},
+  ardilosa:{'Quem é esse número?':'Quem vocês acham?','*':'Depende do que você me der.'},
+  quieta:{'Quem é esse número?':'...','*':'...'}
+}[PERSONALIDADE];
+
+var C2_R2=(function(){
+  var M=MATRIZ_C2[P_R2],ev=[],N_SALA2=N_CONTATOS-1;
+  function sis(t,txt){ev.push([t,'sis',txt])}
+  function chat(t,id,txt){if(id&&presente(id)&&id!==EU_PAPEL)ev.push([t,SLOT_DE[id],txt])}
+  function priv(t,id,txt){if(id&&presente(id)&&id!==EU_PAPEL)ev.push([t,'priv:'+SLOT_DE[id],txt])}
+  function diz(id){return id===EU_PAPEL?'você diz':'diz '+na(id)}
+
+  sis(6,'O rádio do vestíbulo chiou às sete e quarenta. Era um VHF antigo, de quando a casa ainda falava com os barcos. '+Na('investigador')+' foi o primeiro a alcançá-lo.');
+  sis(14,'A voz do Faroleiro veio cortada pela estática, mas firme: <i>"Casa da Costa, aqui é o farol. A ponte caiu com a cheia. Ninguém sobe nem desce até de manhã. Repito: ninguém sobe nem desce."</i> <i>"Entendido. Tem luz aí?"</i> <i>"O farol tem gerador. A costa, não sei por quanto tempo."</i>');
+  sis(24,Na(presente('tabeliao')?'tabeliao':'policial')+' anotou a hora.');
+  chat(34,voz(['herdeira','advogado','jornalista']),'A ponte caiu. Então ninguém vai embora.');
+  /* ◆ a luz no corredor de serviço */
+  sis(50,Na(M.luz)+' estava perto do corredor de serviço e viu: por um segundo, pouco mais, o fundo do corredor se acendeu de azul, como uma tela de celular, e se apagou.');
+  if(M.luz!==EU_PAPEL)sis(58,'<i>"Tem alguém lá."</i> <i>"Tem uma porta trancada lá"</i>, corrigiu '+na(presente('tabeliao')&&M.luz!=='tabeliao'?'tabeliao':(M.luz!=='policial'?'policial':'residente'))+'. <i>"O que é diferente."</i>');
+  /* a voz a mais */
+  sis(75,'Foi mais ou menos nesse momento que os celulares vibraram juntos. Todos. Uma mensagem no grupo que o cartório tinha criado, "Inventário — Casa da Costa". Ninguém reconheceu o número que escreveu.');
+  ev.push([78,ACOMP,'Boa noite.']);
+  chat(88,voz(['jornalista','policial']),'Quem é esse número?');
+  /* ◆ quem conduz a chamada */
+  sis(100,Na(M.conduz)+' pôs o celular na mesa: <i>"Vamos fazer isso direito. Cada um manda uma palavra no grupo, na ordem da roda. Quem sobrar, sobrou."</i>');
+  var roda=NA_CASA.filter(function(id){return id!==EU_PAPEL}),pal=['Aqui.','Presente.','Eu.','Aqui.','Presente.','Sim.','Aqui.','Eu.','Presente.','Aqui.','Sim.'];
+  roda.forEach(function(id,i){ev.push([110+i*5,SLOT_DE[id],pal[i%pal.length]])});
+  var tc=110+roda.length*5+8;
+  sis(tc,N_SALA2+' palavras, '+N_SALA2+' números conferidos. No grupo, '+N_CONTATOS+' participantes. O último não respondeu à chamada.');
+  sis(tc+14,'<i>"É o número do seu pai?"</i>, '+(EU_PAPEL==='jornalista'?'você pergunta':'o Jornalista perguntou')+' à Herdeira. <i>"Não sei." "Como não sabe?" "Ele trocou de número no fim. Eu não tinha o novo. Não tinha motivo para ter."</i> O silêncio que veio depois não foi de desconfiança. Foi de vergonha.');
+  /* as lembranças (uma pode ser a mentira do impostor) */
+  var t=tc+40;sis(t,'Conversaram sobre ele, porque não havia outro assunto que coubesse na sala. As lembranças saíam tortas, cada uma puxando para um lado.');
+  var lemb=[];
+  if(M.mentira)lemb.push(M.mentira);
+  if(M.extra&&presente(M.extra[0]))lemb.push(M.extra);
+  if(presente('chefe_de_cozinha')&&!(M.mentira&&M.mentira[0]==='chefe_de_cozinha'))lemb.push(['chefe_de_cozinha',M.chefeCaldo?'Fiz o caldo dele até o fim.':'Ele não abria mão do meu peixe de domingo. Pelo menos até o começo do ano, que foi quando parei de vir.']);
+  if(!(M.mentira&&M.mentira[0]==='herdeira'))lemb.push(['herdeira','Meu pai detestava bicho dentro de casa. Nunca deixou eu ter nem um passarinho.']);
+  if(presente('eletricista')&&!(M.mentira&&M.mentira[0]==='eletricista'))lemb.push(['eletricista','Eu vim em março ligar uma tomada no quarto dos fundos. Ele pediu por telefone. Não perguntei para quê.']);
+  lemb.forEach(function(l,i){sis(t+12+i*12,'<i>"'+l[1].replace(/\.$/,'')+'"</i>, '+diz(l[0])+'.')});
+  t=t+12+lemb.length*12+6;
+  sis(t,Na('jornalista')+' mostrou um recorte dobrado: <i>"Aqui diz que ele morreu numa sexta."</i> <i>"O laudo não diz dia"</i>, '+(EU_PAPEL==='investigador'?'você responde':'respondeu o Investigador')+'. <i>"Diz hora indeterminada. Entre trinta e seis e sessenta horas antes do exame." "Então alguém achou o corpo dois dias depois." "Ou alguém avisou dois dias depois."</i>');
+  /* ◆ a frase dita baixinho e a resposta da voz */
+  var fq=M.frase[0];
+  sis(t+24,Na(fq)+' tinha se afastado para perto do corredor de serviço e falou baixo, quase para a parede: <i>"'+M.frase[1]+'"</i>');
+  ev.push([t+34,ACOMP,M.frase[2]]);
+  sis(t+46,'<i>"Isso foi dito aqui dentro"</i>, disse '+na(voz(['policial','tabeliao','residente'],fq)||'policial')+'. <i>"Em voz baixa. Quem está escrevendo está ouvindo."</i> <i>"Ou está nesta sala"</i>, disse '+na(voz(['jornalista','advogado','herdeira'],fq)||'jornalista')+'. E '+N_SALA2+' pessoas se olharam, cada uma contando '+(N_SALA2-1)+' suspeitos.');
+  priv(t+70,voz(['herdeira','observadora','residente'],fq),'Você viu a resposta no grupo? Quem falou estava perto do corredor de serviço, e mais ninguém.');
+  sis(440,'A chuva não para. Faltam poucos minutos para o fim do capítulo.');
+
+  var fala=function(ids,txt,exceto){var id=voz(ids,exceto);return id?[SLOT_DE[id],txt]:null};
+  var replica={
+    'Aqui.':fala([M.conduz,'policial','tabeliao'],'Anotado.'),
+    'Quem é esse número?':[ACOMP,RESP_ACOMP_R2['Quem é esse número?']],
+    'Quem viu a luz no corredor?':fala([M.luz],'Eu vi. Azul, como tela de celular.'),
+    'Pode ser o número novo do dono.':fala(['herdeira','advogado'],'Se for, quem está com o celular dele?'),
+    'Quem estava perto do corredor de serviço?':fala(['policial','residente','jornalista'],'Mais de um. Eu não vi quem falou.',fq),
+    'Achei no escritório uma conta do celular do dono, paga em setembro.':fala(['policial','jornalista'],'Paga depois que ele morreu? Então alguém usa o número dele.'),
+    'Tem um recibo de mercearia recente no escritório.':fala(['observadora','herdeira'],'Recente? A casa não estava fechada?'),
+    'Vamos ficar juntos.':fala(['policial','herdeira'],'Concordo.'),
+    'Onde você está agora?':'Na sala, com todo mundo.',
+    'Você ouviu a frase perto do corredor?':'Ouvi a resposta no grupo. A frase, não.',
+    'Não confio em ninguém aqui.':'Nem eu.'
+  };
+  return {
+    roteiro:ev,
+    respGrupo:[['foto:Conta de celular (gaveta)','Achei no escritório uma conta do celular do dono, paga em setembro.'],['foto:Recibo da mercearia','Tem um recibo de mercearia recente no escritório.'],[100,'Aqui.'],[78,'Quem é esse número?'],[50,'Quem viu a luz no corredor?'],[tc,'Pode ser o número novo do dono.'],[t+34,'Quem estava perto do corredor de serviço?'],[0,'Vamos ficar juntos.']],
+    respPriv:[[0,'Onde você está agora?'],[78,'Quem é esse número?'],[t+34,'Você ouviu a frase perto do corredor?'],[0,'Não confio em ninguém aqui.']],
+    replica:replica,
+    acompPriv:RESP_ACOMP_R2,
+    debate:{pergunta:'Por que ninguém sabe o número do dono, nem a filha?',falas:[
+      fala(['herdeira','advogado'],'Ele trocou de chip nos últimos meses. Ninguém da família tinha o número novo.'),
+      fala(['policial','tabeliao','residente'],'O cartório montou o grupo com a lista que ele deixou, sem nomes. Um dos números não é de ninguém daqui.'),
+      fala(['jornalista','observadora','jardineiro'],'Então alguém está com o celular dele. E sabe o que se diz nesta sala.')]},
+    perguntas:function(){return [
+      {rotulo:'principal',pergunta:'A voz respondeu a uma frase dita baixinho, perto do corredor de serviço. Quem disse a frase?',opcoes:opcoesPessoa(fq,'c2frase')},
+      {rotulo:'secundária',pergunta:'Quem viu a luz no fundo do corredor de serviço?',opcoes:opcoesPessoa(M.luz,'c2luz')},
+      {rotulo:'secundária',pergunta:'Quando o contato a mais apareceu, quem tomou a condução da mesa?',opcoes:opcoesPessoa(M.conduz,'c2conduz')}]}
+  };
+})();
+
+var ROTEIROS={1:C1,2:C2_R2};
 
 /* ── Fim do prólogo: a apresentação acabou; começa O Impostor ─────────── */
-var CAPITULOS=[null,{n:1,nome:'A REABERTURA'},{n:2,nome:'A SÉTIMA VOZ'}];
+var CAPITULOS=[null,{n:1,nome:'A REABERTURA'},{n:2,nome:'A VOZ A MAIS'}];
 var farolNoite=false;
 function fimDoPrologo(){
   if(capitulo!==0)return;
