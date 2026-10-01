@@ -1229,7 +1229,8 @@ var PECAS=[
   {cap:'CAP. 2',nome:'A escrivaninha',txt:'No escritório',abrir:'escrivaninha',ico:'🖋️',tranca:true},
   /* SUBSTITUIDO (30/09): {cap:'CAP. 3',nome:'O relógio',txt:'Na sala',href:'relogio.html',ico:'🕰️',tranca:true}, */
   {cap:'CAP. 3',nome:'O relógio',txt:'Na sala',abrir:'relogio',ico:'🕰️',tranca:true},
-  {cap:'CAP. 4',nome:'O jardim interno',txt:'E o farol ao longe',href:'livro.html',ico:'🌿',tranca:true},
+  /* SUBSTITUIDO (30/09, Mario: o livro do farol fica fora por agora): {cap:'CAP. 4',nome:'O jardim interno',txt:'E o farol ao longe',href:'livro.html',ico:'🌿',tranca:true}, */
+  {cap:'CAP. 4',nome:'O jardim interno',txt:'As duas trilhas',abrir:'jardim',ico:'🌿',tranca:true},
   {cap:'CAP. 6',nome:'O quarto',txt:'O quarto de serviço',href:'quarto.html',ico:'🚪',tranca:true}
 ];
 function pintarPecas(){$('#gradeRA').innerHTML=PECAS.map(function(p){
@@ -1469,7 +1470,18 @@ function recadoDoRelogio(ev){
   if(ev==='religou'&&g&&g.acao==='religar'){relogioEstado='religado';relogioModo='ver';grafiteNosDedos();fecharPortao()}
 }
 /* marcos narrados: quem não é da cena passa a poder olhar o relógio */
+function abrirJardim(){
+  var t=$('#telaRA');
+  if(!t.querySelector('iframe[data-peca="jardim"]')){var f=document.createElement('iframe');f.dataset.peca='jardim';f.title='O jardim interno';f.allow='xr-spatial-tracking; camera; gyroscope; accelerometer; fullscreen';
+    f.src='jardim.html?embed=1&fim='+encodeURIComponent((MATRIZ_C4[P_R2]||{}).trilha||'sala');t.appendChild(f)}
+  mostrarPeca('jardim');
+}
 function aoMarco(id){
+  if(id==='jardim'&&PECAS[4].tranca){PECAS[4].tranca=false;pintarPecas();document.querySelector('[data-aba="ra"]').classList.add('glow');toast('O jardim abriu na aba RA.')}
+  if(id==='postos'&&MATRIZ_C4[P_R2]&&!INVENTARIO.some(function(it){return it.nome==='Planta dos postos'})){
+    INVENTARIO.push({ico:'🗺️',nome:'Planta dos postos',desc:'Os postos das nove e meia e os segundos até o relógio',img:plantaPostosSVG()});
+    var meu=MATRIZ_C4[P_R2].postos[EU_PAPEL];
+    janela('SEU POSTO',(meu?'Às nove e meia, o seu posto é: '+POSTOS_R2[meu].nome.toLowerCase()+'. ':'')+'A planta com todos os postos e os segundos até o relógio está no seu inventário, no clipe 📎 da conversa.')}
   if(id==='parar'){destravarRelogio();atualizarRelogio(relogioModo==='religar'?'religar':'ver','parado');toast('O relógio abriu na aba RA.')}
   if(id==='religar')atualizarRelogio('ver','religado');
 }
@@ -2002,10 +2014,153 @@ var C3_R2=(function(){
   };
 })();
 
+/* ── Capítulo 4 · O Jardim Interno (revisão 2) ──────────────────────────
+   O caldo às nove; as duas trilhas no jardim (a seca, de meses, e a fresca,
+   desta noite: a direção só se vê pelo bico das pegadas, na peça do jardim);
+   o Residente revela a passagem; o quarto do jasmim; os postos das nove e
+   meia e a planta com os segundos até o relógio. Trechos ◆ da Matriz.
+   Mario, 30/09: sem Jardineiro na casa, quem conduz o jardim é o Residente.
+   A pergunta de "marcar todos" (quem alcançava o relógio) fica para o fim do
+   Cap. 5, depois do apagão; o gabarito já sai daqui (alcancaC4). */
+var POSTOS_R2={
+  A:{lugar:'na porta da sala do relógio, de guarda',curto:'na porta da sala',nome:'Porta da sala do relógio (guarda)',s:3},
+  B:{lugar:'na biblioteca, na mesa da ata',curto:'na biblioteca',nome:'Biblioteca, mesa da ata',s:8},
+  C:{lugar:'na varanda do jardim',curto:'na varanda',nome:'Varanda do jardim interno',s:10},
+  D:{lugar:'na janela do corredor dos retratos, de onde se via o jardim',curto:'na janela dos retratos',nome:'Janela do corredor dos retratos',s:7},
+  E:{lugar:'na porta do quarto de serviço',curto:'na porta do quarto de serviço',nome:'Porta do quarto de serviço',s:9},
+  F:{lugar:'na despensa, junto à porta de serviço',curto:'na despensa',nome:'Despensa e porta de serviço',s:12},
+  G:{lugar:'no fogão',curto:'no fogão',nome:'Cozinha, fogão',s:16},
+  H:{lugar:'na sala de jantar',curto:'na sala de jantar',nome:'Sala de jantar',s:14},
+  I:{lugar:'no vestíbulo, junto ao rádio, em contato com o farol',curto:'no vestíbulo, no rádio',nome:'Vestíbulo, rádio VHF',s:15},
+  J:{lugar:'no patamar da escada',curto:'no patamar',nome:'Patamar da escada',s:13},
+  K:{lugar:'no quadro de luz, no porão',curto:'no porão',nome:'Quadro de luz, no porão',s:20},
+  L:{lugar:'na sala de estar',curto:'na sala de estar',nome:'Sala de estar',s:17}
+};
+var PORTAS_JARDIM={despensa:'a porta da despensa',varanda:'a porta da varanda',biblioteca:'a porta-janela da biblioteca',
+  quarto:'a janela do quarto de serviço',sala:'a porta-janela da sala do relógio',servico:'a porta de serviço'};
+var PORTAS_JARDIM_ROT={despensa:'Porta da despensa',varanda:'Porta da varanda',biblioteca:'Porta-janela da biblioteca',
+  quarto:'Janela do quarto de serviço',sala:'Porta-janela da sala do relógio',servico:'Porta de serviço'};
+/* Matriz, "Postos e exclusões" (o posto de cada um às 21h29; quem anda depois conta pelo primeiro)
+   e "Capítulo 4 — respostas". */
+var MATRIZ_C4={
+  1:{escolheu:'residente',trilha:'despensa',postos:{policial:'A',observadora:'B',jornalista:'D',residente:'E',herdeira:'H',investigador:'L'}},
+  2:{escolheu:'residente',trilha:'varanda',postos:{governanta:'A',tabeliao:'B',investigador:'D',residente:'F',observadora:'H',policial:'I',jornalista:'J',herdeira:'L'}},
+  4:{escolheu:'herdeira',trilha:'despensa',postos:{jardineiro:'A',tabeliao:'B',observadora:'B',herdeira:'C',advogado:'D',residente:'E',chefe_de_cozinha:'F',governanta:'G',jornalista:'H',policial:'I',eletricista:'J',investigador:'L'}},
+  5:{escolheu:'advogado',trilha:'biblioteca',postos:{investigador:'A',tabeliao:'B',jardineiro:'C',advogado:'D',residente:'E',observadora:'G',governanta:'H',herdeira:'I',jornalista:'J',policial:'L'}},
+  6:{escolheu:'jornalista',trilha:'quarto',postos:{policial:'A',observadora:'B',residente:'C',jornalista:'D',herdeira:'H',investigador:'I'}},
+  7:{escolheu:'residente',trilha:'varanda',postos:{investigador:'A',tabeliao:'B',observadora:'D',governanta:'E',residente:'F',jornalista:'H',policial:'I',herdeira:'L'}},
+  8:{escolheu:'governanta',trilha:'varanda',postos:{jardineiro:'A',tabeliao:'B',advogado:'B',herdeira:'C',residente:'D',eletricista:'E',governanta:'F',chefe_de_cozinha:'G',observadora:'H',policial:'I',jornalista:'J',investigador:'L'}},
+  9:{escolheu:'herdeira',trilha:'biblioteca',postos:{observadora:'A',herdeira:'B',jornalista:'D',residente:'F',investigador:'H',policial:'L'}},
+  10:{escolheu:'policial',trilha:'varanda',postos:{herdeira:'A',tabeliao:'B',jardineiro:'C',observadora:'D',residente:'E',governanta:'G',investigador:'H',policial:'I',advogado:'J',jornalista:'L'}},
+  12:{escolheu:'residente',trilha:'sala',postos:{policial:'A',tabeliao:'B',observadora:'B',jardineiro:'C',jornalista:'D',residente:'E',chefe_de_cozinha:'F',governanta:'G',herdeira:'H',investigador:'I',eletricista:'J',advogado:'L'}},
+  13:{escolheu:'jornalista',trilha:'varanda',postos:{residente:'A',tabeliao:'B',investigador:'D',governanta:'G',observadora:'H',herdeira:'I',jornalista:'J',policial:'L'}},
+  14:{escolheu:'herdeira',trilha:'varanda',postos:{advogado:'A',tabeliao:'B',herdeira:'C',observadora:'D',residente:'E',jardineiro:'F',governanta:'G',policial:'H',investigador:'J',jornalista:'L'}},
+  15:{escolheu:'observadora',trilha:'despensa',postos:{chefe_de_cozinha:'A',tabeliao:'B',jardineiro:'C',observadora:'D',residente:'E',policial:'F',governanta:'G',herdeira:'H',investigador:'I',eletricista:'J',advogado:'L',jornalista:'L'}}
+};
+/* quem, além da guarda, alcança o relógio (12 s ou menos): postos B a F. Para a pergunta do Cap. 5. */
+function alcancaC4(p){var M=MATRIZ_C4[p];if(!M)return {guarda:null,alcancam:[]};var g=null,a=[];
+  Object.keys(M.postos).forEach(function(id){var l=M.postos[id];if(l==='A')g=id;else if(POSTOS_R2[l].s<=12)a.push(id)});return {guarda:g,alcancam:a}}
+function opcoesLista(certo,lista,chave){var r=gerador(PARTIDA+'|opcoes|'+chave),o=lista.filter(function(x){return x!==certo});
+  for(var i=o.length-1;i>0;i--){var j=Math.floor(r()*(i+1)),t=o[i];o[i]=o[j];o[j]=t}return [certo].concat(o.slice(0,3))}
+/* A planta dos postos: vai para o inventário na distribuição. */
+function plantaPostosSVG(){
+  var M=MATRIZ_C4[P_R2],por={},linhas='',y=150;
+  Object.keys(M.postos).forEach(function(id){(por[M.postos[id]]=por[M.postos[id]]||[]).push(id)});
+  'ABCDEFGHIJKL'.split('').forEach(function(l,i){var P=POSTOS_R2[l],quem=(por[l]||[]).map(function(id){return NOMES[id][1]+(id===EU_PAPEL?' (você)':'')}).join(', ')||'—';
+    var eu=(por[l]||[]).indexOf(EU_PAPEL)>=0;
+    linhas+=(i%2?'':'<rect x="40" y="'+(y-30)+'" width="920" height="46" fill="#e9dcc0"/>')+
+      '<text x="62" y="'+y+'" font-size="26" font-weight="700" fill="#3a2a18">'+l+'</text>'+
+      '<text x="110" y="'+y+'" font-size="23" fill="#3a2a18">'+P.nome+'</text>'+
+      '<text x="560" y="'+y+'" font-size="23" fill="#3a2a18" text-anchor="end">'+P.s+' s</text>'+
+      '<text x="600" y="'+y+'" font-size="23" fill="'+(eu?'#8a2a12':'#3a2a18')+'"'+(eu?' font-weight="700"':'')+'>'+quem+'</text>';y+=46});
+  var svg='<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="'+(y+60)+'" viewBox="0 0 1000 '+(y+60)+'">'+
+    '<rect width="1000" height="'+(y+60)+'" fill="#f4ead0"/><rect x="18" y="18" width="964" height="'+(y+24)+'" fill="none" stroke="#6b5234" stroke-width="3"/>'+
+    '<text x="40" y="70" font-family="Georgia,serif" font-size="34" fill="#3a2a18">Postos das nove e meia</text>'+
+    '<text x="40" y="104" font-family="Georgia,serif" font-size="20" font-style="italic" fill="#6b5234">A lista do cartório, com os segundos de cada posto até o relógio, anotados pelo Residente</text>'+
+    '<g font-family="Georgia,serif">'+linhas+'</g></svg>';
+  return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+}
+var C4_R2=(function(){
+  var P=P_R2,M=MATRIZ_C4[P];if(!M)return null;
+  var ev=[],cond=presente('tabeliao')?'tabeliao':'policial',lider=presente('jardineiro')?'jardineiro':'residente';
+  function sis(t,txt){ev.push([t,'sis',txt])}
+  function chat(t,id,txt){if(id&&presente(id)&&id!==EU_PAPEL)ev.push([t,SLOT_DE[id],txt])}
+  function priv(t,id,txt){if(id&&presente(id)&&id!==EU_PAPEL)ev.push([t,'priv:'+SLOT_DE[id],txt])}
+  function marco(id){ev[ev.length-1].id=id}
+  var inicio=M.trilha==='biblioteca'?'sala':'biblioteca',ch=M.escolheu;
+
+  sis(6,(presente('governanta')?Na('governanta')+' serviu o caldo às nove, em pé, como se ainda trabalhasse ali.':'Às nove, alguém esquentou um caldo na cozinha.')+' Ninguém comeu direito. '+Na(lider)+' pegou a lanterna grande do vestíbulo e pediu que '+(lider===EU_PAPEL?'o acompanhassem':'o acompanhassem')+' até a varanda.');
+  sis(20,'O jardim interno era um quadrado de pedra e terra vermelha cercado pela casa. No canto dos fundos, o jasmim subia pelo beiral até a janela do quarto de serviço. A chuva caía reta, pesada, sem vento.');
+  sis(32,'<i>"Olhem o chão"</i>, disse '+na(lider)+'. <i>"Não para as flores. Para o chão."</i>');
+  sis(44,'Havia duas trilhas. A primeira ia da porta de serviço até a janela do quarto dos fundos: pedras gastas no meio, sem musgo, a terra batida de tanto uso. A segunda era de lama, pegadas de sola lisa, entre '+PORTAS_JARDIM[inicio]+' e '+PORTAS_JARDIM[M.trilha]+'.');
+  sis(58,'<i>"A seca é de meses. Alguém anda aqui todo dia. A outra é desta noite."</i> '+Na(lider)+' iluminou o bico das pegadas e ficou olhando um tempo, sem dizer para que lado iam.');marco('jardim');
+  if(P===12){
+    sis(74,'<i>"Essa outra não é de hoje"</i>, disse '+na('observadora')+', abaixando-se com a saia recolhida. <i>"Olhe a borda. Está gasta. Ontem, talvez anteontem."</i> '+Na('jardineiro')+' apontou a lanterna para dentro de uma das pegadas. Havia água parada ali, e a borda de barro estava viva, cortada.');
+    sis(88,'<i>"Com todo respeito, senhora. Pegada de anteontem, com essa chuva, já tinha virado poça. Esta aqui ainda tem desenho de sola."</i> '+Na('observadora')+' se levantou devagar. <i>"O senhor entende de terra. Eu entendo de madeira."</i> <i>"Então fique com a madeira."</i>');
+  }
+  if(P===11)sis(100,'<i>"A ala de serviço tem um corredorzinho que..."</i>, começou '+na('residente')+'. <i>"E a portinhola atrás do painel?"</i>, perguntou '+na('policial')+'. '+Na('residente')+' empalideceu. <i>"Quem falou em portinhola?"</i> '+Na('investigador')+' lacrou a portinhola com a fita da seguradora, na frente de todos.');
+  else{
+    sis(100,'Foi '+na('residente')+' quem falou do resto, e falou mal. Começou dizendo que a ala de serviço <i>"tinha um corredorzinho"</i>, se corrigiu para <i>"a parede ali atrás é oca"</i>, e terminou admitindo, com a voz baixa de quem confessa dívida: <i>"Tem uma passagem. Da despensa até a sala do relógio, por trás do quarto de serviço. Sai numa portinhola atrás do painel ao lado do relógio. Na reforma, era para eu fechar. Ele pediu para deixar. Eu deixei. E não lacrei."</i>');
+    sis(116,'<i>"E por que ele pediria isso?"</i>, perguntou '+na('policial')+'. <i>"Não perguntei. Ele pagava."</i>');
+    if(P===6)sis(124,Na('residente')+' mostrou a portinhola atrás do painel, abriu, fechou, e a deixou só encostada.');
+  }
+  sis(134,Na('herdeira')+' olhava para a janela do jasmim. <i>"Ninguém usava aquele quarto. Era de despejo."</i>');
+  sis(148,'<i>"Era o quarto do jasmim"</i>, disse '+na('observadora')+', e todos se viraram para ela. Ela manteve o queixo erguido. <i>"Minha mãe trabalhou nesta casa quando eu era menina. Eu cresci naquele quarto. Quem cresceu aqui chamava assim."</i>');
+  if(P===12)sis(162,(EU_PAPEL==='investigador'?'Você lembrou: <i>"A senhora disse que só conhecia o relógio por fotografia."</i>':'<i>"A senhora disse que só conhecia o relógio por fotografia"</i>, lembrou '+na('investigador')+'.')+' <i>"Eu disse que nunca o tinha visto de perto. Criança não chegava perto do relógio do patrão."</i> Era uma boa resposta. Boa demais, '+na('investigador')+' pensou, e não disse.');
+  /* a lembrança que o caderno vai checar (Matriz, "Cap. 4 contra o caderno") */
+  var LEMBRA={2:['tabeliao','Fui eu quem colheu a assinatura dele no leito, na última semana. Assinou guiado.'],
+    5:['advogado','Estive com ele no último domingo. Ele mesmo deu corda, como fazia todo domingo.'],
+    9:['jornalista','Entrevistei ele na última semana. Falava pouco, mas falou do mar.'],
+    13:['investigador','Estive aqui três semanas antes. E voltei no último dia; ele estava lúcido, me pediu para conferir o relógio.']}[P];
+  if(LEMBRA)sis(176,'Na volta para dentro, falaram dele. <i>"'+LEMBRA[1].replace(/\.$/,'')+'"</i>, disse '+na(LEMBRA[0])+'.');
+  /* os postos */
+  sis(192,'Às nove e vinte, '+na(cond)+' abriu a pasta sobre a mesa e distribuiu os postos para a reabertura das nove e meia. Ninguém ficaria sozinho sem ser visto, disse ele, e ninguém ficaria longe demais.');
+  if(P===2)sis(200,Na('tabeliao')+' mandou '+na('policial')+' para o rádio: <i>"O senhor é o único que fala com o farol como autoridade."</i> '+Na('policial')+' foi.');
+  var por={};Object.keys(M.postos).forEach(function(id){if(id===ch||!presente(id))return;(por[M.postos[id]]=por[M.postos[id]]||[]).push(id)});
+  var frases='ABCDEFGHIJKL'.split('').filter(function(l){return por[l]&&!(P===2&&l==='I')}).map(function(l){var t=listaNomes(por[l]);return t.charAt(0).toUpperCase()+t.slice(1)+' '+POSTOS_R2[l].lugar+(l==='J'&&por[l].indexOf('eletricista')>=0?', para descer ao quadro se fosse preciso':'')+'.'});
+  sis(208,frases.join(' '));
+  var EXTRA={1:'. Conheço os barulhos daquela ala',12:'. Conheço os barulhos daquela ala',4:'. Preciso de ar',8:'. Conheço a escadinha',9:'. Levo uma vela'}[P]||'';
+  var trat=ch===EU_PAPEL?'você':(NOMES[ch][0]==='a'?'a senhora':'o senhor');
+  sis(222,'<i>"E '+trat+'?"</i>, perguntou '+na(cond)+(ch===EU_PAPEL?' a você':'')+'. <i>"Eu fico '+POSTOS_R2[M.postos[ch]].curto+EXTRA+'"</i>, '+(ch===EU_PAPEL?'você respondeu':'respondeu '+na(ch))+'. '+Na(cond)+' hesitou, depois anotou.');
+  sis(236,Na('residente')+' pegou a lista e anotou, ao lado de cada posto, quantos segundos dali até o relógio. <i>"Conheço cada passo desta casa."</i>');marco('postos');
+  if(P===12)sis(250,'Antes de ir para a sala de jantar, '+na('herdeira')+' passou pela cozinha e abriu a porta da varanda. <i>"Preciso de ar."</i> <i>"Vai entrar frio"</i>, disse '+na('governanta')+'. <i>"Que entre."</i>');
+  sis(262,'Os celulares vibraram.');
+  ev.push([264,ACOMP,{guardia:'Não deixem a sala sozinha.',explosiva:'Cada um no seu lugar. Como nunca estiveram.',ardilosa:'Alguém escolheu o lugar errado de propósito.',quieta:'Nove e meia.'}[PERSONALIDADE]]);
+  chat(290,voz(['jornalista','policial','advogado'],'residente'),'Uma passagem até a sala do relógio, e ninguém sabia?');
+  chat(312,voz(['herdeira','tabeliao','investigador'],'observadora'),'Quem cresceu nesta casa conhece mais do que diz.');
+  priv(340,voz(['governanta','jornalista','herdeira','residente'],lider),'Você viu para que lado vão as pegadas?');
+  sis(440,'A chuva não parou. Faltam poucos minutos para as nove e meia.');
+
+  var fala=function(ids,txt,exceto){var id=voz(ids,exceto);return id?[SLOT_DE[id],txt]:null};
+  return {
+    roteiro:ev,
+    respGrupo:[[58,'Para que lado vão as pegadas?'],[116,'Quem mais sabia da passagem?'],[222,'Por que escolheu esse posto?'],[0,'Vamos ficar onde nos mandaram.']],
+    respPriv:[[58,'Você acha que essa trilha é de hoje?'],[0,'Não confio em ninguém aqui.']],
+    replica:{
+      'Para que lado vão as pegadas?':fala(['policial','investigador','advogado'],'Olhe o bico das pegadas. Ele não mente.'),
+      'Quem mais sabia da passagem?':fala(['residente'],'Ele. E quem mais andasse por ela.'),
+      'Por que escolheu esse posto?':ch!==EU_PAPEL?fala([ch],'Porque é onde eu sirvo para alguma coisa.'):null,
+      'Vamos ficar onde nos mandaram.':fala(['policial','tabeliao'],'É o combinado.'),
+      'Você acha que essa trilha é de hoje?':'É. Tem água parada dentro.',
+      'Não confio em ninguém aqui.':'Nem eu.'
+    },
+    acompPriv:RESP_ACOMP_R2,
+    achar:{itens:['as duas trilhas, no jardim (aba RA, depois que ele abrir)','a planta dos postos, no inventário, depois da distribuição'],dica:'No jardim, chegue perto das pegadas: o bico mostra para que lado a pessoa ia.'},
+    debate:{pergunta:'Quem conhece a casa por causa da função, e quem conhece sem motivo?',falas:[
+      fala(['governanta','jardineiro','residente'],'Eu conheço a casa porque trabalhei nela. Isso é função.'),
+      fala(['investigador','policial','advogado'],'Quem chama o quarto pelo nome antigo conhece de outro jeito.'),
+      fala(['jornalista','herdeira','tabeliao'],'Conhecer a casa não é crime. A pergunta é quem precisava da passagem esta noite.')]},
+    perguntas:function(){return [
+      {rotulo:'principal',pergunta:'Quem escolheu o próprio posto para as 21h29, em vez de aceitar o que lhe deram?',opcoes:opcoesPessoa(ch,'c4posto')},
+      {rotulo:'secundária',pergunta:'Em que porta termina a trilha fresca? (o bico das pegadas mostra a direção)',
+        opcoes:opcoesLista(PORTAS_JARDIM_ROT[M.trilha],['despensa','varanda','biblioteca','quarto','sala','servico'].map(function(k){return PORTAS_JARDIM_ROT[k]}),'c4trilha')}]}
+  };
+})();
 var ROTEIROS={1:C1,2:C2_R2,3:C3_R2};
+if(C4_R2)ROTEIROS[4]=C4_R2;
 
 /* ── Fim do prólogo: a apresentação acabou; começa O Impostor ─────────── */
-var CAPITULOS=[null,{n:1,nome:'A REABERTURA'},{n:2,nome:'A VOZ A MAIS'},{n:3,nome:'O INVENTÁRIO'}];
+var CAPITULOS=[null,{n:1,nome:'A REABERTURA'},{n:2,nome:'A VOZ A MAIS'},{n:3,nome:'O INVENTÁRIO'},{n:4,nome:'O JARDIM INTERNO'}];
 var farolNoite=false;
 function fimDoPrologo(){
   if(capitulo!==0)return;
@@ -2126,7 +2281,7 @@ function abrirMaquete(){
   mostrarPeca('maquete');
 }
 $('#sairRA').onclick=function(){$('#telaRA').hidden=true};
-document.addEventListener('click',function(e){var a=e.target.closest('[data-abrir]');if(!a)return;e.preventDefault();if(a.dataset.abrir==='maquete')abrirMaquete();if(a.dataset.abrir==='bandeja')abrirBandeja();if(a.dataset.abrir==='escrivaninha')antesDaPeca('escrivaninha',abrirEscrivaninha);if(a.dataset.abrir==='relogio')abrirRelogio()});
+document.addEventListener('click',function(e){var a=e.target.closest('[data-abrir]');if(!a)return;e.preventDefault();if(a.dataset.abrir==='maquete')abrirMaquete();if(a.dataset.abrir==='bandeja')abrirBandeja();if(a.dataset.abrir==='escrivaninha')antesDaPeca('escrivaninha',abrirEscrivaninha);if(a.dataset.abrir==='relogio')abrirRelogio();if(a.dataset.abrir==='jardim')abrirJardim()});
 /* Uma novidade de uso aparece UMA vez, antes de a peça abrir (antes da câmera).
    Só se ensina o que é da tela (ler de perto, fotografar); o que se mexe na peça
    continua para o jogador descobrir. */
