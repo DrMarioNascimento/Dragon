@@ -759,6 +759,7 @@ button:active,.caixa:active,.redondo:active,.chip:active{
 <div class="rain" aria-hidden="true"></div>
 
 <div class="abertura" id="abertura">
+  <audio id="somRadio" src="media/radio-estatica.mp3" preload="auto"></audio>
   <video id="videoAbertura" playsinline preload="auto" poster="media/aguardando.jpg"><source src="media/Mosaico_O_Impostor.mp4" type="video/mp4" /><source src="Mosaico_O_Impostor.mp4" type="video/mp4" /></video>
   <button class="comecar" id="comecar">▶ Começar</button>
   <button class="pular" id="pular" hidden>Pular ›</button>
@@ -905,7 +906,26 @@ var IMPOSTOR_R2={1:'residente',2:'tabeliao',3:'herdeira',4:'chefe_de_cozinha',5:
 var AJUDANTE_R2={1:'policial',2:'residente',3:'residente',4:'governanta',5:'tabeliao',6:'residente',7:'investigador',8:'chefe_de_cozinha',9:'residente',10:'herdeira',11:'herdeira',12:'tabeliao',13:'jornalista',14:'governanta',15:'voz'};
 var FALSO_R2={1:['observadora'],2:['governanta'],3:['investigador'],4:['eletricista'],5:['jardineiro'],6:['residente'],7:['observadora'],8:['jardineiro'],9:['herdeira'],10:['residente'],11:['investigador'],12:['eletricista','jardineiro'],13:['tabeliao'],14:['advogado'],15:['chefe_de_cozinha']};
 function papelProibido(p,id){return IMPOSTOR_R2[p]===id||(p===5&&id==='tabeliao')}
-var CASA=(function(){var p=+Q.get('p');if(PARTIDAS_R2[p])return PARTIDAS_R2[p];var c=+Q.get('casa')||((+Q.get('contatos')||7)-1);c=Math.max(6,Math.min(12,c));return c-c%2})();
+/* 02/10 (Mario): o sorteio pode usar casa maior que a mínima; o sistema completa os
+   personagens que sobrarem. ?humanos=N (1 a 12; hoje 1) diz quantos jogadores há;
+   entram as partidas que têm lugar para todos (lugares = casa − o impostor; na P6 a
+   impostora é a Cuidadora, fora da casa; na P5 o Tabelião também é sempre do sistema).
+   ?p=N e ?casa=N continuam valendo para teste. */
+var HUMANOS=Math.max(1,Math.min(12,+Q.get('humanos')||1));
+function lugaresDe(k){var c=PARTIDAS_R2[k];return c-(IMPOSTOR_R2[k]==='acompanhante'?0:1)-(k===5?1:0)}
+function naCasa(k,id){var c=PARTIDAS_R2[k],base=['investigador','herdeira','residente','jornalista','policial','observadora'];
+  if(base.indexOf(id)>=0)return true;var ex=['tabeliao','governanta','advogado','jardineiro','chefe_de_cozinha','eletricista'];return ex.indexOf(id)>=0&&ex.indexOf(id)<c-6}
+var P_PRE=(function(){if(PARTIDAS_R2[+Q.get('p')]||Q.get('casa')||Q.get('contatos'))return null;
+  var q=Q.get('papel')||'investigador',bolsa=[];
+  Object.keys(PARTIDAS_R2).map(Number).forEach(function(k){
+    if(lugaresDe(k)<HUMANOS||!naCasa(k,q)||papelProibido(k,q))return;
+    var w=(AJUDANTE_R2[k]===q||FALSO_R2[k].indexOf(q)>=0)?2:1;for(var i=0;i<w;i++)bolsa.push(k)});
+  /* 12 humanos só cabem com o Médico (13º personagem, a escrever); até lá, a maior casa possível */
+  if(!bolsa.length){var mx=Math.max.apply(null,Object.keys(PARTIDAS_R2).map(function(k){return lugaresDe(+k)}));
+    Object.keys(PARTIDAS_R2).map(Number).forEach(function(k){if(lugaresDe(k)===mx&&naCasa(k,q)&&!papelProibido(k,q))bolsa.push(k)})}
+  return bolsa.length?bolsa[Math.floor(gerador(PARTIDA+'|matriz')()*bolsa.length)]:null})();
+/* SUBSTITUIDO 02/10: sem ?p, a casa vinha de ?casa/?contatos (padrão 6) e o solo só via P1, P6 e P9. */
+var CASA=(function(){var p=+Q.get('p');if(PARTIDAS_R2[p])return PARTIDAS_R2[p];if(P_PRE)return PARTIDAS_R2[P_PRE];var c=+Q.get('casa')||((+Q.get('contatos')||7)-1);c=Math.max(6,Math.min(12,c));return c-c%2})();
 var N_CONTATOS=CASA+1;   /* todos da casa + o celular do proprietário */
 var SLOTS=(function(){var r=gerador(PARTIDA+'|numeros'),out=[];while(out.length<N_CONTATOS){var n=('0'+Math.floor(r()*100)).slice(-2);if(out.indexOf(n)<0)out.push(n)}return out})();
 var CORES={},ARQ={};
@@ -1535,8 +1555,13 @@ function aoMarco(id){
   if(id==='gaveta'){relogioEstado='apagao';relogioModo='ver';destravarRelogio();atualizarRelogio('ver','apagao');
     if(!fotografou('O adendo'))INVENTARIO.push({ico:'📜',nome:'O adendo',desc:'A folha que estava na gaveta de pesos',img:papelSVG('O adendo',['A quem me acompanhou até o fim,','deixo o direito de morar','no quarto do jasmim enquanto viver,','e o que dele se puder tirar.'],P_R2===6?'#3a2a18':null)})}
 }
+/* 02/10 (Mario): toda mensagem de rádio toca a estática (media/radio-estatica.mp3, 6 s; usamos ~3 s com fade). */
+var RADIO_RE=/r[aá]dio[^.<]{0,60}(chi(a|ou)|chiando)|O r[aá]dio(:| avisou)/i;
+function somRadio(){try{var a=$('#somRadio');if(!a)return;clearInterval(somRadio.t);a.volume=0.55;a.currentTime=0;var p=a.play();if(p&&p.catch)p.catch(function(){});
+  setTimeout(function(){somRadio.t=setInterval(function(){a.volume=Math.max(0,a.volume-0.06);if(a.volume<=0.02){a.pause();clearInterval(somRadio.t)}},80)},2200)}catch(e){}}
 function tocarRoteiro(r,escala){
   r.forEach(function(ev){roteiroTimers.push(setTimeout(function(){
+    if((ev[1]==='sis'||ev[1]==='sisconv'||ev[1]==='sisserv')&&RADIO_RE.test(ev[2]))somRadio();
     if(ev[1]==='fx'){if(ev[2]==='escuro')escuroComeca();else if(ev[2]==='clarao')escuroClarao();else if(ev[2]==='luz')escuroAcaba();return}
     if(escuroAtivo&&(ev[1]==='sis'||ev[1]==='sisconv'))escuroLinha(ev[2]);
     if(escuroAtivo&&ev[1]===ACOMP)escuroLinha('📱 Os celulares vibraram. <b>···'+ACOMP+'</b>: '+ev[2]);
@@ -1734,6 +1759,7 @@ var MATRIZ_C1={
 };
 /* SUBSTITUIDO 01/10: o sorteio pegava qualquer partida da casa, sem olhar o papel humano. */
 var P_R2=(function(){var p=+Q.get('p');if(MATRIZ_C1[p]&&PARTIDAS_R2[p]===CASA)return p;
+  if(P_PRE&&PARTIDAS_R2[P_PRE]===CASA&&!papelProibido(P_PRE,EU_PAPEL))return P_PRE;
   /* só partidas em que o seu personagem não é o impostor; o ajudante e o falso culpado pesam o dobro */
   var ps=Object.keys(PARTIDAS_R2).map(Number).filter(function(k){return PARTIDAS_R2[k]===CASA&&!papelProibido(k,EU_PAPEL)}),bolsa=[];
   ps.forEach(function(k){var w=(AJUDANTE_R2[k]===EU_PAPEL||FALSO_R2[k].indexOf(EU_PAPEL)>=0)?2:1;for(var i=0;i<w;i++)bolsa.push(k)});
@@ -2285,7 +2311,10 @@ var ALIAS_R2={inv:'investigador',her:'herdeira',res:'residente',jor:'jornalista'
 function T(s){return String(s).replace(/\{(a:|de:)?([A-Za-z]+)\}/g,function(m,pre,k){var id=ALIAS_R2[k.toLowerCase()];if(!id)return m;
   if(pre){var eu=id===EU_PAPEL,fem=NOMES[id][0]==='a';return pre==='a:'?(eu?'a você':(fem?'à ':'ao ')+NOMES[id][1]):(eu?'de você':(fem?'da ':'do ')+NOMES[id][1])}
   return k.charAt(0)===k.charAt(0).toUpperCase()?Na(id):na(id)})}
-var PERS_TEMPO={guardia:20,explosiva:90,ardilosa:60,quieta:100};
+var PERS_TEMPO={guardia:20,explosiva:90,ardilosa:60,quieta:100,
+  /* 02/10 (Mario): os 6 tipos. Ingênuo +36 e Burocrata +106 não batem com nenhuma percepção do apagão em partida nenhuma.
+     Os nomes antigos continuam até a matriz de falas ser ligada: guardia = leal_cego, explosiva = explosivo, ardilosa = evasivo, quieta = calmo_opaco. */
+  leal_cego:20,explosivo:90,evasivo:60,calmo_opaco:100,ingenuo:36,burocrata:106};
 var MSG_ESCURO={guardia:'Fiquem onde estão.',explosiva:'Agora vocês sabem como é o escuro desta casa.',ardilosa:'Quem de vocês está olhando para o relógio agora?',quieta:'.'};
 var MSG_FUGA={guardia:'Está tudo aí. Leiam.',explosiva:'Agora é tarde para bater na porta.',ardilosa:'Um de vocês vai dizer que esteve aqui. Contem os dias.',quieta:'Leiam.'};
 var MSG_EPILOGO={guardia:'Reguem o jasmim. Ele pediu.',explosiva:'Leram. Agora saiam do quarto.',ardilosa:'Acharam o papel. Falta a pessoa.',quieta:'Boa noite.'};
@@ -2447,7 +2476,8 @@ var C5_R2={
     [72,'Aos setenta e dois segundos, o quarto clarão. Da porta, {che} viu junto ao pêndulo o brilho de um zíper. Da janela do corredor, {obs} viu o dólmã de novo na porta, e, pela porta de vidro, {tab} à luz da vela.'],
     [79,'Na sala de jantar, a louça tilintou. {Her} tinha esbarrado no aparador.'],
     [80,'Aos oitenta segundos, veio o raspado. Da janela do corredor, {obs} ouviu, e não disse nada.']],
-    farol:'No terceiro e no quarto, um oleado amarelo parado na varanda do jardim e alguém parado na janela do corredor.',
+    /* SUBSTITUIDO 02/10 (Mario: o farol só vê vultos): 'No terceiro e no quarto, um oleado amarelo parado na varanda do jardim e alguém parado na janela do corredor.' */
+    farol:'No terceiro e no quarto, um vulto amarelo parado na varanda do jardim e alguém parado na janela do corredor.',
     tela:'investigador',calou:'observadora',louca:'herdeira'}
 };
 
@@ -2496,7 +2526,7 @@ var C6_ONDE={
      '<i>"Eu destranquei a porta-janela da sala às nove"</i>, disse {gov}. <i>"Para o gato. Ele chora quando chove. E falei com {res} pela copa, e {jar} me pediu a lanterna pela porta da despensa."</i>'],
   15:['<i>"Aos cinquenta e oito, passos dentro da parede, vindo da despensa"</i>, disse {res}. <i>"A mensagem chegou às nove e meia e eu olhei"</i>, disse {che}, que guardava a porta. <i>"Aos setenta e dois vi um brilho de zíper junto ao pêndulo."</i>',
      '<i>"{Che} estava na porta, dólmã branco, nos dois clarões"</i>, disse {obs}. <i>"Tem cal no couro do senhor"</i>, disse {gov} {a:pol}.',
-     '{Tab} tinha uma vela acesa na biblioteca, e {obs} o via pelo vidro. {Adv} estava na sala de estar com {jor}. <i>"E {res} falou comigo pela copa"</i>, disse {gov}. O farol tinha visto o oleado parado na varanda, nos dois clarões.']
+     '{Tab} tinha uma vela acesa na biblioteca, e {obs} o via pelo vidro. {Adv} estava na sala de estar com {jor}. <i>"E {res} falou comigo pela copa"</i>, disse {gov}. O farol tinha visto o vulto amarelo parado na varanda, nos dois clarões.']   /* 02/10: era "o oleado" (o farol só vê vultos) */
 };
 /* o que a mesa nota antes da fuga (só onde o cânone dá a cena) */
 var C6_NOTA={12:'{Jor} foi o primeiro a notar que {obs} estava de blusa. Uma blusa clara, de seda fina, mangas até o pulso. No punho direito, uma mancha escura, pequena, que ela cobriu com a outra mão. O blazer de veludo estava pendurado no espaldar da cadeira dela, na biblioteca. <i>"Tirou o blazer no frio?"</i> <i>"Calor de nervoso. O senhor nunca sentiu?"</i>'};
@@ -2916,7 +2946,7 @@ function fimDoPrologo(){
   if(capitulo!==0)return;
   /* Funcionário (Mario, 30/09): no fim da véspera, o Faroleiro, que acompanha a
      previsão do tempo, aconselha dormir na casa e esperar os convocados. */
-  if(SOU_FUNC&&!farolNoite){farolNoite=true;
+  if(SOU_FUNC&&!farolNoite){farolNoite=true;somRadio();
     var t='O velho rádio VHF chia. É o farol: <i>"Casa da Costa, aqui é o farol. A chuva só aumentou, e a previsão é de mais. A estrada da costa não está segura. É mais seguro '+(COLEGAS.length?'vocês dormirem':'você dormir')+' aí e esperar os convocados chegarem."</i>';
     grupoServ.push({sis:t});pintarGrupo();
     janela('O FAROL','A chuva só aumentou, e não é seguro sair da casa. Pelo rádio, o farol, que acompanha a previsão do tempo, aconselha: é mais seguro '+(COLEGAS.length?'vocês dormirem':'você dormir')+' aqui e esperar os convocados chegarem.',function(){setTimeout(fimDoPrologo,400)});
