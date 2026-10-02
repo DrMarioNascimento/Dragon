@@ -33,11 +33,14 @@ const RITMO = globalThis.ACRitmo;
    y=0). Saíram medidas do próprio `casa-da-costa-pisos.glb`; o teste
    `ac-maquete.test.mjs` recalcula as três a partir do arquivo e reprova se
    alguém mexer no modelo sem mexer aqui. */
-/* Remedidas em 19/09/2026, com o penhasco baixado (ac-maquete-mundo.js). */
+/* SUBSTITUIDO (01/10/2026) — medidas do modelo antigo (19/09/2026):
+   [0.17836, 0.32582, 0.25301], [-0.29224, 0.55338, -0.03934], [-0.29708, 0.44057, -0.03934]
+   Remedidas em 01/10/2026 no modelo novo (casa em pátio), pelo próprio
+   ac-maquete-mundo.js sem pontos: centro da peça em x/z e o topo dela em y. */
 export const FECHADURAS = [
-  [0.17836, 0.32582, 0.25301],   // degrau de pedra da porta da frente
-  [-0.29224, 0.55338, -0.03934], // peito da chaminé, no corredor dos quartos
-  [-0.29708, 0.44057, -0.03934]  // peito da chaminé do térreo, na sala escura
+  [-0.18528, 0.10141, 0.17238],  // degrau de pedra da porta da frente (portada)
+  [-0.21511, 0.2152, -0.1003],   // peito da chaminé, no andar de cima
+  [-0.19233, 0.1591, -0.0975]    // peito da chaminé do térreo, na sala do relógio
 ];
 
 /* Encaixe: distância máxima entre a ponta da chave e a fechadura, na mesma
@@ -66,7 +69,7 @@ export const CAPITULOS_AC = [
     rotulos: {
       'pedra-do-caminho': 'A pedra solta do caminho, diante da porta',
       'pilar-do-portao': 'O pilar do portão',
-      'moita-do-caminho': 'A moita ao lado da varanda',
+      'moita-do-caminho': 'A moita junto ao caminho', // SUBSTITUIDO (01/10, casa nova): 'A moita ao lado da varanda'
       'laje-de-chegada': 'O lajeado diante da porta'
     },
     achado: {
@@ -79,7 +82,7 @@ export const CAPITULOS_AC = [
         fechadura: ['A casa também tem uma entrada que se pisa.', 'Olhe o que se pisa para entrar pela porta da frente.']
       },
       encaixe: {
-        chave: ['Pergunte ao colega perto de quê o vão está, e leve a chave até lá.', 'O vão fica diante da porta da frente, embaixo do arco da torre.'],
+        chave: ['Pergunte ao colega perto de quê o vão está, e leve a chave até lá.', 'O vão fica diante da porta da frente, sob o telhadinho da entrada.'], // SUBSTITUIDO (01/10): '…embaixo do arco da torre.'
         fechadura: ['Diga ao colega onde está o vão: perto de quê, de que lado da casa.', 'Diga: “no degrau de pedra da porta da frente”. O ponto de luz é a chave dele.']
       }
     },
@@ -89,9 +92,9 @@ export const CAPITULOS_AC = [
       'laje-de-chegada': { achado: 'Uma laje balançou sob o dedo. Debaixo dela havia uma coisa pequena e fria.',
         busca: ['Rente ao chão: nem tudo o que fica no caminho está preso.', 'Diante da porta, no fim do caminho: uma laje ou uma pedra saiu do lugar.'] },
       'pilar-do-portao': { achado: 'Uma pedra do pilar estava solta. Atrás dela havia uma coisa pequena e fria.',
-        busca: ['Onde o terreno começa, antes da porta: nem toda pedra está presa.', 'Na entrada: o pilar do portão ou a moita ao lado da varanda.'] },
+        busca: ['Onde o terreno começa, antes da porta: nem toda pedra está presa.', 'Na entrada: o pilar do portão ou a moita junto ao caminho.'] },
       'moita-do-caminho': { achado: 'Entre as folhas, rente à terra, havia uma coisa pequena e fria.',
-        busca: ['Nem tudo o que cresce no caminho é só planta.', 'Perto da entrada: a moita ao lado da varanda ou o pilar do portão.'] }
+        busca: ['Nem tudo o que cresce no caminho é só planta.', 'Perto da entrada: a moita junto ao caminho ou o pilar do portão.'] }
     },
     evidencia: 'chave-exterior',
     fecho: 'O telhado se soltou. Debaixo dele havia um andar de quartos.'
