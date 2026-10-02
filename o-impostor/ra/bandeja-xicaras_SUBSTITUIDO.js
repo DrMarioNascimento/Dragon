@@ -1,15 +1,4 @@
-/* O Impostor — o aparador da sala (Capítulo 1), com a mão.
-
-   01/10/2026 (auditoria, alinhado ao cânone): substitui a versão de sete
-   xícaras (guardada em ra/bandeja-xicaras_SUBSTITUIDO.js). No cânone a xícara
-   de outro jogo está SOZINHA no aparador: borda verde, um dedo de café frio e
-   uma película por cima. A bandeja ao lado tem as SEIS xícaras da louça da sala
-   (filete azul, carimbo da casa). As seis continuam com o enigma: viram pela
-   alça, o fundo raspa e, postas em ordem, mostram que a louça da sala está
-   completa. A xícara sozinha não vira (tem café): um toque tira a foto dela,
-   que vai para o inventário. Sem marca de jasmim (seria do Cap. 4).
-
-   (texto original abaixo)
+/* O Impostor — a bandeja das sete xícaras (Capítulo 1), com a mão.
 
    Mario, 28/09/2026: sete xícaras iguais por fora. Cada uma se VIRA (arrastar
    para cima) e o fundo se RASPA com o dedo, como raspadinha. Debaixo de cada
@@ -34,7 +23,7 @@
   'use strict';
   var Q = new URLSearchParams(location.search);
   var PARTIDA = Q.get('partida') || 'P-DEMO', JOGADOR = Q.get('jogador') || '0';
-  var N = 6, PASSO = 0.1, ALTURA = 0.065, RAIO_FUNDO = 0.0232, RAIO_TOQUE = 0.04, S = 512, U = 256;
+  var N = 7, PASSO = 0.1, ALTURA = 0.065, RAIO_FUNDO = 0.0232, RAIO_TOQUE = 0.04, S = 512, U = 256;
   /* os fundos são desenhados em 256 unidades num canvas de 512 px (mais nítido) */
   function ctx(c) { var g = c.getContext('2d'); g.setTransform(S / U, 0, 0, S / U, 0, 0); return g; }
 
@@ -60,6 +49,7 @@
     seq = [2, 4, 6, 8, 10, 12]; intruso = r.escolher([3, 5, 7, 9, 11]);
   }
   var itens = seq.map(function (v, i) { return { valor: v, ordem: i, intruso: false }; });
+  itens.push({ valor: intruso, ordem: -1, intruso: true });
   itens.forEach(function (it) { it.texto = modo === 'contas' ? conta(it.valor) : String(it.valor); });
   var envioEm = r.inteiro(0, 5);            /* índice (na sequência) da xícara com o envio */
   itens[envioEm].envio = true;
@@ -67,10 +57,10 @@
 
   /* ---------------- cena ---------------- */
   var b = OIBase.criar({
-    vista: { alvo: [0.06, 0.05, 0.02], dist: 0.95, distRetrato: 1.9, dir: [0, 1.5, 0.55] },
+    vista: { alvo: [0, 0.05, 0.02], dist: 0.85, distRetrato: 1.75, dir: [0, 1.5, 0.55] },
     raioDoChao: 0.7, alturaDoAparelho: 0.45, miraEscala: 1.2, exposicao: 0.95,
     textoMira: 'Aponte para uma mesa e toque em Pôr aqui.',
-    textoInicio: 'O aparador da sala.',
+    textoInicio: 'A bandeja de xícaras.',
     deNovo: null
   });
 
@@ -375,11 +365,13 @@
     conferir();
   }
 
-  /* as seis em ordem (crescente ou decrescente; letras: a palavra) */
+  /* seis em ordem (crescente ou decrescente; letras: a palavra) e a sétima numa ponta */
   function conferir() {
     if (resolvido) return;
     if (!xicaras.every(function (x) { return x.userData.revelada; })) return;
     var fila = xicaras.slice().sort(function (a, c) { return a.userData.slot - c.userData.slot; }).map(function (x) { return x.userData.item; });
+    var intPos = fila.findIndex(function (it) { return it.intruso; });
+    if (intPos !== 0 && intPos !== N - 1) return;
     var seis = fila.filter(function (it) { return !it.intruso; }).map(function (it) { return it.ordem; });
     var cresce = seis.every(function (v, i) { return v === i; });
     var desce = tipo !== 'letra' && seis.every(function (v, i) { return v === 5 - i; });
@@ -398,7 +390,7 @@
         else u.po = 0.2 * t;
         compor(x);
       });
-      if (t >= 1) { b.estado('As seis têm o carimbo da casa: a louça da sala está completa. A xícara sozinha é de outro jogo.'); avisarMesa('resolvido', {}); return true; }
+      if (t >= 1) { b.estado('Seis têm o carimbo da casa e pó de meses. Uma é de outro jogo.'); mandarPista(); return true; }
     });
   }
   function mandarPista() {
@@ -412,52 +404,8 @@
     try { if (parent !== window) parent.postMessage(Object.assign({ oi: 'bandeja', evento: evento }, extra || {}), location.origin); } catch (e) {}
   }
 
-  /* ---------------- a xícara sozinha, de borda verde, com café frio ---------------- */
-  var sozinha = new THREE.Group(); b.raiz.add(sozinha);
-  sozinha.position.set(LARG / 2 + 0.085, 0, 0.02);
-  (function () {
-    var verde = new THREE.MeshStandardMaterial({ color: 0x3f8a5c, roughness: 0.35 });
-    var pires = new THREE.Mesh(new THREE.CylinderGeometry(0.062, 0.05, 0.008, 40), porcelana); pires.position.y = 0.004; sozinha.add(pires);
-    var aroPires = new THREE.Mesh(new THREE.TorusGeometry(0.06, 0.0014, 6, 48), verde); aroPires.rotation.x = Math.PI / 2; aroPires.position.y = 0.0082; sozinha.add(aroPires);
-    var corpo = new THREE.Mesh(geoCorpo, porcelana); corpo.position.y = 0.008; sozinha.add(corpo);
-    var f = new THREE.Mesh(new THREE.TorusGeometry(0.0466, 0.0028, 8, 64), verde); f.rotation.x = Math.PI / 2; f.position.y = 0.008 + ALTURA - 0.003; sozinha.add(f);
-    var alca = new THREE.Mesh(geoAlca, porcelana); alca.rotation.y = 0.6; alca.position.y = 0.008; sozinha.add(alca);
-    /* um dedo de café frio, com a película: um disco escuro e outro, fosco, por cima */
-    var cc = document.createElement('canvas'); cc.width = cc.height = 256; var g = cc.getContext('2d');
-    var gr = g.createRadialGradient(128, 128, 20, 128, 128, 128); gr.addColorStop(0, '#2a1608'); gr.addColorStop(1, '#3d220e');
-    g.fillStyle = gr; g.beginPath(); g.arc(128, 128, 128, 0, Math.PI * 2); g.fill();
-    for (var k = 0; k < 14; k++) {                       /* a película: rugas foscas, mais claras */
-      g.strokeStyle = 'rgba(170,140,105,' + (0.12 + Math.random() * 0.12) + ')'; g.lineWidth = 2 + Math.random() * 3;
-      g.beginPath(); var a0 = Math.random() * 6.28, r0 = 30 + Math.random() * 80; g.arc(128 + Math.random() * 30 - 15, 128 + Math.random() * 30 - 15, r0, a0, a0 + 0.8 + Math.random()); g.stroke();
-    }
-    g.strokeStyle = 'rgba(90,60,30,.6)'; g.lineWidth = 6; g.beginPath(); g.arc(128, 128, 124, 0, Math.PI * 2); g.stroke();   /* a marca seca na parede da xícara */
-    var tex = new THREE.CanvasTexture(cc); tex.encoding = THREE.sRGBEncoding;
-    var cafe = new THREE.Mesh(new THREE.CircleGeometry(0.0225, 36), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.75 }));
-    cafe.rotation.x = -Math.PI / 2; cafe.position.y = 0.008 + 0.0135; sozinha.add(cafe);
-    sozinha.userData.foto = cc;
-  })();
-  var fotoDada = false;
-  b.pega({
-    rotulo: 'Xícara sozinha',
-    alvo: function () { return sozinha; },
-    ativa: function () { return true; },
-    fim: function (x, y, cancelou) {
-      if (cancelou) return;
-      b.estado('Um dedo de café frio, com uma película por cima. A borda é verde.');
-      b.vibrar(10);
-      if (fotoDada) return; fotoDada = true;
-      var c = document.createElement('canvas'); c.width = c.height = 512; var g = c.getContext('2d');
-      g.fillStyle = '#10151b'; g.fillRect(0, 0, 512, 512);
-      g.fillStyle = '#f6f2ea'; g.beginPath(); g.arc(256, 256, 236, 0, Math.PI * 2); g.fill();
-      g.strokeStyle = '#3f8a5c'; g.lineWidth = 16; g.beginPath(); g.arc(256, 256, 226, 0, Math.PI * 2); g.stroke();
-      g.drawImage(sozinha.userData.foto, 76, 76, 360, 360);
-      g.font = 'italic 600 22px Georgia, serif'; g.fillStyle = '#c9bba3'; g.textAlign = 'center'; g.fillText('borda verde · café frio, com película', 256, 500);
-      avisarMesa('pista', { nome: 'Xícara de borda verde, com café frio', img: c.toDataURL('image/jpeg', 0.86) });
-    }
-  });
-
   b.comecar();
-  b.estado('O aparador da sala.');
+  b.estado('A bandeja de xícaras.');
 
   /* para os testes */
   window.OIBandeja = {

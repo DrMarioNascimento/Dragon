@@ -1,20 +1,5 @@
 /* O Impostor — o jardim interno (revisão 2, Cap. 4).
 
-   01/10/2026: refeito na planta da casa nova (a maquete do designer). O pátio é
-   um retângulo de 8,7 m (leste-oeste) por 12,7 m (norte-sul). As aberturas que
-   dão nele, como na maquete:
-     oeste — janela do corredor dos retratos (D), no canto norte · porta-janela
-             da sala do relógio · porta-janela da biblioteca · a alcova da mesa
-             da ata, com janelas
-     norte — janela do quarto de serviço (o jasmim, no canto dos fundos) · porta
-             da despensa, que é a porta de serviço · porta da varanda (cozinha),
-             com a varanda coberta na frente
-     leste — janela da rouparia · portão do pátio (a saída para fora) · janela
-             da lavanderia
-     sul   — as três janelas da galeria
-   A versão anterior (pátio quadrado) está em ra/jardim-trilhas_SUBSTITUIDO.js.
-   (texto original abaixo)
-
    Mario, 30/09/2026: a maquete tem o jardim atrás da casa, encostado só na ala
    de serviço; na revisão 2 ele é um pátio cercado pela casa. Esta peça mostra
    só o pátio, em miniatura (1:10), com as portas e janelas que dão nele:
@@ -64,10 +49,7 @@
     lama: new THREE.MeshStandardMaterial({ color: cor(0x2e1a12), roughness: 0.55 }),
     agua: new THREE.MeshStandardMaterial({ color: cor(0x5c6f7a), roughness: 0.05, metalness: 0.4 })
   };
-  var R = b.raiz, H = 0.22, ESC = 0.84 / 12.7;      /* 1 m da casa = ESC; o lado maior (norte-sul) mede 0,84 */
-  var LX = 4.35 * ESC, LZ = 6.35 * ESC;              /* meias medidas do pátio */
-  function px(x) { return (x - 0.55) * ESC; }       /* x da casa (m) -> peça */
-  function pz(z) { return (z + 1.45) * ESC; }       /* z da casa (m) -> peça (norte = -z) */
+  var R = b.raiz, L = 0.42, H = 0.22;           /* meia largura do pátio e altura das paredes */
 
   function caixa(w, h, d, mat, x, y, z) {
     var m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); m.position.set(x, y, z); R.add(m); return m;
@@ -84,38 +66,40 @@
   }
 
   /* ---------- chão ---------- */
-  var chao = new THREE.Mesh(new THREE.PlaneGeometry(2 * LX, 2 * LZ), M.terra);
+  var chao = new THREE.Mesh(new THREE.PlaneGeometry(2 * L, 2 * L), M.terra);
   chao.rotation.x = -Math.PI / 2; chao.position.y = 0.002; R.add(chao);
-  [[0, -LZ + 0.03, 2 * LX, 0.06], [0, LZ - 0.03, 2 * LX, 0.06], [-LX + 0.03, 0, 0.06, 2 * LZ], [LX - 0.03, 0, 0.06, 2 * LZ]].forEach(function (p) {
+  /* calçada de pedra junto às paredes */
+  [[0, -L + 0.03, 2 * L, 0.06], [0, L - 0.03, 2 * L, 0.06], [-L + 0.03, 0, 0.06, 2 * L], [L - 0.03, 0, 0.06, 2 * L]].forEach(function (p) {
     caixa(p[2], 0.006, p[3], M.pedra, p[0], 0.005, p[1]);
   });
+  /* pedras soltas, com musgo, espalhadas */
   var sorte = 7;
   function rnd() { sorte = (sorte * 16807) % 2147483647; return sorte / 2147483647; }
   for (var i = 0; i < 26; i++) {
-    var x = (rnd() - 0.5) * (2 * LX - 0.1), z = (rnd() - 0.5) * (2 * LZ - 0.1);
+    var x = (rnd() - 0.5) * 0.66, z = (rnd() - 0.5) * 0.66;
     var s = 0.018 + rnd() * 0.02;
     var p = caixa(s, 0.005, s * (0.7 + rnd() * 0.5), M.pedra, x, 0.004, z); p.rotation.y = rnd() * 3;
     caixa(s * 0.5, 0.0015, s * 0.4, M.musgo, x + s * 0.15, 0.0075, z);
   }
-  /* o canteiro do canto sudoeste */
-  caixa(px(-1.07) - px(-3.45), 0.012, pz(4.72) - pz(3.9), M.pedra, (px(-1.07) + px(-3.45)) / 2, 0.006, (pz(4.72) + pz(3.9)) / 2);
-  caixa(px(-1.17) - px(-3.35), 0.004, pz(4.62) - pz(4.0), M.lama, (px(-1.07) + px(-3.45)) / 2, 0.0135, (pz(4.72) + pz(3.9)) / 2);
 
   /* ---------- paredes, portas e janelas ---------- */
+  /* parede: lado ('N','S','L','O'), altura */
   function parede(lado, alt) {
-    var t = 0.03;
-    if (lado === 'N') return caixa(2 * LX + 2 * t, alt, t, M.parede, 0, alt / 2, -LZ - t / 2);
-    if (lado === 'S') return caixa(2 * LX + 2 * t, alt, t, M.parede, 0, alt / 2, LZ + t / 2);
-    if (lado === 'O') return caixa(t, alt, 2 * LZ, M.parede, -LX - t / 2, alt / 2, 0);
-    if (lado === 'L') return caixa(t, alt, 2 * LZ, M.parede, LX + t / 2, alt / 2, 0);
+    var t = 0.03, m;
+    if (lado === 'N') m = caixa(2 * L + 2 * t, alt, t, M.parede, 0, alt / 2, -L - t / 2);
+    if (lado === 'S') m = caixa(2 * L + 2 * t, alt, t, M.parede, 0, alt / 2, L + t / 2);
+    if (lado === 'O') m = caixa(t, alt, 2 * L, M.parede, -L - t / 2, alt / 2, 0);
+    if (lado === 'L') m = caixa(t, alt, 2 * L, M.parede, L + t / 2, alt / 2, 0);
+    return m;
   }
   parede('N', H); parede('O', H); parede('L', H); parede('S', 0.07);   /* o sul é baixo, para se ver dentro */
+  /* um vão na face interna da parede: lado, posição ao longo, largura, altura, peitoril, vidro? */
   function vao(lado, pos, w, h, peit, vidro) {
-    var mat = vidro ? M.vidro : M.vao, fr = 0.006, d = 0.004, g = new THREE.Group();
-    if (lado === 'O') { g.position.set(-LX + d, peit + h / 2, pos); g.rotation.y = Math.PI / 2; }
-    if (lado === 'L') { g.position.set(LX - d, peit + h / 2, pos); g.rotation.y = -Math.PI / 2; }
-    if (lado === 'N') { g.position.set(pos, peit + h / 2, -LZ + d); }
-    if (lado === 'S') { g.position.set(pos, peit + h / 2, LZ - d); g.rotation.y = Math.PI; }
+    var mat = vidro ? M.vidro : M.vao, fr = 0.006, d = 0.004, g;
+    if (lado === 'O') { g = new THREE.Group(); g.position.set(-L + d, peit + h / 2, pos); g.rotation.y = Math.PI / 2; }
+    if (lado === 'L') { g = new THREE.Group(); g.position.set(L - d, peit + h / 2, pos); g.rotation.y = -Math.PI / 2; }
+    if (lado === 'N') { g = new THREE.Group(); g.position.set(pos, peit + h / 2, -L + d); }
+    if (lado === 'S') { g = new THREE.Group(); g.position.set(pos, peit + h / 2, L - d); g.rotation.y = Math.PI; }
     var pl = new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat); g.add(pl);
     [[0, h / 2, w + fr * 2, fr], [0, -h / 2, w + fr * 2, fr], [-w / 2, 0, fr, h], [w / 2, 0, fr, h]].forEach(function (q) {
       var f = new THREE.Mesh(new THREE.BoxGeometry(q[2], q[3], 0.006), M.madeira); f.position.set(q[0], q[1], 0.002); g.add(f);
@@ -123,70 +107,51 @@
     if (vidro) { var mt = new THREE.Mesh(new THREE.BoxGeometry(fr, h, 0.006), M.madeira); mt.position.z = 0.002; g.add(mt); }
     R.add(g); return g;
   }
-  /* as aberturas, nas posições da maquete (metros da casa) */
   var PORTAS = {
-    retratos: { lado: 'O', pos: pz(-7.45), nome: 'Janela dos retratos (D)', ponto: [-LX + 0.03, pz(-7.45)] },
-    sala: { lado: 'O', pos: pz(-3.79), nome: 'Porta-janela da sala do relógio', ponto: [-LX + 0.03, pz(-3.79)] },
-    biblioteca: { lado: 'O', pos: pz(0), nome: 'Porta-janela da biblioteca', ponto: [-LX + 0.03, pz(0)] },
-    quarto: { lado: 'N', pos: px(-3.12), nome: 'Janela do quarto de serviço', ponto: [px(-3.12), -LZ + 0.03] },
-    despensa: { lado: 'N', pos: px(0.93), nome: 'Porta da despensa (de serviço)', ponto: [px(0.93), -LZ + 0.03] },
-    varanda: { lado: 'N', pos: px(3.66), nome: 'Porta da varanda (cozinha)', ponto: [px(3.66), pz(-6.1)] },
-    portao: { lado: 'L', pos: pz(-1.86), nome: 'Portão do pátio (para fora)', ponto: [LX - 0.03, pz(-1.86)] }
+    biblioteca: { lado: 'O', pos: 0.16, nome: 'Porta-janela da biblioteca', ponto: [-L + 0.03, 0.16] },
+    sala: { lado: 'O', pos: -0.2, nome: 'Porta-janela da sala do relógio', ponto: [-L + 0.03, -0.2] },
+    quarto: { lado: 'N', pos: 0.2, nome: 'Janela do quarto de serviço', ponto: [0.2, -L + 0.03] },
+    servico: { lado: 'L', pos: -0.27, nome: 'Porta de serviço', ponto: [L - 0.03, -0.27] },
+    despensa: { lado: 'L', pos: -0.03, nome: 'Porta da despensa', ponto: [L - 0.03, -0.03] },
+    varanda: { lado: 'L', pos: 0.25, nome: 'Porta da varanda (cozinha)', ponto: [0.27, 0.25] },
+    retratos: { lado: 'S', pos: -0.12, nome: 'Janela do corredor dos retratos' }
   };
-  PORTAS.servico = PORTAS.despensa;                  /* a mesma porta, com os dois nomes */
-  vao('O', PORTAS.retratos.pos, 0.07, 0.07, 0.07, true);
-  vao('O', PORTAS.sala.pos, 0.07, 0.15, 0.006, true);
-  vao('O', PORTAS.biblioteca.pos, 0.07, 0.15, 0.006, true);
-  vao('N', PORTAS.quarto.pos, 0.07, 0.07, 0.08, true);
-  vao('N', PORTAS.despensa.pos, 0.06, 0.15, 0.006, false);
-  vao('N', PORTAS.varanda.pos, 0.06, 0.15, 0.006, false);
-  /* o portão do pátio: grade de barras */
-  (function () {
-    var z0 = PORTAS.portao.pos, w = 0.09;
-    caixa(0.006, 0.006, w, M.madeira, LX - 0.006, 0.17, z0);
-    for (var k = 0; k < 7; k++) caixa(0.004, 0.17, 0.004, M.madeira, LX - 0.006, 0.085, z0 - w / 2 + k * w / 6);
-  })();
-  /* janelas que só olham (rouparia, lavanderia, alcova, galeria) */
-  vao('L', pz(-5.52), 0.06, 0.07, 0.08, true);
-  vao('L', pz(0.86), 0.06, 0.07, 0.08, true);
-  [-3.03, -0.28, 2.48].forEach(function (x) { caixa(0.08, 0.012, 0.03, M.madeira, px(x), 0.076, LZ + 0.015); caixa(0.07, 0.004, 0.024, M.vidro, px(x), 0.083, LZ + 0.015); });
-  /* a alcova da mesa da ata avança no pátio, com janelas */
-  (function () {
-    var x0 = -LX, x1 = px(-3.55), z0 = pz(0.86), z1 = pz(2.76);
-    caixa(x1 - x0, 0.17, 0.012, M.parede, (x0 + x1) / 2, 0.085, z0);
-    caixa(x1 - x0, 0.17, 0.012, M.parede, (x0 + x1) / 2, 0.085, z1);
-    caixa(0.012, 0.17, z1 - z0, M.parede, x1, 0.085, (z0 + z1) / 2);
-    var j = new THREE.Mesh(new THREE.PlaneGeometry((z1 - z0) * 0.7, 0.06), M.vidro); j.position.set(x1 + 0.007, 0.11, (z0 + z1) / 2); j.rotation.y = Math.PI / 2; R.add(j);
-    var tt = caixa(x1 - x0 + 0.02, 0.008, z1 - z0 + 0.02, M.telha, (x0 + x1) / 2, 0.175, (z0 + z1) / 2); tt.rotation.z = 0.12;
-  })();
+  vao('O', PORTAS.biblioteca.pos, 0.1, 0.17, 0.006, true);
+  vao('O', PORTAS.sala.pos, 0.1, 0.17, 0.006, true);
+  vao('N', PORTAS.quarto.pos, 0.08, 0.07, 0.08, true);
+  vao('L', PORTAS.servico.pos, 0.07, 0.16, 0.006, false);
+  vao('L', PORTAS.despensa.pos, 0.07, 0.16, 0.006, false);
+  vao('L', PORTAS.varanda.pos, 0.07, 0.16, 0.006, false);
+  /* a janela do corredor dos retratos fica na parede baixa do sul: um parapeito com o vidro deitado */
+  caixa(0.12, 0.012, 0.03, M.madeira, PORTAS.retratos.pos, 0.076, L + 0.015);
+  caixa(0.11, 0.004, 0.024, M.vidro, PORTAS.retratos.pos, 0.083, L + 0.015);
 
-  /* degrau da porta da despensa */
-  caixa(0.06, 0.012, 0.03, M.pedra, PORTAS.despensa.pos, 0.006, -LZ + 0.015);
+  /* degrau da porta de serviço */
+  caixa(0.08, 0.012, 0.03, M.pedra, L - 0.015, 0.006, PORTAS.servico.pos);
 
-  /* varanda coberta, na frente da cozinha (x 1,97 a 4,38; z −7,76 a −6,2) */
-  (function () {
-    var x0 = px(1.97), x1 = px(4.38), z0 = -LZ, z1 = pz(-6.2);
-    caixa(x1 - x0, 0.01, z1 - z0, M.pedra, (x0 + x1) / 2, 0.005, (z0 + z1) / 2);
-    [[x0 + 0.006, z1 - 0.006], [x1 - 0.006, z1 - 0.006]].forEach(function (p) { caixa(0.012, 0.16, 0.012, M.madeira, p[0], 0.08, p[1]); });
-    var tel = caixa(x1 - x0 + 0.03, 0.008, z1 - z0 + 0.03, M.telha, (x0 + x1) / 2, 0.165, (z0 + z1) / 2); tel.rotation.x = 0.18;
-  })();
+  /* varanda coberta, na frente da cozinha */
+  caixa(0.14, 0.01, 0.3, M.pedra, L - 0.07, 0.005, 0.25);
+  [[L - 0.14, 0.11], [L - 0.14, 0.39]].forEach(function (p) { caixa(0.012, 0.16, 0.012, M.madeira, p[0], 0.08, p[1]); });
+  var tel = caixa(0.17, 0.008, 0.33, M.telha, L - 0.07, 0.165, 0.25); tel.rotation.z = -0.18;
 
   /* o jasmim, no canto dos fundos, subindo até a janela do quarto */
   for (var j = 0; j < 40; j++) {
-    var t = j / 40, jx = px(-3.4) + rnd() * 0.05 + t * 0.03, jy = 0.01 + t * 0.16 + rnd() * 0.02, jz = -LZ + 0.012 + rnd() * 0.02;
-    var fo = new THREE.Mesh(new THREE.SphereGeometry(0.012 + rnd() * 0.008, 6, 5), M.folha); fo.position.set(jx, jy, jz); R.add(fo);
-    if (rnd() > 0.5) { var fl = new THREE.Mesh(new THREE.SphereGeometry(0.003, 5, 4), M.flor); fl.position.set(jx + 0.006, jy + 0.006, jz + 0.01); R.add(fl); }
+    var t = j / 40, px = L - 0.02 - rnd() * 0.05 - t * 0.12, py = 0.01 + t * 0.16 + rnd() * 0.02, pz = -L + 0.012 + rnd() * 0.02;
+    var fo = new THREE.Mesh(new THREE.SphereGeometry(0.012 + rnd() * 0.008, 6, 5), M.folha); fo.position.set(px, py, pz); R.add(fo);
+    if (rnd() > 0.5) { var fl = new THREE.Mesh(new THREE.SphereGeometry(0.003, 5, 4), M.flor); fl.position.set(px + 0.006, py + 0.006, pz + 0.01); R.add(fl); }
   }
 
-  /* ---------- a trilha seca: pedras gastas, sem musgo, da porta da despensa à janela do quarto ---------- */
+  /* ---------- a trilha seca: pedras gastas, sem musgo ---------- */
   (function () {
-    var a = PORTAS.despensa.ponto, c = PORTAS.quarto.ponto;
-    for (var k = 0; k <= 6; k++) {
-      var u = k / 6, x = a[0] + (c[0] - a[0]) * u, z = a[1] + (c[1] - a[1]) * u + 0.035 + 0.02 * Math.sin(u * Math.PI);
+    var a = PORTAS.servico.ponto, c = PORTAS.quarto.ponto;
+    for (var k = 0; k <= 5; k++) {
+      var u = k / 5, x = a[0] + (c[0] - a[0]) * u - 0.03 * Math.sin(u * Math.PI), z = a[1] + (c[1] - a[1]) * u + 0.02;
       var p = caixa(0.03, 0.004, 0.024, M.pedraGasta, x, 0.004, z); p.rotation.y = 0.4 + k * 0.3;
     }
-    var bat = new THREE.Mesh(new THREE.PlaneGeometry(Math.abs(c[0] - a[0]) + 0.04, 0.05), new THREE.MeshStandardMaterial({ color: cor(0x5a2a1c), roughness: 1 }));
-    bat.rotation.x = -Math.PI / 2; bat.position.set((a[0] + c[0]) / 2, 0.0028, -LZ + 0.06); R.add(bat);
+    /* terra batida em volta */
+    var bat = new THREE.Mesh(new THREE.PlaneGeometry(0.06, 0.24), new THREE.MeshStandardMaterial({ color: cor(0x5a2a1c), roughness: 1 }));
+    bat.rotation.x = -Math.PI / 2; bat.position.set((a[0] + c[0]) / 2 - 0.02, 0.0028, (a[1] + c[1]) / 2 + 0.02);
+    bat.rotation.z = Math.atan2(c[0] - a[0], c[1] - a[1]); R.add(bat);
   })();
 
   /* ---------- a trilha fresca: pegadas de sola lisa ---------- */
@@ -204,12 +169,14 @@
   var pegadas = new THREE.Group(); R.add(pegadas);
   function trilhaFresca(de, ate) {
     var a = PORTAS[de].ponto, c = PORTAS[ate].ponto;
+    /* curva: o controle se afasta da parede, para o meio do pátio */
     var mx = (a[0] + c[0]) / 2, mz = (a[1] + c[1]) / 2, dx = c[0] - a[0], dz = c[1] - a[1], len = Math.hypot(dx, dz);
     var nx = -dz / len, nz = dx / len;
     if (nx * (0 - mx) + nz * (0 - mz) < 0) { nx = -nx; nz = -nz; }
-    var bow = len < 0.3 ? 0.07 : 0.12;
+    var bow = Math.min(0.18, 0.1 + 0.3 / Math.max(len, 0.3) * 0.05);
     var ctl = [mx + nx * bow, mz + nz * bow];
     function pt(u) { var v = 1 - u; return [v * v * a[0] + 2 * v * u * ctl[0] + u * u * c[0], v * v * a[1] + 2 * v * u * ctl[1] + u * u * c[1]]; }
+    /* comprimento aproximado */
     var comp = 0, prev = pt(0); for (var k = 1; k <= 50; k++) { var q = pt(k / 50); comp += Math.hypot(q[0] - prev[0], q[1] - prev[1]); prev = q; }
     var passos = Math.max(6, Math.round(comp / 0.042));
     for (var n = 0; n <= passos; n++) {
@@ -225,23 +192,23 @@
       pegadas.add(g);
     }
   }
-  var FIMp = FIM === 'servico' ? 'despensa' : FIM;
-  var INICIO = FIMp === 'biblioteca' ? 'sala' : 'biblioteca';
-  if (PORTAS[FIMp] && FIMp !== INICIO) trilhaFresca(INICIO, FIMp);
+  var INICIO = FIM === 'biblioteca' ? 'sala' : 'biblioteca';
+  if (PORTAS[FIM] && FIM !== INICIO) trilhaFresca(INICIO, FIM);
 
   /* ---------- nomes das portas (o jogador precisa saber qual é qual) ---------- */
-  ['retratos', 'sala', 'biblioteca', 'quarto', 'despensa', 'varanda', 'portao'].forEach(function (k, i) {
-    var p = PORTAS[k], y = H + 0.05 + (i % 2) * 0.035, x = 0, z = 0;
-    if (p.lado === 'O') { x = -LX + 0.05; z = p.pos; }
-    if (p.lado === 'L') { x = LX - 0.05; z = p.pos; }
-    if (p.lado === 'N') { x = p.pos + (k === 'quarto' ? 0.07 : 0); z = -LZ + 0.03; }
-    rotulo(p.nome, x, y + (k === 'quarto' ? 0.04 : 0), z);
+  Object.keys(PORTAS).forEach(function (k) {
+    var p = PORTAS[k], y = p.lado === 'S' ? 0.13 : H + 0.05, x = 0, z = 0;
+    if (p.lado === 'O') { x = -L + 0.06; z = p.pos; }
+    if (p.lado === 'L') { x = L - 0.06; z = p.pos; }
+    if (p.lado === 'N') { x = p.pos - 0.05; z = -L + 0.02; }
+    if (p.lado === 'S') { x = p.pos; z = L - 0.02; }
+    rotulo(p.nome, x, y + (k === 'despensa' ? 0.045 : 0), z);
   });
 
   /* ---------- chuva ---------- */
   var gotas = 260, pos = new Float32Array(gotas * 6);
   for (var d = 0; d < gotas; d++) {
-    var gx = (rnd() - 0.5) * 2 * LX, gz = (rnd() - 0.5) * 2 * LZ, gy = rnd() * 0.6;
+    var gx = (rnd() - 0.5) * 2 * L, gz = (rnd() - 0.5) * 2 * L, gy = rnd() * 0.6;
     pos.set([gx, gy, gz, gx, gy - 0.03, gz], d * 6);
   }
   var geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
@@ -257,7 +224,7 @@
   });
 
   /* uma luz da cozinha, na varanda */
-  var luz = new THREE.PointLight(0xffc27a, 0.8, 0.9); luz.position.set(px(3.2), 0.14, pz(-7)); R.add(luz);
+  var luz = new THREE.PointLight(0xffc27a, 0.8, 0.9); luz.position.set(L - 0.08, 0.14, 0.25); R.add(luz);
 
   b.comecar();
   window.OIJardim = { fim: function () { return FIM; }, inicio: function () { return INICIO; }, pegadas: function () { return pegadas.children.length; } };

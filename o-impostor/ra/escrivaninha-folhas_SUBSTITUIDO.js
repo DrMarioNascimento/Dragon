@@ -1,6 +1,4 @@
-/* O Impostor — a escrivaninha da biblioteca (Capítulo 3; até 01/10 era do escritório, no Cap. 2), com a mão.
-   01/10 (auditoria): papéis que contradiziam o cânone ou entregavam o futuro foram trocados
-   (versão anterior em ra/escrivaninha-folhas_SUBSTITUIDO.js).
+/* O Impostor — a escrivaninha do escritório (Capítulo 2), com a mão.
 
    Cópia independente da escrivaninha do lab-ra (modelos/escrivaninha.glb),
    adaptada ao Impostor em 28/09/2026. Sobre o tampo há vários montes de
@@ -28,7 +26,7 @@
     vista: { alvo: [0, 0.74, 0.02], dist: 1.25, distRetrato: 2.1, dir: [0, 1.25, 0.8] },
     raioDoChao: 1.2, alturaDoAparelho: 1.35, miraEscala: 2.2, exposicao: 1.0,
     textoMira: 'Aponte para o chão, onde a escrivaninha ficaria, e toque em Pôr aqui.',
-    textoInicio: 'A escrivaninha da biblioteca.',
+    textoInicio: 'A escrivaninha do escritório.',
     deNovo: null
   });
 
@@ -44,23 +42,23 @@
   var MONTES = [
     { x: -0.40, z: -0.14, giro: 0.05, vira: -1, folhas: [
       { nome: 'O Farol (poema)', estilo: 'mao', linhas: POEMA, titulo: true },
-      { nome: 'Rascunho do poema', estilo: 'mao', linhas: ['O Farol — rascunho', '', 'Quando a ~~bruma~~ névoa desce...', 'ela gira ~~e gira~~, paciente', '', 'Cada navio ~~que some~~', 'leva um pedaço do meu coração', '', '~~lar~~ ~~porto~~ ... lar. Fica lar.', '', 'Ler em voz alta quando estiver pronto.'] }
+      { nome: 'Rascunho do poema', estilo: 'mao', linhas: ['O Farol — rascunho', '', 'Quando a ~~bruma~~ névoa desce...', 'ela gira ~~e gira~~, paciente', '', 'Cada navio ~~que some~~', 'leva um pedaço do meu coração', '', '~~lar~~ ~~porto~~ ... lar. Fica lar.', '', 'Mostrar a ela quando estiver pronto.'] }
     ] },
     { x: -0.02, z: -0.14, giro: -0.06, vira: 1, folhas: [
       { nome: 'Tábua das marés', estilo: 'maquina', linhas: ['TÁBUA DAS MARÉS — PRAIA DA COSTA', '', 'Preamar   05h12   1,8 m', 'Baixa-mar 11h31   0,3 m', 'Preamar   17h40   1,9 m', 'Baixa-mar 23h58   0,2 m', '', 'Ressaca prevista para o fim da semana.'] }
     ] },
     { x: 0.45, z: -0.14, giro: 0.04, vira: -1, folhas: [
-      { nome: 'Lista de afazeres', estilo: 'mao', linhas: ['Fazer esta semana', '', '- consertar a calha dos fundos', '- secar a lenha da varanda', '- pagar a mercearia no dia 5', '- lenha para o fogão', '- pilhas para o rádio'] },
-      { nome: 'Lembrete do cartório', estilo: 'mao', linhas: ['Cartório', '', 'A lista fica com o cartório.', 'Ninguém abre nada sem ata.', '', 'Conferir se a lista', 'está completa.'] }
+      { nome: 'Lista de afazeres', estilo: 'mao', linhas: ['Fazer esta semana', '', '- consertar a calha dos fundos', '- o relógio da sala adianta', '  uns minutos. Acertar depois.', '- pagar o faroleiro no dia 5', '- lenha para o fogão', '- trocar a lâmpada do corredor', '  de serviço (pisca)'] },
+      { nome: 'Lembrete do cartório', estilo: 'mao', linhas: ['Cartório', '', 'A lista fica com o Tabelião.', 'Ninguém abre nada sem ele.', '', 'Conferir se a lista', 'está completa.'] }
     ] },
     { x: -0.45, z: 0.14, giro: -0.05, vira: 1, folhas: [
-      { nome: 'Recibo da mercearia', estilo: 'recibo', linhas: ['MERCEARIA DO PORTO', 'rua da praia, 40', '--------------------------', '07/09/2026   16:12', '', 'café moído 500 g    18,90', 'pão caseiro          9,50', 'leite 1 L            6,50', 'pilhas AA (4)       14,00', 'fósforos             2,50', '--------------------------', 'TOTAL               51,40', 'PAGO EM DINHEIRO', '', 'obrigado, volte sempre'] },
+      { nome: 'Recibo da mercearia', estilo: 'recibo', linhas: ['MERCEARIA DO PORTO', 'rua da praia, 40', '--------------------------', '07/09/2026   16:12', '', 'café moído 500 g    18,90', 'pão caseiro          9,50', 'ração p/ gato 1 kg  22,00', 'pilhas AA (4)       14,00', 'fósforos             2,50', '--------------------------', 'TOTAL               66,90', 'PAGO EM DINHEIRO', '', 'obrigado, volte sempre'] },
       { nome: 'Previsão do tempo', estilo: 'maquina', linhas: ['PREVISÃO — LITORAL', '', 'Chuva forte a partir da noite.', 'Névoa densa na estrada da costa.', 'Rajadas de vento no mar aberto.', '', 'Evite viajar à noite.'] },
       { nome: 'Receita de bolinho de chuva', estilo: 'mao', linhas: ['Bolinho de chuva da vó', '', '2 ovos, 1 xíc. de açúcar', '1 xíc. de leite', '2 e ½ xíc. de farinha', '1 colher de fermento', '', 'Fritar às colheradas.', 'Açúcar e canela por cima.', 'Em dia de chuva, dobrar a receita.'] }
     ] },
     { x: 0.2, z: 0.14, giro: 0.07, vira: 1, folhas: [
       { nome: 'Nomes para o barco', estilo: 'mao', linhas: ['Nomes para o barco', '', 'Saudade?', 'Estrela do Mar?', 'Volta Logo?', 'Farol Velho?', '', '"Volta Logo" — gostei.'] },
-      { nome: 'Esboço do farol', estilo: 'mao', desenho: 'farol', linhas: ['o farol, de memória'] }
+      { nome: 'Esboço do farol', estilo: 'mao', desenho: 'farol', linhas: ['o farol, da janela do escritório'] }
     ] }
   ];
   /* O bilhete e o envio mudam de monte a cada partida e a cada jogador. */
@@ -181,7 +179,7 @@
     folhas.forEach(pegaDaFolha); gavetas.forEach(pegaDaGaveta);
     b.aCadaQuadro(function (dt) { animando = animando.filter(function (fn) { return fn(dt) !== true; }); });
     b.comecar();
-    b.estado('A escrivaninha da biblioteca.');
+    b.estado('A escrivaninha do escritório.');
   }).catch(function (e) { b.estado('O modelo não carregou: ' + (e && e.message || e)); });
 
   /* Marca Dragon Games: etiqueta de fabricante, na lateral de trás, embaixo. */

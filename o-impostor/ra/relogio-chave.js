@@ -55,6 +55,7 @@
      'estado_D_papel_gaveta', 'estado_C_risco_assoalho', 'estado_C_poeira_deslocada'].forEach(function (n) {
       var o = relogio.getObjectByName(n); if (o) o.visible = false;
     });
+    marcaDaMao(Q.get('mao') || 'agua');
     pendulo = relogio.getObjectByName('pendulo');
     portaLonga = relogio.getObjectByName('porta_longa'); Q_FECHADA.copy(portaLonga.quaternion);
     portinhola = relogio.getObjectByName('portinhola'); Q_PF.copy(portinhola.quaternion);
@@ -70,6 +71,16 @@
     b.comecar();
   }).catch(function (e) { b.estado('O modelo não carregou: ' + (e && e.message || e)); });
 
+  /* 01/10 (auditoria): a marca molhada no flanco muda com a partida (tinta azul, lã, barro
+     vermelho, cal, couro, só água), como na Matriz. Tinge a marca que já existe no modelo. */
+  function marcaDaMao(tipo) {
+    var m = relogio.getObjectByName('estado_B_marca_umida_mao'); if (!m) return;
+    var COR = { tinta: 0x2c4a9a, la: 0x2a2622, barro: 0x8a3a22, cal: 0xe8e4da, couro: 0x3a2a1e, agua: null }[tipo];
+    m.traverse(function (o) {
+      if (!o.isMesh) return; o.material = o.material.clone();
+      if (COR !== null && COR !== undefined) { o.material.color = new THREE.Color(COR).convertSRGBToLinear(); o.material.opacity = Math.max(o.material.opacity || 1, 0.75); }
+    });
+  }
   function centro(o) { return new THREE.Box3().setFromObject(o).getCenter(new THREE.Vector3()); }
   function avisar(evento) {
     try { if (parent !== window) parent.postMessage({ oi: 'relogio', evento: evento }, location.origin); } catch (e) {}
@@ -90,10 +101,16 @@
     } else if (e === 'parado') {
       portaAberta = true; portaLonga.quaternion.copy(Q_ABERTA);
       A = 0; pendulo.rotation.set(0, 0, 0); trinco(true); hora(20, 16); segundos = 40;
+    } else if (e === 'apagao') {                  /* 01/10, Cap. 6: depois do escuro. Marca 21h34; o papel está na gaveta; o móvel deixou rastro */
+      portaAberta = false; portaLonga.quaternion.copy(Q_FECHADA);
+      A = A0; trinco(false); hora(21, 34);
     } else {                                      /* religado */
       portaAberta = true; portaLonga.quaternion.copy(Q_ABERTA);
       A = A0; trinco(false); hora(20, 21);
     }
+    ['estado_D_papel_gaveta', 'estado_C_risco_assoalho', 'estado_C_poeira_deslocada'].forEach(function (n) {
+      var o = relogio.getObjectByName(n); if (o) o.visible = e === 'apagao';
+    });
     b.mostrarDeNovo(false);
   }
 
@@ -270,7 +287,9 @@
       rotulo: 'Puxador da gaveta',
       alvo: function () { return gaveta; },
       ancora: function () { return centro(puxador); },
-      ativa: function () { return !animPorta; },
+      /* 01/10 (auditoria): no Cap. 3 quem abre a gaveta é o condutor, com a caneta, em ata;
+         na peça ela só corre depois do apagão (Cap. 6), quando o papel já está nela */
+      ativa: function () { return !animPorta && (estado === 'apagao' || !EMBED); },
       inicio: function () {
         inicioAbertura = abertura; ancora = centro(puxador);
         eixo = new THREE.Vector3(0, 0, 1).transformDirection(gaveta.parent.matrixWorld);

@@ -837,7 +837,7 @@ button:active,.caixa:active,.redondo:active,.chip:active{
 <dialog id="comoJogar" aria-labelledby="cjTitulo">
   <p class="kicker">Mosaico · O Impostor · Como jogar</p>
   <h1 id="cjTitulo" tabindex="-1">Um de vocês não é quem diz.</h1>
-  <p class="lede">Na casa há um traidor. Pode ser qualquer personagem da casa, menos o seu: o seu personagem nunca é o impostor. Explore, converse e desconfie. No fim, você aponta quem foi.</p>
+  <p class="lede">Na casa há um traidor, e ele pode ser qualquer um. Explore, converse e desconfie. No fim, você aponta quem foi.</p>
   <ol class="how-steps">
     <li><strong>Entre na casa</strong><p>A aba RA põe a maquete na sua mesa. Procure a chave e abra a casa. A maquete fica disponível o jogo todo para você explorar.</p></li>
     <li><strong>Comunique-se</strong><p>No Grupo estão todos da casa, cada um só pelo final do número. Em Privadas estão todos do grupo: escreva só para quem você quiser questionar. Toque num número para salvá-lo com um nome: o nome é o seu palpite e só você vê. Os números e as cores mudam a cada partida.</p></li>
@@ -848,9 +848,9 @@ button:active,.caixa:active,.redondo:active,.chip:active{
   </ol>
   <section class="how-box"><h2>Primeiro, o prólogo.</h2><p>O prólogo é a apresentação do cenário, da história e da tela do jogo. Nele não há tempo, mandar mensagem é livre e nada conta pontos. Os envios extras que você achar na casa vão com você para o Capítulo 1.</p></section>
   <section class="how-box"><h2>O tempo é do capítulo.</h2><p>A barra ⏱ no alto é o tempo do capítulo. Quando ela acaba, o capítulo fecha, mesmo que você não tenha terminado.</p></section>
-  <section class="how-box"><h2>O fim de cada capítulo.</h2><p>Vem uma pergunta principal e duas secundárias (cada secundária vale metade), sobre o que aconteceu no capítulo. Depois você diz o quanto tem certeza: <b>com certeza</b>, <b>sem certeza</b> ou <b>não sei</b>. Em seguida, se quiser, aposta em quem é o impostor.</p><p>Você só descobre se acertou no fim do jogo.</p><button type="button" class="ver-sim" data-simular>Ver uma simulação</button></section>
-  <section class="how-box"><h2>Os pontos ficam escondidos.</h2><p>O ★ no alto não mostra nada durante a partida. Os pontos só aparecem no fim, capítulo por capítulo.</p><p><b>Com certeza:</b> +4 se acertar, −4 se errar. <b>Sem certeza:</b> +2 ou −1. <b>Não sei:</b> 0. No fim, "quem é o impostor?" vale três vezes e "quem ajudou o traidor?" vale duas.</p></section>
-  <section class="how-box destaque"><h2>A pergunta final.</h2><p>Quem é o impostor? Pode ser qualquer personagem da casa, menos o seu, e muda a cada partida. E quem o ajudou, mesmo sem querer? Acertar com certeza vale mais; errar com certeza custa mais; dizer “não sei” nunca tira ponto.</p></section>
+  <section class="how-box"><h2>O fim de cada capítulo.</h2><p>Vem uma pergunta principal sobre esta partida e uma secundária sobre a história (que vale menos), cada uma com quatro respostas. Depois você diz o quanto tem certeza: <b>com certeza</b>, <b>sem certeza</b> ou <b>não sei</b>. Em seguida, se quiser, aposta em quem é o impostor.</p><p>Você só descobre se acertou no fim do jogo.</p><button type="button" class="ver-sim" data-simular>Ver uma simulação</button></section>
+  <section class="how-box"><h2>Os pontos ficam escondidos.</h2><p>O ★ no alto não mostra nada durante a partida. Os pontos só aparecem no fim, capítulo por capítulo.</p></section>
+  <section class="how-box destaque"><h2>A pergunta final.</h2><p>Quem é o impostor? Ele pode ser qualquer um, e muda a cada partida. Acertar com certeza vale mais; errar com certeza custa mais; dizer “não sei” nunca tira ponto.</p></section>
   <button type="button" id="comoJogarOk">Entendi</button>
 </dialog>
 <dialog id="fecho" aria-labelledby="fechoTitulo"><div id="fechoCorpo"></div></dialog>
@@ -897,14 +897,6 @@ var PALETA=[
    protótipo, que parte de 7 contatos.) ?casa=N escolhe a casa; ?p=N força uma
    das partidas da Matriz (e a casa dela); ?contatos=N, o antigo, ainda vale. */
 var PARTIDAS_R2={1:6,2:8,4:12,5:10,6:6,7:8,8:12,9:6,10:10,12:12,13:8,14:10,15:12};   /* P3 e P11 são de casa 4 */
-/* Regra de mesa do cânone (01/10, auditoria B2): o impostor é sempre do sistema.
-   O sorteio nunca dá a um humano o personagem que é o impostor da partida, nem
-   o Tabelião da P5 (ajudante consciente, que mente de propósito). O ajudante e o
-   falso culpado vão de preferência para humanos. */
-var IMPOSTOR_R2={1:'residente',2:'tabeliao',3:'herdeira',4:'chefe_de_cozinha',5:'advogado',6:'acompanhante',7:'governanta',8:'eletricista',9:'jornalista',10:'jardineiro',11:'policial',12:'observadora',13:'investigador',14:'herdeira',15:'policial'};
-var AJUDANTE_R2={1:'policial',2:'residente',3:'residente',4:'governanta',5:'tabeliao',6:'residente',7:'investigador',8:'chefe_de_cozinha',9:'residente',10:'herdeira',11:'herdeira',12:'tabeliao',13:'jornalista',14:'governanta',15:'voz'};
-var FALSO_R2={1:['observadora'],2:['governanta'],3:['investigador'],4:['eletricista'],5:['jardineiro'],6:['residente'],7:['observadora'],8:['jardineiro'],9:['herdeira'],10:['residente'],11:['investigador'],12:['eletricista','jardineiro'],13:['tabeliao'],14:['advogado'],15:['chefe_de_cozinha']};
-function papelProibido(p,id){return IMPOSTOR_R2[p]===id||(p===5&&id==='tabeliao')}
 var CASA=(function(){var p=+Q.get('p');if(PARTIDAS_R2[p])return PARTIDAS_R2[p];var c=+Q.get('casa')||((+Q.get('contatos')||7)-1);c=Math.max(6,Math.min(12,c));return c-c%2})();
 var N_CONTATOS=CASA+1;   /* todos da casa + o celular do proprietário */
 var SLOTS=(function(){var r=gerador(PARTIDA+'|numeros'),out=[];while(out.length<N_CONTATOS){var n=('0'+Math.floor(r()*100)).slice(-2);if(out.indexOf(n)<0)out.push(n)}return out})();
@@ -933,12 +925,7 @@ var EXTRAS=[
 var EXTRAS_NA_MESA=EXTRAS.slice(0,N_CONTATOS-7);
 /* O seu personagem: ?papel=governanta (etc.) escolhe; se não está na casa desta
    partida, volta ao Investigador. */
-/* SUBSTITUIDO 01/10: var EU_PAPEL=(...)(): ?papel ou Investigador, sem olhar a partida. */
-var EU_PAPEL=(function(){var ids=['investigador','herdeira','residente','jornalista','policial','observadora'].concat(EXTRAS_NA_MESA.map(function(e){return e.id})),q=Q.get('papel'),p=+Q.get('p');
-  var eu=ids.indexOf(q)>=0?q:'investigador';
-  /* com a partida forçada (?p=N), o papel pedido não pode ser o impostor dela */
-  if(PARTIDAS_R2[p]&&papelProibido(p,eu))eu=ids.filter(function(id){return !papelProibido(p,id)})[0];
-  return eu})();
+var EU_PAPEL=(function(){var ids=['investigador','herdeira','residente','jornalista','policial','observadora'].concat(EXTRAS_NA_MESA.map(function(e){return e.id})),q=Q.get('papel');return ids.indexOf(q)>=0?q:'investigador'})();
 /* Funcionário humano (Mario, 30/09): mesma abertura, maquete e telefone; muda o
    texto. Eles vieram ontem preparar a casa e começam no grupo do serviço, só
    deles; entram no grupo da casa quando o Tabelião os adiciona, no Cap. 1. */
@@ -975,7 +962,7 @@ function hora(){var d=new Date();return ('0'+d.getHours()).slice(-2)+':'+('0'+d.
 var grupo=[
   {sis:'O céu desabou, e a névoa já tinha avançado muito. Quem chegava mal sabia como se proteger ao sair do carro. Ninguém viu quantos carros já estavam ali. Só se viram quando já estavam protegidos dentro da casa.'},
   {dia:'HOJE'},
-  {de:S(3),txt:'Cheguei. Estou no vestíbulo.'},
+  {de:S(3),txt:'Cheguei. Estou no hall.'},
   {de:S(0),txt:'Alguém sabe onde acende a luz do corredor?'},
   {de:S(5),txt:'Tem luz na cozinha.'},
   {de:S(4),txt:'Quem trouxe a lista?'},
@@ -990,7 +977,7 @@ var privadas={
 };
 if(!SOU_FUNC)privadas[S(4)]={nao:0,msgs:[{de:S(4),txt:'Você chegou antes ou depois de mim?'}]};
 else if(COLEGAS.length)privadas[COLEGAS[0]]={nao:0,msgs:[{de:COLEGAS[0],txt:'Você sabe onde fica o quadro de luz?'}]};
-var RESP_GRUPO=['Cheguei. Estou na sala de estar.','Quem mais já chegou?','A lista está comigo.','Alguém viu o relógio de caixa alta?'];
+var RESP_GRUPO=['Cheguei. Estou na sala.','Quem mais já chegou?','A lista está comigo.','Alguém viu o relógio da sala?'];
 var RESP_PRIV=['Cheguei depois.','Não reparei.','Por quê?','Te digo depois.'];
 
 /* ── Marcador de frase (revisão 2) ─────────────────────────────────────
@@ -1116,7 +1103,6 @@ function pintarEnvios(){$('#envios').textContent=envios}
 var capitulo=0;            // 0 = prólogo (apresentação: nada conta)
 var avisouPrologoLivre=false;
 function gastarEnvio(){
-  if(escuroAtivo){toast('No escuro, ninguém consegue escrever.');return false}
   if(capitulo===0){if(!avisouPrologoLivre){avisouPrologoLivre=true;toast('No prólogo, mandar é livre: é treino.')}return true}
   if(envios<=0){toast('Sem envios neste capítulo.');return false}envios--;enviosNoCap++;pintarEnvios();if(envios===0)toast('Esse foi o seu último envio do capítulo.');return true}
 function ganharEnvio(){envios++;pintarEnvios();var p=$('#enviosPill');if(p){p.classList.add('nasce');setTimeout(function(){p.classList.remove('nasce')},2400)}}
@@ -1228,7 +1214,6 @@ function pintarSusp(){
   if($('#seguirCap'))$('#seguirCap').onclick=function(){
     apostas[capitulo]={modo:votoPers?'personagem':(votoEm?'numero':null),numero:votoEm,personagem:votoPers,confianca:apostaConf};
     if(ROTEIROS[capitulo+1]){irPara('grupo');comecarCapitulo(capitulo+1)}
-    else if(capitulo===6)iniciarFinal();
     else janela('CAPÍTULO '+(capitulo+1),'O Capítulo '+(capitulo+1)+' ainda está sendo montado. As suas respostas e apostas até aqui ficaram guardadas.');
   };
   if($('#simFim'))$('#simFim').onclick=function(){
@@ -1240,15 +1225,13 @@ function pintarSusp(){
 /* ── RA ──────────────────────────────────────────────────────────────── */
 var PECAS=[
   {cap:'PRÓLOGO',nome:'A maquete',txt:'A casa inteira, por camadas',abrir:'maquete',ico:'🏠'},
-  {cap:'CAP. 1',nome:'O aparador',txt:'A xícara e a bandeja',abrir:'bandeja',ico:'🍽️',tranca:true},
-  /* 01/10: a escrivaninha fica na biblioteca, lacrada até o Cap. 3 (era 'CAP. 2', 'No escritório') */
-  {cap:'CAP. 3',nome:'A escrivaninha',txt:'Na biblioteca',abrir:'escrivaninha',ico:'🖋️',tranca:true},
+  {cap:'CAP. 1',nome:'A bandeja',txt:'No aparador da sala',abrir:'bandeja',ico:'🍽️',tranca:true},
+  {cap:'CAP. 2',nome:'A escrivaninha',txt:'No escritório',abrir:'escrivaninha',ico:'🖋️',tranca:true},
   /* SUBSTITUIDO (30/09): {cap:'CAP. 3',nome:'O relógio',txt:'Na sala',href:'relogio.html',ico:'🕰️',tranca:true}, */
-  {cap:'CAP. 3',nome:'O relógio',txt:'Na sala do relógio',abrir:'relogio',ico:'🕰️',tranca:true},
+  {cap:'CAP. 3',nome:'O relógio',txt:'Na sala',abrir:'relogio',ico:'🕰️',tranca:true},
   /* SUBSTITUIDO (30/09, Mario: o livro do farol fica fora por agora): {cap:'CAP. 4',nome:'O jardim interno',txt:'E o farol ao longe',href:'livro.html',ico:'🌿',tranca:true}, */
   {cap:'CAP. 4',nome:'O jardim interno',txt:'As duas trilhas',abrir:'jardim',ico:'🌿',tranca:true},
-  /* SUBSTITUIDO 01/10 (auditoria B5): {cap:'CAP. 6',nome:'O quarto',txt:'O quarto de serviço',href:'quarto.html',...}: abria fora da mesa e perdia o estado */
-  {cap:'CAP. 6',nome:'O quarto',txt:'O quarto do jasmim',abrir:'quarto',ico:'🚪',tranca:true}
+  {cap:'CAP. 6',nome:'O quarto',txt:'O quarto de serviço',href:'quarto.html',ico:'🚪',tranca:true}
 ];
 function pintarPecas(){$('#gradeRA').innerHTML=PECAS.map(function(p){
   return '<a class="peca'+(p.tranca?' trancada':'')+'" '+(p.abrir&&!p.tranca?'data-abrir="'+p.abrir+'" href="#"':(p.href&&!p.tranca?'href="'+p.href+'"':''))+'><span class="ico">'+(p.tranca?'🔒':p.ico)+'</span><small>'+p.cap+'</small><b>'+p.nome+'</b><span>'+p.txt+'</span></a>';
@@ -1268,7 +1251,7 @@ var SIM={pergunta:'Exemplo: quantos andares tem a casa, contando o porão?',opco
 var CONF=[
   {id:'certeza',nome:'Com certeza',dica:'Os fatos fecham',certa:'Ganha o máximo',errada:'Perde o mesmo tanto',cc:['ganha','perde']},
   {id:'sem',nome:'Sem certeza',dica:'Parece, mas falta algo',certa:'Ganha a metade',errada:'Perde pouco',cc:['ganha','perde']},
-  {id:'naosei',nome:'Não sei',dica:'Ainda não dá para dizer',certa:'Não ganha nada',errada:'Não perde nada',cc:['nada','nada']}];
+  {id:'naosei',nome:'Não sei',dica:'Ainda não dá para dizer',certa:'Ganha um pouquinho',errada:'Não perde nada',cc:['nada','nada']}];
 var simEsc=null,simConf=null,simOrdem=[],depoisSim=null,perguntaReal=false;
 var PERGUNTA_SIM=SIM,respostas={},apostas={};
 function embaralhar(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
@@ -1285,19 +1268,8 @@ function pintarSimIntro(){
   $('#simIr').onclick=pintarSimPergunta;$('#simSair').onclick=fecharSim;
 }
 function pintarSimPergunta(){
-  var L='ABCDEFGHIJKLMNOP';
-  /* 01/10: a pergunta de marcar todos (conjunto exato) */
-  if(SIM.tipo==='todos'){if(!Array.isArray(simEsc))simEsc=[];
-    $('#fechoCorpo').innerHTML='<p class="kicker">Capítulo '+capitulo+' · pergunta secundária (vale menos) · marque todos</p><h1 id="fechoTitulo">'+SIM.pergunta+'</h1>'+
-      '<p class="lede">Só vale como acerto o conjunto exato. A planta dos postos está no seu inventário.</p>'+
-      '<div class="opcoes">'+SIM.candidatos.map(function(c,i){return '<button type="button" class="op'+(simEsc.indexOf(i)>=0?' on':'')+'" data-todo="'+i+'"'+(simConf==='naosei'?' disabled':'')+'><i>'+(simEsc.indexOf(i)>=0?'✓':'·')+'</i><span>'+c+'</span></button>'}).join('')+'</div>'+
-      '<h2>O quanto você tem certeza?</h2><div class="conf">'+CONF.map(function(c){return '<button type="button" data-conf="'+c.id+'" class="'+(simConf===c.id?'on':'')+'">'+c.nome+'<small>'+c.dica+'</small></button>'}).join('')+'</div>'+
-      '<div class="acoes"><button type="button" id="simResp"'+((simConf&&(simEsc.length||simConf==='naosei'))?'':' disabled')+'>Responder</button></div>';
-    document.querySelectorAll('#fecho [data-todo]').forEach(function(b){b.onclick=function(){var i=+b.dataset.todo,k=simEsc.indexOf(i);if(k>=0)simEsc.splice(k,1);else simEsc.push(i);pintarSimPergunta()}});
-    document.querySelectorAll('#fecho [data-conf]').forEach(function(b){b.onclick=function(){simConf=b.dataset.conf;if(simConf==='naosei')simEsc=[];pintarSimPergunta()}});
-    $('#simResp').onclick=pintarRealResultado;return}
-  var kick=perguntaReal?(capitulo===7?'Resposta final · '+(SIM.rotulo==='impostor'?'vale três vezes':'vale duas vezes'):'Capítulo '+capitulo+' · pergunta '+(SIM.rotulo||'')+(SIM.rotulo==='secundária'?' (vale menos)':'')):'Simulação · pergunta do capítulo';
-  $('#fechoCorpo').innerHTML='<p class="kicker">'+kick+'</p><h1 id="fechoTitulo">'+SIM.pergunta+'</h1>'+
+  var L='ABCD';
+  $('#fechoCorpo').innerHTML='<p class="kicker">'+(perguntaReal?'Capítulo '+capitulo+' · pergunta '+(SIM.rotulo||'')+(SIM.rotulo==='secundária'?' (vale menos)':''):'Simulação · pergunta do capítulo')+'</p><h1 id="fechoTitulo">'+SIM.pergunta+'</h1>'+
     '<div class="opcoes">'+simOrdem.map(function(k,i){return '<button type="button" class="op'+(simEsc===k?' on':'')+'" data-op="'+k+'"'+(simConf==='naosei'?' disabled':'')+'><i>'+L[i]+'</i><span>'+SIM.opcoes[k]+'</span></button>'}).join('')+'</div>'+
     (perguntaReal&&marcasDoCap(capitulo).length?'<details class="marcadas" style="margin-top:10px"><summary style="color:var(--gold);cursor:pointer">📌 Suas falas marcadas ('+marcasDoCap(capitulo).length+')</summary>'+listaMarcas(capitulo,false)+'</details>':'')+
     '<h2>O quanto você tem certeza?</h2><div class="conf">'+CONF.map(function(c){return '<button type="button" data-conf="'+c.id+'" class="'+(simConf===c.id?'on':'')+'">'+c.nome+'<small>'+c.dica+'</small></button>'}).join('')+'</div>'+
@@ -1352,7 +1324,7 @@ function toast(t){var d=document.createElement('div');d.className='toast';d.text
 /* Demonstração: chega uma mensagem no privado depois de alguns segundos. */
 function demoMensagens(){
   if(SOU_FUNC){if(COLEGAS.length)setTimeout(function(){chegaPrivada(COLEGAS[0],'Você já conhecia esta casa? Eu me perco nesses corredores.')},9000);return}
-  setTimeout(function(){chegaPrivada(S(1),'Você já achou alguma coisa na maquete?')},6000);setTimeout(function(){chegaPrivada(S(4),'Estou na sala de estar. Você?')},16000)}
+  setTimeout(function(){chegaPrivada(S(1),'Você viu o que estava escrito no bilhete da escrivaninha?')},6000);setTimeout(function(){chegaPrivada(S(4),'Estou na sala. Você?')},16000)}
 /* O telefone vermelho da maquete (sala da torre) abre a comunicação:
    Grupo e Privadas ganham nome e o relógio do capítulo começa. */
 function achouPlanta(d){
@@ -1371,14 +1343,11 @@ function achouPorao(){
   if(INVENTARIO.some(function(it){return it.nome==='Planta do porão'}))return;
   INVENTARIO.push({ico:'🗺️',nome:'Planta do porão',desc:'O porão da casa',img:'plantas/planta-porao.svg'});
   var clipe=document.querySelector('[data-anexo="grupo"]');if(clipe){clipe.classList.add('nasce');setTimeout(function(){clipe.classList.remove('nasce')},3400)}
-  janela('O PORÃO','O porão: a última parte da casa explorada. A planta do porão está no seu inventário.',function(){setTimeout(fimDoPrologo,500)});
+  janela('O PORÃO','Porão, um ótimo esconderijo! Última peça da casa explorada! A planta do porão está no seu inventário.',function(){setTimeout(fimDoPrologo,500)});
 }
 /* Envio extra achado num objeto da maquete: +1 neste capítulo. */
 var enviosExtras=0;
-var enviosPendentes=0;
 function achouEnvio(){
-  /* 01/10 (auditoria): achado entre capítulos não se perde; vai para o próximo */
-  if(capitulo&&capituloFechado[capitulo]){enviosExtras++;enviosPendentes++;toast('Envio extra achado: +1 no próximo capítulo.');return}
   enviosExtras++;ganharEnvio();
   if(enviosExtras===1)janela('UM ENVIO EXTRA','Você achou um envio escondido na casa: +1'+(capitulo===0?', que vai com você para o Capítulo 1.':' neste capítulo.')+' Há outros pela casa.');
   else toast('Envio extra achado: +1');
@@ -1457,11 +1426,6 @@ function tocarComPortoes(R,escala){
 function abrirPortao(g){
   portaoAtivo=g;portaoDesde=Date.now();g.abrir();
   roteiroTimers.push(setTimeout(function(){if(portaoAtivo===g&&g.lembrete)g.lembrete()},Math.max(8,40*escalaRoteiro)*1000));
-  /* 01/10 (auditoria): o portão não trava a história. Sem o gesto, a narração segue pelo jogador. */
-  roteiroTimers.push(setTimeout(function(){if(portaoAtivo!==g)return;
-    toast('A história seguiu: a narração fez o gesto por você.');
-    if(g.acao==='parar'){relogioEstado='parado';relogioModo='ver'}else if(g.acao==='religar'){relogioEstado='religado';relogioModo='ver'}
-    atualizarRelogio(relogioModo,relogioEstado);grafiteNosDedos();fecharPortao()},Math.max(16,100*escalaRoteiro)*1000));
 }
 function fecharPortao(){
   var g=portaoAtivo;if(!g)return;portaoAtivo=null;
@@ -1485,7 +1449,7 @@ function atualizarRelogio(modo,est){relogioModo=modo;relogioEstado=est;
 function abrirRelogio(){
   var t=$('#telaRA');
   if(!t.querySelector('iframe[data-peca="relogio"]')){var f=document.createElement('iframe');f.dataset.peca='relogio';f.title='O relógio';f.allow='xr-spatial-tracking; camera; gyroscope; accelerometer; fullscreen';
-    f.src='relogio.html?embed=1&partida='+encodeURIComponent(PARTIDA)+'&jogador='+encodeURIComponent(EU)+'&modo='+relogioModo+'&estado='+relogioEstado+'&mao='+({jornalista:'tinta',herdeira:'la',jardineiro:'barro',residente:'cal',policial:'couro',governanta:'agua',investigador:'agua',chefe_de_cozinha:'agua'}[(MATRIZ_C3[P_R2]||{}).mao]||'agua');t.appendChild(f)}   /* 01/10: a marca da mão muda com a partida */
+    f.src='relogio.html?embed=1&partida='+encodeURIComponent(PARTIDA)+'&jogador='+encodeURIComponent(EU)+'&modo='+relogioModo+'&estado='+relogioEstado;t.appendChild(f)}
   mostrarPeca('relogio');
 }
 function grafiteNosDedos(){
@@ -1520,21 +1484,10 @@ function aoMarco(id){
     janela('SEU POSTO',(meu?'Às nove e meia, o seu posto é: '+POSTOS_R2[meu].nome.toLowerCase()+'. ':'')+'A planta com todos os postos e os segundos até o relógio está no seu inventário, no clipe 📎 da conversa.')}
   if(id==='parar'){destravarRelogio();atualizarRelogio(relogioModo==='religar'?'religar':'ver','parado');toast('O relógio abriu na aba RA.')}
   if(id==='religar')atualizarRelogio('ver','religado');
-  /* Cap. 6 (01/10) */
-  if(id==='quarto'){PECAS[5].tranca=false;pintarPecas();document.querySelector('[data-aba="ra"]').classList.add('glow');toast('O quarto abriu na aba RA.');
-    if(!fotografou('Folha dos três lembretes'))INVENTARIO.push({ico:'📄',nome:'Folha dos três lembretes',desc:'Presa com grampo na primeira página do caderno',img:papelSVG('Três linhas, sem data',['mostrar o relógio','a porta de serviço','parar o pêndulo'])})}
-  if(id==='caderno'&&!fotografou('Caderno de capa azul')){INVENTARIO.push({ico:'📘',nome:'Caderno de capa azul',desc:'O caderno de cuidados, sem nome',img:cadernoSVG(P_R2)});
-    janela('O CADERNO','O caderno foi para o seu inventário. Compare com as falas que você marcou nos capítulos (aba Nota): uma das lembranças ditas hoje não fecha com ele.')}
-  if(id==='gaveta'){relogioEstado='apagao';relogioModo='ver';destravarRelogio();atualizarRelogio('ver','apagao');
-    if(!fotografou('O adendo'))INVENTARIO.push({ico:'📜',nome:'O adendo',desc:'A folha que estava na gaveta de pesos',img:papelSVG('O adendo',['A quem me acompanhou até o fim,','deixo o direito de morar','no quarto do jasmim enquanto viver,','e o que dele se puder tirar.'],P_R2===6?'#3a2a18':null)})}
 }
 function tocarRoteiro(r,escala){
   r.forEach(function(ev){roteiroTimers.push(setTimeout(function(){
-    if(ev[1]==='fx'){if(ev[2]==='escuro')escuroComeca();else if(ev[2]==='clarao')escuroClarao();else if(ev[2]==='luz')escuroAcaba();return}
-    if(escuroAtivo&&(ev[1]==='sis'||ev[1]==='sisconv'))escuroLinha(ev[2]);
-    if(escuroAtivo&&ev[1]===ACOMP)escuroLinha('📱 Os celulares vibraram. <b>···'+ACOMP+'</b>: '+ev[2]);
-    if(ev[1]==='sisconv'){grupo.push({sis:ev[2]});pintarGrupo()}
-    else if(ev[1]==='sis'){grupo.push({sis:ev[2]});if(SOU_FUNC&&!encontroFeito)grupoServ.push({sis:ev[2]});pintarGrupo();if(aba!=='grupo')document.querySelector('[data-aba="grupo"]').classList.add('glow')}
+    if(ev[1]==='sis'){grupo.push({sis:ev[2]});if(SOU_FUNC&&!encontroFeito)grupoServ.push({sis:ev[2]});pintarGrupo();if(aba!=='grupo')document.querySelector('[data-aba="grupo"]').classList.add('glow')}
     else if(ev[1]==='sisserv'){if(ev[3])grupoServ.push(ev[3]);grupoServ.push({sis:ev[2]});pintarGrupo();if(aba!=='grupo')document.querySelector('[data-aba="grupo"]').classList.add('glow')}
     else if(ev[1].indexOf('serv:')===0){grupoServ.push({de:ev[1].slice(5),txt:ev[2],h:hora()});pintarGrupo()}
     else if(ev[1]==='add'){foraDoGrupo={};
@@ -1618,17 +1571,12 @@ function perguntasDo(n){
   return out;
 }
 function proximaPergunta(){
-  SIM=filaPerguntas.shift();perguntaReal=true;simEsc=null;simConf=null;depoisSim=null;
-  simOrdem=embaralhar((SIM.opcoes||[]).map(function(_,i){return i}));
+  SIM=filaPerguntas.shift();perguntaReal=true;simEsc=null;simConf=null;simOrdem=embaralhar([0,1,2,3]);depoisSim=null;
   pintarSimPergunta();$('#fecho').scrollTop=0;
 }
 function pintarRealResultado(){
-  /* 01/10: marcar todos (conjunto exato), mais de uma certa (P12), e respostas finais */
-  var certa=SIM.tipo==='todos'?(Array.isArray(simEsc)&&simEsc.length===SIM.certosIdx.length&&SIM.certosIdx.every(function(i){return simEsc.indexOf(i)>=0})):((SIM.certas||[0]).indexOf(simEsc)>=0);
-  var onde=capitulo===7?'final':(SIM.cap||capitulo);if(!respostas[onde])respostas[onde]=[];
-  respostas[onde].push({pergunta:SIM.pergunta,tipo:SIM.rotulo,opcao:simEsc,certa:certa,confianca:simConf});
+  respostas[capitulo].push({pergunta:SIM.pergunta,tipo:SIM.rotulo,opcao:simEsc,certa:simEsc===0,confianca:simConf});
   if(filaPerguntas.length){proximaPergunta();return}
-  if(capitulo===7){pintarRevelacao();return}
   $('#fechoCorpo').innerHTML='<p class="kicker">Capítulo '+capitulo+' · respostas guardadas</p><h1 id="fechoTitulo">Respostas guardadas.</h1>'+
     '<p class="lede">Suas respostas foram guardadas. O resultado só aparece no fim do jogo.</p>'+
     '<p class="lede">Agora a sua aba Nota vira a aposta: em quem você aposta como impostor? É opcional e só você vê.</p>'+
@@ -1724,12 +1672,9 @@ var MATRIZ_C1={
   14:{voltou:['advogado','A gaveta da escrivaninha agora fecha.'],xicara:['observadora'],macaneta:'governanta'},
   15:{voltou:['eletricista','Mês passado o medidor ainda girava, com a casa lacrada.'],xicara:['chefe_de_cozinha'],macaneta:'investigador',relogioP15:true}
 };
-/* SUBSTITUIDO 01/10: o sorteio pegava qualquer partida da casa, sem olhar o papel humano. */
 var P_R2=(function(){var p=+Q.get('p');if(MATRIZ_C1[p]&&PARTIDAS_R2[p]===CASA)return p;
-  /* só partidas em que o seu personagem não é o impostor; o ajudante e o falso culpado pesam o dobro */
-  var ps=Object.keys(PARTIDAS_R2).map(Number).filter(function(k){return PARTIDAS_R2[k]===CASA&&!papelProibido(k,EU_PAPEL)}),bolsa=[];
-  ps.forEach(function(k){var w=(AJUDANTE_R2[k]===EU_PAPEL||FALSO_R2[k].indexOf(EU_PAPEL)>=0)?2:1;for(var i=0;i<w;i++)bolsa.push(k)});
-  return bolsa[Math.floor(gerador(PARTIDA+'|matriz')()*bolsa.length)]})();
+  var ps=Object.keys(PARTIDAS_R2).filter(function(k){return PARTIDAS_R2[k]===CASA});
+  return +ps[Math.floor(gerador(PARTIDA+'|matriz')()*ps.length)]})();
 var NOMES={investigador:['o','Investigador'],herdeira:['a','Herdeira'],residente:['o','Residente'],jornalista:['o','Jornalista'],
   policial:['o','Policial'],observadora:['a','Observadora'],tabeliao:['o','Tabelião'],advogado:['o','Advogado'],
   governanta:['a','Governanta'],chefe_de_cozinha:['o','Chefe de Cozinha'],jardineiro:['o','Jardineiro'],eletricista:['o','Eletricista']};
@@ -1755,11 +1700,8 @@ var C1=(function(){
   function serv(t,id,txt){if(SOU_FUNC&&id&&presente(id)&&id!==EU_PAPEL)ev.push([t,'serv:'+SLOT_DE[id],txt])}   /* grupo do serviço, visto só por funcionário humano */
 
   if(SOU_FUNC)ev.push([2,'sisserv',(FUNCIONARIOS.length>1?'A chuva não parou a noite toda. Vocês dormiram na casa, como o farol aconselhou.':'A chuva não parou a noite toda. Você dormiu na casa, como o farol aconselhou.')+' À tarde, os carros começam a chegar.',{dia:'O DIA DA LEITURA'}]);
-  /* 01/10: o funcionário humano não vê a chegada pelo olhar dos convocados ('sisconv' vai só para o grupo da casa) */
-  function sisc(t,txt){ev.push([t,SOU_FUNC?'sisconv':'sis',txt])}
-  if(SOU_FUNC)ev.push([6,'sisserv','Da cozinha, '+(FUNCIONARIOS.length>1?'vocês ouvem':'você ouve')+' a porta da frente abrir e fechar muitas vezes. Vozes molhadas no vestíbulo, casacos sacudidos, alguém contando gente em voz alta.']);
-  sisc(6,'A chuva tinha começado na estrada e não parou nem quando a porta se fechou atrás do último que entrou. No cabide do vestíbulo, casacos pingando: uma capa bege, um impermeável com faixa refletiva, um casaco de lã escuro que alguém sacudiu com raiva'+(presente('jardineiro')?(EU_PAPEL==='jardineiro'?'. E o seu oleado amarelo, seco, pendurado ali desde ontem.':'. E um oleado amarelo que ninguém ali tinha trazido.'):'.'));
-  sisc(20,Na(cond)+' contou os convocados duas vezes e anotou '+nConv+'. Depois conferiu os lacres das portas internas, um por um, com a lanterna do celular. <i>"Até a leitura, nada sai do lugar. Nem vocês."</i>');
+  sis(6,'A chuva tinha começado na estrada e não parou nem quando a porta se fechou atrás do último que entrou. No cabide do vestíbulo, casacos pingando: uma capa bege, um impermeável com faixa refletiva, um casaco de lã escuro que alguém sacudiu com raiva'+(presente('jardineiro')?(EU_PAPEL==='jardineiro'?'. E o seu oleado amarelo, seco, pendurado ali desde ontem.':'. E um oleado amarelo que ninguém ali tinha trazido.'):'.'));
+  sis(20,Na(cond)+' contou os convocados duas vezes e anotou '+nConv+'. Depois conferiu os lacres das portas internas, um por um, com a lanterna do celular. <i>"Até a leitura, nada sai do lugar. Nem vocês."</i>');
   if(FUNCIONARIOS.length){
     sis(40,'O velho rádio VHF chia. É o farol: <i>"Casa da Costa, aqui é o farol. O pessoal do serviço passou a noite aí, como eu aconselhei. Os convocados chegaram bem?"</i>');
     serv(30,voz(FUNCIONARIOS),'Chegou gente. Muita gente, pela frente.');
@@ -1770,20 +1712,19 @@ var C1=(function(){
     if(SOU_FUNC){var outros=FUNCIONARIOS.filter(function(id){return id!==EU_PAPEL});
       sis(85,'Na cozinha, '+(outros.length?listaNomes([EU_PAPEL].concat(outros))+' ouvem':'você ouve')+' passos e vozes molhadas vindo da frente da casa. Pela porta, gente sacudindo casacos. Ninguém avisou que viria tanta gente. Eles também não sabiam de '+(outros.length?'vocês: vocês vieram':'você: você veio')+' ontem preparar a casa para a leitura e '+(outros.length?'passaram':'passou')+' a noite aqui por causa da chuva.');
     }else sis(85,'Na cozinha, o fogão aceso e '+(um?'alguém':'gente')+' de avental. '+lf.charAt(0).toUpperCase()+lf.slice(1)+(um?' veio':' vieram')+' ontem preparar a casa para a leitura. A chuva só aumentou, e o farol '+(um?'a':'os')+' aconselhou a dormir aqui. Nenhum convocado sabia '+(um?'dela. Ela também não sabia':'deles. Eles também não sabiam')+' quem viria.');
-    sis(100,Na('tabeliao')+' anotou mais '+FUNCIONARIOS.length+' e pôs '+(um?(SOU_FUNC?'o seu número':'o número dela'):(SOU_FUNC?'os números de vocês':'os números deles'))+' no grupo do cartório: <i>"Para a ata, todos que estão na casa."</i>');
-    ev.push([102,'add','<b>+'+FUNCIONARIOS.length+(FUNCIONARIOS.length>1?' números entraram':' número entrou')+' no grupo.</b>']);   /* 01/10: sem a contagem de números, que é do Cap. 2 */
+    sis(100,Na('tabeliao')+' anotou mais '+FUNCIONARIOS.length+' e pôs '+(um?'o número dela':'os números deles')+' no grupo do cartório: <i>"Para a ata, todos que estão na casa."</i>');
+    ev.push([102,'add','<b>+'+FUNCIONARIOS.length+(FUNCIONARIOS.length>1?' números entraram':' número entrou')+' no grupo.</b> Agora são '+N_CONTATOS+'.']);
     chat(112,voz(FUNCIONARIOS),(um?'Boa noite. Ninguém me avisou que vinha tanta gente.':'Boa noite. Ninguém nos avisou que vinha tanta gente.'));
     chat(125,'policial','E ninguém nos avisou que tinha alguém aqui.');
   }else{
     sis(40,'O velho rádio VHF chia. É o farol: <i>"Casa da Costa, aqui é o farol. Vi luz na ala de serviço desde a tarde. Está tudo bem aí?"</i>');
-    chat(52,'residente','Chegamos à tarde, mas ninguém de nós foi até a ala de serviço.');
+    chat(52,'residente','Ninguém de nós chegou à tarde.');
     chat(62,'jornalista','E a ala de serviço estava trancada.');
   }
   sis(145,'Foram para a sala do relógio, a única com lareira acesa. Alguém a tinha acendido.'+(presente('governanta')?' '+Na(cond)+' olhou para a lenha, depois para '+na('governanta')+', depois de novo para a lenha, e decidiu não perguntar.':' Ninguém disse quem.'));
   /* ◆ a xícara */
   var xq=M.xicara[0],xfala=M.xicara[1];
-  /* 01/10 (cânone): uma xícara sozinha no aparador, ao lado da bandeja da louça da sala */
-  var xtxt='No aparador, ao lado da bandeja com a louça da sala, havia uma xícara sozinha. Um dedo de café frio no fundo, com uma película por cima. ';
+  var xtxt='No aparador, uma bandeja com sete xícaras. Numa delas, um dedo de café frio, com uma película por cima. ';
   if(xq==='governanta'&&!xfala)xtxt+=Na('governanta')+' foi quem viu primeiro: <i>"Essa não é daqui. Não é da louça da sala. É o jogo de borda verde, o que ficava no quarto dos fundos."</i> <i>"A senhora conhece bem a louça de uma casa fechada há cinco meses"</i>, disse '+na('policial')+'. <i>"Conheço a louça. A casa, eu já não sei."</i>';
   else xtxt+=Na(xq)+' foi quem viu primeiro: <i>"Essa não é da louça da sala. É de outro jogo, de borda verde."</i>'+(xfala?' E depois, mais baixo: <i>"'+xfala+'"</i>':'');
   sis(170,xtxt);
@@ -1816,10 +1757,10 @@ var C1=(function(){
 
   var fala=function(ids,txt,exceto){var id=voz(ids,exceto);return id?[SLOT_DE[id],txt]:null};
   var replica={
-    'Quem chegou primeiro?':fala(['residente','herdeira'],'Ninguém sabe. Cada um achou que já tinha gente aqui.'),
+    'Alguém aqui chegou à tarde?':fala(['residente','herdeira'],'Eu cheguei com a chuva, já de noite.'),
     'De quem é a xícara com café?':fala(['herdeira','residente','jornalista'],'Ninguém assumiu até agora.',xq),
     'O relógio não devia estar parado?':fala(['policial','residente'],'Devia. E ainda está adiantado.'),
-    'Quem estava perto do quarto de serviço?':fala(['jornalista','herdeira','policial','residente'],'Eu estava na sala do relógio, com todos. Não vi ninguém sair.',M.macaneta),
+    'Quem estava perto do quarto de serviço?':fala(['jornalista','herdeira','policial','residente'],'Eu estava na sala. Não vi ninguém sair.',M.macaneta),
     'A xícara prova que alguém mora aqui.':fala(['observadora','herdeira'],'Ou que alguém esteve aqui hoje.'),
     'Alguém dá corda no relógio. Isso prova.':fala(['residente','policial'],'Relógio de corda não anda cinco meses sozinho.'),
     'Vamos ficar juntos.':fala(['policial','herdeira'],'Concordo.'),
@@ -1828,7 +1769,7 @@ var C1=(function(){
     'Você ouviu a maçaneta?':'Ouvi. Veio de dentro.',
     'Não confio em ninguém aqui.':'Nem eu.'
   };
-  var respGrupo=[[40,'Quem chegou primeiro?'],[170,'De quem é a xícara com café?'],[205,'O relógio não devia estar parado?'],[330,'Quem estava perto do quarto de serviço?'],[400,'A xícara prova que alguém mora aqui.'],[400,'Alguém dá corda no relógio. Isso prova.'],[0,'Vamos ficar juntos.']];
+  var respGrupo=[[40,'Alguém aqui chegou à tarde?'],[170,'De quem é a xícara com café?'],[205,'O relógio não devia estar parado?'],[330,'Quem estava perto do quarto de serviço?'],[400,'A xícara prova que alguém mora aqui.'],[400,'Alguém dá corda no relógio. Isso prova.'],[0,'Vamos ficar juntos.']];
   if(FUNCIONARIOS.length){respGrupo.splice(1,0,[100,'Por que ninguém avisou que havia funcionários?']);
     if(voz(FUNCIONARIOS))replica['Por que ninguém avisou que havia funcionários?']=[SLOT_DE[voz(FUNCIONARIOS)],(FUNCIONARIOS.length===1?'Fui chamada para preparar a casa. Ninguém disse para quem.':'Fomos chamados para preparar a casa. Ninguém disse para quem.')]}
   return {
@@ -1837,7 +1778,7 @@ var C1=(function(){
     respPriv:[[40,'Você viu alguém chegar antes?'],[170,'Você reconheceu aquela xícara?'],[330,'Você ouviu a maçaneta?'],[0,'Não confio em ninguém aqui.']],
     replica:replica,
     acompPriv:{},              /* o celular do proprietário fica calado até o Cap. 2 */
-    achar:{itens:['a xícara sozinha no aparador, para fotografar (aba RA)','1 envio extra, escondido na bandeja'],dica:'Na RA, o que se abre ou se vira, se move arrastando com o dedo, como a chave da casa no prólogo.'},
+    achar:{itens:['1 pista escondida na bandeja da sala (aba RA)','1 envio extra, também na bandeja'],dica:'Na RA, o que se abre ou se vira, se move arrastando com o dedo, como a chave da casa no prólogo.'},
     debate:{pergunta:'O que, nesta sala, prova que alguém mora aqui?',falas:[
       (function(){var id=voz(['residente','herdeira','jornalista']);return id?[SLOT_DE[id],FUNCIONARIOS.length?'A xícara. A louça foi recolhida ontem à noite, e hoje tinha café frio numa xícara que não é da sala.':'A xícara com café. A casa estava fechada havia cinco meses.']:null})(),
       (function(){var id=voz(['policial','observadora','tabeliao']);return id?[SLOT_DE[id],'O relógio. Relógio de corda não anda cinco meses sozinho. Alguém dá corda nele.']:null})(),
@@ -1945,8 +1886,7 @@ var C2_R2=(function(){
     respPriv:[[0,'Onde você está agora?'],[78,'Quem é esse número?'],[t+34,'Você ouviu a frase perto do corredor?'],[0,'Não confio em ninguém aqui.']],
     replica:replica,
     acompPriv:RESP_ACOMP_R2,
-    /* 01/10: a escrivaninha passou para o Cap. 3 (a biblioteca só abre lá); o Cap. 2 não tem peça nova */
-    achar:null,
+    achar:{itens:['papéis para ler e fotografar, no tampo e nas seis gavetas da escrivaninha (aba RA)','1 envio extra, escondido entre os papéis do tampo'],dica:'As gavetas se abrem arrastando para a frente. Um toque rápido num papel tira a foto dele, e ela vai para o seu inventário.'},
     debate:{pergunta:'Por que ninguém sabe o número do dono, nem a filha?',falas:[
       fala(['herdeira','advogado'],'Ele trocou de chip nos últimos meses. Ninguém da família tinha o número novo.'),
       fala(['policial','tabeliao','residente'],'O cartório montou o grupo com a lista que ele deixou, sem nomes. Um dos números não é de ninguém daqui.'),
@@ -1982,12 +1922,10 @@ var MATRIZ_C3={
 var MAO_C3={
   jornalista:{detalhe:'uma mancha azul na palma. Tinta',dono:function(){return Na('jornalista')+' enfiou as mãos nos bolsos. Tinha os dedos azuis desde o vestíbulo, de uma caneta que vazava, e a manga direita da jaqueta estava mais escura que a esquerda.'}},
   herdeira:{detalhe:'um fio de lã escura, preso na umidade',dono:function(){return Na('herdeira')+' cruzou os braços. A manga do casaco de lã ainda pingava.'}},
-  /* 01/10 (auditoria): sem o oleado, que está seco no cabide */
-  jardineiro:{detalhe:'barro vermelho entre os dedos. E é uma mão grande',dono:function(){return Na('jardineiro')+' escondeu as mãos nos bolsos. Tinha barro vermelho sob as unhas.'}},
+  jardineiro:{detalhe:'barro vermelho entre os dedos. E é uma mão grande',dono:function(){return Na('jardineiro')+' escondeu as mãos no oleado. Tinha barro vermelho sob as unhas.'}},
   residente:{detalhe:'pó de cal molhado, branco, na palma',dono:function(){return Na('residente')+' limpou a palma no impermeável e deixou uma listra branca.'}},
-  /* 01/10 (auditoria): o Policial foi ligar no jardim (P9) e tem couro molhado só numa manga (P11); a Governanta foi fechar a janela dos fundos que batia (P13) */
-  policial:{detalhe:'uma palma larga. E, ao lado, um risco de couro molhado, como de uma manga que encostou',dono:function(){return Na('policial')+' guardou o celular no bolso da jaqueta. A manga direita do couro estava molhada; a esquerda, seca.'}},
-  governanta:{detalhe:'uma mão pequena, e água de chuva escorrendo do pulso',dono:function(){return Na('governanta')+' baixou a manga arregaçada da blusa, molhada até o cotovelo. <i>"A janela dos fundos batia. Fui fechar."</i>'}},
+  policial:{detalhe:'o desenho de uma luva de couro',dono:function(){return Na('policial')+' guardou o celular no bolso da jaqueta de couro. Os ombros estavam molhados.'}},
+  governanta:{detalhe:'cheiro de sabão de cozinha',dono:function(){return Na('governanta')+' enxugou as mãos no avental, que tinha um canto molhado.'}},
   investigador:{detalhe:'a marca da alça de uma câmera na lateral da mão',dono:function(){return Na('investigador')+' guardou a câmera na capa bege. A barra da capa estava molhada.'}},
   chefe_de_cozinha:{detalhe:'cheiro de tabaco',dono:function(){return Na('chefe_de_cozinha')+' tinha cheiro de cigarro no dólmã branco.'}}
 };
@@ -2003,7 +1941,7 @@ var C3_R2=(function(){
     p5:[24,'<i>"Se for um direito de moradia, isso trava a venda"</i>, disse '+na('advogado')+'. <i>"Quem falou em moradia?"</i>, perguntou '+na('herdeira')+'. <i>"Hipótese. É o que costuma haver nesses casos."</i>'],
     p7:[195,'<i>"Por enquanto"</i>, disse '+na('governanta')+'. <i>"Por enquanto?"</i>, perguntou '+na('herdeira')+'. <i>"Nesta casa nada fica vazio muito tempo."</i>'],
     p8:[236,'<i>"Deve ter uma mola atrás, puxando pra frente quando o móvel sai"</i>, disse '+na('eletricista')+'. <i>"Não tem mola de fundo nenhuma nesta oficina"</i>, disse '+na('observadora')+'. <i>"Todo relógio tem." "Este não."</i>'],
-    p9:[124,Na('jornalista')+' já estava agachado, filmando. <i>"Por que você está filmando a base, e não a carta?"</i>, perguntou '+na('observadora')+'. <i>"Hábito. A etiqueta do fabricante fica embaixo." "Não nesta oficina. Fica no mostrador."</i>'],
+    p9:[105,Na('jornalista')+' já estava agachado, filmando. <i>"Por que você está filmando a base, e não a carta?"</i>, perguntou '+na('observadora')+'. <i>"Hábito. A etiqueta do fabricante fica embaixo." "Não nesta oficina. Fica no mostrador."</i>'],
     p10:[195,'<i>"Então é embaixo que cai"</i>, disse '+na('jardineiro')+', da porta. <i>"Que cai o quê?" "Peso. Peso cai."</i>'],
     p12:[160,'<i>"Não é o trinco que importa"</i>, disse '+na('observadora')+', e a voz saiu mais rápida do que ela quis. <i>"É o quanto o móvel sai da parede."</i> <i>"Sai da parede?"</i>, perguntou '+na('investigador')+'. <i>"Caixa-alta desta oficina tem fundo falso. É padrão." "Achei que a senhora só conhecia a peça por fotografia."</i> Ela sorriu, curta: <i>"Conheço a oficina."</i>'],
     p13:[160,'<i>"Agora a apólice cobre o conteúdo também"</i>, disse '+na('investigador')+'. <i>"Conteúdo de um relógio?"</i>, perguntou '+na('tabeliao')+'. <i>"Força de expressão."</i> '+Na('observadora')+' pediu a apólice. Estava lá: "relógio de caixa alta e conteúdo". A apólice que ele mesmo redigiu, três semanas antes da morte.'],
@@ -2012,8 +1950,6 @@ var C3_R2=(function(){
   var gov=presente('governanta'),adv=presente('advogado');
   sis(6,'Às oito e dez, '+na(cond)+' rompeu o último lacre, o da biblioteca, e leu em voz alta o procedimento: antes de tocar em qualquer bem, todos conferem juntos a lista do inventário contra o que está nas estantes. Um minuto, não mais. Todos na biblioteca, ninguém fica para trás.');
   sis(18,'Foram. O minuto se esticou em dois'+(gov&&adv?', porque a Governanta achou um livro fora do lugar e o Advogado quis saber por quê.':'.'));
-  /* 01/10: o gancho da escrivaninha (a peça abre neste capítulo, com a biblioteca) */
-  sis(24,'Na biblioteca, a escrivaninha dele estava como ele tinha deixado: papéis no tampo, seis gavetas fechadas. Ninguém tocou nela naquele minuto, porque o minuto era da lista.');
   sis(32,'Quando voltaram à sala do relógio, quem entrou primeiro parou tão de repente que quem vinha atrás esbarrou nas costas. No flanco do móvel, do lado da porta-janela do jardim, havia uma marca de mão. Molhada. Ainda escorria.');
   sis(42,'<i>"Alguém veio do jardim"</i>, disse '+na(presente('jardineiro')?'jardineiro':'residente')+'. <i>"A porta-janela está só encostada."</i>');
   var mao=MAO_C3[M.mao];
@@ -2036,8 +1972,7 @@ var C3_R2=(function(){
   sis(246,'<i>"Ficou parado uns minutos. Vou devolver o que perdeu."</i> '+Na(rq)+' empurrou o ponteiro com a unha, olhando para '+(EU_PAPEL==='policial'?'o seu pulso':'o pulso do Policial')+'. <i>"Quatro na frente"</i>, conferiu '+na('policial')+'. <i>"Como estava."</i> <i>"Como ele deixava"</i>, disse '+na('herdeira')+', baixo. '+Na(cond)+' anotou: relógio religado às vinte horas e dezessete, acertado para quatro minutos adiantado, como antes.');
   sis(266,Na('policial')+' se encostou no batente da porta da sala e cruzou os braços. A partir daquele momento, a sala do relógio não ficou mais sozinha.');
   chat(280,voz(['jornalista','herdeira','residente']),'Pare o pêndulo. Ele queria que alguém parasse o relógio. Por quê?');
-  /* 01/10 (auditoria): a fala antiga ("tem alguma coisa atrás daquele fundo") entregava o mecanismo */
-  chat(300,voz(['advogado','tabeliao','observadora']),'Ele deixou uma carta mandando parar o pêndulo. Ninguém escreve isso à toa.');
+  chat(300,voz(['advogado','tabeliao','observadora']),'O trinco soltou quando o pêndulo parou. Tem alguma coisa atrás daquele fundo.');
   priv(330,voz(['residente','jornalista','herdeira'],M.mao),'Você viu quem saiu da biblioteca no minuto do inventário?');
   sis(440,'A lareira estalou. O relógio seguia batendo, quatro minutos na frente. Faltam poucos minutos para o fim do capítulo.');
 
@@ -2070,7 +2005,7 @@ var C3_R2=(function(){
       'Você ouviu o estalo?':'Ouvi. Veio do fundo do móvel.',
       'Não confio em ninguém aqui.':'Nem eu.'
     },
-    achar:{itens:['papéis para ler e fotografar, no tampo e nas seis gavetas da escrivaninha da biblioteca (aba RA)','1 envio extra entre os papéis do tampo','1 envio extra escondido no relógio (aba RA, depois que ele destravar)'],dica:'Dá para girar as peças com o dedo e olhar por todos os lados, até de cima e de baixo.'},
+    achar:{itens:['1 envio extra, escondido no relógio (aba RA, depois que ele destravar)'],dica:'Dá para girar o relógio com o dedo e olhar por todos os lados, até de cima e de baixo.'},
     acompPriv:RESP_ACOMP_R2,
     debate:{pergunta:'O que a marca molhada prova, e o que ela não prova?',falas:[
       fala(['policial','residente','tabeliao'],'Prova que alguém entrou pelo jardim no minuto em que todos estavam na biblioteca.'),
@@ -2105,19 +2040,10 @@ var POSTOS_R2={
   K:{lugar:'no quadro de luz, no porão',curto:'no porão',nome:'Quadro de luz, no porão',s:20},
   L:{lugar:'na sala de estar',curto:'na sala de estar',nome:'Sala de estar',s:17}
 };
-/* 01/10 (auditoria): no cânone, a porta da despensa e a porta de serviço são a mesma (posto F). */
-var PORTAS_JARDIM={despensa:'a porta da despensa, a de serviço',varanda:'a porta da varanda',biblioteca:'a porta-janela da biblioteca',
-  quarto:'a janela do quarto de serviço',sala:'a porta-janela da sala do relógio',servico:'a porta da despensa, a de serviço'};
-var PORTAS_JARDIM_ROT={despensa:'Porta da despensa (a de serviço)',varanda:'Porta da varanda',biblioteca:'Porta-janela da biblioteca',
-  quarto:'Janela do quarto de serviço',sala:'Porta-janela da sala do relógio',servico:'Porta da despensa (a de serviço)'};
-/* A saída que alguém deixa aberta (Matriz, "Capítulo 6 — respostas"), plantada aqui, por volta das nove e vinte. */
-var SAIDA_R2={
-  1:{quem:'herdeira',saida:'varanda'},2:{quem:'jornalista',saida:'despensa'},4:{quem:'jardineiro',saida:'despensa'},
-  5:{quem:'residente',saida:'portinhola'},6:{quem:'policial',saida:'varanda'},7:{quem:'herdeira',saida:'varanda'},
-  8:{quem:'jardineiro',saida:'varanda'},9:{quem:'residente',saida:'servico'},10:{quem:'observadora',saida:'janela'},
-  12:{quem:'herdeira',saida:'varanda'},13:{quem:'governanta',saida:'varanda'},14:{quem:'jardineiro',saida:'despensa'},
-  15:{quem:'residente',saida:'portinhola'}};
-var SAIDA_ROT={varanda:'A porta da varanda',despensa:'A porta da despensa',portinhola:'A portinhola da passagem',servico:'A porta de serviço, sem a trava',janela:'A janela do quarto do jasmim'};
+var PORTAS_JARDIM={despensa:'a porta da despensa',varanda:'a porta da varanda',biblioteca:'a porta-janela da biblioteca',
+  quarto:'a janela do quarto de serviço',sala:'a porta-janela da sala do relógio',servico:'a porta de serviço'};
+var PORTAS_JARDIM_ROT={despensa:'Porta da despensa',varanda:'Porta da varanda',biblioteca:'Porta-janela da biblioteca',
+  quarto:'Janela do quarto de serviço',sala:'Porta-janela da sala do relógio',servico:'Porta de serviço'};
 /* Matriz, "Postos e exclusões" (o posto de cada um às 21h29; quem anda depois conta pelo primeiro)
    e "Capítulo 4 — respostas". */
 var MATRIZ_C4={
@@ -2154,7 +2080,7 @@ function plantaPostosSVG(){
   var svg='<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="'+(y+60)+'" viewBox="0 0 1000 '+(y+60)+'">'+
     '<rect width="1000" height="'+(y+60)+'" fill="#f4ead0"/><rect x="18" y="18" width="964" height="'+(y+24)+'" fill="none" stroke="#6b5234" stroke-width="3"/>'+
     '<text x="40" y="70" font-family="Georgia,serif" font-size="34" fill="#3a2a18">Postos das nove e meia</text>'+
-    '<text x="40" y="104" font-family="Georgia,serif" font-size="20" font-style="italic" fill="#6b5234">A lista do cartório, com os segundos de cada posto até o relógio, contados a passo</text>'+
+    '<text x="40" y="104" font-family="Georgia,serif" font-size="20" font-style="italic" fill="#6b5234">A lista do cartório, com os segundos de cada posto até o relógio, anotados pelo Residente</text>'+
     '<g font-family="Georgia,serif">'+linhas+'</g></svg>';
   return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
 }
@@ -2170,7 +2096,7 @@ var C4_R2=(function(){
   sis(6,(presente('governanta')?Na('governanta')+' serviu o caldo às nove, em pé, como se ainda trabalhasse ali.':'Às nove, alguém esquentou um caldo na cozinha.')+' Ninguém comeu direito. '+Na(lider)+' pegou a lanterna grande do vestíbulo e pediu que '+(lider===EU_PAPEL?'o acompanhassem':'o acompanhassem')+' até a varanda.');
   sis(20,'O jardim interno era um quadrado de pedra e terra vermelha cercado pela casa. No canto dos fundos, o jasmim subia pelo beiral até a janela do quarto de serviço. A chuva caía reta, pesada, sem vento.');
   sis(32,'<i>"Olhem o chão"</i>, disse '+na(lider)+'. <i>"Não para as flores. Para o chão."</i>');
-  sis(44,'Havia duas trilhas. A primeira ia da porta da despensa, a de serviço, até a janela do quarto dos fundos: pedras gastas no meio, sem musgo, a terra batida de tanto uso. A segunda era de lama, pegadas de sola lisa, entre '+PORTAS_JARDIM[inicio]+' e '+PORTAS_JARDIM[M.trilha]+'.');
+  sis(44,'Havia duas trilhas. A primeira ia da porta de serviço até a janela do quarto dos fundos: pedras gastas no meio, sem musgo, a terra batida de tanto uso. A segunda era de lama, pegadas de sola lisa, entre '+PORTAS_JARDIM[inicio]+' e '+PORTAS_JARDIM[M.trilha]+'.');
   sis(58,'<i>"A seca é de meses. Alguém anda aqui todo dia. A outra é desta noite."</i> '+Na(lider)+' iluminou o bico das pegadas e ficou olhando um tempo, sem dizer para que lado iam.');marco('jardim');
   if(P===12){
     sis(74,'<i>"Essa outra não é de hoje"</i>, disse '+na('observadora')+', abaixando-se com a saia recolhida. <i>"Olhe a borda. Está gasta. Ontem, talvez anteontem."</i> '+Na('jardineiro')+' apontou a lanterna para dentro de uma das pegadas. Havia água parada ali, e a borda de barro estava viva, cortada.');
@@ -2180,7 +2106,7 @@ var C4_R2=(function(){
   else{
     sis(100,'Foi '+na('residente')+' quem falou do resto, e falou mal. Começou dizendo que a ala de serviço <i>"tinha um corredorzinho"</i>, se corrigiu para <i>"a parede ali atrás é oca"</i>, e terminou admitindo, com a voz baixa de quem confessa dívida: <i>"Tem uma passagem. Da despensa até a sala do relógio, por trás do quarto de serviço. Sai numa portinhola atrás do painel ao lado do relógio. Na reforma, era para eu fechar. Ele pediu para deixar. Eu deixei. E não lacrei."</i>');
     sis(116,'<i>"E por que ele pediria isso?"</i>, perguntou '+na('policial')+'. <i>"Não perguntei. Ele pagava."</i>');
-    if(P===6||P===5||P===15)sis(124,Na('residente')+' mostrou a portinhola atrás do painel, abriu, fechou, e a deixou só encostada.');   /* 01/10: P5 e P15 também (a saída aberta) */
+    if(P===6)sis(124,Na('residente')+' mostrou a portinhola atrás do painel, abriu, fechou, e a deixou só encostada.');
   }
   sis(134,Na('herdeira')+' olhava para a janela do jasmim. <i>"Ninguém usava aquele quarto. Era de despejo."</i>');
   sis(148,'<i>"Era o quarto do jasmim"</i>, disse '+na('observadora')+', e todos se viraram para ela. Ela manteve o queixo erguido. <i>"Minha mãe trabalhou nesta casa quando eu era menina. Eu cresci naquele quarto. Quem cresceu aqui chamava assim."</i>');
@@ -2195,28 +2121,13 @@ var C4_R2=(function(){
   sis(192,'Às nove e vinte, '+na(cond)+' abriu a pasta sobre a mesa e distribuiu os postos para a reabertura das nove e meia. Ninguém ficaria sozinho sem ser visto, disse ele, e ninguém ficaria longe demais.');
   if(P===2)sis(200,Na('tabeliao')+' mandou '+na('policial')+' para o rádio: <i>"O senhor é o único que fala com o farol como autoridade."</i> '+Na('policial')+' foi.');
   var por={};Object.keys(M.postos).forEach(function(id){if(id===ch||!presente(id))return;(por[M.postos[id]]=por[M.postos[id]]||[]).push(id)});
-  var frases='ABCDEFGHIJKL'.split('').filter(function(l){return por[l]&&!(P===2&&l==='I')}).map(function(l){var t=listaNomes(por[l]);return t.charAt(0).toUpperCase()+t.slice(1)+' '+POSTOS_R2[l].lugar+(l==='J'&&por[l].indexOf('eletricista')>=0?', para descer ao quadro se fosse preciso':'')+(P===12&&l==='B'?', a Observadora para conferir as descrições dos bens, a convite do próprio Tabelião':'')+'.'});
+  var frases='ABCDEFGHIJKL'.split('').filter(function(l){return por[l]&&!(P===2&&l==='I')}).map(function(l){var t=listaNomes(por[l]);return t.charAt(0).toUpperCase()+t.slice(1)+' '+POSTOS_R2[l].lugar+(l==='J'&&por[l].indexOf('eletricista')>=0?', para descer ao quadro se fosse preciso':'')+'.'});
   sis(208,frases.join(' '));
   var EXTRA={1:'. Conheço os barulhos daquela ala',12:'. Conheço os barulhos daquela ala',4:'. Preciso de ar',8:'. Conheço a escadinha',9:'. Levo uma vela'}[P]||'';
   var trat=ch===EU_PAPEL?'você':(NOMES[ch][0]==='a'?'a senhora':'o senhor');
   sis(222,'<i>"E '+trat+'?"</i>, perguntou '+na(cond)+(ch===EU_PAPEL?' a você':'')+'. <i>"Eu fico '+POSTOS_R2[M.postos[ch]].curto+EXTRA+'"</i>, '+(ch===EU_PAPEL?'você respondeu':'respondeu '+na(ch))+'. '+Na(cond)+' hesitou, depois anotou.');
-  /* 01/10 (auditoria): a fala do Residente sobre os segundos era inventada (na P1 ele é o impostor) */
-  sis(236,'Ao lado de cada posto, '+na(cond)+' anotou quantos segundos dali até o relógio. Contaram a passo, juntos, na frente de todos.');marco('postos');
-  /* ◆ a saída que fica aberta (01/10: plantada nas partidas; antes, só a P12) */
-  var SA=SAIDA_R2[P];
-  if(SA&&SA.saida!=='portinhola'){var sq=SA.quem,T={
-    1:'Antes de ir para o seu posto, '+na('herdeira')+' passou pela cozinha e abriu a porta da varanda. <i>"Preciso de ar."</i> Ninguém a fechou depois.',
-    2:Na('jornalista')+' saiu pela porta da despensa para fumar debaixo do beiral. Voltou sacudindo a chuva do cabelo e não passou o trinco.',
-    4:Na('jardineiro')+' abriu a porta da despensa e ficou um tempo agachado, chamando baixinho alguma coisa no escuro do jardim. Voltou sem fechar o trinco.',
-    6:Na('policial')+' saiu pela porta da varanda com a lanterna, varreu o jardim de ponta a ponta e voltou. A porta ficou só encostada.',
-    7:'Antes de ir para o seu posto, '+na('herdeira')+' passou pela cozinha e abriu a porta da varanda. <i>"Preciso de ar."</i> Ninguém a fechou depois.',
-    8:Na('jardineiro')+' abriu a porta da varanda e deixou uma fresta. <i>"O gato não tem para onde ir com essa chuva."</i>',
-    9:Na('residente')+' se ajoelhou na porta de serviço com uma chave de fenda. <i>"Essa trava está solta desde a reforma. Vou consertar agora."</i> Desmontou a trava e deixou as peças no chão.',
-    10:'Da varanda, '+na('observadora')+' empurrou por fora a janela do quarto dos fundos, que cedeu um palmo. <i>"Esse cheiro."</i> Não fechou.',
-    12:'Antes de ir para a sala de jantar, '+na('herdeira')+' passou pela cozinha e abriu a porta da varanda. <i>"Preciso de ar."</i> <i>"Vai entrar frio"</i>, disse '+na('governanta')+'. <i>"Que entre."</i>',
-    13:Na('governanta')+' levou o lixo da cozinha pela porta da varanda e voltou com as mãos molhadas. Não passou o trinco.',
-    14:Na('jardineiro')+' foi buscar a lanterna grande na despensa e saiu um instante pela porta dela, para olhar a calha. Voltou sem fechar.'}[P];
-    if(T&&presente(sq))sis(250,T)}
+  sis(236,Na('residente')+' pegou a lista e anotou, ao lado de cada posto, quantos segundos dali até o relógio. <i>"Conheço cada passo desta casa."</i>');marco('postos');
+  if(P===12)sis(250,'Antes de ir para a sala de jantar, '+na('herdeira')+' passou pela cozinha e abriu a porta da varanda. <i>"Preciso de ar."</i> <i>"Vai entrar frio"</i>, disse '+na('governanta')+'. <i>"Que entre."</i>');
   sis(262,'Os celulares vibraram.');
   ev.push([264,ACOMP,{guardia:'Não deixem a sala sozinha.',explosiva:'Cada um no seu lugar. Como nunca estiveram.',ardilosa:'Alguém escolheu o lugar errado de propósito.',quieta:'Nove e meia.'}[PERSONALIDADE]]);
   chat(290,voz(['jornalista','policial','advogado'],'residente'),'Uma passagem até a sala do relógio, e ninguém sabia?');
@@ -2238,7 +2149,7 @@ var C4_R2=(function(){
       'Não confio em ninguém aqui.':'Nem eu.'
     },
     acompPriv:RESP_ACOMP_R2,
-    achar:{itens:['as duas trilhas, para olhar no jardim (aba RA, depois que ele abrir)','a planta dos postos, que vai para o inventário na distribuição'],dica:'No jardim, chegue perto das pegadas: o bico mostra para que lado a pessoa ia.'},
+    achar:{itens:['as duas trilhas, no jardim (aba RA, depois que ele abrir)','a planta dos postos, no inventário, depois da distribuição'],dica:'No jardim, chegue perto das pegadas: o bico mostra para que lado a pessoa ia.'},
     debate:{pergunta:'Quem conhece a casa por causa da função, e quem conhece sem motivo?',falas:[
       fala(['governanta','jardineiro','residente'],'Eu conheço a casa porque trabalhei nela. Isso é função.'),
       fala(['investigador','policial','advogado'],'Quem chama o quarto pelo nome antigo conhece de outro jeito.'),
@@ -2246,7 +2157,7 @@ var C4_R2=(function(){
     perguntas:function(){return [
       {rotulo:'principal',pergunta:'Quem escolheu o próprio posto para as 21h29, em vez de aceitar o que lhe deram?',opcoes:opcoesPessoa(ch,'c4posto')},
       {rotulo:'secundária',pergunta:'Em que porta termina a trilha fresca? (o bico das pegadas mostra a direção)',
-        opcoes:opcoesLista(PORTAS_JARDIM_ROT[M.trilha],['despensa','varanda','biblioteca','quarto','sala'].map(function(k){return PORTAS_JARDIM_ROT[k]}),'c4trilha')}]}
+        opcoes:opcoesLista(PORTAS_JARDIM_ROT[M.trilha],['despensa','varanda','biblioteca','quarto','sala','servico'].map(function(k){return PORTAS_JARDIM_ROT[k]}),'c4trilha')}]}
   };
 })();
 var ROTEIROS={1:C1,2:C2_R2,3:C3_R2};
@@ -2254,642 +2165,6 @@ if(C4_R2)ROTEIROS[4]=C4_R2;
 
 /* ── Fim do prólogo: a apresentação acabou; começa O Impostor ─────────── */
 var CAPITULOS=[null,{n:1,nome:'A REABERTURA'},{n:2,nome:'A VOZ A MAIS'},{n:3,nome:'O INVENTÁRIO'},{n:4,nome:'O JARDIM INTERNO'}];
-/* ══ Caps. 5 e 6, Acusação, Revelação e Epílogo (01/10/2026) ═══════════════
-   Montados a partir das tabelas do cânone (revisão 2): "Postos e exclusões",
-   "Capítulo 5/6 — respostas", "Final — respostas e prova do ajudante", os
-   diálogos da matriz ("quem estava onde", "contra o caderno", "virada") e o
-   teste dos quatro critérios. Só a P12 tem o apagão narrado inteiro no cânone;
-   nas outras partidas a tabela de percepção foi derivada dessas colunas (cada
-   observação vem de uma célula da tabela, no segundo que ela indica). A casa de
-   4 (P3 e P11) ainda não roda neste protótipo.
-   Fichas: {Inv} vira "O Investigador" (ou "Você", se for o seu personagem);
-   {inv}, "o Investigador" (ou "você"). */
-var ALIAS_R2={inv:'investigador',her:'herdeira',res:'residente',jor:'jornalista',pol:'policial',obs:'observadora',tab:'tabeliao',gov:'governanta',adv:'advogado',jar:'jardineiro',che:'chefe_de_cozinha',ele:'eletricista'};
-function T(s){return String(s).replace(/\{(a:|de:)?([A-Za-z]+)\}/g,function(m,pre,k){var id=ALIAS_R2[k.toLowerCase()];if(!id)return m;
-  if(pre){var eu=id===EU_PAPEL,fem=NOMES[id][0]==='a';return pre==='a:'?(eu?'a você':(fem?'à ':'ao ')+NOMES[id][1]):(eu?'de você':(fem?'da ':'do ')+NOMES[id][1])}
-  return k.charAt(0)===k.charAt(0).toUpperCase()?Na(id):na(id)})}
-var PERS_TEMPO={guardia:20,explosiva:90,ardilosa:60,quieta:100};
-var MSG_ESCURO={guardia:'Fiquem onde estão.',explosiva:'Agora vocês sabem como é o escuro desta casa.',ardilosa:'Quem de vocês está olhando para o relógio agora?',quieta:'.'};
-var MSG_FUGA={guardia:'Está tudo aí. Leiam.',explosiva:'Agora é tarde para bater na porta.',ardilosa:'Um de vocês vai dizer que esteve aqui. Contem os dias.',quieta:'Leiam.'};
-var MSG_EPILOGO={guardia:'Reguem o jasmim. Ele pediu.',explosiva:'Leram. Agora saiam do quarto.',ardilosa:'Acharam o papel. Falta a pessoa.',quieta:'Boa noite.'};
-var NUM_EXT={20:'vinte',60:'sessenta',90:'noventa',100:'cem'};
-
-/* ── Cap. 5: o que cada posto percebe no escuro (segundos desde o apagão) ── */
-var C5_R2={
-  1:{ev:[
-    [40,'Da sala de estar, uma tela acesa saiu para o corredor, balançando na altura da mão de alguém que andava, e foi até o vestíbulo. Da porta da sala de jantar, {her} viu a luz passar. Logo depois, o rádio do vestíbulo chiou: alguém chamava o farol.'],
-    [60,'Perto dos sessenta segundos, da janela do corredor, {jor} ouviu um degrau rangendo. Não no corredor: dentro da parede, atrás dos retratos.'],
-    [72,'Aos setenta e dois segundos, o quarto clarão entrou pela vidraça. {Pol} viu, junto ao pêndulo, por um instante, uma manga. Escura. Sem brilho nenhum. O resto era sombra. <i>"Quem está aí?"</i> Ninguém respondeu.'],
-    [74,'No mesmo clarão, {jor} viu pela porta de vidro da biblioteca a mesa da ata, e {obs} sentada a ela.'],
-    [79,'Na sala de jantar, a louça tilintou. {Her} tinha esbarrado no aparador, tateando a parede.'],
-    [80,'Aos oitenta segundos, veio o raspado. Curto. Madeira contra madeira, de coisa pesada que desliza dois dedos e para. Da janela, {jor} ouviu, levou a mão ao bolso, onde guardava alguma coisa, e não disse nada.'],
-    [85,'Logo depois da louça, alguém segurou o braço {de:her} no escuro, firme, e soltou. Tinha cheiro de couro.'],
-    [92,'No quinto clarão, da janela, {jor} viu o vão da porta da sala do relógio. Vazio.']],
-    farol:'No terceiro e no quarto, alguém parado na janela do corredor.',
-    depois:'{Pol} estava de novo na porta quando a luz voltou, sem fôlego.',
-    tela:'investigador',calou:'jornalista',louca:'herdeira'},
-  2:{ev:[
-    [20,'Do vestíbulo, a voz {de:pol} chamava o farol pelo rádio, e o farol respondia, de tempos em tempos.'],
-    [30,'Na despensa, {res} tateava a porta de serviço, praguejando baixo.'],
-    [58,'Aos cinquenta e oito segundos, alguma coisa rangeu entre a biblioteca e a sala. Um degrau. Da janela do corredor, {inv} ouviu.'],
-    [61,'Na porta da sala do relógio, uma tela acendeu e ficou acesa: um retângulo de luz parado no vão da porta. Do patamar, {jor} viu.'],
-    [66,'Logo depois, uma tela acesa desceu do patamar da escada e atravessou para o vestíbulo, balançando, apontada para a frente, como quem filma.'],
-    [72,'Aos setenta e dois segundos, o quarto clarão. Da porta, {gov} levantou os olhos do celular e viu, na altura do pêndulo, um brilho pequeno, dourado. Depois, nada.'],
-    [80,'Na despensa, uma lata caiu e rolou. {Res} praguejou alto. Da sala de jantar, {obs} ouviu os dois. Ao mesmo tempo veio o raspado, madeira contra madeira, e da janela {inv} ouviu o arrastar junto com a lata. Na porta, {gov} também ouviu o raspado. Achou que tinha falhado, e não disse nada.'],
-    [81,'Na sala de jantar, a louça tilintou: {obs} tinha esbarrado no aparador quando a lata caiu.'],
-    [111,'Aos cento e onze segundos, o degrau entre a biblioteca e a sala rangeu outra vez. {Inv} ouviu de novo.']],
-    farol:'No terceiro e no quarto, alguém parado na janela do corredor. E o Policial falou comigo o tempo todo.',
-    tela:'jornalista',calou:'governanta',louca:'observadora'},
-  4:{ev:[
-    [4,'<i>"Vou ao quadro!"</i>, gritou {ele}, do patamar, e se mexeu.'],
-    [28,'Perto dos trinta segundos, o degrau da escadinha do porão rangeu, descendo.'],
-    [40,'Na biblioteca, {tab} e {obs} falavam baixo um com o outro, sem parar, como quem reza.'],
-    [58,'Aos cinquenta e oito segundos, da porta do quarto de serviço, {res} ouviu passos dentro da parede, vindos do lado da despensa. E viu uma luz passar pelas frestas do painel, e sumir.'],
-    [64,'Entre o terceiro e o quarto clarão, {res} falou com a porta trancada do quarto: <i>"Tem alguém aí dentro?"</i> Do fogão, {gov} ouviu.'],
-    [70,'Do fundo da escadinha, abafado, {ele} gritou: <i>"O geral está ligado! Não é aqui!"</i> Do fogão, {gov} ouviu também.'],
-    [72,'Aos setenta e dois segundos, o quarto clarão. Da porta, {jar} viu uma coisa clara junto ao pêndulo, por um instante. <i>"Quem está aí?"</i> Da janela do corredor, {adv} ouviu o grito vir da porta.'],
-    [80,'Na cozinha, a louça tilintou: {gov} tinha derrubado a pilha de pratos procurando uma vela. E junto com a louça, um em cima do outro, veio o raspado. Da janela, {adv} ouviu os dois ao mesmo tempo, e não disse nada.']],
-    farol:'No terceiro e no quarto, alguém parado na janela do corredor e um vulto de lã escura parado na varanda do jardim.',
-    depois:'{Ele} subiu do porão com as mãos vazias. <i>"Não precisei fazer nada. O quadro estava normal."</i>',
-    tela:'chefe_de_cozinha',calou:'advogado',louca:'governanta'},
-  5:{ev:[
-    [21,'Na porta da sala, uma tela acendeu e não apagou mais: ficou acesa, como lanterna, no vão da porta. Do patamar, {jor} via o retângulo de luz parado.'],
-    [40,'Uma tela acesa atravessou o corredor, da sala de estar para o vestíbulo. No vestíbulo, {her} ouviu a voz antes de ver o rosto: <i>"Tem sinal aí? Eu não tenho nada."</i> Era {pol}.'],
-    [55,'Aos cinquenta e cinco segundos, do patamar, {jor} viu uma luzinha verde andar do fundo do corredor e entrar na biblioteca.'],
-    [62,'Aos sessenta e dois, alguma coisa rangeu entre a biblioteca e a sala. Um degrau. Da porta, {inv} ouviu.'],
-    [64,'Entre o terceiro e o quarto clarão, {res} bateu na porta trancada do quarto. Do fogão, {obs} ouviu as batidas.'],
-    [72,'Aos setenta e dois segundos, o quarto clarão. Da porta, {inv} viu, pela porta de correr aberta, {tab} sentado à mesa da ata, a abotoadura brilhando. E viu, junto ao pêndulo, um punho cinza. Sem brilho nenhum.'],
-    [80,'Na cozinha, a louça tilintou: {obs} tinha esbarrado nos pratos. E veio o raspado, madeira contra madeira. Na biblioteca, {tab} ouviu, e não disse nada.'],
-    [112,'Aos cento e doze, o degrau entre a biblioteca e a sala rangeu outra vez. {Inv} ouviu de novo.']],
-    farol:'No terceiro e no quarto, um vulto amarelo parado na varanda do jardim.',
-    depois:'Quando a luz voltou, {tab} já estava escrevendo na ata: <i>"Tabelião e Advogado na biblioteca."</i> Ninguém tinha perguntado nada.',
-    tela:'policial',calou:'tabeliao',louca:'observadora'},
-  6:{ev:[
-    [40,'No vestíbulo, uma tela acesa foi até a porta da rua e voltou, sem sair do vestíbulo. Da porta da sala de jantar, {her} viu a luz ir e vir.'],
-    [52,'No terceiro clarão, da janela do corredor, {jor} viu {pol} no vão da porta da sala.'],
-    [61,'E dentro da sala do relógio, junto ao relógio, onde não havia ninguém, uma luzinha acendeu na mesma hora em que o grupo vibrou. Da porta, {pol} viu.'],
-    [70,'Na biblioteca, alguma coisa caiu e quicou no assoalho: a lupa {de:obs}. Da porta, {pol} ouviu o barulho vir da biblioteca.'],
-    [72,'No quarto clarão, {jor} viu de novo {pol} na porta.'],
-    [79,'Na sala de jantar, a louça tilintou. {Her} tinha esbarrado no aparador.'],
-    [80,'Aos oitenta segundos, veio o raspado. Curto. Na biblioteca, {obs} ouviu, prendeu a respiração, e não disse nada.']],
-    farol:'No terceiro e no quarto, uma faixa que brilha parada na varanda do jardim, e alguém parado na janela do corredor.',
-    vozCulpada:true,
-    tela:'investigador',calou:'observadora',louca:'herdeira'},
-  7:{ev:[
-    [20,'Na sala de jantar, {jor} ligou a câmera do celular e começou a filmar o escuro.'],
-    [40,'Uma tela acesa atravessou o corredor, da sala de estar para o vestíbulo. No vestíbulo, {pol} ouviu a voz antes de ver o rosto: <i>"Alguém tem sinal?"</i> Era {her}.'],
-    [46,'No fundo do corredor de serviço, uma luz se mexeu, baixa, perto do chão. Da porta da sala, {inv} viu, e foi atrás dela.'],
-    [58,'Aos cinquenta e oito segundos, na despensa, {res} ouviu um degrau rangendo dentro da parede, indo para o lado da sala.'],
-    [62,'A luz era a {de:res}, que olhava a fechadura da porta de serviço. {Inv} o achou ali, agachado.'],
-    [72,'Aos setenta e dois segundos, o quarto clarão. Da janela do corredor, {obs} viu a porta da sala do relógio sem ninguém. E lá dentro, junto ao pêndulo, um antebraço nu. Pela porta de vidro da biblioteca, viu também {tab} à mesa da ata.'],
-    [80,'Na sala de jantar, a louça tilintou: {jor}, filmando, tinha esbarrado no aparador. E veio o raspado, madeira contra madeira. Na biblioteca, {tab} ouviu, e não disse nada.']],
-    farol:'No terceiro e no quarto, alguém parado na janela do corredor.',
-    depois:'{Inv} voltou para a porta da sala quando a luz já tinha voltado.',
-    tela:'herdeira',calou:'tabeliao',louca:'jornalista'},
-  8:{ev:[
-    [4,'<i>"Vou ao quadro!"</i>, gritou {ele}, da porta do quarto de serviço.'],
-    [30,'Na biblioteca, {tab} e {adv} falavam um com o outro, baixo, à mesa da ata, e não pararam mais.'],
-    [40,'No fogão, {che} falava com {gov} pela porta da despensa, os dois sem enxergar nada. Não pararam mais.'],
-    [55,'Perto dos cinquenta e cinco segundos, {gov}, com o pé no primeiro degrau da escadinha, viu uma lanterna de mão entrar na parede, do lado do quarto, e apagar. A escadinha não rangeu. Ninguém desceu.'],
-    [72,'Aos setenta e dois segundos, o quarto clarão. Da porta, {jar} viu junto ao pêndulo um punho com uma fita que brilhou.'],
-    [78,'Na cozinha, uma panela caiu: {che} tinha esbarrado no fogão. Na despensa, {gov} ouviu a panela e, junto, um arrastar dentro da parede.'],
-    [80,'Aos oitenta segundos, veio o raspado. Da janela do corredor, {res} ouviu, e não disse nada.'],
-    [86,'Da biblioteca, {adv} ouvia o oleado {de:jar} chiar na porta, sempre no mesmo lugar.']],
-    farol:'No terceiro e no quarto, um vulto escuro parado na varanda do jardim e alguém parado na janela do corredor.',
-    depois:'{Ele} apareceu no corredor de serviço com a lanterna apagada na mão. <i>"Religuei o geral."</i>',
-    tela:'eletricista',calou:'residente',louca:'chefe_de_cozinha'},
-  9:{ev:[
-    [8,'Na despensa, {res} começou a martelar a trava da porta de serviço, devagar, no escuro. Martelada. Martelada. Martelada.'],
-    [18,'Na biblioteca, {her} acendeu uma vela. Pela porta de vidro, a luz pequena ficou parada sobre a mesa da ata.'],
-    [40,'Uma tela acesa atravessou o corredor, da sala de estar para o vestíbulo. Da porta da sala de jantar, {inv} viu a luz passar.'],
-    [50,'Aos cinquenta segundos, uma janela rangeu em algum lugar. Com as marteladas, ninguém soube de onde.'],
-    [60,'Da sala de jantar, {inv} ouvia as marteladas, sem parar, uma atrás da outra.'],
-    [72,'Aos setenta e dois segundos, o quarto clarão. Da porta, {obs} viu junto ao pêndulo uma manga dobrada até o cotovelo. Na biblioteca, à luz da vela, {her} a via na porta.'],
-    [79,'Na sala de jantar, a louça tilintou: {inv} tinha esbarrado nos pratos.'],
-    [80,'Aos oitenta segundos, veio o raspado, entre duas marteladas. Da porta, {obs} ouviu, e não disse nada.'],
-    [114,'Aos cento e catorze, a mesma janela rangeu de novo, fechando.']],
-    farol:'No quarto clarão, a janela do corredor dos retratos estava aberta, e ninguém nela.',
-    depois:'{Jor} estava na janela do corredor quando a luz voltou, com as mangas molhadas até o cotovelo.',
-    tela:'policial',calou:'observadora',louca:'investigador'},
-  10:{ev:[
-    [30,'Pela portinhola da copa, {gov} falava com {res}, na porta do quarto de serviço, para não ficar calada no escuro. Os dois não pararam mais.'],
-    [40,'Uma tela acesa atravessou o corredor, da sala de estar para o vestíbulo. No vestíbulo, {pol} ouviu a voz antes de ver o rosto: <i>"Tem sinal aí?"</i> Era {jor}.'],
-    [72,'Aos setenta e dois segundos, o quarto clarão. Da janela do corredor, {obs} viu a varanda do jardim vazia. Pela porta de vidro, viu {tab} à mesa da ata. E, no vão da porta da sala, {her} sentada, de costas para dentro.'],
-    [80,'Na cozinha, a louça tilintou: {gov} tinha esbarrado nos pratos. E veio o raspado, madeira contra madeira. Na biblioteca, {tab} ouviu, e não disse nada.']],
-    farol:'No quarto clarão, a varanda vazia e um vulto junto à janela dos fundos. No sexto, outro, escuro, atravessando do lado da sala para a varanda. E alguém parado na janela do corredor, no terceiro e no quarto.',
-    depois:'{Jar} estava na varanda quando a luz voltou, encharcado. O oleado amarelo estava no gancho do vestíbulo, seco.',
-    tela:'jornalista',calou:'tabeliao',louca:'governanta'},
-  12:{ev:[
-    [4,'<i>"Vou ao quadro!"</i>, gritou {ele}, e se mexeu.'],
-    [28,'Os passos dele atravessaram o corredor de serviço. Perto dos trinta segundos, o degrau da escadinha do porão rangeu, alto, e {che}, na despensa, xingou o susto.'],
-    [56,'Aos cinquenta e seis segundos, alguma coisa rangeu entre a biblioteca e a sala. Um degrau. {Pol} ouviu e virou a cabeça. {Jor}, na janela do corredor, também ouviu, e não soube de que lado vinha.'],
-    [62,'Entre o terceiro e o quarto clarão, na ala de serviço, o escuro falava. {Res} bateu na porta trancada do quarto: <i>"Tem alguém aí dentro? Eu sei que tem."</i> <i>"Tem eu, aqui na despensa, sem enxergar a própria mão!"</i>, respondeu {che}. <i>"Chefe, os fósforos estão aí com o senhor?"</i>, perguntou {gov}, do fogão. <i>"Se estão, eu não acho."</i> E do fundo da escadinha, abafado, {ele} gritou: <i>"O geral está ligado! Não é aqui!"</i>'],
-    [66,'No corredor, uma tela acesa atravessou o escuro, balançando na altura da mão de alguém que andava. Da sala de estar para o vestíbulo. {Inv}, junto ao rádio, viu a luz chegar e reconheceu a voz antes do rosto: <i>"Tem sinal aí? Eu não tenho nada."</i> Era {adv}.'],
-    [72,'Aos setenta e dois segundos, o quarto clarão entrou pela vidraça. {Pol} viu, junto ao pêndulo, por um instante, uma manga. Clara. Fina. Sem casaco por cima. O resto era sombra. <i>"Quem está aí?"</i> Ninguém respondeu de dentro. Do fim do corredor veio a voz {de:jor}: <i>"Aqui, na janela! Não sou eu!"</i> Na biblioteca, {tab} ouviu o grito vindo da porta do corredor e apertou a caneta.'],
-    [74,'No mesmo clarão, {jor}, que olhava para o outro lado, viu pela porta de vidro da biblioteca a mesa da ata, a vela apagada, e uma pessoa só sentada a ela: um punho engomado, uma abotoadura que brilhou. Na cadeira ao lado, vazia, o blazer de veludo pendurado no espaldar. Lá fora, na varanda, o oleado amarelo {de:jar}, parado sob a calha.'],
-    [78,'Na cozinha, a louça tilintou. {Gov} tinha esbarrado na pilha de pratos fundos procurando os fósforos.'],
-    [79,'Na sala de jantar, {her} sentiu uma respiração perto, do lado da copa. <i>"É a senhora?"</i> <i>"Sou eu, menina"</i>, respondeu {gov}, pela portinhola da copa. <i>"Achou os fósforos?"</i>'],
-    [80,'Aos oitenta segundos, veio o raspado. Curto. Madeira contra madeira, de coisa pesada que desliza dois dedos e para. {Pol} deu dois passos para dentro da sala, enroscou o pé na franja do tapete e se segurou no batente. Na biblioteca, {tab} ouviu o raspado "ali do lado", pensou que fosse {obs} puxando a cadeira, e não disse nada.'],
-    [91,'Duas telas se acenderam na mesa da ata: {tab} viu a própria e, ao lado, a {de:obs}, e se tranquilizou.'],
-    [92,'O quinto clarão mostrou, do vão da porta, o móvel, a lareira e o pêndulo parado. Ninguém à vista.'],
-    [112,'O sexto mostrou o pêndulo balançando de novo. {Pol} viu as duas coisas e só entendeu depois.'],
-    [113,'Aos cento e treze segundos, o degrau entre a biblioteca e a sala rangeu outra vez. Pouco depois, a escadinha do porão rangeu subindo, e {che} resmungou de novo.']],
-    farol:'No terceiro e no quarto, um vulto amarelo parado na varanda do jardim e alguém parado na janela do corredor. No quarto, uma coisa clara dentro da sala, rente à vidraça, do lado do relógio.',
-    depois:'{Ele} subiu do porão com as mãos vazias. <i>"Não precisei fazer nada. O quadro estava normal. Voltou sozinho."</i>',
-    semClaroes:[92,112],
-    tela:'advogado',calou:'tabeliao',louca:'governanta'},
-  13:{ev:[
-    [30,'Na biblioteca, {tab} começou a ditar a hora em voz alta, de trinta em trinta segundos: <i>"Vinte e uma e vinte e nove e trinta."</i> Do vestíbulo, {her} ouvia.'],
-    [40,'Uma tela acesa atravessou o corredor, da sala de estar para o vestíbulo. No vestíbulo, {her} ouviu a voz antes de ver o rosto: <i>"Alguém tem luz?"</i> Era {pol}.'],
-    [58,'Aos cinquenta e oito segundos, alguém caiu na escada, um baque e um grito: {jor}, no patamar. Da porta da sala, {res} correu para socorrer. Ninguém mais veio.'],
-    [60,'<i>"Vinte e uma e trinta"</i>, ditou {tab}, da biblioteca.'],
-    [80,'Na sala de jantar, a louça tilintou: {obs} tinha esbarrado no aparador. E veio o raspado, madeira contra madeira. Na biblioteca, {tab} ouviu, perdeu a conta de um segundo, e não disse nada.'],
-    [90,'<i>"Vinte e uma e trinta e trinta"</i>, ditou {tab}.'],
-    [92,'No quinto clarão, {res}, voltando para a porta, viu lá dentro, junto ao relógio, uma figura clara.'],
-    [120,'<i>"Vinte e uma e trinta e um"</i>, ditou {tab}.']],
-    farol:'No quarto clarão, a janela do corredor dos retratos estava vazia.',
-    tela:'policial',calou:'tabeliao',louca:'observadora'},
-  14:{ev:[
-    [20,'No vão da porta da sala, o relógio de pulso {de:adv} brilhava verde no escuro, parado no mesmo lugar.'],
-    [30,'Pela portinhola da copa, {gov} falava com {res}, para não ficar calada no escuro. Os dois não pararam mais.'],
-    [40,'Uma tela acesa atravessou o corredor, da sala de estar para o vestíbulo. Da porta da sala de jantar, {pol} viu a luz passar.'],
-    [64,'Entre o terceiro e o quarto clarão, na despensa, {jar} pediu a lanterna {a:gov} pela porta, e ela disse que não achava.'],
-    [52,'No terceiro clarão, da janela do corredor, {obs} viu o relógio verde parado na porta da sala.'],
-    [72,'Aos setenta e dois segundos, o quarto clarão. Da janela do corredor, {obs} viu a varanda do jardim vazia, o relógio verde ainda parado na porta e, pela porta de vidro, {tab} à mesa da ata.'],
-    [80,'Na cozinha, a louça tilintou: {gov} tinha esbarrado nos pratos. E veio o raspado. Da janela, {obs} ouviu, e não disse nada.']],
-    farol:'Dois vultos. No quarto clarão, um junto à janela dos fundos, e a varanda vazia. No sexto, um escuro, atravessando do lado da sala para a varanda. E alguém na janela do corredor, no terceiro e no quarto.',
-    depois:'{Her} estava na varanda quando a luz voltou. O casaco de lã pingava, encharcado, embora a varanda fosse coberta.',
-    tela:'jornalista',calou:'observadora',louca:'governanta'},
-  15:{ev:[
-    [18,'Na biblioteca, {tab} acendeu uma vela. Pela porta de vidro, a luz ficou parada sobre a mesa da ata, e da janela do corredor {obs} a via.'],
-    [30,'Pela portinhola da copa, {gov} falava com {res}, na porta do quarto de serviço. Os dois não pararam mais.'],
-    [40,'No vestíbulo, uma tela acesa foi até a porta da rua e voltou. Da porta da sala de jantar, {her} viu a luz ir e vir.'],
-    [52,'No terceiro clarão, da janela do corredor, {obs} viu o dólmã branco {de:che} no vão da porta.'],
-    [58,'Aos cinquenta e oito segundos, da porta do quarto de serviço, {res} ouviu passos dentro da parede, vindos do lado da despensa.'],
-    [61,'Na porta da sala, {che} baixou os olhos para a tela do celular. Leu.'],
-    [72,'Aos setenta e dois segundos, o quarto clarão. Da porta, {che} viu junto ao pêndulo o brilho de um zíper. Da janela do corredor, {obs} viu o dólmã de novo na porta, e, pela porta de vidro, {tab} à luz da vela.'],
-    [79,'Na sala de jantar, a louça tilintou. {Her} tinha esbarrado no aparador.'],
-    [80,'Aos oitenta segundos, veio o raspado. Da janela do corredor, {obs} ouviu, e não disse nada.']],
-    farol:'No terceiro e no quarto, um oleado amarelo parado na varanda do jardim e alguém parado na janela do corredor.',
-    tela:'investigador',calou:'observadora',louca:'herdeira'}
-};
-
-/* ── Cap. 6: quem estava onde (diálogos da matriz e exclusões), por partida ── */
-var C6_ONDE={
-  1:['<i>"Perto dos sessenta segundos ouvi um degrau rangendo"</i>, disse {jor}. <i>"Não no corredor. Dentro da parede, atrás dos retratos."</i> <i>"Parede velha estala com frio"</i>, disse {res}.',
-     '<i>"No quarto clarão vi uma manga escura, sem brilho, junto ao pêndulo"</i>, disse {pol}. <i>"A minha é escura"</i>, disse {her}. <i>"Mas eu estava derrubando a louça na sala de jantar, e alguém veio segurar meu braço. Tinha cheiro de couro."</i> <i>"Eu não saí da porta."</i> <i>"No quinto clarão a porta estava vazia"</i>, disse {jor}.',
-     '{Obs} apontou para {res}: <i>"O senhor tem cal fresca no ombro. Da parede de dentro."</i> <i>"E o impermeável dele ficou no cabide do vestíbulo a noite toda"</i>, disse {inv}. <i>"Por isso a faixa não brilhou."</i>',
-     '<i>"No quarto clarão, vi a mesa da ata pela porta de vidro, e a senhora sentada a ela"</i>, disse {jor} {a:obs}. <i>"E o farol me viu na janela, no terceiro e no quarto."</i>'],
-  2:['<i>"A mensagem chegou e eu olhei. Desculpa"</i>, disse {gov}, que guardava a porta. <i>"Mas no quarto clarão vi um brilho pequeno, dourado, na altura do pêndulo."</i> <i>"Meu zíper é prata"</i>, disse {pol}. <i>"E o farol ouviu minha voz o tempo todo."</i>',
-     '<i>"O degrau da biblioteca rangeu aos cinquenta e oito e aos cento e onze"</i>, disse {inv}. <i>"E o arrastar veio junto com a lata."</i> <i>"A lata caiu comigo"</i>, disse {res}. <i>"Eu tateava a porta de serviço."</i> <i>"Ouvi a lata e ouvi o senhor praguejar"</i>, disse {obs}, da sala de jantar.',
-     '<i>"E eu vi uma tela acesa parada na porta da sala, aos sessenta"</i>, disse {jor}. <i>"E o farol viu alguém na janela do corredor"</i>, disse {inv}. {Tab} ajeitou a abotoadura sem perceber.'],
-  4:['<i>"Aos cinquenta e oito, passos dentro da parede"</i>, disse {res}. <i>"Vindo da despensa. E uma luz passando pelas frestas do painel."</i> <i>"No quarto clarão, uma coisa clara na altura do pêndulo"</i>, disse {jar}, da porta.',
-     '<i>"E eu ouvi o grito da porta"</i>, disse {adv}. <i>"Derrubei a louça aos oitenta, procurando vela"</i>, disse {gov}. <i>"O raspado veio junto com a louça"</i>, disse {adv}. <i>"Um em cima do outro."</i>',
-     '<i>"Eu ouvi {res} falar com a porta trancada, entre o terceiro e o quarto"</i>, disse {gov}. <i>"E ouvi o grito do porão, uns setenta segundos."</i> <i>"Nós dois falamos baixo um com o outro à mesa o tempo todo"</i>, disse {tab}, e {obs} confirmou. O farol tinha visto um vulto de lã escura parado na varanda, e alguém na janela do corredor.',
-     '{Obs} olhou para {che}: <i>"O senhor tem teia no cabelo. Teia de passagem."</i> <i>"De despensa."</i>'],
-  5:['<i>"Aos cinquenta e cinco, uma luzinha verde andou do fundo do corredor e entrou na biblioteca"</i>, disse {jor}, do patamar. <i>"O degrau da biblioteca rangeu aos sessenta e dois e aos cento e doze"</i>, disse {inv}, da porta. <i>"E no quarto clarão, junto ao pêndulo, um punho cinza. Sem brilho nenhum. Pela porta de correr, aberta, vi {tab} sentado à mesa, com a abotoadura brilhando."</i>',
-     '<i>"Na biblioteca ninguém se mexeu"</i>, disse {tab}. <i>"Está na ata."</i> <i>"O senhor escreveu isso antes de alguém perguntar."</i>',
-     '<i>"Ouvi {res} bater na porta do quarto, entre o terceiro e o quarto"</i>, disse {obs}, do fogão. <i>"E eu via, do patamar, uma tela acesa parada na porta da sala, o tempo todo"</i>, disse {jor}. O rádio: <i>"Vulto amarelo parado na varanda, nos dois clarões."</i>'],
-  6:['<i>"Aos sessenta segundos, uma luzinha dentro da sala, perto do relógio"</i>, disse {pol}. <i>"Na mesma hora o grupo vibrou."</i> <i>"A luz acendeu dentro da sala, junto ao relógio, na hora da mensagem"</i>, disse {inv}. <i>"E cada um de nós foi visto ou ouvido em outro lugar nessa hora. Quem escreveu estava lá dentro, e não era nenhum de nós."</i>',
-     '{Jor} pôs na mesa o gravador que tinha prendido atrás do relógio. <i>"Não morreu desta vez. Ouçam."</i> Tique-taque. Silêncio. Um trinco. Madeira arrastando. Um chiado macio, como lã roçando em madeira. E, muito perto, um miado.',
-     '<i>"Tem um fio de lã crua preso no trinco"</i>, disse {obs}. <i>"Ninguém nesta sala veste lã crua."</i> <i>"Derrubei a lupa aos setenta"</i>, disse {obs}. <i>"Ouvi, da porta"</i>, disse {pol}. <i>"E eu vi a porta ocupada no terceiro e no quarto"</i>, disse {jor}. O rádio tinha visto uma faixa que brilha parada na varanda, nos dois clarões.'],
-  7:['<i>"No quarto clarão, a porta da sala estava sem ninguém"</i>, disse {obs}, da janela dos retratos. <i>"E lá dentro, junto ao pêndulo, um antebraço nu."</i> <i>"Eu saí atrás de uma luz no corredor de serviço"</i>, admitiu {inv}. <i>"Era a minha, na despensa, olhando a fechadura"</i>, disse {res}. <i>"E aos cinquenta e oito ouvi um degrau dentro da parede, indo para o lado da sala."</i>',
-     '<i>"Eu estava filmando a sala de jantar"</i>, disse {jor}. <i>"O vídeo mostra onde eu estava. E a louça que eu derrubei."</i> <i>"E eu vi {tab} à mesa, pela porta de vidro, no quarto clarão"</i>, disse {obs}.',
-     'O farol tinha visto alguém na janela do corredor, no terceiro e no quarto. E havia pó de cal no avental {de:gov}, na altura do cotovelo arregaçado.'],
-  8:['<i>"Ele gritou da porta do quarto que ia ao quadro"</i>, disse {gov}, da despensa. <i>"Mas a lanterna de mão dele não veio para a escadinha. Entrou na parede, do lado do quarto, perto dos cinquenta e cinco, e apagou. E ninguém desceu: eu estava com o pé no primeiro degrau. Ela range."</i>',
-     '<i>"A passagem"</i>, disse {res}, da janela dos retratos. <i>"Todo mundo sabe dela desde as nove."</i> <i>"No quarto clarão, um punho com fita, que brilhou, junto ao pêndulo"</i>, disse {jar}, da porta. <i>"Religuei o geral às nove e trinta e um"</i>, disse {ele}.',
-     'O rádio chiou: <i>"Voltou a costa inteira, junto."</i> {Res} desceu para ver o quadro e subiu com a lanterna na mão. <i>"A teia na alavanca do geral está inteira."</i>',
-     '<i>"Eu ouvi o oleado chiar na porta o tempo todo"</i>, disse {adv}. <i>"E eu falei com {gov} pela porta da despensa, sem parar"</i>, disse {che}. O farol tinha visto um vulto escuro parado na varanda e alguém na janela do corredor, nos dois clarões.'],
-  9:['<i>"Deixei o celular gravando na janela o tempo todo"</i>, disse {jor}. <i>"Ouçam."</i> Chuva, alta, como de janela aberta. Marteladas regulares, vindas da despensa. Aos cinquenta, a janela rangendo ao abrir. Aos cento e catorze, a mesma janela fechando. Nenhuma respiração. Nenhuma palavra.',
-     '<i>"Onde você está nessa gravação?"</i>, perguntou {inv}. <i>"E por que as suas mangas estão molhadas até o cotovelo?"</i> O rádio: <i>"No quarto clarão, a janela do corredor dos retratos aberta, e ninguém nela."</i>',
-     '<i>"No quarto clarão, uma manga dobrada até o cotovelo, junto ao pêndulo"</i>, disse {obs}, da porta. <i>"A minha também estava dobrada"</i>, disse {res}. <i>"Eu martelava a trava da porta de serviço."</i> <i>"As marteladas não pararam nenhuma vez"</i>, disse {inv}, da sala de jantar.',
-     '<i>"E {her} estava na biblioteca com a vela acesa; eu via pelo vidro da porta"</i>, disse {obs}. <i>"E eu via a porta da sala ocupada, à luz da vela"</i>, disse {her}.'],
-  10:['O rádio: <i>"No quarto clarão, a varanda vazia e um vulto junto à janela dos fundos. No sexto, outro, escuro, atravessando do lado da sala para a varanda."</i>',
-     '<i>"Eu também vi a varanda vazia no quarto clarão, da janela"</i>, disse {obs}. <i>"E o seu oleado está seco, por dentro e por fora"</i>, ela disse {a:jar}. <i>"O senhor está encharcado."</i> <i>"Tirei. Pesava."</i> <i>"Tem barro vermelho fresco junto ao relógio."</i>',
-     '<i>"No quarto clarão, {her} estava sentada de costas para a porta"</i>, disse {obs}. <i>"Eu fechei os olhos"</i>, disse {her}. <i>"Estava chorando."</i> <i>"E vi {tab} à mesa, pela porta de vidro."</i>',
-     '<i>"{Res} falou comigo pela copa o tempo todo"</i>, disse {gov}. O vulto da janela dos fundos, então, não era {res}. Era a segunda sombra.'],
-  12:['<i>"O degrau da biblioteca rangeu aos cinquenta e seis e aos cento e treze"</i>, disse {pol}, e {jor} confirmou, da janela. <i>"No quarto clarão, junto ao pêndulo, uma manga clara e fina, sem casaco."</i> <i>"E eu vi a mesa da ata com uma pessoa só, de abotoadura dourada, e o blazer na cadeira vazia"</i>, disse {jor}. O farol tinha visto uma coisa clara na vidraça.',
-     '<i>"Gritei da porta no quarto clarão"</i>, disse {pol}. {Jor} e {tab} confirmaram: o grito veio de lá. <i>"O farol me viu na varanda duas vezes, e {jor} me viu da janela"</i>, disse {jar}. <i>"E eu respondi ao Policial do fim do corredor, e o farol viu a janela ocupada"</i>, disse {jor}.',
-     '<i>"Bati na porta do quarto entre o terceiro e o quarto"</i>, disse {res}. {Che} e {gov} confirmaram: ouviram. <i>"Respondi da despensa, a ele e à Governanta"</i>, disse {che}. <i>"E {ele} gritou do porão"</i>, disse {gov}.'],
-  13:['<i>"Caí na escada aos cinquenta e oito"</i>, disse {jor}, esfregando o joelho. <i>"Quem me levantou foi {res}. Só."</i> <i>"Deixei a porta para socorrer"</i>, disse {res}. <i>"No quinto clarão, voltando, vi pela porta alguém junto ao relógio. Uma figura clara."</i>',
-     '<i>"E {tab} ditou a hora em voz alta, de trinta em trinta segundos, da biblioteca"</i>, disse {her}, do vestíbulo. <i>"Ouvi todas."</i> O rádio: <i>"No quarto clarão, a janela do corredor dos retratos estava vazia."</i>',
-     '<i>"Fui ver {jor}"</i>, disse {inv}. <i>"Ninguém mais veio"</i>, disse {jor}.'],
-  14:['O rádio: <i>"Dois vultos. No quarto clarão, um junto à janela dos fundos, e a varanda vazia. No sexto, um escuro, atravessando do lado da sala para a varanda."</i> <i>"O da janela dos fundos eu vi também, da despensa"</i>, disse {jar}. <i>"Era menor."</i>',
-     '<i>"O relógio verde {de:adv} ficou parado na porta nos dois clarões"</i>, disse {obs}. <i>"E da janela vi a varanda vazia no quarto."</i> <i>"O seu casaco está encharcado, senhora"</i>, disse {jar} {a:her}. <i>"Varanda coberta não molha lã assim."</i>',
-     '<i>"Eu destranquei a porta-janela da sala às nove"</i>, disse {gov}. <i>"Para o gato. Ele chora quando chove. E falei com {res} pela copa, e {jar} me pediu a lanterna pela porta da despensa."</i>'],
-  15:['<i>"Aos cinquenta e oito, passos dentro da parede, vindo da despensa"</i>, disse {res}. <i>"A mensagem chegou às nove e meia e eu olhei"</i>, disse {che}, que guardava a porta. <i>"Aos setenta e dois vi um brilho de zíper junto ao pêndulo."</i>',
-     '<i>"{Che} estava na porta, dólmã branco, nos dois clarões"</i>, disse {obs}. <i>"Tem cal no couro do senhor"</i>, disse {gov} {a:pol}.',
-     '{Tab} tinha uma vela acesa na biblioteca, e {obs} o via pelo vidro. {Adv} estava na sala de estar com {jor}. <i>"E {res} falou comigo pela copa"</i>, disse {gov}. O farol tinha visto o oleado parado na varanda, nos dois clarões.']
-};
-/* o que a mesa nota antes da fuga (só onde o cânone dá a cena) */
-var C6_NOTA={12:'{Jor} foi o primeiro a notar que {obs} estava de blusa. Uma blusa clara, de seda fina, mangas até o pulso. No punho direito, uma mancha escura, pequena, que ela cobriu com a outra mão. O blazer de veludo estava pendurado no espaldar da cadeira dela, na biblioteca. <i>"Tirou o blazer no frio?"</i> <i>"Calor de nervoso. O senhor nunca sentiu?"</i>'};
-
-/* ── O caderno de cuidados, por partida ── */
-var VISITA_R2={1:'investigador',2:'governanta',4:'advogado',5:'governanta',6:'residente',7:'jornalista',8:'policial',9:'jornalista',10:'governanta',12:'investigador',13:'investigador',14:'policial',15:'chefe_de_cozinha'};
-var CADERNO_EXTRA={
-  2:['O cartório adiou de novo. Terceira vez.','Duas semanas antes do fim, a governanta veio. Trouxe pão.'],
-  4:['O cozinheiro parou de vir em fevereiro.','Na última semana, o advogado veio. Conversou baixo com ele.'],
-  5:['O advogado veio em março.','Duas semanas antes do fim, a governanta veio arejar o quarto.'],
-  6:['Dez dias antes do fim: o empreiteiro olhou o teto.'],
-  7:['Não toma café desde abril. O coração. Só cidreira.','Na última semana: rapaz do jornal. Não abri.'],
-  8:['Março. O eletricista ligou a tomada do quarto dos fundos.','Na última semana, o policial passou na porta. Não entrou.'],
-  9:['Não fala desde domingo. Só aperta a mão.','Na última semana, veio um rapaz do jornal. Não abri.'],
-  10:['Abro a janela do quarto por causa do jasmim. Ele diz que o jasmim tem mais idade que eu.','Duas semanas antes do fim, a governanta veio.'],
-  13:['Não fala desde segunda.','O cartório ligou. Atendi e disse que ele dormia.'],
-  14:['Pede a janela aberta por causa do jasmim, mesmo com frio.','A filha não veio.','Na última semana, o policial passou na porta.'],
-  15:['O cozinheiro trouxe o caldo, como toda sexta, até a última.']
-};
-function cadernoDe(p){
-  var seguroNoFim=[1,3,11,12,13].indexOf(p)>=0;
-  var l=['Março. Descemos a cama para o quarto do jasmim. Ele não sobe mais escada.','Leio o jornal para ele. Já não enxerga as letras.'];
-  if(presente('observadora'))l.push('Fevereiro. A moça das antiguidades veio. Ele não quis recebê-la.');
-  l.push('Peixe não, desde abril. Engasgou. Só caldo de legumes.','O gato dorme nos pés dele. Ele pede que eu não tire.');
-  l.push(seguroNoFim?'Três semanas antes do fim: o homem do seguro fotografou o relógio.':'Março. O homem do seguro fotografou o relógio.');
-  l.push('Perguntou pela filha de novo.');
-  l=l.concat(CADERNO_EXTRA[p]||[]);
-  l.push(p===5?'Não levanta mais. Me pede que dê corda às nove, todo dia.':'Dei corda às nove, como ele pediu.');
-  return l;
-}
-function cadernoSVG(p){
-  var l=cadernoDe(p).concat(['','Quarta-feira. Ele não acordou.']),y=150,linhas='';
-  l.forEach(function(t){linhas+='<text x="70" y="'+y+'" font-size="25" fill="#1d2a52" font-style="italic">'+t.replace(/&/g,'&amp;')+'</text>';y+=44});
-  var h=y+50,svg='<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="'+h+'" viewBox="0 0 1000 '+h+'">'+
-    '<rect width="1000" height="'+h+'" fill="#f6f1e2"/>'+Array.apply(null,{length:Math.ceil(h/44)}).map(function(_,i){return '<line x1="0" x2="1000" y1="'+(118+i*44)+'" y2="'+(118+i*44)+'" stroke="#c9d6ea" stroke-width="2"/>'}).join('')+
-    '<line x1="54" x2="54" y1="0" y2="'+h+'" stroke="#e3a3a3" stroke-width="3"/><rect width="1000" height="70" fill="#2f4f8a"/>'+
-    '<text x="70" y="48" font-family="Georgia,serif" font-size="28" fill="#f3efe2">Caderno de capa azul</text>'+
-    '<g font-family="Georgia,serif">'+linhas+'</g></svg>';
-  return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
-}
-function papelSVG(titulo,linhas,cor){
-  var y=140,t='';linhas.forEach(function(l){t+='<text x="60" y="'+y+'" font-size="27" fill="'+(cor||'#3a2a18')+'" font-style="italic">'+l+'</text>';y+=50});
-  var h=y+40,svg='<svg xmlns="http://www.w3.org/2000/svg" width="900" height="'+h+'" viewBox="0 0 900 '+h+'"><rect width="900" height="'+h+'" fill="#efe4c8"/><rect x="14" y="14" width="872" height="'+(h-28)+'" fill="none" stroke="#a08458" stroke-width="2"/>'+
-    '<text x="60" y="80" font-family="Georgia,serif" font-size="30" fill="#3a2a18">'+titulo+'</text><g font-family="Georgia,serif">'+t+'</g></svg>';
-  return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
-}
-
-/* ── O que cada impostor diz no fim ("fui eu") e a Revelação, por partida ── */
-var FIM_R2={
-  1:{diz:'Eu vinha toda semana. Fiquei com ele até o fim.',
-     fala:'No Cap. 3, {res} disse "Não puxa de frente, trava", antes de qualquer um saber que o móvel sai da parede. A reforma dele nunca chegou naquele móvel.',
-     rota:'Da porta do quarto de serviço até o relógio são nove segundos, pela passagem, dentro da parede.',
-     ausencia:'Perto dos sessenta segundos, {jor} ouviu um degrau dentro da parede, atrás dos retratos. No quarto clarão, {pol} viu uma manga escura e sem brilho junto ao pêndulo: o impermeável refletivo tinha ficado no cabide. E havia cal fresca no ombro dele.',
-     caderno:'No Cap. 2 ele disse que no fim o proprietário ficava lá em cima, no quarto dele. O caderno diz que a cama desceu para o quarto do jasmim em março, e não registra nenhuma visita dele.',
-     ajudou:'{Pol}, a guarda, saiu da porta depois do quarto clarão: {her} sentiu o couro no braço logo depois da louça, e {jor} viu a porta vazia no quinto clarão.',
-     outros:'{Obs} tinha grafite nos dedos e conhecia o quarto do jasmim, mas o grafite era de ter religado o pêndulo na frente de todos, e {jor} a viu à mesa no quarto clarão. {Jor} estava na janela: o farol o viu ali duas vezes.'},
-  2:{diz:'Fui eu quem esteve com ele no fim. Colhi a assinatura dele no leito.',
-     fala:'No Cap. 3, {tab} leu na ata uma gaveta de pesos que a lista impressa não tem. "No original. No cartório."',
-     rota:'Da mesa da ata até o relógio são oito segundos, pela porta de correr, com o degrau que range.',
-     ausencia:'O degrau da biblioteca rangeu aos cinquenta e oito e aos cento e onze, e {inv} ouviu as duas vezes. No quarto clarão, {gov} viu um brilho dourado na altura do pêndulo: a abotoadura.',
-     caderno:'Ele disse que colheu a assinatura no leito, na última semana. O caderno diz: "O cartório adiou de novo. Terceira vez."',
-     ajudou:'{Res} derrubou a lata na despensa aos oitenta segundos, e o arrastar veio junto com a lata, como {inv} ouviu. E quem conduziu a noite tinha mandado o Policial para longe, no rádio.',
-     outros:'{Gov} olhou o celular na porta e conhecia a louça dos fundos, mas o caderno a salva: ela veio duas semanas antes do fim e trouxe pão. {Inv} estava na janela: o farol o viu ali.'},
-  4:{diz:'Fiz o caldo dele até o último dia. Fui eu.',
-     fala:'No Cap. 3, {che} disse "Alguém tentou afastar" diante de uma marca de quem só se apoiou.',
-     rota:'Da despensa até o relógio são doze segundos, pela passagem.',
-     ausencia:'Aos cinquenta e oito, {res} ouviu passos dentro da parede, vindos da despensa, e viu a luz passar pelas frestas do painel. No quarto clarão, {jar} viu uma coisa clara junto ao pêndulo: o dólmã. E havia teia no cabelo dele.',
-     caderno:'Ele disse que fez o caldo com peixe até o último dia. O caderno diz: "Peixe não, desde abril. Engasgou." E: "O cozinheiro parou de vir em fevereiro."',
-     ajudou:'{Gov} derrubou a louça aos oitenta segundos, junto com o raspado, e {adv} ouviu os dois ao mesmo tempo.',
-     outros:'{Ele} saiu do posto aos gritos e todos olharam para ele, mas a escadinha rangeu com ele indo para o porão, e {gov} ouviu o grito de lá. A ausência mais visível era honesta.'},
-  5:{diz:'Estive com ele no último domingo. Ele mesmo deu corda.',
-     fala:'No Cap. 3, {adv} falou em "direito de moradia" antes de qualquer um ver o adendo.',
-     rota:'Da janela dos retratos até o relógio, pela biblioteca e pela porta de correr.',
-     ausencia:'Aos cinquenta e cinco, {jor} viu do patamar a luzinha verde do relógio dele entrar na biblioteca. {Inv} ouviu o degrau duas vezes e viu, no quarto clarão, um punho cinza, sem brilho.',
-     caderno:'Ele disse que o proprietário dava corda aos domingos. O caderno: "Não levanta mais. Me pede que dê corda às nove, todo dia." E: "O advogado veio em março."',
-     ajudou:'{Tab}, cúmplice consciente: escreveu na ata "Tabelião e Advogado na biblioteca" antes de alguém perguntar. "Ele disse que o que se pudesse tirar dava para dois."',
-     outros:'{Jar} estava a dez segundos, mas o farol o viu parado na varanda duas vezes. A abotoadura {de:tab} brilhava; o punho visto junto ao pêndulo não brilhava.'},
-  6:{diz:'',voz:true,
-     fala:'Ninguém da mesa sabia demais: as mensagens da voz são as mesmas, culpada ou inocente.',
-     rota:'A pessoa escondida saiu do quarto pela passagem e entrou na sala pela portinhola que {res} tinha deixado só encostada.',
-     ausencia:'Aos sessenta segundos, na hora da mensagem, uma luz acendeu dentro da sala, junto ao relógio, e cada um da mesa estava visto ou ouvido em outro lugar. O gravador {de:jor}, atrás do relógio, registrou o trinco, o arrasto, lã roçando e um miado. E havia um fio de lã crua no trinco.',
-     caderno:'A letra do proprietário vai até "enquanto viver". "E o que dele se puder tirar" está em outra tinta, azul, a do caderno, e numa mão firme demais.',
-     ajudou:'{Res}, sem saber: mostrou a portinhola no Cap. 4 e a deixou só encostada. Havia pó de cal no painel.',
-     outros:'{Res} estava na varanda, e o farol o viu duas vezes. {Obs} derrubou a lupa aos setenta. {Jor} estava na janela, e {pol} na porta, nos dois clarões.'},
-  7:{diz:'Eu servi o último café dele. Fiquei até o fim.',
-     fala:'No Cap. 3, quando a ata registrou a gaveta vazia, {gov} disse: "Por enquanto."',
-     rota:'Da porta do quarto de serviço até o relógio são nove segundos, pela passagem.',
-     ausencia:'Aos cinquenta e oito, {res} ouviu um degrau dentro da parede, indo para a sala. No quarto clarão, {obs} viu a porta sem guarda e um antebraço nu junto ao pêndulo. E havia cal no avental dela.',
-     caderno:'Ela disse que serviu o último café dele naquela xícara. O caderno: "Não toma café desde abril. O coração. Só cidreira." A xícara era de quem cuidava dele.',
-     ajudou:'{Inv}, a guarda, saiu atrás de uma luz no corredor de serviço; {obs} viu a porta sem guarda no quarto clarão.',
-     outros:'{Obs} conhecia o quarto do jasmim e tinha grafite nos dedos, mas nunca disse ter estado com ele no fim, e o farol a viu na janela.'},
-  8:{diz:'Vim na última semana dele. Fiquei com ele.',
-     fala:'No Cap. 3, {ele} falou de uma "mola que puxa quando o móvel sai". Nenhuma caixa-alta daquela oficina tem mola de fundo.',
-     rota:'Da porta do quarto de serviço até o relógio, pela passagem. Ele anunciou que ia ao quadro e entrou na parede.',
-     ausencia:'{Gov}, com o pé na escadinha, viu a lanterna dele entrar na parede e garante que ninguém desceu. No quarto clarão, {jar} viu um punho com fita brilhar junto ao pêndulo. E a teia na alavanca do geral estava inteira.',
-     caderno:'Ele disse que veio na última semana ligar uma tomada no quarto de cima. O caderno: "Março. O eletricista ligou a tomada do quarto dos fundos." E a cama desceu em março.',
-     ajudou:'{Che} derrubou a panela aos setenta e oito, e {gov} ouviu, junto com a panela, um arrastar dentro da parede.',
-     outros:'{Jar} estava na porta: {adv} ouviu o oleado chiar ali o tempo todo. O grafite nos dedos {ele} tinha explicado às oito da noite, ao religar o pêndulo.'},
-  9:{diz:'Eu o entrevistei na última semana. Estive com ele no fim.',
-     fala:'No Cap. 3, {jor} filmava a base do relógio antes do estalo, "por causa da etiqueta". Naquela oficina, a etiqueta fica no mostrador.',
-     rota:'Saiu pela janela dos retratos e entrou pela porta-janela do jardim, longe da guarda.',
-     ausencia:'A gravação dele mesmo: nenhuma respiração, e a janela rangendo aos cinquenta e aos cento e catorze. O farol viu a janela aberta e vazia no quarto clarão. {Obs} viu uma manga dobrada junto ao pêndulo. E as mangas dele voltaram molhadas.',
-     caderno:'Ele disse que o entrevistou na última semana. O caderno: "Não fala desde domingo. Só aperta a mão." E: "Na última semana, veio um rapaz do jornal. Não abri."',
-     ajudou:'{Res}, sem saber: as marteladas não pararam, e o raspado veio entre duas batidas.',
-     outros:'{Her} acendeu uma vela na biblioteca, e {obs} a via pelo vidro. {Res} martelava sem parar, e {inv} ouviu.'},
-  10:{diz:'Plantei o jasmim para ele no fim. Fiquei com ele.',
-     fala:'No Cap. 3, quando a gaveta foi registrada vazia, {jar} disse: "Então é embaixo que cai."',
-     rota:'Da varanda até o relógio são dez segundos, pelo jardim, na chuva.',
-     ausencia:'O farol viu a varanda vazia no quarto clarão e um vulto atravessando da sala para a varanda no sexto. {Obs} também viu a varanda vazia, da janela. Havia barro vermelho fresco junto ao relógio, e o oleado dele estava seco no gancho.',
-     caderno:'Ele disse que o proprietário olhava o jasmim da janela de cima. O caderno: "Abro a janela do quarto por causa do jasmim." O quarto é térreo.',
-     ajudou:'{Her}, a guarda, sentada de costas para a porta no quarto clarão, como {obs} viu.',
-     outros:'{Res} estava na porta do quarto: {gov} falou com ele pela copa o tempo todo. O vulto da janela dos fundos era a pessoa escondida.'},
-  12:{diz:'Fui eu. Eu estive com ele até o fim.',
-     fala:'No Cap. 1, {obs} disse que só conhecia o relógio por fotografia. No Cap. 3: "Não é o trinco que importa. É o quanto o móvel sai da parede." No Cap. 4, chamou de antiga uma pegada com água parada dentro.',
-     rota:'Da mesa da ata até o relógio são oito segundos, pela porta de correr, com o degrau que range.',
-     ausencia:'O degrau rangeu aos cinquenta e seis e aos cento e treze. No quarto clarão, {pol} viu uma manga clara e fina, sem casaco, e {jor} viu a mesa com uma pessoa só e o blazer na cadeira vazia. O farol viu uma coisa clara na vidraça. E ela voltou de blusa, com óleo no punho.',
-     caderno:'Ela disse que lia para ele na biblioteca. O caderno: desde março ele não saía do quarto do jasmim e não enxergava mais as letras. E em fevereiro "a moça das antiguidades veio. Ele não quis recebê-la."',
-     ajudou:'{Tab} jurou que ela não saiu: sentiu o perfume e viu o celular dela aceso ao lado do dele. Era o blazer, e o celular deixado na mesa.',
-     outros:'Todos os que alcançavam o relógio foram situados por alguém: {pol} gritou da porta, {tab} foi visto à mesa, {jar} na varanda pelo farol, {jor} respondeu da janela, {res} bateu na porta do quarto, {che} respondeu da despensa. {Ele} gritou do porão.'},
-  13:{diz:'Estive aqui três semanas antes. E voltei no último dia.',
-     fala:'No Cap. 3, {inv} disse que agora "a apólice cobre o conteúdo também". A apólice era dele, de três semanas antes da morte.',
-     rota:'Da janela dos retratos até o relógio são sete segundos, pelo corredor.',
-     ausencia:'O farol viu a janela dos retratos vazia no quarto clarão. No quinto, {res}, voltando, viu uma figura clara junto ao relógio. E {jor} garante que só {res} veio socorrê-lo.',
-     caderno:'Ele disse que voltou no último dia e o achou lúcido. O caderno confirma a primeira visita e desmente a segunda: "Não fala desde segunda", sem nenhuma outra visita.',
-     ajudou:'{Jor}, sem querer: caiu na escada aos cinquenta e oito e gritou; {res} deixou a porta para socorrê-lo.',
-     outros:'{Tab} jurou ter falado com o proprietário por telefone na última semana. O caderno: "O cartório ligou. Atendi e disse que ele dormia." Ele não mentiu: falou com a casa. E ditou a hora em voz alta o tempo todo.'},
-  14:{diz:'Eu vinha à noite. Ele me pedia para fechar tudo.',
-     fala:'No Cap. 3, {her} disse "Agora é tirar da parede", de um relógio que andava.',
-     rota:'Da varanda até o relógio são dez segundos, pelo jardim, e a porta-janela da sala estava destrancada.',
-     ausencia:'O farol viu a varanda vazia no quarto clarão e um vulto escuro voltando no sexto. {Obs} viu a varanda vazia, da janela. E o casaco de lã voltou encharcado, embora a varanda seja coberta.',
-     caderno:'Ela disse que ele não suportava vento. O caderno: "Pede a janela aberta por causa do jasmim, mesmo com frio." E: "A filha não veio."',
-     ajudou:'{Gov} destrancou a porta-janela da sala às nove, para o gato. Havia pegadas de gato no piso.',
-     outros:'{Adv} estava na porta: o relógio verde dele ficou parado ali nos dois clarões. {Jar} pediu a lanterna {a:gov} pela porta da despensa.'},
-  15:{diz:'Estive com ele na última noite. Ele lia na biblioteca.',
-     fala:'No Cap. 1, {pol} disse "Continua quatro minutos na frente. Ele gostava assim", depois de dizer que nunca tinha entrado na casa.',
-     rota:'Da despensa até o relógio são doze segundos, pela passagem.',
-     ausencia:'Aos cinquenta e oito, {res} ouviu passos dentro da parede, vindos da despensa. No quarto clarão, {che} viu o brilho de um zíper junto ao pêndulo. E havia cal no couro.',
-     caderno:'Ele disse que o proprietário lia na biblioteca, de óculos. O caderno: "Leio o jornal para ele. Já não enxerga as letras."',
-     ajudou:'A própria voz: a mensagem das nove e meia chegou aos sessenta segundos, e {che}, na porta, baixou os olhos.',
-     outros:'{Che} estava na porta, e {obs} viu o dólmã ali duas vezes. O caderno confirma o caldo dele: "como toda sexta, até a última". A frase que era mentira na Partida 4 aqui é verdade.'}
-};
-
-/* ── O escuro do Cap. 5: tela preta, clarões do farol, chat travado ───────
-   (Mario: o apagão é narrado segundo a segundo; decisões da auditoria, 01/10:
-   122 s em tempo real, tela escura com os clarões, o chat fica travado no
-   escuro e a narração age pelo personagem do jogador.) */
-var escuroAtivo=false;
-(function(){document.head.insertAdjacentHTML('beforeend','<style>'+
-  '#escuro{position:fixed;inset:0;z-index:60;background:#000;color:#cfd6e2;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 22px;text-align:center;transition:background .7s,opacity 1.2s}'+
-  '#escuro[hidden]{display:none}'+
-  '#escuro .seg{position:absolute;top:max(16px,env(safe-area-inset-top));left:0;right:0;font:600 13px var(--sans);letter-spacing:.12em;color:#5d6676}'+
-  '#escuro .linha{max-width:560px;max-height:78vh;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;font:400 16px/1.5 Georgia,serif;opacity:0;transition:opacity .6s}'+
-  '#escuro .linha.on{opacity:1}'+
-  '#escuro .aviso-escuro{position:absolute;bottom:max(18px,env(safe-area-inset-bottom));left:0;right:0;font:12px var(--sans);color:#4b5260}'+
-  '#escuro.clarao{background:#c7d3e6;transition:background .05s}'+
-  '#escuro.clarao .linha{color:#10141a}'+
-  '#escuro.saindo{opacity:0}'+
-  '</style>');
-  var d=document.createElement('div');d.id='escuro';d.hidden=true;d.setAttribute('aria-live','polite');
-  d.innerHTML='<div class="seg" id="escuroSeg"></div><div class="linha" id="escuroLinha"></div><div class="aviso-escuro">No escuro, ninguém consegue escrever. As falas ficam no Grupo para você marcar depois.</div>';
-  document.body.appendChild(d)})();
-var escuroT0=0,escuroTimer=null;
-function escuroComeca(){escuroAtivo=true;var d=$('#escuro');d.hidden=false;$('#escuroLinha').innerHTML='';d.classList.remove('saindo');escuroT0=Date.now();
-  if(navigator.vibrate)try{navigator.vibrate([60,40,60])}catch(e){}
-  clearInterval(escuroTimer);escuroTimer=setInterval(function(){var s=Math.min(122,Math.floor((Date.now()-escuroT0)/1000/escalaCap));$('#escuroSeg').textContent='+'+s+' s'},250)}
-/* as três últimas falas ficam na tela (a mais nova embaixo), para dar tempo de ler */
-function escuroLinha(txt){if(!escuroAtivo)return;var c=$('#escuroLinha');c.classList.add('on');
-  var p=document.createElement('p');p.innerHTML=txt;p.style.cssText='margin:0 0 14px;opacity:0;transition:opacity .6s';c.appendChild(p);
-  setTimeout(function(){p.style.opacity=1},60);var ps=c.querySelectorAll('p');for(var i=0;i<ps.length-3;i++)ps[i].remove();
-  ps=c.querySelectorAll('p');for(var k=0;k<ps.length-1;k++)ps[k].style.opacity=.38}
-function escuroClarao(){if(!escuroAtivo)return;var d=$('#escuro');d.classList.add('clarao');setTimeout(function(){d.classList.remove('clarao')},420)}
-function escuroAcaba(){if(!escuroAtivo)return;escuroAtivo=false;clearInterval(escuroTimer);var d=$('#escuro');d.classList.add('saindo');setTimeout(function(){d.hidden=true},1300)}
-
-/* ── Capítulo 5 · Cento e Vinte e Dois Segundos ─────────────────────────── */
-var C5_R2X=(function(){
-  var P=P_R2,D=C5_R2[P],M4=MATRIZ_C4[P];if(!D||!M4)return null;
-  var ev=[],T0=24,guarda=alcancaC4(P).guarda;
-  function sis(t,txt){ev.push([t,'sis',T(txt)])}
-  function fx(t,q){ev.push([t,'fx',q])}
-  function chat(t,id,txt){if(id&&presente(id)&&id!==EU_PAPEL)ev.push([t,SLOT_DE[id],txt])}
-  function priv(t,id,txt){if(id&&presente(id)&&id!==EU_PAPEL)ev.push([t,'priv:'+SLOT_DE[id],txt])}
-  function marco(id){ev[ev.length-1].id=id}
-  var cond=presente('tabeliao')?'tabeliao':'policial';
-  sis(4,'Às nove e vinte e oito, cada um estava no seu posto, ou dizia estar. A chuva batia nos vidros. O relógio da sala marcava nove e trinta e dois, quatro minutos na frente, como sempre.');
-  sis(14,Na(cond)+' conferiu a hora no próprio relógio e anotou na ata: <i>"Reabertura às nove e meia. Todos nos postos."</i>');
-  /* o escuro */
-  fx(T0,'escuro');
-  sis(T0,'Às vinte e uma horas e vinte e nove minutos, a casa inteira se apagou de uma vez, como quem fecha os olhos. Não houve piscada nem zumbido. Só o escuro, total, e a chuva ficando mais alta, como se tivesse esperado aquilo.');
-  if(guarda)sis(T0+2,'<i>"Ninguém se mexe!"</i>, gritou '+na(guarda)+', da porta.');
-  var claroes=[12,32,52,72,92,112],ja={};(D.ev||[]).forEach(function(e){ja[e[0]]=true});
-  claroes.forEach(function(c,i){fx(T0+c,'clarao');
-    if(i===0)sis(T0+c,'No décimo segundo, o primeiro clarão do farol varreu a vidraça da sala do relógio. Tudo virou recorte: o contorno do móvel, a borda da lareira, o vão da porta'+(guarda?' com '+na(guarda)+' dentro':'')+'. Depois, escuro.');
-    else if(i===1)sis(T0+c,'Vinte segundos depois, o segundo clarão. A casa aprendia a respirar no ritmo do farol.');
-    else if(!ja[c]&&!(D.semClaroes&&D.semClaroes.indexOf(c)>=0))sis(T0+c,['','','O terceiro clarão.','O quarto clarão.','O quinto clarão.','O sexto clarão.'][i])});
-  /* a mensagem do escuro, no segundo da personalidade */
-  var tv=PERS_TEMPO[PERSONALIDADE];
-  sis(T0+tv,'Aos '+NUM_EXT[tv]+' segundos, todos os celulares vibraram ao mesmo tempo. Telas se acenderam pela casa, cada uma onde o dono a tinha deixado.');
-  ev.push([T0+tv+1,ACOMP,MSG_ESCURO[PERSONALIDADE]]);
-  var naE=Object.keys(M4.postos).filter(function(id){return M4.postos[id]==='E'})[0];
-  if(!D.vozCulpada&&naE&&naE!==IMPOSTOR_R2[P]&&P!==12)sis(T0+tv+2,'Na porta do quarto de serviço, '+na(naE)+' viu uma luz azul fina escapar por baixo da porta trancada. Depois, nada.');
-  if(P===12)sis(T0+tv+2,'Na porta do quarto de serviço, {res} viu uma luz azul fina escapar por baixo da porta trancada. Depois, nada.');
-  (D.ev||[]).forEach(function(e){sis(T0+e[0],e[1])});
-  /* a luz volta */
-  fx(T0+122,'luz');
-  sis(T0+122,'E aos cento e vinte e dois, a luz voltou. Foi pior do que o escuro. Todos se olhando, piscando, cada um no seu posto ou quase. O relógio batia, tranquilo, e marcava <b>nove e trinta e quatro</b>.');
-  sis(T0+130,Na('policial')+' olhou o próprio pulso. <i>"Nove e trinta e um."</i>');
-  sis(T0+140,'O rádio chiou no vestíbulo. <i>"Casa da Costa, aqui é o farol. Apagou a costa inteira, da vila ao cabo. Voltou tudo junto agora. Contei seis clarões."</i> E depois: <i>"'+D.farol+'"</i>');marco('farol');
-  if(D.depois)sis(T0+152,D.depois);
-  chat(T0+170,voz(['jornalista','herdeira','advogado'],D.calou),'Alguém ouviu aquele barulho de madeira, aos oitenta?');
-  chat(T0+186,voz(['policial','tabeliao','residente']),'Ninguém sai do lugar. Cada um diz onde estava.');
-  priv(T0+210,voz(['herdeira','observadora','jornalista','residente'],D.tela),'Você viu a tela que atravessou o corredor no escuro?');
-  sis(440,'O relógio seguia batendo, nove e trinta e quatro quando devia marcar nove e trinta e cinco. Faltam poucos minutos para o fim do capítulo.');
-  var fala=function(ids,txt,exceto){var id=voz(ids,exceto);return id?[SLOT_DE[id],txt]:null};
-  var A=alcancaC4(P),cand=NA_CASA.filter(function(id){return id!==A.guarda});
-  return {
-    roteiro:ev,
-    respGrupo:[[T0+130,'Onde cada um estava no quarto clarão?'],[T0+130,'Quem ouviu o raspado?'],[T0+140,'O que o farol viu?'],[0,'Ninguém sai do lugar.']],
-    respPriv:[[T0+130,'Você viu alguém andar no escuro?'],[0,'Não confio em ninguém aqui.']],
-    replica:{
-      'Onde cada um estava no quarto clarão?':fala(['policial','tabeliao','investigador'],'No posto. É o que todo mundo vai dizer. O farol e os ouvidos é que contam.'),
-      'Quem ouviu o raspado?':fala(['jornalista','herdeira','residente'],'Todo mundo. A pergunta é quem ouviu e calou.',D.calou),
-      'O que o farol viu?':fala(['investigador','policial'],'Vultos, nunca rostos. Mas vultos parados num lugar contam.'),
-      'Ninguém sai do lugar.':fala(['policial','tabeliao'],'Combinado.'),
-      'Você viu alguém andar no escuro?':'Vi uma tela passar. Só a luz.',
-      'Não confio em ninguém aqui.':'Nem eu.'},
-    acompPriv:RESP_ACOMP_R2,
-    achar:null,
-    escuro:true,
-    debate:{pergunta:'O que cada som do escuro permite descartar?',falas:[
-      fala(['policial','residente','jornalista'],'Quem gritou de um lugar estava naquele lugar. Grito não mente o endereço.'),
-      fala(['observadora','advogado','tabeliao'],'O degrau, a louça, a lata, a panela: cada som tem um lugar. Junte com os postos.'),
-      fala(['herdeira','investigador','governanta'],'E o farol nunca mente. Vulto parado duas vezes não estava no relógio.')]},
-    perguntas:function(){return [
-      {rotulo:'principal',pergunta:'No escuro, uma tela acesa atravessou a casa. De quem era?',opcoes:opcoesPessoa(D.tela,'c5tela')},
-      {rotulo:'secundária',pergunta:'Quem ouviu o raspado do móvel e não disse nada na hora?',opcoes:opcoesPessoa(D.calou,'c5calou')},
-      {rotulo:'secundária',pergunta:'Quem fez a louça tilintar?',opcoes:opcoesPessoa(D.louca,'c5louca')},
-      /* Mario, 30/09: a pergunta de marcar todos (do Cap. 4) vem no fim do Cap. 5 */
-      {rotulo:'secundária',cap:4,tipo:'todos',pergunta:'Pelos postos das 21h29, quem, além da guarda, alcançava o relógio antes da luz voltar? (marque todos)',
-        candidatos:cand.map(rotuloDe),certosIdx:cand.map(function(id,i){return A.alcancam.indexOf(id)>=0?i:-1}).filter(function(i){return i>=0})}]}
-  };
-})();
-
-/* ── Capítulo 6 · O Quarto de Serviço ───────────────────────────────────── */
-var ROTA_FUGA={
-  varanda:'Veio um sopro frio do fundo do quarto, da portinha que dava para a copa, e da copa para a cozinha, e da cozinha para a porta da varanda, aberta.',
-  despensa:'Veio um sopro frio do fundo do quarto, da portinha que dava para a copa, e da copa para a despensa, e da despensa para a porta de serviço, aberta.',
-  servico:'Veio um sopro frio do fundo do quarto, da portinha que dava para a copa, e da copa para a despensa, e da despensa para a porta de serviço, aberta, sem a trava.',
-  janela:'Veio um sopro frio da janela do quarto, aberta um palmo, por onde entrava o cheiro do jasmim e a chuva.',
-  portinhola:'Veio um sopro frio de uma fresta no fundo do quarto, da parede oca: a passagem, aberta até a sala do relógio pela portinhola que tinha ficado só encostada, e dali para a despensa e a porta de serviço.'};
-var C6_R2X=(function(){
-  var P=P_R2,F=FIM_R2[P],SA=SAIDA_R2[P];if(!F||!SA)return null;
-  var ev=[],cond=presente('tabeliao')?'tabeliao':'policial',quemLe=presente('advogado')?'advogado':(presente('tabeliao')?'tabeliao':'investigador');
-  function sis(t,txt){ev.push([t,'sis',T(txt)])}
-  function chat(t,id,txt){if(id&&presente(id)&&id!==EU_PAPEL)ev.push([t,SLOT_DE[id],txt])}
-  function priv(t,id,txt){if(id&&presente(id)&&id!==EU_PAPEL)ev.push([t,'priv:'+SLOT_DE[id],txt])}
-  function marco(id){ev[ev.length-1].id=id}
-  sis(6,Na(cond)+' fez a conta em voz alta, porque era assim que pensava. <i>"O relógio andava quatro minutos na frente. Agora são nove e trinta e um. Devia marcar nove e trinta e cinco. Marca nove e trinta e quatro."</i>');
-  sis(20,'<i>"Perdeu quase um minuto"</i>, disse '+na('investigador')+'. <i>"A ata diz que ele foi acertado às oito e dezessete."</i> <i>"Não se perde um minuto sozinho. Alguém o parou."</i> Todos olharam para o móvel. O móvel estava exatamente onde estava. A portinhola de vidro, fechada. O pêndulo, indo e vindo, inocente.');
-  if(C6_NOTA[P])sis(36,C6_NOTA[P]);
-  /* a fuga */
-  var acodem=[voz(['residente','policial','jardineiro']),voz(['policial','residente','investigador'],voz(['residente','policial','jardineiro']))].filter(Boolean);
-  sis(54,'Antes que alguém respondesse, veio o barulho da ala de serviço. A maçaneta do quarto dos fundos outra vez, desta vez com força, e depois um miado. '+(acodem.length?listaNomes(acodem).charAt(0).toUpperCase()+listaNomes(acodem).slice(1)+(acodem.length>1?' chegaram':' chegou')+' primeiro.':'')+' A porta resistiu, depois cedeu com um estalo de batente velho.');
-  sis(68,'O quarto estava escuro: a lâmpada tinha sido tirada do bocal. Um gato cinza atravessou entre as pernas deles como um tiro e sumiu no corredor. '+ROTA_FUGA[SA.saida]);
-  var aberta={varanda:'Aberta',despensa:'Aberta',servico:'Aberta',janela:'Aberta',portinhola:'Encostada'}[SA.saida];
-  sis(80,'<b>'+aberta+' desde as nove e vinte.</b> '+({1:'Desde que {her} precisou de ar.',2:'Desde que {jor} saiu para fumar.',4:'Desde que {jar} chamou alguma coisa no escuro do jardim.',5:'Desde que {res} mostrou a portinhola e não a travou.',6:'Desde que {pol} foi olhar o jardim.',7:'Desde que {her} precisou de ar.',8:'Desde que {jar} deixou a fresta para o gato.',9:'Desde que {res} desmontou a trava para consertar.',10:'Desde que {obs} empurrou a janela, por causa do cheiro.',12:'Desde que {her} precisou de ar.',13:'Desde que {gov} levou o lixo.',14:'Desde que {jar} saiu para olhar a calha.',15:'Desde que {res} mostrou a portinhola e não a travou.'}[P]||''));
-  sis(92,'Quando '+na(presente('jardineiro')?'jardineiro':'residente')+' chegou à varanda com a lanterna, havia só a chuva e, na terra, as pedras gastas da trilha seca, que a água apagava mais uma vez. Ninguém viu quem saiu. Ninguém viu nem a cor da roupa.');
-  /* o quarto */
-  sis(106,'No quarto, a cama ainda estava morna. Um carregador de celular pendia da tomada'+(presente('eletricista')?', a tomada que '+na('eletricista')+' tinha ligado em março,':'')+' sem aparelho na ponta. Sobre a mesa de cabeceira, um caderno escolar de capa azul, cheio até a metade. E, presa com um grampo na primeira página, uma folha com três linhas: <i>mostrar o relógio · a porta de serviço · parar o pêndulo</i>');marco('quarto');
-  var cad=cadernoDe(P);
-  sis(124,Na('investigador')+' leu o caderno em voz alta, pulando páginas, e a cada linha a sala ficava menor. '+cad.map(function(l){return '<i>"'+l+'"</i>'}).join(' ')+' E a última, numa quarta-feira: <i>"Ele não acordou."</i>');marco('caderno');
-  sis(150,Na('jornalista')+' tirou o recorte do bolso e o dobrou de novo, sem olhar.');
-  /* a gaveta e o adendo */
-  sis(164,'Voltaram à sala do relógio em silêncio. '+Na(cond)+' abriu a gaveta de pesos com a ponta da caneta, como da primeira vez. Às vinte horas e catorze, estava vazia. Agora havia nela uma folha dobrada em quatro, o papel amarelado, a letra trêmula do proprietário.');marco('gaveta');
-  sis(178,'E leu em voz alta: <i>"A quem me acompanhou até o fim, deixo o direito de morar no quarto do jasmim enquanto viver, e o que dele se puder tirar."</i>');
-  sis(192,Na(quemLe)+(quemLe==='advogado'?' tirou os óculos':' ergueu os olhos')+'. <i>"Manuscrito, datado, assinado. Se a letra for dele, vale. E um direito de morar para a vida inteira trava a venda da casa. Ninguém compra uma casa com alguém morando dentro por lei. Quem tiver isso pode pedir o que quiser para abrir mão."</i> '+Na('herdeira')+' sentou, porque as pernas decidiram.');
-  if(P===6)sis(206,Na('observadora')+' pôs as duas folhas lado a lado, o adendo e o caderno. <i>"A letra dele vai até \'enquanto viver\'. Trêmula, sépia. \'E o que dele se puder tirar\' é outra tinta. Azul. A tinta do caderno. E a mão está firme demais para um homem que já não enxergava."</i>');
-  /* quem diz que esteve no fim */
-  var imp=IMPOSTOR_R2[P],ditos=[];
-  if(F.diz&&presente(imp))ditos.push('<i>"'+F.diz.replace(/\.$/,'')+'"</i>, disse '+na(imp)+'. A voz não tremeu.');
-  if(presente('chefe_de_cozinha')&&imp!=='chefe_de_cozinha')ditos.push('<i>"'+(P===15?'Fiz o caldo dele até o fim':'Eu cozinhei para ele até o começo do ano')+'"</i>, disse '+na('chefe_de_cozinha')+', baixo, sem saber por que dizia.');
-  if(presente('governanta')&&imp!=='governanta')ditos.push('<i>"Eu vinha às terças. Depois. Para arejar"</i>, disse '+na('governanta')+'.');
-  if(presente('jardineiro')&&imp!=='jardineiro')ditos.push('<i>"Quem cuidava do jasmim era eu"</i>, disse '+na('jardineiro')+'.');
-  if(ditos.length)sis(220,ditos.join(' ')+(presente('tabeliao')?' <i>"Ata não registra sentimento"</i>, disse '+na('tabeliao')+', sem levantar os olhos do papel. <i>"Registra fato."</i>':''));
-  ev.push([232,ACOMP,MSG_FUGA[PERSONALIDADE]]);
-  var segredos={jornalista:'{Jor} gravava.',residente:'{Res} devia uma obra.',chefe_de_cozinha:'{Che} bebera a adega.',policial:'{Pol} não tinha distintivo que valesse naquela cidade.',governanta:'{Gov} vinha escondida.',eletricista:'{Ele} ligou uma tomada sem perguntar para quem.',herdeira:'{Her} não visitava o pai.',observadora:'{Obs} tinha crescido naquela casa.',tabeliao:'{Tab} adiou três vezes a visita ao leito.',advogado:'{Adv} sabia de um adendo sem ter visto o texto.',jardineiro:'{Jar} sabia que alguém vivia ali.',investigador:'{Inv} trabalhava para a seguradora.'};
-  sis(246,'Ninguém ali estava inteiramente limpo. '+NA_CASA.map(function(id){return segredos[id]}).join(' ')+' Todos tinham motivo para mentir um pouco, e todos tinham mentido. Medo, culpa e traição deixam pegadas parecidas. Mas só '+(P===6?'uma voz':'uma pessoa')+' tinha mentido nas quatro coisas que importavam.');
-  /* quem estava onde */
-  sis(262,Na(cond)+' pediu que cada um dissesse onde estava no escuro, e quem tinha visto quem. <i>"Para a ata."</i>');
-  (C6_ONDE[P]||[]).forEach(function(l,i){sis(276+i*16,l)});
-  chat(360,voz(['herdeira','jornalista','residente'],imp),'O caderno diz uma coisa e alguém aqui disse outra. Alguém marcou o que foi dito?');
-  priv(380,voz(['observadora','investigador','herdeira','policial'],imp),'Confira o caderno com o que cada um disse antes. Uma das lembranças não fecha.');
-  sis(440,'O relógio seguia batendo. Faltam poucos minutos. Depois do capítulo, vem a acusação.');
-  var fala=function(ids,txt,exceto){var id=voz(ids,exceto);return id?[SLOT_DE[id],txt]:null};
-  var fc=FALSO_R2[P].filter(presente);
-  return {
-    roteiro:ev,
-    respGrupo:[[106,'O que está escrito no caderno?'],[180,'De quem é esse direito?'],[262,'Quem viu quem no escuro?'],[0,'Vamos esperar a ata.']],
-    respPriv:[[124,'O caderno desmente alguém?'],[0,'Não confio em ninguém aqui.']],
-    replica:{
-      'O que está escrito no caderno?':fala(['investigador','observadora'],'A rotina dele, e quem bateu à porta. Compare com o que cada um disse.'),
-      'De quem é esse direito?':fala([quemLe,'tabeliao','advogado'],'De quem esteve com ele no fim. Não diz o nome.'),
-      'Quem viu quem no escuro?':fala(['policial','tabeliao','investigador'],'Está na ata. Quem foi visto por outro, de outro lugar, não estava no relógio.'),
-      'Vamos esperar a ata.':fala(['tabeliao','policial'],'A ata não demora.'),
-      'O caderno desmente alguém?':'Desmente. Não digo quem: leia você.',
-      'Não confio em ninguém aqui.':'Nem eu.'},
-    acompPriv:RESP_ACOMP_R2,
-    achar:{itens:['o quarto de serviço, para olhar de perto (aba RA, depois que a porta ceder)','o caderno, a folha dos três lembretes e o adendo, que vão para o inventário'],dica:'Compare o caderno com as falas que você marcou nos capítulos (aba Nota).'},
-    debate:{pergunta:'Qual lembrança dita hoje o caderno derruba, e qual ele confirma?',falas:[
-      fala(['investigador','observadora','advogado'],'A lembrança que fala de ler, de subir escada ou de peixe no fim: o caderno não deixa.'),
-      fala(['herdeira','jornalista','residente'],'Mas o caderno também confirma gente. Visita com data dentro do último mês é verdade.'),
-      fala(['tabeliao','policial','governanta'],'E quem disse que esteve no fim tem que ter estado. O caderno sabe quem bateu à porta.')]},
-    perguntas:function(){
-      var pc={rotulo:'secundária',pergunta:'Quem pareceu culpado a noite inteira e não era?',opcoes:opcoesPessoa(fc[0],'c6falso')};
-      if(fc.length>1){var o=pc.opcoes,j=o.indexOf(rotuloDe(fc[1]));if(j<0){o[3]=rotuloDe(fc[1]);j=3}pc.certas=[0,j]}
-      return [
-      {rotulo:'principal',pergunta:'A pessoa escondida fugiu por uma saída que alguém deixou aberta. Quem deixou?',opcoes:opcoesPessoa(SA.quem,'c6saida')},
-      pc,
-      {rotulo:'secundária',pergunta:'O caderno registra quem bateu à porta no último mês de vida dele. Quem?',opcoes:opcoesPessoa(VISITA_R2[P],'c6caderno')}]}
-  };
-})();
-if(C5_R2X)ROTEIROS[5]=C5_R2X;
-if(C6_R2X)ROTEIROS[6]=C6_R2X;
-CAPITULOS[5]={n:5,nome:'CENTO E VINTE E DOIS SEGUNDOS'};
-CAPITULOS[6]={n:6,nome:'O QUARTO DE SERVIÇO'};
-
-/* ── Acusação, Revelação, placar e Epílogo ──────────────────────────────── */
-var PESO={principal:1,'secundária':0.5,impostor:3,ajudante:2};
-var PONTO={certeza:[4,-4],sem:[2,-1],naosei:[0,0]};
-function pontosDe(r){var p=PONTO[r.confianca]||[0,0],w=PESO[r.tipo]||1;return (r.confianca==='naosei'?0:(r.certa?p[0]:p[1]))*w}
-function iniciarFinal(){
-  capitulo=7;var d=$('#fecho');try{d.showModal()}catch(e){d.setAttribute('open','')}
-  var f=FICHAS[EU_PAPEL]||[null,'Trabalha para a seguradora do espólio, não para a família.'];
-  $('#fechoCorpo').innerHTML='<p class="kicker">A acusação</p><h1 id="fechoTitulo">Antes das respostas finais.</h1>'+
-    '<p class="lede">'+T(presente('tabeliao')?'{Tab}':'{Pol}')+' pediu que cada um dissesse, uma vez e sem interrupção, de quem desconfiava. <i>"Para a ata."</i></p>'+
-    '<h2>A palavra do seu personagem</h2><p class="lede">Na mesa, cada um lê em voz alta o próprio segredo inocente, em primeira pessoa. Este é o seu:</p>'+
-    '<div class="aviso ouro" style="margin:8px 0 14px">'+f[1]+'</div>'+
-    '<p class="lede">Os segredos dos personagens do sistema, inclusive o do impostor, também são lidos. Como todo mundo tem um, a leitura não entrega ninguém: só explica o que confundia a mesa.</p>'+
-    (marcas.length?'<details class="marcadas" open><summary style="color:var(--gold);cursor:pointer">📌 Suas falas marcadas ('+marcas.length+')</summary>'+[1,2,3,4,5,6].map(function(c){return listaMarcas(c,false)}).join('')+'</details>':'')+
-    '<div class="acoes"><button type="button" id="irFinais">Ir para as respostas finais</button></div>';
-  $('#irFinais').onclick=function(){
-    var P=P_R2,imp=IMPOSTOR_R2[P],aj=AJUDANTE_R2[P];
-    var candI=NA_CASA.filter(function(id){return id!==EU_PAPEL}),optI=candI.map(rotuloDe).concat(['A pessoa escondida, dona da voz']);
-    var certoI=imp==='acompanhante'?optI.length-1:candI.indexOf(imp);
-    var candA=NA_CASA.slice(),optA=candA.map(rotuloDe).concat(['A voz: a mensagem do escuro']);
-    var certoA=aj==='voz'?optA.length-1:candA.indexOf(aj);
-    filaPerguntas=[
-      {rotulo:'impostor',pergunta:'Quem é o impostor?',opcoes:optI,certas:[certoI],livre:true},
-      {rotulo:'ajudante',pergunta:'Quem ajudou o traidor? (pode ter sido sem querer, e pode ter sido você)',opcoes:optA,certas:[certoA],livre:true}];
-    respostas.final=[];proximaPergunta();
-  };
-}
-function pintarRevelacao(){
-  var P=P_R2,F=FIM_R2[P],imp=IMPOSTOR_R2[P],aj=AJUDANTE_R2[P];
-  var nomeImp=imp==='acompanhante'?'a pessoa escondida, dona da voz':na(imp),nomeAj=aj==='voz'?'a própria voz, com a mensagem do escuro':na(aj);
-  var linhas=[['O que sabia',F.fala],['Por onde foi',F.rota],['Quem viu não estar',F.ausencia],['O que o caderno desmente',F.caderno],['Quem ajudou',F.ajudou],['Por que os outros caíram',F.outros]];
-  $('#fechoCorpo').innerHTML='<p class="kicker">A revelação</p><h1 id="fechoTitulo">'+T((imp==='acompanhante'?'Foi a pessoa escondida.':'Foi '+nomeImp+'.'))+'</h1>'+
-    linhas.map(function(l){return '<h2>'+l[0]+'</h2><p class="lede">'+T(l[1])+'</p>'}).join('')+
-    '<p class="lede"><b>Quem ajudou:</b> '+T(nomeAj)+'.'+(aj===EU_PAPEL?' Era o seu personagem: você cobriu o traidor sem saber.':'')+(FALSO_R2[P].indexOf(EU_PAPEL)>=0?' E o seu personagem era quem parecia culpado, sem ser.':'')+'</p>'+
-    '<div class="acoes"><button type="button" id="irPlacar">Ver o placar</button></div>';
-  $('#irPlacar').onclick=pintarPlacar;$('#fecho').scrollTop=0;
-}
-function pintarPlacar(){
-  var tot=0,certezas=0,certezasCertas=0,linhas='';
-  [1,2,3,4,5,6,'final'].forEach(function(c){var rs=respostas[c]||[];if(!rs.length)return;var s=0;rs.forEach(function(r){s+=pontosDe(r);if(r.confianca==='certeza'){certezas++;if(r.certa)certezasCertas++}});tot+=s;
-    linhas+='<div class="linha"><span><b>'+(c==='final'?'Respostas finais':'Capítulo '+c)+'</b></span><span>'+rs.filter(function(r){return r.certa}).length+' de '+rs.length+'</span><span class="'+(s>=0?'ganha':'perde')+'">'+(s>0?'+':'')+s+'</span></div>'});
-  /* faro: apostas certas com certeza, capítulo a capítulo */
-  var imp=IMPOSTOR_R2[P_R2],faro=0,primeiro=null;
-  Object.keys(apostas).forEach(function(c){var a=apostas[c];if(!a||a.confianca!=='certeza')return;
-    var quem=a.personagem||(a.numero?Object.keys(SLOT_DE).filter(function(id){return SLOT_DE[id]===a.numero})[0]:null);
-    if(a.personagem==='voz')quem='acompanhante';
-    if(quem===imp){faro++;if(primeiro===null||+c<primeiro)primeiro=+c}else if(quem)faro--});
-  var titulos=[],rf=respostas.final||[],r5=respostas[5]||[];
-  if(primeiro!==null)titulos.push(['Faro','Você apostou certo, com certeza, já no Capítulo '+primeiro+'.']);
-  if(r5.length&&r5.filter(function(r){return r.certa}).length>=3)titulos.push(['Escuta','Você acertou o que se ouviu no escuro.']);
-  var r6=respostas[6]||[];if(rf[1]&&rf[1].certa&&r6[1]&&r6[1].certa)titulos.push(['Coração','Você acertou quem parecia culpado e quem ajudou.']);
-  if(FALSO_R2[P_R2].indexOf(EU_PAPEL)>=0)titulos.push(['Sob suspeita','O seu personagem era o falso culpado da noite.']);
-  $('#fechoCorpo').innerHTML='<p class="kicker">O placar</p><h1 id="fechoTitulo">'+(tot>0?'+':'')+tot+' pontos</h1>'+
-    '<div class="tabela"><div class="linha cab"><span></span><span>Acertos</span><span>Pontos</span></div>'+linhas+'</div>'+
-    '<p class="lede">Com certeza: +4 ou −4. Sem certeza: +2 ou −1. Não sei: 0. As secundárias valem metade; "quem é o impostor?" vale três vezes; "quem ajudou?", duas.</p>'+
-    '<p class="lede"><b>Faro:</b> '+(faro>0?'+':'')+faro+' (apostas de fim de capítulo feitas com certeza). <b>Certezas:</b> '+certezasCertas+' de '+certezas+'.</p>'+
-    (titulos.length?'<h2>Títulos</h2>'+titulos.map(function(t){return '<p class="lede"><b>'+t[0]+'.</b> '+t[1]+'</p>'}).join(''):'')+
-    '<div class="acoes"><button type="button" id="irEpilogo">Epílogo</button></div>';
-  $('#irEpilogo').onclick=pintarEpilogo;$('#fecho').scrollTop=0;
-}
-function pintarEpilogo(){
-  var P=P_R2,imp=IMPOSTOR_R2[P],cond=presente('tabeliao')?'tabeliao':'policial';
-  var txt=['De manhã, a chuva parou como se nunca tivesse começado. O rádio avisou que a estrada seria reaberta ao meio-dia.',
-    T(Na(cond))+' lavrou a ata na mesa da biblioteca, com a letra mais firme que conseguiu. Registrou o adendo'+(P===6?', e a última frase, em outra tinta, a mesma do caderno.':', autêntico: mesma tinta, mesma mão trêmula, mesma pressão de caneta do começo ao fim. Registrou a declaração '+T('{de:'+Object.keys(ALIAS_R2).filter(function(k){return ALIAS_R2[k]===imp})[0]+'}')+' e, logo abaixo, os trechos do caderno que a desmentiam.')+' Na linha do beneficiário, depois de muito tempo com a caneta suspensa, escreveu: <i>a quem o acompanhou até o fim, identidade a apurar.</i>',
-    presente('advogado')?T('{Adv} leu por cima do ombro e não corrigiu nada.'):'',
-    T('{Her}')+' foi sozinha até o quarto do jasmim. A cama estava arrumada. Ninguém tinha arrumado na frente dela. O gato cinza estava enrolado aos pés, onde o caderno dizia que ele dormia, e não se mexeu quando ela entrou. Ela ficou na porta muito tempo. Depois abriu a janela, por causa do cheiro.',
-    'Na noite anterior, antes de dormir, '+na('policial')+' tinha acertado o relógio pela hora certa do pulso. Ninguém viu quando.',
-    'Às sete da manhã, o relógio bateu a hora. '+Na('policial')+' olhou o pulso. Quatro minutos na frente.',
-    'Os celulares vibraram pela última vez: <i>"'+MSG_EPILOGO[PERSONALIDADE]+'"</i>'].filter(Boolean);
-  $('#fechoCorpo').innerHTML='<p class="kicker">Epílogo</p><h1 id="fechoTitulo">Quatro minutos na frente.</h1>'+txt.map(function(t){return '<p class="lede">'+t+'</p>'}).join('')+
-    '<h2>Sem pontos</h2><p class="lede">Se a decisão fosse sua, o quarto do jasmim ficaria com quem esteve no começo, com quem herdou ou com quem cuidou no fim?</p>'+
-    '<div class="opcoes">'+['Com quem esteve no começo','Com quem herdou','Com quem cuidou no fim'].map(function(o,i){return '<button type="button" class="op" data-valor="'+i+'"><i>'+'ABC'[i]+'</i><span>'+o+'</span></button>'}).join('')+'</div>'+
-    '<div class="acoes"><button type="button" id="fimJogo">Fim</button></div>';
-  document.querySelectorAll('[data-valor]').forEach(function(b){b.onclick=function(){document.querySelectorAll('[data-valor]').forEach(function(x){x.classList.toggle('on',x===b)})}});
-  $('#fimJogo').onclick=function(){var d=$('#fecho');try{d.close()}catch(e){d.removeAttribute('open')}janela('FIM','Obrigado por jogar. A partida '+PARTIDA+' terminou. Recarregue a página para uma partida nova.')};
-  $('#fecho').scrollTop=0;
-}
-
-/* a peça do quarto (Cap. 6), dentro da tela do jogo */
-function abrirQuarto(){
-  var t=$('#telaRA');
-  if(!t.querySelector('iframe[data-peca="quarto"]')){var f=document.createElement('iframe');f.dataset.peca='quarto';f.title='O quarto de serviço';f.allow='xr-spatial-tracking; camera; gyroscope; accelerometer; fullscreen';
-    f.src='quarto.html?embed=1&partida='+encodeURIComponent(PARTIDA)+'&jogador='+encodeURIComponent(EU)+'&saida='+(SAIDA_R2[P_R2]||{}).saida;t.appendChild(f)}
-  mostrarPeca('quarto');
-}
-
 var farolNoite=false;
 function fimDoPrologo(){
   if(capitulo!==0)return;
@@ -2904,7 +2179,7 @@ function fimDoPrologo(){
   $('#fechoCorpo').innerHTML='<div class="revela"><video id="videoRevela" src="media/impostor-revela.mp4" poster="media/impostor.webp" playsinline muted autoplay preload="auto" aria-label="O boneco de vidro vira o impostor, de chapéu e capa"></video><button type="button" class="som" id="somRevela" aria-label="Ver de novo com som">🔊</button></div>'+
     '<p class="kicker">Fim do prólogo</p><h1 id="fechoTitulo">Agora começa O Impostor.</h1>'+
     '<p class="lede">O prólogo foi a apresentação: o cenário, a história e a tela do jogo. Até aqui nada contou pontos.</p>'+
-    '<p class="lede">A partir de agora, cada capítulo tem tempo, os envios contam e, no fim de cada um, vem uma pergunta. Um dos personagens da casa não é quem diz. Nunca é o seu.</p>'+
+    '<p class="lede">A partir de agora, cada capítulo tem tempo, os envios contam e, no fim de cada um, vem uma pergunta. Um de vocês não é quem diz.</p>'+
     '<p class="lede">Você começa o Capítulo 1 com <b>'+envios+' envios</b>'+extra+'.</p>'+
     '<div class="acoes"><button type="button" id="irCap1">Começar o Capítulo 1</button></div>';
   depoisSim=null;var d=$('#fecho');try{d.showModal()}catch(e){d.setAttribute('open','')}d.scrollTop=0;
@@ -2920,15 +2195,15 @@ function comecarCapitulo(n){
   inicioCap=Date.now();escalaCap=escala;
   /* SUBSTITUIDO (30/09): if(ROTEIROS[n])tocarRoteiro(ROTEIROS[n].roteiro,escala); */
   portaoAtivo=null;if(ROTEIROS[n])tocarComPortoes(ROTEIROS[n],escala);
-  if(n===3){PECAS[2].tranca=false;pintarPecas();document.querySelector('[data-aba="ra"]').classList.add('glow')}   /* 01/10: era n===2 */
+  if(n===2){PECAS[2].tranca=false;pintarPecas();document.querySelector('[data-aba="ra"]').classList.add('glow')}
   if(n===1){PECAS[1].tranca=false;pintarPecas();document.querySelector('[data-aba="ra"]').classList.add('glow');liberarAba('suspeitos')}
   enviosNoCap=0;avisouMinimo=false;
-  if(n>1){envios=3+enviosPendentes;enviosPendentes=0;pintarEnvios();fimDeCapitulo=false;votoEm=null;votoPers=null;apostaConf=null;if(aba==='suspeitos')pintarSusp()}
+  if(n>1){envios=3;pintarEnvios();fimDeCapitulo=false;votoEm=null;votoPers=null;apostaConf=null;if(aba==='suspeitos')pintarSusp()}
   if(n===1){marcas.filter(function(x){return x.cap===0}).forEach(function(x){if(MSGS[x.id])MSGS[x.id].marca=false});marcas=marcas.filter(function(x){return x.cap!==0});treinoMarca=false;pintarGrupo()}
   /* Dica para quem está começando (Mario, 30/09): o que dá para achar no
      capítulo, sem dizer onde está nem o que significa. ?dicas=0 desliga. */
   var RA_=ROTEIROS[n];if(RA_&&RA_.achar&&Q.get('dicas')!=='0')setTimeout(function(){janela('PARA ACHAR NESTE CAPÍTULO','Dica para quem está começando. Neste capítulo dá para achar: '+RA_.achar.itens.join('; ')+'. '+RA_.achar.dica)},300);
-  janela('CAPÍTULO '+c.n,'O relógio do capítulo começou. '+TXT_TEMPO+' Agora cada mensagem ou anexo gasta 1 envio.'+(n===1||n===3?' Uma peça nova abriu na aba RA.':'')+' Lembre: toque e segure uma fala para marcá-la (até '+MAX_MARCAS+' neste capítulo).');
+  janela('CAPÍTULO '+c.n,'O relógio do capítulo começou. '+TXT_TEMPO+' Agora cada mensagem ou anexo gasta 1 envio.'+(n===1||n===2?' Uma peça nova abriu na aba RA.':'')+' Lembre: toque e segure uma fala para marcá-la (até '+MAX_MARCAS+' neste capítulo).');
 }
 /* Tarefa explicativa + execução: no prólogo, o jogador aprende a marcar uma fala
    e marca a primeira; a próxima fala do grupo fica pulsando até ele conseguir. */
@@ -3010,17 +2285,11 @@ function abrirMaquete(){
   mostrarPeca('maquete');
 }
 $('#sairRA').onclick=function(){$('#telaRA').hidden=true};
-document.addEventListener('click',function(e){var a=e.target.closest('[data-abrir]');if(!a)return;e.preventDefault();if(a.dataset.abrir==='maquete')abrirMaquete();if(a.dataset.abrir==='bandeja')antesDaPeca('bandeja',abrirBandeja);if(a.dataset.abrir==='escrivaninha')antesDaPeca('escrivaninha',abrirEscrivaninha);if(a.dataset.abrir==='relogio')antesDaPeca('relogio',abrirRelogio);if(a.dataset.abrir==='jardim')antesDaPeca('jardim',abrirJardim);if(a.dataset.abrir==='quarto')antesDaPeca('quarto',abrirQuarto)});
+document.addEventListener('click',function(e){var a=e.target.closest('[data-abrir]');if(!a)return;e.preventDefault();if(a.dataset.abrir==='maquete')abrirMaquete();if(a.dataset.abrir==='bandeja')abrirBandeja();if(a.dataset.abrir==='escrivaninha')antesDaPeca('escrivaninha',abrirEscrivaninha);if(a.dataset.abrir==='relogio')abrirRelogio();if(a.dataset.abrir==='jardim')abrirJardim()});
 /* Uma novidade de uso aparece UMA vez, antes de a peça abrir (antes da câmera).
    Só se ensina o que é da tela (ler de perto, fotografar); o que se mexe na peça
    continua para o jogador descobrir. */
-/* 01/10 (regra de ensino): cada gesto novo é explicado uma vez, na primeira peça que o usa. */
-var NOVIDADES={
-  bandeja:['O APARADOR','Na bandeja, cada xícara vira se você pegar pela alça e arrastar. Com ela virada, raspe o fundo com o dedo, como raspadinha. Arrastar a xícara pelo corpo troca ela de lugar: os sinais dos fundos, em ordem, contam alguma coisa. Novidade: um toque rápido num objeto tira uma foto dele. A foto vai para o seu inventário, no clipe 📎 da conversa, e pode ser anexada a outro jogador.'],
-  escrivaninha:['A ESCRIVANINHA','Há muitos papéis escritos à mão. Chegue perto com o celular (ou abra com dois dedos) para ler. As gavetas se abrem arrastando para a frente. Lembre: um toque rápido num papel tira a foto dele.'],
-  relogio:['O RELÓGIO','Gire o relógio com um dedo e olhe por todos os lados, até de cima e de baixo. As portas de vidro se abrem com um toque. Se for a sua vez: para parar o pêndulo, segure-o com o dedo até ele morrer; para religar, puxe-o de lado e solte.'],
-  jardim:['O JARDIM','Aqui nada se mexe: é para olhar. Gire com um dedo e chegue perto com dois. As placas dizem qual porta é qual.'],
-  quarto:['O QUARTO','Gire com um dedo e chegue perto. Um toque rápido num objeto tira a foto dele para o inventário.']};
+var NOVIDADES={escrivaninha:['A ESCRIVANINHA','Há muitos papéis escritos à mão. Chegue perto com o celular (ou abra com dois dedos) para ler. Novidade: um toque rápido num papel tira uma foto dele. A foto vai para o seu inventário, no clipe 📎 da conversa, e pode ser anexada a outro jogador.']};
 var novidadeVista={};
 function antesDaPeca(id,abrir){if(novidadeVista[id]||!NOVIDADES[id]){abrir();return}novidadeVista[id]=true;avisouFoto=true;janela(NOVIDADES[id][0],NOVIDADES[id][1],abrir)}
 
@@ -3071,16 +2340,12 @@ window.addEventListener('message',function(e){
     return;
   }
   if(e.origin===location.origin&&e.data&&e.data.oi==='relogio'){recadoDoRelogio(e.data.evento);return}
-  /* 01/10: as fotos da peça do quarto (Cap. 6) */
-  if(e.origin===location.origin&&e.data&&e.data.oi==='quarto'){if(e.data.evento==='foto'&&!fotografou(e.data.nome)){INVENTARIO.push({ico:'📷',nome:e.data.nome,desc:'Fotografado no quarto do jasmim',img:e.data.img});toast('Foto guardada no inventário: '+e.data.nome)}return}
   if(e.origin===location.origin&&e.data&&e.data.oi==='bandeja'){
     if(e.data.evento==='envio'&&!bandejaEnvio){bandejaEnvio=true;achouEnvio()}
-    if(e.data.evento==='resolvido')toast('Os sinais em ordem: as seis da bandeja são a louça da sala, completa.');
     if(e.data.evento==='pista'&&!INVENTARIO.some(function(it){return it.nome===e.data.nome})){
-      INVENTARIO.push({ico:'☕',nome:e.data.nome,desc:'Fotografada no aparador da sala',img:e.data.img});ensinouFoto=true;
+      INVENTARIO.push({ico:'☕',nome:e.data.nome,desc:'Achado na bandeja',img:e.data.img});
       var clipe=document.querySelector('[data-anexo="grupo"]');if(clipe){clipe.classList.add('nasce');setTimeout(function(){clipe.classList.remove('nasce')},3400)}
-      /* 01/10 (cânone): a xícara sozinha, de borda verde, com café frio */
-      setTimeout(function(){janela('A XÍCARA','A xícara sozinha no aparador tem a borda verde e um dedo de café frio, com uma película por cima. Não é da louça da sala. A foto foi para o seu inventário.')},900);
+      setTimeout(function(){janela('A BANDEJA','Seis xícaras têm a marca da casa e pó de meses. Uma é de outro jogo, e o fundo dela está limpo. A imagem do fundo foi para o seu inventário.')},1200);
     }
     return;
   }
@@ -3094,13 +2359,6 @@ window.addEventListener('message',function(e){
   if(e.data.evento==='envio')achouEnvio();
 });
 window.OIMesa={liberarAba:liberarAba,janela:janela,estado:function(){return estadoPrologo}};
-/* 01/10: ganchos de teste (?teste=1): pular capítulos e ler o estado */
-if(Q.get('teste')==='1')window.__oiMesa={P:function(){return P_R2},papel:function(){return EU_PAPEL},casa:function(){return CASA},
-  comecar:function(n){comecarCapitulo(n)},fim:function(){fimDoCapitulo()},final:function(){iniciarFinal()},
-  grupo:function(){return grupo.map(function(m){return m.sis?'[N] '+limpo(m.sis):(m.de?m.de+': '+limpo(m.txt||m.anexo||''):'')})},
-  roteiro:function(n){return ROTEIROS[n]?ROTEIROS[n].roteiro.map(function(e){return [e[0],e[1],typeof e[2]==='string'?limpo(e[2]):e[2]]}):null},
-  perguntas:function(n){return ROTEIROS[n]?ROTEIROS[n].perguntas():null},inventario:function(){return INVENTARIO.map(function(i){return i.nome})},
-  escuro:function(){return escuroAtivo},respostas:function(){return respostas},pecas:function(){return PECAS.map(function(p){return p.nome+(p.tranca?' 🔒':'')})}};
 pintarGrupo();pintarListaPriv();
 })();
 </script>
