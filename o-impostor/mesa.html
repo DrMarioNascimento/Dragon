@@ -1241,15 +1241,20 @@ function pintarSusp(){
 var PECAS=[
   {cap:'PRÓLOGO',nome:'A maquete',txt:'A casa inteira, por camadas',abrir:'maquete',ico:'🏠'},
   {cap:'CAP. 1',nome:'O aparador',txt:'A xícara e a bandeja',abrir:'bandeja',ico:'🍽️',tranca:true},
-  /* 01/10: a escrivaninha fica na biblioteca, lacrada até o Cap. 3 (era 'CAP. 2', 'No escritório') */
-  {cap:'CAP. 3',nome:'A escrivaninha',txt:'Na biblioteca',abrir:'escrivaninha',ico:'🖋️',tranca:true},
+  /* SUBSTITUIDO 02/10 (Mario: uma peça de RA por capítulo; o farol ficou no Cap. 5):
+     {cap:'CAP. 3',nome:'A escrivaninha',txt:'Na biblioteca',abrir:'escrivaninha',ico:'🖋️',tranca:true}, */
+  {cap:'CAP. 2',nome:'A escrivaninha',txt:'Na sala de mapas',abrir:'escrivaninha',ico:'🖋️',tranca:true},
   /* SUBSTITUIDO (30/09): {cap:'CAP. 3',nome:'O relógio',txt:'Na sala',href:'relogio.html',ico:'🕰️',tranca:true}, */
   {cap:'CAP. 3',nome:'O relógio',txt:'Na sala do relógio',abrir:'relogio',ico:'🕰️',tranca:true},
   /* SUBSTITUIDO (30/09, Mario: o livro do farol fica fora por agora): {cap:'CAP. 4',nome:'O jardim interno',txt:'E o farol ao longe',href:'livro.html',ico:'🌿',tranca:true}, */
   {cap:'CAP. 4',nome:'O jardim interno',txt:'As duas trilhas',abrir:'jardim',ico:'🌿',tranca:true},
   /* SUBSTITUIDO 01/10 (auditoria B5): {cap:'CAP. 6',nome:'O quarto',txt:'O quarto de serviço',href:'quarto.html',...}: abria fora da mesa e perdia o estado */
+  /* 02/10 (Mario): o farol, com o livro de registro e o rádio atrás da portinha do cadeado */
+  {cap:'CAP. 5',nome:'O farol',txt:'E o livro de registro',abrir:'farol',ico:'🗼',tranca:true},
   {cap:'CAP. 6',nome:'O quarto',txt:'O quarto do jasmim',abrir:'quarto',ico:'🚪',tranca:true}
 ];
+/* 02/10: com o farol no meio da lista, as peças se acham pelo nome, não pela posição */
+function peca(id){for(var i=0;i<PECAS.length;i++)if(PECAS[i].abrir===id)return PECAS[i];return {}}
 function pintarPecas(){$('#gradeRA').innerHTML=PECAS.map(function(p){
   return '<a class="peca'+(p.tranca?' trancada':'')+'" '+(p.abrir&&!p.tranca?'data-abrir="'+p.abrir+'" href="#"':(p.href&&!p.tranca?'href="'+p.href+'"':''))+'><span class="ico">'+(p.tranca?'🔒':p.ico)+'</span><small>'+p.cap+'</small><b>'+p.nome+'</b><span>'+p.txt+'</span></a>';
 }).join('');}
@@ -1520,8 +1525,10 @@ function aoMarco(id){
     janela('SEU POSTO',(meu?'Às nove e meia, o seu posto é: '+POSTOS_R2[meu].nome.toLowerCase()+'. ':'')+'A planta com todos os postos e os segundos até o relógio está no seu inventário, no clipe 📎 da conversa.')}
   if(id==='parar'){destravarRelogio();atualizarRelogio(relogioModo==='religar'?'religar':'ver','parado');toast('O relógio abriu na aba RA.')}
   if(id==='religar')atualizarRelogio('ver','religado');
+  /* Cap. 5 (02/10): voltada a luz, o farol abre na aba RA */
+  if(id==='farol'&&peca('farol').tranca){peca('farol').tranca=false;pintarPecas();document.querySelector('[data-aba="ra"]').classList.add('glow');toast('O farol abriu na aba RA.')}
   /* Cap. 6 (01/10) */
-  if(id==='quarto'){PECAS[5].tranca=false;pintarPecas();document.querySelector('[data-aba="ra"]').classList.add('glow');toast('O quarto abriu na aba RA.');
+  if(id==='quarto'){peca('quarto').tranca=false;pintarPecas();document.querySelector('[data-aba="ra"]').classList.add('glow');toast('O quarto abriu na aba RA.');
     if(!fotografou('Folha dos três lembretes'))INVENTARIO.push({ico:'📄',nome:'Folha dos três lembretes',desc:'Presa com grampo na primeira página do caderno',img:papelSVG('Três linhas, sem data',['mostrar o relógio','a porta de serviço','parar o pêndulo'])})}
   if(id==='caderno'&&!fotografou('Caderno de capa azul')){INVENTARIO.push({ico:'📘',nome:'Caderno de capa azul',desc:'O caderno de cuidados, sem nome',img:cadernoSVG(P_R2)});
     janela('O CADERNO','O caderno foi para o seu inventário. Compare com as falas que você marcou nos capítulos (aba Nota): uma das lembranças ditas hoje não fecha com ele.')}
@@ -1711,14 +1718,15 @@ var MATRIZ_C1={
   1:{voltou:['herdeira','O piano mudou de lugar desde as fotos.'],xicara:['observadora'],macaneta:'residente'},
   /* SUBSTITUIDO 01/10: 2 'A janela da copa agora emperra.' · 4 'O gato está gordo.' · 10 'Na terça, estas janelas estavam fechadas…' · 15 'O medidor girou este mês.'
      (com a véspera, a fala precisa entregar uma visita antes de ontem) */
-  2:{voltou:['governanta','Essa janela da copa emperra desde o inverno. Toda terça eu brigava com ela.'],xicara:['governanta'],macaneta:'jornalista'},
+  /* SUBSTITUIDO 02/10 (Mario: o tempo verbal tem de escorregar para depois da morte): 2 'Essa janela da copa emperra desde o inverno. Toda terça eu brigava com ela.' · 10 'Toda terça eu deixava estas janelas fechadas…' */
+  2:{voltou:['governanta','Essa janela da copa emperrou de novo. Na terça passada eu já tinha brigado com ela.'],xicara:['governanta'],macaneta:'jornalista'},
   4:{voltou:['jardineiro','O gato engordou desde que lacraram a casa.'],xicara:['governanta'],macaneta:'chefe_de_cozinha'},
   5:{voltou:['jornalista','Da última vez, o portão tinha corrente.'],xicara:['observadora'],macaneta:'jardineiro'},
   6:{voltou:['observadora','A cortina da biblioteca foi lavada.'],xicara:['herdeira','É o jogo da minha avó. Não é desta sala.'],macaneta:'jornalista'},
   7:{voltou:['policial','A fechadura do vestíbulo eu mesmo troquei.'],xicara:['governanta','Eu servi o último café dele nessa xícara. Na última noite.'],macaneta:'investigador'},
   8:{voltou:['chefe_de_cozinha','porto'],xicara:['governanta'],macaneta:'eletricista'},
   9:{voltou:['investigador','O sensor da janela ainda está aqui.'],xicara:['observadora'],macaneta:'herdeira'},
-  10:{voltou:['governanta','Toda terça eu deixava estas janelas fechadas…'],xicara:['herdeira'],macaneta:'residente'},
+  10:{voltou:['governanta','Na terça passada eu deixei estas janelas fechadas…'],xicara:['herdeira'],macaneta:'residente'},
   12:{voltou:['chefe_de_cozinha','porto'],xicara:['governanta'],macaneta:'jardineiro'},
   13:{voltou:['jornalista','Da última vez, o portão tinha corrente.'],xicara:['governanta'],macaneta:'observadora'},
   14:{voltou:['advogado','A gaveta da escrivaninha agora fecha.'],xicara:['observadora'],macaneta:'governanta'},
@@ -1893,6 +1901,8 @@ var C2_R2=(function(){
   sis(6,'O rádio do vestíbulo chiou às sete e quarenta. Era um VHF antigo, de quando a casa ainda falava com os barcos. '+Na('investigador')+' foi o primeiro a alcançá-lo.');
   sis(14,'A voz do Faroleiro veio cortada pela estática, mas firme: <i>"Casa da Costa, aqui é o farol. A ponte caiu com a cheia. Ninguém sobe nem desce até de manhã. Repito: ninguém sobe nem desce."</i> <i>"Entendido. Tem luz aí?"</i> <i>"O farol tem gerador. A costa, não sei por quanto tempo."</i>');
   sis(24,Na(presente('tabeliao')?'tabeliao':'policial')+' anotou a hora.');
+  /* 02/10: o gancho da escrivaninha, que agora abre neste capítulo */
+  sis(42,'Na sala de mapas, a escrivaninha dele estava como ele tinha deixado: papéis no tampo, seis gavetas fechadas.');
   chat(34,voz(['herdeira','advogado','jornalista']),'A ponte caiu. Então ninguém vai embora.');
   /* ◆ a luz no corredor de serviço */
   sis(50,Na(M.luz)+' estava perto do corredor de serviço e viu: por um segundo, pouco mais, o fundo do corredor se acendeu de azul, como uma tela de celular, e se apagou.');
@@ -1945,8 +1955,8 @@ var C2_R2=(function(){
     respPriv:[[0,'Onde você está agora?'],[78,'Quem é esse número?'],[t+34,'Você ouviu a frase perto do corredor?'],[0,'Não confio em ninguém aqui.']],
     replica:replica,
     acompPriv:RESP_ACOMP_R2,
-    /* 01/10: a escrivaninha passou para o Cap. 3 (a biblioteca só abre lá); o Cap. 2 não tem peça nova */
-    achar:null,
+    /* SUBSTITUIDO 02/10: achar:null (a escrivaninha estava no Cap. 3). Agora a peça do Cap. 2 é a escrivaninha da sala de mapas. */
+    achar:{itens:['papéis para ler e fotografar, no tampo e nas seis gavetas da escrivaninha da sala de mapas (aba RA)','1 envio extra entre os papéis do tampo'],dica:'Chegue perto com o celular para ler. Fotografe o que puder: alguns papéis só fazem sentido mais tarde.'},
     debate:{pergunta:'Por que ninguém sabe o número do dono, nem a filha?',falas:[
       fala(['herdeira','advogado'],'Ele trocou de chip nos últimos meses. Ninguém da família tinha o número novo.'),
       fala(['policial','tabeliao','residente'],'O cartório montou o grupo com a lista que ele deixou, sem nomes. Um dos números não é de ninguém daqui.'),
@@ -2012,8 +2022,8 @@ var C3_R2=(function(){
   var gov=presente('governanta'),adv=presente('advogado');
   sis(6,'Às oito e dez, '+na(cond)+' rompeu o último lacre, o da biblioteca, e leu em voz alta o procedimento: antes de tocar em qualquer bem, todos conferem juntos a lista do inventário contra o que está nas estantes. Um minuto, não mais. Todos na biblioteca, ninguém fica para trás.');
   sis(18,'Foram. O minuto se esticou em dois'+(gov&&adv?', porque a Governanta achou um livro fora do lugar e o Advogado quis saber por quê.':'.'));
-  /* 01/10: o gancho da escrivaninha (a peça abre neste capítulo, com a biblioteca) */
-  sis(24,'Na biblioteca, a escrivaninha dele estava como ele tinha deixado: papéis no tampo, seis gavetas fechadas. Ninguém tocou nela naquele minuto, porque o minuto era da lista.');
+  /* SUBSTITUIDO 02/10 (a escrivaninha voltou para o Cap. 2, na sala de mapas):
+     sis(24,'Na biblioteca, a escrivaninha dele estava como ele tinha deixado: papéis no tampo, seis gavetas fechadas. Ninguém tocou nela naquele minuto, porque o minuto era da lista.'); */
   sis(32,'Quando voltaram à sala do relógio, quem entrou primeiro parou tão de repente que quem vinha atrás esbarrou nas costas. No flanco do móvel, do lado da porta-janela do jardim, havia uma marca de mão. Molhada. Ainda escorria.');
   sis(42,'<i>"Alguém veio do jardim"</i>, disse '+na(presente('jardineiro')?'jardineiro':'residente')+'. <i>"A porta-janela está só encostada."</i>');
   var mao=MAO_C3[M.mao];
@@ -2070,7 +2080,8 @@ var C3_R2=(function(){
       'Você ouviu o estalo?':'Ouvi. Veio do fundo do móvel.',
       'Não confio em ninguém aqui.':'Nem eu.'
     },
-    achar:{itens:['papéis para ler e fotografar, no tampo e nas seis gavetas da escrivaninha da biblioteca (aba RA)','1 envio extra entre os papéis do tampo','1 envio extra escondido no relógio (aba RA, depois que ele destravar)'],dica:'Dá para girar as peças com o dedo e olhar por todos os lados, até de cima e de baixo.'},
+    /* SUBSTITUIDO 02/10: itens:['papéis ... da escrivaninha da biblioteca (aba RA)','1 envio extra entre os papéis do tampo','1 envio extra escondido no relógio ...'] */
+    achar:{itens:['1 envio extra escondido no relógio (aba RA, depois que ele destravar)'],dica:'Dá para girar as peças com o dedo e olhar por todos os lados, até de cima e de baixo.'},
     acompPriv:RESP_ACOMP_R2,
     debate:{pergunta:'O que a marca molhada prova, e o que ela não prova?',falas:[
       fala(['policial','residente','tabeliao'],'Prova que alguém entrou pelo jardim no minuto em que todos estavam na biblioteca.'),
@@ -2706,7 +2717,8 @@ var C5_R2X=(function(){
       'Você viu alguém andar no escuro?':'Vi uma tela passar. Só a luz.',
       'Não confio em ninguém aqui.':'Nem eu.'},
     acompPriv:RESP_ACOMP_R2,
-    achar:null,
+    /* SUBSTITUIDO 02/10: achar:null */
+    achar:{itens:['o farol, quando a luz voltar (aba RA): a portinha da torre, o livro de registro e o rádio'],dica:'A portinha tem um cadeado de quatro números. O código está desenhado a lápis num papel da escrivaninha da sala de mapas (Cap. 2). Quem fotografou, tem.'},
     escuro:true,
     debate:{pergunta:'O que cada som do escuro permite descartar?',falas:[
       fala(['policial','residente','jornalista'],'Quem gritou de um lugar estava naquele lugar. Grito não mente o endereço.'),
@@ -2920,7 +2932,8 @@ function comecarCapitulo(n){
   inicioCap=Date.now();escalaCap=escala;
   /* SUBSTITUIDO (30/09): if(ROTEIROS[n])tocarRoteiro(ROTEIROS[n].roteiro,escala); */
   portaoAtivo=null;if(ROTEIROS[n])tocarComPortoes(ROTEIROS[n],escala);
-  if(n===3){PECAS[2].tranca=false;pintarPecas();document.querySelector('[data-aba="ra"]').classList.add('glow')}   /* 01/10: era n===2 */
+  /* SUBSTITUIDO 02/10: if(n===3){PECAS[2].tranca=false;...}   (a escrivaninha voltou para o Cap. 2) */
+  if(n===2){peca('escrivaninha').tranca=false;pintarPecas();document.querySelector('[data-aba="ra"]').classList.add('glow')}
   if(n===1){PECAS[1].tranca=false;pintarPecas();document.querySelector('[data-aba="ra"]').classList.add('glow');liberarAba('suspeitos')}
   enviosNoCap=0;avisouMinimo=false;
   if(n>1){envios=3+enviosPendentes;enviosPendentes=0;pintarEnvios();fimDeCapitulo=false;votoEm=null;votoPers=null;apostaConf=null;if(aba==='suspeitos')pintarSusp()}
@@ -2928,7 +2941,7 @@ function comecarCapitulo(n){
   /* Dica para quem está começando (Mario, 30/09): o que dá para achar no
      capítulo, sem dizer onde está nem o que significa. ?dicas=0 desliga. */
   var RA_=ROTEIROS[n];if(RA_&&RA_.achar&&Q.get('dicas')!=='0')setTimeout(function(){janela('PARA ACHAR NESTE CAPÍTULO','Dica para quem está começando. Neste capítulo dá para achar: '+RA_.achar.itens.join('; ')+'. '+RA_.achar.dica)},300);
-  janela('CAPÍTULO '+c.n,'O relógio do capítulo começou. '+TXT_TEMPO+' Agora cada mensagem ou anexo gasta 1 envio.'+(n===1||n===3?' Uma peça nova abriu na aba RA.':'')+' Lembre: toque e segure uma fala para marcá-la (até '+MAX_MARCAS+' neste capítulo).');
+  janela('CAPÍTULO '+c.n,'O relógio do capítulo começou. '+TXT_TEMPO+' Agora cada mensagem ou anexo gasta 1 envio.'+(n===1||n===2?' Uma peça nova abriu na aba RA.':(n>=3?' Neste capítulo, uma peça nova abre na aba RA quando a história chegar nela.':''))+' Lembre: toque e segure uma fala para marcá-la (até '+MAX_MARCAS+' neste capítulo).');
 }
 /* Tarefa explicativa + execução: no prólogo, o jogador aprende a marcar uma fala
    e marca a primeira; a próxima fala do grupo fica pulsando até ele conseguir. */
@@ -2994,8 +3007,46 @@ function mostrarPeca(id){var t=$('#telaRA');t.querySelectorAll('iframe').forEach
 function abrirEscrivaninha(){
   var t=$('#telaRA');
   if(!t.querySelector('iframe[data-peca="escrivaninha"]')){var f=document.createElement('iframe');f.dataset.peca='escrivaninha';f.title='A escrivaninha';f.allow='xr-spatial-tracking; camera; gyroscope; accelerometer; fullscreen';
-    f.src='escrivaninha.html?embed=1&partida='+encodeURIComponent(PARTIDA)+'&jogador='+encodeURIComponent(EU);t.appendChild(f)}
+    /* SUBSTITUIDO 02/10: f.src='escrivaninha.html?embed=1&partida=...&jogador=...' (agora leva também o código do cadeado do farol) */
+    f.src='escrivaninha.html?embed=1&partida='+encodeURIComponent(PARTIDA)+'&jogador='+encodeURIComponent(EU)+'&farol='+CODIGO_FAROL;t.appendChild(f)}
   mostrarPeca('escrivaninha');
+}
+/* ── O farol (Cap. 5, 02/10, Mario) ───────────────────────────────────────
+   Uma portinha do tamanho de um cofre na torre, a 1,5 m do chão, do lado oposto
+   à placa. Cadeado de coração com código de 4 números, que muda a cada partida
+   (vem da semente). O mesmo código está desenhado a lápis num papel da
+   escrivaninha, que também muda de lugar a cada partida. Dentro: o livro de
+   registro do Faroleiro e um rádio portátil. As páginas do livro são da noite
+   desta partida, só com o que o farol já disse no rádio. */
+var CODIGO_FAROL=(function(){var r=gerador(PARTIDA+'|farol'),s='';for(var i=0;i<4;i++)s+=Math.floor(r()*10);return s})();
+/* 02/10 (Mario: "várias páginas"): o livro tem folhas. A primeira é a de rosto
+   (com o carimbo, que a peça põe), depois as noites de rotina, a véspera e a
+   noite da leitura; o resto, pautado em branco (a peça completa). Nada além do
+   que o farol já disse no rádio, nesta partida. */
+function paginasDoFarol(){
+  var rot='Lâmpada acesa ao pôr do sol. Gerador testado. Sem ocorrências.';
+  var vesp=['Lâmpada acesa ao pôr do sol. Gerador testado.','Chuva o dia todo.'];
+  if(FUNCIONARIOS.length)vesp.push('Aconselhei pelo rádio o pessoal do serviço da Casa da Costa a dormir lá. A estrada da costa não está segura.');
+  var noite=['Lâmpada acesa ao pôr do sol.'];
+  if(FUNCIONARIOS.length)noite.push('Chamei a Casa da Costa. O pessoal do serviço passou a noite lá. Perguntei se os convocados chegaram bem.');
+  else noite.push('Luz na ala de serviço da Casa da Costa desde a tarde. Chamei a casa pelo rádio.');
+  noite.push('19h40 — A ponte caiu com a cheia. Avisei a casa: ninguém sobe nem desce até de manhã.');
+  var apagao=['21h29 — Apagou a costa inteira, da vila ao cabo.','Seis clarões até a luz voltar.'];
+  var D=C5_R2[P_R2];if(D&&D.farol)apagao.push(D.farol);
+  apagao.push('21h31 — Voltou tudo junto. Avisei a casa.');
+  return {folhas:[
+    {titulo:'Registro de serviço',linhas:['Livro do Farol.']},
+    {titulo:'Noites anteriores',linhas:[rot,rot,rot]},
+    {titulo:'A véspera',linhas:vesp},
+    {titulo:'A noite da leitura',linhas:noite},
+    {titulo:'A noite da leitura',linhas:apagao}
+  ]};
+}
+function abrirFarol(){
+  var t=$('#telaRA');
+  if(!t.querySelector('iframe[data-peca="farol"]')){var f=document.createElement('iframe');f.dataset.peca='farol';f.title='O farol';f.allow='xr-spatial-tracking; camera; gyroscope; accelerometer; fullscreen';
+    f.src='farol.html?embed=1&partida='+encodeURIComponent(PARTIDA)+'&jogador='+encodeURIComponent(EU)+'&codigo='+CODIGO_FAROL+'&paginas='+encodeURIComponent(JSON.stringify(paginasDoFarol()));t.appendChild(f)}
+  mostrarPeca('farol');
 }
 function abrirBandeja(){
   var t=$('#telaRA');
@@ -3010,7 +3061,7 @@ function abrirMaquete(){
   mostrarPeca('maquete');
 }
 $('#sairRA').onclick=function(){$('#telaRA').hidden=true};
-document.addEventListener('click',function(e){var a=e.target.closest('[data-abrir]');if(!a)return;e.preventDefault();if(a.dataset.abrir==='maquete')abrirMaquete();if(a.dataset.abrir==='bandeja')antesDaPeca('bandeja',abrirBandeja);if(a.dataset.abrir==='escrivaninha')antesDaPeca('escrivaninha',abrirEscrivaninha);if(a.dataset.abrir==='relogio')antesDaPeca('relogio',abrirRelogio);if(a.dataset.abrir==='jardim')antesDaPeca('jardim',abrirJardim);if(a.dataset.abrir==='quarto')antesDaPeca('quarto',abrirQuarto)});
+document.addEventListener('click',function(e){var a=e.target.closest('[data-abrir]');if(!a)return;e.preventDefault();if(a.dataset.abrir==='maquete')abrirMaquete();if(a.dataset.abrir==='bandeja')antesDaPeca('bandeja',abrirBandeja);if(a.dataset.abrir==='escrivaninha')antesDaPeca('escrivaninha',abrirEscrivaninha);if(a.dataset.abrir==='relogio')antesDaPeca('relogio',abrirRelogio);if(a.dataset.abrir==='jardim')antesDaPeca('jardim',abrirJardim);if(a.dataset.abrir==='farol')antesDaPeca('farol',abrirFarol);if(a.dataset.abrir==='quarto')antesDaPeca('quarto',abrirQuarto)});
 /* Uma novidade de uso aparece UMA vez, antes de a peça abrir (antes da câmera).
    Só se ensina o que é da tela (ler de perto, fotografar); o que se mexe na peça
    continua para o jogador descobrir. */
@@ -3019,6 +3070,7 @@ var NOVIDADES={
   bandeja:['O APARADOR','Na bandeja, cada xícara vira se você pegar pela alça e arrastar. Com ela virada, raspe o fundo com o dedo, como raspadinha. Arrastar a xícara pelo corpo troca ela de lugar: os sinais dos fundos, em ordem, contam alguma coisa. Novidade: um toque rápido num objeto tira uma foto dele. A foto vai para o seu inventário, no clipe 📎 da conversa, e pode ser anexada a outro jogador.'],
   escrivaninha:['A ESCRIVANINHA','Há muitos papéis escritos à mão. Chegue perto com o celular (ou abra com dois dedos) para ler. As gavetas se abrem arrastando para a frente. Lembre: um toque rápido num papel tira a foto dele.'],
   relogio:['O RELÓGIO','Gire o relógio com um dedo e olhe por todos os lados, até de cima e de baixo. As portas de vidro se abrem com um toque. Se for a sua vez: para parar o pêndulo, segure-o com o dedo até ele morrer; para religar, puxe-o de lado e solte.'],
+  farol:['O FAROL','Gire o farol com um dedo e procure a portinha na torre. O cadeado tem quatro rodinhas de números: toque nele, acerte o código e toque em Abrir. O livro se abre pela capa, arrastando, e um toque na página tira a foto dela.'],
   jardim:['O JARDIM','Aqui nada se mexe: é para olhar. Gire com um dedo e chegue perto com dois. As placas dizem qual porta é qual.'],
   quarto:['O QUARTO','Gire com um dedo e chegue perto. Um toque rápido num objeto tira a foto dele para o inventário.']};
 var novidadeVista={};
@@ -3072,6 +3124,7 @@ window.addEventListener('message',function(e){
   }
   if(e.origin===location.origin&&e.data&&e.data.oi==='relogio'){recadoDoRelogio(e.data.evento);return}
   /* 01/10: as fotos da peça do quarto (Cap. 6) */
+  if(e.origin===location.origin&&e.data&&e.data.oi==='farol'){if(e.data.evento==='foto'&&!fotografou(e.data.nome)){INVENTARIO.push({ico:'📷',nome:e.data.nome,desc:'Fotografado no farol',img:e.data.img});toast('Foto guardada no inventário: '+e.data.nome)}return}
   if(e.origin===location.origin&&e.data&&e.data.oi==='quarto'){if(e.data.evento==='foto'&&!fotografou(e.data.nome)){INVENTARIO.push({ico:'📷',nome:e.data.nome,desc:'Fotografado no quarto do jasmim',img:e.data.img});toast('Foto guardada no inventário: '+e.data.nome)}return}
   if(e.origin===location.origin&&e.data&&e.data.oi==='bandeja'){
     if(e.data.evento==='envio'&&!bandejaEnvio){bandejaEnvio=true;achouEnvio()}

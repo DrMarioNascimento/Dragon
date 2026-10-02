@@ -1,4 +1,5 @@
-/* O Impostor — a escrivaninha da biblioteca (Capítulo 3; até 01/10 era do escritório, no Cap. 2), com a mão.
+/* O Impostor — a escrivaninha da sala de mapas (Capítulo 2, desde 02/10: uma peça de RA por capítulo;
+   SUBSTITUIDO: 'da biblioteca (Capítulo 3; até 01/10 era do escritório, no Cap. 2)'), com a mão.
    01/10 (auditoria): papéis que contradiziam o cânone ou entregavam o futuro foram trocados
    (versão anterior em ra/escrivaninha-folhas_SUBSTITUIDO.js).
 
@@ -28,7 +29,7 @@
     vista: { alvo: [0, 0.74, 0.02], dist: 1.25, distRetrato: 2.1, dir: [0, 1.25, 0.8] },
     raioDoChao: 1.2, alturaDoAparelho: 1.35, miraEscala: 2.2, exposicao: 1.0,
     textoMira: 'Aponte para o chão, onde a escrivaninha ficaria, e toque em Pôr aqui.',
-    textoInicio: 'A escrivaninha da biblioteca.',
+    textoInicio: 'A escrivaninha da sala de mapas.',   /* SUBSTITUIDO 02/10: 'A escrivaninha da biblioteca.' */
     deNovo: null
   });
 
@@ -89,6 +90,18 @@
     [{ nome: 'Garantia da geladeira', estilo: 'maquina', linhas: ['CERTIFICADO DE GARANTIA', '', 'Produto: refrigerador Mosaico', 'Prazo: 12 meses', '', 'Guarde este certificado', 'junto com a nota fiscal.'] },
      { nome: 'Lista de telefones', estilo: 'maquina', linhas: ['TELEFONES ÚTEIS', '', 'Bombeiros ........ 193', 'Polícia .......... 190', 'Farol ............ ramal 3', 'Mercearia do Porto', '  (48) 3··· ····', 'Táxi da praia', '  (48) 9··· ····'] }]
   ];
+  /* 02/10 (Mario): o papel do cadeado do farol — um cadeado em forma de coração desenhado a lápis
+     e o código ao lado, bem direto. O código vem da mesa (?farol=1234) e muda a cada partida; o
+     papel muda de lugar a cada partida (e jogador): no topo ou no meio de um monte, ou numa gaveta. */
+  (function () {
+    var Q = new URLSearchParams(location.search), cod = (Q.get('farol') || '').replace(/\D/g, '').slice(0, 4);
+    if (cod.length !== 4) return;
+    var CAD = { nome: 'Papel do cadeado', estilo: 'mao', desenho: 'cadeado', codigo: cod, linhas: [] };
+    var r = OISorteio.gerador(Q.get('partida') || 'P-DEMO', Q.get('jogador') || '0', 'escrivaninha-cadeado');
+    var n = r.inteiro(0, MONTES.length + GAVETAS.length - 1);
+    if (n < MONTES.length) { var m = MONTES[n]; m.folhas.splice(r.inteiro(0, m.folhas.length), 0, CAD); }
+    else { var gv = GAVETAS[n - MONTES.length]; gv.splice(r.inteiro(0, gv.length), 0, CAD); }
+  })();
   (function () {                      /* a conta entra numa gaveta e numa altura sorteadas */
     var Q = new URLSearchParams(location.search);
     var r = OISorteio.gerador(Q.get('partida') || 'P-DEMO', Q.get('jogador') || '0', 'escrivaninha-dica');
@@ -129,6 +142,22 @@
         });
       } else g.fillText(l, x, y);
     });
+    if (f.desenho === 'cadeado') {              /* o cadeado de coração, a lápis, e o código ao lado */
+      g.save(); g.strokeStyle = 'rgba(60,60,64,.85)'; g.lineWidth = 3; g.lineJoin = 'round';
+      var cx0 = W * 0.33, cy0 = H * 0.55, R = W * 0.17;
+      g.beginPath(); g.moveTo(cx0 - R * 0.55, cy0 - R * 0.55); g.lineTo(cx0 - R * 0.55, cy0 - R * 1.25);
+      g.arc(cx0, cy0 - R * 1.25, R * 0.55, Math.PI, 0); g.lineTo(cx0 + R * 0.55, cy0 - R * 0.55); g.stroke();       /* a alça */
+      g.beginPath(); g.moveTo(cx0, cy0 + R * 1.15);                                                                  /* o coração */
+      g.bezierCurveTo(cx0 - R * 1.6, cy0 + R * 0.1, cx0 - R * 1.25, cy0 - R * 1.05, cx0 - R * 0.05, cy0 - R * 0.55);
+      g.moveTo(cx0, cy0 + R * 1.15);
+      g.bezierCurveTo(cx0 + R * 1.6, cy0 + R * 0.1, cx0 + R * 1.25, cy0 - R * 1.05, cx0 + R * 0.05, cy0 - R * 0.55); g.stroke();
+      g.beginPath(); g.arc(cx0 - R * 0.3, cy0 - R * 0.15, R * 0.18, 0, Math.PI * 2); g.stroke();                       /* o botão */
+      g.beginPath(); g.arc(cx0 + R * 0.12, cy0 + R * 0.12, R * 0.12, 0, Math.PI * 2); g.moveTo(cx0 + R * 0.06, cy0 + R * 0.22); g.lineTo(cx0 + R * 0.02, cy0 + R * 0.5); g.lineTo(cx0 + R * 0.22, cy0 + R * 0.5); g.lineTo(cx0 + R * 0.18, cy0 + R * 0.22); g.stroke();
+      for (var hh = 0; hh < 26; hh++) { g.globalAlpha = 0.12; g.beginPath(); var yy0 = cy0 - R * 0.4 + hh * R * 0.06; g.moveTo(cx0 + R * 0.5, yy0); g.lineTo(cx0 + R * 0.9, yy0 - R * 0.25); g.stroke(); }   /* sombreado */
+      g.globalAlpha = 1; g.fillStyle = 'rgba(55,55,60,.9)'; g.textAlign = 'center';
+      g.font = '700 ' + Math.round(W * 0.15) + 'px Caveat, "Segoe Print", cursive'; g.fillText(f.codigo, W * 0.74, cy0 + R * 0.2);
+      g.restore();
+    }
     if (f.desenho === 'farol') {
       g.strokeStyle = '#1e2f5a'; g.lineWidth = 2.2; var bx = W / 2, by = H - 90;
       g.beginPath(); g.moveTo(bx - 60, by); g.lineTo(bx - 34, by - 360); g.lineTo(bx + 34, by - 360); g.lineTo(bx + 60, by); g.stroke();
@@ -181,7 +210,7 @@
     folhas.forEach(pegaDaFolha); gavetas.forEach(pegaDaGaveta);
     b.aCadaQuadro(function (dt) { animando = animando.filter(function (fn) { return fn(dt) !== true; }); });
     b.comecar();
-    b.estado('A escrivaninha da biblioteca.');
+    b.estado('A escrivaninha da sala de mapas.');   /* SUBSTITUIDO 02/10: 'A escrivaninha da biblioteca.' */
   }).catch(function (e) { b.estado('O modelo não carregou: ' + (e && e.message || e)); });
 
   /* Marca Dragon Games: etiqueta de fabricante, na lateral de trás, embaixo. */
