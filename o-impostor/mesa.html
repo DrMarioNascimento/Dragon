@@ -2183,6 +2183,12 @@ var C4_R2=(function(){
   sis(32,'<i>"Olhem o chão"</i>, disse '+na(lider)+'. <i>"Não para as flores. Para o chão."</i>');
   sis(44,'Havia duas trilhas. A primeira ia da porta da despensa, a de serviço, até a janela do quarto dos fundos: pedras gastas no meio, sem musgo, a terra batida de tanto uso. A segunda era de lama, pegadas de sola lisa, entre '+PORTAS_JARDIM[inicio]+' e '+PORTAS_JARDIM[M.trilha]+'.');
   sis(58,'<i>"A seca é de meses. Alguém anda aqui todo dia. A outra é desta noite."</i> '+Na(lider)+' iluminou o bico das pegadas e ficou olhando um tempo, sem dizer para que lado iam.');marco('jardim');
+  /* 02/10 (Mario): o Faroleiro passava na casa antes do turno. O segredo continua do
+     personagem; pelo rádio vem só o testemunho (o gato é do Jardineiro; as terças, da Governanta). */
+  if(presente('jardineiro')||presente('governanta'))
+    sis(66,'O rádio do vestíbulo chiou. Era o farol, querendo saber se a casa estava bem. Alguém perguntou se, nesses meses, ele tinha visto movimento por ali. <i>"Eu passava aí antes do turno, quase todo dia"</i>, disse o Faroleiro.'+
+      (presente('jardineiro')?' <i>"Via o Jardineiro deixar comida no portão. Para um gato."</i>':'')+
+      (presente('governanta')?' <i>"E às terças de manhã, a janela da copa aberta."</i>':''));
   if(P===12){
     sis(74,'<i>"Essa outra não é de hoje"</i>, disse '+na('observadora')+', abaixando-se com a saia recolhida. <i>"Olhe a borda. Está gasta. Ontem, talvez anteontem."</i> '+Na('jardineiro')+' apontou a lanterna para dentro de uma das pegadas. Havia água parada ali, e a borda de barro estava viva, cortada.');
     sis(88,'<i>"Com todo respeito, senhora. Pegada de anteontem, com essa chuva, já tinha virado poça. Esta aqui ainda tem desenho de sola."</i> '+Na('observadora')+' se levantou devagar. <i>"O senhor entende de terra. Eu entendo de madeira."</i> <i>"Então fique com a madeira."</i>');
@@ -2760,6 +2766,9 @@ var C6_R2X=(function(){
   sis(92,'Quando '+na(presente('jardineiro')?'jardineiro':'residente')+' chegou à varanda com a lanterna, havia só a chuva e, na terra, as pedras gastas da trilha seca, que a água apagava mais uma vez. Ninguém viu quem saiu. Ninguém viu nem a cor da roupa.');
   /* o quarto */
   sis(106,'No quarto, a cama ainda estava morna. Um carregador de celular pendia da tomada'+(presente('eletricista')?', a tomada que '+na('eletricista')+' tinha ligado em março,':'')+' sem aparelho na ponta. Sobre a mesa de cabeceira, um caderno escolar de capa azul, cheio até a metade. E, presa com um grampo na primeira página, uma folha com três linhas: <i>mostrar o relógio · a porta de serviço · parar o pêndulo</i>');marco('quarto');
+  /* 02/10 (Mario): o ajudante do Eletricista, de outra casa da região, pelo rádio. Só confirma
+     o que o caderno já diz; o segredo (ligou sem perguntar para quem) continua do Eletricista. */
+  if(presente('eletricista'))sis(115,'O rádio do vestíbulo chiou: era o ajudante '+(EU_PAPEL==='eletricista'?'que trabalha com você':'do Eletricista')+', de outra casa da região, procurando o patrão depois do apagão. '+Na(cond)+' aproveitou e perguntou da tomada. <i>"Foi em março, no quarto dos fundos. O pedido veio por telefone. Ninguém disse para quem."</i>');
   var cad=cadernoDe(P);
   sis(124,Na('investigador')+' leu o caderno em voz alta, pulando páginas, e a cada linha a sala ficava menor. '+cad.map(function(l){return '<i>"'+l+'"</i>'}).join(' ')+' E a última, numa quarta-feira: <i>"Ele não acordou."</i>');marco('caderno');
   sis(150,Na('jornalista')+' tirou o recorte do bolso e o dobrou de novo, sem olhar.');
