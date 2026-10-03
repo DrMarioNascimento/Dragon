@@ -1,6 +1,9 @@
 import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js';
-import { getAuth, GoogleAuthProvider, signInWithPopup, getRedirectResult, signInAnonymously, signOut } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
-import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
+/* SUBSTITUIDO 03/10: import { getAuth, GoogleAuthProvider, signInWithPopup, getRedirectResult, signInAnonymously, signOut } from '…/firebase-auth.js';
+   SUBSTITUIDO 03/10: import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, onSnapshot, serverTimestamp } from '…/firebase-firestore.js';
+   (entraram onAuthStateChanged e addDoc, para a volta sem formulário e os ganchos do jogo) */
+import { getAuth, GoogleAuthProvider, signInWithPopup, getRedirectResult, signInAnonymously, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
+import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, onSnapshot, serverTimestamp, addDoc } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 
 /* Esta folha é carregada com type="module", e em módulo document.currentScript
    é null: a configuração da página — projeto Firebase, coleção, nome do evento
@@ -15,9 +18,17 @@ const CASE_ID=script?.dataset.case||'caso';
 const TITLE=script?.dataset.title||'MOSAICO';
 const READY_EVENT=script?.dataset.readyEvent||'mosaico-room-ready';
 const TELAO=script?.dataset.telao||'';
+/* 03/10 (O Impostor): data-papel-camada="nao" tira da entrada o papel cognitivo e a
+   camada; data-retomar="sim" deixa quem já está na sala voltar (recarga, ou a
+   página que o jogo reabre depois do sorteio) sem digitar o nome de novo. Sem os
+   dois atributos, nada muda para as outras mesas. */
+const SEM_PAPEL=script?.dataset.papelCamada==='nao';
+const RETOMAR=script?.dataset.retomar==='sim';
 const CONFIGS={
   mesa:{apiKey:'AIzaSyDwshZbqaMOKxdRuyLtdpbijPRdrjVOcxE',authDomain:'mosaico-game.firebaseapp.com',projectId:'mosaico-game',storageBucket:'mosaico-game.firebasestorage.app',messagingSenderId:'436141261767',appId:'1:436141261767:web:6a83555a2f7c4ed4550fe2'},
-  noite:{apiKey:'AIzaSyA160bkgHBrYBwvIxlENax-aAyLWPMaOU4',authDomain:'mosaico-noite.firebaseapp.com',projectId:'mosaico-noite',storageBucket:'mosaico-noite.firebasestorage.app',messagingSenderId:'703343424116',appId:'1:703343424116:web:e6990b5c00d43aca6e9721'}
+  noite:{apiKey:'AIzaSyA160bkgHBrYBwvIxlENax-aAyLWPMaOU4',authDomain:'mosaico-noite.firebaseapp.com',projectId:'mosaico-noite',storageBucket:'mosaico-noite.firebasestorage.app',messagingSenderId:'703343424116',appId:'1:703343424116:web:e6990b5c00d43aca6e9721'},
+  /* O Impostor (03/10/2026): projeto próprio, um por caso. Sem Analytics: não serve ao jogo. */
+  impostor:{apiKey:'AIzaSyB_iz5CI0lvml-t7nlgTGmQGGL6i79drjs',authDomain:'oimpostor-c30e0.firebaseapp.com',projectId:'oimpostor-c30e0',storageBucket:'oimpostor-c30e0.firebasestorage.app',messagingSenderId:'182177484646',appId:'1:182177484646:web:48efa34591444c6af1c2a7'}
 };
 const app=getApps().find(a=>a.name===`dragon-${PROJECT}`)||initializeApp(CONFIGS[PROJECT],`dragon-${PROJECT}`);
 const auth=getAuth(app),db=getFirestore(app);
@@ -26,6 +37,7 @@ const FORMAS={m:{emoji:'👨',label:'Bem-vindo'},f:{emoji:'👩',label:'Bem-vind
 function casoPapel(){return CASE_ID||'caso'}
 function ensurePapelCamada(){
   return new Promise(res=>{
+    if(SEM_PAPEL)return res(null);
     if(window.MosaicoPapelCamada)return res(window.MosaicoPapelCamada);
     const s=document.createElement('script');
     s.src=new URL('papel-camada.js',script.src).href;
@@ -328,10 +340,12 @@ async function entrar(asMaster=false){
     role=(asMaster||snap.data().mestreUid===u.uid)?'master':'guest';ouvir();
   }catch(e){formEntrar(e?.message||'Não foi possível entrar.',asMaster)}
 }
+/* SUBSTITUIDO 03/10, nos dois onSnapshot abaixo: `else atualizarSalaPersistente();` passou a avisar também
+   os ouvintes do jogo (DragonSala.aoMudar). */
 function ouvir(){
   unsubRoom?.();unsubPlayers?.();
-  unsubRoom=onSnapshot(roomRef(code),s=>{room=s.exists()?s.data():null;if(!room){if(!gameReleased)menu();return;}if(room.fase&&room.fase!=='sala'&&!gameReleased)liberar({code,role,room,players});else if(!gameReleased)renderLobby();else atualizarSalaPersistente();});
-  unsubPlayers=onSnapshot(collection(db,ROOT,code,'jogadores'),s=>{players=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.entrouMs||0)-(b.entrouMs||0));if(!gameReleased)renderLobby();else atualizarSalaPersistente()});
+  unsubRoom=onSnapshot(roomRef(code),s=>{room=s.exists()?s.data():null;if(!room){if(!gameReleased)menu();return;}if(room.fase&&room.fase!=='sala'&&!gameReleased)liberar({code,role,room,players});else if(!gameReleased)renderLobby();else{atualizarSalaPersistente();avisarOuvintes()}});
+  unsubPlayers=onSnapshot(collection(db,ROOT,code,'jogadores'),s=>{players=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.entrouMs||0)-(b.entrouMs||0));if(!gameReleased)renderLobby();else{atualizarSalaPersistente();avisarOuvintes()}});
 }
 function renderLobby(){
   if(!code||!room)return;const master=role==='master';
@@ -396,7 +410,19 @@ window.DragonSala={
   get root(){return ROOT},
   get caseId(){return CASE_ID},
   get project(){return PROJECT},
+  /* 03/10 (O Impostor): acesso genérico para o jogo, sem filtro de campos — quem
+     decide o que passa são as regras do projeto do caso. */
+  get uid(){return auth.currentUser?.uid||''},
+  get sala(){return room},
+  get jogadores(){return players},
+  atualizarEu(campos){const u=auth.currentUser;if(!code||!u)return Promise.resolve(false);return updateDoc(playerRef(code,u.uid),{...campos,atualizadoEmMs:Date.now()}).then(()=>true,e=>{console.warn('MOSAICO: atualizarEu',e);return false})},
+  atualizarSala(campos){if(!code||role!=='master')return Promise.resolve(false);return updateDoc(roomRef(code),campos).then(()=>true,e=>{console.warn('MOSAICO: atualizarSala',e);return false})},
+  adicionar(colecao,dados){const u=auth.currentUser;if(!code||!u)return Promise.resolve(null);return addDoc(collection(db,ROOT,code,colecao),{...dados,de:u.uid,ms:Date.now()}).catch(e=>{console.warn('MOSAICO: adicionar',e);return null})},
+  ouvirColecao(colecao,cb){if(!code)return()=>{};return onSnapshot(collection(db,ROOT,code,colecao),s=>cb(s.docChanges().filter(c=>c.type==='added').map(c=>({id:c.doc.id,...c.doc.data()}))),e=>console.warn('MOSAICO: ouvirColecao',e))},
+  aoMudar(cb){ouvintes.push(cb)},
 };
+const ouvintes=[];
+function avisarOuvintes(){ouvintes.forEach(f=>{try{f(room,players)}catch(e){console.warn(e)}})}
 function instalarSalaPersistente(){
   if(document.getElementById('dragonSalaBtn'))return;
   const b=document.createElement('button');b.id='dragonSalaBtn';b.type='button';b.textContent='Sala';b.onclick=()=>{salaAberta=!salaAberta;atualizarSalaPersistente()};
@@ -433,6 +459,8 @@ css();
 const qsSolo=new URLSearchParams(location.search);
 const querEnsaio=qsSolo.get('soloLab')==='1'||qsSolo.has('bots');
 if(querEnsaio){intencao='ensaio';}
+/* SUBSTITUIDO 03/10, nas duas saídas abaixo: `if(q){code=q.toUpperCase();return formEntrar('',false)}`
+   passou a tentar a volta sem formulário quando a página pede (data-retomar). */
 getRedirectResult(auth).then(r=>{
   const voltandoDoGoogle=recuperarEscolhas();
   /* Se o Google devolveu usuário, seguimos mesmo sem a marca da viagem: alguns
@@ -441,7 +469,7 @@ getRedirectResult(auth).then(r=>{
      reaparecia o menu como se nada tivesse acontecido. */
   if(r?.user)return abrirComoMestre(r.user);
   if(voltandoDoGoogle)return renderMasterGate('O Google voltou sem concluir o login neste navegador. Toque em “Abrir com Google” de novo: desta vez a janela abre por cima desta página, sem sair dela.');
-  if(q){code=q.toUpperCase();return formEntrar('',false)}
+  if(q){code=q.toUpperCase();return RETOMAR?retomar():formEntrar('',false)}
   if(querEnsaio)return iniciarEnsaioLocal();
   menu();
 }).catch(e=>{
@@ -452,7 +480,25 @@ getRedirectResult(auth).then(r=>{
      havia um login em curso. */
   const erroDeLogin=/missing initial state|auth\//i.test(String(e?.code||'')+' '+String(e?.message||''));
   if(voltandoDoGoogle||erroDeLogin)return renderMasterGate(mensagemLogin(e));
-  if(q){code=q.toUpperCase();return formEntrar('',false)}
+  if(q){code=q.toUpperCase();return RETOMAR?retomar():formEntrar('',false)}
   if(querEnsaio)return iniciarEnsaioLocal();
   menu();
 });
+/* 03/10 (O Impostor): a volta sem formulário. Espera o Firebase devolver a sessão
+   guardada neste aparelho; se ela já tem um lugar nesta sala (o documento do
+   jogador existe) e a sala está aberta, entra direto — Mestre continua Mestre,
+   porque quem decide é o mestreUid. Qualquer outra situação cai no formulário de
+   sempre. */
+function retomar(){
+  gate().innerHTML=`<div class="dr-shell"><div class="dr-brand">${esc(TITLE)}</div><div class="dr-card pf-card"><h2>Voltando à mesa…</h2><div class="dr-code">${esc(code)}</div></div></div>`;
+  const parar=onAuthStateChanged(auth,async u=>{
+    parar();
+    try{
+      if(!u)return formEntrar('',false);
+      const [sala,eu]=await Promise.all([getDoc(roomRef(code)),getDoc(playerRef(code,u.uid))]);
+      if(!sala.exists()||sala.data().ativa!==true)return formEntrar('Sala não encontrada ou encerrada.',false);
+      if(!eu.exists())return formEntrar('',false);
+      role=sala.data().mestreUid===u.uid?'master':'guest';ouvir();
+    }catch(e){formEntrar('',false)}
+  });
+}

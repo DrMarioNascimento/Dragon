@@ -4,6 +4,7 @@
 |---|---|---|
 | A Casa da Costa | `mosaico-game` | salas do Carro-Forte |
 | A Manhã do Carro-Forte | `mosaico-noite` | salas da Casa da Costa |
+| O Impostor (A Casa da Costa: O Impostor) | `oimpostor-c30e0` | salas das outras mesas |
 
 Dentro do mesmo projeto, coleções diferentes (`mosaico/` vs `noite/`) separam o Celular canônico do fluxo de fechamento/alternativo.
 
@@ -39,3 +40,17 @@ O lobby multiplayer (Abrir / Entrar) vive em `firebase-room.js` para Casa e Carr
 
 A Casa mantém `MosaicoFB` para as fases do caso, reutilizando a app Auth/Firestore `dragon-mesa` criada pelo gate.
 
+## O Impostor (03/10/2026)
+
+Projeto próprio, `oimpostor-c30e0`. A mesa (`o-impostor/mesa.html?grupo=1`) carrega o
+mesmo `firebase-room.js` com `data-project="impostor"`, `data-root="mosaico"`,
+`data-case="o-impostor"`, `data-papel-camada="nao"` (sem papel cognitivo nem camada) e
+`data-retomar="sim"` (quem já está na sala volta sem digitar o nome).
+
+As regras são outras: `o-impostor/firestore-impostor.rules`. Publicar **colando no
+console** (Firestore → Regras). Não usar `firebase deploy` com o `firebase.json` da
+raiz, que publica o `firestore.rules` das outras mesas.
+
+No console do projeto: Firestore (região `southamerica-east1`), Authentication com
+Google e Anônimo, domínio autorizado `drmarionascimento.github.io`, e o documento
+`config/mestres` com o campo `emails` (lista).
