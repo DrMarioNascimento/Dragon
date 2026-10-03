@@ -31,7 +31,12 @@
      O modelo antigo (casa em bloco, jardim fora) está guardado em
      assets/ac/casa-o-impostor-pisos_SUBSTITUIDO.glb. O novo é a casa em pátio
      da revisão 2 (briefing de 30/09), modelada em METROS, base da casa em y=0. */
-  var ARQUIVO = 'assets/ac/casa-o-impostor-pisos.glb?v=20261001-patio';
+  /* SUBSTITUIDO (03/10/2026): var ARQUIVO = 'assets/ac/casa-o-impostor-pisos.glb?v=20261001-patio';
+     O modelo de 01/10 está guardado em assets/ac/casa-o-impostor-pisos_SUBSTITUIDO_0310.glb.
+     Em 03/10 a escrivaninha saiu da biblioteca (térreo) e foi para a sala de mapas
+     (andar de cima), encostada na parede sul, sob a janela — a mesma sala do telefone
+     vermelho. É a escrivaninha do Capítulo 2. */
+  var ARQUIVO = 'assets/ac/casa-o-impostor-pisos.glb?v=20261003-escrivaninha';
 
   /* Camadas, de cima para baixo. `terreno` nunca se solta. */
   var CAMADAS = ['telhado', 'piso-2', 'piso-1', 'porao', 'terreno'];
@@ -61,7 +66,11 @@
     { id: 'armario-do-quarto-vizinho', camada: 'piso-2', ancestral: 'quarto-sul', prefixo: 'armario' },
     { id: 'castical-do-quarto-vizinho', camada: 'piso-2', ancestral: 'quarto-sul', nomes: ['castical', 'vela-de-cabeceira'] },
     { id: 'relogio-caixa-alta', camada: 'piso-1', ancestral: 'relogio-caixa-alta' },
-    { id: 'escrivaninha', camada: 'piso-1', ancestral: 'escrivaninha' },
+    /* SUBSTITUIDO (03/10): { id: 'escrivaninha', camada: 'piso-1', ancestral: 'escrivaninha' },
+       Na casa de 01/10 havia DUAS escrivaninhas (biblioteca e sala de visitas) e o
+       ancestral 'escrivaninha' recolhia as duas num alvo só. Agora o alvo é só a da
+       sala de mapas. */
+    { id: 'escrivaninha', camada: 'piso-2', ancestral: 'sala-de-mapas', nomes: ['escrivaninha'] },
     /* SUBSTITUIDO (01/10): ancestral 'sala-escura' (a sala do modelo antigo). Na casa
        nova o quadro e o espelho ficam na sala de visitas. */
     { id: 'quadro', camada: 'piso-1', ancestral: 'sala-de-visitas', nomes: ['quadro', 'moldura-do-quadro'] },

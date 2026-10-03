@@ -140,7 +140,8 @@ export const CAPITULOS_AC = [
         busca: ['Nos quartos, o que ilumina também guarda.', 'No quarto ao lado: o castiçal ou o armário.'] }
     },
     evidencia: 'chave-dos-quartos',
-    fecho: 'O andar dos quartos saiu inteiro. Embaixo está o térreo: a sala, a biblioteca, o escritório, a cozinha e o quarto de serviço.'
+    /* SUBSTITUIDO (03/10): '... a sala, a biblioteca, o escritório, a cozinha e o quarto de serviço.' — a casa de 01/10 não tem escritório. */
+    fecho: 'O andar dos quartos saiu inteiro. Embaixo está o térreo: a sala, a biblioteca, a cozinha e o quarto de serviço.'
   },
   {
     id: 'terreo',
@@ -151,10 +152,13 @@ export const CAPITULOS_AC = [
     fechaduraRotulo: 'O peito da chaminé, na sala',
     esconderijo: 'relogio-caixa-alta',
     recorte: 'No térreo.',
+    /* ATENÇÃO (03/10): a escrivaninha agora fica no andar de cima (sala de mapas), que já saiu
+       quando este capítulo começa. Este capítulo não roda n'O Impostor (CAPITULOS usa só o
+       primeiro); se um dia voltar, este candidato precisa ser revisto. */
     candidatos: ['relogio-caixa-alta', 'escrivaninha', 'quadro', 'espelho'],
     rotulos: {
       'relogio-caixa-alta': 'O relógio de caixa alta',
-      'escrivaninha': 'A escrivaninha do escritório',
+      'escrivaninha': 'A escrivaninha da sala de mapas',   /* SUBSTITUIDO 03/10: 'A escrivaninha do escritório' */
       'quadro': 'O quadro emoldurado',
       'espelho': 'O espelho na parede'
     },
@@ -176,11 +180,13 @@ export const CAPITULOS_AC = [
       'relogio-caixa-alta': { achado: 'Em cima do relógio de caixa alta, atrás do remate, havia outra coisa.',
         busca: ['Na sala, olhe o que é mais alto que todos.', 'O relógio de caixa alta ou o quadro ao lado dele.'] },
       'escrivaninha': { achado: 'Uma gaveta da escrivaninha tinha fundo duplo. Embaixo dos papéis havia outra coisa.',
-        busca: ['No escritório, nem toda gaveta é do tamanho que parece.', 'A escrivaninha do escritório ou o espelho da sala.'] },
+        /* SUBSTITUIDO 03/10: ['No escritório, nem toda gaveta é do tamanho que parece.', 'A escrivaninha do escritório ou o espelho da sala.'] */
+        busca: ['Na sala de mapas, nem toda gaveta é do tamanho que parece.', 'A escrivaninha da sala de mapas ou o espelho da sala.'] },
       'quadro': { achado: 'Presa em cima da moldura do quadro havia outra coisa.',
         busca: ['Na sala, uma moldura guarda mais do que a pintura.', 'O quadro ou o relógio de caixa alta, na sala.'] },
       'espelho': { achado: 'Presa em cima da moldura do espelho havia outra coisa.',
-        busca: ['Na sala, uma coisa devolve a sala a quem olha.', 'O espelho da sala ou a escrivaninha do escritório.'] }
+        /* SUBSTITUIDO 03/10: [..., 'O espelho da sala ou a escrivaninha do escritório.'] */
+        busca: ['Na sala, uma coisa devolve a sala a quem olha.', 'O espelho da sala ou a escrivaninha da sala de mapas.'] }
     },
     evidencia: 'passagem-sob-despensa',
     fecho: 'O térreo se ergueu. Sob a despensa há um porão — e ele não termina onde a casa termina.'

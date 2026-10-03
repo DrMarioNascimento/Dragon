@@ -1677,6 +1677,12 @@ function pintarRealResultado(){
   respostas[onde].push({pergunta:SIM.pergunta,tipo:SIM.rotulo,opcao:simEsc,certa:certa,confianca:simConf});
   if(filaPerguntas.length){proximaPergunta();return}
   if(capitulo===7){pintarRevelacao();return}
+  /* 02/10: do Cap. 4 ao 6, antes da aposta, o argumento de exclusão (opcional) */
+  if(capitulo>=4&&capitulo<=6&&!argumentos[capitulo]&&!telaArgVista[capitulo]){telaArgVista[capitulo]=true;telaArgumento(capitulo,pintarRealResultadoFim);return}
+  pintarRealResultadoFim();
+}
+var telaArgVista={};
+function pintarRealResultadoFim(){
   $('#fechoCorpo').innerHTML='<p class="kicker">Capítulo '+capitulo+' · respostas guardadas</p><h1 id="fechoTitulo">Respostas guardadas.</h1>'+
     '<p class="lede">Suas respostas foram guardadas. O resultado só aparece no fim do jogo.</p>'+
     '<p class="lede">Agora a sua aba Nota vira a aposta: em quem você aposta como impostor? É opcional e só você vê.</p>'+
@@ -1977,7 +1983,7 @@ var C2_R2=(function(){
   roda.forEach(function(id,i){ev.push([110+i*5,SLOT_DE[id],pal[i%pal.length]])});
   var tc=110+roda.length*5+8;
   sis(tc,N_SALA2+' palavras, '+N_SALA2+' números conferidos. No grupo, '+N_CONTATOS+' participantes. O último não respondeu à chamada.');
-  sis(tc+14,'<i>"É o número do seu pai?"</i>, '+(EU_PAPEL==='jornalista'?'você pergunta':'o Jornalista perguntou')+' à Herdeira. <i>"Não sei." "Como não sabe?" "Ele trocou de número no fim. Eu não tinha o novo. Não tinha motivo para ter."</i> O silêncio que veio depois não foi de desconfiança. Foi de vergonha.');
+  sis(tc+14,'<i>"É o número do seu pai?"</i>, '+(EU_PAPEL==='jornalista'?'você pergunta':'o Jornalista perguntou')+' '+(EU_PAPEL==='herdeira'?'a você':'à Herdeira')+'. <i>"Não sei." "Como não sabe?" "Ele trocou de número no fim. Eu não tinha o novo. Não tinha motivo para ter."</i> O silêncio que veio depois não foi de desconfiança. Foi de vergonha.');
   /* as lembranças (uma pode ser a mentira do impostor) */
   var t=tc+40;sis(t,'Conversaram sobre ele, porque não havia outro assunto que coubesse na sala. As lembranças saíam tortas, cada uma puxando para um lado.');
   var lemb=[];
@@ -2392,7 +2398,7 @@ var C5_R2={
     [80,'Na despensa, uma lata caiu e rolou. {Res} praguejou alto. Da sala de jantar, {obs} ouviu os dois. Ao mesmo tempo veio o raspado, madeira contra madeira, e da janela {inv} ouviu o arrastar junto com a lata. Na porta, {gov} também ouviu o raspado. Achou que tinha falhado, e não disse nada.'],
     [81,'Na sala de jantar, a louça tilintou: {obs} tinha esbarrado no aparador quando a lata caiu.'],
     [111,'Aos cento e onze segundos, o degrau entre a biblioteca e a sala rangeu outra vez. {Inv} ouviu de novo.']],
-    farol:'No terceiro e no quarto, alguém parado na janela do corredor. E o Policial falou comigo o tempo todo.',
+    farol:'No terceiro e no quarto, alguém parado na janela do corredor. E {pol} falou comigo o tempo todo.',
     tela:'jornalista',calou:'governanta',louca:'observadora'},
   4:{ev:[
     [4,'<i>"Vou ao quadro!"</i>, gritou {ele}, do patamar, e se mexeu.'],
@@ -2588,7 +2594,7 @@ var C6_ONDE={
      '<i>"No quarto clarão, {her} estava sentada de costas para a porta"</i>, disse {obs}. <i>"Eu fechei os olhos"</i>, disse {her}. <i>"Estava chorando."</i> <i>"E vi {tab} à mesa, pela porta de vidro."</i>',
      '<i>"{Res} falou comigo pela copa o tempo todo"</i>, disse {gov}. O vulto da janela dos fundos, então, não era {res}. Era a segunda sombra.'],
   12:['<i>"O degrau da biblioteca rangeu aos cinquenta e seis e aos cento e treze"</i>, disse {pol}, e {jor} confirmou, da janela. <i>"No quarto clarão, junto ao pêndulo, uma manga clara e fina, sem casaco."</i> <i>"E eu vi a mesa da ata com uma pessoa só, de abotoadura dourada, e o blazer na cadeira vazia"</i>, disse {jor}. O farol tinha visto uma coisa clara na vidraça.',
-     '<i>"Gritei da porta no quarto clarão"</i>, disse {pol}. {Jor} e {tab} confirmaram: o grito veio de lá. <i>"O farol me viu na varanda duas vezes, e {jor} me viu da janela"</i>, disse {jar}. <i>"E eu respondi ao Policial do fim do corredor, e o farol viu a janela ocupada"</i>, disse {jor}.',
+     '<i>"Gritei da porta no quarto clarão"</i>, disse {pol}. {Jor} e {tab} confirmaram: o grito veio de lá. <i>"O farol me viu na varanda duas vezes, e {jor} me viu da janela"</i>, disse {jar}. <i>"E eu respondi {a:pol} do fim do corredor, e o farol viu a janela ocupada"</i>, disse {jor}.',
      '<i>"Bati na porta do quarto entre o terceiro e o quarto"</i>, disse {res}. {Che} e {gov} confirmaram: ouviram. <i>"Respondi da despensa, a ele e à Governanta"</i>, disse {che}. <i>"E {ele} gritou do porão"</i>, disse {gov}.'],
   13:['<i>"Caí na escada aos cinquenta e oito"</i>, disse {jor}, esfregando o joelho. <i>"Quem me levantou foi {res}. Só."</i> <i>"Deixei a porta para socorrer"</i>, disse {res}. <i>"No quinto clarão, voltando, vi pela porta alguém junto ao relógio. Uma figura clara."</i>',
      '<i>"E {tab} ditou a hora em voz alta, de trinta em trinta segundos, da biblioteca"</i>, disse {her}, do vestíbulo. <i>"Ouvi todas."</i> O rádio: <i>"No quarto clarão, a janela do corredor dos retratos estava vazia."</i>',
@@ -2676,7 +2682,7 @@ var FIM_R2={
      rota:'Da mesa da ata até o relógio são oito segundos, pela porta de correr, com o degrau que range.',
      ausencia:'O degrau da biblioteca rangeu aos cinquenta e oito e aos cento e onze, e {inv} ouviu as duas vezes. No quarto clarão, {gov} viu um brilho dourado na altura do pêndulo: a abotoadura.',
      caderno:'Ele disse que colheu a assinatura no leito, na última semana. O caderno diz: "O cartório adiou de novo. Terceira vez."',
-     ajudou:'{Res} derrubou a lata na despensa aos oitenta segundos, e o arrastar veio junto com a lata, como {inv} ouviu. E quem conduziu a noite tinha mandado o Policial para longe, no rádio.',
+     ajudou:'{Res} derrubou a lata na despensa aos oitenta segundos, e o arrastar veio junto com a lata, como {inv} ouviu. E quem conduziu a noite tinha mandado {pol} para longe, no rádio.',
      outros:'{Gov} olhou o celular na porta e conhecia a louça dos fundos, mas o caderno a salva: ela veio duas semanas antes do fim e trouxe pão. {Inv} estava na janela: o farol o viu ali.'},
   4:{diz:'Fiz o caldo dele até o último dia. Fui eu.',
      fala:'No Cap. 3, {che} disse "Alguém tentou afastar" diante de uma marca de quem só se apoiou.',
@@ -2997,7 +3003,34 @@ function pintarRevelacao(){
     '<div class="acoes"><button type="button" id="irPlacar">Ver o placar</button></div>';
   $('#irPlacar').onclick=pintarPlacar;$('#fecho').scrollTop=0;
 }
+/* SUBSTITUIDO 02/10 (fechamento da partida): a função antiga pintarPlacar ficou como pintarPlacar_SUBSTITUIDO, abaixo, sem uso. */
 function pintarPlacar(){
+  var R=resumoPartida(),codigo=escreverCodigoFaro(R),linhas='';
+  [1,2,3,4,5,6,'final'].forEach(function(c){var rs=respostas[c]||[];if(!rs.length)return;var s=0;rs.forEach(function(r){s+=pontosDe(r)});
+    linhas+='<div class="linha"><span><b>'+(c==='final'?'Respostas finais':'Capítulo '+c)+'</b></span><span>'+rs.filter(function(r){return r.certa}).length+' de '+rs.length+'</span><span class="'+(s>=0?'ganha':'perde')+'">'+(s>0?'+':'')+s+'</span></div>'});
+  if(R.args.length)linhas+='<div class="linha"><span><b>Argumentos de exclusão</b></span><span>'+R.argVal+' de '+R.args.length+' válidos</span><span class="'+(R.argPts>=0?'ganha':'perde')+'">'+(R.argPts>0?'+':'')+R.argPts+'</span></div>';
+  if(R.sob)linhas+='<div class="linha"><span><b>Sob suspeita</b></span><span>defesa válida</span><span class="ganha">+2</span></div>';
+  var meio=Math.round(R.max/2);
+  var argTxt=R.args.map(function(x){return '<p class="lede">Cap. '+x.cap+': '+T(rotuloDe(x.a.quem))+' não esteve no relógio porque '+T(x.a.pista.txt).replace(/^./,function(c){return c.toLowerCase()}).replace(/\.$/,'')+'. <b>'+(x.p>0?'+1, válido':(x.p<0?'−1: era o impostor':'0: a pista não o exclui'))+'</b></p>'}).join('');
+  var evo=frasesEvolucao(R);
+  $('#fechoCorpo').innerHTML='<p class="kicker">O placar</p><h1 id="fechoTitulo">'+(R.final>0?'+':'')+R.final+' pontos</h1>'+
+    '<p class="lede"><b>Referência:</b> de '+R.max+' possíveis nas perguntas; uma boa noite fica a partir de '+meio+'.'+(R.final>=meio?' Foi uma boa noite.':'')+'</p>'+
+    '<div class="tabela"><div class="linha cab"><span></span><span>Acertos</span><span>Pontos</span></div>'+linhas+'</div>'+
+    '<p class="lede">Com certeza: +4 ou −4. Sem certeza: +2 ou −1. Não sei: 0. As secundárias valem metade; "quem é o impostor?" vale três vezes; "quem ajudou?", duas.</p>'+
+    '<p class="lede"><b>Faro:</b> '+(R.faro>0?'+':'')+R.faro+' (apostas de fim de capítulo feitas com certeza). <b>Certezas:</b> '+R.certezasCertas+' de '+R.certezas+'.</p>'+
+    (argTxt?'<h2>Seus argumentos de exclusão</h2>'+argTxt:'')+
+    '<h2>Estilo declarado</h2><p class="lede">'+(ESTILO?ESTILOS[ESTILO][0]+' ('+ESTILOS[ESTILO][1]+'): '+(R.confirmado?'o seu jogo confirmou.':'desta vez, o seu jogo foi por outro caminho.'):'Você não declarou um estilo nesta partida.')+'</p>'+
+    (R.titulos.length?'<h2>Títulos</h2>'+R.titulos.map(function(t){return '<p class="lede"><b>'+t[0]+'.</b> '+t[1]+'</p>'}).join(''):'')+
+    '<h2>O que você treinou hoje</h2><p class="lede">'+R.treino.charAt(0).toUpperCase()+R.treino.slice(1)+'.</p>'+
+    (evo.length?'<h2>A sua evolução</h2>'+evo.map(function(t){return '<p class="lede">'+t+'</p>'}).join(''):'')+
+    '<h2>Cartão e código de faro</h2><p class="lede">Guarde o cartão na sua galeria. O código resume os seus números: digite-o no começo da próxima partida para ver a sua evolução. Nada disso vai para servidor.</p>'+
+    '<p class="lede" style="font:800 22px var(--mono);color:#efc878;letter-spacing:.06em" id="codigoFaro">'+codigo+'</p>'+
+    '<img id="cartaoImg" alt="Cartão de faro" style="width:100%;max-width:420px;border-radius:12px;border:1px solid #2c4a5a;display:block;margin:0 0 10px">'+
+    '<div class="acoes"><button type="button" id="baixarCartao">Salvar o cartão</button> <button type="button" id="irEpilogo">Epílogo</button></div>';
+  try{var url=cartaoFaro(R,codigo);$('#cartaoImg').src=url;$('#baixarCartao').onclick=function(){var a=document.createElement('a');a.href=url;a.download='cartao-de-faro-'+PARTIDA+'.png';document.body.appendChild(a);a.click();a.remove()}}catch(e){$('#cartaoImg').remove();$('#baixarCartao').remove()}
+  $('#irEpilogo').onclick=pintarEpilogo;$('#fecho').scrollTop=0;
+}
+function pintarPlacar_SUBSTITUIDO(){
   var tot=0,certezas=0,certezasCertas=0,linhas='';
   [1,2,3,4,5,6,'final'].forEach(function(c){var rs=respostas[c]||[];if(!rs.length)return;var s=0;rs.forEach(function(r){s+=pontosDe(r);if(r.confianca==='certeza'){certezas++;if(r.certa)certezasCertas++}});tot+=s;
     linhas+='<div class="linha"><span><b>'+(c==='final'?'Respostas finais':'Capítulo '+c)+'</b></span><span>'+rs.filter(function(r){return r.certa}).length+' de '+rs.length+'</span><span class="'+(s>=0?'ganha':'perde')+'">'+(s>0?'+':'')+s+'</span></div>'});
@@ -3038,6 +3071,137 @@ function pintarEpilogo(){
   $('#fecho').scrollTop=0;
 }
 
+/* ── 02/10 (Mario): fechamento da partida ───────────────────────────────
+   Do documento do caso ("Argumento de exclusão", "Estilo declarado", "Placar em
+   títulos", "Cartão de faro", "Código de faro"). Nada vai para servidor: tudo
+   fica no aparelho e termina com a partida; o que sobrevive é o cartão (imagem)
+   e o código, nas mãos do jogador. */
+var ESTILOS={faro:['Faro','aposta cedo'],metodo:['Método','exclui antes de acusar'],escuta:['Escuta','confia no que ouviu no escuro'],caderno:['Caderno','confia em documentos']};
+var ESTILO=null,FARO_ANT=null,estiloVisto=false,argumentos={};
+/* Exclusões de cada partida (tabela "Postos e exclusões" do cânone): quem a pista
+   tira do relógio. Só vale para inocentes; no impostor, o argumento custa −1. */
+var EXCLUSOES_R2={
+  1:[[['observadora'],'{Jor} viu {obs} à mesa da ata, pela porta de vidro, no quarto clarão.'],[['jornalista'],'O farol viu a janela do corredor ocupada no terceiro e no quarto clarão.'],[['policial'],'{Her} sentiu o couro no braço, na sala de jantar, logo depois da louça.']],
+  2:[[['investigador'],'O farol viu a janela do corredor ocupada no terceiro e no quarto clarão.'],[['residente'],'{Obs} ouviu a lata cair na despensa e {res} praguejar aos oitenta.'],[['governanta'],'{Jor}, do patamar, viu a tela {de:gov} acesa na porta aos sessenta.']],
+  3:[[['residente'],'O farol viu a faixa refletiva no jardim, perto da calha, nos três últimos clarões.'],[['policial'],'{Inv}, do vestíbulo, ouviu o grito {de:pol} vir da porta no quarto clarão.'],[['investigador'],'O farol falou com {inv} pelo rádio aos sessenta e aos noventa.']],
+  4:[[['tabeliao','observadora'],'{Tab} e {obs} falaram baixo um com o outro, à mesa, o tempo todo.'],[['advogado'],'O farol viu a janela do corredor ocupada no terceiro e no quarto clarão.'],[['herdeira'],'O farol viu um vulto de lã escura parado na varanda no terceiro e no quarto clarão.'],[['residente'],'{Gov}, do fogão, ouviu {res} falar com a porta trancada entre o terceiro e o quarto clarão.'],[['jardineiro'],'{Adv}, da janela, ouviu o grito {de:jar} vir da porta no quarto clarão.'],[['eletricista'],'{Gov} ouviu {ele} gritar do porão perto dos setenta.']],
+  5:[[['tabeliao'],'{Inv}, da porta, viu {tab} sentado à mesa pela porta de correr no quarto clarão.'],[['jardineiro'],'O farol viu o vulto amarelo parado na varanda no terceiro e no quarto clarão.'],[['residente'],'{Obs}, do fogão, ouviu {res} bater na porta do quarto entre o terceiro e o quarto clarão.'],[['investigador'],'{Jor}, do patamar, viu a tela {de:inv} acesa na porta o tempo todo.']],
+  6:[[['observadora'],'{Pol} ouviu a lupa cair na biblioteca aos setenta.'],[['residente'],'O farol viu a faixa refletiva parada na varanda no terceiro e no quarto clarão.'],[['jornalista'],'O farol viu a janela do corredor ocupada no terceiro e no quarto clarão.'],[['policial'],'{Jor} viu {pol} na porta no terceiro e no quarto clarão.']],
+  7:[[['tabeliao'],'{Obs} viu {tab} à mesa, pela porta de vidro, no quarto clarão.'],[['observadora'],'O farol viu a janela do corredor ocupada no terceiro e no quarto clarão.'],[['residente','investigador'],'{Inv} seguiu a luz até a despensa e encontrou {res} olhando a fechadura.']],
+  8:[[['tabeliao','advogado'],'{Tab} e {adv} falaram um com o outro, à mesa, o tempo todo.'],[['herdeira'],'O farol viu um vulto escuro parado na varanda no terceiro e no quarto clarão.'],[['residente'],'O farol viu a janela do corredor ocupada no terceiro e no quarto clarão.'],[['governanta'],'{Che} falou com {gov} pela porta da despensa o tempo todo.'],[['jardineiro'],'{Adv} ouviu o oleado {de:jar} chiar na porta o tempo todo.']],
+  9:[[['herdeira'],'{Obs} viu {her} na biblioteca, com a vela acesa, pela porta de vidro.'],[['residente'],'{Inv}, da sala de jantar, ouviu as marteladas sem parar.'],[['observadora'],'{Her} viu {obs} na porta, à luz da vela.']],
+  10:[[['tabeliao'],'{Obs} viu {tab} à mesa, pela porta de vidro, no quarto clarão.'],[['observadora'],'O farol viu a janela do corredor ocupada no terceiro e no quarto clarão.'],[['residente'],'{Gov} falou com {res} pela copa o tempo todo.'],[['herdeira'],'{Obs} viu {her} sentada na porta, de costas, no quarto clarão.']],
+  11:[[['investigador'],'{Her} ouviu {inv} contar os clarões sempre do mesmo lugar, a biblioteca.'],[['residente'],'A fita na portinhola ficou inteira: pela passagem não passou ninguém.']],
+  12:[[['policial'],'{Jor} e {tab} ouviram o grito {de:pol} vir da porta no quarto clarão.'],[['tabeliao'],'{Jor} viu {tab} à mesa, com a abotoadura brilhando, no quarto clarão.'],[['jardineiro'],'O farol viu o vulto amarelo na varanda, e {jor} o viu da janela, no quarto clarão.'],[['jornalista'],'{Jor} respondeu {a:pol} do fim do corredor, e o farol viu a janela ocupada.'],[['residente'],'{Che} e {gov} ouviram {res} bater na porta do quarto entre o terceiro e o quarto clarão.'],[['chefe_de_cozinha'],'{Che} respondeu da despensa {a:res} e {a:gov}.'],[['eletricista'],'{Che} e {gov} ouviram {ele} gritar do porão entre o terceiro e o quarto clarão.']],
+  13:[[['tabeliao'],'{Her}, do vestíbulo, ouviu {tab} ditar a hora em voz alta de trinta em trinta segundos.'],[['residente'],'{Jor} confirma que {res} deixou a porta para socorrê-lo no patamar.']],
+  14:[[['tabeliao'],'{Obs} viu {tab} à mesa, pela porta de vidro, no quarto clarão.'],[['observadora'],'O farol viu a janela do corredor ocupada no terceiro e no quarto clarão.'],[['residente'],'{Gov} falou com {res} pela copa.'],[['jardineiro'],'{Jar} pediu a lanterna {a:gov} pela porta da despensa.'],[['advogado'],'{Obs} viu o relógio verde {de:adv} parado na porta no terceiro e no quarto clarão.']],
+  15:[[['tabeliao'],'{Obs} viu {tab} com a vela acesa, pela porta de vidro.'],[['jardineiro'],'O farol viu o vulto amarelo parado na varanda no terceiro e no quarto clarão.'],[['observadora'],'O farol viu a janela do corredor ocupada no terceiro e no quarto clarão.'],[['residente'],'{Gov} falou com {res} pela copa.'],[['chefe_de_cozinha'],'{Obs} viu o dólmã {de:che} na porta no terceiro e no quarto clarão.']]
+};
+var EXCL_MED={4:[['medico','jornalista'],'{Med} e {jor} falaram baixo na sala de jantar o tempo todo.'],8:[['medico','observadora'],'{Med} e {obs} falaram baixo na sala de jantar o tempo todo.'],12:[['medico','investigador'],'{Med} ficou ao lado {de:inv}, no vestíbulo, desde o primeiro segundo.'],15:[['medico','eletricista'],'{Med} e {ele} conversaram no patamar o tempo todo.']};
+/* as pistas que o jogador já viu: as distâncias desde os postos (Cap. 4); as do escuro, do Cap. 5 em diante */
+function pistasVistas(cap){var P=P_R2,M=MATRIZ_C4[P],L=[];
+  if(cap>=4&&M)Object.keys(M.postos).forEach(function(id){if(!presente(id))return;var p=POSTOS_R2[M.postos[id]];if(p&&p.s>12)L.push({ids:[id],txt:'{'+Object.keys(ALIAS_R2).filter(function(k){return ALIAS_R2[k]===id})[0].replace(/^./,function(c){return c.toUpperCase()})+'} estava '+p.curto+', a '+p.s+' segundos do relógio.'})});
+  if(cap>=5){(EXCLUSOES_R2[P]||[]).forEach(function(e){if(e[0].some(presente))L.push({ids:e[0],txt:e[1]})});if(COM_MEDICO&&EXCL_MED[P])L.push({ids:EXCL_MED[P][0],txt:EXCL_MED[P][1]})}
+  return L}
+function pontosArgumento(a){if(!a||!a.quem)return 0;if(a.quem===IMPOSTOR_R2[P_R2])return -1;return a.pista&&a.pista.ids.indexOf(a.quem)>=0?1:0}
+function telaArgumento(cap,depois){
+  var L=pistasVistas(cap),quem=null,pi=null,ps=NA_CASA.filter(function(id){return encontroFeito||SOU_FUNC||FUNCIONARIOS.indexOf(id)<0});
+  function pinta(){
+    $('#fechoCorpo').innerHTML='<p class="kicker">Capítulo '+cap+' · argumento de exclusão (opcional)</p><h1 id="fechoTitulo">Quem não esteve no relógio?</h1>'+
+      '<p class="lede">Uma vez por capítulo, você pode registrar, só para você: <b>[personagem] não esteve no relógio porque [pista]</b>. Vale +1 se o personagem é inocente e a pista de fato o exclui, e −1 se ele é o impostor. Pista errada para um inocente vale 0. Pode ser o seu personagem.</p>'+
+      '<h2>Personagem</h2><div class="opcoes">'+ps.map(function(id){return '<button type="button" class="op'+(quem===id?' on':'')+'" data-arg-quem="'+id+'"><i>'+(quem===id?'✓':'')+'</i><span>'+rotuloDe(id)+'</span></button>'}).join('')+'</div>'+
+      '<h2>Porque…</h2><div class="opcoes">'+L.map(function(p,i){return '<button type="button" class="op'+(pi===i?' on':'')+'" data-arg-pista="'+i+'"><i>'+(pi===i?'✓':'')+'</i><span>'+T(p.txt)+'</span></button>'}).join('')+'</div>'+
+      '<div class="acoes"><button type="button" id="argRegistrar"'+(quem&&pi!==null?'':' disabled')+'>Registrar e seguir</button> <button type="button" id="irAposta">Pular</button></div>';
+    document.querySelectorAll('[data-arg-quem]').forEach(function(b){b.onclick=function(){quem=b.dataset.argQuem;pinta()}});
+    document.querySelectorAll('[data-arg-pista]').forEach(function(b){b.onclick=function(){pi=+b.dataset.argPista;pinta()}});
+    $('#argRegistrar').onclick=function(){argumentos[cap]={quem:quem,pista:L[pi]};depois()};
+    $('#irAposta').onclick=function(){depois()};
+    $('#fecho').scrollTop=0}
+  pinta()}
+/* estilo declarado, no começo do Cap. 1 (e o código de faro da partida anterior, se houver) */
+function telaEstilo(depois){
+  var d=$('#fecho');try{d.showModal()}catch(e){d.setAttribute('open','')}
+  var esc=ESTILO;
+  function pinta(){
+    $('#fechoCorpo').innerHTML='<p class="kicker">Antes do Capítulo 1</p><h1 id="fechoTitulo">Como você pretende investigar?</h1>'+
+      '<p class="lede">Escolha só para você. No fim, o jogo mostra se o seu jogo confirmou o estilo.</p>'+
+      '<div class="opcoes">'+Object.keys(ESTILOS).map(function(k){return '<button type="button" class="op'+(esc===k?' on':'')+'" data-estilo="'+k+'"><i>'+(esc===k?'✓':'')+'</i><span><b>'+ESTILOS[k][0]+'</b> · '+ESTILOS[k][1]+'</span></button>'}).join('')+'</div>'+
+      '<h2>Código de faro (opcional)</h2><p class="lede">Se você guardou o código da partida anterior, digite aqui para ver a sua evolução no fim.</p>'+
+      '<input id="codFaro" type="text" autocomplete="off" spellcheck="false" placeholder="FARO-…" style="width:100%;min-height:44px;padding:8px 12px;border-radius:10px;border:1px solid #46667a;background:#0d1f2b;color:#f1f8fc;font:600 16px var(--mono)" value="'+(FARO_ANT?FARO_ANT.codigo:'')+'">'+
+      '<p class="lede" id="codMsg" style="margin-top:6px"></p>'+
+      '<div class="acoes"><button type="button" id="estiloOk">Começar o Capítulo 1</button></div>';
+    document.querySelectorAll('[data-estilo]').forEach(function(b){b.onclick=function(){esc=b.dataset.estilo;var v=$('#codFaro').value;pinta();$('#codFaro').value=v}});
+    $('#estiloOk').onclick=function(){var v=$('#codFaro').value.trim();
+      if(v){var r=lerCodigoFaro(v);if(!r){$('#codMsg').textContent='Esse código não confere. Confira as letras ou deixe em branco.';return}FARO_ANT=r}
+      ESTILO=esc;estiloVisto=true;try{d.close()}catch(e){d.removeAttribute('open')}depois()}}
+  pinta()}
+/* resumo da partida: o placar, os títulos e o estilo */
+function resumoPartida(){
+  var tot=0,max=0,certezas=0,certezasCertas=0;
+  [1,2,3,4,5,6,'final'].forEach(function(c){(respostas[c]||[]).forEach(function(r){tot+=pontosDe(r);max+=4*(PESO[r.tipo]||1);if(r.confianca==='certeza'){certezas++;if(r.certa)certezasCertas++}})});
+  var imp=IMPOSTOR_R2[P_R2],faro=0,primeiro=null;
+  Object.keys(apostas).forEach(function(c){var a=apostas[c];if(!a||a.confianca!=='certeza')return;
+    var quem=a.personagem||(a.numero?Object.keys(SLOT_DE).filter(function(id){return SLOT_DE[id]===a.numero})[0]:null);
+    if(a.personagem==='voz')quem='acompanhante';
+    if(quem===imp){faro++;if(primeiro===null||+c<primeiro)primeiro=+c}else if(quem)faro--});
+  var args=Object.keys(argumentos).map(function(c){return {cap:+c,a:argumentos[c],p:pontosArgumento(argumentos[c])}}),
+      argVal=args.filter(function(x){return x.p>0}).length,argPts=args.reduce(function(s,x){return s+x.p},0),argImp=args.some(function(x){return x.p<0});
+  var falso=FALSO_R2[P_R2].indexOf(EU_PAPEL)>=0,defendeu=args.some(function(x){return x.a.quem===EU_PAPEL&&x.p>0}),sob=falso&&defendeu;
+  var rf=respostas.final||[],r5=respostas[5]||[],r6=respostas[6]||[];
+  var ac5=r5.filter(function(r){return r.certa}).length,c6cad=r6[2]&&r6[2].certa,impCerto=rf[0]&&rf[0].certa;
+  var titulos=[];
+  if(primeiro!==null)titulos.push(['Faro','Você apostou certo, com certeza, já no Capítulo '+primeiro+'.']);
+  if(argVal>=2)titulos.push(['Método','Você fez '+argVal+' argumentos de exclusão válidos.']);
+  if(ac5>=2)titulos.push(['Escuta','Você acertou o que se ouviu no escuro.']);
+  if(rf[1]&&rf[1].certa&&r6[1]&&r6[1].certa)titulos.push(['Coração','Você acertou quem parecia culpado e quem ajudou.']);
+  if(sob)titulos.push(['Sob suspeita','O seu personagem era o falso culpado, e você defendeu a inocência dele com um argumento válido. +2.']);
+  var conf={faro:primeiro!==null&&primeiro<=5,metodo:argVal>=2&&!argImp,escuta:ac5>=2,caderno:!!(c6cad&&impCerto)};
+  var treino=(certezas>=3&&certezasCertas/certezas>=0.6)?'calibração: as suas certezas foram certeiras':(argVal>=2?'exclusão: você tirou inocentes do relógio com razões':'atenção: guardar o que foi dito e o que se ouviu');
+  if(!max)max=68;   /* referência do cânone: 68 nas 20 perguntas */
+  var final=tot+argPts+(sob?2:0);
+  return {tot:tot,max:max,final:final,certezas:certezas,certezasCertas:certezasCertas,faro:faro,primeiro:primeiro,args:args,argVal:argVal,argPts:argPts,sob:sob,titulos:titulos,confirmado:ESTILO?conf[ESTILO]:null,treino:treino}}
+/* código de faro: só números, lidos e escritos no aparelho. Formato FARO-XXXXX-XXXXX (base 32 sem letras ambíguas). */
+var B32='0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+function escreverCodigoFaro(R){var ant=FARO_ANT||{n:0,melhorPrim:7,melhorPts:0};
+  var prim=R.primeiro===null?7:R.primeiro,n=Math.min(63,ant.n+1),mp=Math.min(ant.melhorPrim,prim),pts=Math.max(0,Math.min(127,Math.round(R.final)+40)),mpts=Math.max(ant.melhorPts,pts),
+      est=ESTILO?Object.keys(ESTILOS).indexOf(ESTILO)+1:0;
+  var campos=[[1,3],[n,6],[prim,3],[mp,3],[Math.min(31,R.certezasCertas),5],[Math.min(31,R.certezas),5],[Math.min(7,R.argVal),3],[pts,7],[mpts,7],[est,3],[R.confirmado?1:0,1]],bits='';
+  campos.forEach(function(c){var b=c[0].toString(2);while(b.length<c[1])b='0'+b;bits+=b});
+  var soma=0;for(var i=0;i<bits.length;i++)soma=(soma*3+ +bits[i])%32;var b5=soma.toString(2);while(b5.length<5)b5='0'+b5;bits+=b5;while(bits.length%5)bits+='0';
+  var s='';for(var j=0;j<bits.length;j+=5)s+=B32[parseInt(bits.substr(j,5),2)];
+  return 'FARO-'+s.slice(0,5)+'-'+s.slice(5)}
+function lerCodigoFaro(c){c=String(c).toUpperCase().replace(/[^0-9A-Z]/g,'').replace(/^FARO/,'').replace(/O/g,'0').replace(/[IL]/g,'1');
+  var bits='';for(var i=0;i<c.length;i++){var v=B32.indexOf(c[i]);if(v<0)return null;var b=v.toString(2);while(b.length<5)b='0'+b;bits+=b}
+  var tam=[3,6,3,3,5,5,3,7,7,3,1],pos=0,vals=[];if(bits.length<46+5)return null;
+  tam.forEach(function(t){vals.push(parseInt(bits.substr(pos,t),2));pos+=t});
+  var soma=0;for(var k=0;k<pos;k++)soma=(soma*3+ +bits[k])%32;if(parseInt(bits.substr(pos,5),2)!==soma||vals[0]!==1)return null;
+  if(/1/.test(bits.slice(pos+5))||c.length!==11)return null;   /* o resto tem de ser zero e o tamanho, exato */
+  return {codigo:'FARO-'+c.slice(0,5)+'-'+c.slice(5),n:vals[1],prim:vals[2],melhorPrim:vals[3],certezasCertas:vals[4],certezas:vals[5],argVal:vals[6],pts:vals[7]-40,melhorPts:vals[8],estilo:vals[9]?Object.keys(ESTILOS)[vals[9]-1]:null,confirmado:!!vals[10]}}
+function frasesEvolucao(R){if(!FARO_ANT)return [];var a=FARO_ANT,o=[],cap=function(p){return p>=7?'não acusou certo com certeza':'acusou certo no Cap. '+p};
+  o.push('Na partida anterior você '+cap(a.prim)+'; hoje, '+(R.primeiro===null?'não acusou certo com certeza':'no Cap. '+R.primeiro)+'.');
+  o.push('Argumentos de exclusão válidos: '+a.argVal+' antes, '+R.argVal+' hoje. Certezas certas: '+a.certezasCertas+' de '+a.certezas+' antes, '+R.certezasCertas+' de '+R.certezas+' hoje.');
+  o.push('Esta é a sua partida número '+Math.min(63,a.n+1)+' com o código.');return o}
+/* o cartão de faro: uma imagem para salvar ou compartilhar */
+function cartaoFaro(R,codigo){
+  var W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;var g=cv.getContext('2d');
+  var gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,'#0b2530');gr.addColorStop(1,'#03131a');g.fillStyle=gr;g.fillRect(0,0,W,H);
+  g.strokeStyle='#65d5cc66';g.lineWidth=3;g.strokeRect(36,36,W-72,H-72);
+  function tx(t,x,y,f,c,al){g.font=f;g.fillStyle=c;g.textAlign=al||'left';g.fillText(t,x,y)}
+  function quebra(t,x,y,f,c,w,lh){g.font=f;g.fillStyle=c;g.textAlign='left';var ps=String(t).split(' '),l='';ps.forEach(function(p){var e=l?l+' '+p:p;if(g.measureText(e).width>w&&l){g.fillText(l,x,y);y+=lh;l=p}else l=e});if(l){g.fillText(l,x,y);y+=lh}return y}
+  tx('MOSAICO · A CASA DA COSTA',90,130,'700 34px sans-serif','#65d5cc');
+  tx('Cartão de faro',90,200,'800 64px sans-serif','#f1f8fc');
+  tx('Partida '+PARTIDA,90,250,'500 28px monospace','#aec6d5');
+  var y=340;
+  tx((R.final>0?'+':'')+R.final+' pontos',90,y,'800 88px sans-serif','#efc878');
+  y+=56;tx('de '+R.max+' possíveis · boa noite a partir de '+Math.round(R.max/2),90,y,'500 30px sans-serif','#aec6d5');
+  y+=90;tx('Estilo: '+(ESTILO?ESTILOS[ESTILO][0]:'não declarado')+(ESTILO?(R.confirmado?' · confirmado':' · não confirmado'):''),90,y,'700 40px sans-serif','#f1f8fc');
+  y+=70;[['Certezas certas',R.certezasCertas+' de '+R.certezas],['Argumentos de exclusão válidos',String(R.argVal)],['Primeiro acerto com certeza',R.primeiro===null?'—':'Capítulo '+R.primeiro]].forEach(function(l){tx(l[0],90,y,'500 34px sans-serif','#aec6d5');tx(l[1],W-90,y,'700 34px sans-serif','#f1f8fc','right');y+=58});
+  y+=30;tx('TÍTULOS',90,y,'700 28px sans-serif','#65d5cc');y+=52;
+  if(R.titulos.length)R.titulos.forEach(function(t){y=quebra(t[0]+': '+t[1],90,y,'500 32px sans-serif','#f1f8fc',W-180,44)});else y=quebra('Nenhum título nesta noite. A próxima pode ser a sua.',90,y,'500 32px sans-serif','#aec6d5',W-180,44);
+  y+=30;tx('O QUE VOCÊ TREINOU HOJE',90,y,'700 28px sans-serif','#65d5cc');y+=52;y=quebra(R.treino.charAt(0).toUpperCase()+R.treino.slice(1)+'.',90,y,'500 32px sans-serif','#f1f8fc',W-180,44);
+  tx('Código de faro',90,H-170,'600 28px sans-serif','#aec6d5');tx(codigo,90,H-110,'800 54px monospace','#efc878');
+  return cv.toDataURL('image/png')}
+
 /* a peça do quarto (Cap. 6), dentro da tela do jogo */
 function abrirQuarto(){
   var t=$('#telaRA');
@@ -3069,6 +3233,10 @@ function fimDoPrologo(){
   $('#irCap1').onclick=function(){if(v)try{v.pause()}catch(e){}try{d.close()}catch(e){d.removeAttribute('open')}comecarCapitulo(1)};
 }
 function comecarCapitulo(n){
+  /* 02/10: antes do Cap. 1, o estilo declarado e o código de faro (em teste, ?estilo=metodo e ?faro=…; ?estilo=tela mostra a tela) */
+  if(n===1&&!estiloVisto){var qe=Q.get('estilo');
+    if(Q.get('teste')!=='1'||qe==='tela'){telaEstilo(function(){comecarCapitulo(1)});return}
+    estiloVisto=true;if(ESTILOS[qe])ESTILO=qe;if(Q.get('faro'))FARO_ANT=lerCodigoFaro(Q.get('faro'))}
   capitulo=n;var c=CAPITULOS[n];relogioParado=false;$('#tempo').classList.remove('parado');
   $('#capNum').textContent=c.n;$('#capNome').textContent=c.nome;
   var teste=Q.get('teste')==='1',escala=teste?0.12:1;
@@ -3176,7 +3344,8 @@ function paginasDoFarol(){
   else noite.push('Luz na ala de serviço da Casa da Costa desde a tarde. Chamei a casa pelo rádio.');
   noite.push('19h40 — A ponte caiu com a cheia. Avisei a casa: ninguém sobe nem desce até de manhã.');
   var apagao=['21h29 — Apagou a costa inteira, da vila ao cabo.','Seis clarões até a luz voltar.'];
-  var D=C5_R2[P_R2];if(D&&D.farol)apagao.push(D.farol);
+  /* 02/10: no livro, a ficha vira o nome do personagem, nunca "você" */
+  var D=C5_R2[P_R2];if(D&&D.farol)apagao.push(D.farol.replace(/\{([A-Za-z]+)\}/g,function(m,k){var id=ALIAS_R2[k.toLowerCase()];if(!id)return m;var a=NOMES[id][0];if(k.charAt(0)!==k.charAt(0).toLowerCase())a=a.toUpperCase();return a+' '+NOMES[id][1]}));
   apagao.push('21h31 — Voltou tudo junto. Avisei a casa.');
   return {folhas:[
     {titulo:'Registro de serviço',linhas:['Livro do Farol.']},
@@ -3421,6 +3590,9 @@ if(Q.get('teste')==='1')window.__oiMesa={P:function(){return P_R2},papel:functio
     variaTexto(MSG_EPILOGO[PERSONALIDADE],'acompanhante');variaNarracao('{Pol} pediu. <i>"Para a ata."</i>');
     var log=FALAS_LOG;FALAS_LOG=null;return {ids:log,eventos:ev0,mudados:mud,todas:(window.OI_FALAS||[]).map(function(e){return e[0]})}},
   dumpVaria:function(){var o=[];[1,2,3,4,5,6].forEach(function(c){var R=ROTEIROS[c];if(!R)return;(R.roteiro||[]).forEach(function(ev){if(typeof ev[2]!=='string')return;var v=variaEvento(ev);if(v!==ev[2])o.push(c+'@'+ev[0]+' ['+ev[1]+']\n  - '+ev[2].replace(/<[^>]+>/g,'')+'\n  + '+v.replace(/<[^>]+>/g,''))})});return o},
+  telaArg:function(c){var d=$('#fecho');try{d.showModal()}catch(e){d.setAttribute('open','')}telaArgumento(c,function(){})},placar:function(){var d=$('#fecho');try{d.showModal()}catch(e){d.setAttribute('open','')}pintarPlacar()},
+  resumo:function(){return resumoPartida()},codigo:function(){return escreverCodigoFaro(resumoPartida())},lerCodigo:function(c){return lerCodigoFaro(c)},
+  argumentar:function(cap,quem,i){var L=pistasVistas(cap);argumentos[cap]={quem:quem,pista:L[i]};return {pista:L[i]&&T(L[i].txt),pontos:pontosArgumento(argumentos[cap])}},pistas:function(cap){return pistasVistas(cap).map(function(p){return [p.ids.join('+'),T(p.txt)]})},
   tipo:function(id){return tipoDe(id)},varia:function(ev){return variaEvento(ev)},falas:function(){return (window.OI_FALAS||[]).length},
   roteiro:function(n){return ROTEIROS[n]?ROTEIROS[n].roteiro.map(function(e){return [e[0],e[1],typeof e[2]==='string'?limpo(e[2]):e[2]]}):null},
   perguntas:function(n){return ROTEIROS[n]?ROTEIROS[n].perguntas():null},inventario:function(){return INVENTARIO.map(function(i){return i.nome})},
