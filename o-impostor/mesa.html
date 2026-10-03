@@ -872,6 +872,7 @@ button:active,.caixa:active,.redondo:active,.chip:active{
 </div>
 <div class="veu" id="veu" hidden><div class="folha" id="folha"></div></div>
 
+<script src="falas-matriz.js"></script>   <!-- 02/10: a matriz de falas (6 tipos) -->
 <script>
 (function(){
 'use strict';
@@ -1510,7 +1511,7 @@ function fecharPortao(){
   if(prox){restoRoteiro=resto.filter(function(ev){return ev[0]>=prox.t});
     roteiroTimers.push(setTimeout(function(){abrirPortao(prox)},(prox.t-g.retoma)*1000*escalaRoteiro))}
 }
-function falaNoGrupo(ids,txt){var id=voz(ids);if(!id)return;grupo.push({de:SLOT_DE[id],txt:txt,h:hora()});pintarGrupo();if(aba!=='grupo')document.querySelector('[data-aba="grupo"]').classList.add('glow')}
+function falaNoGrupo(ids,txt){var id=voz(ids);if(!id)return;grupo.push({de:SLOT_DE[id],txt:variaTexto(txt,id),h:hora()});pintarGrupo();if(aba!=='grupo')document.querySelector('[data-aba="grupo"]').classList.add('glow')}
 /* ── O relógio (Cap. 3) dentro da tela do jogo ───────────────────────────
    modo: parar (a Herdeira jogada por você) · religar (quem religa, jogado por
    você) · ver (os outros). estado: andando · parado · religado. */
@@ -1573,6 +1574,8 @@ function somRadio(){try{var a=$('#somRadio');if(!a)return;clearInterval(somRadio
   setTimeout(function(){somRadio.t=setInterval(function(){a.volume=Math.max(0,a.volume-0.06);if(a.volume<=0.02){a.pause();clearInterval(somRadio.t)}},80)},2200)}catch(e){}}
 function tocarRoteiro(r,escala){
   r.forEach(function(ev){roteiroTimers.push(setTimeout(function(){
+    /* 02/10: a fala sai no tipo de quem fala (matriz de falas) */
+    if(typeof ev[2]==='string'){var evv=ev.slice();evv.id=ev.id;evv[2]=variaEvento(ev);ev=evv}
     if((ev[1]==='sis'||ev[1]==='sisconv'||ev[1]==='sisserv')&&RADIO_RE.test(ev[2]))somRadio();
     if(ev[1]==='fx'){if(ev[2]==='escuro')escuroComeca();else if(ev[2]==='clarao')escuroClarao();else if(ev[2]==='luz')escuroAcaba();return}
     if(escuroAtivo&&(ev[1]==='sis'||ev[1]==='sisconv'))escuroLinha(ev[2]);
@@ -1598,8 +1601,9 @@ function responder(txt,priv){
   if(priv&&priv===ACOMP&&R.acompPriv)r=R.acompPriv[txt]||R.acompPriv['*'];
   if(!r)return;
   setTimeout(function(){
-    if(priv)chegaPrivada(priv,typeof r==='string'?r:r[1]);
-    else{grupo.push({de:r[0],txt:r[1],h:hora()});pintarGrupo()}
+    /* SUBSTITUIDO 02/10: if(priv)chegaPrivada(priv,typeof r==='string'?r:r[1]); else{grupo.push({de:r[0],txt:r[1],h:hora()});pintarGrupo()} */
+    if(priv)chegaPrivada(priv,variaTexto(typeof r==='string'?r:r[1],idDoSlot(priv)));
+    else{grupo.push({de:r[0],txt:variaTexto(r[1],idDoSlot(r[0])),h:hora()});pintarGrupo()}
   },2500+Math.random()*2000);
 }
 var capituloFechado={},bandejaEnvio=false,escrivEnvio=false,avisouFoto=false,enviosNoCap=0,avisouMinimo=false;
@@ -1631,7 +1635,7 @@ function abrirDebate(D,depois){
   function fim(){clearInterval(timerDebate);timerDebate=null;depois()}
   $('#debateFim').onclick=fim;
   falas.forEach(function(f,i){setTimeout(function(){var el=$('#debateFalas');if(!el||!timerDebate)return;
-    el.insertAdjacentHTML('beforeend','<div class="debate-fala"><b style="color:'+CORES[f[0]]+'">'+nomeDe(f[0])+'</b> '+f[1]+'</div>')},(i+1)*Math.max(1500,total*1000/(falas.length+2)))});
+    el.insertAdjacentHTML('beforeend','<div class="debate-fala"><b style="color:'+CORES[f[0]]+'">'+nomeDe(f[0])+'</b> '+variaTexto(f[1],idDoSlot(f[0]))+'</div>')},(i+1)*Math.max(1500,total*1000/(falas.length+2)))});
   function pinta(){var el=$('#debateT');if(!el)return;el.textContent=('0'+Math.floor(t/60)).slice(-2)+':'+('0'+t%60).slice(-2);$('#debateBarra').style.width=(t/total*100)+'%'}
   pinta();timerDebate=setInterval(function(){t--;pinta();if(t<=0)fim()},1000);
 }
@@ -2953,7 +2957,7 @@ function iniciarFinal(){
   capitulo=7;var d=$('#fecho');try{d.showModal()}catch(e){d.setAttribute('open','')}
   var f=FICHAS[EU_PAPEL]||[null,'Trabalha para a seguradora do espólio, não para a família.'];
   $('#fechoCorpo').innerHTML='<p class="kicker">A acusação</p><h1 id="fechoTitulo">Antes das respostas finais.</h1>'+
-    '<p class="lede">'+T(presente('tabeliao')?'{Tab}':'{Pol}')+' pediu que cada um dissesse, uma vez e sem interrupção, de quem desconfiava. <i>"Para a ata."</i></p>'+
+    '<p class="lede">'+variaNarracao(T(presente('tabeliao')?'{Tab}':'{Pol}')+' pediu que cada um dissesse, uma vez e sem interrupção, de quem desconfiava. <i>"Para a ata."</i>')+'</p>'+
     '<h2>A palavra do seu personagem</h2><p class="lede">Na mesa, cada um lê em voz alta o próprio segredo inocente, em primeira pessoa. Este é o seu:</p>'+
     '<div class="aviso ouro" style="margin:8px 0 14px">'+f[1]+'</div>'+
     '<p class="lede">Os segredos dos personagens do sistema, inclusive o do impostor, também são lidos. Como todo mundo tem um, a leitura não entrega ninguém: só explica o que confundia a mesa.</p>'+
@@ -3012,7 +3016,7 @@ function pintarEpilogo(){
     T('{Her}')+' foi sozinha até o quarto do jasmim. A cama estava arrumada. Ninguém tinha arrumado na frente dela. O gato cinza estava enrolado aos pés, onde o caderno dizia que ele dormia, e não se mexeu quando ela entrou. Ela ficou na porta muito tempo. Depois abriu a janela, por causa do cheiro.',
     'Na noite anterior, antes de dormir, '+na('policial')+' tinha acertado o relógio pela hora certa do pulso. Ninguém viu quando.',
     'Às sete da manhã, o relógio bateu a hora. '+Na('policial')+' olhou o pulso. Quatro minutos na frente.',
-    'Os celulares vibraram pela última vez: <i>"'+MSG_EPILOGO[PERSONALIDADE]+'"</i>'].filter(Boolean);
+    'Os celulares vibraram pela última vez: <i>"'+variaTexto(MSG_EPILOGO[PERSONALIDADE],'acompanhante')+'"</i>'].filter(Boolean);
   $('#fechoCorpo').innerHTML='<p class="kicker">Epílogo</p><h1 id="fechoTitulo">Quatro minutos na frente.</h1>'+txt.map(function(t){return '<p class="lede">'+t+'</p>'}).join('')+
     '<h2>Sem pontos</h2><p class="lede">Se a decisão fosse sua, o quarto do jasmim ficaria com quem esteve no começo, com quem herdou ou com quem cuidou no fim?</p>'+
     '<div class="opcoes">'+['Com quem esteve no começo','Com quem herdou','Com quem cuidou no fim'].map(function(o,i){return '<button type="button" class="op" data-valor="'+i+'"><i>'+'ABC'[i]+'</i><span>'+o+'</span></button>'}).join('')+'</div>'+
@@ -3037,7 +3041,7 @@ function fimDoPrologo(){
      previsão do tempo, aconselha dormir na casa e esperar os convocados. */
   if(SOU_FUNC&&!farolNoite){farolNoite=true;somRadio();
     var t='O velho rádio VHF chia. É o farol: <i>"Casa da Costa, aqui é o farol. A chuva só aumentou, e a previsão é de mais. A estrada da costa não está segura. É mais seguro '+(COLEGAS.length?'vocês dormirem':'você dormir')+' aí e esperar os convocados chegarem."</i>';
-    grupoServ.push({sis:t});pintarGrupo();
+    t=variaNarracao(t);grupoServ.push({sis:t});pintarGrupo();
     janela('O FAROL','A chuva só aumentou, e não é seguro sair da casa. Pelo rádio, o farol, que acompanha a previsão do tempo, aconselha: é mais seguro '+(COLEGAS.length?'vocês dormirem':'você dormir')+' aqui e esperar os convocados chegarem.',function(){setTimeout(fimDoPrologo,400)});
     return}
   var extra=enviosExtras?' ('+3+' do capítulo + '+enviosExtras+' achado'+(enviosExtras>1?'s':'')+' na casa)':'';
@@ -3276,9 +3280,137 @@ window.addEventListener('message',function(e){
 });
 window.OIMesa={liberarAba:liberarAba,janela:janela,estado:function(){return estadoPrologo}};
 /* 01/10: ganchos de teste (?teste=1): pular capítulos e ler o estado */
+/* ── 02/10 (Mario): a matriz de falas ligada à mesa ──────────────────────
+   Cada personagem recebe, pela semente da partida, um dos 6 tipos. O tipo só
+   muda a forma de dizer: a informação de cada fala é a mesma nas 6 versões
+   (Matriz_falas_O_Impostor.xlsx → falas-matriz.js). O jogador nunca vê o tipo.
+   A voz guarda o tipo do cânone de cada partida (VOZ_R2: guardiã → Leal cego,
+   explosiva → Explosivo, ardilosa → Evasivo, quieta → Calmo opaco), porque as
+   provas da P2, P6 e P15 dependem do texto e do segundo da mensagem dela.
+   O personagem do jogador também tem tipo: é com ele que o narrador fala por ele.
+   ?tipos=explosivo (etc.) força um tipo para todos, para teste; ?tipos=base desliga. */
+var TIPOS6=['explosivo','calmo_opaco','ingenuo','leal_cego','evasivo','burocrata'];
+var VOZ_TIPO={guardia:'leal_cego',explosiva:'explosivo',ardilosa:'evasivo',quieta:'calmo_opaco'};
+var TIPO_FORCADO=Q.get('tipos')||'';
+function tipoDe(id){
+  if(id==='acompanhante')return VOZ_TIPO[PERSONALIDADE]||'evasivo';
+  if(TIPOS6.indexOf(TIPO_FORCADO)>=0)return TIPO_FORCADO;
+  return TIPOS6[Math.floor(gerador(PARTIDA+'|tipo|'+id)()*6)];
+}
+var FALAS_IDX=null,FALAS_SOLTA=null,NOME_ID=null,FALAS_LOG=null;
+function chaveFala(s){return String(s).replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim().replace(/[.…]+$/,'').trim()}
+/* chave solta: sem pontuação nem maiúsculas (para juntar falas partidas pela narração) */
+function chaveSolta(s){return String(s).replace(/<[^>]+>/g,'').toLowerCase().replace(/[.,;:!?…"“”—–-]+/g,' ').replace(/\s+/g,' ').trim()}
+function idxFalas(){
+  if(FALAS_IDX)return FALAS_IDX;FALAS_IDX={};FALAS_SOLTA={};
+  var LST=(window.OI_FALAS||[]).slice(),frag=LST.filter(function(e){return /-mao$/.test(e[0])});
+  /* a fala da Observadora sobre a marca (Cap. 3) tem um encaixe: o detalhe de cada mão */
+  LST.filter(function(e){return e[1].indexOf('{mao_detalhe}')>=0}).forEach(function(e){frag.forEach(function(f){
+    LST.push([e[0]+'+'+f[0],e[1].replace('{mao_detalhe}',f[1]),e[2],e[3],e[4].map(function(v,i){return v.replace('{mao_detalhe}',f[4][i])})])})});
+  LST.forEach(function(e){
+    var b=T(e[1]);if(/\{[^}]*\}/.test(b))return;
+    var k=chaveFala(b);(FALAS_IDX[k]=FALAS_IDX[k]||[]).push(e);
+    var ks=chaveSolta(b);(FALAS_SOLTA[ks]=FALAS_SOLTA[ks]||[]).push(e);
+    /* a voz: o texto de hoje é o da personalidade antiga; acha a ficha por qualquer versão */
+    if(e[2]==='acompanhante'||e[3]==='voz')e[4].forEach(function(v){var kk=chaveFala(T(v));if(kk&&kk!==k)(FALAS_IDX[kk]=FALAS_IDX[kk]||[]).push(e)});
+  });
+  return FALAS_IDX;
+}
+function nomeId(){
+  if(NOME_ID)return NOME_ID;NOME_ID=[];
+  Object.keys(NOMES).forEach(function(id){NOME_ID.push([NOMES[id][0]+' '+NOMES[id][1],id]);NOME_ID.push([NOMES[id][1],id])});
+  NOME_ID.push(['o Faroleiro','faroleiro'],['Faroleiro','faroleiro']);
+  NOME_ID.sort(function(a,b){return b[0].length-a[0].length});return NOME_ID;
+}
+var RE_VOCE=/(^|[^a-zà-ú])você(?![a-zà-ú])/i;
+function idNoInicio(s){s=s.replace(/^\s+/,'');if(/^você(?![a-zà-ú])/i.test(s))return EU_PAPEL;
+  var L=nomeId();for(var i=0;i<L.length;i++){var n=L[i][0];if(s.slice(0,n.length).toLowerCase()===n.toLowerCase())return L[i][1]}return null}
+var VERBO_FALA='disse|diz|perguntou|pergunta|respondeu|responde|gritou|contou|começou|continuou|lembrou|confirmou|corrigiu|insistiu|murmurou|completou|emendou|repetiu|leu|ditou|acrescentou|devolveu|cortou';
+function quemDepois(s){
+  var m=s.match(new RegExp('^\\s*,\\s*(?:'+VERBO_FALA+')\\s+(.*)$'));if(m)return idNoInicio(m[1]);
+  m=s.match(new RegExp('^\\s*,\\s*você\\s+(?:'+VERBO_FALA+')\\b'));if(m)return EU_PAPEL;
+  m=s.match(/^\s*\.?\s*Era\s+(.*)$/);if(m)return idNoInicio(m[1]);
+  return null}
+function quemAntes(s){var m=s.match(/([^.!?"<>]{1,80})[:]\s*$/);if(!m)return null;var t=m[1],L=nomeId();
+  if(RE_VOCE.test(t))return EU_PAPEL;
+  for(var i=0;i<L.length;i++)if(t.toLowerCase().indexOf(L[i][0].toLowerCase())>=0)return L[i][1];return null}
+/* o último personagem citado num trecho de narração (o sujeito da frase antes da fala) */
+function ultimoNome(s){s=s.slice(-200);var best=null,bi=-1,L=nomeId(),low=s.toLowerCase(),mv=low.search(/(^|[^a-zà-ú])você(?![a-zà-ú])[^.]*$/);
+  if(mv>=0){best=EU_PAPEL;bi=mv}
+  for(var i=0;i<L.length;i++){var j=low.lastIndexOf(L[i][0].toLowerCase());if(j>bi){bi=j;best=L[i][1]}}return best}
+function escolheFicha(c,quem){for(var i=0;i<c.length;i++)if(c[i][2]&&c[i][2]===quem)return c[i];return c[0]}
+function versaoDe(e,quem){var q=quem||e[2];if(!q)return null;var v=e[4][TIPOS6.indexOf(tipoDe(q))];return v?T(v):null}
+function ajustaFim(orig,v){if(!/[.!?…]$/.test(orig.trim())&&/\.$/.test(v)&&!/\.\.\.$/.test(v))return v.replace(/\.$/,'');return v}
+/* fala de chat (texto puro), de quem está no slot */
+function variaTexto(txt,quem){
+  if(TIPO_FORCADO==='base'||typeof txt!=='string')return txt;
+  var c=idxFalas()[chaveFala(txt)];if(!c)return txt;
+  var e=escolheFicha(c,quem),v=versaoDe(e,quem);if(FALAS_LOG)FALAS_LOG.push(e[0]);return v?ajustaFim(txt,v):txt}
+/* narração: troca cada fala entre aspas dentro de <i>…</i> */
+function variaNarracao(s){
+  if(TIPO_FORCADO==='base'||typeof s!=='string'||s.indexOf('<i>')<0)return s;
+  var I=idxFalas(),qs=[],re=/<i>([\s\S]*?)<\/i>/g,m;
+  while((m=re.exec(s))){var bi=m.index,be=bi+m[0].length,inner=m[1],off=bi+3,rq=/"([^"]*)"/g,q,n=0;
+    while((q=rq.exec(inner))){qs.push({a:off+q.index,b:off+q.index+q[0].length,t:q[1],bloco:[bi,be],primeiro:n===0,soNoBloco:false});n++}
+    if(n===1)qs[qs.length-1].soNoBloco=true}
+  if(!qs.length)return s;
+  var trocas=[],ultQuem=null;
+  for(var i=0;i<qs.length;i++){var q0=qs[i];if(q0.feito)continue;
+    var c=I[chaveFala(q0.t)]||FALAS_SOLTA[chaveSolta(q0.t)],junta=0;
+    if(!c){for(var j=1;j<=3&&i+j<qs.length&&!c;j++){var t=q0.t;for(var k=1;k<=j;k++)t+=' '+qs[i+k].t;c=I[chaveFala(t)]||FALAS_SOLTA[chaveSolta(t)];if(c)junta=j}}
+    if(!c)continue;
+    /* palavras lidas de um papel ("Pare". "O". "Pêndulo".) ficam como estão */
+    if(chaveSolta(c[0][1])==='pare o pêndulo')continue;
+    var ult=qs[i+junta],quem=null;
+    if(q0.primeiro){var depois=s.slice(qs[i+junta].bloco[1]),antes=s.slice(0,q0.bloco[0]);
+      quem=quemDepois(depois)||quemAntes(antes);
+      /* a fala logo depois de outra já atribuída ("…", disse X. "…") é do mesmo X */
+      if(!quem&&ultQuem&&i>0&&q0.bloco[0]-qs[i-1].bloco[1]<90&&new RegExp(VERBO_FALA).test(s.slice(qs[i-1].bloco[1],q0.bloco[0])))quem=ultQuem;
+      if(!quem)quem=idNoInicio(depois.replace(/^[\s,.]+/,''));
+      if(!quem)quem=ultimoNome(antes.replace(/<i>[\s\S]*?<\/i>/g,''))}
+    var e=escolheFicha(c,quem);if(FALAS_LOG)FALAS_LOG.push(e[0]);
+    if(!quem)quem=e[2]||null;
+    ultQuem=quem;
+    var v=versaoDe(e,quem);if(!v)continue;
+    /* a versão ocupa o lugar da primeira fala: a pontuação final segue a dela; antes de vírgula, sem ponto */
+    var vf=ajustaFim(q0.t,v);if(/^(<\/i>)?\s*,/.test(s.slice(q0.b))&&/[^.]\.$/.test(vf))vf=vf.replace(/\.$/,'');
+    trocas.push([q0.a,q0.b,'"'+vf+'"']);
+    for(var k3=1;k3<=junta;k3++){var qq=qs[i+k3];qq.feito=true;
+      if(qq.soNoBloco)trocas.push([qq.bloco[0]-(s.charAt(qq.bloco[0]-1)===' '?1:0),qq.bloco[1],'']);
+      else if(qq.primeiro)trocas.push([qq.a,qq.b+(s.charAt(qq.b)===' '?1:0),'']);
+      else trocas.push([qq.a-(s.charAt(qq.a-1)===' '?1:0),qq.b,''])}
+  }
+  trocas.sort(function(x,y){return y[0]-x[0]});
+  trocas.forEach(function(t){s=s.slice(0,t[0])+t[2]+s.slice(t[1])});
+  return s.replace(/<i>\s*<\/i>/g,'').replace(/<i>\s+/g,'<i>').replace(/ {2,}/g,' ');
+}
+function idDoSlot(f){if(f===ACOMP)return 'acompanhante';for(var id in SLOT_DE)if(SLOT_DE[id]===f)return id;return null}
+/* um evento do roteiro: [t, quem, texto] */
+function variaEvento(ev){
+  if(typeof ev[2]!=='string')return ev[2];
+  var k=ev[1];
+  if(k==='sis'||k==='sisconv'||k==='sisserv')return variaNarracao(ev[2]);
+  if(k===ACOMP)return variaTexto(ev[2],'acompanhante');
+  if(k.indexOf('priv:')===0)return variaTexto(ev[2],idDoSlot(k.slice(5)));
+  if(k.indexOf('serv:')===0)return variaTexto(ev[2],idDoSlot(k.slice(5)));
+  if(k.indexOf('op:')===0||k==='fx'||k==='add')return ev[2];
+  return variaTexto(ev[2],idDoSlot(k));
+}
+
 if(Q.get('teste')==='1')window.__oiMesa={P:function(){return P_R2},papel:function(){return EU_PAPEL},casa:function(){return CASA},
   comecar:function(n){comecarCapitulo(n)},fim:function(){fimDoCapitulo()},final:function(){iniciarFinal()},
   grupo:function(){return grupo.map(function(m){return m.sis?'[N] '+limpo(m.sis):(m.de?m.de+': '+limpo(m.txt||m.anexo||''):'')})},
+  /* teste: quais fichas da matriz a mesa encontra nesta partida (roteiros e respostas) */
+  cobertura:function(){FALAS_LOG=[];var mud=0,ev0=0;
+    [1,2,3,4,5,6].forEach(function(c){var R=ROTEIROS[c];if(!R)return;
+      (R.roteiro||[]).forEach(function(ev){if(typeof ev[2]!=='string')return;ev0++;if(variaEvento(ev)!==ev[2])mud++});
+      Object.keys(R.replica||{}).forEach(function(k){var v=R.replica[k];if(!v)return;if(typeof v==='string')variaTexto(v,null);else variaTexto(v[1],idDoSlot(v[0]))});
+      Object.keys(R.acompPriv||{}).forEach(function(p){var o=R.acompPriv[p];if(o&&typeof o==='object')Object.keys(o).forEach(function(k){variaTexto(o[k],'acompanhante')})});
+      ((R.debate&&R.debate.falas)||[]).forEach(function(f){if(f)variaTexto(f[1],idDoSlot(f[0]))})});
+    variaTexto(MSG_EPILOGO[PERSONALIDADE],'acompanhante');variaNarracao('{Pol} pediu. <i>"Para a ata."</i>');
+    var log=FALAS_LOG;FALAS_LOG=null;return {ids:log,eventos:ev0,mudados:mud,todas:(window.OI_FALAS||[]).map(function(e){return e[0]})}},
+  dumpVaria:function(){var o=[];[1,2,3,4,5,6].forEach(function(c){var R=ROTEIROS[c];if(!R)return;(R.roteiro||[]).forEach(function(ev){if(typeof ev[2]!=='string')return;var v=variaEvento(ev);if(v!==ev[2])o.push(c+'@'+ev[0]+' ['+ev[1]+']\n  - '+ev[2].replace(/<[^>]+>/g,'')+'\n  + '+v.replace(/<[^>]+>/g,''))})});return o},
+  tipo:function(id){return tipoDe(id)},varia:function(ev){return variaEvento(ev)},falas:function(){return (window.OI_FALAS||[]).length},
   roteiro:function(n){return ROTEIROS[n]?ROTEIROS[n].roteiro.map(function(e){return [e[0],e[1],typeof e[2]==='string'?limpo(e[2]):e[2]]}):null},
   perguntas:function(n){return ROTEIROS[n]?ROTEIROS[n].perguntas():null},inventario:function(){return INVENTARIO.map(function(i){return i.nome})},
   escuro:function(){return escuroAtivo},respostas:function(){return respostas},pecas:function(){return PECAS.map(function(p){return p.nome+(p.tranca?' 🔒':'')})}};
