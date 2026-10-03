@@ -3049,6 +3049,50 @@ var C6_R2X=(function(){
 })();
 if(C5_R2X)ROTEIROS[5]=C5_R2X;
 if(C6_R2X)ROTEIROS[6]=C6_R2X;
+/* ── Frases de conversa (03/10/2026, Mario aprovou; casos/Proposta_conversa_O_Impostor.md) ──
+   Metade das frases prontas de cada capítulo passa a ser conversa: tem resposta de verdade, mas
+   não traz pista. Quem escolhe por engano ou desatenção perde o envio. As respostas não tocam em
+   segredo de personagem nem em pista, e não contradizem o cânone. No grupo responde um personagem
+   do sistema (como nas outras respostas); no privado, o número com quem se fala.
+   [t, frase, resposta, quem pode responder no grupo] */
+var CONVERSA={
+  1:{g:[[20,'Que casa enorme. Alguém já tinha vindo aqui?','Nunca por dentro. Da estrada ela parece menor.',['jornalista','residente','policial']],
+        [120,'Essa chuva não vai parar tão cedo.','Na costa, ela costuma ir até de manhã.',['residente','policial','investigador']],
+        [250,'Alguém sabe onde fica o banheiro?','No fim do corredor, à esquerda.',['herdeira','observadora','jornalista']]],
+     p:[[60,'Você também veio de longe?','Três horas de estrada. A última, na lama.'],[200,'Está com frio?','Um pouco. A casa ficou fechada tempo demais.']]},
+  2:{g:[[30,'Esse rádio é antigo, hein.','De quando a casa ainda falava com os barcos.',['residente','observadora','policial']],
+        [40,'Então vamos dormir aqui?','Sem ponte, não tem outro jeito. Quarto nesta casa não falta.',['policial','jornalista','herdeira']],
+        [120,'Alguém tem um cobertor sobrando?','Tem uma arca no corredor de cima. Cheira a naftalina.',['herdeira','residente','observadora']],
+        [200,'Que barulho é esse no telhado?','É o vento nas telhas. Esta casa range inteira.',['residente','investigador','jornalista']]],
+     p:[[60,'Você consegue dormir em casa estranha?','Não. Vou ficar acordado de qualquer jeito.'],[150,'Seu celular tem sinal?','Uma barra, quando chego perto da janela.']]},
+  3:{g:[[20,'Quantos livros tem nessa biblioteca?','Ninguém nunca contou. O inventário conta caixas.',['observadora','jornalista','residente']],
+        [40,'Que relógio bonito. Quantos anos será que tem?','Mais do que qualquer um de nós aqui.',['policial','herdeira','jornalista']],
+        [90,'Que cheiro de papel velho.','Biblioteca fechada cinco meses. O cheiro fica.',['jornalista','residente','investigador']],
+        [200,'Alguém mais está cansado?','Todos. E a noite está só começando.',['policial','herdeira','observadora']]],
+     p:[[60,'Você entende de relógio?','Só sei dar corda no meu, de pulso.'],[125,'O que você achou da carta?','Acho que não era para a gente ler.']]},
+  4:{g:[[20,'De dia esse jardim deve ser outra coisa.','Com sol, deve ser o lugar mais claro da casa.',['herdeira','jornalista','residente']],
+        [60,'Nossa, que planta bonita!','Essa planta está muito bonita pela idade.',['observadora','residente','herdeira']],
+        [140,'Alguém tem um guarda-chuva?','Tem um no cabide do vestíbulo. Furado.',['residente','policial','jornalista']],
+        [240,'A que horas acaba isso?','Quando a ata disser que acabou.',['tabeliao','policial','investigador']]],
+     p:[[30,'Você está com medo?','Não. Com sono, talvez.'],[150,'Já tinha visto um jardim dentro de casa?','Só em hotel. Nunca numa casa de família.']]},
+  5:{g:[[150,'Que susto. Meu coração ainda está disparado.','O de todo mundo.',['jornalista','herdeira','residente']],
+        [160,'A luz pode cair de novo?','Com essa chuva, a qualquer hora.',['residente','policial','investigador']],
+        [170,'Alguém se machucou no escuro?','Só o orgulho.',['policial','jornalista','observadora']],
+        [180,'O farol nunca apaga?','Tem gerador. É a única luz que não depende de ninguém daqui.',['investigador','residente','policial']]],
+     p:[[155,'Você está bem?','Estou. Só não gosto de escuro.'],[175,'Tem água por aí?','Tem uma jarra na mesa da biblioteca.']]},
+  6:{g:[[110,'Que quarto pequeno.','Pequeno, mas tem a melhor janela da casa.',['observadora','herdeira','residente']],
+        [120,'Que cheiro é esse?','Jasmim. Dá para sentir até no corredor.',['herdeira','jornalista','policial']],
+        [200,'Será que a estrada já abriu?','Só de manhã. O farol disse.',['policial','residente','investigador']],
+        [240,'Depois disso, quem vai querer esta casa?','Casa velha sempre acha dono.',['jornalista','residente','herdeira']]],
+     p:[[130,'Você vai ficar até amanhã?','Não tenho escolha. Ninguém tem.'],[220,'Você acha que a gente sai cedo?','Assim que a estrada abrir, eu vou.']]}
+};
+/* Entram misturadas às úteis, na ordem do tempo; a frase neutra de cada capítulo (tempo 0) fica no fim, como antes. */
+(function(){function mistura(lista,novas){var fim=lista.filter(function(x){return x[0]===0}),meio=lista.filter(function(x){return x[0]!==0});
+    novas.forEach(function(n){var i=0;while(i<meio.length&&(typeof meio[i][0]!=='number'||meio[i][0]<=n[0]))i++;meio.splice(i,0,[n[0],n[1]])});return meio.concat(fim)}
+  Object.keys(CONVERSA).forEach(function(c){var R=ROTEIROS[c],K=CONVERSA[c];if(!R)return;R.replica=R.replica||{};
+    R.respGrupo=mistura(R.respGrupo||[],K.g);R.respPriv=mistura(R.respPriv||[],K.p);
+    K.g.forEach(function(x){var id=voz(x[3]);if(id)R.replica[x[1]]=[SLOT_DE[id],x[2]]});
+    K.p.forEach(function(x){R.replica[x[1]]=x[2]})})})();
 CAPITULOS[5]={n:5,nome:'CENTO E VINTE E DOIS SEGUNDOS'};
 CAPITULOS[6]={n:6,nome:'O QUARTO DE SERVIÇO'};
 
