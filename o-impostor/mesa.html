@@ -157,6 +157,13 @@ button,input,textarea{font:inherit;color:inherit}
 .abertura video{width:100%;height:100%;object-fit:contain;background:#000}
 .abertura .comecar,.abertura .pular{position:absolute;border-radius:10px;font:700 13px var(--mono);letter-spacing:.06em;cursor:pointer}
 .abertura .comecar{left:50%;top:50%;transform:translate(-50%,-50%);min-height:52px;padding:0 22px;border:1px solid #d6aa58;background:linear-gradient(180deg,#f3d078,#e0b13a);color:#1a1206;box-shadow:0 4px 0 #6b5220}
+.abertura .som-card{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:18px;background:#000a}
+.abertura .som-card[hidden]{display:none}
+.abertura .som-caixa{width:min(360px,100%);padding:20px 18px;border:1px solid #6b5420;border-radius:16px;background:linear-gradient(180deg,#1d1709f2,#0e0b05f2);box-shadow:0 18px 50px #000c;text-align:center}
+.abertura .som-caixa h2{margin:0 0 6px;font:700 24px var(--serif,Georgia,serif);color:#f3d078}
+.abertura .som-caixa p{margin:0 0 16px;color:#e9dfc6;font:500 15px/1.45 var(--sans)}
+.abertura .som-caixa .comecar{position:static;transform:none;width:100%}
+.abertura .pular-ab{display:block;width:100%;margin-top:10px;min-height:44px;border:1px solid #46667a;border-radius:10px;background:#0c1b26;color:#dce8ed;font:700 13px var(--mono);letter-spacing:.06em;cursor:pointer}
 .abertura .pular{right:12px;bottom:calc(env(safe-area-inset-bottom) + 14px);min-height:40px;padding:0 14px;border:1px solid #46667a;background:#0c1b26cc;color:var(--gold2)}
 .orelha.muda{color:transparent;pointer-events:none;opacity:.55}
 .orelha.muda .n{display:none}
@@ -761,7 +768,9 @@ button:active,.caixa:active,.redondo:active,.chip:active{
 <div class="abertura" id="abertura">
   <audio id="somRadio" src="media/radio-estatica.mp3" preload="auto"></audio>
   <video id="videoAbertura" playsinline preload="auto" poster="media/aguardando.jpg"><source src="media/Mosaico_O_Impostor.mp4" type="video/mp4" /><source src="Mosaico_O_Impostor.mp4" type="video/mp4" /></video>
-  <button class="comecar" id="comecar">▶ Começar</button>
+  <!-- SUBSTITUIDO 03/10: <button class="comecar" id="comecar">▶ Começar</button> — agora a janela de ativar o som, como na abertura da Casa (abertura-casa.js) -->
+  <div class="som-card" id="somCard"><div class="som-caixa"><h2>Ative o som</h2><p>A abertura tem narração. Aumente o volume antes de começar.</p><button class="comecar" id="comecar">🔊 Ativar som e começar</button></div></div>
+  <!-- SUBSTITUIDO 03/10 (Mario): o botão "Pular a abertura" saiu desta janela; pular só aparece quando o vídeo começa (#pular) -->
   <button class="pular" id="pular" hidden>Pular ›</button>
 </div>
 <div class="janela" id="janela" hidden><div class="caixa-j"><small id="janelaRot">PARA COMEÇAR</small><p id="janelaTxt"></p><button id="janelaOk">Entendi</button></div></div>
@@ -3063,11 +3072,25 @@ function pintarRevelacao(){
   var P=P_R2,F=FIM_R2[P],imp=IMPOSTOR_R2[P],aj=AJUDANTE_R2[P];
   var nomeImp=imp==='acompanhante'?'a pessoa escondida, dona da voz':na(imp),nomeAj=aj==='voz'?'a própria voz, com a mensagem do escuro':na(aj);
   var linhas=[['O que sabia',F.fala],['Por onde foi',F.rota],['Quem viu não estar',F.ausencia],['O que o caderno desmente',F.caderno],['Quem ajudou',F.ajudou],['Por que os outros caíram',F.outros]];
-  $('#fechoCorpo').innerHTML='<p class="kicker">A revelação</p><h1 id="fechoTitulo">'+T((imp==='acompanhante'?'Foi a pessoa escondida.':'Foi '+nomeImp+'.'))+'</h1>'+
+  /* 03/10 (Mario): na revelação entram o vídeo do impostor e o boneco do número dele nesta partida. */
+  var fImp=imp==='acompanhante'?ACOMP:SLOT_DE[imp];
+  /* SUBSTITUIDO 03/10: $('#fechoCorpo').innerHTML='<p class="kicker">A revelação</p><h1 id="fechoTitulo">'+...+'</h1>'+ (o vídeo e o boneco entraram antes do título) */
+  $('#fechoCorpo').innerHTML='<div class="revela"><video id="videoImp" src="media/impostor-revela.mp4" poster="media/impostor.webp" playsinline muted autoplay preload="auto" aria-label="O boneco de vidro vira o impostor, de chapéu e capa"></video><button type="button" class="som" id="somImp" aria-label="Ver de novo com som">🔊</button></div>'+
+    '<div id="impLogo" style="display:flex;align-items:center;gap:14px;margin:4px 0 14px;padding:12px 14px;border-radius:14px;border:1px solid #6b5420;background:linear-gradient(180deg,#1d1709,#120e06);opacity:0;transform:translateY(8px);transition:opacity .9s,transform .9s">'+
+      (ARQ[fImp]?'<img src="icones/contatos/'+ARQ[fImp]+'.webp" alt="" style="width:76px;height:76px;object-fit:contain;flex:none;border-radius:12px">':'')+
+      '<div><small style="display:block;color:#c9a95a;letter-spacing:.12em;font:700 11px var(--sans)">NESTA PARTIDA, O IMPOSTOR ERA O NÚMERO</small>'+
+      '<b style="display:block;font:800 30px var(--mono);color:'+(CORES[fImp]||'#efc878')+'">···'+fImp+'</b>'+
+      '<span style="color:#e9dfc6">'+T(imp==='acompanhante'?'A pessoa escondida, pelo celular do proprietário':NOMES[imp][1])+'</span></div></div>'+
+    '<p class="kicker">A revelação</p><h1 id="fechoTitulo">'+T((imp==='acompanhante'?'Foi a pessoa escondida.':'Foi '+nomeImp+'.'))+'</h1>'+
     linhas.map(function(l){return '<h2>'+l[0]+'</h2><p class="lede">'+T(l[1])+'</p>'}).join('')+
     '<p class="lede"><b>Quem ajudou:</b> '+T(nomeAj)+'.'+(aj===EU_PAPEL?' Era o seu personagem: você cobriu o traidor sem saber.':'')+(FALSO_R2[P].indexOf(EU_PAPEL)>=0?' E o seu personagem era quem parecia culpado, sem ser.':'')+'</p>'+
     '<div class="acoes"><button type="button" id="irPlacar">Ver o placar</button></div>';
-  $('#irPlacar').onclick=pintarPlacar;$('#fecho').scrollTop=0;
+  /* SUBSTITUIDO 03/10: $('#irPlacar').onclick=pintarPlacar; — no grupo, antes vem a folha de resultados (o pódio) */
+  $('#irPlacar').onclick=MP?mpPodio:pintarPlacar;$('#fecho').scrollTop=0;
+  var vI=$('#videoImp'),lg=$('#impLogo');function mostra(){if(lg){lg.style.opacity=1;lg.style.transform='none'}}
+  if(vI){var pr=vI.play();if(pr&&pr.catch)pr.catch(mostra);vI.addEventListener('ended',mostra);vI.addEventListener('error',mostra);
+    $('#somImp').onclick=function(){vI.muted=false;vI.currentTime=0;vI.play()}}
+  setTimeout(mostra,5000);
 }
 /* SUBSTITUIDO 02/10 (fechamento da partida): a função antiga pintarPlacar ficou como pintarPlacar_SUBSTITUIDO, abaixo, sem uso. */
 function pintarPlacar(){
@@ -3097,7 +3120,7 @@ function pintarPlacar(){
     '<div class="acoes"><button type="button" id="baixarCartao">Salvar o cartão</button> <button type="button" id="irEpilogo">Epílogo</button></div>';
   try{var url=cartaoFaro(R,codigo);$('#cartaoImg').src=url;$('#baixarCartao').onclick=function(){var a=document.createElement('a');a.href=url;a.download='cartao-de-faro-'+PARTIDA+'.png';document.body.appendChild(a);a.click();a.remove()}}catch(e){$('#cartaoImg').remove();$('#baixarCartao').remove()}
   $('#irEpilogo').onclick=pintarEpilogo;$('#fecho').scrollTop=0;
-  if(MP)mpFimDaPartida(R);
+  if(MP){mpFimDaPartida(R);mpPintarPlacar()}
 }
 function pintarPlacar_SUBSTITUIDO(){
   var tot=0,certezas=0,certezasCertas=0,linhas='';
@@ -3363,19 +3386,25 @@ function janela(rot,txt,depois){
 function liberarAba(a){var o=document.querySelector('[data-aba="'+a+'"]');o.classList.remove('muda');o.classList.add('nasce');setTimeout(function(){o.classList.remove('nasce')},3400)}
 function inicioDoJogo(){
   var ab=$('#abertura');if(!ab)return;ab.remove();try{video.pause()}catch(e){}
+  /* 03/10 (Mario): na mesa em grupo, a abertura vem antes da sala: acabado (ou pulado) o vídeo,
+     abre a janela de Abrir / Entrar. O prólogo começa depois do sorteio, na página da partida. */
+  if(GRUPO&&!MP){oiCarregarSala();return}
   ['grupo','privadas','suspeitos'].forEach(function(a){document.querySelector('[data-aba="'+a+'"]').classList.add('muda')});
   irPara('ra');
   janela('PARA COMEÇAR',SOU_FUNC
     ?'Para preparar a casa para amanhã, você precisa conhecê-la. Toque em RA e ponha a maquete da casa na sua mesa, em realidade aumentada. Ela fica disponível o jogo todo para você explorar. Procure como entrar na casa.'
     :'Toque em RA. Ponha a maquete da casa na sua mesa, em realidade aumentada. Ela fica disponível o jogo todo para você explorar. Procure como entrar na casa.');
 }
-$('#comecar').onclick=function(){$('#comecar').hidden=true;$('#pular').hidden=false;var pr=video.play();if(pr&&pr.catch)pr.catch(inicioDoJogo);
+/* SUBSTITUIDO 03/10: $('#comecar').onclick=function(){$('#comecar').hidden=true;... (agora some a janela inteira do som) */
+/* SUBSTITUIDO 03/10: $('#pularAbertura').onclick=function(){inicioDoJogo()}; (pular só durante o vídeo) */
+$('#comecar').onclick=function(){$('#somCard').hidden=true;$('#pular').hidden=false;var pr=video.play();if(pr&&pr.catch)pr.catch(inicioDoJogo);
   /* se em 4 s o vídeo não tiver começado, segue sem ele */
   setTimeout(function(){if(video.readyState<2||video.networkState===3)inicioDoJogo()},4000)};
 $('#pular').onclick=inicioDoJogo;
 video.addEventListener('ended',inicioDoJogo);
 /* Sem vídeo (arquivo ausente ou bloqueado): o botão vira "Entrar" e o jogo segue. */
-function semVideo(){var c=$('#comecar');if(!c)return;if(!c.hidden){c.textContent='▶ Entrar';c.onclick=inicioDoJogo}else inicioDoJogo()}
+/* SUBSTITUIDO 03/10: function semVideo(){var c=$('#comecar');...if(!c.hidden){...} (o botão agora vive na janela do som) */
+function semVideo(){var c=$('#comecar'),k=$('#somCard');if(!c)return;if(k&&!k.hidden){c.textContent='▶ Entrar';c.onclick=inicioDoJogo}else inicioDoJogo()}
 var fontes=video.querySelectorAll('source');if(fontes.length)fontes[fontes.length-1].addEventListener('error',semVideo);
 video.addEventListener('error',semVideo);
 if(video.networkState===3)semVideo();
@@ -3749,12 +3778,33 @@ function mpPintarPlacar(){var el=$('#mpPlacar');if(!el)return;var S=mpSala(),roo
   el.innerHTML='<div class="tabela"><div class="linha cab"><span>Ranking</span><span>Personagem</span><span>Pontos</span></div>'+linhas+'</div>'+
     (falta>0?'<p class="lede">Aguardando '+falta+(falta>1?' jogadores':' jogador')+' terminar as respostas finais.</p>':'')+
     (tit.length?'<h2>Títulos da mesa</h2>'+tit.map(function(t){return '<p class="lede"><b>'+t[0]+'.</b> '+t[1]+'</p>'}).join(''):'')}
+/* A folha de resultados (03/10, arte do Mario): o pódio com os três primeiros da mesa,
+   antes do placar de cada um. Empate divide o degrau. */
+function mpPodio(){mpFimDaPartida(resumoPartida());
+  $('#fechoCorpo').innerHTML='<div id="mpPodio" style="position:relative;margin:-6px -6px 10px;border-radius:14px;overflow:hidden">'+
+    '<img src="media/resultados.jpg" alt="Pódio dos resultados" style="display:block;width:100%;height:auto">'+
+    '<div data-degrau="1" style="position:absolute;left:30%;right:30%;top:31%;text-align:center"></div>'+
+    '<div data-degrau="2" style="position:absolute;left:8%;width:40%;top:50%;text-align:center"></div>'+
+    '<div data-degrau="3" style="position:absolute;left:55%;width:40%;top:58%;text-align:center"></div>'+
+    '<p id="mpPodioFalta" style="position:absolute;left:6%;right:6%;bottom:4%;margin:0;text-align:center;color:#e9dfc6;font:600 14px var(--sans);text-shadow:0 1px 4px #000"></p></div>'+
+    '<div class="acoes"><button type="button" id="irMeuPlacar">Ver o seu placar</button></div>';
+  $('#irMeuPlacar').onclick=pintarPlacar;$('#fecho').scrollTop=0;mpPintarPodio()}
+function mpPintarPodio(){var el=$('#mpPodio');if(!el)return;var S=mpSala(),room=S.sala,hum=mpHumanos(room,S.jogadores);
+  var feitos=hum.filter(function(p){return p.resumo&&p.id!==mpUid}).map(function(p){return {id:p.id,nome:p.nome||'Jogador',r:p.resumo}});
+  if(mpMeuResumo)feitos.push({id:mpUid,nome:mpNomes[mpUid]||'Você',r:mpMeuResumo});
+  var notas=[];feitos.forEach(function(x){if(notas.indexOf(x.r.final)<0)notas.push(x.r.final)});notas.sort(function(a,b){return b-a});
+  [1,2,3].forEach(function(d){var alvo=el.querySelector('[data-degrau="'+d+'"]'),v=notas[d-1];
+    var quem=v===undefined?[]:feitos.filter(function(x){return x.r.final===v});
+    alvo.innerHTML=quem.length?quem.map(function(x){return '<b style="display:block;font:800 '+(d===1?'20':'16')+'px var(--sans);color:#ffe3a1;text-shadow:0 2px 6px #000,0 0 12px #000">'+x.nome.replace(/[<>&]/g,'')+(x.id===mpUid?' (você)':'')+'</b>'}).join('')+
+      '<span style="display:inline-block;margin-top:3px;padding:1px 8px;border-radius:99px;background:#000a;color:#efc878;font:700 13px var(--mono)">'+d+'º · '+(v>0?'+':'')+v+'</span>':''});
+  var total=room&&room.oi?Object.keys(room.oi.papeis).length:feitos.length,falta=total-feitos.length;
+  $('#mpPodioFalta').textContent=falta>0?'Aguardando '+falta+(falta>1?' jogadores':' jogador')+' terminar.':''}
 function mpIniciar(d){mpUid=mpSala().uid;mpLigado=true;
   /* Padrão das mesas: sem telão, a abertura toca só no celular do Mestre. */
   if(d.role!=='master'){var c=$('#comecar');if(c&&!c.hidden){c.textContent='▶ Entrar';c.onclick=inicioDoJogo;
     var nota=document.createElement('p');nota.textContent='A abertura passa no celular do Mestre.';nota.style.cssText='margin:10px 0 0;color:#cfd8de;font:500 14px var(--sans);text-align:center';c.parentNode.insertBefore(nota,c.nextSibling)}}
   mpSala().ouvirColecao('mensagens',mpRecebeMsgs);mpSala().ouvirColecao('eventos',mpRecebeEventos);
-  mpSala().aoMudar(function(room,players){mpChecar(room,players);if(mpFinalizado)mpPintarPlacar()});
+  mpSala().aoMudar(function(room,players){mpChecar(room,players);if(mpFinalizado){mpPintarPlacar();mpPintarPodio()}});
   mpChecar(d.room,d.players||mpSala().jogadores)}
 /* As falas de abertura do grupo e das privadas (o prólogo) já vêm prontas: no grupo,
    as dos personagens humanos viram narração; as do próprio jogador somem. */
@@ -3783,6 +3833,23 @@ if(GRUPO&&!MP)window.DragonSalaAntesDeIniciar=function(ctx){var ps=(ctx.players|
   var esc=mist(ordem.slice(0,N));if(esc.length<N)throw new Error('Sem lugar para todos nesta partida.');
   var papeis={};mist(ps).forEach(function(pl,i){papeis[pl.id]=esc[i]});
   return {oi:{p:p,partida:semente,humanos:N,papeis:papeis,teste:Q.get('teste')==='1'}}};
+/* A entrada da mesa (firebase-room.js) só entra depois da abertura (03/10, Mario): som → vídeo
+   → Abrir / Entrar. Na página da partida (depois do sorteio), entra direto e o prólogo começa. */
+function oiCarregarSala(){if(oiCarregarSala.feito)return;oiCarregarSala.feito=true;
+  var q=document.createElement('script');q.src='../v1/js/qr.js';document.head.appendChild(q);
+  var m=document.createElement('script');m.type='module';m.src='../firebase-room.js?v=20261003-impostor';
+  var d={project:'impostor',root:'mosaico',case:'o-impostor',title:'O Impostor',papelCamada:'nao',retomar:'sim'};
+  Object.keys(d).forEach(function(k){m.dataset[k]=d[k]});document.body.appendChild(m)}
+/* O botão Sala do Mestre fica no alto, junto do i e da ficha: o flutuante cobria a barra de
+   escrever. A folha da sala esconde o flutuante quando acha este espelho, e o alerta pisca aqui. */
+/* SUBSTITUIDO 03/10: o botão usava o estilo do "i" (className='mc-i'). Agora é o botão Sala da
+   Mesa da Casa da Costa (v1/MOSAICO-mesa.html, .btn-menu-mestre): pílula escura com borda fria,
+   e o alerta vermelho pulsando quando há ação do Mestre (o pulso vem da folha da sala). */
+if(MP&&MPCFG.mestre){var bS=document.createElement('button');bS.type='button';bS.className='btn-menu-mestre';bS.setAttribute('data-dragon-sala-espelho','');bS.setAttribute('aria-label','Abrir ou fechar a Sala do mestre');bS.textContent='Sala';
+  document.head.insertAdjacentHTML('beforeend','<style>.btn-menu-mestre{height:36px;min-height:36px;padding:0 14px;margin-right:4px;border-radius:100px;border:1px solid rgba(127,212,255,.5);background:rgba(5,7,12,.82);color:#7fd4ff;font:700 clamp(12px,3vw,15px) var(--sans);letter-spacing:.04em;text-transform:none;cursor:pointer}</style>');
+  bS.onclick=function(){var f=document.getElementById('dragonSalaBtn');if(f)f.click()};
+  var hud=document.querySelector('.topbar .hud');if(hud)hud.insertBefore(bS,hud.firstChild)}
+if(MP){oiCarregarSala();inicioDoJogo()}
 /* teste (?teste=1): ganchos para o teste automático da mesa em grupo */
 if(MP&&Q.get('teste')==='1')window.__oiMP={estado:function(){return {papel:EU_PAPEL,eu:EU,P:P_R2,slots:JSON.stringify(SLOT_DE),hum:Object.keys(MP_HUM).join(','),ligado:mpLigado,capitulo:capitulo,fechado:!!capituloFechado[capitulo],faixa:($('#mpFaixa')||{}).textContent||''}},
   pronto:function(n){mpPronto(n)},abertura:function(){if($('#abertura'))inicioDoJogo()},fim:function(){if(!capituloFechado[capitulo])fimDoCapitulo()},
@@ -3796,7 +3863,7 @@ window.addEventListener('mosaico-room-ready',function(e){var d=e.detail||{};if(!
   var oi=d.room.oi,uid=mpSala()&&mpSala().uid,papel=oi&&oi.papeis&&oi.papeis[uid];
   if(!papel){janela('A MESA JÁ COMEÇOU','Esta partida começou sem o seu lugar. Peça ao Mestre para abrir uma mesa nova.');return}
   var hum=Object.keys(oi.papeis).map(function(k){return oi.papeis[k]});
-  try{sessionStorage.setItem('oi:mp:'+d.code,JSON.stringify({p:oi.p,partida:oi.partida,humanos:oi.humanos,papel:papel,hum:hum}))}
+  try{sessionStorage.setItem('oi:mp:'+d.code,JSON.stringify({p:oi.p,partida:oi.partida,humanos:oi.humanos,papel:papel,hum:hum,mestre:d.role==='master'}))}
   catch(er){janela('NAVEGADOR','Este navegador não deixa o jogo guardar a partida (modo privado?). Abra em uma aba comum.');return}
   location.replace(location.pathname+'?sala='+d.code+'&mp=1'+(oi.teste?'&teste=1':''))});
 
@@ -3823,8 +3890,8 @@ if(Q.get('teste')==='1')window.__oiMesa={P:function(){return P_R2},papel:functio
 pintarGrupo();pintarListaPriv();
 })();
 </script>
-<!-- 03/10: a mesa em grupo (Firebase). Só carrega com ?grupo=1 ou ?sala=CÓDIGO; o solo não muda. -->
-<script>if(/[?&](grupo=1|sala=)/.test(location.search))document.write('<script src="../v1/js/qr.js"><\/script><script type="module" src="../firebase-room.js?v=20261003-impostor" data-project="impostor" data-root="mosaico" data-case="o-impostor" data-title="O Impostor" data-papel-camada="nao" data-retomar="sim"><\/script>')</script>
+<!-- 03/10: a mesa em grupo (Firebase) carrega pela função oiCarregarSala, depois da abertura.
+     SUBSTITUIDO 03/10: o carregador por document.write logo ao abrir a página (a sala aparecia antes do vídeo). -->
 <script src="icones/contatos/ligar.js"></script>
 </body>
 </html>
