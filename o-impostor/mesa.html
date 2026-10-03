@@ -1914,6 +1914,17 @@ var C1=(function(){
    vem da partida da Matriz. Trechos ◆ vêm da Matriz da revisão 2. */
 var VOZ_R2={1:'guardia',2:'ardilosa',3:'explosiva',4:'quieta',5:'guardia',6:'ardilosa',7:'explosiva',8:'guardia',9:'quieta',10:'ardilosa',11:'quieta',12:'explosiva',13:'guardia',14:'quieta',15:'ardilosa'};
 PERSONALIDADE=VOZ_R2[P_R2]||PERSONALIDADE;
+/* 02/10 (Mario): a voz também sorteia entre os 6 tipos (a matriz já tem as 6 colunas).
+   Exceção: nas P2, P6, P12 e P15 a prova depende do segundo e do texto da mensagem do
+   escuro (a tela que acende aos 60 ou aos 90), então a voz fica no tipo do cânone.
+   PERSONALIDADE continua sendo a chave antiga que o código usa para montar o texto;
+   para Ingênuo e Burocrata ela é 'ardilosa' (a coluna Evasivo guarda o texto exato da
+   ardilosa) e a matriz troca pela versão do tipo. ?voz=ingenuo (etc.) força, para teste. */
+var VOZ_FIXA=[2,6,12,15];
+var VOZ6=(function(){var T6=['explosivo','calmo_opaco','ingenuo','leal_cego','evasivo','burocrata'],f=Q.get('voz');
+  if(VOZ_FIXA.indexOf(P_R2)>=0)return {guardia:'leal_cego',explosiva:'explosivo',ardilosa:'evasivo',quieta:'calmo_opaco'}[PERSONALIDADE];
+  if(T6.indexOf(f)>=0)return f;return T6[Math.floor(gerador(PARTIDA+'|voz6')()*6)]})();
+PERSONALIDADE={leal_cego:'guardia',explosivo:'explosiva',evasivo:'ardilosa',calmo_opaco:'quieta'}[VOZ6]||'ardilosa';
 var MATRIZ_C2={
   1:{frase:['herdeira','Ele nunca me disse que estava tão mal.','Ele disse a quem estava aqui.'],luz:'jornalista',conduz:'investigador',mentira:['residente','Eu vinha toda semana ver a infiltração. No fim ele nem descia mais, ficava lá em cima, no quarto dele.']},
   2:{frase:['policial','Ninguém sai desta casa até eu dizer.','Nem quem já está do lado de dentro?'],luz:'residente',conduz:'tabeliao'},
@@ -2355,7 +2366,7 @@ var PERS_TEMPO={guardia:20,explosiva:90,ardilosa:60,quieta:100,
 var MSG_ESCURO={guardia:'Fiquem onde estão.',explosiva:'Agora vocês sabem como é o escuro desta casa.',ardilosa:'Quem de vocês está olhando para o relógio agora?',quieta:'.'};
 var MSG_FUGA={guardia:'Está tudo aí. Leiam.',explosiva:'Agora é tarde para bater na porta.',ardilosa:'Um de vocês vai dizer que esteve aqui. Contem os dias.',quieta:'Leiam.'};
 var MSG_EPILOGO={guardia:'Reguem o jasmim. Ele pediu.',explosiva:'Leram. Agora saiam do quarto.',ardilosa:'Acharam o papel. Falta a pessoa.',quieta:'Boa noite.'};
-var NUM_EXT={20:'vinte',60:'sessenta',90:'noventa',100:'cem'};
+var NUM_EXT={20:'vinte',36:'trinta e seis',60:'sessenta',90:'noventa',100:'cem',106:'cento e seis'};
 
 /* ── Cap. 5: o que cada posto percebe no escuro (segundos desde o apagão) ── */
 var C5_R2={
@@ -2814,7 +2825,8 @@ var C5_R2X=(function(){
     else if(i===1)sis(T0+c,'Vinte segundos depois, o segundo clarão. A casa aprendia a respirar no ritmo do farol.');
     else if(!ja[c]&&!(D.semClaroes&&D.semClaroes.indexOf(c)>=0))sis(T0+c,['','','O terceiro clarão.','O quarto clarão.','O quinto clarão.','O sexto clarão.'][i])});
   /* a mensagem do escuro, no segundo da personalidade */
-  var tv=PERS_TEMPO[PERSONALIDADE];
+  /* SUBSTITUIDO 02/10: var tv=PERS_TEMPO[PERSONALIDADE]; */
+  var tv=PERS_TEMPO[VOZ6];
   sis(T0+tv,'Aos '+NUM_EXT[tv]+' segundos, todos os celulares vibraram ao mesmo tempo. Telas se acenderam pela casa, cada uma onde o dono a tinha deixado.');
   ev.push([T0+tv+1,ACOMP,MSG_ESCURO[PERSONALIDADE]]);
   var naE=Object.keys(M4.postos).filter(function(id){return M4.postos[id]==='E'})[0];
@@ -3284,16 +3296,15 @@ window.OIMesa={liberarAba:liberarAba,janela:janela,estado:function(){return esta
    Cada personagem recebe, pela semente da partida, um dos 6 tipos. O tipo só
    muda a forma de dizer: a informação de cada fala é a mesma nas 6 versões
    (Matriz_falas_O_Impostor.xlsx → falas-matriz.js). O jogador nunca vê o tipo.
-   A voz guarda o tipo do cânone de cada partida (VOZ_R2: guardiã → Leal cego,
-   explosiva → Explosivo, ardilosa → Evasivo, quieta → Calmo opaco), porque as
-   provas da P2, P6 e P15 dependem do texto e do segundo da mensagem dela.
+   A voz sorteia o tipo dela (VOZ6, ver acima), menos nas P2, P6, P12 e P15, que
+   ficam no tipo do cânone. [SUBSTITUIDO 02/10: "a voz guarda o tipo do cânone de cada partida".]
    O personagem do jogador também tem tipo: é com ele que o narrador fala por ele.
    ?tipos=explosivo (etc.) força um tipo para todos, para teste; ?tipos=base desliga. */
 var TIPOS6=['explosivo','calmo_opaco','ingenuo','leal_cego','evasivo','burocrata'];
 var VOZ_TIPO={guardia:'leal_cego',explosiva:'explosivo',ardilosa:'evasivo',quieta:'calmo_opaco'};
 var TIPO_FORCADO=Q.get('tipos')||'';
 function tipoDe(id){
-  if(id==='acompanhante')return VOZ_TIPO[PERSONALIDADE]||'evasivo';
+  if(id==='acompanhante')return VOZ6||VOZ_TIPO[PERSONALIDADE]||'evasivo';
   if(TIPOS6.indexOf(TIPO_FORCADO)>=0)return TIPO_FORCADO;
   return TIPOS6[Math.floor(gerador(PARTIDA+'|tipo|'+id)()*6)];
 }
