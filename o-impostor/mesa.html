@@ -1066,6 +1066,9 @@ if(!SOU_FUNC)privadas[S(4)]={nao:0,msgs:[{de:S(4),txt:'Você chegou antes ou dep
 else if(COLEGAS.length)privadas[COLEGAS[0]]={nao:0,msgs:[{de:COLEGAS[0],txt:'Você sabe onde fica o quadro de luz?'}]};
 var RESP_GRUPO=['Cheguei. Estou na sala de estar.','Quem mais já chegou?','A lista está comigo.','Alguém viu o relógio de caixa alta?'];
 var RESP_PRIV=['Cheguei depois.','Não reparei.','Por quê?','Te digo depois.'];
+/* 03/10 (Mario aprovou): na véspera, o funcionário humano não usa as frases dos convocados (ninguém chegou ainda). */
+var RESP_GRUPO_SERV=['Estou na cozinha.','Quem mais ficou na casa?','As chaves estão comigo.','Alguém viu o relógio de caixa alta?'];
+var RESP_PRIV_SERV=['Ainda não.','Não reparei.','Por quê?','Te digo depois.'];
 
 /* ── Marcador de frase (revisão 2) ─────────────────────────────────────
    Tocar e segurar uma fala (do narrador ou de alguém) marca a fala: até 3 por
@@ -1210,15 +1213,20 @@ function montarRespostas(id,lista,destino){
   el.querySelectorAll('.chip').forEach(function(c){c.onclick=function(){
     if(!gastarEnvio())return;
     var m={de:EU,txt:c.textContent,h:hora()};
-    if(destino==='grupo'){grupo.push(m);pintarGrupo()}else{privadas[abertaPriv].msgs.push(m);privadas[abertaPriv].ordem=++ordemPriv;pintarConv();pintarListaPriv()}
+    /* SUBSTITUIDO 03/10: if(destino==='grupo'){grupo.push(m);pintarGrupo()} — o funcionário que escrevia no grupo do serviço
+       via a mensagem sumir (ela ia para o grupo da casa, que ele ainda não vê). */
+    var noServ=destino==='grupo'&&SOU_FUNC&&(!encontroFeito||verServ);
+    if(noServ){grupoServ.push(m);pintarGrupo()}else if(destino==='grupo'){grupo.push(m);pintarGrupo()}else{privadas[abertaPriv].msgs.push(m);privadas[abertaPriv].ordem=++ordemPriv;pintarConv();pintarListaPriv()}
     el.hidden=true;
-    mpEnviar({txt:c.textContent},destino==='grupo'?null:abertaPriv);   /* 03/10: os outros humanos veem (decisão 3) */
+    mpEnviar({txt:c.textContent},destino==='grupo'?(noServ?'serv':null):abertaPriv);   /* 03/10: os outros humanos veem (decisão 3) */
     if(ROTEIROS[capitulo])responder(c.textContent,destino==='grupo'?null:abertaPriv);
   }});
 }
 document.querySelectorAll('[data-respostas]').forEach(function(b){b.onclick=function(){
   var id=b.dataset.respostas,el=$('#'+id);
-  if(el.hidden){montarRespostas(id,id==='respGrupo'?(ROTEIROS[capitulo]?liberadas(ROTEIROS[capitulo].respGrupo):RESP_GRUPO):(ROTEIROS[capitulo]?liberadas(ROTEIROS[capitulo].respPriv):RESP_PRIV),id==='respGrupo'?'grupo':'priv');el.hidden=false}else el.hidden=true;
+  /* SUBSTITUIDO 03/10: ...:RESP_GRUPO) ... :RESP_PRIV) — no prólogo do funcionário entram RESP_GRUPO_SERV e RESP_PRIV_SERV */
+  var vesp=SOU_FUNC&&!ROTEIROS[capitulo];
+  if(el.hidden){montarRespostas(id,id==='respGrupo'?(ROTEIROS[capitulo]?liberadas(ROTEIROS[capitulo].respGrupo):(vesp?RESP_GRUPO_SERV:RESP_GRUPO)):(ROTEIROS[capitulo]?liberadas(ROTEIROS[capitulo].respPriv):(vesp?RESP_PRIV_SERV:RESP_PRIV)),id==='respGrupo'?'grupo':'priv');el.hidden=false}else el.hidden=true;
 }});
 
 /* ── Inventário (clipe) ──────────────────────────────────────────────── */
@@ -1235,8 +1243,10 @@ document.querySelectorAll('[data-anexo]').forEach(function(b){b.onclick=function
     if(!gastarEnvio())return;
     var it=INVENTARIO[+x.dataset.it];
     var m={de:EU,anexo:it.nome,img:it.img,h:hora()};
-    if(destino==='grupo'){grupo.push(m);pintarGrupo()}else{privadas[abertaPriv].msgs.push(m);privadas[abertaPriv].ordem=++ordemPriv;pintarConv();pintarListaPriv()}
-    mpEnviar({anexo:it.nome,img:it.img},destino==='grupo'?null:abertaPriv);   /* 03/10 */
+    /* SUBSTITUIDO 03/10: if(destino==='grupo'){grupo.push(m);pintarGrupo()} (o mesmo, para o anexo) */
+    var noServ=destino==='grupo'&&SOU_FUNC&&(!encontroFeito||verServ);
+    if(noServ){grupoServ.push(m);pintarGrupo()}else if(destino==='grupo'){grupo.push(m);pintarGrupo()}else{privadas[abertaPriv].msgs.push(m);privadas[abertaPriv].ordem=++ordemPriv;pintarConv();pintarListaPriv()}
+    mpEnviar({anexo:it.nome,img:it.img},destino==='grupo'?(noServ?'serv':null):abertaPriv);   /* 03/10 */
     fecharFolha();
   }});
 }});
@@ -3689,7 +3699,7 @@ function variaEvento(ev){
 var mpPortoesFeitos={},mpCapAplicado=0,mpEsperando=null,mpAvancando={},mpInicio=Date.now(),mpUid='',mpLigado=false,mpFinalizado=false,mpMeuResumo=null,mpNomes={},mpPassouPrologo=false;
 function mpSala(){return window.DragonSala||null}
 function mpHumanos(room,players){var pp=room&&room.oi&&room.oi.papeis||{};return (players||[]).filter(function(p){return pp[p.id]})}
-function mpEnviar(m,para){if(!MP||!mpLigado)return;if(para&&!mpVoz(para))return;
+function mpEnviar(m,para){if(!MP||!mpLigado)return;if(para&&para!=='serv'&&!mpVoz(para))return;
   var d={slot:EU,para:para||'grupo',cap:capitulo};
   if(m.txt)d.txt=String(m.txt).slice(0,600);
   if(m.anexo){d.anexo=String(m.anexo).slice(0,120);if(m.img&&String(m.img).length<=700000)d.img=String(m.img)}
@@ -3703,6 +3713,7 @@ function mpRecebeMsgs(lista){lista.sort(function(a,b){return (a.ms||0)-(b.ms||0)
   if(m.para==='grupo'){grupo.push(b);pintarGrupo();if(aba!=='grupo')document.querySelector('[data-aba="grupo"]').classList.add('glow');
     /* a resposta do sistema a uma frase pronta sai igual em todos os celulares */
     if(m.txt&&ROTEIROS[capitulo]&&m.cap===capitulo)responder(m.txt,null,de)}
+  else if(m.para==='serv'){if(SOU_FUNC){grupoServ.push(b);pintarGrupo();if(aba!=='grupo')document.querySelector('[data-aba="grupo"]').classList.add('glow')}}
   else if(m.para===EU){if(!privadas[de])privadas[de]={nao:0,msgs:[]};privadas[de].msgs.push(b);privadas[de].ordem=++ordemPriv;
     if(!(aba==='privadas'&&abertaPriv===de))privadas[de].nao++;if(abertaPriv===de)pintarConv();pintarListaPriv()}
 })}
