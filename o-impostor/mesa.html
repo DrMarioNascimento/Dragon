@@ -888,10 +888,12 @@ var Q=new URLSearchParams(location.search);
 var PARTIDA=Q.get('partida')||(function(){try{var k='oi:partida';var v=sessionStorage.getItem(k);if(!v){v='P-'+Date.now().toString(36).toUpperCase();sessionStorage.setItem(k,v)}return v}catch(e){return 'P-DEMO'}})();
 function gerador(semente){var h=1779033703^semente.length;for(var i=0;i<semente.length;i++){h=Math.imul(h^semente.charCodeAt(i),3432918353);h=h<<13|h>>>19}
   return function(){h=Math.imul(h^h>>>16,2246822507);h=Math.imul(h^h>>>13,3266489909);h^=h>>>16;var t=(h+=0x6D2B79F5);t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
+/* SUBSTITUIDO 02/10 (Mario): o transparente tinha o nome em '#d8dee4'; passou a '#a9b8c8' para não se confundir com o branco, a 14ª cor. */
 var PALETA=[
-  {arq:'azul',cor:'#6fa8ff'},{arq:'transparente',cor:'#d8dee4'},{arq:'esmeralda',cor:'#5fd68a'},{arq:'dourado',cor:'#e6c36a'},
+  {arq:'azul',cor:'#6fa8ff'},{arq:'transparente',cor:'#a9b8c8'},{arq:'esmeralda',cor:'#5fd68a'},{arq:'dourado',cor:'#e6c36a'},
   {arq:'roxo',cor:'#b9a6ff'},{arq:'verde-agua',cor:'#3cc9a8'},{arq:'ciano',cor:'#5fd8ec'},{arq:'vermelho',cor:'#ff8a80'},
-  {arq:'rosa',cor:'#f28cc0'},{arq:'laranja',cor:'#ffa05a'},{arq:'lima',cor:'#b8e05a'},{arq:'cobre',cor:'#d49a6a'},{arq:'indigo',cor:'#9a9eff'}];
+  {arq:'rosa',cor:'#f28cc0'},{arq:'laranja',cor:'#ffa05a'},{arq:'lima',cor:'#b8e05a'},{arq:'cobre',cor:'#d49a6a'},{arq:'indigo',cor:'#9a9eff'},
+  {arq:'branco',cor:'#f4f1ea'}];   /* 14ª cor (02/10): boneco branco opaco; só entra na mesa de 14 contatos, com o Médico */
 /* Revisão 2 (Mario, 30/09/2026): a casa tem 6, 8, 10 ou 12 personagens, e cada
    bloco entra junto: 8 = +Tabelião e Governanta; 10 = +Advogado e Jardineiro;
    12 = +Chefe de Cozinha e Eletricista. (A casa de 4 ainda não roda neste
@@ -932,7 +934,8 @@ var CORES={},ARQ={};
 (function(){var r=gerador(PARTIDA+'|cores');
   /* As 8 artes originais vêm primeiro; as 5 coloridas só entram em mesas maiores. */
   function mist(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(r()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
-  var p=mist(PALETA.slice(0,8)).concat(mist(PALETA.slice(8)));
+  /* SUBSTITUIDO 02/10: var p=mist(PALETA.slice(0,8)).concat(mist(PALETA.slice(8))); — o branco fica por último, só para o 14º contato */
+  var p=mist(PALETA.slice(0,8)).concat(mist(PALETA.slice(8,13)),PALETA.slice(13));
   SLOTS.forEach(function(n,i){CORES[n]=p[i].cor;ARQ[n]=p[i].arq})})();
 window.OIContatos=ARQ;
 var NUMEROS=SLOTS.slice().sort();          // nas listas, em ordem de número

@@ -22,7 +22,8 @@ Bonecos de vidro usados como foto de contato no grupo (Grupo, Privadas, cabeçal
 | `lima.webp` | verde-lima | `#b8e05a` |
 | `cobre.webp` | cobre | `#d49a6a` |
 | `indigo.webp` | índigo | `#9a9eff` |
+| `branco.webp` | branco opaco (porcelana) — 14ª cor, entra com o Médico | `#f4f1ea` (a ligar na `PALETA`) |
 
-As oito primeiras são as artes originais (192×192, recortadas das de 1408 px). As cinco últimas (rosa, laranja, lima, cobre, índigo) foram coloridas a partir do boneco transparente; se quiser, troque pelas artes finais com o mesmo nome.
+As oito primeiras são as artes originais (192×192, recortadas das de 1408 px). O laranja também já é arte final (02/10/2026; a versão colorida antiga ficou como `laranja_SUBSTITUIDO.webp`). As outras quatro (rosa, lima, cobre, índigo) foram coloridas a partir do boneco transparente; se quiser, troque pelas artes finais com o mesmo nome.
 
 `ligar.js` (carregado no fim da `mesa.html`) lê `window.OIContatos` (número → arquivo) e põe a foto certa em cada avatar.
