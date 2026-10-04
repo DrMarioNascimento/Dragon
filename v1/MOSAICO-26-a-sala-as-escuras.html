@@ -1374,7 +1374,11 @@ function setStatus(s,hot){ elStatus.textContent=s; elStatus.classList.toggle("ho
 
 function pintaRodada(){
   var el=document.getElementById("nota"), m=minutosParaVirar();
-  if(sementeManual){ el.textContent="Semente fixada à mão — o relógio não muda mais a sala."; el.className="ok"; }
+  /* Vinda da Mesa (URL), a sala é a da partida: o jogador lê o mundo, não a
+     mecânica — "semente fixada à mão" aparecia para todos no percurso
+     (volta 2 da auditoria, 04/10/2026). */
+  if(SEMENTE_URL){ el.textContent="A mesa escolheu esta sala: é a mesma em todos os aparelhos."; el.className="ok"; }
+  else if(sementeManual){ el.textContent="Semente fixada à mão — o relógio não muda mais a sala."; el.className="ok"; }
   else if(m<5){ el.textContent="A rodada vira em "+(m<1?"menos de 1":Math.ceil(m))+" min. Esperem a virada para começar juntos."; el.className="warn"; }
   else { el.textContent="Confiram: o código tem de ser o mesmo em todos os aparelhos."; el.className=""; }
   var mr=document.getElementById("m-rodada");

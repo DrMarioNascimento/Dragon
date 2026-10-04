@@ -603,10 +603,7 @@
       nivel = 4;
       if (!online) descricao.textContent = solo ? 'A maquete está parada.' : 'Do outro lado da mesa, ninguém responde. O progresso está guardado.';
       else if (!ambosAcharam()) descricao.textContent = dados.achado ? dados.achado + (solo ? ' Falta a outra metade.' : ' Sozinho, isso não abre nada.') : 'Alguma coisa ficou para trás aqui.';
-      else if (papelDaVista() === 'fechadura') {
-        descricao.textContent = dados.achado || '';
-        $('alignment').hidden = false;
-      } else descricao.textContent = dados.achado || '';
+      else descricao.textContent = dados.achado || '';
       var e2 = ra && ra.estado();
       if (e2 && e2.modo === 'ra' && !e2.rastreando) descricao.textContent = 'A câmera perdeu a mesa. Mova o aparelho devagar e aponte para a maquete.';
     }
@@ -1054,19 +1051,23 @@
     $('key-grip').style.left = p.x + 'px'; $('key-grip').style.top = p.y + 'px';
   }
 
-  /* Quem guia (e só quem guia) vê a ponta da chave do colega. */
+  /* Quem guia (e só quem guia) vê a ponta da chave do colega. A linha que
+     descreve o ponto só existe enquanto HÁ ponto: antes disso ela era "Nenhum
+     ponto de luz, por enquanto." — só no aparelho da fechadura, e era o aviso
+     de papel que a lei d'A Casa proíbe (volta 2 da auditoria, 04/10/2026). */
   function atualizarFarol() {
     var guiando = dados && !dados.complete && papelDaVista() === 'fechadura' && ambosAcharam();
     var fresco = movimento && performance.now() - movimentoEm + (movimento.age || 0) < 1500;
     farol.visible = !!(guiando && fresco && online && posta());
-    if (!guiando) return;
-    if (farol.visible) {
-      farol.position.fromArray(movimento.tip);
-      var d = farol.position.distanceTo(vetorDaFechadura());
-      $('alignment').textContent = d < motor.TOLERANCIA ? 'O ponto de luz está dentro do vão.'
-        : d < 0.10 ? 'O ponto de luz está a um palmo do vão.'
-          : 'Um ponto de luz anda pela maquete.';
-    } else $('alignment').textContent = 'Nenhum ponto de luz, por enquanto.';
+    var linha = $('alignment');
+    if (linha.hidden !== !farol.visible) linha.hidden = !farol.visible;
+    if (!farol.visible) return;
+    farol.position.fromArray(movimento.tip);
+    var d = farol.position.distanceTo(vetorDaFechadura());
+    var texto = d < motor.TOLERANCIA ? 'O ponto de luz está dentro do vão.'
+      : d < 0.10 ? 'O ponto de luz está a um palmo do vão.'
+        : 'Um ponto de luz anda pela maquete.';
+    if (linha.textContent !== texto) linha.textContent = texto;
   }
 
   /* ---------- portal de entrada ---------- */

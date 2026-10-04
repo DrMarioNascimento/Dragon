@@ -222,6 +222,10 @@ html[data-ac-casa] .gesture-point{z-index:14}
      do nível virava "D…" (medido a 800×540). */
   html[data-ac-casa] .ac-panel-stack .ac-como-jogar{width:44px!important;padding:0!important;justify-content:center}
   html[data-ac-casa] .ac-panel-stack .ac-como-jogar-texto{display:none}
+  /* Sozinho, o 📖 herdava os 13 px do texto que saiu: num alvo de 44 px ele
+     era um retângulo branco — no escuro, ninguém lia livro ali (volta 2,
+     04/10/2026, a 800×540). */
+  html[data-ac-casa] .ac-panel-stack .ac-como-jogar>[aria-hidden]{font:22px/1 'Apple Color Emoji','Segoe UI Emoji',sans-serif}
   html[data-ac-casa] .ac-panel-stack>[data-ac-priority]:not(#ac-a):not(#ac-b):not(#ac-c):has(.ac-como-jogar)::after{right:calc(var(--ac-respiro) + 50px)}
 }
 

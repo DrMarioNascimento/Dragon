@@ -150,16 +150,30 @@
   }
 
   /* ---------------- A Casa: faixas, chevron e relógio ---------------- */
-  let relogio=null, ultimoTexto=null, moldura=false, filhoMoldura=null;
+  let relogio=null, ultimoTexto=null, moldura=false, filhoMoldura=null, estadoDoFilho=null;
   /* A tela está dentro do percurso? Então a barra do topo que vale é a do
      percurso: o chevron daqui se esconde e o de lá manda abrir. */
   try { moldura=parent!==window&&parent.document.documentElement.hasAttribute('data-ac-moldura'); } catch (e) { moldura=false; }
 
   function chevron(){ return document.getElementById('help'); }
+  /* Uma janela da faixa TELA à vista (um <dialog> aberto ou a intro, que é
+     "Como jogar" de nível 10) quer dizer que há janela aberta, recolhido ou
+     não. Medido na volta 2 (04/10/2026): o relógio recolhia a sala com a
+     intro inteira na tela, e o chevron mostrava ⌃ — "toque para ver as
+     janelas" em cima de uma janela que ocupava a tela toda. */
+  function telaAberta(){ return !!document.querySelector('dialog[open]')||!!introAberta(); }
+  function molduraMostraFilho(){
+    const f=document.querySelector('iframe#scene');
+    return !!(filhoMoldura&&f&&!f.hidden&&estadoDoFilho);
+  }
   function pintarChevron(){
     const b=chevron();if(!b)return;
-    const recolhido=document.body.classList.contains('ac-recolhido');
-    b.textContent=recolhido?'⌃':'⌄';
+    let recolhido=document.body.classList.contains('ac-recolhido')&&!telaAberta();
+    /* No percurso, com uma tela dentro e nada aberto aqui, vale o estado que
+       ELA contou: o relógio da moldura não pode pintar por cima. */
+    if(!telaAberta()&&molduraMostraFilho())recolhido=estadoDoFilho==='recolhido';
+    const marca=recolhido?'⌃':'⌄';
+    if(b.textContent!==marca)b.textContent=marca;
     b.setAttribute('aria-label',recolhido?'Mostrar as janelas':'Janelas abertas');
     b.setAttribute('aria-expanded',String(!recolhido));
     if(moldura){try{parent.postMessage({mosaico:'ac-janelas',estado:recolhido?'recolhido':'aberto'},location.origin);}catch(e){}}
@@ -266,6 +280,7 @@
           conferirCapitulo();
         }
       }
+      pintarChevron();
     }).observe(document.body,{subtree:true,attributes:true,attributeFilter:['open']});
     /* Estado mudou dentro de um painel: ele volta à tela e o relógio zera.
        Compara o TEXTO, não a chegada — reescrever o mesmo texto não é mudança. */
@@ -280,11 +295,7 @@
     window.addEventListener('message',function(ev){
       if(ev.origin!==location.origin||!ev.data||ev.data.mosaico!=='ac-janelas')return;
       if(ev.data.acao==='abrir'&&ev.source===parent)abrir();
-      if(ev.data.estado&&filhoMoldura&&ev.source===filhoMoldura){
-        const b=chevron();if(!b)return;
-        const recolhido=ev.data.estado==='recolhido';
-        b.textContent=recolhido?'⌃':'⌄';b.setAttribute('aria-expanded',String(!recolhido));
-      }
+      if(ev.data.estado&&filhoMoldura&&ev.source===filhoMoldura){estadoDoFilho=ev.data.estado;pintarChevron();}
     });
     const frame=document.querySelector('iframe#scene');
     if(frame)filhoMoldura=frame.contentWindow;
@@ -294,7 +305,7 @@
 
   function entrarAtividade(){
     document.body.classList.add('ac-atividade-iniciada');
-    if(!CASA)recolherLegado();else conferirCapitulo();
+    if(!CASA)recolherLegado();else{conferirCapitulo();pintarChevron();}
   }
   /* Compatibilidade: o antigo "i" chamava ajuda(). Agora ajuda é abrir. */
   function ajuda(ev){
