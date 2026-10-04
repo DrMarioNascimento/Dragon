@@ -482,7 +482,7 @@ pontos[etapa]=esgotado||Date.now()-inicio>=RITMO.papeis.total*1000?0:RITMO.ponto
 
   async function iniciar(){
     try{
-      const r=await fetch('casos/casa-da-costa.json?v=20260919-ra');caso=await r.json();
+      const r=await fetch('casos/casa-da-costa.json?v=20261004-janelas');caso=await r.json();
       papeis=caso.tarefas.salaEscura.papeis;pista=caso.tarefas.salaEscura.pista;
     }catch(e){$('loading').textContent='Os papéis não puderam ser abertos. Recarregue a página.';return;}
     inicio=Date.now();

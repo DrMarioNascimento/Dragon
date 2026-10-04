@@ -202,7 +202,7 @@
     setTimeout(function () {
       if (document.querySelector('script[data-casa-costa-v2]')) return;
       var s = document.createElement("script");
-      s.src = "js/casa-da-costa-v2.js?v=20260919-ra";
+      s.src = "js/casa-da-costa-v2.js?v=20261004-janelas";
       s.dataset.casaCostaV2 = "1";
       s.onload=function(){
         if(document.querySelector('script[data-rotacao-casa]'))return;
@@ -223,7 +223,7 @@
           b.onload=function(){
             if(document.querySelector('script[data-atividades-casa]'))return;
             var a=document.createElement("script");
-            a.src="js/atividades-casa-da-costa.js?v=20260919-ra";
+            a.src="js/atividades-casa-da-costa.js?v=20261004-janelas";
             a.dataset.atividadesCasa="1";
             /* O rendimento entra por último: ele envolve concluirTarefaSensor
                e MosaicoV5.calcular, e precisa do banco e das atividades já
@@ -231,7 +231,7 @@
             a.onload=function(){
               if(document.querySelector('script[data-rendimento-casa]'))return;
               var d=document.createElement("script");
-              d.src="js/rendimento-casa-da-costa.js?v=20260919-ra";
+              d.src="js/rendimento-casa-da-costa.js?v=20261004-janelas";
               d.dataset.rendimentoCasa="1";
               /* O Mosaico entra depois de tudo: ele substitui pistasMosaico,
                  dicasMosaico e rotuloPistaMosaico, e alinha a ordem canônica

@@ -379,16 +379,22 @@
     scene.attach(candle); candle.scale.setScalar(1);
   });
   on($('candle-grip'), 'pointermove', event => {
-    if (!draggingCandle) return; event.preventDefault();
+    if (!draggingCandle) return; event.preventDefault(); moverVela(event);
+  });
+  function moverVela(event) {
     dragRay.setFromCamera(new THREE.Vector2(event.clientX / innerWidth * 2 - 1, 1 - event.clientY / innerHeight * 2), ra.cameraAtiva());
     if (dragRay.ray.intersectPlane(dragPlane, dragPoint)) candle.position.copy(dragPoint);
     const socketWorld = holder.localToWorld(new THREE.Vector3(0, .153, 0));
     const escala = deskRoot.getWorldScale(new THREE.Vector3()).x || 1;
     snapReady = machine.canDock(candle.position.distanceTo(socketWorld) / escala);
     $('socket').classList.toggle('ready', snapReady); $('socket').firstElementChild.textContent = snapReady ? 'Solte para encaixar' : 'Castiçal';
-  });
+  }
   function endDrag(event) {
-    if (!draggingCandle) return; draggingCandle = false; document.body.classList.remove('manipulating');
+    if (!draggingCandle) return;
+    /* Onde o dedo SAIU vale (o mesmo da chave da maquete, volta 3): com
+       eventos agrupados, o último pointermove chega antes de o dedo parar. */
+    if (event.type === 'pointerup') moverVela(event);
+    draggingCandle = false; document.body.classList.remove('manipulating');
     if ($('candle-grip').hasPointerCapture(event.pointerId)) $('candle-grip').releasePointerCapture(event.pointerId);
     if (snapReady && event.type !== 'pointercancel') dockCandle(); else { snapReady = false; updateUI(); notify('Aproxime a base da vela do castiçal e solte no encaixe.'); }
     $('socket').classList.remove('ready'); $('socket').firstElementChild.textContent = 'Castiçal';

@@ -17,8 +17,9 @@
      guiado pela voz. Quem guia vê a ponta da chave do colega como um ponto de
      luz.
 
-   No Solo a mesma pessoa faz as duas funções — as duas pegas, as duas
-   procuras, o mesmo arrasto. Nada de mecânica substituta.
+   No Solo o jogador fica com a chave e um parceiro automático faz a outra
+   metade (Mario, 19/09/2026): acha a fechadura, vê o ponto de luz e guia pela
+   fala. O gesto é o mesmo arrasto da Mesa — nada de mecânica substituta.
 
    O que NÃO é segredo, e é honesto dizer: `ac-maquete-state.mjs` é o mesmo
    arquivo nos dois aparelhos, então as coordenadas estão no código de ambos.
@@ -566,7 +567,6 @@
   function textos() {
     var passo = $('step'), titulo = $('heading'), descricao = $('description'), painel = document.querySelector('.instruction');
     var nivel = 2;
-    $('alignment').hidden = true;
     /* Atividade ainda trancada vem ANTES de tudo: pedir para pôr a casa na
        mesa, e só depois dizer que não era aqui, é dar uma volta à toa. */
     if (recebeuEstado && !dados) {
@@ -878,6 +878,14 @@
     ['pointerup', 'pointercancel'].forEach(function (tipo) {
       on(pega, tipo, function (e) {
         if (!arrastando) return;
+        /* O ponto onde o dedo SAIU vale: com eventos agrupados (gesto rápido,
+           navegador ocupado) o último pointermove chega antes do dedo parar,
+           e a chave encaixava no penúltimo lugar — medido na volta 3
+           (04/10/2026): o dedo subiu 100 px e a chave, 26. */
+        if (tipo === 'pointerup') {
+          var fim = pontaNoDedo(e.clientX, e.clientY);
+          if (fim) { mundo.chave.position.copy(fim).sub(mundo.chavePonta.position); ultimaPontaValida = fim; }
+        }
         arrastando = false;
         document.body.classList.remove('manipulating');
         if (controles) controles.enabled = ra.estado().modo === 'mesa';
@@ -921,7 +929,11 @@
   function pintarParceiro(fala) {
     if (!solo || !fala || !fala.texto) return;
     var el = $('fala-parceiro');
-    el.hidden = !posta();
+    /* "Achei uma coisa do meu lado… E você?" já foi respondida quando os dois
+       acharam: ela ficava até a primeira fala de guia (3,5 s ou mais) e, a
+       390×844 no Solo, empurrava o relógio para baixo da borda do painel
+       (volta 3, 04/10/2026). */
+    el.hidden = !posta() || (fala.tipo === 'achou' && ambosAcharam());
     el.textContent = '🤝 Parceiro: ' + fala.texto;
     if (fala.at !== falaVista) { falaVista = fala.at; vida(); if (fala.tipo === 'achou') avisar('🤝 ' + fala.texto, 3); }
   }

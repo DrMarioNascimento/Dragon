@@ -18,7 +18,7 @@
   }
   function showScene(name){
     if(current===name)return;current=name;
-    const q=new URLSearchParams(params);q.set('run',run);q.set('embed','1');q.set('cenario',params.get('cenario')||'AC-COSTA');q.set('v','20260919-ra');
+    const q=new URLSearchParams(params);q.set('run',run);q.set('embed','1');q.set('cenario',params.get('cenario')||'AC-COSTA');q.set('v','20261004-janelas');
     if(name!=='sala'){q.set('percurso','1');for(const [k,v]of Object.entries(credentials))q.set(k,v);}
     /* Ordem canônica das primeiras atividades (Mesa e Solo):
        1. Janela do Norte (fase inclinacao, fora deste iframe)
@@ -196,7 +196,7 @@
     function mostrar(){
       guardar();
       if(etapa==='fim'){frame.hidden=true;$('points-sala').textContent=pts.salaEscura+' pontos';$('points-candle').textContent=pts.vela+' pontos';$('points-keys').textContent=pts.chaves+' pontos';$('points-papeis').textContent=pts.papeis+' pontos';$('summary').hidden=false;$('stage').textContent='Investigação concluída';return;}
-      const q=new URLSearchParams({run,embed:'1',cenario:params.get('cenario')||'AC-COSTA',v:'20260919-ra'});
+      const q=new URLSearchParams({run,embed:'1',cenario:params.get('cenario')||'AC-COSTA',v:'20261004-janelas'});
       if(etapa!=='sala')q.set('demo','solo');
       current=etapa;frame.src=cena[etapa]+'?'+q;frame.hidden=false;
       $('stage').textContent={sala:'1 / 4 · A sala às escuras',mesa:'2 / 4 · Sob outra luz · com parceiro',papeis:'4 / 4 · Os papéis da passagem'}[etapa];

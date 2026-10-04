@@ -136,6 +136,12 @@ html[data-ac-casa] .ac-panel-stack>* h2{font:400 var(--ac-titulo)/1.2 Georgia,se
 html[data-ac-casa] .ac-panel-stack>* p{font:var(--ac-corpo)/1.5 system-ui,sans-serif;margin:0 0 8px;color:#e7eee6}
 html[data-ac-casa] .ac-panel-stack>* .eyebrow{display:block;font:600 clamp(9px,2.4vw,11px)/1.4 system-ui;letter-spacing:.18em;color:#e4c691}
 html[data-ac-casa] .ac-panel-stack>* button{width:100%;margin-top:6px}
+/* O relógio é a última linha do painel e era o que sumia quando o conteúdo
+   passava do teto da faixa: no Solo a 390×844, 346 px num teto de 321, e o
+   "⏳ 8:23 · vale 8" ficava sob a borda sem sinal de que rolava (volta 3,
+   04/10/2026). Tudo tem tempo — o tempo fica à vista, preso ao pé da faixa. */
+html[data-ac-casa] .ac-panel-stack [data-ac-relogio]{position:sticky;bottom:0;z-index:1;
+  padding:6px 0;background:#0a1c19;box-shadow:0 -12px 12px -2px #0a1c19}
 html[data-ac-casa] .ac-panel-stack.ac-pulso>*{animation:ac-pulso .5s ease}
 @keyframes ac-pulso{0%{filter:brightness(1.35)}100%{filter:none}}
 /* "Como jogar" deixou de ser botão da barra: é uma linha da orientação — e
