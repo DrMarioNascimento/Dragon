@@ -320,7 +320,7 @@
      especificidade, quem vem por ultimo vence, e o padrao tem de vencer. -->
 <link rel="stylesheet" href="css/profundidade.css?v=20260902-profundidade">
 <link rel="stylesheet" href="css/profundidade-1mais1.css?v=20260930-foco">
-<link rel="stylesheet" href="css/ac-janelas.css?v=20260919-ra">
+<link rel="stylesheet" href="css/ac-janelas.css?v=20261004-janelas">
 <style>
   /* O chevron d'A Casa também mora aqui, no mesmo canto das outras telas.
      Acima de TUDO: em jogo a camada visual da sala sobe para z-index 200001
@@ -434,9 +434,9 @@
 </div>
 
 <script src="js/three.min.js"></script>
-<script src="js/vendor/GLTFLoader.js"></script><script src="js/ac-desk.js"></script><script src="js/ac-room-layout.js"></script><script src="js/ac-room-art.js"></script><script src="js/ac-room.js"></script><script src="js/mosaico-ra-engine.js?v=20260919-ra"></script>
+<script src="js/vendor/GLTFLoader.js"></script><script src="js/ac-desk.js"></script><script src="js/ac-room-layout.js"></script><script src="js/ac-room-art.js"></script><script src="js/ac-room.js"></script><script src="js/mosaico-ra-engine.js?v=20261004-janelas"></script>
 <!-- Protocolo com a Mesa e ativacao de sensor: um so arquivo para as tres tarefas. -->
-<script src="js/tarefa-sensor.js?v=20260919-ra"></script>
+<script src="js/tarefa-sensor.js?v=20261004-janelas"></script>
 <script>
 (function(){
 "use strict";
@@ -1374,7 +1374,11 @@ function setStatus(s,hot){ elStatus.textContent=s; elStatus.classList.toggle("ho
 
 function pintaRodada(){
   var el=document.getElementById("nota"), m=minutosParaVirar();
-  if(sementeManual){ el.textContent="Semente fixada à mão — o relógio não muda mais a sala."; el.className="ok"; }
+  /* Vinda da Mesa (URL), a sala é a da partida: o jogador lê o mundo, não a
+     mecânica — "semente fixada à mão" aparecia para todos no percurso
+     (volta 2 da auditoria, 04/10/2026). */
+  if(SEMENTE_URL){ el.textContent="A mesa escolheu esta sala: é a mesma em todos os aparelhos."; el.className="ok"; }
+  else if(sementeManual){ el.textContent="Semente fixada à mão — o relógio não muda mais a sala."; el.className="ok"; }
   else if(m<5){ el.textContent="A rodada vira em "+(m<1?"menos de 1":Math.ceil(m))+" min. Esperem a virada para começar juntos."; el.className="warn"; }
   else { el.textContent="Confiram: o código tem de ser o mesmo em todos os aparelhos."; el.className=""; }
   var mr=document.getElementById("m-rodada");
@@ -1916,5 +1920,5 @@ window.__sala={quadro:function(){loop(true);},alvo:alvo,
 
 })();
 </script>
-<script src="js/ac-janelas.js?v=20260919-ra"></script></body>
+<script src="js/ac-janelas.js?v=20261004-janelas"></script></body>
 </html>

@@ -294,6 +294,11 @@
   }
   function openFragment() {
     if (role !== 'conhecimento' && !(shared && shared.velaEsgotada)) return;
+    /* Voltando à página depois do achado, o portal da RA abria junto: dois
+       diálogos de uma vez, e fechar o dossiê caía num "Abrir a câmera" para
+       pôr de novo uma escrivaninha que já tinha dado a pista (volta 4,
+       04/10/2026). O que resta — ler, guardar, seguir — não pede câmera. */
+    if ($('portal-ra').open && !emRA()) usarTela();
     $('fragment-card').innerHTML = Mosaico3D.htmlCartao3D('ac-estudo', '<span class="eyebrow" style="color:#6b5831">SOB AS GAVETAS</span><h3>Uma etiqueta escondida.</h3><p>' + clueText + '</p>', '<h3>O lar em miniatura.</h3><p>Registre a pista. A próxima descoberta depende de interpretar o lugar que ela descreve.</p>');
     $('fragment-card').querySelector('.m3d-card-back').setAttribute('aria-hidden', 'true');
     $('follow-clue').hidden = state.stage !== 'registrado';
@@ -379,16 +384,22 @@
     scene.attach(candle); candle.scale.setScalar(1);
   });
   on($('candle-grip'), 'pointermove', event => {
-    if (!draggingCandle) return; event.preventDefault();
+    if (!draggingCandle) return; event.preventDefault(); moverVela(event);
+  });
+  function moverVela(event) {
     dragRay.setFromCamera(new THREE.Vector2(event.clientX / innerWidth * 2 - 1, 1 - event.clientY / innerHeight * 2), ra.cameraAtiva());
     if (dragRay.ray.intersectPlane(dragPlane, dragPoint)) candle.position.copy(dragPoint);
     const socketWorld = holder.localToWorld(new THREE.Vector3(0, .153, 0));
     const escala = deskRoot.getWorldScale(new THREE.Vector3()).x || 1;
     snapReady = machine.canDock(candle.position.distanceTo(socketWorld) / escala);
     $('socket').classList.toggle('ready', snapReady); $('socket').firstElementChild.textContent = snapReady ? 'Solte para encaixar' : 'Castiçal';
-  });
+  }
   function endDrag(event) {
-    if (!draggingCandle) return; draggingCandle = false; document.body.classList.remove('manipulating');
+    if (!draggingCandle) return;
+    /* Onde o dedo SAIU vale (o mesmo da chave da maquete, volta 3): com
+       eventos agrupados, o último pointermove chega antes de o dedo parar. */
+    if (event.type === 'pointerup') moverVela(event);
+    draggingCandle = false; document.body.classList.remove('manipulating');
     if ($('candle-grip').hasPointerCapture(event.pointerId)) $('candle-grip').releasePointerCapture(event.pointerId);
     if (snapReady && event.type !== 'pointercancel') dockCandle(); else { snapReady = false; updateUI(); notify('Aproxime a base da vela do castiçal e solte no encaixe.'); }
     $('socket').classList.remove('ready'); $('socket').firstElementChild.textContent = 'Castiçal';
@@ -420,7 +431,8 @@
   ra.suporte().then(s => {
     if (disposed) return;
     raSuportada = !!(s.webxr || s.slam);
-    if (raSuportada) { atualizarPortal(); abrirPortal(); }
+    if ($('fragment').open) usarTela();
+    else if (raSuportada) { atualizarPortal(); abrirPortal(); }
     else usarTela('Este aparelho não tem realidade aumentada.');
   });
   ACRA.preparar();

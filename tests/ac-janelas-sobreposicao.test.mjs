@@ -23,6 +23,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
+import { request as httpRequest } from "node:http";
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -112,7 +113,14 @@ async function novaAba(cdp) {
       const fim = Date.now() + ms;
       for (;;) {
         try { if (await aba.avaliar(expr)) return; } catch {}
-        if (Date.now() > fim) throw new Error("a página não chegou em: " + expr);
+        if (Date.now() > fim) {
+          /* O que a página tinha quando a espera estourou: sem isto, a
+             falha dizia só "não chegou", e a causa (uma sessão regravada
+             por baixo) levou três rodadas de 8 min para aparecer. */
+          let estado = "";
+          try { estado = JSON.stringify(await aba.avaliar("({url:location.pathname+location.search.replace(/chave=[^&]+/,'chave=…'),dialogos:[...document.querySelectorAll('dialog[open]')].map(d=>d.id),carregando:(document.getElementById('loading')||{}).hidden,etapa:window.__escrivaninha?window.__escrivaninha.estado().stage:null,maquete:window.__maquete&&window.__maquete.estado?(e=>e&&{nivel:e.level,completa:e.complete,ato:e.ato,papel:e.papel,camadas:e.camadasAbertas})(window.__maquete.estado()):null,posta:window.__maquete&&window.__maquete.diag?window.__maquete.diag().posta:null,solo:sessionStorage.getItem('ac:solo-integral:v1')})")); } catch (e) { estado = String(e); }
+          throw new Error("a página não chegou em: " + expr + "\n  estado: " + estado);
+        }
         await new Promise((r) => setTimeout(r, 150));
       }
     },
@@ -173,14 +181,19 @@ async function conectarComo(base, sala, papel, chave) {
   res.body.getReader().read().catch(() => {});
   return () => ctl.abort();
 }
-async function agir(base, sala, papel, chave, evento, tentativa = 0) {
-  /* Um pedido derrubado pela carga da máquina (ECONNRESET) é tentado de
-     novo uma vez: é rede de teste, não regra do jogo. */
-  const r = await fetch(`${base}/api/ac/action?${new URLSearchParams({ sala, papel, chave })}`, {
-    method: "POST", headers: { "Content-Type": "application/json", Origin: base }, body: JSON.stringify(evento)
-  }).catch((e) => { if (tentativa) throw e; return null; });
-  if (!r) return agir(base, sala, papel, chave, evento, 1);
-  return r.status;
+async function agir(base, sala, papel, chave, evento) {
+  /* Cada ato vai numa conexão NOVA (agent:false). Medido em 04/10/2026 com o
+     fetch (sockets reaproveitados do mesmo servidor que mantém abertos os
+     fluxos de eventos do teste, cujo corpo nunca é lido): o encaixe era
+     processado 5 a 12 s depois do mover que o precedia, passava do prazo de
+     1,5 s, e a maquete nunca concluía — só a parte da maquete falhou 3 de 4
+     vezes no main. Com conexão nova: 9 de 10. A causa de fundo não ficou
+     provada; a conexão nova é o que a medida sustenta. */
+  const corpo = JSON.stringify(evento), url = new URL(`${base}/api/ac/action?${new URLSearchParams({ sala, papel, chave })}`);
+  return new Promise((ok, falha) => {
+    const req = httpRequest(url, { method: "POST", agent: false, headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(corpo), Origin: base } }, (res) => { res.resume(); res.on("end", () => ok(res.statusCode)); });
+    req.on("error", falha); req.end(corpo);
+  });
 }
 /* Recolher a pilha pelo relógio acontece em 15 s: a medida quer as janelas
    ABERTAS, que é o pior caso de ocupação. */
@@ -280,14 +293,23 @@ test("janelas d'A Casa: nada se cruza, nada fica coberto, nada sai da tela", { s
     /* Vela apagada e dossiê: pelo Solo, que guarda a sala local na sessão.
        No Solo o fósforo é do PARCEIRO automático: quando a vela apaga, é a
        fala dele que aparece (19/09/2026). */
-    const solo = (room) => "sessionStorage.setItem('ac:solo-integral:v1'," +
-      JSON.stringify(JSON.stringify({ version: 2, janelaConcluida: true, room: { startedAt: Date.now(), ...room } })) +
-      "),location.reload(),true";
-    await aba.ir(`${base}/v1/AC-escrivaninha.html?demo=solo`); await aba.esperar(prontaMesa);
-    await aba.avaliar(solo({ stage: "iluminar", vela: { ate: 1 } }));
+    /* A sala é escrita numa página da mesma origem SEM o motor do Solo, e só
+       então a escrivaninha abre. Escrita na própria escrivaninha, o parceiro
+       automático reacendia a vela 3,5 s depois de ela apagar e regravava a
+       sessão entre o setItem e o recarregar: a página voltava em "iluminar"
+       e o dossiê nunca abria — o teste passava ou falhava conforme a medida
+       anterior levasse mais ou menos que 3,5 s (04/10/2026). */
+    const solo = async (room) => {
+      await aba.ir(`${base}/v1/css/ac-janelas.css`);
+      await aba.esperar("location.pathname.endsWith('.css')&&document.readyState==='complete'");
+      await aba.avaliar("sessionStorage.setItem('ac:solo-integral:v1'," +
+        JSON.stringify(JSON.stringify({ version: 2, janelaConcluida: true, room: { startedAt: Date.now(), ...room } })) + "),true");
+      await aba.ir(`${base}/v1/AC-escrivaninha.html?demo=solo`);
+    };
+    await solo({ stage: "iluminar", vela: { ate: 1 } });
     await aba.esperar(prontaMesa + "&&!document.getElementById('fala-parceiro').hidden");
     defeitos.push(...await medir(aba, "escrivaninha · a vela apagou", ABRIR));
-    await aba.avaliar(solo({ stage: "encontrado", vela: { ate: 1 } }));
+    await solo({ stage: "encontrado", vela: { ate: 1 } });
     await aba.esperar(prontaMesa + "&&document.getElementById('fragment').open");
     defeitos.push(...await medir(aba, "escrivaninha · dossiê"));
 

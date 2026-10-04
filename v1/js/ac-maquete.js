@@ -17,8 +17,9 @@
      guiado pela voz. Quem guia vê a ponta da chave do colega como um ponto de
      luz.
 
-   No Solo a mesma pessoa faz as duas funções — as duas pegas, as duas
-   procuras, o mesmo arrasto. Nada de mecânica substituta.
+   No Solo o jogador fica com a chave e um parceiro automático faz a outra
+   metade (Mario, 19/09/2026): acha a fechadura, vê o ponto de luz e guia pela
+   fala. O gesto é o mesmo arrasto da Mesa — nada de mecânica substituta.
 
    O que NÃO é segredo, e é honesto dizer: `ac-maquete-state.mjs` é o mesmo
    arquivo nos dois aparelhos, então as coordenadas estão no código de ambos.
@@ -566,7 +567,6 @@
   function textos() {
     var passo = $('step'), titulo = $('heading'), descricao = $('description'), painel = document.querySelector('.instruction');
     var nivel = 2;
-    $('alignment').hidden = true;
     /* Atividade ainda trancada vem ANTES de tudo: pedir para pôr a casa na
        mesa, e só depois dizer que não era aqui, é dar uma volta à toa. */
     if (recebeuEstado && !dados) {
@@ -603,10 +603,7 @@
       nivel = 4;
       if (!online) descricao.textContent = solo ? 'A maquete está parada.' : 'Do outro lado da mesa, ninguém responde. O progresso está guardado.';
       else if (!ambosAcharam()) descricao.textContent = dados.achado ? dados.achado + (solo ? ' Falta a outra metade.' : ' Sozinho, isso não abre nada.') : 'Alguma coisa ficou para trás aqui.';
-      else if (papelDaVista() === 'fechadura') {
-        descricao.textContent = dados.achado || '';
-        $('alignment').hidden = false;
-      } else descricao.textContent = dados.achado || '';
+      else descricao.textContent = dados.achado || '';
       var e2 = ra && ra.estado();
       if (e2 && e2.modo === 'ra' && !e2.rastreando) descricao.textContent = 'A câmera perdeu a mesa. Mova o aparelho devagar e aponte para a maquete.';
     }
@@ -881,6 +878,14 @@
     ['pointerup', 'pointercancel'].forEach(function (tipo) {
       on(pega, tipo, function (e) {
         if (!arrastando) return;
+        /* O ponto onde o dedo SAIU vale: com eventos agrupados (gesto rápido,
+           navegador ocupado) o último pointermove chega antes do dedo parar,
+           e a chave encaixava no penúltimo lugar — medido na volta 3
+           (04/10/2026): o dedo subiu 100 px e a chave, 26. */
+        if (tipo === 'pointerup') {
+          var fim = pontaNoDedo(e.clientX, e.clientY);
+          if (fim) { mundo.chave.position.copy(fim).sub(mundo.chavePonta.position); ultimaPontaValida = fim; }
+        }
         arrastando = false;
         document.body.classList.remove('manipulating');
         if (controles) controles.enabled = ra.estado().modo === 'mesa';
@@ -924,7 +929,11 @@
   function pintarParceiro(fala) {
     if (!solo || !fala || !fala.texto) return;
     var el = $('fala-parceiro');
-    el.hidden = !posta();
+    /* "Achei uma coisa do meu lado… E você?" já foi respondida quando os dois
+       acharam: ela ficava até a primeira fala de guia (3,5 s ou mais) e, a
+       390×844 no Solo, empurrava o relógio para baixo da borda do painel
+       (volta 3, 04/10/2026). */
+    el.hidden = !posta() || (fala.tipo === 'achou' && ambosAcharam());
     el.textContent = '🤝 Parceiro: ' + fala.texto;
     if (fala.at !== falaVista) { falaVista = fala.at; vida(); if (fala.tipo === 'achou') avisar('🤝 ' + fala.texto, 3); }
   }
@@ -1054,19 +1063,23 @@
     $('key-grip').style.left = p.x + 'px'; $('key-grip').style.top = p.y + 'px';
   }
 
-  /* Quem guia (e só quem guia) vê a ponta da chave do colega. */
+  /* Quem guia (e só quem guia) vê a ponta da chave do colega. A linha que
+     descreve o ponto só existe enquanto HÁ ponto: antes disso ela era "Nenhum
+     ponto de luz, por enquanto." — só no aparelho da fechadura, e era o aviso
+     de papel que a lei d'A Casa proíbe (volta 2 da auditoria, 04/10/2026). */
   function atualizarFarol() {
     var guiando = dados && !dados.complete && papelDaVista() === 'fechadura' && ambosAcharam();
     var fresco = movimento && performance.now() - movimentoEm + (movimento.age || 0) < 1500;
     farol.visible = !!(guiando && fresco && online && posta());
-    if (!guiando) return;
-    if (farol.visible) {
-      farol.position.fromArray(movimento.tip);
-      var d = farol.position.distanceTo(vetorDaFechadura());
-      $('alignment').textContent = d < motor.TOLERANCIA ? 'O ponto de luz está dentro do vão.'
-        : d < 0.10 ? 'O ponto de luz está a um palmo do vão.'
-          : 'Um ponto de luz anda pela maquete.';
-    } else $('alignment').textContent = 'Nenhum ponto de luz, por enquanto.';
+    var linha = $('alignment');
+    if (linha.hidden !== !farol.visible) linha.hidden = !farol.visible;
+    if (!farol.visible) return;
+    farol.position.fromArray(movimento.tip);
+    var d = farol.position.distanceTo(vetorDaFechadura());
+    var texto = d < motor.TOLERANCIA ? 'O ponto de luz está dentro do vão.'
+      : d < 0.10 ? 'O ponto de luz está a um palmo do vão.'
+        : 'Um ponto de luz anda pela maquete.';
+    if (linha.textContent !== texto) linha.textContent = texto;
   }
 
   /* ---------- portal de entrada ---------- */

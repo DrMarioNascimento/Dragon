@@ -133,6 +133,31 @@ describe("A Casa · janelas", () => {
     assert.doesNotMatch(desk, /\$\('instructions'\)\.showModal\(\)/, "as instruções voltaram a abrir sozinhas");
   });
 
+  /* Auditoria de 04/10/2026: o que só a tela mostrou e a leitura pode guardar. */
+  it("a maquete não anuncia o papel de guia antes de haver ponto de luz", () => {
+    const maquete = ler("v1/js/ac-maquete.js");
+    assert.ok(!maquete.includes("Nenhum ponto de luz"),
+      "voltou a linha que só o aparelho da fechadura mostrava — o aviso de papel");
+    assert.match(maquete, /linha\.hidden = !farol\.visible/,
+      "a linha do ponto de luz tem de existir só enquanto há ponto");
+  });
+
+  it("chave e vela encaixam onde o dedo SAI, não no último pointermove", () => {
+    assert.match(ler("v1/js/ac-maquete.js"), /tipo === 'pointerup'\) \{\s*var fim = pontaNoDedo\(e\.clientX, e\.clientY\)/,
+      "a chave voltou a encaixar no penúltimo lugar do arrasto");
+    assert.match(ler("v1/js/ac-investigacao.js"), /if \(event\.type === 'pointerup'\) moverVela\(event\);/,
+      "a vela voltou a encaixar no penúltimo lugar do arrasto");
+  });
+
+  it("o chevron conta janela da faixa tela como aberta, e no percurso usa o estado da tela de dentro", () => {
+    assert.match(JANELAS_JS, /classList\.contains\('ac-recolhido'\)&&!telaAberta\(\)/);
+    assert.match(JANELAS_JS, /estadoDoFilho=ev\.data\.estado;pintarChevron\(\)/);
+  });
+
+  it("o relógio do painel fica à vista quando a faixa rola", () => {
+    assert.match(JANELAS, /\.ac-panel-stack \[data-ac-relogio\]\{position:sticky;bottom:0/);
+  });
+
   it("todas as páginas que carregam ac-janelas carimbam a mesma versão", () => {
     const achados = PAGINAS.flatMap((p) => {
       const texto = ler(p);
