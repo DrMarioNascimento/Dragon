@@ -43,11 +43,13 @@ Todo caso novo declara a sua conta:
 
 Cada fato da história entra numa linha:
 
-| Fato | Eixo | Fixo ou varia por partida | Capítulo em que aparece | Fonte (quem ou o que revela) | Capítulo em que é usado |
-| --- | --- | --- | --- | --- | --- |
-| | Há quanto tempo / Onde / Como / Quem / Qual e que tipo / Perspectiva | | | | |
+| Id | Fato | Eixo | Fixo ou varia por partida | Capítulo em que aparece | Fonte (quem ou o que revela) | Degrau da escada | Usado em |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| | | Há quanto tempo / Onde / Como / Quem / Qual e que tipo / Perspectiva | | | | 1 a 6 | cenas, perguntas, peças de RA, frases prontas, quadros |
 
-Todo capítulo precisa ter pelo menos um fato em cada eixo.
+- Todo capítulo precisa ter pelo menos um fato em cada eixo.
+- **Id:** cada fato, pista e cena tem um identificador fixo. A coluna *Usado em* é o mapa de dependências da revisão (seção 19.2).
+- **Degrau:** em que degrau da escada de revelação (Guia da história, 7.4) o fato pode chegar ao jogador. Nunca antes.
 
 ---
 
@@ -63,6 +65,8 @@ Regras:
 - Ninguém percebe o que a geografia não permite: confira as linhas de visão e de som da seção 5.
 - O vigia de fora percebe só o que se vê de longe, sem rostos.
 - Numa janela crítica, cada partida tem a sua tabela de percepção.
+- **Ponto de vista na narração do jogo:** a narração do sistema também não antecipa o que nenhum personagem poderia saber naquele momento. A versão de cada jogador mostra só o que o personagem dele pode perceber, da posição em que está.
+- **Curiosidade da ficha:** o que cada personagem percebe bate com a curiosidade descrita na ficha (Guia da história, 4.5 e 4.6).
 
 ---
 
@@ -241,9 +245,18 @@ No checklist de cada capítulo: *quais das cinco este capítulo alimenta, e como
 
 ---
 
-## 14. Peças de realidade aumentada
+## 14. Ações encenáveis e peças de realidade aumentada
 
-Para cada peça:
+**Tabela de ações encenáveis.** É a passagem da literatura encenável (Guia da história, seção 1) para o jogo. Uma linha por ação relevante da história:
+
+| Id da cena | Personagem | Ação (o que toca, abre, gira, esconde, desloca) | Objeto (id) | Posto ou cômodo | Tempo | Vira no jogo |
+| --- | --- | --- | --- | --- | --- | --- |
+| | | | | | | gesto de RA / evento da narração / som / peça / nada |
+
+- Os gestos de RA saem desta tabela (regra 6); nenhum gesto é inventado sem uma ação da história por trás.
+- Ação que vira gesto ou evento leva junto a consequência humana da cena, na narração que vem depois.
+
+**Peças de realidade aumentada.** Para cada peça:
 
 | Capítulo | Peça | O que mostra | O que não pode mostrar ainda | Gesto novo ensinado | Saída se o jogador não agir |
 | --- | --- | --- | --- | --- | --- |
@@ -252,18 +265,64 @@ Para cada peça:
 - Ela só mostra o que o capítulo pode revelar; o resto fica para depois.
 - Cada peça funciona também sozinha, fora da partida, para demonstração.
 
+### Diretriz de criação da realidade aumentada
+
+**Princípio central.** A RA transforma uma evidência, um ambiente ou uma relação lógica da história em investigação visual. Não é ilustração decorativa, cena animada nem atalho para a solução: oferece ao jogador matéria concreta para observar, comparar, organizar e interpretar, preservando o suspense e o direito de formular hipóteses.
+
+**Objeto ou ambiente dominante.** Cada experiência parte de uma peça material reconhecível e coerente com o capítulo, que a história já tornou importante (Guia da história, 10.6): um móvel, um recipiente, um registro, um instrumento de medida, uma reconstrução do espaço. O cenário é vazio, sem pessoas, rostos ou avatares. Quando uma perspectiva humana for necessária, ela aparece por funções, cartões, vestígios, campos de visão e registros.
+
+**Interação compatível com celular.** Todas as ações essenciais ocorrem por toque, seleção, ampliação, abertura de compartimentos e arraste na tela. **A solução nunca depende** de som, fala, deslocamento do jogador, movimento do aparelho, reconhecimento de pessoas, precisão corporal, animação ou gesto. Movimento pode existir como ambiente; gesto pode existir, mas a narração assume se o jogador não agir (regra 6). Informação que na história é sonora vira transcrição, metadado, padrão visual ou cartão comparativo.
+
+**Momento de ativação.** A RA só é liberada depois que o texto público apresentou os objetos, registros e vestígios necessários. Nenhum compartimento, cartão, rótulo ou opção antecipa uma descoberta, uma prova ainda inexistente, a autoria, o mecanismo completo ou o desfecho (seção 15, a escada). Elementos posteriores ficam ocultos e são liberados em etapas, conforme a investigação avança.
+
+**Função dedutiva.** Cada RA responde a uma pergunta limitada do capítulo e mantém ao menos uma interpretação concorrente plausível. Pode eliminar hipóteses incompatíveis, demonstrar oportunidade, confirmar correspondências físicas ou revelar uma discrepância. Não converte indício em culpa nem apresenta como certeza o que a narrativa ainda trata como hipótese.
+
+**Progressão e persistência.** A sequência avança de orientação espacial para inspeção, comparação, cruzamento de versões e reconstrução. Resultados confirmados viram cartões persistentes (no inventário) e reaparecem nas experiências de convergência, sem obrigar a repetir inspeções concluídas. A RA final reorganiza evidências já conquistadas; não recomeça a investigação.
+
+**Coerência técnica e narrativa.** Medidas, horários, pesos, denominações, rotas, nomes de ambientes, campos de visão, acessos e estados dos objetos correspondem ao cânone e aos ids da geografia técnica (seção 5). Toda conclusão respeita a diferença entre fato observado, interpretação do personagem e segredo periférico. Cálculo físico usa a composição declarada na história, não equivalências genéricas.
+
+**Integração com o MOSAICO.** Big Five e 5DC orientam o que cada perspectiva nota, insiste em investigar, tolera ou evita, mas nunca aparecem como rótulos para o jogador. A RA materializa limites de percepção: posições diferentes podem produzir versões verdadeiras ao mesmo tempo, incompletas ou aparentemente contraditórias (seção 4).
+
+**Critério de encerramento.** O que a RA mostra sozinha é **pista fraca**; uma conclusão decisiva exige uma evidência material e uma confirmação de outra fonte, independente (pista forte, seção 7). Autoria material, auxílio involuntário, falha de procedimento, mentira periférica e encobrimento posterior continuam categorias separadas. A experiência termina quando o jogador sustenta uma relação entre provas, não quando o sistema aponta uma resposta.
+
+**Checklist de validação.** Antes de aprovar uma RA:
+
+- [ ] o objeto central pertence organicamente à história;
+- [ ] a interação funciona só no celular e sem som;
+- [ ] a solução não depende de animação nem de gesto;
+- [ ] todas as peças já foram apresentadas pela narrativa;
+- [ ] nenhuma opção revela o caso antes da hora;
+- [ ] a atividade produz dedução, não leitura passiva;
+- [ ] as falsas pistas continuam justificáveis;
+- [ ] o resultado persiste para os capítulos seguintes;
+- [ ] os dados coincidem com o cânone;
+- [ ] existe alternativa em texto para toda informação visual;
+- [ ] a experiência acrescenta uma forma nova de investigar, sem repetir a mecânica do capítulo anterior.
+
 ---
 
-## 15. Plantações, colheitas e palavras proibidas
+## 15. Plantações, colheitas, escada de revelação e palavras proibidas
 
 **Plantações e colheitas:**
 
-| Planta (capítulo e cena) | O que é | Colhe (capítulo e pergunta) |
-| --- | --- | --- |
+| Planta (capítulo e cena) | O que é | Degrau | Colhe (capítulo e pergunta) |
+| --- | --- | --- | --- |
 
 Toda pergunta de capítulo tem a sua resposta plantada antes ou no próprio capítulo. Toda revelação do final tem plantação.
 
-**Palavras proibidas por capítulo:** termos que antecipam o que só aparece depois. Exemplos de categoria: o nome de um lugar ainda não descoberto, o documento que só aparece no fim, o segredo de um personagem. A lista é verificada por teste automático em todas as combinações de partida e personagem.
+**A escada de revelação no jogo** (Guia da história, 7.4):
+
+- Cada capítulo registra **em que degrau está**.
+- Nenhuma pergunta, título, cartão, chamada ou frase pronta chega a um degrau antes da hora, nem pelo conteúdo nem pela forma de perguntar.
+- A pergunta pode derrubar a hipótese anterior sem apontar a correta (o parecer que cai).
+- No Cap. 8, **autoria, mecanismo e intenção são perguntas separadas**.
+
+**Direção interna fora da tela** (Guia da história, 1.1):
+
+- O jogo lê só o texto público. A direção interna (solução, fichas, cronologia, quadros) nunca vai para arquivos que o jogo mostra.
+- **Palavras proibidas por capítulo:** termos que antecipam o que só aparece depois. Exemplos de categoria: o nome de um lugar ainda não descoberto, o documento que só aparece no fim, o segredo de um personagem. A lista é verificada por teste automático em todas as combinações de partida e personagem, e cobre também **títulos, chamadas, cartões, a página de entrada e o sumário**.
+
+**O recorte das 900 palavras.** Cada capítulo registra quais trechos da história vão para a mesa e quais ficam de reserva. Nenhuma pista, pergunta ou exclusão pode depender de um trecho que ficou fora do jogo.
 
 ---
 
@@ -292,7 +351,7 @@ Espaço reservado. Alavancas possíveis: dicas do capítulo, tempo do capítulo,
 3. **A bíblia antes do código:** história, mapa narrado, linha do tempo, matrizes e tabelas de papéis prontas antes de programar.
 4. **Checklist por capítulo, antes de programar:**
    - [ ] geografia e linhas de visão conferidas
-   - [ ] peça de RA × narração
+   - [ ] peça de RA × narração, aprovada pelo checklist de validação da seção 14
    - [ ] ensino do gesto
    - [ ] o jogador em cada papel, inclusive quem já estava
    - [ ] vazamentos para capítulos futuros (palavras proibidas)
@@ -300,6 +359,12 @@ Espaço reservado. Alavancas possíveis: dicas do capítulo, tempo do capítulo,
    - [ ] personagens ausentes nas casas menores
    - [ ] as cinco dimensões de curiosidade alimentadas
    - [ ] a mistura útil × conversa
+   - [ ] degrau da escada registrado, e nada passou dele (perguntas, títulos, cartões)
+   - [ ] ações encenáveis registradas; gestos e eventos com ação da história por trás
+   - [ ] narração sem antecipar o que nenhum personagem poderia saber
+   - [ ] recorte do capítulo registrado; nenhuma pista depende de trecho de reserva
+   - [ ] falas de cada personagem fiéis à ficha (Big Five/HEXACO e "nunca diria") nas 6 versões
+   - [ ] o que cada personagem percebe bate com a curiosidade da ficha (5DC)
 5. **Testes automáticos a cada mudança:**
    - todas as combinações de partida e personagem;
    - fichas de texto sem trocar e valores vazios;
@@ -309,3 +374,76 @@ Espaço reservado. Alavancas possíveis: dicas do capítulo, tempo do capítulo,
    - erros de execução;
    - uma partida inteira de cada, do começo ao placar.
 6. **Substituição formal:** o que sai fica guardado e marcado como substituído, com data.
+
+---
+
+## 19. Revisão e auditoria sem perda de qualidade
+
+Toda revisão corre dois riscos: **a correção lógica que achata a prosa** (o narrador ganha uma frase de explicação para tapar o buraco) e **a mudança local que quebra algo longe** (um objeto muda de cômodo e mexe em rotas, linhas de visão, maquete e peças). Estas regras valem para revisões, auditorias e ajustes, feitos por pessoa ou por IA.
+
+### 19.1 Classificar a mudança antes de mexer
+
+| Camada | Exemplo | O que reconferir |
+| --- | --- | --- |
+| Cânone | um fato, uma rota, um objeto, um cômodo | seis eixos, perspectivas, linha do tempo, pistas, perguntas, ações encenáveis, RA, maquete |
+| Núcleo lógico | quem veste qual papel numa partida | aquela partida inteira, critérios de papel (seção 8), exclusões |
+| Texto literário | uma cena, uma fala | as cenas vizinhas, voz, escada, palavras proibidas, recorte |
+| Superfície | o tom de um tipo de personalidade | o "nunca diria", a exceção de prova |
+
+### 19.2 Mapa de dependências
+
+Pela coluna *Usado em* da matriz dos seis eixos (seção 3), mudou um fato, sai a lista do que reconferir: cenas, perguntas, peças de RA, frases prontas, quadros. Nada é revisado sem essa lista.
+
+### 19.3 Invariantes
+
+Conferidos ao fim de toda revisão:
+
+- o cânone e o final;
+- as viradas e os degraus da escada;
+- o "nunca diria" de cada personagem;
+- as regras consolidadas (seção 1);
+- o mínimo de 900 palavras de texto público, do prólogo ao Cap. 8;
+- toda mentira essencial desmontada por uma pista forte.
+
+Correção que exige quebrar um invariante não é aplicada: volta como proposta, para decisão.
+
+### 19.4 Correção lógica não vira explicação
+
+Todo conserto de lógica entra como cena, com ação observável, percepção situada e consequência humana (Guia da história, 10.1), nunca como frase do narrador. Depois do conserto, a cena passa de novo pelos dois testes, literatura e encenação (Guia da história, 10.4).
+
+### 19.5 Duas passadas e uma leitura corrida
+
+1. Passada da **direção interna:** lógica, tempo, pistas, papéis.
+2. Passada do **texto público:** voz, ritmo, subtexto, ponto de vista.
+3. **Leitura corrida** do capítulo inteiro, não só do trecho mexido.
+
+### 19.6 Ordem fixa de propagação
+
+História → técnico → jogo → RA e maquete → documentos. Nunca ao contrário. Se o problema apareceu no jogo, a correção começa na história.
+
+### 19.7 Versão de referência e comparação
+
+Antes de revisar, a versão atual é congelada como referência. Depois, compara-se:
+
+- palavras por capítulo;
+- número de pistas fortes;
+- proporção útil × conversa;
+- degraus da escada;
+- vazamentos (palavras proibidas).
+
+Nenhum desses números piora sem uma decisão registrada.
+
+### 19.8 O leitor sem a direção
+
+Alguém lê só o texto público, sem a solução: uma pessoa, ou um agente instruído a não abrir a direção interna. Ao fim de cada capítulo, registra de quem desconfia e por quê. Isso mostra se o caso se entrega cedo demais, se as viradas funcionam e se o jogo é limpo.
+
+### 19.9 Conferência de voz
+
+Cada personagem tem algumas falas de referência. Depois de revisar, as falas novas são comparadas com elas: fiéis à ficha (escalas e "nunca diria"), e o que o personagem percebe continua explicado pela sua curiosidade.
+
+### 19.10 Registro de cada revisão
+
+| Data | O que mudou | Por quê | Camada | O que foi reconferido | Resultado |
+| --- | --- | --- | --- | --- | --- |
+
+O que saiu fica marcado como substituído, com data (regra 10).
