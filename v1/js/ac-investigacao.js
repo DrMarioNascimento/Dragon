@@ -294,6 +294,11 @@
   }
   function openFragment() {
     if (role !== 'conhecimento' && !(shared && shared.velaEsgotada)) return;
+    /* Voltando à página depois do achado, o portal da RA abria junto: dois
+       diálogos de uma vez, e fechar o dossiê caía num "Abrir a câmera" para
+       pôr de novo uma escrivaninha que já tinha dado a pista (volta 4,
+       04/10/2026). O que resta — ler, guardar, seguir — não pede câmera. */
+    if ($('portal-ra').open && !emRA()) usarTela();
     $('fragment-card').innerHTML = Mosaico3D.htmlCartao3D('ac-estudo', '<span class="eyebrow" style="color:#6b5831">SOB AS GAVETAS</span><h3>Uma etiqueta escondida.</h3><p>' + clueText + '</p>', '<h3>O lar em miniatura.</h3><p>Registre a pista. A próxima descoberta depende de interpretar o lugar que ela descreve.</p>');
     $('fragment-card').querySelector('.m3d-card-back').setAttribute('aria-hidden', 'true');
     $('follow-clue').hidden = state.stage !== 'registrado';
@@ -426,7 +431,8 @@
   ra.suporte().then(s => {
     if (disposed) return;
     raSuportada = !!(s.webxr || s.slam);
-    if (raSuportada) { atualizarPortal(); abrirPortal(); }
+    if ($('fragment').open) usarTela();
+    else if (raSuportada) { atualizarPortal(); abrirPortal(); }
     else usarTela('Este aparelho não tem realidade aumentada.');
   });
   ACRA.preparar();

@@ -280,14 +280,23 @@ test("janelas d'A Casa: nada se cruza, nada fica coberto, nada sai da tela", { s
     /* Vela apagada e dossiê: pelo Solo, que guarda a sala local na sessão.
        No Solo o fósforo é do PARCEIRO automático: quando a vela apaga, é a
        fala dele que aparece (19/09/2026). */
-    const solo = (room) => "sessionStorage.setItem('ac:solo-integral:v1'," +
-      JSON.stringify(JSON.stringify({ version: 2, janelaConcluida: true, room: { startedAt: Date.now(), ...room } })) +
-      "),location.reload(),true";
-    await aba.ir(`${base}/v1/AC-escrivaninha.html?demo=solo`); await aba.esperar(prontaMesa);
-    await aba.avaliar(solo({ stage: "iluminar", vela: { ate: 1 } }));
+    /* A sala é escrita numa página da mesma origem SEM o motor do Solo, e só
+       então a escrivaninha abre. Escrita na própria escrivaninha, o parceiro
+       automático reacendia a vela 3,5 s depois de ela apagar e regravava a
+       sessão entre o setItem e o recarregar: a página voltava em "iluminar"
+       e o dossiê nunca abria — o teste passava ou falhava conforme a medida
+       anterior levasse mais ou menos que 3,5 s (04/10/2026). */
+    const solo = async (room) => {
+      await aba.ir(`${base}/v1/css/ac-janelas.css`);
+      await aba.esperar("location.pathname.endsWith('.css')&&document.readyState==='complete'");
+      await aba.avaliar("sessionStorage.setItem('ac:solo-integral:v1'," +
+        JSON.stringify(JSON.stringify({ version: 2, janelaConcluida: true, room: { startedAt: Date.now(), ...room } })) + "),true");
+      await aba.ir(`${base}/v1/AC-escrivaninha.html?demo=solo`);
+    };
+    await solo({ stage: "iluminar", vela: { ate: 1 } });
     await aba.esperar(prontaMesa + "&&!document.getElementById('fala-parceiro').hidden");
     defeitos.push(...await medir(aba, "escrivaninha · a vela apagou", ABRIR));
-    await aba.avaliar(solo({ stage: "encontrado", vela: { ate: 1 } }));
+    await solo({ stage: "encontrado", vela: { ate: 1 } });
     await aba.esperar(prontaMesa + "&&document.getElementById('fragment').open");
     defeitos.push(...await medir(aba, "escrivaninha · dossiê"));
 
