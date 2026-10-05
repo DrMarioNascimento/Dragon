@@ -1029,7 +1029,10 @@ var P={
 };
 var JOGAVEIS=['auditora','caixa_veterano','tecnico','operadora','gerente','cliente_cofre','subgerente','limpeza','seguranca_veiculo','padeiro','farmaceutica','estagiaria','transportador'];
 /* As três partidas lógicas (Matriz, aba Partidas). O impostor é sempre do sistema. */
-var PARTIDAS={S:{imp:'subgerente',casa:8},G:{imp:'gerente',casa:6},V:{imp:'caixa_veterano',casa:6}};
+/* SUBSTITUIDO 05/10 (Mario, decisão 1): G e V tinham casa mínima 6; o ajudante delas (o Subgerente, cossignatário
+   do malote) é do 1º bloco e não estava na casa de 6. As três partidas passam a casa mínima 8.
+   var PARTIDAS={S:{imp:'subgerente',casa:8},G:{imp:'gerente',casa:6},V:{imp:'caixa_veterano',casa:6}}; */
+var PARTIDAS={S:{imp:'subgerente',casa:8},G:{imp:'gerente',casa:8},V:{imp:'caixa_veterano',casa:8}};
 /* PENDÊNCIA (05/10): o Gerente faz o encobrimento das 8h31 em toda partida, um ato
    consciente que um humano não pode ser obrigado a fazer. Até a decisão do Mario,
    o Gerente fica sempre com o sistema, como o ajudante consciente (Guia técnico, 8). */
@@ -2036,6 +2039,350 @@ PECA_DEF.c4={nome:'O armário de vestígios',curto:'Vestígios',sub:'O corredor 
   if(F.passagem)s+='<g class="lugar" data-det="passagem"><rect x="190" y="200" width="130" height="80" rx="6"/><text x="255" y="232" text-anchor="middle">pela passagem</text><text x="255" y="252" text-anchor="middle">69 s · CABE</text></g>';
   if(F.raspou)s+='<g class="lugar" data-det="raspou"><rect x="40" y="296" width="280" height="56" rx="6"/><text x="180" y="328" text-anchor="middle">parede do banheiro: raspou 2×</text></g>';
   return s+svgFim('ARMÁRIO DE VESTÍGIOS · CORREDOR RESTRITO')}};
+
+
+/* ══ CAPÍTULO 5 · OITENTA E SETE SEGUNDOS (9h25 a 9h58) ═══════════════
+   Fonte: revisão 2, Cap. 5, e a Matriz. Arco: a janela crítica. O dinheiro
+   entrou. Decisão de 05/10: o 2º raspado é "logo depois de a imagem voltar".
+   Sem o Subgerente, a lista da escala sai do Caixa Veterano; sem a Limpeza, a
+   chave dela vem do registro (Operadora); sem o Padeiro, a Auditora pergunta
+   onde ficou o que entrou às 6h36, sem as fotografias. */
+var ESCALA=presente('subgerente')?'subgerente':'caixa_veterano';
+var ESCALA_TXT=ESCALA==='subgerente'?'A escala de abertura: o Gerente, eu e o tesoureiro.':'A escala de abertura: o Gerente, o Subgerente e eu.';
+var C5=[
+ [0,'n','todos','Pelo rádio, a voz sem corpo da base: <i>"Quatrocentos e oitenta mil. Composição idêntica à guia. Todas verdadeiras."</i> Ninguém comemorou. O dinheiro estava completo; a câmera fora sabotada, o rádio falsificado, o lacre trocado, o registro alterado. Para quê?','9h31'],
+ [6,'f','operadora','Base, 9h31: R$ 480.000, composição idêntica à guia, cédulas verdadeiras.'],
+ [16,'n','dentro','{caixa_novato}, que até então só pedira desculpas, fez a pergunta que ninguém fizera. <i>"E se alguém colocou?"</i> {gerente} riu sem som. <i>"Ninguém põe dinheiro num banco escondido."</i> <i>"Põe"</i>, disse o rapaz, baixo. <i>"Quando o caixa não fecha. Eu já pus vinte reais do meu bolso no primeiro mês, para ninguém saber que eu tinha errado."</i>'],
+ [20,'cond','farmaceutica','n','dentro','{farmaceutica} olhou para ele como quem reconhece um sintoma.'],
+ [24,'f','caixa_novato','E se alguém colocou?'],
+ [36,'n','dentro','{auditora} virou a página do caderno. Se o malote fora lacrado na véspera com quatrocentos e oitenta mil, não havia o que acrescentar. A menos que a véspera não tivesse quatrocentos e oitenta mil para lacrar.'],
+ [50,'n','dentro','{caixa_veterano} e {operadora} sentaram diante do terminal dos Guichês e abriram as consolidações do Cofre. A sequência estava limpa, dia após dia, exceto por um degrau de noventa e seis mil reais, onze dias antes. O depósito do frigorífico aparecia duas vezes: às dezoito e cinquenta e quatro e às dezenove e onze. <i>"Dois depósitos?"</i>, perguntou {gerente}. <i>"Um recibo. Fui eu que contei. Noventa e seis mil, uma vez."</i> Desde aquela noite, o sistema guardava noventa e seis mil reais que nenhuma mão tinha tocado. O número fantasma no verso da etiqueta deixou de ser coincidência.'],
+ [54,'peca','c5'],
+ [58,'f','caixa_veterano','Nas consolidações do Cofre, onze dias atrás: o depósito do frigorífico entra duas vezes, 18h54 e 19h11. O recibo é um só. Eu contei: R$ 96.000, uma vez.'],
+ [72,'n','dentro','{operadora} pediu silêncio e pôs no alto-falante o microfone ambiente da Central, que captava o corredor. A janela tinha som. Às sete e cinquenta e oito e cinco, a ordem. Às sete e cinquenta e oito e doze, um estalo seco quando a imagem caiu. Depois, quase nada: o ventilador do Rack, a chuva no telhado. Às sete e cinquenta e nove e vinte e quatro, um clangor curto de metal. <i>"A tampa do cesto do Arquivo. Ouço esse som toda manhã, quando a limpeza esvazia."</i>'],
+ [74,'cond','limpeza','n','dentro','{limpeza} confirmou com a cabeça, sem tirar os olhos do chão.'],
+ [76,'libera','som'],
+ [80,'f','operadora','Microfone da Central: 7h58:05 a ordem; 7h58:12 um estalo, quando a câmera cai; 7h59:24 a tampa do cesto do Arquivo; 7h59:39 a imagem volta.'],
+ [94,'n','dentro','{caixa_novato} fechou os olhos e contou nos dedos. O primeiro raspado viera logo depois da ordem. O segundo, logo depois de a imagem voltar. <i>"Então alguém saiu da parede, foi ao Arquivo, ao cesto, e voltou para a parede"</i>, disse {auditora}. <i>"Com a câmera cega o tempo todo em que esteve à vista dela."</i>'],
+ [108,'n','dentro','{auditora} repetiu em voz alta a mensagem das oito e dez: <i>"Procurem quem abriu antes."</i> Todos tinham olhado para a porta do Arquivo. Talvez a frase falasse de outra porta.'],
+ [120,'n','dentro','{operadora} pediu o registro do sensor da porta lateral, que só a central regional recebia. Às seis e trinta e seis, aberta por fora, com chave mecânica. Às sete e seis, aberta por dentro, pela barra. Às sete e quarenta, por fora, com chave: a chegada do Técnico. Às sete e cinquenta e cinco, aberta por dentro, pela barra; depois, uma linha que se repetia até as sete e cinquenta e nove e cinquenta e um: porta não travada. <i>"Com chuva, a lingueta não trava sozinha"</i>, disse {tecnico}, e pareceu arrepender-se de saber.','9h40'],
+ [122,'libera','sensor'],
+ [126,'f','operadora','Sensor da porta lateral: 6h36 aberta por fora, com chave. 7h06 aberta por dentro, pela barra. 7h40 chave (o Técnico). 7h55 barra. De 7h55 a 7h59:51: porta não travada.'],
+ [140,'n','dentro','{gerente} olhou para {tecnico}. A porta lateral ficara destravada durante toda a janela, e o único que admitia tê-la usado naquela manhã era ele. {tecnico} não explicou a abertura das sete e cinquenta e cinco.'],
+ [142,'n',['tecnico'],'Você sabe o que foi a abertura das sete e cinquenta e cinco: a caixa do motoboy. E não pode dizer.'],
+ [154,'n','dentro','{auditora} voltou à primeira linha. Às seis e trinta e seis, nenhum crachá do dia tinha passado pela Porta Giratória. Alguém abrira antes. <i>"Quem tem chave da porta lateral?"</i> <i>"'+ESCALA_TXT+'"</i>, disse {'+ESCALA+'}.'],
+ [158,'cond','limpeza','n','dentro','<i>"Eu"</i>, disse {limpeza}. <i>"Eu"</i>, disse {tecnico}, sem levantar os olhos.'],
+ [158,'condnao','limpeza','n','dentro','{operadora} conferiu o registro de chaves: <i>"E o Funcionário da Limpeza."</i> <i>"Eu"</i>, disse {tecnico}, sem levantar os olhos.'],
+ [162,'f',ESCALA,ESCALA==='subgerente'?'Chave da porta lateral: a escala de abertura (Gerente, eu e o tesoureiro), a Limpeza e o Técnico.':'Chave da porta lateral: a escala de abertura (Gerente, Subgerente e eu), a Limpeza e o Técnico.'],
+ [176,'cond','padeiro','n','todos','{padeiro} enviou duas fotografias da câmera da porta de serviço da padaria, que pegava a rua de trás. Granuladas, molhadas de chuva. Às seis e trinta e seis, uma figura de capa e guarda-chuva de cabo claro diante da porta lateral da agência, com uma sacola esportiva. Às sete e seis, a mesma figura saindo, sem a sacola. O guarda-chuva cobria o rosto nas duas. <i>"A sacola ficou lá dentro"</i>, disse {auditora}. <i>"Onde?"</i>','9h43'],
+ [176,'condnao','padeiro','n','dentro','<i>"Às seis e trinta e seis alguém entrou pela porta lateral, e às sete e seis saiu"</i>, disse {auditora}. <i>"Se trouxe alguma coisa, deixou aqui dentro. Onde?"</i>','9h43'],
+ [180,'cond','padeiro','f','padeiro','Mandei duas fotos da porta de serviço: 6h36, alguém de capa na porta lateral, com uma sacola. 7h06, a mesma pessoa saindo, sem a sacola. O guarda-chuva cobre o rosto.'],
+ [196,'n','dentro','{caixa_veterano} conhecia o Arquivo Morto por ano, como outros conhecem uma rua pelas casas. Foi direto à prateleira baixa e puxou a caixa de 1998, a única que não estava alinhada com as vizinhas.'],
+ [200,'cond','limpeza','n','dentro','{limpeza} disse, baixo, que às sete e quarenta e seis ela estava dois dedos para fora e que ele a empurrara de volta.'],
+ [204,'n','dentro','Estava vazia de documentos. No fundo, havia um anel de umidade e uma tira de papel rasgada, com o carimbo de um banco e uma linha impressa: R$ 10.000. <i>"Cinta de maço"</i>, disse {caixa_veterano}. <i>"De cem."</i> O dinheiro esperara ali, a dois passos do lugar onde o saco vazio fora largado.'],
+ [206,'libera','cinta'],
+ [210,'f','caixa_veterano','Na caixa de 1998 do Arquivo Morto: vazia, um anel de umidade e uma cinta de maço de cem, R$ 10.000. O dinheiro esperou ali.'],
+ [226,'n','dentro','{operadora}, que continuava no terminal, encontrou outra coisa na noite de onze dias antes. O sistema congelara às dezenove e três, durante uma atualização remota. O usuário era admin.local. {tecnico} não esperou a pergunta. <i>"Fui eu. Atualizei de casa, porque não havia orçamento para vir. O sistema travou. Quando voltou, alguém reprocessou a fila."</i> <i>"E o senhor sabia que a duplicidade tinha nascido do seu travamento?"</i> <i>"Soube agora."</i>'],
+ [232,'f','tecnico','A atualização remota de onze dias atrás, que travou o sistema às 19h03, fui eu. De casa.'],
+ [246,'n','dentro','{gerente} juntou as peças em voz alta, como quem fecha um relatório. A conta era do Técnico. A chave da porta lateral também. Ele conhecia a passagem e o ciclo do exaustor, tinha um cartão na faixa administrativa e dizia ter estado no Rack durante a janela. E tinha um motivo: o próprio remendo criara o dinheiro sem corpo. <i>"Quem quisesse esconder o erro teria pressa em cobri-lo."</i>'],
+ [250,'f','gerente','Está tudo no Técnico: a conta, a chave, a passagem, o ciclo do exaustor e o motivo.'],
+ [262,'n','dentro','{tecnico} olhou para a fita isolante nos dedos e não disse onde estivera. {auditora} percebeu o silêncio e não o preencheu. Um caso perfeito demais a assustava mais do que um caso aberto. <i>"Ainda não sabemos de onde vieram noventa e seis mil reais em espécie."</i>'],
+ [282,'n','todos','Pelo rádio, a voz da base pareceu hesitar: <i>"Encontrei um registro na rota de ontem. Às dezesseis horas, a transportadora levou um suprimento extraordinário de noventa e seis mil reais à agência 0392, para um saque agendado em espécie. O beneficiário é funcionário da agência 0688. O nome não consta no nosso sistema."</i>','9h56'],
+ [286,'f','operadora','Base: ontem, 16h, suprimento extraordinário de R$ 96.000 à agência 0392, para um saque agendado em espécie. O beneficiário é funcionário da 0688. Sem nome.'],
+ [294,'n','dentro','{caixa_novato} foi o primeiro a falar, quase sem voz: <i>"Alguém daqui tirou noventa e seis mil ontem."</i>'],
+ [32,'p',['caixa_novato'],'Eu já pus vinte reais do meu bolso, no primeiro mês. Ninguém sabia. Agora todo mundo sabe.'],
+ [212,'p',['cliente_cofre'],'Uma caixa de 1998. Este prédio guarda mais coisas do que parece.'],
+ [440,'n','todos','Faltam poucos minutos para o fim do capítulo.']
+].sort(function(a,b){return a[0]-b[0]});
+CAPS[5]={nome:'OITENTA E SETE SEGUNDOS',rot:C5,
+ rg:[[0,'Se não faltou nada, para que a troca?'],[58,'O número fantasma é real.'],[80,'O som conta a janela.'],[126,'Quem abriu a porta às 6h36?'],[210,'O dinheiro esperou na caixa.'],[0,'Vamos esperar a regional.']],
+ rp:[[0,'Você já pôs dinheiro do bolso no caixa?'],[250,'Você acha que foi o Técnico?'],[0,'Não confio em ninguém aqui.']],
+ rep:{
+  'Se não faltou nada, para que a troca?':[['auditora'],'É a pergunta certa. Ainda não sei.'],
+  'O número fantasma é real.':[['caixa_veterano'],'Real no sistema. Na minha mão, nunca existiu.'],
+  'O som conta a janela.':[['operadora'],'A tampa do cesto às 7h59:24. Eu ouço esse som toda manhã.'],
+  'Quem abriu a porta às 6h36?':[['operadora'],'O sensor só diz: por fora, com chave. Não diz quem.'],
+  'O dinheiro esperou na caixa.':[['caixa_veterano'],'A cinta é de maço de cem. Dez mil.'],
+  'Vamos esperar a regional.':[['gerente'],'Nós seguiremos o protocolo.'],
+  'Você já pôs dinheiro do bolso no caixa?':'Não. Mas entendo quem põe.',
+  'Você acha que foi o Técnico?':'Está tudo nele. É isso que me preocupa.',
+  'Não confio em ninguém aqui.':'Nem eu.'},
+ debate:{pergunta:'De onde vieram os R$ 96.000 que completaram o malote?',falas:[['gerente','Está tudo no Técnico. O remendo dele criou o dinheiro sem corpo.'],['caixa_veterano','O recibo é um só. Esses noventa e seis mil nunca passaram pela minha mão.'],['auditora','Um caso perfeito demais me assusta mais do que um aberto.']]},
+ perg:[
+  {rotulo:'principal',pergunta:'Nos oitenta e sete segundos, o dinheiro saiu ou entrou?',opcoes:['Entrou: o malote saiu completo, e o Cofre tinha R$ 96.000 que só existiam no sistema.','Saiu: R$ 96.000 foram retirados do malote.','Nada mudou: o saco no chão era de outro malote.','Saiu e voltou: foi contado e devolvido antes da coleta.']},
+  {rotulo:'secundária',pergunta:'Onde o dinheiro esperou antes da janela?',opcoes:['Na caixa de 1998 do Arquivo Morto.','No Cofre.','No Rack Técnico.','Numa sacola, do lado de fora.']},
+  {rotulo:'secundária',tipo:'todos',pergunta:'Quem tem chave da porta lateral? (marque todos)',candidatos:['Gerente','Subgerente','Caixa Veterano','Funcionário da Limpeza','Técnico','Operadora'],certos:[0,1,2,3,4]}],
+ achar:'a balança de custódia, na aba RA (quando a história chegar nela): o peso, a composição, os cartões de comparação e, conforme a história avança, o som da janela, o sensor da porta lateral e a cinta; 1 envio extra escondido nela.'};
+
+/* A peça do Cap. 5: a balança de custódia (Matéria para a RA do Cap. 5).
+   Prova que o malote saiu completo, não quem o completou. */
+PECA_DEF.c5={nome:'A balança de custódia',curto:'Balança',sub:'O peso do malote 41',ico:'⚖️',topo:'A balança de custódia · o malote 41',aviso:'Toque num cartão para examiná-lo.',envio:'prato',
+ det:{
+  balanca:['A BALANÇA','Registro da balança embarcada, 8h00, na entrada do malote 41: 7,0 kg.'],
+  prato:['O PRATO','Sob o prato da balança, preso com fita, uma coisa sua: um envio extra.'],
+  composicao:['A COMPOSIÇÃO','Guia: 41 maços de R$ 100, 12 de R$ 50, 5 de R$ 20. Cada maço, 100 cédulas: 5.800 cédulas. Referência: 1 g por cédula. Saco com fecho e lacre: 1,2 kg.'],
+  c480:['CARTÃO · R$ 480.000','5.800 cédulas (5,8 kg) + saco (1,2 kg) = 7,0 kg. Bate com a balança.'],
+  c384:['CARTÃO · R$ 384.000','Um malote de R$ 384.000 pesaria 5,8 kg. A balança marcou 7,0 kg.'],
+  som:['O SOM DA JANELA','Microfone da Central. 7h58:05 a ordem; 7h58:12 estalo, a câmera cai; 7h59:24 a tampa do cesto do Arquivo; 7h59:39 a imagem volta.'],
+  sensor:['O SENSOR DA PORTA LATERAL','6h36 chave, por fora · 7h06 barra, por dentro · 7h40 chave · 7h55 barra · 7h55–7h59:51 não travada · 7h59:51 fechada.'],
+  cinta:['A CINTA','Caixa de 1998, vazia: um anel de umidade e uma tira rasgada com carimbo de banco, R$ 10.000. Cinta de maço de cem.']},
+ svg:function(F){var s=svgBase('A balança de custódia');
+  s+='<g class="lugar" data-det="balanca"><rect x="40" y="40" width="160" height="80" rx="8"/><text x="120" y="76" text-anchor="middle">balança</text><text x="120" y="96" text-anchor="middle">7,0 kg</text></g>';
+  s+='<g class="lugar" data-det="prato"><rect x="214" y="40" width="106" height="80" rx="40"/><text x="267" y="84" text-anchor="middle">prato</text></g>';
+  s+='<g class="lugar" data-det="composicao"><rect x="40" y="132" width="280" height="50" rx="6"/><text x="180" y="162" text-anchor="middle">guia: 41 × 100 · 12 × 50 · 5 × 20</text></g>';
+  s+='<g class="lugar" data-det="c480"><rect x="40" y="194" width="134" height="60" rx="6"/><text x="107" y="220" text-anchor="middle">R$ 480.000</text><text x="107" y="238" text-anchor="middle">7,0 kg</text></g>';
+  s+='<g class="lugar" data-det="c384"><rect x="186" y="194" width="134" height="60" rx="6"/><text x="253" y="220" text-anchor="middle">R$ 384.000</text><text x="253" y="238" text-anchor="middle">5,8 kg</text></g>';
+  if(F.som)s+='<g class="lugar" data-det="som"><rect x="40" y="266" width="134" height="56" rx="6"/><text x="107" y="298" text-anchor="middle">o som da janela</text></g>';
+  if(F.sensor)s+='<g class="lugar" data-det="sensor"><rect x="186" y="266" width="134" height="56" rx="6"/><text x="253" y="298" text-anchor="middle">sensor 6h36</text></g>';
+  if(F.cinta)s+='<g class="lugar" data-det="cinta"><rect x="40" y="334" width="280" height="44" rx="6"/><text x="180" y="360" text-anchor="middle">cinta R$ 10.000 · caixa de 1998</text></g>';
+  return s+svgFim('BALANÇA DE CUSTÓDIA · MALOTE 41')}};
+
+
+/* ══ CAPÍTULO 6 · O NÚMERO SEM CORPO (9h58 a 10h25) ═══════════════════
+   Fonte: revisão 2, Cap. 6, e a Matriz. Arco: o documento. Fecha com a
+   segunda virada (o Técnico estava fora). Decisão de 05/10: a luva está
+   rasgada no indicador, o mesmo dedo da fita estreita do Cap. 2.
+   Sem o Funcionário da Limpeza, o saco no chão se explica pela imagem das
+   8h01 e pelo som da tampa (a Auditora liga os três momentos); sem o
+   Subgerente, o reprocessamento vem do registro; sem o Padeiro, a exclusão
+   do Técnico fica com o Segurança Interno e o aplicativo de entregas
+   (fontes primárias). Pergunta secundária 2 trocada (05/10): a original,
+   "quem assinou sem contagem", não tem resposta completa no texto do
+   capítulo (só o Caixa Veterano confessa). */
+var C6=[
+ [0,'n','dentro','O arquivo ajuste_96 voltou à vida numa cópia automática que o servidor guardava de tudo o que passava pela impressora. Não era uma ordem de transferência nem um documento do banco. Era uma planilha pequena, feita por alguém que precisava escrever a noite para conseguir consertá-la. Uma coluna dizia "valor", outra "origem", outra "malote", outra "cofre". Na linha da origem, só uma palavra: "própria". Embaixo, a cronologia de onze dias antes: <i>"19h00, G sai, autoriza por telefone. 19h03, trava. 19h11, reprocesso. 19h20, assinatura sem contagem."</i> {operadora} leu em voz alta e parou no fim de cada linha. Cada linha tinha um dono na sala.','10h04'],
+ [0,'sisfora','Pelo grupo chega a cópia de um arquivo recuperado do servidor: ajuste_96.'],
+ [4,'peca','c6'],
+ [8,'f','operadora','ajuste_96, recuperado do servidor. Origem do valor: "própria". Cronologia de onze dias atrás: "19h00, G sai, autoriza por telefone. 19h03, trava. 19h11, reprocesso. 19h20, assinatura sem contagem."'],
+ [22,'n','dentro','{gerente} foi o primeiro a se mexer. Disse que saíra às dezenove porque um cliente ameaçava denunciar um favorecimento numa concessão de crédito, e que precisava encontrá-lo antes que ele procurasse a regional. Autorizara o fechamento por telefone. <i>"Era sobre isso a conversa de ontem?"</i>, perguntou {auditora}, olhando para {operadora}. <i>"Era"</i>, disse {gerente}. <i>"Não tinha nada a ver com dinheiro."</i>'],
+ [26,'f','gerente','Saí às 19h00 naquela noite: um cliente ameaçava denunciar um favorecimento numa concessão de crédito. Autorizei o fechamento por telefone. Não tem nada a ver com dinheiro.'],
+ [34,'n','dentro','{operadora} sentiu o chão da própria omissão mudar de lugar. A frase que guardara a noite toda, "não cai só você", não falava do malote. Falava de outra crise, com outro peso.'],
+ [44,'cond','subgerente','n','dentro','{subgerente} confirmou o reprocessamento das dezenove e onze. Fizera o que o procedimento mandava quando o sistema voltava de uma trava: reenviar a fila. Não conferira o que ela trazia.'],
+ [44,'condnao','subgerente','n','dentro','{operadora} conferiu o registro: o reprocessamento das dezenove e onze estava no nome do Subgerente.'],
+ [56,'n','dentro','{caixa_veterano} tirou do bolso a fotografia antiga da equipe e a deixou sobre o balcão, virada para baixo. <i>"Às dezenove e vinte, eu assinei sem recontar. Tinham me ligado dizendo que um colega daquela foto tinha morrido. Eu queria chegar ao velório antes de fecharem o caixão."</i>'],
+ [60,'f','caixa_veterano','Às 19h20 daquela noite, assinei a consolidação sem recontar. Um colega tinha morrido. Eu queria chegar ao velório.'],
+ [74,'n','dentro','Ninguém disse nada. {auditora} escreveu tudo, numa coluna que intitulou "falhas", e outra, ainda vazia, que intitulou "atos". <i>"Quem escreveu este arquivo conhecia aquela noite por dentro. E chamou o dinheiro de próprio."</i>'],
+ [76,'n',['auditora'],'Se registrar todas as falhas daquela noite, você fecha a agência e demite gente que só estava cansada. Se escolher quais registrar, faz exatamente o que você mesma fez anos antes, quando decidiu cedo demais quem era culpado.'],
+ [80,'f','auditora','Quem escreveu o ajuste_96 conhecia aquela noite por dentro. E chamou o dinheiro de "próprio".'],
+ [96,'n','dentro','{caixa_novato} quis saber por que o saco vazio estava no chão, e não escondido. {operadora} tinha a resposta pela metade. Às oito e um, a câmera 3 já funcionava, e na borda da imagem, junto à porta do Arquivo, aparecia uma perna e a roda de um balde.','10h12'],
+ [100,'libera','imagem'],
+ [104,'cond','limpeza','n','dentro','{limpeza} ficou pálido antes que alguém dissesse o nome dele. <i>"Fui eu."</i> Às oito e um, voltara ao Arquivo para buscar o balde. A tampa do cesto estava torta e havia lona saindo dela. Puxou e viu o lacre rompido. Pensou que alguém descartara uma coisa sigilosa usando a chave que ele emprestara. Pensou na demissão, na irmã. Ouviu passos no corredor, largou o saco no chão e saiu para o fundo, para o Nicho do Rack, onde ninguém o veria. <i>"Então foi você quem montou a cena do roubo"</i>, disse {gerente}. <i>"Eu deixei um saco no chão. Quem criou o roubo foi o grito."</i>'],
+ [104,'condnao','limpeza','n','dentro','<i>"A tampa do cesto bateu às sete e cinquenta e nove e vinte e quatro"</i>, disse {auditora}. <i>"O saco foi para o cesto. Às oito e um, o balde da limpeza junto à porta. Às oito e dois, o saco no chão. Quem o tirou do cesto foi quem foi buscar o balde."</i>'],
+ [110,'f','operadora','Câmera 3, 8h01: na borda da imagem, junto à porta do Arquivo, uma perna e a roda do balde da limpeza.'],
+ [126,'n','dentro','A distinção pesou. O ato fora imprudente e não fazia parte de nada. Explicava o saco sem criar um cúmplice. {auditora} pediu o cesto. No fundo, debaixo de papéis da véspera, havia uma luva de procedimento tamanho G, rasgada no indicador, com uma mancha escura de sangue seco. Colado a ela pela umidade, um cupom da farmácia da esquina: seis e trinta e um, luvas de procedimento G, fita microporosa de 1,2 cm, pago em dinheiro. <i>"A grapa do lacre foi cortada. Quem cortou se feriu através da luva."</i>'],
+ [130,'libera','luva'],
+ [134,'f','auditora','No fundo do cesto: luva de procedimento G, rasgada no indicador, com sangue seco. Colado nela, cupom da farmácia: 6h31, luvas G e fita microporosa de 1,2 cm, pago em dinheiro.'],
+ [150,'n','dentro','Os olhares foram para as mãos. {gerente} apontou a fita isolante nos dedos do Técnico. <i>"Tire."</i> {tecnico} tirou. Embaixo havia calos e uma queimadura antiga de solda, já sem cor. Nenhum corte. {gerente} disse que ele podia ter usado a outra mão.'],
+ [156,'cond','farmaceutica','n','dentro','{farmaceutica} reconheceu o próprio cupom, olhou para as mãos de todos, uma por uma, e baixou os olhos para o envelope que ainda levava no bolso. Não disse nada.'],
+ [170,'n','dentro','{gerente}, com a voz de quem já começou o relatório, voltou à lista. O Técnico criara a conta, travara o sistema, tinha chave da porta lateral, conhecia a passagem e dissera ter estado no Rack durante a janela. <i>"Onde o senhor estava às sete e cinquenta e oito?"</i>, perguntou {auditora}. {tecnico} olhou para a porta lateral, no fim do Saguão. Abriu a boca e a fechou.'],
+ [184,'n','dentro','Foi o Segurança Interno quem olhou para onde ele olhava. Ao lado da porta, pendurada no gancho dos guarda-chuvas, havia uma capa escura ainda pingando, e no chão, embaixo dela, uma caixa de papelão com a etiqueta de um aplicativo de entregas. <i>"O homem de capa"</i>, disse ele devagar. <i>"Lá fora, com o motoboy. Eu bati no vidro e ele levantou a mão sem se virar. Era o senhor."</i>'],
+ [188,'f','seguranca_interno','O homem de capa lá fora, com o motoboy, na hora da ordem do rádio. Era o Técnico.'],
+ [198,'n','dentro','{auditora} pediu o telefone do Técnico. Ele o entregou sem resistir. No aplicativo, a entrega constava como recebida às sete e cinquenta e oito e cinquenta e um, com a fotografia que o motoboy tira para provar a entrega: a porta lateral da agência, a calçada molhada, as mãos do Técnico segurando a caixa.'],
+ [200,'libera','app'],
+ [204,'f','auditora','Aplicativo de entregas no telefone do Técnico: recebida às 7h58:51, na porta lateral. Na foto, as mãos dele segurando a caixa.'],
+ [216,'cond','padeiro','n','todos','O telefone da Mesa tocou. Era {padeiro}, que procurara nas imagens da sua porta de serviço sem que ninguém pedisse. Mandou duas: às sete e cinquenta e oito e quarenta e sete, o homem de capa recebendo a caixa; às sete e cinquenta e nove e cinquenta e um, o mesmo homem empurrando a porta com o ombro, o capuz caído. Era o Técnico.','10h21'],
+ [218,'cond','padeiro','f','padeiro','Duas imagens da minha porta de serviço: 7h58:47, o homem de capa recebe a caixa do motoboy. 7h59:51, o mesmo homem empurra a porta lateral, capuz caído. É o Técnico.'],
+ [230,'n','dentro','{tecnico} soltou o ar como quem larga um peso que carregou a manhã inteira. <i>"Era uma placa de vídeo usada, sem nota. Para esta agência. Eu menti que estava no Rack porque não podia explicar a caixa."</i>'],
+ [234,'f','tecnico','Era uma placa de vídeo usada, sem nota, para esta agência. Menti que estava no Rack porque não podia explicar a caixa.'],
+ [248,'n','dentro','{auditora} apagou o nome dele da coluna "atos" antes mesmo de tê-lo escrito ali. O homem que tinha a conta, a chave, a passagem e o motivo não estava dentro do prédio quando a câmera caiu. <i>"Então alguém passou da Gerência para o Rack enquanto o senhor estava lá fora."</i>'],
+ [262,'n','dentro','E houve uma segunda pergunta, que ninguém quis fazer em voz alta. O curto viera às oito e cinquenta e um, mas um cabo não derrete num instante. Desde as oito e vinte e cinco, a maleta do Técnico estava fechada sobre a Mesa, e ele, na Central, sob os olhos de todos, explicando o registro do rádio a quem quisesse ouvir.'],
+ [268,'f','auditora','O Técnico estava fora durante a janela. Alguém passou da Gerência para o Rack enquanto ele estava lá fora.'],
+ [120,'p',['caixa_novato'],'O saco no chão foi o que me fez gritar. E nem era a cena de nada.'],
+ [240,'p',['seguranca_interno','cliente_cofre'],'Se não foi ele, foi alguém que conhece aquela parede.'],
+ [440,'n','todos','Faltam poucos minutos para o fim do capítulo.']
+].sort(function(a,b){return a[0]-b[0]});
+CAPS[6]={nome:'O NÚMERO SEM CORPO',rot:C6,
+ rg:[[0,'Quem escreveu esse arquivo?'],[60,'Cada falha daquela noite tem um dono.'],[110,'Por que o saco estava no chão?'],[134,'A luva diz que alguém se cortou.'],[234,'Então o Técnico não estava no Rack.'],[0,'Vamos ouvir todo mundo.']],
+ rp:[[0,'Você sabia do ajuste_96?'],[134,'Você reparou nas mãos de alguém?'],[0,'Não confio em ninguém aqui.']],
+ rep:{
+  'Quem escreveu esse arquivo?':[['auditora'],'Alguém que conhecia aquela noite por dentro. E chamou o dinheiro de próprio.'],
+  'Cada falha daquela noite tem um dono.':[['caixa_veterano'],'A minha está aí. Às 19h20.'],
+  'Por que o saco estava no chão?':[['operadora'],'Às 8h01, a câmera pega o balde junto à porta do Arquivo.'],
+  'A luva diz que alguém se cortou.':[['auditora'],'No indicador. E comprou a luva às 6h31.'],
+  'Então o Técnico não estava no Rack.':[['seguranca_interno'],'Estava lá fora. Eu bati no vidro.'],
+  'Vamos ouvir todo mundo.':[['gerente'],'Nós seguiremos o protocolo.'],
+  'Você sabia do ajuste_96?':'Não. Nunca vi esse arquivo.',
+  'Você reparou nas mãos de alguém?':'Reparei em todas. Agora todo mundo repara.',
+  'Não confio em ninguém aqui.':'Nem eu.'},
+ debate:{pergunta:'Se o Técnico estava lá fora, quem passou da Gerência para o Rack?',falas:[['auditora','Alguém passou da Gerência para o Rack enquanto ele estava lá fora.'],['gerente','Ainda é o Técnico. Ele pode ter usado a outra mão.'],['seguranca_interno','Eu bati no vidro. Era ele, do lado de fora.']]},
+ perg:[
+  {rotulo:'principal',pergunta:'Onde estava o Técnico durante a janela?',opcoes:['Na rua de trás, recebendo uma caixa de um motoboy.','No Rack, olhando o conector.','Na Central, com a Operadora.','No Banheiro dos Funcionários.']},
+  {rotulo:'secundária',pergunta:'Por que o saco estava no chão, e não no cesto?',opcoes:['O Funcionário da Limpeza o tirou do cesto às 8h01 e o largou no chão.','Quem fez a troca o largou ali de propósito.','O Caixa Novato o tirou do cesto antes de gritar.','Caiu do cesto quando a tampa bateu.']},
+  {rotulo:'secundária',pergunta:'Pela cronologia do ajuste_96, o que aconteceu às 19h03 daquela noite?',opcoes:['O sistema travou, durante uma atualização remota.','O Gerente saiu e autorizou o fechamento por telefone.','A fila foi reprocessada.','A consolidação foi assinada sem contagem.']}],
+ achar:'a noite de onze dias antes, na aba RA (quando a história chegar nela): ponha os cartões em ordem para liberar a folha do ajuste_96; depois, a imagem das 8h01, a luva e o aplicativo de entregas; 1 envio extra escondido nela.'};
+
+/* A peça do Cap. 6: a linha do tempo da noite (Matéria para a RA do Cap. 6).
+   Mecânica nova: ordenar. O jogador toca os cartões na ordem da noite; ao
+   fechar a sequência, libera a folha ajuste_96. Prova a origem da duplicidade
+   e o plano de cobertura, não o autor. */
+var NOITE=['n1854','n1900','n1903','n1911','n1920'],noiteSeq=[],noiteFeita=false;
+var NOITE_POS=(function(){var r=gerador(PARTIDA+'|noite'),a=NOITE.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(r()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a})();
+PECA_DEF.c6={nome:'A noite de onze dias antes',curto:'A noite',sub:'Cinco cartões fora de ordem',ico:'🗂️',topo:'A noite de onze dias antes · Guichê 2',aviso:'Toque os cinco cartões na ordem em que aconteceram. Fechada a sequência, a folha se abre.',envio:'carimbo',
+ det:{
+  n1854:['18h54','Depósito do frigorífico, R$ 96.000, no Guichê 2. Recibo único.'],
+  n1900:['19h00','"G sai, autoriza por telefone."'],
+  n1903:['19h03','Trava: o sistema congela durante uma atualização remota.'],
+  n1911:['19h11','Reprocesso: a fila é reenviada à mão.'],
+  n1920:['19h20','Assinatura sem contagem.'],
+  folha:['A FOLHA AJUSTE_96','Colunas: valor, origem, malote, cofre. Valor: 96.000. Origem: "própria". Quem escreveu precisava escrever a noite para conseguir consertá-la.'],
+  carimbo:['O CARIMBO DO GUICHÊ 2','No verso do carimbo, uma coisa sua: um envio extra.'],
+  imagem:['A IMAGEM DAS 8h01','Câmera 3, 8h01: na borda, junto à porta do Arquivo, uma perna e a roda de um balde.'],
+  luva:['A LUVA','Luva de procedimento G, rasgada no indicador, sangue seco. Cupom colado: 6h31, luvas G e fita microporosa de 1,2 cm, em dinheiro.'],
+  app:['O APLICATIVO','Entrega recebida às 7h58:51, na porta lateral. Na foto do motoboy, as mãos do Técnico segurando a caixa.']},
+ svg:function(F){var s=svgBase('A noite de onze dias antes');
+  NOITE_POS.forEach(function(k,i){var x=40+(i%3)*96,y=40+Math.floor(i/3)*70,feito=noiteSeq.indexOf(k);
+    s+='<g class="lugar" data-det="'+k+'"><rect x="'+x+'" y="'+y+'" width="88" height="58" rx="6"/><text x="'+(x+44)+'" y="'+(y+26)+'" text-anchor="middle">'+PECA_DEF.c6.det[k][0]+'</text>'+(feito>=0?'<text x="'+(x+44)+'" y="'+(y+46)+'" text-anchor="middle" style="fill:#efc878">'+(feito+1)+'º</text>':'')+'</g>'});
+  s+='<g class="lugar" data-det="carimbo"><rect x="232" y="110" width="88" height="58" rx="29"/><text x="276" y="144" text-anchor="middle">carimbo</text></g>';
+  if(noiteFeita)s+='<g class="lugar" data-det="folha"><rect x="40" y="190" width="280" height="54" rx="4"/><text x="180" y="222" text-anchor="middle">ajuste_96 · origem: "própria"</text></g>';
+  if(F.imagem)s+='<g class="lugar" data-det="imagem"><rect x="40" y="258" width="88" height="70" rx="4"/><text x="84" y="298" text-anchor="middle">8h01</text></g>';
+  if(F.luva)s+='<g class="lugar" data-det="luva"><rect x="136" y="258" width="88" height="70" rx="4"/><text x="180" y="298" text-anchor="middle">luva G</text></g>';
+  if(F.app)s+='<g class="lugar" data-det="app"><rect x="232" y="258" width="88" height="70" rx="4"/><text x="276" y="298" text-anchor="middle">7h58:51</text></g>';
+  return s+svgFim('A NOITE DE ONZE DIAS ANTES · GUICHÊ 2')}};
+var _examinarGen=examinarGen;examinarGen=function(id,k,g){
+  if(id==='c6'&&NOITE.indexOf(k)>=0&&!noiteFeita){
+    if(noiteSeq.indexOf(k)>=0){_examinarGen(id,k,g);return}
+    if(k===NOITE[noiteSeq.length]){noiteSeq.push(k);if(noiteSeq.length===NOITE.length){noiteFeita=true;toast('A sequência fechou. A folha se abriu.')}}
+    else{noiteSeq=[];toast('Fora de ordem. A sequência recomeça.')}
+    pintarPecaGen('c6');var g2=document.querySelector('#svgMalote [data-det="'+k+'"]');_examinarGen(id,k,g2||g);return}
+  _examinarGen(id,k,g)};
+
+
+/* ══ CAPÍTULO 7 · QUINZE VERSÕES PARA UM FATO (10h25 a 10h50) ══════════
+   Fonte: revisão 2, Cap. 7, a tabela Pontos de ajuste e as Variantes G e V.
+   Degrau 4: as evidências convergem sobre uma das três chaves da tesouraria,
+   mas ainda sem confissão. É o capítulo dos ajustes: A2 (quem assinou sem
+   contar), A3 (a fita estreita, no indicador: decisão de 05/10), A4 (quem
+   ficou na Gerência), A5 e A5b (onde cada um disse estar e quem confirma),
+   A6 (a farinha), A7 (o cartão), A8 (o titular do saque), A9 (a última fala).
+   Decisão de 05/10: as três partidas têm casa mínima 8, então o Subgerente e
+   o Funcionário da Limpeza estão sempre na casa. */
+var V7={
+ S:{a4:'<i>"Às sete e cinquenta e sete, entraram dois na Gerência para assinar o livro. Saiu um, quase em seguida, e foi para a Mesa. O outro ficou. Depois disso, ninguém mais entrou naquela sala até o malote atravessar."</i>',
+    c1:'A câmera 1, que via a divisória por fora, confirmou a conta.',
+    a5b:'{operadora} abriu a câmera 2, que via os Guichês e a Mesa e não caíra em momento algum. {caixa_veterano} chegava à Mesa às sete e cinquenta e sete e cinquenta e cinco e não saía dali. {gerente} estivera junto à Porta Giratória o tempo todo; {auditora} e {cliente_cofre} confirmaram. Nos Guichês, {estagiaria} recolhia folhas sozinha. {subgerente}, que dissera estar ali buscando a guia, só entrava no quadro às oito e zero cinco.',
+    chat5:'Câmera 2: o Caixa Veterano na Mesa desde 7h57:55. O Subgerente, que disse estar nos Guichês, só entra no quadro às 8h00:05.',
+    ajud:'caixa_veterano',contou:'o Subgerente',assinou:'o Caixa Veterano',confissao:'Eu assinei sem contar. De novo. Achei que a guia bastava.',
+    a8:'o Subgerente, com garantia de joias de família empenhadas cinco dias antes'},
+ G:{a4:'<i>"Às sete e cinquenta e sete, entraram dois na Gerência para assinar o livro, e saíram os dois. Logo depois, o Gerente deixou a Auditora, disse que ia a um telefonema, e entrou sozinho. Depois disso, ninguém mais entrou naquela sala até o malote atravessar."</i>',
+    c1:'A câmera 1, que via a divisória por fora, confirmou: o Gerente entrara atrás da divisória às sete e cinquenta e sete e cinquenta.',
+    a5b:'{operadora} abriu a câmera 2, que via os Guichês e a Mesa e não caíra em momento algum. {caixa_veterano} chegava à Mesa às sete e cinquenta e sete e cinquenta e cinco e não saía dali. Nos Guichês, {subgerente} buscava a guia; {estagiaria} recolhia folhas ao lado. {auditora} confirmou que {gerente} a deixara "para um telefonema". O registro do ramal da Gerência não tinha nenhuma chamada entre as sete e cinquenta e as oito e dez.',
+    chat5:'Câmera 2: o Caixa Veterano na Mesa e o Subgerente nos Guichês. O ramal da Gerência não tem chamada entre 7h50 e 8h10. O Gerente disse "ao telefone".',
+    ajud:'subgerente',contou:'o Gerente',assinou:'o Subgerente',confissao:'Eu assinei sem contar. Achei que a guia bastava.',
+    a8:'o Gerente, com o resgate antecipado da previdência privada'},
+ V:{a4:'<i>"Às sete e cinquenta e sete, entraram dois na Gerência para assinar o livro. Saiu um, quase em seguida, e foi para os Guichês. O outro ficou. Depois disso, ninguém mais entrou naquela sala até o malote atravessar."</i>',
+    c1:'A câmera 1, que via a divisória por fora, confirmou a conta.',
+    a5b:'{operadora} abriu a câmera 2, que via os Guichês e a Mesa e não caíra em momento algum. {gerente} estivera junto à Porta Giratória o tempo todo; {auditora} e {cliente_cofre} confirmaram. Nos Guichês, {subgerente} buscava a guia; {estagiaria} recolhia folhas ao lado. A Mesa de Recebimento ficava vazia até as oito e zero zero e dois. {caixa_veterano}, que dissera estar na Mesa, só chegava ali depois.',
+    chat5:'Câmera 2: o Subgerente nos Guichês. A Mesa vazia até 8h00:02: o Caixa Veterano, que disse estar na Mesa, só chega depois.',
+    ajud:'subgerente',contou:'o Caixa Veterano',assinou:'o Subgerente',confissao:'Eu assinei sem contar. Achei que a guia bastava.',
+    a8:'o Caixa Veterano, com as economias guardadas para a aposentadoria'}
+}[PCOD];
+var C7=[
+ [0,'n','dentro','{auditora} escreveu quinze funções no quadro branco da Mesa e se recusou a escrever nomes. <i>"Funções dizem o que cada um podia fazer. Medos dizem o que cada um escolheu esconder."</i>','10h28'],
+ [0,'sisfora','No grupo, a auditoria anuncia um quadro com as funções de todos, sem nomes.'],
+ [4,'peca','c7'],
+ [14,'n','dentro','Começou pelo cabo. {operadora} rodou a câmera 1. Às oito e trinta e um, {gerente} entrara atrás da divisória da própria sala e só saíra cinquenta e quatro segundos depois. Da Gerência ao Rack, pela passagem, eram quinze segundos. {gerente} não negou. Disse que abrira a fila da impressora para ver o que gemera às sete e cinquenta e três e lera, na tela, a própria saída de onze dias antes. <i>"Pensei que a auditoria ia levar aquilo como prova contra mim. Encostei o cabo. Não toquei no malote."</i> {auditora} escreveu "encobrimento" na coluna dos atos e o nome da função ao lado.'],
+ [18,'libera','cabo'],
+ [20,'f','operadora','Câmera 1, 8h31: o Gerente entra atrás da divisória da Gerência e sai 54 segundos depois.'],
+ [34,'n','dentro','{cliente_cofre} abriu a pasta sem que ninguém pedisse. Dentro, cartas amareladas e uma planta dobrada em oito, com carimbo de 1987 e a assinatura do pai, o engenheiro da obra. Atrás da parede do banheiro, a lápis, uma linha estreita ligava o armário da Gerência ao fundo do Rack. Grampeada à planta, uma folha datilografada de 1990: <i>"O caminho do painel é de conhecimento exclusivo das três chaves da tesouraria."</i> <i>"Meu pai recebeu por fora para construir isso. Para um gerente que guardava dinheiro que não constava em lugar nenhum. Eu vim tirar estas cartas daqui antes que alguém as lesse."</i>'],
+ [38,'libera','planta'],
+ [42,'f','cliente_cofre','A planta original, de 1987, mostra a passagem. O manual de 1990 diz: "de conhecimento exclusivo das três chaves da tesouraria".'],
+ [52,'n','dentro','<i>"O Técnico descobriu sozinho"</i>, disse {auditora}. <i>"Os outros receberam de herança."</i> As três chaves da tesouraria eram o Gerente, o Subgerente e o tesoureiro. Ninguém precisou dizer o terceiro nome. {caixa_veterano} não ergueu os olhos.'],
+ [68,'n','dentro','{auditora} pediu a cada um que dissesse não o que vira, mas o que esperava ver quando olhou. O Segurança Interno esperava uma invasão e transformara um motoboy em ameaça. {tecnico} esperava uma falha humana e desconfiara do conector, não da parede.'+(presente('farmaceutica')?' {farmaceutica} esperava uma crise e notara respirações antes de notar mentiras.':'')+' O exercício não trouxe prova nova. Mostrou como cada testemunha completara com medo o que a posição não lhe deixava ver.'],
+ [84,'n','dentro','Então voltou à coluna das declarações e pediu confirmações. {cliente_cofre} estivera junto à Porta Giratória, de frente para a divisória fosca. Contava vincos para não contar minutos; naquela manhã, contara silhuetas. '+V7.a4+' '+V7.c1],
+ [86,'libera','gerencia'],
+ [88,'cond','farmaceutica','n','dentro','{farmaceutica}, ao lado dela, confirmou a conta. Contava pessoas sem querer, como contava comprimidos.'],
+ [92,'f','cliente_cofre',PCOD==='G'?'Às 7h57 entraram dois na Gerência para assinar o livro e saíram os dois. Logo depois, o Gerente entrou sozinho.':'Às 7h57 entraram dois na Gerência para assinar o livro. Saiu um. O outro ficou.'],
+ [106,'n','dentro',V7.a5b],
+ [108,'libera','cameras'],
+ [110,'f','operadora',V7.chat5],
+ [114,'cond','seguranca_veiculo','n','dentro',PCOD==='V'?'{seguranca_veiculo}, da Eclusa, confirmou: pelo vidro, vira a Mesa vazia até as oito e zero zero e dois.':'{seguranca_veiculo}, da Eclusa, confirmou: pelo vidro, vira o Caixa Veterano na Mesa.'],
+ [118,'cond','estagiaria','n','dentro','{estagiaria}, que estivera nos Guichês o tempo todo, olhou para o chão e confirmou com a cabeça.'],
+ [124,'n','dentro','Para que não sobrasse dúvida sobre ela mesma, {operadora} abriu também a câmera interna da Central: do começo ao fim da janela, estava no console, com a mão no rádio. A câmera 1 mostrava {limpeza} e o carrinho no Saguão'+(PCOD==='G'?'.':', e a Cliente e a Auditora juntas na Porta Giratória.')],
+ [142,'n','dentro','{operadora} abriu o livro de lacres. O ML-8842 fora aplicado na véspera, às quinze e cinquenta, com duas assinaturas: a '+V7.contou.replace(/^o /,'do ')+', que contou, e a '+V7.assinou.replace(/^o /,'do ')+'.'],
+ [144,'libera','livro'],
+ [148,'n','dentro','<i>"'+V7.confissao.replace(/\.$/,'')+'"</i>, disse {'+V7.ajud+'}, e a voz soou mais velha.'],
+ [150,'f',V7.ajud,V7.confissao],
+ [164,'n','dentro','{auditora} pôs lado a lado o cupom achado no cesto e o kit de primeiros socorros da Gerência. A fita vendida às seis e trinta e um tinha 1,2 centímetro. A do kit, 2,5, a mesma que {caixa_novato} usava no indicador. Ela olhou para a tira estreita no indicador do '+IMPN+'.'],
+ [166,'libera','fita'],
+ [170,'cond','farmaceutica','n','dentro','{farmaceutica} tirou o envelope do bolso e o deixou sobre o balcão. Contou a venda inteira: luvas tamanho G e fita estreita, a alguém de capa e guarda-chuva de cabo claro, que pagou em dinheiro e não tirou o capuz. <i>"Eu vi a fita estreita às oito e vinte. Não disse porque teria de contar o resto."</i>'],
+ [186,'n','dentro','{auditora} explicou a própria farinha antes que alguém a explicasse por ela. Comprara café pela frente, onde o chão do balcão é de farinha fina, que gruda na ponteira de um guarda-chuva. Quem atravessa a porta de serviço, onde os sacos ficam empilhados na altura do joelho, sai com a barra branca. {cliente_cofre}, que reparava em barras e bainhas como reparava em vincos, apontou uma faixa branca e seca na barra da calça do '+IMPN+'.'],
+ [188,'libera','farinha'],
+ [192,'cond','padeiro','n','todos','{padeiro}, ao telefone, confirmou: ali ninguém passa sem roçar os sacos.'],
+ [206,'n','dentro','A regional respondeu ao pedido da Auditora. O saque agendado de noventa e seis mil reais, retirado em espécie na véspera, às dezesseis e trinta, na agência 0392, tinha um titular: '+V7.a8+'.','10h41'],
+ [208,'libera','titular'],
+ [212,'f','auditora','Regional: o saque de R$ 96.000 na agência 0392, ontem às 16h30, tem titular: '+V7.a8+'.'],
+ [226,'n','dentro','{operadora} recebeu, quase no mesmo minuto, o retorno do fornecedor do rádio: o registro completo do pareamento das sete e cinquenta e sete e cinquenta e cinco, com os dígitos recuperados. Leu-os devagar, comparando com os cartões ainda sobre o balcão. Pertenciam ao cartão do '+IMPN+'.','10h46'],
+ [228,'libera','cartao'],
+ [232,'f','operadora','Fornecedor do rádio: os dígitos do cartão que pareou o rádio às 7h57:55 são do cartão do '+IMPN+'.'],
+ [244,'n','dentro','Junto veio uma informação que ninguém esperava: a reimpressão das oito e trinta e cinco não saíra de dentro da agência. A origem era a rede de segurança regional. <i>"Alguém nos vê de longe"</i>, disse {operadora}. <i>"Desde cedo."</i> {auditora} lembrou da mensagem das oito e dez. Quem escrevera aquilo não sabia o nome de ninguém; sabia que uma porta se abrira às seis e trinta e seis, quando a agência ainda estava escura.'],
+ [248,'f','operadora','A reimpressão das 8h35 veio da rede de segurança regional. Alguém nos vê de longe. Desde cedo.'],
+ [266,'n','dentro','{auditora} olhou para o quadro. Os indícios apontavam na mesma direção, mas uma direção ainda não era uma demonstração. Faltava separar o que a pessoa fizera, como fizera e por quê, e faltava ouvir a pessoa. Todos esperaram. {'+IMP+'} ajeitou a fita no dedo, como quem arruma uma gravata antes de uma reunião. <i>"Antes que escrevam qualquer coisa, eu quero ouvir a soma inteira."</i>'],
+ [270,'f',IMP,'Antes que escrevam qualquer coisa, eu quero ouvir a soma inteira.'],
+ [130,'p',['caixa_novato','limpeza'],'Três chaves. E eu achando que era eu.'],
+ [236,'p',['seguranca_interno','tecnico'],'O cartão, a fita, a farinha, o saque. Tudo no mesmo lugar.'],
+ [440,'n','todos','Faltam poucos minutos para o fim do capítulo.']
+].sort(function(a,b){return a[0]-b[0]});
+var TRES=['Gerente','Subgerente','Caixa Veterano'];
+CAPS[7]={nome:'QUINZE VERSÕES PARA UM FATO',rot:C7,
+ rg:[[0,'Quem queimou o cabo?'],[52,'Só três chaves conheciam a passagem.'],[110,'Alguém não estava onde disse.'],[150,'O malote saiu curto da véspera.'],[212,'O saque tem nome.'],[0,'Vamos ouvir a soma inteira.']],
+ rp:[[52,'Você sabia da passagem?'],[110,'Onde você estava, de verdade?'],[0,'Não confio em ninguém aqui.']],
+ rep:{
+  'Quem queimou o cabo?':[['operadora'],'A câmera 1 mostra o Gerente atrás da divisória às 8h31. Ele não negou.'],
+  'Só três chaves conheciam a passagem.':[['cliente_cofre'],'Está no manual de 1990. A planta é do meu pai.'],
+  'Alguém não estava onde disse.':[['operadora'],'As câmeras 1 e 2 não caíram. Está tudo gravado.'],
+  'O malote saiu curto da véspera.':[['auditora'],'E alguém o completou na janela. Falta ouvir quem.'],
+  'O saque tem nome.':[['auditora'],'Tem. A regional respondeu.'],
+  'Vamos ouvir a soma inteira.':[['gerente'],'Nós seguiremos o protocolo.'],
+  'Você sabia da passagem?':function(id){return ['gerente','subgerente','caixa_veterano'].indexOf(id)>=0?'Era coisa antiga. Da tesouraria.':(id==='tecnico'?'Achei sozinho. Já disse.':'Não. Ninguém me contou.')},
+  'Onde você estava, de verdade?':function(id){if(id===IMP)return 'Já disse. Está na coluna.';if(DECL[id])return 'Eu estava '+DECL[id]+'. As câmeras confirmam.';if(id==='tecnico')return 'Lá fora, com o motoboy. Agora todos sabem.';return 'Onde eu disse. Pode conferir.'},
+  'Não confio em ninguém aqui.':'Nem eu.'},
+ debate:{pergunta:'Quais versões pertencem ao ato e quais protegem só vergonhas?',falas:[['auditora','Funções dizem o que cada um podia fazer. Medos dizem o que cada um escolheu esconder.'],['cliente_cofre','Meu pai construiu aquela passagem. Só três chaves sabiam dela.'],['gerente','Encostei o cabo. Não toquei no malote.']]},
+ perg:[
+  {rotulo:'principal',pergunta:'Qual das três chaves da tesouraria não estava onde disse durante a janela?',opcoes:[IMPN].concat(TRES.filter(function(n){return n!==IMPN}),['Nenhuma delas: as três estavam onde disseram.'])},
+  {rotulo:'secundária',pergunta:'Quem encostou o cabo no exaustor às 8h31?',opcoes:['O Gerente.','O Técnico.','O Subgerente.','O Funcionário da Limpeza.']},
+  {rotulo:'secundária',pergunta:'Quem assinou o malote 41 na véspera sem contar?',opcoes:[P[V7.ajud].n].concat(TRES.filter(function(n){return n!==P[V7.ajud].n}),['O Segurança do Veículo.'])}],
+ achar:'a escrivaninha das quinze versões, na aba RA: uma gaveta por função, com o que cada um disse e o que confirma; e os cartões que a história libera (o cabo, a planta de 1987, o livro de lacres, a fita, a farinha, o titular, o cartão); 1 envio extra escondido nela.'};
+
+/* A peça do Cap. 7: a escrivaninha das quinze versões (Matéria para a RA).
+   Cada gaveta guarda só o que aquela posição podia saber: a declaração e a
+   fonte que a confirma ou desmente (liberadas depois que a história as abre).
+   Separa fato observado, conclusão e segredo; não escolhe o impostor. */
+function gavetaTxt(id){var d=DECL[id];
+  if(id==='gerente')return PCOD==='G'?'Disse: na própria sala, ao telefone. Câmera 1: entra atrás da divisória às 7h57:50. Ramal: nenhuma chamada entre 7h50 e 8h10.':'Disse: diante da Porta Giratória. Câmera 1, Auditora e Cliente: confirmado.';
+  if(id==='caixa_veterano')return PCOD==='V'?'Disse: na Mesa. Câmera 2: a Mesa vazia até 8h00:02.':'Disse: na Mesa. Câmera 2: na Mesa desde 7h57:55.';
+  if(id==='subgerente')return PCOD==='S'?'Disse: nos Guichês. Câmera 2: só entra no quadro às 8h00:05.':'Disse: nos Guichês. Câmera 2: confirmado.';
+  if(id==='operadora')return 'Disse: na Central. Câmera interna: no console, a mão no rádio.';
+  if(id==='tecnico')return 'Disse: no Rack. Segurança Interno e aplicativo de entregas: na rua de trás, às 7h58:51.';
+  if(id==='limpeza')return 'Disse: no Saguão. Câmera 1: no Saguão, com o carrinho.';
+  if(id==='estagiaria')return 'Disse: nos Guichês. Câmera 2: confirmado.';
+  if(id==='caixa_novato')return 'Disse: no almoxarifado; depois, no banheiro. Sem câmera. Ouviu a parede raspar duas vezes.';
+  if(id==='seguranca_interno')return 'Na porta lateral, pela ordem do rádio. Viu o homem de capa pelo vidro.';
+  if(id==='seguranca_veiculo')return 'Na Eclusa. Vê a Mesa pelo vidro.';
+  if(id==='padeiro'||id==='transportador')return 'Fora da agência durante a janela.';
+  return 'Na Porta Giratória. Câmera 1: confirmado.'}
+var GAV=PRESENTES.slice();
+PECA_DEF.c7=(function(){var det={},F2={cabo:['O CABO','Câmera 1, 8h31: o Gerente atrás da divisória por 54 s. Ele admite: "Encostei o cabo. Não toquei no malote." Encobrimento.'],
+  planta:['A PLANTA DE 1987','Assinada pelo engenheiro da obra. A lápis, a linha da passagem. Manual de 1990: "de conhecimento exclusivo das três chaves da tesouraria".'],
+  gerencia:['A GERÊNCIA ÀS 7h57','Contagem da Cliente do Cofre, confirmada pela câmera 1: '+(PCOD==='G'?'dois entraram para assinar o livro e saíram os dois; o Gerente entrou sozinho às 7h57:50.':'dois entraram para assinar o livro; saiu um; o outro ficou.')],
+  livro:['O LIVRO DE LACRES','ML-8842, véspera, 15h50. Contou: '+V7.contou.replace(/^o /,'')+'. Assinou sem contar: '+V7.assinou.replace(/^o /,'')+'.'],
+  fita:['AS DUAS FITAS','Cupom: fita de 1,2 cm. Kit da Gerência: 2,5 cm (a do Caixa Novato). A tira estreita está no indicador do '+IMPN+'.'],
+  farinha:['A FARINHA','Balcão da padaria: farinha fina na ponteira (a Auditora, às 7h38). Porta de serviço: barra branca. Faixa branca e seca na barra da calça do '+IMPN+'.'],
+  titular:['O TITULAR DO SAQUE','R$ 96.000 em espécie, agência 0392, véspera, 16h30. Titular: '+V7.a8+'.'],
+  cartao:['O CARTÃO','Pareamento do rádio, 7h57:55. Dígitos recuperados: cartão do '+IMPN+'. A reimpressão das 8h35 veio da rede de segurança regional.'],
+  puxador:['O PUXADOR SOLTO','Dentro do puxador solto de uma gaveta, uma coisa sua: um envio extra.']};
+  GAV.forEach(function(id){det['g_'+id]=[P[id].n.toUpperCase(),gavetaTxt(id)]});
+  Object.keys(F2).forEach(function(k){det[k]=F2[k]});
+  return {nome:'A escrivaninha das quinze versões',curto:'Escrivaninha',sub:'Uma gaveta por função',ico:'🗄️',topo:'A escrivaninha das quinze versões · Mesa de Recebimento',aviso:'Abra as gavetas: cada uma guarda só o que aquela posição podia saber. Os cartões entram conforme a história.',envio:'puxador',det:det,
+   svg:function(F){var s='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 520" role="img" aria-label="A escrivaninha das quinze versões"><rect width="360" height="520" fill="#060d0a"/>';
+    var ver=F.cameras;
+    GAV.forEach(function(id,i){var x=20+(i%3)*110,y=20+Math.floor(i/3)*44;
+      s+='<g class="lugar" data-det="g_'+id+'"><rect x="'+x+'" y="'+y+'" width="102" height="36" rx="4"/><text x="'+(x+51)+'" y="'+(y+22)+'" text-anchor="middle" style="font-size:8.5px">'+P[id].n.replace('Funcionário da ','').replace(' da Central','').replace('Segurança do ','Seg. ').replace('Segurança ','Seg. ')+'</text></g>'});
+    var y0=20+Math.ceil(GAV.length/3)*44+10,cards=['cabo','planta','gerencia','livro','fita','farinha','titular','cartao'].filter(function(k){return F[k]});
+    cards.forEach(function(k,i){var x=20+(i%3)*110,y=y0+Math.floor(i/3)*44;s+='<g class="lugar" data-det="'+k+'"><rect x="'+x+'" y="'+y+'" width="102" height="36" rx="4" style="stroke:#efc878!important"/><text x="'+(x+51)+'" y="'+(y+22)+'" text-anchor="middle" style="font-size:8.5px;fill:#efc878">'+F2[k][0].toLowerCase()+'</text></g>'});
+    s+='<g class="lugar" data-det="puxador"><rect x="300" y="490" width="40" height="20" rx="10"/></g>';
+    return s+'<text x="20" y="508" style="font-size:8px;fill:#4dba7c;font-family:monospace">ESCRIVANINHA DAS QUINZE VERSÕES</text></svg>'}}})();
+/* as gavetas mostram a confirmação só depois que a história a abre (10h28 em diante) */
+var _gavetaExaminar=examinarGen;examinarGen=function(id,k,g){if(id==='c7'&&k.indexOf('g_')===0&&!PECA_FLAGS.cameras){var pid=k.slice(2);$('#pcRot').textContent=P[pid].n.toUpperCase();$('#pcTxt').innerHTML='';digitar($('#pcTxt'),DECL[pid]?'Disse: '+DECL[pid]+'. A confirmação ainda não chegou.':'A confirmação ainda não chegou.',10);return}_gavetaExaminar(id,k,g)};
 
 /* ── Abertura em terminal ───────────────────────────────────────────── */
 var ABERTURA='Às 7h47, o carro-forte chega com uma hora de antecedência, e ninguém lá dentro diz ter pedido.\nUma auditoria de custódia chega sem aviso.\nQuinze funções. Uma manhã.\nUm de vocês não é quem diz.';
