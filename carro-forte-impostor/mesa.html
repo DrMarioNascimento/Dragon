@@ -1578,7 +1578,7 @@ document.querySelectorAll('[data-respostas]').forEach(function(b){var antigo=b.o
     var txt=c.textContent,m={de:EU,txt:txt,h:hora()},r=C.rep[txt];el.hidden=true;
     if(id==='respGrupo'){grupo.push(m);pintarGrupo();if(r&&typeof r!=='string'){var q=primeiro(r[0]);if(q)setTimeout(function(){falar(q,r[1])},2500+Math.random()*1500)}}
     else{var f=abertaPriv;privadas[f].msgs.push(m);privadas[f].ordem=++ordemPriv;pintarConv();pintarListaPriv();
-      if(typeof r==='string')setTimeout(function(){chegaPrivada(ID_DE[f],r)},2500+Math.random()*1500)}}})}});
+      if(typeof r==='function')r=r(ID_DE[f]);if(typeof r==='string')setTimeout(function(){chegaPrivada(ID_DE[f],r)},2500+Math.random()*1500)}}})}});
 
 /* ── Fim do capítulo: debate, perguntas, aposta ─────────────────────── */
 var CONF=[{id:'certeza',nome:'Com certeza',dica:'Os fatos fecham'},{id:'sem',nome:'Sem certeza',dica:'Parece, mas falta algo'},{id:'naosei',nome:'Não sei',dica:'Ainda não dá para dizer'}];
@@ -1683,9 +1683,9 @@ function achouEnvioCap(){envios++;pintarEnvios();var p=$('#enviosPill');p.classL
    - a observação das duas fitas é da Farmacêutica; sem ela, da Auditora;
    - "Talvez tenham clonado algum" é do Subgerente; sem ele, do Caixa Veterano;
    - sem o Subgerente, a pergunta sobre a frase de ontem fica só com o Gerente.
-   Ponto de ajuste A3 (a tira estreita de fita) segue a tabela: polegar do
-   impostor da partida. PENDÊNCIA ALTA continua aberta: a luva do Cap. 6 está
-   rasgada no indicador. */
+   Ponto de ajuste A3: SUBSTITUIDO 05/10 (Mario): a tira estreita ficava no
+   polegar do impostor (no V, na base do polegar); passou ao INDICADOR nas três
+   partidas, o mesmo dedo do rasgo da luva do Cap. 6. */
 var LEITOR=presente('estagiaria')?'estagiaria':'operadora';
 var OLHA_MAOS=presente('farmaceutica')?'farmaceutica':'auditora';
 var CLONE=presente('subgerente')?'subgerente':'caixa_veterano';
@@ -1715,7 +1715,7 @@ var C2=[
  [168,'f',LEITOR,'Histórico do rádio: pareado às 7h57:55 por cartão da faixa administrativa. Os dois últimos dígitos se corromperam. Têm cartão nessa faixa: Gerente, Subgerente, tesoureiro e manutenção.'],
  [182,'n','dentro','{gerente} pôs o cartão sobre o balcão. {subgerente} pôs o dele. {caixa_veterano} tirou o seu da carteira, devagar, como quem tira um documento de família. {tecnico} disse que o seu estava na maleta. {gerente} mandou buscar a maleta e a deixou sobre a Mesa de Recebimento, fechada.'],
  [198,'n','dentro','<i>"Talvez tenham clonado algum"</i>, disse {'+CLONE+'}, com a cortesia de quem oferece uma saída. <i>"Possível"</i>, respondeu {tecnico}. <i>"Com equipamento."</i> A frase lhe custou: todos lembraram da maleta.'],
- [218,'n','dentro','{'+OLHA_MAOS+'} observava mãos. Viu a fita isolante nos dedos do Técnico, gasta, antiga. Viu fita microporosa em duas mãos: uma tira larga, já encardida, no indicador do Caixa Novato, e uma tira estreita e limpa no polegar do '+IMPN+'. <i>"Cortou-se?"</i> <i>"Numa caixa de papelão."</i> <i>"E você?"</i>, ao rapaz. <i>"Numa nota nova. Peguei a fita no kit da Gerência."</i>'],
+ [218,'n','dentro','{'+OLHA_MAOS+'} observava mãos. Viu a fita isolante nos dedos do Técnico, gasta, antiga. Viu fita microporosa em duas mãos: uma tira larga, já encardida, no indicador do Caixa Novato, e uma tira estreita e limpa no indicador do '+IMPN+'. <i>"Cortou-se?"</i> <i>"Numa caixa de papelão."</i> <i>"E você?"</i>, ao rapaz. <i>"Numa nota nova. Peguei a fita no kit da Gerência."</i>'],
  [224,'cond','farmaceutica','n',['farmaceutica'],'Você olha as duas tiras um instante a mais do que seria educado e não diz nada. Dizer o que pensa obrigaria você a contar o resto: o envelope no bolso, as cápsulas sem receita.'],
  [224,'condnao','farmaceutica','n','dentro','{auditora} olhou as duas tiras um instante a mais do que seria educado e não disse nada.'],
  [244,'n','todos','Pelo rádio, a base enviou o registro bruto da antecipação. A chamada fora feita às seis e cinquenta e dois, de um ramal interno, com o código de tesouraria. Durara quarenta e três segundos. Não havia gravação de voz, só a origem: o telefone da Sala da Gerência.','8h29'],
@@ -1917,6 +1917,125 @@ PECA_DEF.c3={nome:'A impressora de etiquetas',curto:'Impressora',sub:'Do aparado
   if(F.peso)s+='<g class="lugar" data-det="peso"><rect x="226" y="300" width="100" height="70" rx="4"/><text x="276" y="330" text-anchor="middle">BALANÇA</text><text x="276" y="348" text-anchor="middle">7,0 kg</text></g>';
   if(F.verso)s+='<g class="lugar" data-det="verso"><rect x="236" y="40" width="96" height="40" rx="3"/><text x="284" y="64" text-anchor="middle">verso: 96.000</text></g>';
   return s+svgFim('IMPRESSORA DE ETIQUETAS · GERÊNCIA')}};
+
+
+/* ══ CAPÍTULO 4 · VINTE E SEIS SEGUNDOS (8h51 a 9h25) ══════════════════
+   Fonte: revisão 2, Cap. 4, e a Matriz. Arco: o espaço. A Passagem de
+   Serviço aparece aqui pela primeira vez (e só agora entra na planta).
+   Ponto A5: as declarações de onde cada um estava na janela, só registradas,
+   sem confirmação (a confirmação é do Cap. 7). Na partida G o Gerente diz que
+   estava "ao telefone"; nas outras, na Porta Giratória. As outras frases são
+   iguais em toda partida (a do impostor é a mentira).
+   Proposta aplicada (05/10): sem o Funcionário da Limpeza, quem descreve as
+   pegadas é a Auditora. Sem o Padeiro, sai a cena do guarda-chuva.
+   SUBSTITUIDO 05/10 (Mario): o 2º raspado era "quase um minuto e meio
+   depois"; passou a "quase dois minutos depois, logo depois de a imagem
+   voltar", para bater com a rota (volta à Gerência às 7h59:54). */
+var PASSAGEM_VISIVEL=false;
+var DECL={
+ gerente:IMP==='gerente'?'na própria sala, ao telefone':'com a Auditora e a Cliente do Cofre, diante da Porta Giratória',
+ caixa_veterano:'na Mesa de Recebimento, esperando o malote',
+ subgerente:'nos Guichês, buscando a guia impressa',
+ estagiaria:'recolhendo folhas atrás dos Guichês',
+ operadora:'na Central',
+ limpeza:'no Saguão, com o balde'
+};
+var DECL_ORDEM=['gerente','caixa_veterano','subgerente','estagiaria','operadora','limpeza'];
+var declTxt=DECL_ORDEM.filter(presente).map(function(id,i){return Na(id)+' disse que estava '+DECL[id]}).join('. ')+'.';
+var C4=[
+ [0,'n','dentro','A Operadora tocou no nome ajuste_96, e o terminal da Gerência morreu sob o dedo dela. As luzes continuaram acesas. Só aquela máquina apagou, com um estalo seco no estabilizador. Do fundo do corredor veio cheiro de plástico queimado.','8h51'],
+ [0,'sisfora','Pelo grupo: o terminal da Gerência apagou, e há cheiro de queimado no corredor.'],
+ [14,'n','dentro','{tecnico} correu. A porta do Rack estava trancada. O molho dele continuava na maleta, sobre a Mesa, e {gerente} demorou a soltá-lo.'],
+ [18,'cond','limpeza','n','dentro','{limpeza} estendeu a chave 17-B antes que alguém pedisse, com a mão tremendo.'],
+ [26,'n','dentro','Lá dentro, um cabo de alimentação fora encostado na grade quente do exaustor; a capa derretera até o curto. {tecnico} desligou o disjuntor com a manga sobre a mão. <i>"Isso não foi há oitenta e sete segundos. Isso foi agora há pouco. Com a gente trancado aqui."</i> A frase gelou o corredor. Alguém ainda se movia.'],
+ [28,'peca','c4'],
+ [32,'f','tecnico','Curto no Rack: um cabo encostado na grade quente do exaustor. Não foi na janela. Foi agora, com a gente trancado aqui.'],
+ [44,'n','dentro','{gerente} quis revistar todos. {auditora} recusou uma humilhação coletiva sem método e propôs interrogar o lugar antes das pessoas.'],
+ [58,'n','dentro','{tecnico} marcou o início na Mesa de Recebimento e cronometrou em voz alta. Até a porta do Arquivo Morto: vinte e seis segundos sem pressa, dezoito correndo. Do Arquivo à Antecâmara, seis. {auditora} pediu que ele simulasse a troca com um saco de reserva e blocos de papel: abrir, passar o conteúdo, fechar, colar a etiqueta. Quarenta segundos. Somado tudo, a rota pelo corredor passava de noventa segundos. <i>"Não cabe. Pelo corredor, quem fizesse isso estaria na frente da câmera quando ela voltou."</i>','9h05'],
+ [60,'libera','corredor'],
+ [64,'f','tecnico','Simulação: da Mesa ao Arquivo, 26 s sem pressa, 18 correndo. A troca leva 40 s. Pelo corredor passa de 90 s. Não cabe nos 87.'],
+ [80,'n','dentro','{auditora} passou a lanterna rente ao piso, no canto do Arquivo onde a infiltração nunca secava. A luz rasante desenhou marcas que de pé ninguém via.'],
+ [84,'cond','limpeza','n','dentro','{limpeza} se agachou ao lado dela e passou o dedo no ladrilho. <i>"Alguém pisou aqui depois que eu passei."</i>'],
+ [84,'condnao','limpeza','n','dentro','{auditora} se agachou e passou o dedo no ladrilho. <i>"Alguém pisou aqui depois do rodo."</i>'],
+ [88,'n','dentro','Eram meias-luas úmidas, uma atrás da outra, saindo de perto do cesto, atravessando a porta e seguindo pelo corredor em direção ao fundo. Terminavam no Nicho do Rack, diante da parede de trás do armário, como se a pessoa tivesse entrado na parede.'],
+ [90,'libera','pegadas'],
+ [94,'f','auditora','Pegadas úmidas em meia-lua, do cesto do Arquivo até o fundo do Nicho do Rack. Terminam na parede de trás do armário.'],
+ [104,'n','dentro','<i>"Para onde vai uma pegada que termina numa parede?"</i>, perguntou {auditora}. {tecnico} demorou. Depois abriu a porta do Rack, afastou os cabos e empurrou o fundo do armário. A chapa cedeu, e um sopro de ar parado e poeira saiu de trás dela. Uma passagem estreita corria atrás da parede do banheiro e acabava num painel de madeira, do outro lado, atrás do armário de aço da Sala da Gerência. <i>"Eu uso quando a porta do Rack emperra. Hoje cedo vi a poeira riscada aqui no fundo. Achei que tinha sido eu."</i>'],
+ [106,'passagem'],
+ [112,'f','tecnico','Atrás do Rack tem uma passagem. Corre atrás da parede do banheiro até um painel atrás do armário da Gerência.'],
+ [120,'n','dentro','Ninguém respondeu. A passagem ligava o lugar de onde partira a ordem falsa ao lugar onde a câmera fora preparada.'],
+ [128,'n','dentro','{tecnico} refez a conta pela passagem. Da Gerência ao Rack, quinze segundos, sem câmera. Do Rack ao Arquivo, quatro. Exposto à câmera, só o trecho entre o Arquivo e a Antecâmara, menos de setenta segundos. Cabia.'],
+ [132,'f','tecnico','Pela passagem cabe: Gerência ao Rack em 15 s, sem câmera. Exposto à câmera, menos de 70 s.'],
+ [146,'n','dentro','{auditora} pediu que cada um dissesse onde estivera durante a janela. Escreveu as declarações numa coluna separada, com um título sublinhado: declarações, não fatos.'],
+ [152,'n','dentro',declTxt+' '+(presente('tecnico')?'{tecnico} repetiu: <i>"No Rack."</i>':'')],
+ [154,'decl'],
+ [168,'n','dentro','A palavra caiu entre eles com outro peso. O único que dizia ter estado na boca da passagem era o único que admitia conhecê-la.'],
+ [182,'n','dentro','{caixa_novato} disse que estava no almoxarifado. Não existia almoxarifado naquele corredor. Ele admitiu que mentira: durante a janela, estivera trancado no Banheiro dos Funcionários, tentando não vomitar. O banheiro não tinha câmera. {gerente} transformou o calmante em incapacidade e a pasta trocada em intenção. <i>"Você tinha a chave, a senha e não sabe dizer onde estava."</i> <i>"Eu sei. Estava sentado no chão do banheiro. E a parede raspou. Duas vezes."</i> <i>"Raspou?"</i> <i>"Como uma gaveta pesada. Uma vez logo que o rádio chamou. Outra quase dois minutos depois, logo depois de a imagem voltar."</i>'],
+ [186,'libera','raspou'],
+ [188,'f','caixa_novato','Eu estava no banheiro. A parede raspou duas vezes: logo que o rádio chamou, e quase dois minutos depois, logo depois de a imagem voltar.'],
+ [196,'n','dentro','{tecnico} olhou para a parede comum entre o banheiro e a Gerência. A passagem corria exatamente ali.'],
+ [212,'cond','farmaceutica','n','dentro','{farmaceutica} assumiu ter entregado as cápsulas sem receita. Disse que reconhecia uma crise quando via uma. O Segurança Interno perguntou por que ela protegeria um rapaz quase desconhecido, e a pergunta doeu mais do que a acusação.'],
+ [214,'n',['farmaceutica'],'Você não conta que perdeu um irmão depois de ignorar um pedido parecido.'],
+ [230,'cond','limpeza','n','dentro','{limpeza} confessou o empréstimo da chave 17-B, das sete e trinta e cinco às sete e quarenta e sete. {subgerente} confirmou: fora buscar no armário do Arquivo um espelho antigo, de um reprocessamento, para conferir antes da auditoria. {gerente} falou em demissão. {limpeza} respondeu que o banco aceitara durante anos os seus favores não registrados e só chamava de irregularidade o favor que deixava rastro.'],
+ [256,'cond','padeiro','n','todos','Ao telefone, {padeiro} contou: às seis e vinte e oito, uma figura de capa e guarda-chuva de cabo claro atravessara a porta de serviço da padaria com uma sacola pesada. Demorara a contar porque vendia café por ali antes da hora.','9h12'],
+ [260,'cond','padeiro','f','padeiro','Às 6h28 alguém de capa e guarda-chuva de cabo claro atravessou a minha porta de serviço com uma sacola pesada. Não vi o rosto.'],
+ [270,'cond','padeiro','n','dentro','<i>"Cabo claro"</i>, repetiu {gerente}, e olhou para o guarda-chuva da Auditora, encostado na parede. Ela o abriu ali mesmo, para que todos vissem. Na ponteira havia farinha. <i>"Comprei café às sete e trinta e oito. Pela frente."</i> <i>"E às seis e vinte e oito?"</i> <i>"Dormindo. Sozinha. Sem testemunha."</i> {gerente} sugeriu que a auditoria poderia ter criado a crise para confirmar as próprias suspeitas.'],
+ [272,'n',['auditora'],'O golpe acerta onde dói: anos atrás, você interpretou pressa como culpa e destruiu a carreira de um inocente. Agora alguém diz que o seu rigor é só vingança com método.'],
+ [290,'n','dentro','<i>"A Gerência é a sua sala"</i>, disse {auditora}, devagar. <i>"A ordem saiu de lá. A passagem começa lá."</i> <i>"Minha sala não é minha culpa."</i>'],
+ [304,'n','todos','Pelo rádio: <i>"A base abriu o malote 41 sob filmagem. Contagem em andamento."</i>','9h25'],
+ [306,'f','operadora','Base: o malote 41 foi aberto sob filmagem. Contagem em andamento.'],
+ [440,'n','todos','Faltam poucos minutos para o fim do capítulo.']
+];
+/* cada um posta no grupo a própria declaração (a do jogador, não) */
+var _executar4=executar;executar=function(e){
+  if(e[1]==='passagem'){PASSAGEM_VISIVEL=true;PECA_FLAGS.passagem=true;if($('#svgPlanta')){$('#svgPlanta').innerHTML=plantaSVG(false);$('#svgPlanta').querySelectorAll('.lugar').forEach(function(g){g.onclick=function(){tocarLugar(g.dataset.lugar,g)}})}
+    if(!$('#telaRA').hidden&&PECA_DEF[pecaAberta])pintarPecaGen(pecaAberta);toast('A planta da agência mudou: a passagem entrou nela.');return}
+  if(e[1]==='decl'){var t=0;DECL_ORDEM.concat(['tecnico']).forEach(function(id){if(!presente(id)||id===EU_PAPEL)return;t+=1200;setTimeout(function(){falar(id,id==='tecnico'?'No Rack.':'Eu estava '+DECL[id]+'.')},t)});return}
+  _executar4(e)};
+/* a planta passa a mostrar a passagem */
+var _plantaSVG=plantaSVG;plantaSVG=function(img){var s=_plantaSVG(img);if(!PASSAGEM_VISIVEL)return s;
+  var p='<g class="lugar" data-lugar="passagem-servico"><path d="M88 206 L88 336" stroke="#efc878" stroke-width="5" stroke-dasharray="6 4" fill="none"/><rect x="80" y="200" width="16" height="140" style="fill:transparent!important;stroke:none!important"/></g>';
+  return s.replace('<path d="M200 470',p+'<path d="M200 470')};
+var _tocarLugar=tocarLugar;tocarLugar=function(id,g){if(id==='passagem-servico'){$('#pcRot').textContent='PASSAGEM DE SERVIÇO';$('#pcTxt').innerHTML='';digitar($('#pcTxt'),'Atrás da parede do banheiro, do fundo removível do Rack Técnico a um painel de madeira atrás do armário de aço da Gerência. Da Gerência ao Rack: quinze segundos, sem câmera.',10);return}_tocarLugar(id,g)};
+
+CAPS[4]={nome:'VINTE E SEIS SEGUNDOS',rot:C4,
+ rg:[[0,'Quem queimou esse cabo?'],[64,'Pelo corredor não cabe.'],[112,'Quem mais conhece a passagem?'],[168,'Declarações não são fatos.'],[188,'A parede raspou na hora certa.'],[0,'Vamos ficar juntos.']],
+ rp:[[146,'Onde você estava na janela?'],[188,'Você acredita no Caixa Novato?'],[0,'Não confio em ninguém aqui.']],
+ rep:{
+  'Quem queimou esse cabo?':[['tecnico'],'Alguém com a gente trancado aqui. Não foi há oitenta e sete segundos.'],
+  'Pelo corredor não cabe.':[['auditora'],'Então foi por outro caminho.'],
+  'Quem mais conhece a passagem?':[['tecnico'],'Eu achei sozinho. Não sei quem mais.'],
+  'Declarações não são fatos.':[['auditora'],'Por isso estão numa coluna separada.'],
+  'A parede raspou na hora certa.':[['caixa_novato'],'Duas vezes. Eu ouvi.'],
+  'Vamos ficar juntos.':[['gerente'],'Nós seguiremos o protocolo.'],
+  'Onde você estava na janela?':function(id){if(DECL[id])return 'Eu estava '+DECL[id]+'.';if(id==='tecnico')return 'No Rack.';if(id==='caixa_novato')return 'No banheiro. Já disse.';if(id==='seguranca_interno')return 'Na porta lateral. A ordem do rádio.';if(P[id].fora)return 'Do lado de fora. Não vi nada lá dentro.';return 'Na Porta Giratória, com a auditoria.'},
+  'Você acredita no Caixa Novato?':'Acredito que ele estava no banheiro. O resto, não sei.',
+  'Não confio em ninguém aqui.':'Nem eu.'},
+ debate:{pergunta:'Quem podia usar a passagem?',falas:[['auditora','A ordem saiu da Gerência. A passagem começa lá.'],['gerente','Minha sala não é minha culpa.'],['tecnico','Eu a descobri sozinho. Quem mais a conhece, eu não sei.']]},
+ perg:[
+  {rotulo:'principal',pergunta:'Por onde a troca cabe nos oitenta e sete segundos?',opcoes:['Pela Passagem de Serviço, entre a Gerência e o Rack.','Pelo Corredor Restrito, correndo.','Pela porta lateral, por fora.','Pela Antecâmara, a partir do Cofre.']},
+  {rotulo:'secundária',pergunta:'Quando o cabo do Rack foi encostado no exaustor?',opcoes:['Durante o isolamento, com a agência trancada.','Durante os oitenta e sete segundos.','Na noite anterior.','Às 7h45, quando o Técnico fotografou o conector.']},
+  {rotulo:'secundária',pergunta:'O que o Caixa Novato ouviu do banheiro durante a janela?',opcoes:['A parede raspar duas vezes.','O Cofre bater.','A porta lateral bater.','Nada: estava passando mal demais.']}],
+ achar:'o armário de vestígios, na aba RA (quando a história chegar nele): o cabo derretido, as rotas cronometradas, as pegadas e, mais tarde, o painel; 1 envio extra escondido nele.'};
+
+/* A peça do Cap. 4: o armário de vestígios (Matéria para a RA do Cap. 4).
+   Mostra oportunidade e incompatibilidades; nunca nomeia. */
+PECA_DEF.c4={nome:'O armário de vestígios',curto:'Vestígios',sub:'O corredor medido pelo corpo',ico:'🧭',topo:'O armário de vestígios · Corredor Restrito',aviso:'Toque num vestígio para examiná-lo.',envio:'disjuntor',
+ det:{
+  cabo:['O CABO','Cabo de alimentação encostado na grade quente do exaustor. A capa derreteu até o curto, às 8h51, com a agência trancada.'],
+  disjuntor:['O DISJUNTOR','Desligado com a manga sobre a mão. Na tampa, preso por fora, uma coisa sua: um envio extra.'],
+  corredor:['ROTA PELO CORREDOR','Mesa → porta do Arquivo: 26 s sem pressa, 18 correndo. Arquivo → Antecâmara: 6 s. Troca: 40 s (4 + 26 + 10). Ida, troca, descarte e volta: cerca de 98 s. Não cabe nos 87 s.'],
+  pegadas:['AS PEGADAS','Meias-luas úmidas, do cesto do Arquivo, pela porta, até o fundo do Nicho do Rack. Terminam na parede de trás do armário.'],
+  passagem:['ROTA PELA PASSAGEM','Gerência → passagem → interior do Rack: 15 s, sem câmera. Rack → Arquivo: 4 s. Exposto à câmera 3, só o trecho Arquivo–Antecâmara: 69 s. Cabe.'],
+  raspou:['A PAREDE DO BANHEIRO','Do banheiro, quem está sentado no chão ouve o painel raspar. O Caixa Novato ouviu duas vezes: logo depois do rádio, e de novo quase dois minutos depois, logo depois de a imagem voltar.']},
+ svg:function(F){var s=svgBase('O armário de vestígios');
+  s+='<g class="lugar" data-det="cabo"><rect x="40" y="40" width="130" height="70" rx="6"/><text x="105" y="70" text-anchor="middle">cabo derretido</text><text x="105" y="88" text-anchor="middle">curto 8h51</text></g>';
+  s+='<g class="lugar" data-det="disjuntor"><rect x="190" y="40" width="130" height="70" rx="6"/><text x="255" y="80" text-anchor="middle">disjuntor</text></g>';
+  if(F.corredor)s+='<g class="lugar" data-det="corredor"><rect x="40" y="130" width="280" height="56" rx="6"/><text x="180" y="154" text-anchor="middle">pelo corredor: ~98 s</text><text x="180" y="172" text-anchor="middle">NÃO CABE</text></g>';
+  if(F.pegadas)s+='<g class="lugar" data-det="pegadas"><rect x="40" y="200" width="130" height="80" rx="6"/><text x="105" y="236" text-anchor="middle">◗ ◗ ◗ ◗</text><text x="105" y="256" text-anchor="middle">pegadas</text></g>';
+  if(F.passagem)s+='<g class="lugar" data-det="passagem"><rect x="190" y="200" width="130" height="80" rx="6"/><text x="255" y="232" text-anchor="middle">pela passagem</text><text x="255" y="252" text-anchor="middle">69 s · CABE</text></g>';
+  if(F.raspou)s+='<g class="lugar" data-det="raspou"><rect x="40" y="296" width="280" height="56" rx="6"/><text x="180" y="328" text-anchor="middle">parede do banheiro: raspou 2×</text></g>';
+  return s+svgFim('ARMÁRIO DE VESTÍGIOS · CORREDOR RESTRITO')}};
 
 /* ── Abertura em terminal ───────────────────────────────────────────── */
 var ABERTURA='Às 7h47, o carro-forte chega com uma hora de antecedência, e ninguém lá dentro diz ter pedido.\nUma auditoria de custódia chega sem aviso.\nQuinze funções. Uma manhã.\nUm de vocês não é quem diz.';
