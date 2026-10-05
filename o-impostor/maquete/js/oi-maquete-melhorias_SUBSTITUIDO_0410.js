@@ -1,4 +1,4 @@
-/* A CASA DA COSTA — maquete — melhorias de imagem e fluidez (04/10/2026).
+/* O IMPOSTOR — maquete — melhorias de imagem e fluidez (04/10/2026).
 
    Arquivo ACRESCENTADO, sem mexer no ac-maquete.js: espera a maquete ficar
    pronta (window.__maquete, que o ac-maquete.js já expõe) e então:
@@ -37,10 +37,7 @@
     var caixa = new THREE.Box3().setFromObject(raiz);
     if (!caixa.isEmpty()) {
       var e = raiz.getWorldScale(new THREE.Vector3()).x || 1;
-      /* 04/10: a base é a do modelo (mundo.baseY), a mesma que a RA apoia na
-         superfície; a caixa inteira desce ~1,3 cm por causa das chaves. */
-      var base = typeof mundo.baseY === 'number' ? mundo.baseY
-        : raiz.worldToLocal(new THREE.Vector3(raiz.getWorldPosition(new THREE.Vector3()).x, caixa.min.y, raiz.getWorldPosition(new THREE.Vector3()).z)).y;
+      var base = raiz.worldToLocal(new THREE.Vector3(raiz.getWorldPosition(new THREE.Vector3()).x, caixa.min.y, raiz.getWorldPosition(new THREE.Vector3()).z)).y;
       var tam = caixa.getSize(new THREE.Vector3());
       var raioDaSombra = Math.max(tam.x, tam.z) / e * 0.75;
       var sombra = new THREE.Mesh(new THREE.CircleGeometry(raioDaSombra, 64).rotateX(-Math.PI / 2),
