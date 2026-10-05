@@ -605,47 +605,6 @@
     return fora.length;
   }
 
-  /* 05/10/2026 (Mario: "o caminho para chegar à casa, onde dois pilares e tal,
-     dão numa janela quando deveriam estar na porta, que fica mais à esquerda").
-     No modelo casa-o-impostor-pisos.glb, a chegada (estrada de terra, lajes,
-     pilares e capitéis do portão, pedras soltas e moitas) está centrada em
-     x = -0,055 da maquete, diante da janela saliente; a porta, com o degrau e a
-     portada, está em x = -0,188. A chegada inteira desliza em x até o eixo da
-     porta. Nada é criado: só se movem as peças que o modelo já traz. Medido
-     ANTES de recolher alvos e fundir, para que toques, anéis e âncoras nasçam
-     já no lugar novo. */
-  var CHEGADA = ['estrada-de-terra', 'laje-de-chegada', 'pilar-de-portao', 'capitel-de-portao', 'pedra-solta', 'moita'];
-  var CHEGADA_ZONA = { minX: -0.17, maxX: 0.05, minZ: 0.22, maxZ: 0.43 };
-  function alinharChegadaComAPorta(raiz) {
-    var terreno = null, porta = null;
-    raiz.traverse(function (o) {
-      if (!terreno && o.name === 'terreno') terreno = o;
-      if (!porta && o.name === 'portada') porta = o;
-    });
-    if (!terreno || !porta) return null;
-    var eixoDaPorta = new THREE.Box3().setFromObject(porta).getCenter(new THREE.Vector3()).x;
-    var pecas = [];
-    terreno.traverse(function (o) {
-      if (o === terreno || !o.name) return;
-      for (var i = 0; i < CHEGADA.length; i++) if (bate(o.name, CHEGADA[i])) { pecas.push(o); return; }
-    });
-    pecas = pecas.filter(function (o) {
-      for (var a = o.parent; a && a !== terreno; a = a.parent) if (pecas.indexOf(a) >= 0) return false;
-      var b = new THREE.Box3().setFromObject(o);
-      return !b.isEmpty() && b.min.x >= CHEGADA_ZONA.minX && b.max.x <= CHEGADA_ZONA.maxX && b.min.z >= CHEGADA_ZONA.minZ && b.max.z <= CHEGADA_ZONA.maxZ;
-    });
-    var eixo = null;
-    pecas.forEach(function (o) { if (bate(o.name, 'estrada-de-terra')) eixo = new THREE.Box3().setFromObject(o).getCenter(new THREE.Vector3()).x; });
-    if (eixo === null || Math.abs(eixoDaPorta - eixo) < 0.005) return null;
-    var dx = eixoDaPorta - eixo;
-    pecas.forEach(function (o) {
-      var p = o.parent, mundo = o.getWorldPosition(new THREE.Vector3());
-      var novo = p.worldToLocal(mundo.clone().add(new THREE.Vector3(dx, 0, 0)));
-      o.position.copy(novo); o.updateMatrixWorld(true);
-    });
-    return { deslocamento: dx, pecas: pecas.length };
-  }
-
   function montar(cena, opcoes) {
     var botoesDoEditor = tirarBotoesDoEditor(cena);
     var realinhadas = realinharCamadas(cena);
@@ -667,8 +626,6 @@
     raiz.name = 'maquete';
     raiz.add(ajuste);
     raiz.updateMatrixWorld(true);
-    var chegadaAlinhada = alinharChegadaComAPorta(raiz);
-    if (chegadaAlinhada) raiz.updateMatrixWorld(true);
 
     var relogio = acertarRelogio(raiz);
 
@@ -779,7 +736,6 @@
       chaveModelos: chave.modelos,
       base: base,
       camadasRealinhadas: realinhadas,
-      chegadaAlinhada: chegadaAlinhada,
       revelacao: revelacao,
       baseY: Math.abs(completo.min.y) < 1e-6 ? 0 : completo.min.y,
       altura: completo.max.y - completo.min.y,
