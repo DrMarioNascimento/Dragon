@@ -824,6 +824,9 @@ button:active,.caixa:active,.redondo:active,.chip:active{
 .peca .ico{filter:none}
 .tag-constr{display:inline-block;margin-top:6px;padding:2px 8px;border-radius:6px;border:1px solid #725b35;color:#f0dcb4;font:700 10.5px var(--termfont)}
 #voceAqui{pointer-events:none}
+
+.lugar rect.hit{fill:transparent!important;stroke:none!important}
+.lugar rect.frag{fill:#f4f1ea!important;stroke:#9fe9c0!important}
 </style>
 </head>
 <body>
@@ -1084,7 +1087,7 @@ var calmo=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matc
 function digitar(el,html,vel,depois){
   var d=document.createElement('div');d.innerHTML=html;var txt=(d.textContent||'');
   if(calmo||!txt){el.innerHTML=html;if(depois)depois();return function(){}}
-  var i=0,parar=false;el.classList.add('digitando');el.textContent='';
+  if(el._parar)el._parar();var i=0,parar=false;el.classList.add('digitando');el.textContent='';el._parar=function(){parar=true};
   function fim(){if(parar)return;parar=true;el.classList.remove('digitando');el.innerHTML=html;el.removeEventListener('click',fim);if(depois)depois()}
   el.addEventListener('click',fim);
   (function passo(){if(parar)return;i+=1+(txt.charCodeAt(i)===32?1:0);el.textContent=txt.slice(0,i);var r=$('#chatGrupo');if(el.closest&&el.closest('#chatGrupo'))r.scrollTop=r.scrollHeight;
@@ -1303,8 +1306,11 @@ var prologo={planta:false,ondeEstou:false,papeis:false,porta:false,grupo:false,e
 function tarefa(t){$('#plantaTarefa').textContent=t}
 function alvo(id){document.querySelectorAll('.lugar').forEach(function(g){g.classList.toggle('alvo',g.dataset.lugar===id)})}
 function abrirPlanta(){
-  var area=$('#plantaArea');if(!area.firstChild){area.innerHTML=plantaSVG(false);
+  var area=$('#plantaArea');if(!$('#svgPlanta')){area.innerHTML='<div id="svgPlanta" style="height:100%;display:flex;justify-content:center">'+plantaSVG(false)+'</div><div id="svgMalote" hidden style="height:100%;display:flex;justify-content:center"></div>';
     area.querySelectorAll('.lugar').forEach(function(g){g.onclick=function(){tocarLugar(g.dataset.lugar,g)}})}
+  $('#svgPlanta').hidden=false;$('#svgMalote').hidden=true;pecaAberta='planta';
+  $('#plantaTopo').innerHTML='<b>Planta de evacuação · Agência 0688</b><span id="plantaTarefa">'+(prologo.grupo?'Toque num lugar para ver o que há nele.':($('#plantaTarefa')?$('#plantaTarefa').textContent:'Toque num lugar.'))+'</span>';
+  $('#pcRot').textContent='A PLANTA';$('#pcTxt').textContent='Toque num lugar para ver o que há nele.';
   $('#telaRA').hidden=false;
   if(!prologo.planta){prologo.planta=true;
     INVENTARIO.push({ico:'🗺️',nome:'Planta de evacuação',desc:'A agência 0688, da Porta Giratória ao Cofre',img:PLANTA_URL});
@@ -1323,14 +1329,14 @@ function tocarLugar(id,g){var L=LUG[id];g.classList.add('visto');
   if(acao){$('#plantaCard').insertAdjacentHTML('beforeend',acao);
     if($('#pcSeguir'))$('#pcSeguir').onclick=function(){$('#pcSeguir').remove();mostrarPapeis()};
     if($('#pcPorta'))$('#pcPorta').onclick=function(){$('#pcPorta').remove();abrirGrupo()}}}
-$('#sairRA').onclick=function(){$('#telaRA').hidden=true;pintarPecas()};
+$('#sairRA').onclick=function(){$('#telaRA').hidden=true;pecaAberta=null;pintarPecas()};
 
 /* As peças da aba RA: só a planta abre no prólogo. As outras ganham nome
    quando o capítulo chega nelas (nenhum título antecipa o caso). */
 var PECAS=[{id:'planta',cap:0,nome:'A planta de evacuação',sub:'A agência 0688',ico:'🗺️'}].concat([1,2,3,4,5,6,7,8].map(function(c){return {id:'c'+c,cap:c,nome:'Peça do Capítulo '+c,sub:'Abre quando o capítulo chegar nela',ico:'🔒'}}));
-function pintarPecas(){$('#gradeRA').innerHTML=PECAS.map(function(p){var tr=p.cap>capitulo;
+function pintarPecas(){$('#gradeRA').innerHTML=PECAS.map(function(p){var tr=!(p.cap===0||p.aberta);
   return '<button class="peca'+(tr?' trancada':'')+'" data-peca="'+p.id+'"><span class="ico">'+p.ico+'</span><small>'+(p.cap?'CAPÍTULO '+p.cap:'PRÓLOGO')+'</small><b>'+p.nome+'</b><span>'+p.sub+'</span></button>'}).join('');
-  document.querySelectorAll('[data-peca]').forEach(function(b){b.onclick=function(){if(b.dataset.peca==='planta')abrirPlanta()}})}
+  document.querySelectorAll('[data-peca]').forEach(function(b){b.onclick=function(){if(b.dataset.peca==='planta')abrirPlanta();if(b.dataset.peca==='c1')abrirMalote()}})}
 
 /* ── Papéis: quem está na agência ───────────────────────────────────── */
 function mostrarPapeis(){
@@ -1375,7 +1381,7 @@ var MEU={
  subgerente:'Às sete e trinta e cinco, você pediu a chave 17-B emprestada ao Funcionário da Limpeza, tirou do armário do Arquivo o espelho de um reprocessamento antigo e o releu antes da auditoria. Devolveu a chave às sete e quarenta e sete.',
  caixa_veterano:'A fotografia antiga da equipe já não está na parede: você a tirou. Pensa em pedir transferência. Vinte e sete anos lhe ensinaram que metal também tem sotaque.'
 };
-var ROT=[
+var ROT0=[
  [0,'n','todos','Terça-feira. Garoa fina sobre a avenida. A agência 0688 ocupa a esquina, ao lado da farmácia de plantão e em frente a uma padaria que acende os fornos antes do amanhecer.'],
  [5,'n','chega','O ronco grave do carro-forte entra na rua antes do próprio veículo. Na padaria, as xícaras vibram nos pires; na farmácia, uma lâmpada fria volta a piscar. A coleta estava marcada para as oito e cinquenta. O blindado chega uma hora antes.','7h47'],
  [5,'n','estava','Lá dentro, a manhã já tinha começado. O piso do corredor ainda cheira a eucalipto; na Central, dezesseis quadros acesos. Lá fora, um ronco grave: o carro-forte, uma hora antes da coleta. Ninguém aqui dentro diz ter pedido.','7h47'],
@@ -1418,8 +1424,8 @@ var ROT=[
  [176,'n','todos','{gerente} gira a chave da Porta Giratória. Ninguém entra, ninguém sai, ninguém telefona sem autorização. O carro-forte fica retido na Eclusa.','8h03'],
  [182,'fim']
 ];
-var tRot=0,iRot=0,rotLigado=false,ultimoTick=0;
-function pausado(){return !$('#janela').hidden||!$('#telaRA').hidden||$('#papeis').open||$('#comoJogar').open||!$('#veu').hidden||!$('#visorDoc').hidden||(treinoMarca)}
+var ROT=ROT0,tRot=0,iRot=0,rotLigado=false,ultimoTick=0;
+function pausado(){if(capitulo>0)return capituloFechado[capitulo];return !$('#janela').hidden||!$('#telaRA').hidden||$('#papeis').open||$('#comoJogar').open||!$('#veu').hidden||!$('#visorDoc').hidden||(treinoMarca)}
 function iniciarRoteiro(){if(rotLigado)return;rotLigado=true;ultimoTick=Date.now();setInterval(tick,250)}
 function tick(){var agora=Date.now(),dt=(agora-ultimoTick)/1000;ultimoTick=agora;if(pausado())return;tRot+=dt*(TESTE?8:1);
   while(iRot<ROT.length&&ROT[iRot][0]<=tRot){executar(ROT[iRot]);iRot++}}
@@ -1434,7 +1440,10 @@ function executar(e){var k=e[1];
   if(k==='j'){janela(e[2],e[3]);return}
   if(k==='marca'){ensinarMarca();return}
   if(k==='contato'){janela('OS NÚMEROS','Cada número é uma pessoa da agência. Toque no número de quem falou, no Grupo, para salvá-lo com o nome de quem você acha que é. O nome é o seu palpite: pode estar errado, e só você vê.');return}
-  if(k==='fim'){setTimeout(fimDoPrologo,1200)}}
+  if(k==='fim'){setTimeout(fimDoPrologo,1200);return}
+  if(k==='peca'){abrirPecaCap(e[2]);return}
+  if(k==='frag'){fragmentoVisivel=true;if(!$('#telaRA').hidden&&pecaAberta==='malote')pintarMalote();return}
+  if(k==='sisfora'){if(P[EU_PAPEL].fora)narrar(e[2]);return}}
 function ensinarMarca(){if(ensinouMarca)return;ensinouMarca=true;
   janela('MARCAR FALAS','Algumas falas vão pesar mais tarde. Para não depender da memória, você pode marcá-las: toque e segure uma fala no Grupo ou nas Privadas, do narrador ou de qualquer pessoa, por meio segundo. Nos capítulos, são até '+MAX_MARCAS+' por capítulo, e não gastam envio. TAREFA: marque agora uma fala qualquer.',function(){
     treinoMarca=true;irPara('grupo');var ult=[].slice.call(document.querySelectorAll('#chatGrupo [data-mid]')).pop();if(ult){ult.classList.add('guia-marca');ult.scrollIntoView({block:'center'})}
@@ -1450,10 +1459,219 @@ function fimDoPrologo(){
     '<p class="lede">O prólogo foi a apresentação: a agência, a manhã e a tela do jogo. Até aqui nada contou pontos. A partir do Capítulo 1, cada capítulo tem tempo, os envios contam e, no fim de cada um, vem uma pergunta.</p>'+
     '<p class="lede">Um dos personagens da agência não é quem diz. <b>Nunca é o seu.</b></p>'+
     '<p class="lede">Você começa o Capítulo 1 com <b>'+(3+enviosExtras)+' envios</b>'+extra+'.</p>'+
-    '<div class="acoes"><button type="button" disabled>Capítulo 1 · O malote murcho (em construção)</button><button type="button" class="sec" id="fechoFicar">Continuar explorando</button><button type="button" class="sec" id="fechoDeNovo">Jogar o prólogo de novo, outra partida</button></div>';
+    '<div class="acoes"><button type="button" id="irCap1">Começar o Capítulo 1</button><button type="button" class="sec" id="fechoFicar">Continuar explorando</button><button type="button" class="sec" id="fechoDeNovo">Jogar o prólogo de novo, outra partida</button></div>';
   var d=$('#fecho');try{d.showModal()}catch(e){d.setAttribute('open','')}d.scrollTop=0;
   $('#fechoFicar').onclick=function(){try{d.close()}catch(e){d.removeAttribute('open')}};
+  $('#irCap1').onclick=function(){try{d.close()}catch(e){d.removeAttribute('open')}comecarCapitulo(1)};
   $('#fechoDeNovo').onclick=function(){try{sessionStorage.removeItem('cfi:partida')}catch(e){}var u=new URL(location.href);u.searchParams.delete('partida');location.href=u.toString()}}
+
+
+/* ══ CAPÍTULO 1 · O MALOTE MURCHO (8h02 a 8h10) ════════════════════════
+   Fonte: revisão 2, Cap. 1, e a Matriz (abas Cap 1, Perguntas). Decisões do
+   Mario (05/10): o Gerente é sempre do sistema; as perguntas são as do
+   rascunho da matriz. Na casa sem o Funcionário da Limpeza, sem o Segurança
+   do Veículo ou sem a Estagiária, as cenas deles saem; as provas ficam com a
+   fonte primária (Operadora, Motorista, Auditora, Caixa Veterano).
+   Quem está fora da agência (Padeiro, Transportador) acompanha pelo grupo. */
+var capituloFechado={},enviosNoCap=0,avisouMinimo=false,fimDeCapitulo=false,votoEm=null,apostaConf=null,respostas={},apostas={};
+var TOTAL=8*60,resta=TOTAL,relogioLigado=false;
+function relogio(){if(relogioLigado)return;relogioLigado=true;setInterval(function(){if(!capitulo||capituloFechado[capitulo])return;
+  if(resta>0){resta--;if(resta===0)fimDoCapitulo();
+    if(resta===Math.min(60,Math.floor(TOTAL/4))&&!enviosNoCap&&!avisouMinimo){avisouMinimo=true;janela('FALTA 1 MINUTO','Você ainda não mandou nada neste capítulo. Mande pelo menos 1 mensagem ou anexo antes de o tempo acabar.')}}
+  $('#relogio').textContent=('0'+Math.floor(resta/60)).slice(-2)+':'+('0'+resta%60).slice(-2);$('#barra').style.width=(resta/TOTAL*100)+'%';$('#tempo').classList.toggle('pouco',resta<60)},1000)}
+var _gastar=gastarEnvio;gastarEnvio=function(){var ok=_gastar();if(ok&&capitulo)enviosNoCap++;return ok};
+
+var C1=[
+ [0,'n','dentro','O saco vazio parecia respirar. A corrente de ar do corredor erguia e baixava uma das abas de lona com um roçar seco, quase orgânico. Ninguém atravessou a porta do Arquivo Morto. {caixa_novato} continuava no limiar, com a pasta azul apertada contra o peito e os lábios sem cor. O cheiro de eucalipto do piso se misturava ao gesso úmido.','8h02'],
+ [0,'sisfora','Do lado de fora, a agência ficou muda atrás do vidro. A Porta Giratória está travada; o carro-forte, preso na Eclusa. O que acontece lá dentro chega a você pelo grupo de custódia.'],
+ [9,'f','caixa_novato','Está no chão do Arquivo. O saco. Vazio.'],
+ [20,'n','dentro','{auditora} foi a primeira a se mover. Agachou-se diante do saco, com as mãos nos joelhos. <i>"O que você viu antes de gritar?"</i> <i>"Isso."</i> <i>"Isso é uma conclusão. Quero uma imagem."</i> O rapaz encontrou só detalhes: a porta entreaberta, a luz fria, a lona no chão, o lacre partido. Enquanto falava, escondeu sob o braço um chaveiro preso por um elástico na pasta. O gesto foi mínimo.'],
+ [40,'n','dentro','{gerente} mandou todos recuarem, com a polidez alta de quem teme não ser obedecido. Mandou o Segurança Interno fechar o corredor, {caixa_veterano} conferir os registros da Mesa e {operadora} preservar as imagens. Não perguntou se alguém passava mal.'],
+ [46,'f','gerente','A agência fica isolada até segunda ordem. Ninguém entra, ninguém sai, ninguém telefona sem autorização.'],
+ [52,'f','seguranca_interno','Corredor fechado. Ninguém passa sem ordem.'],
+ [60,'n','dentro','{cliente_cofre} deu um passo à frente. <i>"Meus documentos estão naquela sala."</i> <i>"Seus documentos estão seguros"</i>, disse {gerente}. <i>"Foi o que disseram sobre o dinheiro."</i> A frase ficou entre os dois. Ela apertou a pasta contra o casaco, de onde se soltavam fios de lã vermelha.'],
+ [78,'f','operadora','A câmera 3 ficou sem sinal durante oitenta e sete segundos.','8h05'],
+ [84,'n','dentro','A notícia mudou a temperatura do corredor. Até então, o saco podia ser engano; com uma câmera apagada, ganhava intenção.'],
+ [95,'n','dentro','{tecnico} pediu passagem. {gerente} bloqueou a porta com o corpo. <i>"Ninguém toca em nada."</i> <i>"Se o circuito está instável, o registro pode continuar se perdendo."</i> <i>"Ou pode ser alterado por quem entende dele."</i> {tecnico} trazia limalha no punho da camisa e fita isolante em dois dedos, e não disse mais nada. {auditora} anotou esse silêncio ao lado do gesto do rapaz.'],
+ [101,'n',['tecnico'],'Você sabe como aquilo parece. No telefone, a fotografia do conector, tirada às sete e quarenta e cinco. Você não a mostra.'],
+ [118,'cond','limpeza','n','dentro','{limpeza}, esquecido junto ao balde, apontou o chão. <i>"Passei o rodo aqui às sete e quarenta e seis."</i> <i>"Tem certeza da hora?"</i>, perguntou {gerente}. <i>"A Central tocou a troca de turno. Eu estava terminando."</i> <i>"E o saco?"</i> <i>"Não estava."</i>'],
+ [128,'f','operadora','Confirmo pela câmera 3: às 7h46 o balde sai do Arquivo Morto. Até a imagem cair, às 7h58, ninguém mais entrou ali.'],
+ [138,'n','dentro','A água secara em volta da lona, mas sob ela restava uma ilha fosca, sem marcas do pano. O saco fora deposto depois da limpeza.'],
+ [140,'n',['limpeza'],'Você vê outra coisa e não diz: a tampa metálica do cesto de descarte está torta, e você a deixou reta.'],
+ [150,'cond','limpeza','n','dentro','<i>"Quem tem a chave do armário daqui?"</i>, perguntou {gerente}. {limpeza} tocou o bolso. A chave estava lá, devolvida havia menos de meia hora. <i>"Eu."</i> <i>"Só você?"</i> <i>"Só eu."</i>'],
+ [154,'n',['limpeza'],'Você pensa no adiantamento para a cirurgia da sua irmã, na escala trocada, no favor que pagou às sete e trinta e cinco sem perguntar para quê. A mentira nasce pequena e começa a crescer.'],
+ [160,'p',['caixa_novato'],'Eu não peguei nada. Eu só abri a porta.'],
+ [175,'n','dentro','{auditora} pediu uma lanterna. Sob o feixe, o lacre partido mostrou o número ML-8842; a grapa metálica fora cortada, não arrebentada. {cliente_cofre} soltou o ar devagar. <i>"Eu vi esse saco ontem, na Antecâmara. Cheio. Tinha esse vinco perto da costura, como uma boca torta."</i>'],
+ [182,'peca','c1'],
+ [190,'n','dentro','<i>"Então é o malote"</i>, disse {gerente}. <i>"Houve subtração."</i> <i>"Houve o reconhecimento de um invólucro"</i>, corrigiu {auditora}. <i>"Ainda não sabemos o que havia dentro, quando saiu, nem se foi este o volume entregue."</i> <i>"Quatrocentos e oitenta mil. O sistema…"</i> <i>"O sistema declara. Não testemunha."</i>'],
+ [198,'f','auditora','Lacre do saco no chão: ML-8842. Grapa cortada, não arrebentada.'],
+ [212,'n','dentro','{caixa_veterano} voltou da Mesa com duas folhas. As mãos tremiam só nas pontas.'],
+ [215,'f','caixa_veterano','O malote que passou para a Eclusa estava com o lacre ML-8847.'],
+ [226,'n','todos','Por alguns segundos, só os ventiladores do Rack, no fundo do corredor. O saco no chão tinha um número; o malote entregue, outro. {gerente} falou em reetiquetagem operacional. Pelo rádio, o Motorista leu a via de papel que a base mandara junto com a rota: <i>"Na via está ML-8842."</i>'],
+ [240,'cond','seguranca_veiculo','n','dentro','{seguranca_veiculo}, que viera da Eclusa, ficou imóvel. <i>"E o senhor conferiu o quê?"</i>, perguntou {auditora}. <i>"A tela da Mesa."</i> Ninguém precisou dizer o resto. Às oito horas, com uma auditora a dez passos, ele conferira o que estava mais perto.'],
+ [258,'n','todos','Pelo rádio, o Motorista avisou que um carro parara duas vezes na esquina. A base recomendava retirada; o protocolo da agência impedia a partida. Cada minuto de retenção deixava três homens e um blindado parados numa avenida que já os tinha notado.'],
+ [264,'p',['cliente_cofre','farmaceutica'],'Quanto tempo vão nos prender aqui?'],
+ [278,'n','dentro','{auditora} encontrou na cola do lacre um fragmento branco, do tamanho de uma unha. Parecia papel arrancado. Contra a lâmpada, o verso escurecera em listras finas: papel térmico. <i>"Quem imprimiu etiquetas esta manhã?"</i>'],
+ [280,'frag'],
+ [290,'n','dentro','{caixa_veterano} lembrou que a impressora de etiquetas fica na Gerência e só sai do modo de economia às sete e cinquenta e três, e disse que não imprimira nada. {caixa_novato} disse que nem sabia a senha. {operadora} pediu tempo para consultar a fila.'],
+ [310,'f','operadora','Confirmado: o malote 41 atravessou a Eclusa às 8h00 com ML-8847. A troca de lacre consta no sistema, sem nome.','8h07'],
+ [318,'n','todos','A confirmação respondia uma pergunta e criava duas: quem trocara o lacre, e por que deixara o antigo no caminho?'],
+ [334,'n','dentro','{auditora} ergueu os olhos para {caixa_novato}. A pasta sob o braço dele se abrira alguns centímetros. Dentro, além do chaveiro, aparecia um papel dobrado com uma senha escrita à mão. O rapaz seguiu o olhar dela e entendeu antes dos outros. A crise veio como água gelada: dedos dormentes, visão estreita. <i>"Essa pasta não é minha."</i> <i>"Então é de quem?"</i>, perguntou {gerente}.'],
+ [344,'cond','estagiaria','n','dentro','{estagiaria} levou a mão à própria pasta e a abriu. Dentro havia formulários de câmbio que não eram dela.'],
+ [344,'condnao','estagiaria','n','dentro','Ninguém respondeu.'],
+ [368,'n','dentro','O rádio da Central estalou. O canal não mostrava origem. Uma voz sem nome disse quatro palavras e se calou: <i>"Procurem quem abriu antes."</i>','8h10'],
+ [372,'f','operadora','Entrou no canal, sem origem: "Procurem quem abriu antes."'],
+ [384,'n','dentro','Todos olharam para a porta do Arquivo Morto, que {caixa_novato} abrira às oito e dois. Ele recuou um passo, e o recuo pareceu confissão.'],
+ [440,'n','todos','Faltam poucos minutos para o fim do capítulo.']
+];
+var C1_RESP_GRUPO=[[0,'Alguém viu quem entrou no Arquivo?'],[84,'Câmera apagada não é acidente.'],[138,'O saco foi posto depois da limpeza.'],[226,'Dois lacres para um malote?'],[310,'Quem trocou o lacre no sistema?'],[0,'Vamos manter a calma.']];
+var C1_RESP_PRIV=[[0,'Você viu alguma coisa?'],[175,'Você reconheceu aquele saco?'],[0,'Não confio em ninguém aqui.']];
+var C1_REPLICA={
+ 'Alguém viu quem entrou no Arquivo?':[['operadora'],'Pela câmera 3, ninguém entre as 7h46 e a queda da imagem.'],
+ 'Câmera apagada não é acidente.':[['tecnico'],'Pode ser falha. Pode não ser. Ninguém me deixa olhar.'],
+ 'O saco foi posto depois da limpeza.':[['caixa_veterano','auditora'],'O chão diz quando. Não diz quem.'],
+ 'Dois lacres para um malote?':[['auditora','caixa_veterano'],'Um no chão, outro no volume que saiu. Isso é fato. O resto é interpretação.'],
+ 'Quem trocou o lacre no sistema?':[['operadora'],'O registro não tem nome. Só a troca.'],
+ 'Vamos manter a calma.':[['gerente'],'Nós seguiremos o protocolo.'],
+ 'Você viu alguma coisa?':'Não. Quando cheguei ao corredor, o saco já estava no chão.',
+ 'Você reconheceu aquele saco?':'Saco de malote é tudo igual. O lacre é que conta.',
+ 'Não confio em ninguém aqui.':'Nem eu.'
+};
+var C1_DEBATE={pergunta:'O saco vazio no chão é o malote que saiu?',falas:[['gerente','É o malote. O vinco, o lacre partido. Houve subtração.'],['cliente_cofre','É o mesmo saco que eu vi ontem, cheio. O vinco não mente.'],['auditora','Invólucro não é conteúdo. O volume que atravessou tinha outro lacre.']]};
+var C1_PERG=[
+ {rotulo:'principal',pergunta:'O saco vazio no chão do Arquivo Morto é o volume que atravessou a Eclusa às 8h00?',opcoes:['Não: é o invólucro com o lacre ML-8842; o volume que atravessou tinha o lacre ML-8847.','Sim: é o malote 41, esvaziado antes de atravessar.','Sim: o lacre foi trocado na Eclusa, depois da travessia.','Não dá para saber: os dois têm o mesmo lacre.']},
+ {rotulo:'secundária',pergunta:'Quando o saco foi parar no chão do Arquivo Morto?',opcoes:['Depois das 7h46.','Antes das 7h46.','Na noite anterior.','De madrugada, antes de a agência abrir.']},
+ {rotulo:'secundária',pergunta:'Como o volume passou pela Eclusa com o lacre ML-8847?',opcoes:['A troca de lacre já constava no sistema, sem nome.','O Motorista trocou o lacre dentro do carro-forte.','O lacre foi trocado na Mesa, na frente de todos.','A base mandou um lacre novo junto com a rota.']}
+];
+var CAPS={1:{nome:'O MALOTE MURCHO',rot:C1,rg:C1_RESP_GRUPO,rp:C1_RESP_PRIV,rep:C1_REPLICA,debate:C1_DEBATE,perg:C1_PERG,
+  achar:'o malote murcho, na aba RA (quando a história chegar nele), com detalhes para fotografar; 1 envio extra escondido nele.'}};
+
+/* As falas e as cenas condicionais à presença */
+var _executar=executar;executar=function(e){
+  if(e[1]==='cond'){if(presente(e[2]))_executar([e[0]].concat(e.slice(3)));return}
+  if(e[1]==='condnao'){if(!presente(e[2]))_executar([e[0]].concat(e.slice(3)));return}
+  _executar(e)};
+/* {de:id} = "do Técnico" / "seu" */
+var _T=T;T=function(s){s=s.replace(/\{de:([a-z_]+)\}/g,function(m,k){return k===EU_PAPEL?'seu':(P[k].a==='a'?'da ':'do ')+P[k].n});return _T(s)};
+
+function comecarCapitulo(n){var C=CAPS[n];if(!C){janela('CAPÍTULO '+n,'O Capítulo '+n+' ainda está sendo montado. As suas respostas e apostas até aqui ficaram guardadas.');return}
+  capitulo=n;fimDeCapitulo=false;votoEm=null;apostaConf=null;enviosNoCap=0;avisouMinimo=false;
+  if(n===1){marcas.forEach(function(x){if(MSGS[x.id])MSGS[x.id].marca=false});marcas=[];treinoMarca=false;['grupo','privadas','suspeitos'].forEach(function(a){document.querySelector('[data-aba="'+a+'"]').classList.remove('muda')})}
+  envios=3+(n===1?enviosExtras:0);pintarEnvios();
+  $('#capNum').textContent=n;$('#capNome').textContent=C.nome;
+  TOTAL=TESTE?90:8*60;resta=TOTAL;relogio();
+  ROT=C.rot;tRot=0;iRot=0;RESP_GRUPO=null;RESP_PRIV=null;
+  grupo.push({dia:'CAPÍTULO '+n+' · '+C.nome});pintarGrupo();irPara('grupo');
+  if(!rotLigado)iniciarRoteiro();
+  janela('CAPÍTULO '+n,'O relógio do capítulo começou: '+(TOTAL/60)+' minutos. Quando ele acaba, o capítulo fecha e vêm as perguntas. Agora cada mensagem ou anexo gasta 1 envio. Você tem '+envios+'. Toque e segure uma fala para marcá-la (até '+MAX_MARCAS+' neste capítulo).',function(){
+    janela('PARA ACHAR NESTE CAPÍTULO','Dica para quem está começando: '+C.achar+' Na aba Nota fica o seu caderno e o botão "Concluí este capítulo".')})}
+/* o roteiro dos capítulos corre na escala do relógio (8 min); em teste, 90 s */
+var _tick=tick;
+function liberadas(l){var t=tRot*(TESTE&&capitulo?1:1);return l.filter(function(x){return x[0]<=t}).map(function(x){return x[1]})}
+/* frases prontas dos capítulos */
+document.querySelectorAll('[data-respostas]').forEach(function(b){var antigo=b.onclick;b.onclick=function(){
+  if(!capitulo){antigo();return}
+  var C=CAPS[capitulo],id=b.dataset.respostas,el=$('#'+id),lista=liberadas(id==='respGrupo'?C.rg:C.rp);
+  if(!el.hidden){el.hidden=true;return}
+  el.innerHTML=lista.map(function(t){return '<button class="chip">'+t+'</button>'}).join('');el.hidden=false;
+  el.querySelectorAll('.chip').forEach(function(c){c.onclick=function(){if(capituloFechado[capitulo]){toast('O capítulo fechou.');return}if(!gastarEnvio())return;
+    var txt=c.textContent,m={de:EU,txt:txt,h:hora()},r=C.rep[txt];el.hidden=true;
+    if(id==='respGrupo'){grupo.push(m);pintarGrupo();if(r&&typeof r!=='string'){var q=primeiro(r[0]);if(q)setTimeout(function(){falar(q,r[1])},2500+Math.random()*1500)}}
+    else{var f=abertaPriv;privadas[f].msgs.push(m);privadas[f].ordem=++ordemPriv;pintarConv();pintarListaPriv();
+      if(typeof r==='string')setTimeout(function(){chegaPrivada(ID_DE[f],r)},2500+Math.random()*1500)}}})}});
+
+/* ── Fim do capítulo: debate, perguntas, aposta ─────────────────────── */
+var CONF=[{id:'certeza',nome:'Com certeza',dica:'Os fatos fecham'},{id:'sem',nome:'Sem certeza',dica:'Parece, mas falta algo'},{id:'naosei',nome:'Não sei',dica:'Ainda não dá para dizer'}];
+var filaPerg=[],PQ=null,pqEsc=null,pqConf=null,pqOrdem=[];
+function abrirFecho(){var d=$('#fecho');try{d.showModal()}catch(e){d.setAttribute('open','')}d.scrollTop=0}
+function fecharFecho(){var d=$('#fecho');try{d.close()}catch(e){d.removeAttribute('open')}}
+function fimDoCapitulo(){if(!capitulo||capituloFechado[capitulo])return;capituloFechado[capitulo]=true;
+  $('#telaRA').hidden=true;$('#tempo').classList.add('parado');$('#respGrupo').hidden=true;$('#respPriv').hidden=true;
+  janela('FIM DO CAPÍTULO '+capitulo,(resta>0?'Você concluiu o capítulo.':'O tempo acabou.')+' O relógio parou. Antes das perguntas, a mesa tem um tempo para debater em voz alta.',function(){abrirFecho();abrirDebate(CAPS[capitulo].debate,irParaPerguntas)})}
+function abrirDebate(D,depois){var total=TESTE?8:60,t=total,timer=null;
+  var falas=D.falas.filter(function(f){return presente(f[0])&&f[0]!==EU_PAPEL});
+  $('#fechoCorpo').innerHTML='<p class="kicker">Debate da mesa · fora do tempo do capítulo</p><h1 id="fechoTitulo">'+D.pergunta+'</h1>'+
+    '<div class="debate-relogio"><b id="debateT">01:00</b><i id="debateBarra"></i></div>'+
+    '<p class="lede">Vocês têm '+total+' segundos para discutir em voz alta. Aqui ninguém ganha nem perde pontos: é para trocar razões. Quem preferir pode só ouvir.</p>'+
+    (falas.length?'<div class="debate-falas" id="debateFalas"><small>NA MESA</small></div>':'')+'<div class="acoes"><button type="button" id="debateFim">Ir para as perguntas</button></div>';
+  function fim(){clearInterval(timer);timer=null;depois()}$('#debateFim').onclick=fim;
+  falas.forEach(function(f,i){setTimeout(function(){var el=$('#debateFalas');if(!el||!timer)return;var n=SLOT_DE[f[0]];
+    el.insertAdjacentHTML('beforeend','<div class="debate-fala"><b style="color:'+CORES[n]+'">'+nomeDe(n)+'</b> '+f[1]+'</div>')},(i+1)*Math.max(1500,total*1000/(falas.length+2)))});
+  function pinta(){var el=$('#debateT');if(!el)return;el.textContent=('0'+Math.floor(t/60)).slice(-2)+':'+('0'+t%60).slice(-2);$('#debateBarra').style.width=(t/total*100)+'%'}
+  pinta();timer=setInterval(function(){t--;pinta();if(t<=0)fim()},1000)}
+document.head.insertAdjacentHTML('beforeend','<style>.debate-relogio{position:relative;overflow:hidden;display:inline-flex;align-items:center;gap:6px;margin:4px 0 10px;padding:6px 14px;border-radius:999px;border:1px solid #4dba7c;background:#0b1d16;color:#9fe9c0;font:600 16px var(--termfont)}.debate-relogio::before{content:"🗣"}.debate-relogio i{position:absolute;left:0;bottom:0;height:3px;background:#4dba7c;transition:width 1s linear}.debate-falas{border:1px solid #2f6b4e;border-radius:10px;padding:8px 10px;margin:8px 0;background:#08130f}.debate-falas small{color:#4dba7c;letter-spacing:.06em}.debate-fala{padding:6px 0;border-top:1px solid #1d3a2c;font-size:14px;line-height:1.4}.debate-fala:first-of-type{border-top:0}.tempo.parado{opacity:.55}</style>');
+function embaralhar(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
+function irParaPerguntas(){filaPerg=CAPS[capitulo].perg.slice();respostas[capitulo]=[];proximaPerg()}
+function proximaPerg(){PQ=filaPerg.shift();pqEsc=null;pqConf=null;pqOrdem=embaralhar(PQ.opcoes.map(function(_,i){return i}));pintarPerg()}
+function pintarPerg(){var L='ABCD';
+  $('#fechoCorpo').innerHTML='<p class="kicker">Capítulo '+capitulo+' · pergunta '+PQ.rotulo+(PQ.rotulo==='secundária'?' (vale metade)':'')+'</p><h1 id="fechoTitulo">'+PQ.pergunta+'</h1>'+
+    '<div class="opcoes">'+pqOrdem.map(function(k,i){return '<button type="button" class="op'+(pqEsc===k?' on':'')+'" data-op="'+k+'"'+(pqConf==='naosei'?' disabled':'')+'><i>'+L[i]+'</i><span>'+PQ.opcoes[k]+'</span></button>'}).join('')+'</div>'+
+    (marcasDoCap(capitulo).length?'<details class="marcadas" style="margin-top:10px"><summary style="color:var(--gold);cursor:pointer">📌 Suas falas marcadas ('+marcasDoCap(capitulo).length+')</summary>'+listaMarcas(capitulo,false)+'</details>':'')+
+    '<h2>O quanto você tem certeza?</h2><div class="conf">'+CONF.map(function(c){return '<button type="button" data-conf="'+c.id+'" class="'+(pqConf===c.id?'on':'')+'">'+c.nome+'<small>'+c.dica+'</small></button>'}).join('')+'</div>'+
+    '<div class="acoes"><button type="button" id="pqResp"'+((pqConf&&(pqEsc!==null||pqConf==='naosei'))?'':' disabled')+'>Responder</button></div>';
+  document.querySelectorAll('#fecho [data-op]').forEach(function(b){b.onclick=function(){pqEsc=+b.dataset.op;pintarPerg()}});
+  document.querySelectorAll('#fecho [data-conf]').forEach(function(b){b.onclick=function(){pqConf=b.dataset.conf;if(pqConf==='naosei')pqEsc=null;pintarPerg()}});
+  $('#pqResp').onclick=function(){respostas[capitulo].push({pergunta:PQ.pergunta,tipo:PQ.rotulo,opcao:pqEsc,certa:pqEsc===0,confianca:pqConf});
+    if(filaPerg.length){proximaPerg();$('#fecho').scrollTop=0;return}
+    $('#fechoCorpo').innerHTML='<p class="kicker">Capítulo '+capitulo+' · respostas guardadas</p><h1 id="fechoTitulo">Respostas guardadas.</h1><p class="lede">O resultado só aparece no fim do jogo.</p><p class="lede">Agora a sua aba Nota vira a aposta: em quem você aposta como impostor? É opcional e só você vê.</p><div class="acoes"><button type="button" id="irAposta">Ir para a aposta</button></div>';
+    $('#irAposta').onclick=function(){fecharFecho();fimDeCapitulo=true;irPara('suspeitos')}}}
+
+/* a Nota: caderno durante o capítulo; aposta no fim */
+var _pintarSusp=pintarSusp;pintarSusp=function(){_pintarSusp();if(!capitulo)return;
+  var L=$('#listaSusp');
+  if(!fimDeCapitulo&&!capituloFechado[capitulo]){L.insertAdjacentHTML('afterbegin','<button class="voto" id="concluirCap" style="margin:0 0 10px">Concluí este capítulo</button>');
+    $('#concluirCap').onclick=function(){folha('<h2>Concluir o capítulo?</h2><p class="sub">Você vai para as perguntas agora, sem esperar o tempo acabar. Não dá para voltar.'+(enviosNoCap?'':' Atenção: você ainda não mandou nenhuma mensagem neste capítulo.')+'</p><button class="item" id="simConcluir"><span style="font-size:22px">✓</span><span><b>Sim, concluir agora</b></span></button>');$('#simConcluir').onclick=function(){fecharFolha();fimDoCapitulo()}};return}
+  if(!fimDeCapitulo)return;
+  L.querySelectorAll('textarea').forEach(function(t){var f=t.dataset.nota;t.insertAdjacentHTML('afterend','<button class="voto'+(votoEm===f?' on':'')+'" data-votar="'+f+'">'+(votoEm===f?'Sua aposta ✓':'Apostar neste número')+'</button>');t.remove()});
+  L.insertAdjacentHTML('afterbegin','<div class="aviso ouro"><b>Fim do capítulo.</b> Em quem você aposta como impostor? É opcional e só você vê.</div><div class="conf-aposta">'+CONF.map(function(c){return '<button type="button" data-aposta-conf="'+c.id+'" class="'+(apostaConf===c.id?'on':'')+'">'+c.nome+'</button>'}).join('')+'</div>');
+  L.insertAdjacentHTML('beforeend','<button class="voto" id="seguirCap" style="margin-top:4px">Seguir para o Capítulo '+(capitulo+1)+'</button>');
+  L.querySelectorAll('[data-votar]').forEach(function(b){b.onclick=function(){votoEm=b.dataset.votar;if(apostaConf==='naosei')apostaConf=null;pintarSusp()}});
+  L.querySelectorAll('[data-aposta-conf]').forEach(function(b){b.onclick=function(){apostaConf=b.dataset.apostaConf;if(apostaConf==='naosei')votoEm=null;pintarSusp()}});
+  $('#seguirCap').onclick=function(){apostas[capitulo]={numero:votoEm,personagem:votoEm?ID_DE[votoEm]:null,confianca:apostaConf};
+    try{sessionStorage.setItem('cfi:respostas:'+PARTIDA,JSON.stringify({respostas:respostas,apostas:apostas}))}catch(e){}
+    comecarCapitulo(capitulo+1)}};
+
+/* ── A peça do Cap. 1: o malote murcho ──────────────────────────────────
+   Matéria da história (Cap. 1, "Matéria para a RA"): o malote com o vinco
+   diagonal, o lacre ML-8842 rompido pela grapa, o fragmento térmico na cola
+   e a área seca sob o saco. Mostra ML-8842 no saco; não mostra o horário do
+   lacre (Cap. 7) nem o registro das 6h58 (Cap. 3). O fragmento só aparece
+   depois que a história chega nele. Separa invólucro, lacre e conteúdo. */
+var pecaAberta=null,fragmentoVisivel=false,maloteVistos={},maloteEnvio=false;
+var DET={
+ lacre:['O LACRE','ML-8842. A grapa metálica foi cortada, não arrebentada.'],
+ vinco:['O VINCO','Um vinco diagonal perto da costura, como uma boca torta.'],
+ seco:['O CHÃO','Em volta, o piso ainda úmido do rodo. Sob a lona, uma ilha fosca, sem marcas do pano.'],
+ vazio:['O SACO','Lona de malote, com fecho. Vazio. Nada dentro, nem uma cinta de maço.'],
+ frag:['O FRAGMENTO','Na cola do lacre, um pedaço branco do tamanho de uma unha. O verso escureceu em listras finas: papel térmico.'],
+ borda:['A BORDA DA LONA','Dobrada sob o saco, a borda guardava uma coisa sua: um envio extra.']
+};
+function maloteSVG(){var s='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 420" role="img" aria-label="O malote murcho no chão do Arquivo Morto">';
+  s+='<rect width="360" height="420" fill="#060d0a"/>';
+  for(var i=0;i<9;i++)s+='<line x1="0" y1="'+(40+i*45)+'" x2="360" y2="'+(20+i*45)+'" stroke="#0f2219" stroke-width="1"/>';
+  s+='<g class="lugar" data-det="seco"><ellipse cx="180" cy="250" rx="150" ry="80" fill="#0e1a14" stroke="#2f6b4e" stroke-dasharray="5 4"/></g>';
+  s+='<g class="lugar" data-det="vazio"><path d="M70 250 C80 190 140 170 200 178 C260 186 300 210 296 258 C292 300 230 318 170 314 C110 310 64 296 70 250Z" fill="#14231c" stroke="#4dba7c" stroke-width="1.6"/></g>';
+  s+='<g class="lugar" data-det="vinco"><path d="M210 200 L262 262" stroke="#9fe9c0" stroke-width="3" fill="none"/><rect class="hit" x="200" y="190" width="72" height="80"/></g>';
+  s+='<g class="lugar" data-det="lacre"><rect x="94" y="226" width="54" height="22" rx="3" fill="#2a1d0a" stroke="#efc878"/><text x="121" y="241" text-anchor="middle" style="font-size:9px;fill:#efc878">ML-8842</text><path d="M148 237 l14 -8 M148 237 l14 6" stroke="#efc878" stroke-width="2"/></g>';
+  if(fragmentoVisivel)s+='<g class="lugar" data-det="frag"><rect class="frag" x="98" y="250" width="14" height="10"/></g>';
+  s+='<g class="lugar" data-det="borda"><path d="M168 314 C200 318 230 316 256 304" stroke="#4dba7c" stroke-width="2" fill="none"/><rect class="hit" x="164" y="298" width="96" height="26"/></g>';
+  s+='<text x="350" y="410" text-anchor="end" style="font-size:8px;fill:#4dba7c;font-family:monospace">ARQUIVO MORTO · 8H05</text>';
+  return s+'</svg>'}
+var MALOTE_URL='';
+function abrirPecaCap(id){var p=PECAS.filter(function(x){return x.id===id})[0];if(!p||p.aberta)return;p.aberta=true;p.nome='O malote murcho';p.sub='No chão do Arquivo Morto';p.ico='👜';
+  pintarPecas();glow('ra',true);toast('Uma peça nova abriu na aba RA: o malote murcho.')}
+function abrirMalote(){if(!$('#svgPlanta'))abrirPlanta();
+  pecaAberta='malote';$('#svgPlanta').hidden=true;$('#svgMalote').hidden=false;pintarMalote();
+  $('#plantaTopo').innerHTML='<b>O malote murcho · Arquivo Morto</b><span>Toque nos detalhes. O que você examinar vai para o inventário.</span>';
+  $('#pcRot').textContent='O MALOTE';$('#pcTxt').textContent='Toque num detalhe do saco para examiná-lo.';$('#plantaCard').querySelectorAll('.acao').forEach(function(b){b.remove()});
+  $('#telaRA').hidden=false}
+function pintarMalote(){var a=$('#svgMalote');a.innerHTML=maloteSVG();
+  a.querySelectorAll('[data-det]').forEach(function(g){if(maloteVistos[g.dataset.det])g.classList.add('visto');g.onclick=function(){examinar(g.dataset.det,g)}})}
+function examinar(k,g){var d=DET[k];g.classList.add('visto');$('#pcRot').textContent=d[0];$('#pcTxt').innerHTML='';digitar($('#pcTxt'),d[1],10);
+  if(k==='borda'){if(!maloteEnvio){maloteEnvio=true;setTimeout(achouEnvioCap,500)}return}
+  if(!maloteVistos[k]){maloteVistos[k]=true;if(!MALOTE_URL)try{MALOTE_URL=URL.createObjectURL(new Blob([maloteSVG()],{type:'image/svg+xml'}))}catch(e){}
+    INVENTARIO.push({ico:'📷',nome:'Malote: '+d[0].toLowerCase(),desc:d[1],img:MALOTE_URL});toast('Guardado no inventário: '+d[0].toLowerCase())}}
+function achouEnvioCap(){envios++;pintarEnvios();var p=$('#enviosPill');p.classList.add('nasce');setTimeout(function(){p.classList.remove('nasce')},2400);janela('UM ENVIO EXTRA','Você achou um envio escondido: +1 neste capítulo.')}
 
 /* ── Abertura em terminal ───────────────────────────────────────────── */
 var ABERTURA='Às 7h47, o carro-forte chega com uma hora de antecedência, e ninguém lá dentro diz ter pedido.\nUma auditoria de custódia chega sem aviso.\nQuinze funções. Uma manhã.\nUm de vocês não é quem diz.';
@@ -1469,7 +1687,7 @@ $('#abPular').onclick=function(){fimAb();inicioDoJogo()};
 
 /* ganchos de teste */
 window.CFIMesa={partida:PCOD,impostor:IMP,casa:CASA,papel:EU_PAPEL,numero:EU,presentes:PRESENTES,pular:function(){inicioDoJogo();prologo.planta=prologo.ondeEstou=prologo.papeis=true;abrirGrupo();$('#janelaOk').click()},
-  tempo:function(s){tRot=s},estado:function(){return {tRot:tRot,iRot:iRot,grupo:grupo.length,prologo:prologo}}};
+  tempo:function(s){tRot=s},estado:function(){return {cap:capitulo,tRot:tRot,iRot:iRot,grupo:grupo.length,prologo:prologo,resta:resta,respostas:respostas,apostas:apostas,inv:INVENTARIO.length,envios:envios}},cap:function(n){comecarCapitulo(n)},fim:function(){fimDoCapitulo()}};
 if(TESTE)console.log('[CFI] partida',PCOD,'impostor',IMP,'casa',CASA,'papel',EU_PAPEL,'···'+EU);
 })();
 </script>
