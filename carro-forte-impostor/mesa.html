@@ -1555,7 +1555,7 @@ var _executar=executar;executar=function(e){
 var _T=T;T=function(s){s=s.replace(/\{de:([a-z_]+)\}/g,function(m,k){return k===EU_PAPEL?'seu':(P[k].a==='a'?'da ':'do ')+P[k].n});return _T(s)};
 
 function comecarCapitulo(n){var C=CAPS[n];if(!C){janela('CAPÍTULO '+n,'O Capítulo '+n+' ainda está sendo montado. As suas respostas e apostas até aqui ficaram guardadas.');return}
-  capitulo=n;fimDeCapitulo=false;votoEm=null;apostaConf=null;enviosNoCap=0;avisouMinimo=false;
+  capitulo=n;fimDeCapitulo=false;$('#tempo').classList.remove('parado','pouco');votoEm=null;apostaConf=null;enviosNoCap=0;avisouMinimo=false;
   if(n===1){marcas.forEach(function(x){if(MSGS[x.id])MSGS[x.id].marca=false});marcas=[];treinoMarca=false;['grupo','privadas','suspeitos'].forEach(function(a){document.querySelector('[data-aba="'+a+'"]').classList.remove('muda')})}
   envios=3+(n===1?enviosExtras:0);pintarEnvios();
   $('#capNum').textContent=n;$('#capNome').textContent=C.nome;
@@ -1602,7 +1602,7 @@ function abrirDebate(D,depois){var total=TESTE?8:60,t=total,timer=null;
 document.head.insertAdjacentHTML('beforeend','<style>.debate-relogio{position:relative;overflow:hidden;display:inline-flex;align-items:center;gap:6px;margin:4px 0 10px;padding:6px 14px;border-radius:999px;border:1px solid #4dba7c;background:#0b1d16;color:#9fe9c0;font:600 16px var(--termfont)}.debate-relogio::before{content:"🗣"}.debate-relogio i{position:absolute;left:0;bottom:0;height:3px;background:#4dba7c;transition:width 1s linear}.debate-falas{border:1px solid #2f6b4e;border-radius:10px;padding:8px 10px;margin:8px 0;background:#08130f}.debate-falas small{color:#4dba7c;letter-spacing:.06em}.debate-fala{padding:6px 0;border-top:1px solid #1d3a2c;font-size:14px;line-height:1.4}.debate-fala:first-of-type{border-top:0}.tempo.parado{opacity:.55}</style>');
 function embaralhar(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
 function irParaPerguntas(){filaPerg=CAPS[capitulo].perg.slice();respostas[capitulo]=[];proximaPerg()}
-function proximaPerg(){PQ=filaPerg.shift();pqEsc=null;pqConf=null;pqOrdem=embaralhar(PQ.opcoes.map(function(_,i){return i}));pintarPerg()}
+function proximaPerg(){PQ=filaPerg.shift();pqEsc=null;pqConf=null;pqOrdem=PQ.opcoes?embaralhar(PQ.opcoes.map(function(_,i){return i})):[];pintarPerg()}
 function pintarPerg(){var L='ABCD';
   $('#fechoCorpo').innerHTML='<p class="kicker">Capítulo '+capitulo+' · pergunta '+PQ.rotulo+(PQ.rotulo==='secundária'?' (vale metade)':'')+'</p><h1 id="fechoTitulo">'+PQ.pergunta+'</h1>'+
     '<div class="opcoes">'+pqOrdem.map(function(k,i){return '<button type="button" class="op'+(pqEsc===k?' on':'')+'" data-op="'+k+'"'+(pqConf==='naosei'?' disabled':'')+'><i>'+L[i]+'</i><span>'+PQ.opcoes[k]+'</span></button>'}).join('')+'</div>'+
@@ -1613,6 +1613,8 @@ function pintarPerg(){var L='ABCD';
   document.querySelectorAll('#fecho [data-conf]').forEach(function(b){b.onclick=function(){pqConf=b.dataset.conf;if(pqConf==='naosei')pqEsc=null;pintarPerg()}});
   $('#pqResp').onclick=function(){respostas[capitulo].push({pergunta:PQ.pergunta,tipo:PQ.rotulo,opcao:pqEsc,certa:pqEsc===0,confianca:pqConf});
     if(filaPerg.length){proximaPerg();$('#fecho').scrollTop=0;return}
+    fimDasPerguntas()}}
+function fimDasPerguntas(){{
     $('#fechoCorpo').innerHTML='<p class="kicker">Capítulo '+capitulo+' · respostas guardadas</p><h1 id="fechoTitulo">Respostas guardadas.</h1><p class="lede">O resultado só aparece no fim do jogo.</p><p class="lede">Agora a sua aba Nota vira a aposta: em quem você aposta como impostor? É opcional e só você vê.</p><div class="acoes"><button type="button" id="irAposta">Ir para a aposta</button></div>';
     $('#irAposta').onclick=function(){fecharFecho();fimDeCapitulo=true;irPara('suspeitos')}}}
 
@@ -1672,6 +1674,139 @@ function examinar(k,g){var d=DET[k];g.classList.add('visto');$('#pcRot').textCon
   if(!maloteVistos[k]){maloteVistos[k]=true;if(!MALOTE_URL)try{MALOTE_URL=URL.createObjectURL(new Blob([maloteSVG()],{type:'image/svg+xml'}))}catch(e){}
     INVENTARIO.push({ico:'📷',nome:'Malote: '+d[0].toLowerCase(),desc:d[1],img:MALOTE_URL});toast('Guardado no inventário: '+d[0].toLowerCase())}}
 function achouEnvioCap(){envios++;pintarEnvios();var p=$('#enviosPill');p.classList.add('nasce');setTimeout(function(){p.classList.remove('nasce')},2400);janela('UM ENVIO EXTRA','Você achou um envio escondido: +1 neste capítulo.')}
+
+
+/* ══ CAPÍTULO 2 · A VOZ A MAIS (8h12 a 8h35) ═══════════════════════════
+   Fonte: revisão 2, Cap. 2, e a Matriz (abas Cap 2, Perguntas, Pendências).
+   Ajustes aplicados das Pendências (propostas, 05/10):
+   - o histórico do rádio é lido pela Estagiária; sem ela, pela Operadora;
+   - a observação das duas fitas é da Farmacêutica; sem ela, da Auditora;
+   - "Talvez tenham clonado algum" é do Subgerente; sem ele, do Caixa Veterano;
+   - sem o Subgerente, a pergunta sobre a frase de ontem fica só com o Gerente.
+   Ponto de ajuste A3 (a tira estreita de fita) segue a tabela: polegar do
+   impostor da partida. PENDÊNCIA ALTA continua aberta: a luva do Cap. 6 está
+   rasgada no indicador. */
+var LEITOR=presente('estagiaria')?'estagiaria':'operadora';
+var OLHA_MAOS=presente('farmaceutica')?'farmaceutica':'auditora';
+var CLONE=presente('subgerente')?'subgerente':'caixa_veterano';
+var IMPN=P[IMP].n;   /* "Subgerente" | "Gerente" | "Caixa Veterano" */
+var C2=[
+ [0,'n','dentro','A Operadora reproduziu a gravação, e a agência ouviu um homem que ninguém conseguia reconhecer. <i>"Porta lateral. Possível tentativa."</i> A ordem vinha comprimida pelo rádio, sem timbre bastante para denunciar idade. Antes dela, uma respiração: duas entradas curtas, uma pausa, outra longa. O Segurança Interno fechou os olhos. Obedecera porque a frase usava o código certo.','8h18'],
+ [0,'sisfora','No grupo, a agência não fala de outra coisa: uma gravação do rádio reserva, a ordem que tirou o Segurança Interno do corredor.'],
+ [10,'f','operadora','Gravação do rádio reserva, 7h58:05: "Porta lateral. Possível tentativa." A voz não dá para reconhecer.'],
+ [18,'n','todos','Pelo rádio, a voz sem corpo da base: <i>"A base não transmitiu. Nosso canal com vocês encerrou às sete e quarenta e nove."</i>'],
+ [28,'n','dentro','{gerente} perguntou se áudio podia ser adulterado. {tecnico} respondeu que tudo podia; o problema era o rastro. Soou insolente, e era medo.'],
+ [42,'n','dentro','{operadora} ampliou o espectro do som. Por trás da voz corria um zumbido regular: três pulsações rápidas e uma lenta. {tecnico} ergueu a cabeça antes de todos. <i>"É o estabilizador da impressora de etiquetas, o da Gerência. Fui eu que instalei. Pulsa assim desde o primeiro dia."</i>'],
+ [46,'peca','c2'],
+ [50,'cond','estagiaria','n','dentro','{estagiaria}, que imprimia lá todas as manhãs, confirmou com a cabeça.'],
+ [56,'n','dentro','Ninguém disse nada por um momento. A voz não viera da porta lateral nem de fora. Viera de trás da divisória fosca, da sala onde as decisões da agência eram assinadas.'],
+ [60,'f','tecnico','O zumbido da gravação é o estabilizador da impressora da Gerência. A ordem saiu de lá.'],
+ [72,'n','dentro','O Segurança Interno contou o que fizera. Correra da Antecâmara à porta lateral. Pelo vidro, vira um homem de capa, de costas, conversando com um motoboy que tinha uma caixa no bagageiro. Bateu no vidro; o homem ergueu a mão sem se virar. Ele não abriu a porta. Esperou o motoboy partir, registrou "sem tentativa" e voltou à Antecâmara. O malote estava na plataforma, lacrado. <i>"E o rádio?"</i>, perguntou {gerente}. <i>"Estava onde?"</i> <i>"No aparador da Gerência. Fora do carregador."</i> <i>"Um erro seu abriu a janela."</i> <i>"E alguém estava esperando por ela."</i>'],
+ [74,'n',['tecnico'],'Você sabe quem era o homem de capa do lado de fora da porta lateral. Não diz.'],
+ [78,'f','seguranca_interno','Fui à porta lateral pela ordem do rádio. Pelo vidro, um homem de capa, de costas, com um motoboy. Sem tentativa.'],
+ [96,'n','dentro','O couro do coldre rangeu. Já não se tratava de descobrir quem fora descuidado, mas quem usava o descuido alheio. {auditora} examinou o botão lateral do aparelho. Havia uma lasca lilás presa na reentrância. {operadora} olhou as próprias unhas, da mesma cor. <i>"Testei o rádio ontem, às dezenove e doze."</i> <i>"E não registrou por quê?"</i>, perguntou {gerente}. Ela falou de bateria, de rotina, de pressa.'],
+ [98,'n',['operadora'],'Você não pode dizer que, minutos depois do teste, ouviu a discussão dele com o Subgerente e apagou a ocorrência. Cada resposta verdadeira cobre uma verdade maior.'],
+ [108,'n','dentro','{auditora} pediu o bloco particular. {operadora} o segurou contra o peito. Entregá-lo revelaria a omissão; recusá-lo a tornaria a primeira suspeita.'],
+ [122,'n','dentro','Enquanto ela hesitava, {cliente_cofre} pediu para ir ao banheiro. {gerente} negou. Ela disse que não era funcionária nem suspeita. {auditora} disse que, naquele momento, todos eram testemunhas retidas, inclusive ela mesma. Um fio de lã vermelha se soltou do casaco e ficou preso na maçaneta do corredor. {caixa_novato} viu o fio e disse em voz alta, aliviado por ter algo a oferecer, que vira outro, igual, perto do saco. A sala se voltou para a Cliente.'],
+ [128,'p',['caixa_novato'],'Eu vi o fio vermelho perto do saco. Juro que vi.'],
+ [138,'n','dentro','<i>"Abra a pasta"</i>, pediu {gerente}. <i>"Não."</i> <i>"Se não há nada relacionado…"</i> <i>"Há coisas que não têm relação com o senhor e ainda assim são da minha vida."</i> {auditora} interveio: a pasta seria preservada, fechada, até existir um nexo real. {cliente_cofre} agradeceu sem gratidão.'],
+ [160,'n','dentro','Na Central, {'+LEITOR+'} abriu o histórico do rádio. O aparelho fora pareado às sete e cinquenta e sete e cinquenta e cinco por um cartão de proximidade. Os dois últimos dígitos estavam corrompidos. A faixa era a administrativa. <i>"Quem tem cartão nessa faixa?"</i>, perguntou {auditora}. <i>"O Gerente, o Subgerente, o tesoureiro e a manutenção."</i>'],
+ [164,'frag2'],
+ [168,'f',LEITOR,'Histórico do rádio: pareado às 7h57:55 por cartão da faixa administrativa. Os dois últimos dígitos se corromperam. Têm cartão nessa faixa: Gerente, Subgerente, tesoureiro e manutenção.'],
+ [182,'n','dentro','{gerente} pôs o cartão sobre o balcão. {subgerente} pôs o dele. {caixa_veterano} tirou o seu da carteira, devagar, como quem tira um documento de família. {tecnico} disse que o seu estava na maleta. {gerente} mandou buscar a maleta e a deixou sobre a Mesa de Recebimento, fechada.'],
+ [198,'n','dentro','<i>"Talvez tenham clonado algum"</i>, disse {'+CLONE+'}, com a cortesia de quem oferece uma saída. <i>"Possível"</i>, respondeu {tecnico}. <i>"Com equipamento."</i> A frase lhe custou: todos lembraram da maleta.'],
+ [218,'n','dentro','{'+OLHA_MAOS+'} observava mãos. Viu a fita isolante nos dedos do Técnico, gasta, antiga. Viu fita microporosa em duas mãos: uma tira larga, já encardida, no indicador do Caixa Novato, e uma tira estreita e limpa no polegar do '+IMPN+'. <i>"Cortou-se?"</i> <i>"Numa caixa de papelão."</i> <i>"E você?"</i>, ao rapaz. <i>"Numa nota nova. Peguei a fita no kit da Gerência."</i>'],
+ [224,'cond','farmaceutica','n',['farmaceutica'],'Você olha as duas tiras um instante a mais do que seria educado e não diz nada. Dizer o que pensa obrigaria você a contar o resto: o envelope no bolso, as cápsulas sem receita.'],
+ [224,'condnao','farmaceutica','n','dentro','{auditora} olhou as duas tiras um instante a mais do que seria educado e não disse nada.'],
+ [244,'n','todos','Pelo rádio, a base enviou o registro bruto da antecipação. A chamada fora feita às seis e cinquenta e dois, de um ramal interno, com o código de tesouraria. Durara quarenta e três segundos. Não havia gravação de voz, só a origem: o telefone da Sala da Gerência.','8h29'],
+ [248,'f','operadora','Registro da base: o pedido das 6h52 saiu do telefone da Sala da Gerência. Ramal interno, código de tesouraria, 43 segundos.'],
+ [262,'f','operadora','Crachás da Porta Giratória, hoje: 7h10 Segurança Interno e Limpeza; 7h12 Gerente; 7h16 Subgerente; 7h21 Caixa Veterano.'],
+ [270,'n','dentro','<i>"Então às seis e cinquenta e dois alguém estava na Gerência"</i>, disse {auditora}, <i>"antes de qualquer crachá do dia."</i>'],
+ [274,'p',['limpeza'],'Às 6h52 eu ainda nem tinha chegado. Meu crachá é das 7h10.'],
+ [292,'n','dentro','{operadora} abriu o bloco particular e o entregou. Manteve a mão sobre a capa por um segundo. <i>"Tem mais uma coisa."</i> Leu a frase que apagara na noite anterior: <i>"Se isso aparecer amanhã, não cai só você."</i> <i>"Era sobre o quê?"</i>, perguntou {auditora}. <i>"Manutenção"</i>, respondeu {gerente}.'],
+ [298,'cond','subgerente','n','dentro','<i>"Pessoal"</i>, disse {subgerente}, ao mesmo tempo. Duas respostas para uma única conversa. A omissão da Operadora estava explicada; o que os dois escondiam, não. Nem por que ainda não tinham combinado a mesma mentira.'],
+ [298,'condnao','subgerente','n','dentro','A resposta veio rápida demais. A omissão da Operadora estava explicada; o que a frase escondia, não.'],
+ [330,'n','dentro','Atrás da divisória da Gerência, a impressora gemeu. Cuspiu uma faixa branca e depois uma etiqueta: ML-8847. Ninguém estava na sala. Ninguém apertara comando algum. O papel deslizou para o chão, ainda quente.','8h35'],
+ [334,'f2',['estagiaria','operadora'],'A impressora da Gerência imprimiu sozinha agora. Uma etiqueta: ML-8847. Não tem ninguém na sala.'],
+ [440,'n','todos','Faltam poucos minutos para o fim do capítulo.']
+];
+var C2_REP={
+ 'De quem é aquela voz?':[['operadora'],'Não dá para reconhecer. Comprimida demais. Só o código estava certo.'],
+ 'A ordem saiu da Gerência.':[['tecnico'],'O estabilizador não mente. Pulsa assim desde o primeiro dia.'],
+ 'O esmalte prova alguma coisa?':[['auditora'],'Prova que alguém tocou o botão. Não diz quando.'],
+ 'Quem tem cartão nessa faixa?':[[LEITOR,'operadora'],'Gerente, Subgerente, tesoureiro e manutenção.'],
+ 'Quem estava aqui às 6h52?':[['operadora'],'Nenhum crachá antes das 7h10.'],
+ 'Ninguém sai daqui sozinho.':[['gerente'],'Nós seguiremos o protocolo.'],
+ 'Você reconheceu a voz?':'Não. Só o código.',
+ 'Você viu as mãos de todos?':'Vi algumas. Não sei o que procurar.',
+ 'Não confio em ninguém aqui.':'Nem eu.'
+};
+CAPS[2]={nome:'A VOZ A MAIS',rot:C2,
+ rg:[[0,'De quem é aquela voz?'],[56,'A ordem saiu da Gerência.'],[96,'O esmalte prova alguma coisa?'],[168,'Quem tem cartão nessa faixa?'],[248,'Quem estava aqui às 6h52?'],[0,'Ninguém sai daqui sozinho.']],
+ rp:[[0,'Você reconheceu a voz?'],[218,'Você viu as mãos de todos?'],[0,'Não confio em ninguém aqui.']],
+ rep:C2_REP,
+ debate:{pergunta:'De onde veio a voz a mais?',falas:[['tecnico','Do estabilizador da Gerência. Três rápidas e uma lenta: é ele.'],['gerente','Áudio se adultera. Quem entende de equipamento sabe disso.'],['seguranca_interno','O código estava certo. Por isso obedeci.']]},
+ perg:[
+  {rotulo:'principal',pergunta:'De onde saiu a ordem que mandou o Segurança Interno à porta lateral?',opcoes:['De trás da divisória da Sala da Gerência.','Da base da transportadora.','Da porta lateral, do lado de fora.','Da Central de Monitoramento.']},
+  {rotulo:'secundária',tipo:'todos',pergunta:'Quem tem cartão na faixa administrativa que pareou o rádio? (marque todos)',candidatos:['Gerente','Subgerente','Caixa Veterano','Técnico','Operadora','Estagiária'],certos:[0,1,2,3]},
+  {rotulo:'secundária',pergunta:'De onde partiu o pedido de antecipação da coleta, às 6h52?',opcoes:['Do telefone da Sala da Gerência, antes de qualquer crachá do dia.','Do celular de um funcionário, de fora da agência.','Da Central de Monitoramento.','Da base da transportadora, por engano.']}],
+ achar:'o rádio reserva, na aba RA (quando a história chegar nele): a gravação, o espectro e, mais tarde, o registro de pareamento; 1 envio extra escondido nele.'};
+
+/* A peça do Cap. 2: o rádio reserva (Matéria para a RA do Cap. 2).
+   Mostra origem interna e faixa administrativa, não quem operou. O registro
+   de pareamento só aparece depois que a história o lê. */
+var registroVisivel=false,radioVistos={},radioEnvio=false;
+var DET2={
+ carcaca:['O RÁDIO','O rádio reserva do canal de segurança. Pareia com qualquer cartão de proximidade autorizado.'],
+ gravacao:['A GRAVAÇÃO','7h58:05. "Porta lateral. Possível tentativa." Antes da voz, uma respiração: duas entradas curtas, uma pausa, outra longa.'],
+ espectro:['O ESPECTRO','Por trás da voz, um zumbido regular: três pulsações rápidas e uma lenta.'],
+ botao:['O BOTÃO LATERAL','Na reentrância do botão, uma lasca de esmalte lilás.'],
+ carregador:['O CARREGADOR','O rádio estava no aparador da Gerência, fora do carregador.'],
+ registro:['O REGISTRO DE PAREAMENTO','Pareado às 7h57:55 por cartão de proximidade. Faixa administrativa. Os dois últimos dígitos do cartão: corrompidos.'],
+ antena:['A ANTENA','Presa com um elástico na base da antena, uma coisa sua: um envio extra.']
+};
+function radioSVG(){var s='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 420" role="img" aria-label="O rádio reserva">';
+  s+='<rect width="360" height="420" fill="#060d0a"/>';
+  s+='<g class="lugar" data-det="antena"><rect x="214" y="30" width="12" height="80" rx="4"/></g>';
+  s+='<g class="lugar" data-det="carregador"><rect x="70" y="330" width="220" height="40" rx="6"/><text x="180" y="355" text-anchor="middle">carregador vazio</text></g>';
+  s+='<g class="lugar" data-det="carcaca"><rect x="130" y="100" width="110" height="220" rx="14"/><text x="185" y="306" text-anchor="middle">rádio reserva</text></g>';
+  s+='<g class="lugar" data-det="gravacao"><rect x="150" y="272" width="70" height="20" rx="4"/><text x="185" y="286" text-anchor="middle">▶ gravação</text></g>';
+  s+='<g class="lugar" data-det="botao"><rect x="120" y="150" width="12" height="40" rx="3" style="fill:#3a2a4a!important;stroke:#b9a6ff!important"/></g>';
+  s+='<g class="lugar" data-det="espectro"><rect x="144" y="120" width="82" height="60" rx="4"/>';
+  var x=150,ys=[150];[0,1,2].forEach(function(){s+='<path d="M'+x+' 150 l3 -14 l3 28 l3 -14" stroke="#9fe9c0" fill="none"/>';x+=11});s+='<path d="M'+x+' 150 l10 -18 l10 36 l10 -18" stroke="#9fe9c0" fill="none"/></g>';
+  if(registroVisivel)s+='<g class="lugar" data-det="registro"><rect x="144" y="196" width="82" height="70" rx="4"/><text x="185" y="214" text-anchor="middle">07:57:55</text><text x="185" y="230" text-anchor="middle">FAIXA ADM</text><text x="185" y="246" text-anchor="middle">CARTÃO ··??</text></g>';
+  s+='<text x="350" y="410" text-anchor="end" style="font-size:8px;fill:#4dba7c;font-family:monospace">RÁDIO RESERVA · GERÊNCIA</text>';
+  return s+'</svg>'}
+var RADIO_URL='';
+function abrirRadio(){if(!$('#svgPlanta'))abrirPlanta();
+  pecaAberta='radio';$('#svgPlanta').hidden=true;$('#svgMalote').hidden=false;pintarRadio();
+  $('#plantaTopo').innerHTML='<b>O rádio reserva · Sala da Gerência</b><span>Toque nos detalhes. O que você examinar vai para o inventário.</span>';
+  $('#pcRot').textContent='O RÁDIO';$('#pcTxt').textContent='Toque num detalhe do rádio para examiná-lo.';$('#telaRA').hidden=false}
+function pintarRadio(){var a=$('#svgMalote');a.innerHTML=radioSVG();
+  a.querySelectorAll('[data-det]').forEach(function(g){if(radioVistos[g.dataset.det])g.classList.add('visto');g.onclick=function(){examinar2(g.dataset.det,g)}})}
+function examinar2(k,g){var d=DET2[k];g.classList.add('visto');$('#pcRot').textContent=d[0];$('#pcTxt').innerHTML='';digitar($('#pcTxt'),d[1],10);
+  if(k==='antena'){if(!radioEnvio){radioEnvio=true;setTimeout(achouEnvioCap,500)}return}
+  if(!radioVistos[k]){radioVistos[k]=true;try{RADIO_URL=URL.createObjectURL(new Blob([radioSVG()],{type:'image/svg+xml'}))}catch(e){}
+    INVENTARIO.push({ico:'📻',nome:'Rádio: '+d[0].toLowerCase(),desc:d[1],img:RADIO_URL});toast('Guardado no inventário: '+d[0].toLowerCase())}}
+/* a peça do capítulo com nome próprio, e o registro liberado pela história */
+var _abrirPecaCap=abrirPecaCap;abrirPecaCap=function(id){if(id!=='c2'){_abrirPecaCap(id);return}
+  var p=PECAS.filter(function(x){return x.id===id})[0];if(!p||p.aberta)return;p.aberta=true;p.nome='O rádio reserva';p.sub='Do aparador da Gerência';p.ico='📻';
+  pintarPecas();glow('ra',true);toast('Uma peça nova abriu na aba RA: o rádio reserva.')};
+var _executar2=executar;executar=function(e){if(e[1]==='frag2'){registroVisivel=true;if(!$('#telaRA').hidden&&pecaAberta==='radio')pintarRadio();return}_executar2(e)};
+var _pintarPecas=pintarPecas;pintarPecas=function(){_pintarPecas();var b=document.querySelector('[data-peca="c2"]');if(b)b.onclick=function(){if(!b.classList.contains('trancada'))abrirRadio()}};
+
+/* Perguntas de marcar todos (conjunto exato) */
+var _pintarPerg=pintarPerg;pintarPerg=function(){if(PQ.tipo!=='todos'){_pintarPerg();return}
+  if(!Array.isArray(pqEsc))pqEsc=[];
+  $('#fechoCorpo').innerHTML='<p class="kicker">Capítulo '+capitulo+' · pergunta secundária (vale metade) · marque todos</p><h1 id="fechoTitulo">'+PQ.pergunta+'</h1><p class="lede">Só vale como acerto o conjunto exato.</p>'+
+    '<div class="opcoes">'+PQ.candidatos.map(function(c,i){return '<button type="button" class="op'+(pqEsc.indexOf(i)>=0?' on':'')+'" data-todo="'+i+'"'+(pqConf==='naosei'?' disabled':'')+'><i>'+(pqEsc.indexOf(i)>=0?'✓':'·')+'</i><span>'+c+'</span></button>'}).join('')+'</div>'+
+    '<h2>O quanto você tem certeza?</h2><div class="conf">'+CONF.map(function(c){return '<button type="button" data-conf="'+c.id+'" class="'+(pqConf===c.id?'on':'')+'">'+c.nome+'<small>'+c.dica+'</small></button>'}).join('')+'</div>'+
+    '<div class="acoes"><button type="button" id="pqResp"'+((pqConf&&(pqEsc.length||pqConf==='naosei'))?'':' disabled')+'>Responder</button></div>';
+  document.querySelectorAll('#fecho [data-todo]').forEach(function(b){b.onclick=function(){var i=+b.dataset.todo,k=pqEsc.indexOf(i);if(k>=0)pqEsc.splice(k,1);else pqEsc.push(i);pintarPerg()}});
+  document.querySelectorAll('#fecho [data-conf]').forEach(function(b){b.onclick=function(){pqConf=b.dataset.conf;if(pqConf==='naosei')pqEsc=[];pintarPerg()}});
+  $('#pqResp').onclick=function(){var certa=pqEsc.length===PQ.certos.length&&PQ.certos.every(function(i){return pqEsc.indexOf(i)>=0});
+    respostas[capitulo].push({pergunta:PQ.pergunta,tipo:PQ.rotulo,opcao:pqEsc.slice(),certa:certa,confianca:pqConf});
+    if(filaPerg.length){proximaPerg();$('#fecho').scrollTop=0;return}fimDasPerguntas()}};
 
 /* ── Abertura em terminal ───────────────────────────────────────────── */
 var ABERTURA='Às 7h47, o carro-forte chega com uma hora de antecedência, e ninguém lá dentro diz ter pedido.\nUma auditoria de custódia chega sem aviso.\nQuinze funções. Uma manhã.\nUm de vocês não é quem diz.';
