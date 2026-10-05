@@ -1808,6 +1808,116 @@ var _pintarPerg=pintarPerg;pintarPerg=function(){if(PQ.tipo!=='todos'){_pintarPe
     respostas[capitulo].push({pergunta:PQ.pergunta,tipo:PQ.rotulo,opcao:pqEsc.slice(),certa:certa,confianca:pqConf});
     if(filaPerg.length){proximaPerg();$('#fecho').scrollTop=0;return}fimDasPerguntas()}};
 
+
+/* ══ PEÇAS DE RA, a partir do Cap. 3: um só mecanismo ══════════════════
+   PECA_DEF[id] = {nome, sub, ico, topo, aviso, svg(flags), det:{k:[rot,txt,flag?]}, envio:'k'}
+   Um detalhe com flag só aparece depois que a história o liberou ('libera'). */
+var PECA_DEF={},PECA_FLAGS={},PECA_VISTOS={},PECA_ENVIO={};
+function abrirPecaGen(id){var D=PECA_DEF[id];if(!$('#svgPlanta'))abrirPlanta();
+  pecaAberta=id;$('#svgPlanta').hidden=true;$('#svgMalote').hidden=false;pintarPecaGen(id);
+  $('#plantaTopo').innerHTML='<b>'+D.topo+'</b><span>Toque nos detalhes. O que você examinar vai para o inventário.</span>';
+  $('#pcRot').textContent=D.nome.toUpperCase();$('#pcTxt').textContent=D.aviso;$('#telaRA').hidden=false}
+function pintarPecaGen(id){var D=PECA_DEF[id],a=$('#svgMalote');a.innerHTML=D.svg(PECA_FLAGS);
+  a.querySelectorAll('[data-det]').forEach(function(g){var k=g.dataset.det;if((PECA_VISTOS[id]||{})[k])g.classList.add('visto');g.onclick=function(){examinarGen(id,k,g)}})}
+function examinarGen(id,k,g){var D=PECA_DEF[id],d=D.det[k];g.classList.add('visto');$('#pcRot').textContent=d[0];$('#pcTxt').innerHTML='';digitar($('#pcTxt'),d[1],10);
+  if(k===D.envio){if(!PECA_ENVIO[id]){PECA_ENVIO[id]=true;setTimeout(achouEnvioCap,500)}return}
+  var V=PECA_VISTOS[id]=PECA_VISTOS[id]||{};if(!V[k]){V[k]=true;var url='';try{url=URL.createObjectURL(new Blob([D.svg(PECA_FLAGS)],{type:'image/svg+xml'}))}catch(e){}
+    INVENTARIO.push({ico:D.ico,nome:D.curto+': '+d[0].toLowerCase(),desc:d[1],img:url});toast('Guardado no inventário: '+d[0].toLowerCase())}}
+var _abrirPecaCap2=abrirPecaCap;abrirPecaCap=function(id){var D=PECA_DEF[id];if(!D){_abrirPecaCap2(id);return}
+  var p=PECAS.filter(function(x){return x.id===id})[0];if(!p||p.aberta)return;p.aberta=true;p.nome=D.nome;p.sub=D.sub;p.ico=D.ico;
+  pintarPecas();glow('ra',true);toast('Uma peça nova abriu na aba RA: '+D.nome.toLowerCase()+'.')};
+var _executar3=executar;executar=function(e){if(e[1]==='libera'){PECA_FLAGS[e[2]]=true;if(!$('#telaRA').hidden&&PECA_DEF[pecaAberta])pintarPecaGen(pecaAberta);return}_executar3(e)};
+var _pintarPecas2=pintarPecas;pintarPecas=function(){_pintarPecas2();Object.keys(PECA_DEF).forEach(function(id){var b=document.querySelector('[data-peca="'+id+'"]');if(b)b.onclick=function(){if(!b.classList.contains('trancada'))abrirPecaGen(id)}})};
+function svgBase(rot){return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 420" role="img" aria-label="'+rot+'"><rect width="360" height="420" fill="#060d0a"/>'}
+function svgFim(rodape){return '<text x="350" y="410" text-anchor="end" style="font-size:8px;fill:#4dba7c;font-family:monospace">'+rodape+'</text></svg>'}
+
+/* ══ CAPÍTULO 3 · O PAPEL QUE NASCEU QUENTE (8h35 a 8h50) ══════════════
+   Fonte: revisão 2, Cap. 3, e a Matriz. Fecha com a primeira virada (degrau 2):
+   o malote saiu completo; cai a leitura de roubo. Sem a Estagiária, quem
+   confirma a senha do papel é o Técnico. Sem o Transportador, o peso fica com
+   a balança (Motorista) e a guia (Caixa Veterano), fontes primárias. */
+var C3=[
+ [0,'n','dentro','A etiqueta ML-8847 ficou no chão da Gerência como uma resposta oferecida por uma máquina que ninguém interrogara. {tecnico} arrancou o cabo da tomada. O papel ainda avançou dois centímetros, rangendo por dentro, antes de parar. Ele conhecia aquele equipamento: não guardava trabalho depois de perder energia. Se imprimira agora, alguém mandara agora, de algum lugar.','8h35'],
+ [0,'sisfora','Pelo grupo, a notícia chega aos pedaços: uma impressora que imprimiu sozinha, uma etiqueta com o lacre novo.'],
+ [8,'f','tecnico','Essa impressora não guarda trabalho quando perde energia. Se imprimiu agora, alguém mandou agora.'],
+ [18,'n','dentro','{gerente} mandou recolher todos os cartões de acesso. {auditora} recusou: sem registrar quem entregava qual cartão e a que horas, a coleta destruiria a cadeia de prova. A discussão foi baixa, quase cortês. Por baixo, os dois disputavam qual história sobreviveria àquela manhã.'],
+ [30,'n','dentro','{caixa_veterano} pegou a etiqueta pelas bordas. O cheiro de papel aquecido o levou a onze noites antes, ao sistema travado durante a consolidação, à chuva começando. <i>"Houve uma reimpressão naquela noite. Com o sistema fechado."</i> Ninguém lhe perguntou como sabia. Ele mesmo pareceu se arrepender de ter lembrado.'],
+ [44,'peca','c3'],
+ [48,'n','dentro','{operadora} abriu a fila no terminal da Gerência, com {auditora} ao lado anotando cada linha. A etiqueta das sete e cinquenta e três não fora impressa por ninguém às sete e cinquenta e três. Fora agendada às seis e cinquenta e oito, naquele mesmo terminal, pela conta admin.local. No mesmo minuto, a mesma conta alterara o registro da remessa: onde se lia ML-8842, passara a constar ML-8847. <i>"Por isso a tela da Mesa mostrava o lacre novo. O sistema já esperava por ele."</i>','8h38'],
+ [50,'libera','fila'],
+ [54,'f','operadora','Fila da impressora: a etiqueta das 7h53 foi agendada às 6h58, no terminal da Gerência, pela conta admin.local. No mesmo minuto, o registro da remessa passou de ML-8842 para ML-8847.'],
+ [58,'cond','seguranca_veiculo','n','dentro','{seguranca_veiculo} baixou os olhos para a própria via de papel.'],
+ [66,'n','dentro','A reimpressão das oito e trinta e cinco tinha outra origem: "acesso remoto de suporte". Não dizia de onde.'],
+ [68,'f','operadora','A reimpressão das 8h35 não saiu deste terminal. Origem: "acesso remoto de suporte". Não diz de onde.'],
+ [80,'n','dentro','<i>"Quem conhece a senha dessa conta?"</i>, perguntou {auditora}. <i>"Ninguém deveria"</i>, disse {tecnico}. <i>"Fui eu que a criei, para manutenção. Mas numa pane, meses atrás, ditei em voz alta para quem estava em volta: o Gerente, o Subgerente, o tesoureiro e a estagiária."</i>'],
+ [96,'n','dentro','{caixa_novato}, ainda abraçado à pasta errada, abriu-a com as mãos úmidas e mostrou o papel dobrado. <i>"É esta?"</i>'],
+ [102,'cond','estagiaria','n','dentro','Era. {estagiaria} confirmou, vermelha: anotara porque ninguém lhe dissera onde guardar, e nunca a usara. A resposta guardada a tornava suspeita. <i>"Então cinco pessoas ouviram"</i>, disse {auditora}. <i>"E uma delas a escreveu num papel que passou a manhã com outra."</i>'],
+ [102,'condnao','estagiaria','n','dentro','<i>"É ela"</i>, disse {tecnico}, sem tocar no papel. <i>"Então cinco pessoas ouviram"</i>, disse {auditora}. <i>"E alguém a escreveu num papel que passou a manhã com outra pessoa."</i>'],
+ [108,'p',['estagiaria'],'Eu anotei porque ninguém me disse onde guardar. Nunca usei. Juro.'],
+ [126,'n','dentro','{gerente} pediu que revistassem a maleta da manutenção. Sobre a Mesa de Recebimento, surgiram cabos sem etiqueta, conectores reaproveitados, adaptadores e um pequeno roteador. O conjunto parecia uma confissão montada por outra pessoa. {tecnico} não teve medo; teve raiva. <i>"Isso aí mantém esta agência de pé. Sem nota, sem orçamento, sem obrigado."</i>'],
+ [146,'n','dentro','{tecnico} mostrou enfim a fotografia das sete e quarenta e cinco. O conector da câmera 3 estava puxado até o limite, ainda preso. <i>"Não foi desgaste. Foi preparado para cair com a vibração do exaustor. Às sete e cinquenta e oito o ventilador acelera para a cópia local. Quem fez isso conhecia o ciclo."</i>'],
+ [150,'f','tecnico','Foto do Rack, 7h45: o conector da câmera 3 puxado até o limite, ainda preso. Foi preparado para cair com a vibração do exaustor, que acelera às 7h58.'],
+ [164,'n','dentro','<i>"Quem conhece?"</i>, perguntou {auditora}. <i>"Eu. A Central. A tesouraria, que aprovou a rotina de economia. E quem monta os relatórios de energia."</i> <i>"E onde o senhor estava quando a câmera caiu?"</i> <i>"No Rack"</i>, respondeu {tecnico}, rápido demais. <i>"Olhando o conector."</i> {auditora} anotou a resposta, e não a hesitação que viera antes dela.'],
+ [168,'n',['tecnico'],'Não é verdade, e você sabe: às sete e cinquenta e oito você estava do lado de fora da porta lateral, recebendo a caixa do motoboy.'],
+ [190,'n','todos','Pelo rádio, o Motorista chamou: o carro da esquina voltara e parara diante da Vaga Blindada. {gerente} ordenou a partida imediata. {auditora} ordenou que ficassem. Duas ordens incompatíveis ecoaram na Eclusa. O Motorista desobedeceu às duas: avançou o blindado só o bastante para fechar a Eclusa externa e liberar a faixa. O carro passou devagar: uma van de entregas, sem relação com nada.','8h44'],
+ [204,'n','todos','O susto deixou uma verdade no rádio: as decisões tomadas lá dentro podiam matar quem esperava do lado de fora.'],
+ [220,'n','todos','<i>"Antes de ele partir"</i>, disse {auditora}, <i>"quero o peso do malote."</i> Pelo rádio, o Motorista leu o registro da balança embarcada, feito às oito horas, na entrada: sete quilos. {caixa_veterano} tirou a composição da guia: quarenta e um maços de cem, doze de cinquenta, cinco de vinte. Cinco mil e oitocentas cédulas. Com o saco, o fecho e o lacre, a conta dava sete quilos.','8h48'],
+ [226,'libera','peso'],
+ [230,'f','caixa_veterano','Balança do carro-forte às 8h00: 7,0 kg. Pela guia, 41 maços de 100, 12 de 50 e 5 de 20: 5.800 cédulas. Com saco, fecho e lacre, dá 7 quilos.'],
+ [244,'n','todos','<i>"Pode ser papel cortado no tamanho"</i>, disse {gerente}. <i>"Papel não tem o mesmo peso de cédula maço por maço"</i>, respondeu {caixa_veterano}. <i>"Mas só a contagem prova."</i>'],
+ [262,'cond','transportador','n','todos','{transportador} pediu licença para pegar o malote, dentro do compartimento. Ergueu-o com a mão esquerda, para poupar o lado que doía, e depois com a direita. <i>"Pesa o que pesava às oito. E às oito pesava o que a guia diz. Papel cortado não assenta assim no fundo."</i>'],
+ [262,'n',['transportador'],'Os músculos do seu rosto denunciam a hérnia que você esconde. Ninguém comenta.'],
+ [282,'n','todos','{auditora} pediu à base que recebesse o volume sob quarentena, filmasse a abertura e contasse maço por maço. A base autorizou. O carro-forte deixou a Vaga Blindada sem romper o lacre.','8h50'],
+ [286,'f','auditora','O carro-forte parte para a base sob quarentena. Abertura filmada, contagem maço por maço.'],
+ [304,'n','dentro','{auditora} voltou ao corredor e olhou o saco vazio ainda no chão do Arquivo Morto. Durante uma hora, todos tinham procurado o que fora levado. A balança dizia que ninguém levara nada. <i>"Então ninguém roubou"</i>, disse {caixa_novato}, quase sem voz. <i>"Então alguém arriscou tudo para trocar um saco. E não levou um centavo."</i>'],
+ [312,'p',['caixa_novato'],'Se pesava o certo, ninguém roubou. Eu gritei por nada?'],
+ [330,'n','dentro','No verso da etiqueta das sete e cinquenta e três, contra a luz, apareciam números transferidos de outro papel ainda quente: 96.000. Na fila da impressora, logo abaixo da etiqueta, havia uma segunda página impressa no mesmo minuto. O nome do arquivo era ajuste_96.'],
+ [334,'libera','verso'],
+ [338,'f','operadora','Na fila, logo abaixo da etiqueta das 7h53: uma segunda página, impressa no mesmo minuto. Arquivo: ajuste_96.'],
+ [440,'n','todos','Faltam poucos minutos para o fim do capítulo.']
+];
+CAPS[3]={nome:'O PAPEL QUE NASCEU QUENTE',rot:C3,
+ rg:[[0,'Quem mandou imprimir agora?'],[54,'O lacre foi trocado antes da janela.'],[80,'Quem sabe a senha dessa conta?'],[164,'Quem conhece o ciclo do exaustor?'],[244,'Então ninguém levou nada?'],[0,'Vamos esperar a contagem da base.']],
+ rp:[[0,'Você sabia daquela senha?'],[164,'Você acredita no Técnico?'],[0,'Não confio em ninguém aqui.']],
+ rep:{
+  'Quem mandou imprimir agora?':[['tecnico'],'Alguém mandou agora, de algum lugar. Essa impressora não guarda trabalho sem energia.'],
+  'O lacre foi trocado antes da janela.':[['operadora'],'Às 6h58. A tarefa está na fila.'],
+  'Quem sabe a senha dessa conta?':[['tecnico'],'Quem estava na pane: Gerente, Subgerente, tesoureiro, estagiária. E eu.'],
+  'Quem conhece o ciclo do exaustor?':[['tecnico'],'Eu. A Central. A tesouraria. Quem monta os relatórios de energia.'],
+  'Então ninguém levou nada?':[['caixa_veterano'],'O peso diz que não. Só a contagem prova.'],
+  'Vamos esperar a contagem da base.':[['gerente'],'Nós seguiremos o protocolo.'],
+  'Você sabia daquela senha?':'Não sei de senha nenhuma.',
+  'Você acredita no Técnico?':'Acredito no que eu vi. E eu vi pouco.',
+  'Não confio em ninguém aqui.':'Nem eu.'},
+ debate:{pergunta:'Se o malote saiu completo, o que foi trocado?',falas:[['gerente','Pode ser papel cortado no tamanho. Até a contagem, houve subtração.'],['caixa_veterano','Papel não pesa como cédula, maço por maço. Mas só a contagem prova.'],['tecnico','O conector foi preparado. Quem fez conhecia o ciclo do exaustor.']]},
+ perg:[
+  {rotulo:'principal',pergunta:'O volume que partiu às 8h50 tinha o valor declarado na guia?',opcoes:['Sim: pesava 7,0 kg, o que a guia declara.','Não: faltava dinheiro.','Não: havia papel cortado no lugar das cédulas.','Não dá para saber: a balança não registrou.']},
+  {rotulo:'secundária',pergunta:'Quando a troca do lacre foi preparada?',opcoes:['Às 6h58, no terminal da Gerência, pela conta admin.local.','Às 7h53, quando a etiqueta saiu.','Durante os oitenta e sete segundos.','Às 8h35, pela reimpressão.']},
+  {rotulo:'secundária',tipo:'todos',pergunta:'Quem ouviu a senha da conta admin.local numa pane? (marque todos)',candidatos:['Gerente','Subgerente','Caixa Veterano','Técnico','Estagiária','Operadora'],certos:[0,1,2,3,4]}],
+ achar:'a impressora de etiquetas, na aba RA (quando a história chegar nela): a fila, o fragmento do lacre sobre o rolo e, no fim, o verso da etiqueta; 1 envio extra escondido nela.'};
+
+/* A peça do Cap. 3: a impressora térmica (Matéria para a RA do Cap. 3).
+   Prova preparo, não autoria. A fila só aparece depois das 8h38; o verso
+   ("96.000") e o ajuste_96, só no fim. O peso entra como cartão. */
+PECA_DEF.c3={nome:'A impressora de etiquetas',curto:'Impressora',sub:'Do aparador da Gerência',ico:'🖨️',topo:'A impressora de etiquetas · Sala da Gerência',aviso:'Toque num detalhe da impressora para examiná-lo.',envio:'estabilizador',
+ det:{
+  impressora:['A IMPRESSORA','Térmica, de etiquetas. Sai do modo de economia às 7h53. Não guarda trabalho quando perde energia.'],
+  estabilizador:['O ESTABILIZADOR','Pulsa três vezes rápido e uma devagar. Atrás dele, preso com fita, uma coisa sua: um envio extra.'],
+  etiqueta:['AS ETIQUETAS','Duas etiquetas de lacre: ML-8842, a da guia de papel; ML-8847, a que saiu às 8h35, ainda morna.'],
+  sobrepor:['O FRAGMENTO SOBRE O ROLO','O fragmento branco da cola do lacre, posto sobre o rolo da impressora: o mesmo papel térmico, as mesmas listras finas no verso.'],
+  fila:['A FILA','06:58 · admin.local · terminal da Gerência · tarefa agendada: etiqueta ML-8847, para 07:53. No mesmo minuto: registro da remessa, ML-8842 → ML-8847. · 08:35 · "acesso remoto de suporte" · reimpressão.'],
+  peso:['O PESO','Balança do carro-forte, 8h00: 7,0 kg. Guia: 41 × R$ 100, 12 × R$ 50, 5 × R$ 20 = 5.800 cédulas, R$ 480.000. Com saco, fecho e lacre: 7,0 kg.'],
+  verso:['O VERSO','Contra a luz, no verso da etiqueta das 7h53, números transferidos de outro papel ainda quente: 96.000. Na fila, uma segunda página no mesmo minuto: ajuste_96.']},
+ svg:function(F){var s=svgBase('A impressora de etiquetas');
+  s+='<g class="lugar" data-det="impressora"><rect x="90" y="120" width="180" height="110" rx="10"/><text x="180" y="215" text-anchor="middle">impressora térmica</text></g>';
+  s+='<g class="lugar" data-det="etiqueta"><rect x="130" y="96" width="100" height="30" rx="3"/><text x="180" y="115" text-anchor="middle">ML-8847</text></g>';
+  s+='<g class="lugar" data-det="estabilizador"><rect x="280" y="170" width="54" height="60" rx="6"/><text x="307" y="204" text-anchor="middle">estab.</text></g>';
+  s+='<g class="lugar" data-det="sobrepor"><rect x="100" y="246" width="110" height="34" rx="4"/><text x="155" y="267" text-anchor="middle">rolo + fragmento</text></g>';
+  if(F.fila)s+='<g class="lugar" data-det="fila"><rect x="40" y="300" width="170" height="70" rx="4"/><text x="125" y="322" text-anchor="middle">FILA</text><text x="125" y="340" text-anchor="middle">06:58 admin.local</text><text x="125" y="356" text-anchor="middle">08:35 remoto</text></g>';
+  if(F.peso)s+='<g class="lugar" data-det="peso"><rect x="226" y="300" width="100" height="70" rx="4"/><text x="276" y="330" text-anchor="middle">BALANÇA</text><text x="276" y="348" text-anchor="middle">7,0 kg</text></g>';
+  if(F.verso)s+='<g class="lugar" data-det="verso"><rect x="236" y="40" width="96" height="40" rx="3"/><text x="284" y="64" text-anchor="middle">verso: 96.000</text></g>';
+  return s+svgFim('IMPRESSORA DE ETIQUETAS · GERÊNCIA')}};
+
 /* ── Abertura em terminal ───────────────────────────────────────────── */
 var ABERTURA='Às 7h47, o carro-forte chega com uma hora de antecedência, e ninguém lá dentro diz ter pedido.\nUma auditoria de custódia chega sem aviso.\nQuinze funções. Uma manhã.\nUm de vocês não é quem diz.';
 var abFeita=false;
