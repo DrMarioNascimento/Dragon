@@ -2638,6 +2638,298 @@ function mostrarPlacar(){
   $('#placarDeNovo').onclick=function(){try{sessionStorage.removeItem('cfi:partida')}catch(e){}var u=new URL(location.href);['partida','p','papel','casa'].forEach(function(k){u.searchParams.delete(k)});location.href=u.toString()}}
 
 
+/* ══ 06/10 · O que faltava em relação à Casa da Costa ════════════════════
+   Conversa miúda nos capítulos, os seis tipos de fala nas respostas privadas,
+   a aposta num personagem, o argumento de exclusão (Caps. 4 a 7), o estilo
+   declarado, os títulos, o código e o cartão de faro, o pódio da mesa, o som
+   do rádio e o escuro dos 87 segundos (Cap. 5). Nada disso vai para servidor,
+   exceto o resumo do placar no grupo. */
+
+/* ── Conversa miúda: sem pista e sem segredo, só para a mesa respirar ── */
+var CONVERSA={
+ 1:{g:[[30,'Alguém avisou a regional?',['gerente','auditora'],'A regional já sabe. Ninguém mais telefona.'],[150,'Essa chuva não para.',['limpeza','padeiro','caixa_veterano'],'Desde as cinco. O corredor não seca hoje.'],[300,'Quanto tempo vamos ficar aqui?',['auditora','gerente'],'O tempo que a conferência levar.']],
+    p:[[60,'Você está bem?','Estou. Não sei por quanto tempo.'],[240,'Tomou café hoje?','Nem deu tempo.']]},
+ 2:{g:[[30,'Alguém tem água?',['limpeza','estagiaria','caixa_veterano'],'Tem garrafa na copa. Depois eu trago.'],[150,'Esse rádio me dá nos nervos.',['operadora','seguranca_veiculo'],'A mim também. E eu escuto ele o dia todo.'],[300,'Ninguém almoça hoje, né?',['padeiro','farmaceutica','caixa_veterano'],'Se deixarem, levo pão de queijo até a porta.']],
+    p:[[60,'Você conhece bem esta agência?','Bem demais. Por isso estou nervoso.'],[240,'Isso já aconteceu antes aqui?','Assim, não.']]},
+ 3:{g:[[30,'Alguém sabe quando a regional chega?',['auditora','gerente'],'Quando a conferência pedir.'],[150,'Está frio aqui ou sou eu?',['tecnico','limpeza','estagiaria'],'O ar da Central vaza para o corredor. Sempre foi assim.'],[300,'Vamos com calma, gente.',['caixa_veterano','subgerente'],'Calma eu tenho. Paciência, menos.']],
+    p:[[60,'Como está sua família?','Longe daqui, ainda bem.'],[240,'Você dormiu esta noite?','Pouco.']]},
+ 4:{g:[[30,'Alguém viu meu guarda-chuva?',['estagiaria','limpeza','caixa_veterano'],'Tem três no balde da entrada. Um deles deve ser o seu.'],[150,'Que manhã.',['caixa_veterano','operadora','subgerente'],'Vinte e sete anos e nenhuma igual.'],[300,'O carro-forte ainda está lá fora?',['seguranca_veiculo','transportador'],'Está. Motor ligado e paciência curta.']],
+    p:[[60,'Precisa de alguma coisa?','Que isso acabe.'],[240,'Você está com fome?','Nem penso nisso.']]},
+ 5:{g:[[30,'Alguém mais está com fome?',['padeiro','farmaceutica','limpeza'],'A padaria está aberta. Só não deixam atravessar.'],[150,'Esse silêncio pesa.',['operadora','caixa_veterano'],'A Central nunca fica em silêncio. Hoje fica.'],[300,'Quem quer café?',['limpeza','estagiaria','padeiro'],'Se tiver, eu aceito.']],
+    p:[[60,'Tudo bem aí?','Vai ficar.'],[240,'Isso acaba hoje?','Tem que acabar.']]},
+ 6:{g:[[30,'Alguém avisou as famílias?',['gerente','subgerente','auditora'],'Cada um avisa quando sairmos.'],[150,'Ainda está chovendo?',['padeiro','transportador','seguranca_veiculo'],'Garoa. Daqui vejo a rua toda molhada.'],[300,'Que horas são?',['operadora','estagiaria'],'O relógio da Central diz o mesmo que o seu.']],
+    p:[[60,'Você vai ficar bem?','Vou. Obrigado por perguntar.'],[240,'Depois disso, um café?','Depois disso, um café forte.']]},
+ 7:{g:[[30,'Falta pouco, eu acho.',['auditora','operadora'],'Falta o que falta.'],[150,'Obrigado a quem trouxe água.',['limpeza','estagiaria'],'De nada. Tem mais na copa.'],[300,'Alguém precisa de alguma coisa?',['caixa_veterano','farmaceutica','limpeza'],'Que a gente saia daqui.']],
+    p:[[60,'Você ainda confia em alguém aqui?','Em pouca gente.'],[240,'A gente se vê lá fora.','Se Deus quiser.']]}
+};
+(function(){Object.keys(CONVERSA).forEach(function(n){var C=CAPS[n],V=CONVERSA[n];if(!C)return;
+  function junta(lista,novos){var t0=lista.filter(function(x){return x[0]===0}),resto=lista.filter(function(x){return x[0]!==0});
+    resto=resto.concat(novos).sort(function(a,b){return a[0]-b[0]});return t0.concat(resto)}
+  C.rg=junta(C.rg||[],V.g.map(function(x){return [x[0],x[1]]}));
+  C.rp=junta(C.rp||[],V.p.map(function(x){return [x[0],x[1]]}));
+  V.g.forEach(function(x){if(!C.rep[x[1]])C.rep[x[1]]=[x[2],x[3]]});
+  V.p.forEach(function(x){if(!C.rep[x[1]])C.rep[x[1]]=x[2]})})})();
+
+/* ── Os seis tipos de fala: cada personagem do sistema responde no seu jeito
+   quando a frase não tem resposta própria (sorteado pela partida). ── */
+var TIPOS6=['explosivo','calmo_opaco','ingenuo','leal_cego','evasivo','burocrata'];
+var FALA_TIPO={
+ explosivo:['Agora não! Me deixa pensar.','Você também? Já não basta o resto?','Pergunta isso para quem fez.'],
+ calmo_opaco:['Hum. Depois.','Pode ser.','Vamos ver.'],
+ ingenuo:['Nossa, eu nem sei o que dizer.','Eu achei que você soubesse!','Sério? Ninguém me falou nada.'],
+ leal_cego:['Aqui todo mundo é gente boa. Vai aparecer.','Eu confio na equipe.','Quem trabalha aqui não faria isso.'],
+ evasivo:['Agora não dá. Depois a gente fala.','Não sei de nada disso.','Melhor não falar por aqui.'],
+ burocrata:['Isso tem que passar pelo registro.','Sem protocolo, eu não respondo.','Formalize e eu vejo.']};
+var tipoCache={},tipoConta={};
+function tipoDe(id){if(!tipoCache[id])tipoCache[id]=TIPOS6[Math.floor(gerador(PARTIDA+'|tipo|'+id)()*TIPOS6.length)];return tipoCache[id]}
+function falaDoTipo(id){var L=FALA_TIPO[tipoDe(id)],k=tipoConta[id]||0;tipoConta[id]=k+1;return L[k%L.length]}
+/* a privada que não tinha resposta: no prólogo e nos capítulos */
+var _chegaPrivTipo=chegaPrivada;chegaPrivada=function(id,txt){if(txt==='Agora não dá. Depois a gente fala.')txt=falaDoTipo(id);_chegaPrivTipo(id,txt)};
+document.addEventListener('click',function(e){var c=e.target.closest('#respPriv .chip');if(!c||!capitulo||!abertaPriv)return;
+  var C=CAPS[capitulo],f=abertaPriv,id=ID_DE[f];if(!C||!id||C.rep[c.textContent]!==undefined||(MP&&HUM_SLOT[f])||capituloFechado[capitulo])return;
+  /* o handler do chip (depois deste) gasta o envio e põe a frase na conversa; aqui só a resposta, se a frase saiu */
+  var n0=privadas[f]?privadas[f].msgs.length:0;
+  setTimeout(function(){var ms=privadas[f]&&privadas[f].msgs;if(ms&&ms.length>n0&&ms[n0].de===EU)chegaPrivada(id,falaDoTipo(id))},2600+Math.random()*1500)},true);
+
+/* ── A aposta: num número ou num personagem ── */
+var apostaModo='num',votoPers=null;
+var _ccAposta=comecarCapitulo;comecarCapitulo=function(n){apostaModo='num';votoPers=null;_ccAposta(n)};
+var _psAposta=pintarSusp;pintarSusp=function(){_psAposta();if(!capitulo||capitulo>7||!fimDeCapitulo)return;var L=$('#listaSusp'),b=$('#seguirCap');if(!b)return;
+  if(apostaConf==='naosei')votoPers=null;
+  var cab=L.querySelector('.conf-aposta');
+  var tg='<div class="modo-aposta"><button type="button" data-modo-aposta="num" class="'+(apostaModo==='num'?'on':'')+'">Num número</button><button type="button" data-modo-aposta="pers" class="'+(apostaModo==='pers'?'on':'')+'">Num personagem</button></div>';
+  if(cab)cab.insertAdjacentHTML('afterend',tg);else L.insertAdjacentHTML('afterbegin',tg);
+  if(apostaModo==='pers'){L.querySelectorAll('[data-votar]').forEach(function(x){x.hidden=true});
+    b.insertAdjacentHTML('beforebegin','<div class="aviso">Em qual personagem você aposta? (Não precisa saber o número dele.)</div><div class="pers-aposta">'+PRESENTES.filter(function(id){return id!==EU_PAPEL}).map(function(id){return '<button type="button" class="voto'+(votoPers===id?' on':'')+'" data-votar-pers="'+id+'">'+P[id].n+(votoPers===id?' ✓':'')+'</button>'}).join('')+'</div>')}
+  L.querySelectorAll('[data-modo-aposta]').forEach(function(x){x.onclick=function(){apostaModo=x.dataset.modoAposta;pintarSusp()}});
+  L.querySelectorAll('[data-votar-pers]').forEach(function(x){x.onclick=function(){votoPers=x.dataset.votarPers;if(apostaConf==='naosei')apostaConf=null;pintarSusp()}});
+  b.onclick=function(){apostas[capitulo]=apostaAtual();
+    try{sessionStorage.setItem('cfi:respostas:'+PARTIDA,JSON.stringify({respostas:respostas,apostas:apostas,argumentos:argumentos,estilo:ESTILO}))}catch(e){}
+    if(MP){mpPronto(capitulo);return}
+    comecarCapitulo(capitulo+1)}};
+function apostaAtual(){return apostaModo==='pers'?{numero:null,personagem:votoPers,confianca:apostaConf,modo:'personagem'}:{numero:votoEm,personagem:votoEm?ID_DE[votoEm]:null,confianca:apostaConf}}
+var _mpEncAposta=mpEncerrarLocal;mpEncerrarLocal=function(){if(capitulo>=1&&capitulo<=7&&!apostas[capitulo]&&apostaModo==='pers')apostas[capitulo]=apostaAtual();_mpEncAposta()};
+document.head.insertAdjacentHTML('beforeend','<style>.modo-aposta{display:flex;gap:6px;margin:0 0 10px}.modo-aposta button{flex:1;min-height:40px;border-radius:999px;border:1px solid #2f6b4e;background:transparent;color:#9fc9b3;font:600 13px var(--sans)}.modo-aposta button.on{background:#1d4733;color:#eafff3;border-color:#4dba7c}.pers-aposta{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:0 0 10px}.pers-aposta .voto{margin:0}</style>');
+
+/* ── Argumento de exclusão (Caps. 4 a 7) ──────────────────────────────
+   "[personagem] não pode ter feito a troca porque [prova]". Só as provas que
+   a história já mostrou. Vale +1 se a prova de fato exclui um inocente, −1
+   se o personagem é o impostor, 0 se a prova não o exclui. */
+var EXCLUSOES=[
+ [4,['seguranca_interno'],'A câmera 2 viu a porta de aço abrir uma vez só, para {seguranca_interno} sair, chamado pelo rádio.'],
+ [4,['caixa_novato'],'{caixa_novato} estava trancado no Banheiro dos Funcionários e ouviu a parede raspar duas vezes.'],
+ [6,['tecnico'],'O aplicativo de entregas registrou {tecnico} na porta lateral às 7h58:51, recebendo a caixa.'],
+ [7,['operadora'],'A câmera interna da Central mostra {operadora} no console, com a mão no rádio, a janela inteira.'],
+ [7,['limpeza'],'A câmera 1 mostra {limpeza} e o carrinho no Saguão.'],
+ [7,['estagiaria'],'A câmera 2 mostra {estagiaria} nos Guichês, recolhendo folhas.'],
+ [7,['auditora','cliente_cofre'],'A câmera 1 mostra {auditora} e {cliente_cofre} juntas na Porta Giratória.','SV'],
+ [7,['gerente'],'{gerente} esteve junto à Porta Giratória o tempo todo; {auditora} e {cliente_cofre} confirmam.','SV'],
+ [7,['caixa_veterano'],'A câmera 2 mostra {caixa_veterano} na Mesa desde 7h57:55.','SG'],
+ [7,['subgerente'],'A câmera 2 mostra {subgerente} nos Guichês, buscando a guia.','GV']];
+var argumentos={};
+function pistasVistas(cap){return EXCLUSOES.filter(function(e){return e[0]<=cap&&(!e[3]||e[3].indexOf(PCOD)>=0)&&e[1].some(presente)}).map(function(e){return {ids:e[1],txt:e[2]}})}
+function pontosArgumento(a){if(!a||!a.quem)return 0;if(a.quem===IMP)return -1;return a.pista&&a.pista.ids.indexOf(a.quem)>=0?1:0}
+function rotuloDe(id){return id===EU_PAPEL?'Você ('+P[id].n+')':P[id].n}
+function telaArgumento(cap,depois){
+  var L=pistasVistas(cap),quem=null,pi=null,ps=PRESENTES.slice();
+  function pinta(){
+    $('#fechoCorpo').innerHTML='<p class="kicker">Capítulo '+cap+' · respostas guardadas · argumento de exclusão (opcional)</p><h1 id="fechoTitulo">Quem não pode ter feito a troca?</h1>'+
+      '<p class="lede">Uma vez por capítulo, você pode registrar, só para você: <b>[personagem] não pode ter feito a troca porque [prova]</b>. Vale +1 se o personagem é inocente e a prova de fato o exclui, e −1 se ele é o impostor. Prova errada para um inocente vale 0. Pode ser o seu personagem.</p>'+
+      '<h2>Personagem</h2><div class="opcoes">'+ps.map(function(id){return '<button type="button" class="op'+(quem===id?' on':'')+'" data-arg-quem="'+id+'"><i>'+(quem===id?'✓':'')+'</i><span>'+rotuloDe(id)+'</span></button>'}).join('')+'</div>'+
+      '<h2>Porque…</h2><div class="opcoes">'+L.map(function(p,i){return '<button type="button" class="op'+(pi===i?' on':'')+'" data-arg-pista="'+i+'"><i>'+(pi===i?'✓':'')+'</i><span>'+T(p.txt)+'</span></button>'}).join('')+'</div>'+
+      '<div class="acoes"><button type="button" id="argRegistrar"'+(quem&&pi!==null?'':' disabled')+'>Registrar e seguir</button> <button type="button" class="sec" id="argPular">Pular</button></div>';
+    document.querySelectorAll('[data-arg-quem]').forEach(function(b){b.onclick=function(){quem=b.dataset.argQuem;pinta()}});
+    document.querySelectorAll('[data-arg-pista]').forEach(function(b){b.onclick=function(){pi=+b.dataset.argPista;pinta()}});
+    $('#argRegistrar').onclick=function(){argumentos[cap]={quem:quem,pista:L[pi]};depois()};
+    $('#argPular').onclick=function(){depois()};
+    $('#fecho').scrollTop=0}
+  pinta()}
+var _fdpArg=fimDasPerguntas;fimDasPerguntas=function(){_fdpArg();if(capitulo<4||capitulo>7)return;var b=$('#irAposta');if(!b)return;var seguir=b.onclick;telaArgumento(capitulo,seguir)};
+
+/* ── Estilo declarado e código de faro (antes do Cap. 1) ── */
+var ESTILOS={faro:['Faro','aposta cedo'],metodo:['Método','exclui antes de acusar'],escuta:['Escuta','confia no que se ouviu nos 87 segundos'],caderno:['Caderno','confia em documentos']};
+var ESTILO=null,FARO_ANT=null,estiloVisto=false;
+function telaEstilo(depois){
+  abrirFecho();var esc=ESTILO;
+  function pinta(){var v=$('#codFaro')?$('#codFaro').value:(FARO_ANT?FARO_ANT.codigo:'');
+    $('#fechoCorpo').innerHTML='<p class="kicker">Antes do Capítulo 1</p><h1 id="fechoTitulo">Como você pretende investigar?</h1>'+
+      '<p class="lede">Escolha só para você. No fim, o jogo mostra se o seu jogo confirmou o estilo.</p>'+
+      '<div class="opcoes">'+Object.keys(ESTILOS).map(function(k){return '<button type="button" class="op'+(esc===k?' on':'')+'" data-estilo="'+k+'"><i>'+(esc===k?'✓':'')+'</i><span><b>'+ESTILOS[k][0]+'</b> · '+ESTILOS[k][1]+'</span></button>'}).join('')+'</div>'+
+      '<h2>Código de faro (opcional)</h2><p class="lede">Se você guardou o código da partida anterior deste caso, digite aqui para ver a sua evolução no fim.</p>'+
+      '<input id="codFaro" type="text" autocomplete="off" spellcheck="false" placeholder="FARO-…" style="width:100%;min-height:44px;padding:8px 12px;border-radius:10px;border:1px solid #46667a;background:#0d1f2b;color:#f1f8fc;font:600 16px var(--mono)">'+
+      '<p class="lede" id="codMsg" style="margin-top:6px"></p>'+
+      '<div class="acoes"><button type="button" id="estiloOk">Começar o Capítulo 1</button></div>';
+    $('#codFaro').value=v;
+    document.querySelectorAll('[data-estilo]').forEach(function(b){b.onclick=function(){esc=b.dataset.estilo;pinta()}});
+    $('#estiloOk').onclick=function(){var t=$('#codFaro').value.trim();
+      if(t){var r=lerCodigoFaro(t);if(!r){$('#codMsg').textContent='Esse código não confere (ou é de outro caso). Confira as letras ou deixe em branco.';return}FARO_ANT=r}
+      ESTILO=esc;estiloVisto=true;fecharFecho();depois()}}
+  pinta()}
+var _ccEstilo=comecarCapitulo;comecarCapitulo=function(n){if(n===1&&capitulo===0&&!estiloVisto){telaEstilo(function(){_ccEstilo(1)});return}_ccEstilo(n)};
+
+/* ── Resumo da partida: placar, títulos e estilo ── */
+function resumoPartida(){
+  var tot=0,max=0,certezas=0,certezasCertas=0;
+  for(var n=1;n<=8;n++){var R=respostas[n]||[];
+    (CAPS[n]?CAPS[n].perg:[]).forEach(function(q,i){var r=R[i],p=q.peso||(q.rotulo==='secundária'?0.5:1);max+=4*p;if(r){tot+=pontos(r).pts;if(r.confianca==='certeza'){certezas++;if(r.certa)certezasCertas++}}})}
+  var faro=0,primeiro=null,tecnicoCerteza=false;
+  Object.keys(apostas).forEach(function(c){var a=apostas[c];if(!a||a.confianca!=='certeza'||!a.personagem)return;
+    if(a.personagem==='tecnico')tecnicoCerteza=true;
+    if(a.personagem===IMP){faro++;if(primeiro===null||+c<primeiro)primeiro=+c}else faro--});
+  var args=Object.keys(argumentos).map(function(c){return {cap:+c,a:argumentos[c],p:pontosArgumento(argumentos[c])}}),
+      argVal=args.filter(function(x){return x.p>0}).length,argPts=args.reduce(function(s,x){return s+x.p},0),argImp=args.some(function(x){return x.p<0});
+  var sob=EU_PAPEL==='tecnico'&&args.some(function(x){return x.a.quem==='tecnico'&&x.p>0});
+  var r8=respostas[8]||[],r5=respostas[5]||[],ac5=r5.filter(function(r){return r.certa}).length;
+  var coracao=!!(r8[1]&&r8[1].certa)&&!tecnicoCerteza;
+  var titulos=[];
+  if(primeiro!==null)titulos.push(['Faro','Você apostou certo, com certeza, já no Capítulo '+primeiro+'.']);
+  if(argVal>=2)titulos.push(['Método','Você fez '+argVal+' argumentos de exclusão válidos.']);
+  if(ac5>=2)titulos.push(['Escuta','Você acertou o que os 87 segundos guardavam.']);
+  if(coracao)titulos.push(['Coração','Você acertou quem ajudou sem saber e nunca acusou o Técnico com certeza.']);
+  if(sob)titulos.push(['Sob suspeita','O seu personagem era o falso culpado, e você defendeu a inocência dele com um argumento válido. +2.']);
+  var conf={faro:primeiro!==null&&primeiro<=5,metodo:argVal>=2&&!argImp,escuta:ac5>=2,caderno:!!(r8[0]&&r8[0].certa&&r8[2]&&r8[2].certa)};
+  var treino=(certezas>=3&&certezasCertas/certezas>=0.6)?'calibração: as suas certezas foram certeiras':(argVal>=2?'exclusão: você tirou inocentes da janela com provas':'atenção: guardar o que foi dito e o que as câmeras viram');
+  var final=Math.round((tot+argPts+(sob?2:0))*10)/10;
+  return {tot:tot,max:max,final:final,certezas:certezas,certezasCertas:certezasCertas,faro:faro,primeiro:primeiro,args:args,argVal:argVal,argPts:argPts,ac5:ac5,coracao:coracao,sob:sob,titulos:titulos,confirmado:ESTILO?conf[ESTILO]:null,treino:treino}}
+
+/* ── Código de faro: FARO-XXXXX-XXXXX, só no aparelho. Versão 2 = este caso
+   (o código da Casa da Costa, versão 1, não vale aqui). Primeiro acerto: 0 = nenhum. ── */
+var B32='0123456789ABCDEFGHJKMNPQRSTVWXYZ',FARO_VERSAO=2;
+function escreverCodigoFaro(R){var ant=FARO_ANT||{n:0,prim:0,melhorPrim:0,melhorPts:0};
+  var prim=R.primeiro===null?0:R.primeiro,n=Math.min(63,ant.n+1),mp=!ant.melhorPrim?prim:(!prim?ant.melhorPrim:Math.min(ant.melhorPrim,prim)),
+      pts=Math.max(0,Math.min(127,Math.round(R.final)+40)),mpts=FARO_ANT?Math.max(FARO_ANT.melhorPtsBruto,pts):pts,est=ESTILO?Object.keys(ESTILOS).indexOf(ESTILO)+1:0;
+  var campos=[[FARO_VERSAO,3],[n,6],[prim,3],[mp,3],[Math.min(31,R.certezasCertas),5],[Math.min(31,R.certezas),5],[Math.min(7,R.argVal),3],[pts,7],[mpts,7],[est,3],[R.confirmado?1:0,1]],bits='';
+  campos.forEach(function(c){var b=c[0].toString(2);while(b.length<c[1])b='0'+b;bits+=b});
+  var soma=0;for(var i=0;i<bits.length;i++)soma=(soma*3+ +bits[i])%32;var b5=soma.toString(2);while(b5.length<5)b5='0'+b5;bits+=b5;while(bits.length%5)bits+='0';
+  var s='';for(var j=0;j<bits.length;j+=5)s+=B32[parseInt(bits.substr(j,5),2)];
+  return 'FARO-'+s.slice(0,5)+'-'+s.slice(5)}
+function lerCodigoFaro(c){c=String(c).toUpperCase().replace(/[^0-9A-Z]/g,'').replace(/^FARO/,'').replace(/O/g,'0').replace(/[IL]/g,'1');
+  var bits='';for(var i=0;i<c.length;i++){var v=B32.indexOf(c[i]);if(v<0)return null;var b=v.toString(2);while(b.length<5)b='0'+b;bits+=b}
+  var tam=[3,6,3,3,5,5,3,7,7,3,1],pos=0,vals=[];if(bits.length<46+5)return null;
+  tam.forEach(function(t){vals.push(parseInt(bits.substr(pos,t),2));pos+=t});
+  var soma=0;for(var k=0;k<pos;k++)soma=(soma*3+ +bits[k])%32;if(parseInt(bits.substr(pos,5),2)!==soma||vals[0]!==FARO_VERSAO)return null;
+  if(/1/.test(bits.slice(pos+5))||c.length!==11)return null;
+  return {codigo:'FARO-'+c.slice(0,5)+'-'+c.slice(5),n:vals[1],prim:vals[2],melhorPrim:vals[3],certezasCertas:vals[4],certezas:vals[5],argVal:vals[6],pts:vals[7]-40,melhorPts:vals[8]-40,melhorPtsBruto:vals[8],estilo:vals[9]?Object.keys(ESTILOS)[vals[9]-1]:null,confirmado:!!vals[10]}}
+function frasesEvolucao(R){if(!FARO_ANT)return [];var a=FARO_ANT,o=[];
+  o.push('Na partida anterior você '+(a.prim?'acusou certo, com certeza, no Cap. '+a.prim:'não acusou certo com certeza')+'; hoje, '+(R.primeiro===null?'não acusou certo com certeza':'no Cap. '+R.primeiro)+'.');
+  o.push('Pontos: '+a.pts+' antes, '+fmt(R.final)+' hoje. Argumentos de exclusão válidos: '+a.argVal+' antes, '+R.argVal+' hoje. Certezas certas: '+a.certezasCertas+' de '+a.certezas+' antes, '+R.certezasCertas+' de '+R.certezas+' hoje.');
+  o.push('Esta é a sua partida número '+Math.min(63,a.n+1)+' com o código.');return o}
+function cartaoFaro(R,codigo){
+  var W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;var g=cv.getContext('2d');
+  var gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,'#0c2419');gr.addColorStop(1,'#040d09');g.fillStyle=gr;g.fillRect(0,0,W,H);
+  g.strokeStyle='#4dba7c66';g.lineWidth=3;g.strokeRect(36,36,W-72,H-72);
+  function tx(t,x,y,f,c,al){g.font=f;g.fillStyle=c;g.textAlign=al||'left';g.fillText(t,x,y)}
+  function quebra(t,x,y,f,c,w,lh){g.font=f;g.fillStyle=c;g.textAlign='left';var ps=String(t).split(' '),l='';ps.forEach(function(p){var e=l?l+' '+p:p;if(g.measureText(e).width>w&&l){g.fillText(l,x,y);y+=lh;l=p}else l=e});if(l){g.fillText(l,x,y);y+=lh}return y}
+  tx('MOSAICO · A MANHÃ DO CARRO-FORTE',90,130,'700 34px sans-serif','#4dba7c');
+  tx('Cartão de faro',90,200,'800 64px sans-serif','#eafff3');
+  tx('Partida '+PARTIDA,90,250,'500 28px monospace','#9fc9b3');
+  var y=340;
+  tx(fmt(R.final)+' pontos',90,y,'800 88px sans-serif','#efc878');
+  y+=56;tx('de '+fmt(R.max)+' possíveis nas perguntas',90,y,'500 30px sans-serif','#9fc9b3');
+  y+=90;tx('Estilo: '+(ESTILO?ESTILOS[ESTILO][0]:'não declarado')+(ESTILO?(R.confirmado?' · confirmado':' · não confirmado'):''),90,y,'700 40px sans-serif','#eafff3');
+  y+=70;[['Certezas certas',R.certezasCertas+' de '+R.certezas],['Argumentos de exclusão válidos',String(R.argVal)],['Primeiro acerto com certeza',R.primeiro===null?'—':'Capítulo '+R.primeiro]].forEach(function(l){tx(l[0],90,y,'500 34px sans-serif','#9fc9b3');tx(l[1],W-90,y,'700 34px sans-serif','#eafff3','right');y+=58});
+  y+=30;tx('TÍTULOS',90,y,'700 28px sans-serif','#4dba7c');y+=52;
+  if(R.titulos.length)R.titulos.forEach(function(t){y=quebra(t[0]+': '+t[1],90,y,'500 32px sans-serif','#eafff3',W-180,44)});else y=quebra('Nenhum título nesta manhã. A próxima pode ser a sua.',90,y,'500 32px sans-serif','#9fc9b3',W-180,44);
+  y+=30;tx('O QUE VOCÊ TREINOU HOJE',90,y,'700 28px sans-serif','#4dba7c');y+=52;quebra(R.treino.charAt(0).toUpperCase()+R.treino.slice(1)+'.',90,y,'500 32px sans-serif','#eafff3',W-180,44);
+  tx('Código de faro',90,H-170,'600 28px sans-serif','#9fc9b3');tx(codigo,90,H-110,'800 54px monospace','#efc878');
+  return cv.toDataURL('image/png')}
+
+/* ── O placar com o fechamento ── */
+var _mostrarPlacarF=mostrarPlacar;mostrarPlacar=function(){_mostrarPlacarF();
+  var R=resumoPartida(),codigo=escreverCodigoFaro(R),evo=frasesEvolucao(R);
+  $('#fechoTitulo').textContent=fmt(R.final)+' pontos';
+  var h1=$('#fechoTitulo');h1.insertAdjacentHTML('afterend','<p class="lede">Perguntas: '+fmt(R.tot)+' de '+fmt(R.max)+'.'+(R.args.length?' Argumentos de exclusão: '+(R.argPts>0?'+':'')+R.argPts+'.':'')+(R.sob?' Sob suspeita: +2.':'')+'</p>');
+  var argTxt=R.args.map(function(x){return '<p class="lede">Cap. '+x.cap+': '+rotuloDe(x.a.quem)+' não pode ter feito a troca porque '+T(x.a.pista.txt).replace(/^./,function(c){return c.toLowerCase()}).replace(/\.$/,'')+'. <b>'+(x.p>0?'+1, válido':(x.p<0?'−1: era o impostor':'0: a prova não o exclui'))+'</b></p>'}).join('');
+  var html=(argTxt?'<h2>Seus argumentos de exclusão</h2>'+argTxt:'')+
+    '<h2>Estilo declarado</h2><p class="lede">'+(ESTILO?ESTILOS[ESTILO][0]+' ('+ESTILOS[ESTILO][1]+'): '+(R.confirmado?'o seu jogo confirmou.':'desta vez, o seu jogo foi por outro caminho.'):'Você não declarou um estilo nesta partida.')+'</p>'+
+    (MP?'':(R.titulos.length?'<h2>Títulos</h2>'+R.titulos.map(function(t){return '<p class="lede"><b>'+t[0]+'.</b> '+t[1]+'</p>'}).join(''):'<h2>Títulos</h2><p class="lede">Nenhum título nesta manhã.</p>'))+
+    '<h2>O que você treinou hoje</h2><p class="lede">'+R.treino.charAt(0).toUpperCase()+R.treino.slice(1)+'.</p>'+
+    (evo.length?'<h2>A sua evolução</h2>'+evo.map(function(t){return '<p class="lede">'+t+'</p>'}).join(''):'')+
+    '<h2>Cartão e código de faro</h2><p class="lede">Guarde o cartão na sua galeria. O código resume os seus números: digite-o no começo da próxima partida para ver a sua evolução. '+(MP?'O código e o cartão ficam só neste aparelho; para a mesa vai só o placar.':'Nada disso vai para servidor.')+'</p>'+
+    '<p class="lede" style="font:800 22px var(--mono);color:#efc878;letter-spacing:.06em" id="codigoFaro">'+codigo+'</p>'+
+    '<img id="cartaoImg" alt="Cartão de faro" style="width:100%;max-width:420px;border-radius:12px;border:1px solid #2f6b4e;display:block;margin:0 0 10px">'+
+    '<div class="acoes"><button type="button" id="baixarCartao">Salvar o cartão</button></div>';
+  var ac=$('#fechoCorpo .acoes:last-child')||$('#fechoCorpo .acoes');ac.insertAdjacentHTML('beforebegin',html);
+  try{var url=cartaoFaro(R,codigo);$('#cartaoImg').src=url;$('#baixarCartao').onclick=function(){var a=document.createElement('a');a.href=url;a.download='cartao-de-faro-'+PARTIDA+'.png';document.body.appendChild(a);a.click();a.remove()}}catch(e){$('#cartaoImg').remove();$('#baixarCartao').remove()}
+  try{sessionStorage.setItem('cfi:respostas:'+PARTIDA,JSON.stringify({respostas:respostas,apostas:apostas,argumentos:argumentos,estilo:ESTILO,final:R.final,codigo:codigo}))}catch(e){}};
+
+/* ── No grupo: o resumo vai para a mesa; títulos comparativos e pódio ── */
+mpFimDaPartida=function(){if(mpFinalizado)return;mpFinalizado=true;var R=resumoPartida();
+  mpMeuResumo={papel:EU_PAPEL,final:R.final,primeiro:R.primeiro,argVal:R.argVal,ac5:R.ac5,coracao:R.coracao,sob:R.sob};
+  mpSala().atualizarEu({resumo:mpMeuResumo,etapa:8});mpPintarPlacar()};
+mpPintarPlacar=function(){var el=$('#mpPlacar');if(!el)return;var S=mpSala(),room=S.sala,hum=mpHumanos(room,S.jogadores);
+  var feitos=hum.filter(function(p){return p.resumo&&p.id!==mpUid}).map(function(p){return {id:p.id,nome:p.nome||'Jogador',r:p.resumo}});
+  if(mpMeuResumo)feitos.push({id:mpUid,nome:mpNomes[mpUid]||'Você',r:mpMeuResumo});
+  feitos.sort(function(a,b){return b.r.final-a.r.final});
+  var total=room&&room.oi?Object.keys(room.oi.papeis).length:feitos.length,pos=0,ant=null;
+  function nomeP(x){return '<b>'+String(x.nome).replace(/[<>&]/g,'')+'</b>'+(x.id===mpUid?' (você)':'')}
+  var linhas=feitos.map(function(x,i){if(x.r.final!==ant){pos=i+1;ant=x.r.final}
+    return '<tr><td><b>'+pos+'º</b></td><td>'+nomeP(x)+'</td><td>'+(P[x.r.papel]?P[x.r.papel].n:'')+'</td><td style="text-align:right;color:'+(x.r.final>=0?'#9ff0c4':'#f0a89a')+'">'+fmt(x.r.final)+'</td></tr>'}).join('');
+  /* o pódio: os três primeiros valores; empate divide o degrau */
+  var notas=[];feitos.forEach(function(x){if(notas.indexOf(x.r.final)<0)notas.push(x.r.final)});notas.sort(function(a,b){return b-a});
+  function degrau(d){var v=notas[d-1];if(v===undefined)return '<div class="podio-col"></div>';var q=feitos.filter(function(x){return x.r.final===v});
+    return '<div class="podio-col"><div class="podio-nomes">'+q.map(nomeP).join('<br>')+'</div><div class="podio-bloco d'+d+'"><span>'+d+'º</span><small>'+fmt(v)+'</small></div></div>'}
+  var podio=feitos.length?'<div class="podio">'+degrau(2)+degrau(1)+degrau(3)+'</div>':'';
+  function melhores(f,menor){var vs=feitos.map(function(x){return f(x.r)}).filter(function(v){return v!==null&&v!==undefined&&(menor||v>0)});if(!vs.length)return null;
+    var alvo=menor?Math.min.apply(null,vs):Math.max.apply(null,vs);return {v:alvo,quem:feitos.filter(function(x){return f(x.r)===alvo})}}
+  function lista(q){return q.map(nomeP).join(', ')}
+  var tit=[],m;
+  if((m=melhores(function(r){return r.primeiro},true)))tit.push(['Faro',lista(m.quem)+': apostou certo, com certeza, mais cedo (Capítulo '+m.v+').']);
+  if((m=melhores(function(r){return r.argVal})))tit.push(['Método',lista(m.quem)+': mais argumentos de exclusão válidos ('+m.v+').']);
+  if((m=melhores(function(r){return r.ac5})))tit.push(['Escuta',lista(m.quem)+': mais acertos sobre os 87 segundos ('+m.v+').']);
+  var co=feitos.filter(function(x){return x.r.coracao});if(co.length)tit.push(['Coração',lista(co)+': acertou quem ajudou sem saber e nunca acusou o Técnico com certeza.']);
+  var so=feitos.filter(function(x){return x.r.sob});if(so.length)tit.push(['Sob suspeita',lista(so)+': era o Técnico, o falso culpado, e defendeu a própria inocência com um argumento válido. +2.']);
+  var falta=total-feitos.length;
+  el.innerHTML='<h2>A mesa</h2>'+podio+'<table style="width:100%;border-collapse:collapse;font-size:14px"><tr style="color:#4dba7c"><td></td><td>Jogador</td><td>Personagem</td><td style="text-align:right">pontos</td></tr>'+linhas+'</table>'+
+    (falta>0?'<p class="lede">Aguardando '+falta+(falta>1?' jogadores':' jogador')+' terminar a acusação.</p>':'')+
+    (tit.length?'<h2>Títulos da mesa</h2>'+tit.map(function(t){return '<p class="lede"><b>'+t[0]+'.</b> '+t[1]+'</p>'}).join(''):'')};
+document.head.insertAdjacentHTML('beforeend','<style>'+
+  '.podio{display:grid;grid-template-columns:1fr 1fr 1fr;align-items:end;gap:8px;margin:6px 0 14px}'+
+  '.podio-col{display:flex;flex-direction:column;align-items:stretch;text-align:center}'+
+  '.podio-nomes{font:600 13px/1.3 var(--sans);color:#eafff3;margin-bottom:6px;min-height:18px;word-break:break-word}'+
+  '.podio-bloco{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:8px;border-radius:10px 10px 0 0;border:1px solid #2f6b4e;border-bottom:0;background:linear-gradient(#1d4733,#0c2419)}'+
+  '.podio-bloco span{font:800 22px var(--sans);color:#efc878}.podio-bloco small{font:700 13px var(--mono);color:#9fc9b3}'+
+  '.podio-bloco.d1{height:120px;border-color:#efc878;background:linear-gradient(#5a4a1e,#1d1a0c)}.podio-bloco.d2{height:88px}.podio-bloco.d3{height:64px}'+
+  '</style>');
+
+/* ── O rádio: a estática toca quando a história passa pelo rádio ── */
+var RADIO_RE=/pelo r[aá]dio|o r[aá]dio( da Central)? (estalou|chiou|chamou|reserva)|r[aá]dio reserva/i,radioUlt=0;
+function somRadio(){try{var a=$('#somRadio');if(!a||Date.now()-radioUlt<4000)return;radioUlt=Date.now();clearInterval(somRadio.t);a.volume=0.55;a.currentTime=0;var p=a.play();if(p&&p.catch)p.catch(function(){});
+  setTimeout(function(){somRadio.t=setInterval(function(){a.volume=Math.max(0,a.volume-0.06);if(a.volume<=0.02){a.pause();clearInterval(somRadio.t)}},80)},2200)}catch(e){}}
+var _narrarRadio=narrar;narrar=function(txt,hh){if(RADIO_RE.test(txt))somRadio();_narrarRadio(txt,hh)};
+
+/* ── O escuro dos 87 segundos (Cap. 5): o áudio da Central, tela preta ── */
+var escuroAtivo=false,escuroTimer=null;
+document.head.insertAdjacentHTML('beforeend','<style>'+
+  '#escuro{position:fixed;inset:0;z-index:60;background:#000;color:#cfd6e2;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 22px;text-align:center;transition:opacity 1.2s}'+
+  '#escuro[hidden]{display:none}'+
+  '#escuro .seg{position:absolute;top:max(16px,env(safe-area-inset-top));left:0;right:0;font:600 13px var(--sans);letter-spacing:.12em;color:#5d6676}'+
+  '#escuro .linha{max-width:560px;max-height:78vh;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;font:400 17px/1.5 Georgia,serif}'+
+  '#escuro .linha b{display:block;font:700 12px var(--mono);letter-spacing:.1em;color:#4dba7c;margin-bottom:2px}'+
+  '#escuro .aviso-escuro{position:absolute;bottom:max(18px,env(safe-area-inset-bottom));left:0;right:0;font:12px var(--sans);color:#4b5260}'+
+  '#escuro.saindo{opacity:0}</style>');
+(function(){var d=document.createElement('div');d.id='escuro';d.hidden=true;d.setAttribute('aria-live','polite');
+  d.innerHTML='<div class="seg" id="escuroSeg">O MICROFONE DA CENTRAL · OS 87 SEGUNDOS</div><div class="linha" id="escuroLinha"></div><div class="aviso-escuro">No escuro, ninguém escreve. Só se ouve.</div>';
+  document.body.appendChild(d)})();
+var ESCURO_LINHAS=[['7h58:05','A ordem, no rádio.'],['7h58:12','Um estalo seco. A imagem cai.'],['7h58:20','Quase nada. O ventilador do Rack. A chuva no telhado.'],['7h59:24','Um clangor curto de metal.'],['7h59:39','A imagem volta.']];
+function escuroLinha(hh,txt){var c=$('#escuroLinha');var p=document.createElement('p');p.innerHTML='<b>'+hh+'</b>'+txt;p.style.cssText='margin:0 0 16px;opacity:0;transition:opacity .6s';c.appendChild(p);
+  setTimeout(function(){p.style.opacity=1},60);var ps=c.querySelectorAll('p');for(var i=0;i<ps.length-3;i++)ps[i].remove();ps=c.querySelectorAll('p');for(var k=0;k<ps.length-1;k++)ps[k].style.opacity=.38}
+function escuroComeca(){if(escuroAtivo)return;escuroAtivo=true;var d=$('#escuro');d.hidden=false;d.classList.remove('saindo');$('#escuroLinha').innerHTML='';
+  $('#respGrupo').hidden=true;$('#respPriv').hidden=true;$('#telaRA').hidden=true;
+  if(navigator.vibrate)try{navigator.vibrate([60,40,60])}catch(e){}
+  var passo=TESTE?500:4500,i=0;
+  function prox(){if(i>=ESCURO_LINHAS.length){escuroTimer=setTimeout(escuroAcaba,passo);return}var l=ESCURO_LINHAS[i++];if(i===1)somRadio();escuroLinha(l[0],l[1]);
+    grupo.push({sis:'<span class="hh">'+l[0]+'</span>'+l[1],digitada:true});escuroTimer=setTimeout(prox,passo)}
+  escuroTimer=setTimeout(prox,TESTE?200:1500)}
+function escuroAcaba(){if(!escuroAtivo)return;escuroAtivo=false;clearTimeout(escuroTimer);var d=$('#escuro');d.classList.add('saindo');setTimeout(function(){d.hidden=true;if(aba==='grupo')pintarGrupo()},1300)}
+var _executarEscuro=executar;executar=function(e){if(e[1]==='escuro'){if(percebe('dentro'))escuroComeca();return}_executarEscuro(e)};
+var _pausadoEscuro=pausado;pausado=function(){return escuroAtivo||_pausadoEscuro()};
+var _gastarEscuro=gastarEnvio;gastarEnvio=function(){if(escuroAtivo){toast('No escuro, ninguém escreve.');return false}return _gastarEscuro()};
+(function(){var C=CAPS[5]&&CAPS[5].rot;if(!C)return;for(var i=0;i<C.length;i++)if(C[i][0]===72&&C[i][1]==='n'){C.splice(i,0,[70,'escuro']);break}})();
+
+/* ── Prólogo: uma privada de exemplo, para quem nunca recebeu uma ── */
+(function(){for(var i=0;i<ROT0.length;i++)if(ROT0[i][0]>120){ROT0.splice(i,0,[120,'p',['seguranca_interno','caixa_veterano'],'Se precisar de alguma coisa na agência, é só me chamar.']);break}})();
+
 /* ── Abertura em terminal ───────────────────────────────────────────── */
 var ABERTURA='Às 7h47, o carro-forte chega com uma hora de antecedência, e ninguém lá dentro diz ter pedido.\nUma auditoria de custódia chega sem aviso.\nQuinze funções. Uma manhã.\nUm de vocês não é quem diz.';
 var abFeita=false;
@@ -2828,7 +3120,8 @@ window.addEventListener('mosaico-room-ready',function(e){var d=e.detail||{};if(!
 if(MP){cfiCarregarSala();inicioDoJogo()}
 
 window.CFIMesa={maquete:function(){abrirMaquete()},partida:PCOD,impostor:IMP,casa:CASA,papel:EU_PAPEL,numero:EU,presentes:PRESENTES,pular:function(){inicioDoJogo();prologo.planta=prologo.ondeEstou=prologo.papeis=true;abrirGrupo();$('#janelaOk').click()},
-  tempo:function(s){tRot=s},estado:function(){return {cap:capitulo,tRot:tRot,iRot:iRot,grupo:grupo.length,prologo:prologo,resta:resta,respostas:respostas,apostas:apostas,inv:INVENTARIO.length,envios:envios}},cap:function(n){comecarCapitulo(n)},fim:function(){fimDoCapitulo()}};
+  tempo:function(s){tRot=s},estado:function(){return {cap:capitulo,tRot:tRot,iRot:iRot,grupo:grupo.length,prologo:prologo,resta:resta,respostas:respostas,apostas:apostas,inv:INVENTARIO.length,envios:envios}},cap:function(n){estiloVisto=true;comecarCapitulo(n)},capComEstilo:function(n){comecarCapitulo(n)},fim:function(){fimDoCapitulo()},
+  fecho:{dados:function(){return {respostas:respostas,apostas:apostas,argumentos:argumentos}},estilo:function(e){ESTILO=e},resumo:function(){return resumoPartida()},ler:function(c){return lerCodigoFaro(c)},escrever:function(){return escreverCodigoFaro(resumoPartida())},pistas:function(c){return pistasVistas(c).map(function(p){return p.ids.join('+')+': '+T(p.txt)})},tipo:function(id){return tipoDe(id)},escuro:function(){return escuroAtivo},placar:function(){mostrarPlacar()},rg:function(n){return CAPS[n].rg.map(function(x){return x[0]+' '+x[1]})},rot5:function(){return CAPS[5].rot.slice(0,40).map(function(e){return e[0]+e[1]}).join(' ')}}};
 if(MP&&TESTE)window.CFIMesa.mp={pronto:function(n){mpPronto(n)},estado:function(){return {papel:EU_PAPEL,eu:EU,p:PCOD,casa:CASA,partida:PARTIDA,hum:Object.keys(MP_HUM).sort().join(','),slots:JSON.stringify(SLOT_DE),cap:capitulo,ligado:mpLigado,capApl:mpCapAplicado,esp:mpEsperando,roomCap:JSON.stringify((mpSala()&&mpSala().sala||{}).cap||null),faixa:($('#mpFaixa')||{}).textContent||''}},
   grupo:function(){return grupo.map(function(m){return m.sis?'[N] '+limpo(m.sis):(m.de?m.de+': '+(m.txt||m.anexo||''):'')})},priv:function(f){return (privadas[f]||{msgs:[]}).msgs.map(function(m){return m.sis?'[N] '+limpo(m.sis):m.de+': '+(m.txt||m.anexo||'')})},placar:function(){mostrarPlacar()},chip:function(t){var m={de:EU,txt:t,h:hora()};grupo.push(m);pintarGrupo();replicaGrupo(t);mpEnviar(m,'grupo')}};
 if(TESTE)console.log('[CFI] partida',PCOD,'impostor',IMP,'casa',CASA,'papel',EU_PAPEL,'···'+EU);
@@ -2842,6 +3135,7 @@ document.querySelectorAll('.suspeito').forEach(function(s){var t=s.querySelector
 var cab=document.getElementById('convAvatar'),nome=document.getElementById('convNome');var n=nome&&nome.textContent.match(/(\d{2})/);if(cab&&n)preencher(cab,n[1])}
 var obs=new MutationObserver(varrer);obs.observe(document.body,{childList:true,subtree:true});varrer()})();
 </script>
+<audio id="somRadio" src="media/radio-estatica.mp3" preload="auto"></audio>
 <script src="maquete.js?v=20261006d"></script>
 </body>
 </html>
