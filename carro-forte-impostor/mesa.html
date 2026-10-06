@@ -2624,7 +2624,7 @@ var _executar8=executar;executar=function(e){
   if(e[1]==='placar'){capituloFechado[8]=true;faseFinal=4;setTimeout(mostrarPlacar,TESTE?600:4000);return}
   _executar8(e)};
 var _fdp8=fimDasPerguntas;fimDasPerguntas=function(){if(capitulo!==8){_fdp8();return}
-  $('#fechoCorpo').innerHTML='<p class="kicker">Capítulo 8 · acusação registrada</p><h1 id="fechoTitulo">A sua acusação está na ata.</h1><p class="lede">Agora a Auditora fala. A revelação corre no Grupo; o placar vem no fim.</p><div class="acoes"><button type="button" id="ouvirAuditora">Ouvir a Auditora</button></div>';
+  $('#fechoCorpo').innerHTML='<p class="kicker">Capítulo 8 · acusação registrada</p><h1 id="fechoTitulo">A sua acusação está na ata.</h1><p class="lede">Agora a Auditora fala, no Grupo. Depois vêm a revelação, o placar e o epílogo.</p><div class="acoes"><button type="button" id="ouvirAuditora">Ouvir a Auditora</button></div>';
   $('#ouvirAuditora').onclick=function(){fecharFecho();faseFinal=3;ROT=C8B;tRot=0;iRot=0;capituloFechado[8]=false;irPara('grupo')}};
 /* a Nota no capítulo final: só o caderno (sem "Concluí" nem aposta) */
 var _ps8=pintarSusp;pintarSusp=function(){if(capitulo===8){_pintarSusp();return}_ps8();
@@ -2856,22 +2856,12 @@ function cartaoFaro(R,codigo){
 
 /* ── O placar com o fechamento ── */
 var _mostrarPlacarF=mostrarPlacar;mostrarPlacar=function(){_mostrarPlacarF();
-  /* 07/10: a revelação no padrão d'A Casa da Costa: o vídeo e o boneco do número do impostor nesta partida */
-  var fImp=SLOT_DE[IMP];
-  $('#fechoCorpo').insertAdjacentHTML('afterbegin',REVELA_VIDEO('videoImp','somImp')+
-    '<div id="impLogo" style="display:flex;align-items:center;gap:14px;margin:4px 0 14px;padding:12px 14px;border-radius:14px;border:1px solid #6b5420;border-bottom-width:3px;background:linear-gradient(180deg,#1d1709,#120e06);box-shadow:inset 0 2px 0 #ffffff12,inset 0 -4px 7px #0009,0 4px 0 #020609,0 10px 18px #000a;opacity:0;transform:translateY(8px);transition:opacity .9s,transform .9s">'+
-      avatarDe(fImp,76)+
-      '<div><small style="display:block;color:#c9a95a;letter-spacing:.12em;font:700 11px var(--sans)">NESTA PARTIDA, O IMPOSTOR ERA O NÚMERO</small>'+
-      '<b style="display:block;font:800 30px var(--mono);color:'+(CORES[fImp]||'#efc878')+'">···'+fImp+'</b>'+
-      '<span style="color:#e9dfc6">'+P[IMP].n+' · '+P[IMP].f+'</span></div></div>');
-  var vI=$('#videoImp'),lg=$('#impLogo');function mostra(){if(lg){lg.style.opacity=1;lg.style.transform='none'}}
-  if(vI){var pr=vI.play();if(pr&&pr.catch)pr.catch(mostra);vI.addEventListener('ended',mostra);vI.addEventListener('error',mostra);
-    $('#somImp').onclick=function(){vI.muted=false;vI.currentTime=0;vI.play()}}
-  setTimeout(mostra,5000);
   $('#fecho').scrollTop=0;
   var R=resumoPartida(),codigo=escreverCodigoFaro(R),evo=frasesEvolucao(R);
   $('#fechoTitulo').textContent=fmt(R.final)+' pontos';
-  var h1=$('#fechoTitulo');h1.insertAdjacentHTML('afterend','<p class="lede">Perguntas: '+fmt(R.tot)+' de '+fmt(R.max)+'.'+(R.args.length?' Argumentos de exclusão: '+(R.argPts>0?'+':'')+R.argPts+'.':'')+(R.sob?' Sob suspeita: +2.':'')+'</p>');
+  var h1=$('#fechoTitulo');h1.insertAdjacentHTML('afterend','<p class="lede">Perguntas: '+fmt(R.tot)+' de '+fmt(R.max)+'.'+(R.args.length?' Argumentos de exclusão: '+(R.argPts>0?'+':'')+R.argPts+'.':'')+(R.sob?' Sob suspeita: +2.':'')+'</p>'+
+    '<p class="lede"><b>Referência:</b> de '+fmt(R.max)+' possíveis nas perguntas; uma boa manhã fica a partir de '+fmt(Math.round(R.max/2))+'.'+(R.final>=Math.round(R.max/2)?' Foi uma boa manhã.':'')+'</p>'+
+    '<p class="lede"><b>Faro:</b> '+(R.faro>0?'+':'')+R.faro+' (apostas de fim de capítulo feitas com certeza). <b>Certezas:</b> '+R.certezasCertas+' de '+R.certezas+'.</p>');
   var argTxt=R.args.map(function(x){return '<p class="lede">Cap. '+x.cap+': '+rotuloDe(x.a.quem)+' não pode ter feito a troca porque '+T(x.a.pista.txt).replace(/^./,function(c){return c.toLowerCase()}).replace(/\.$/,'')+'. <b>'+(x.p>0?'+1, válido':(x.p<0?'−1: era o impostor':'0: a prova não o exclui'))+'</b></p>'}).join('');
   var html=(argTxt?'<h2>Seus argumentos de exclusão</h2>'+argTxt:'')+
     '<h2>Estilo declarado</h2><p class="lede">'+(ESTILO?ESTILOS[ESTILO][0]+' ('+ESTILOS[ESTILO][1]+'): '+(R.confirmado?'o seu jogo confirmou.':'desta vez, o seu jogo foi por outro caminho.'):'Você não declarou um estilo nesta partida.')+'</p>'+
@@ -2883,6 +2873,7 @@ var _mostrarPlacarF=mostrarPlacar;mostrarPlacar=function(){_mostrarPlacarF();
     '<img id="cartaoImg" alt="Cartão de faro" style="width:100%;max-width:420px;border-radius:12px;border:1px solid #2f6b4e;display:block;margin:0 0 10px">'+
     '<div class="acoes"><button type="button" id="baixarCartao">Salvar o cartão</button></div>';
   var ac=$('#fechoCorpo .acoes:last-child')||$('#fechoCorpo .acoes');ac.insertAdjacentHTML('beforebegin',html);
+  var pdn=$('#placarDeNovo');if(pdn&&EPILOGO.length){pdn.insertAdjacentHTML('beforebegin','<button type="button" id="irEpilogo">Epílogo</button>');$('#irEpilogo').onclick=pintarEpilogo}
   try{var url=cartaoFaro(R,codigo);$('#cartaoImg').src=url;$('#baixarCartao').onclick=function(){var a=document.createElement('a');a.href=url;a.download='cartao-de-faro-'+PARTIDA+'.png';document.body.appendChild(a);a.click();a.remove()}}catch(e){$('#cartaoImg').remove();$('#baixarCartao').remove()}
   try{sessionStorage.setItem('cfi:respostas:'+PARTIDA,JSON.stringify({respostas:respostas,apostas:apostas,argumentos:argumentos,estilo:ESTILO,final:R.final,codigo:codigo}))}catch(e){}};
 
@@ -2902,7 +2893,7 @@ mpPintarPlacar=function(){var el=$('#mpPlacar');if(!el)return;var S=mpSala(),roo
   var notas=[];feitos.forEach(function(x){if(notas.indexOf(x.r.final)<0)notas.push(x.r.final)});notas.sort(function(a,b){return b-a});
   function degrau(d){var v=notas[d-1];if(v===undefined)return '<div class="podio-col"></div>';var q=feitos.filter(function(x){return x.r.final===v});
     return '<div class="podio-col"><div class="podio-nomes">'+q.map(nomeP).join('<br>')+'</div><div class="podio-bloco d'+d+'"><span>'+d+'º</span><small>'+fmt(v)+'</small></div></div>'}
-  var podio=feitos.length?'<div class="podio">'+degrau(2)+degrau(1)+degrau(3)+'</div>':'';
+  var podio='';
   function melhores(f,menor){var vs=feitos.map(function(x){return f(x.r)}).filter(function(v){return v!==null&&v!==undefined&&(menor||v>0)});if(!vs.length)return null;
     var alvo=menor?Math.min.apply(null,vs):Math.max.apply(null,vs);return {v:alvo,quem:feitos.filter(function(x){return f(x.r)===alvo})}}
   function lista(q){return q.map(nomeP).join(', ')}
@@ -2962,6 +2953,107 @@ var _gastarEscuro=gastarEnvio;gastarEnvio=function(){if(escuroAtivo){toast('No e
 
 /* ── Prólogo: uma privada de exemplo, para quem nunca recebeu uma ── */
 (function(){for(var i=0;i<ROT0.length;i++)if(ROT0[i][0]>120){ROT0.splice(i,0,[120,'p',['seguranca_interno','caixa_veterano'],'Se precisar de alguma coisa na agência, é só me chamar.']);break}})();
+
+/* ══ 07/10 · A apuração no padrão d'A Casa da Costa: O Impostor ═════════════
+   (Mario: "implementar tudo da Casa da Costa, à exceção das 4 perguntas")
+   A ordem do fim fica a d'A Casa da Costa: a palavra do seu personagem → debate
+   → perguntas finais → a Auditora no Grupo → a revelação (tela própria, com o
+   vídeo e o boneco do número) → no grupo, o pódio → o placar → o epílogo, com a
+   pergunta sem pontos. Os textos da revelação e do epílogo são os mesmos do
+   Cap. 8 (C8B_SEQ): nada novo de cânone; o epílogo só mudou de lugar (do Grupo,
+   antes do placar, para a tela depois do placar). */
+
+/* o epílogo sai do Grupo e vai para a tela depois do placar */
+var EPILOGO=[],PERGUNTA_SEM_PONTOS=null;
+(function(){var i=-1;for(var k=0;k<C8B_SEQ.length;k++)if(C8B_SEQ[k][0]==='n'&&C8B_SEQ[k][3]==='dia seguinte'){i=k;break}
+  if(i<0)return;
+  C8B_SEQ.slice(i).forEach(function(e){if(e[0]==='placar')return;
+    if(e[0]==='n')EPILOGO.push(e[2]);
+    else if(e[0]==='j'){if(/NÃO CABE EM NENHUMA NORMA/.test(e[1]))PERGUNTA_SEM_PONTOS=e[2].replace(/\s*Leve a pergunta.*$/,'')/* a outra janela repete a mensagem que a narração já traz */}});
+  C8B=cronometrar(C8B_SEQ.slice(0,i).concat([['placar']]).filter(function(e){return e[4]!==''}))})();
+
+/* os blocos da revelação: os movimentos da Auditora, como estão no Grupo */
+function trechoC8(prefixo){for(var k=0;k<C8B_SEQ.length;k++){var t=C8B_SEQ[k][0]==='n'?C8B_SEQ[k][2]:(C8B_SEQ[k][0]==='cond'&&C8B_SEQ[k][2]==='n'?C8B_SEQ[k][4]:null);
+  if(typeof t==='string'&&t.indexOf(prefixo)===0)return t.slice(prefixo.length).replace(/^\s*/,'')}return ''}
+function blocosRevelacao(){var cap=function(s){return s?s.charAt(0).toUpperCase()+s.slice(1):s};
+  return [['O que sabia',trechoC8('Depois falou devagar, separando cada coisa da seguinte.')],
+    ['Por onde foi',cap(trechoC8('Por onde foi:'))],
+    ['Quem viu não estar',cap(trechoC8('Quem o viu não estar:'))],
+    ['O que o registro desmente',cap(trechoC8('O que o registro desmente:'))],
+    ['Quem ajudou, sem saber',cap(trechoC8('Quem ajudou, sem saber:'))],
+    ['Por que os outros caíram',cap(trechoC8('E por que os outros pareceram culpados:'))],
+    ['Por quê','<i>"'+CONF8+'"</i>']].filter(function(l){return l[1]})}
+
+/* A palavra do seu personagem, antes das respostas finais (como n'A Casa da Costa) */
+function telaPalavra(depois){
+  var tm=[1,2,3,4,5,6,7].map(function(c){return listaMarcas(c,false)}).join('');
+  $('#fechoCorpo').innerHTML='<p class="kicker">A acusação</p><h1 id="fechoTitulo">Antes das respostas finais.</h1>'+
+    '<p class="lede">'+T('{operadora} abriu uma página nova na ata: cada um disse, uma vez e sem interrupção, de quem desconfiava.')+'</p>'+
+    '<h2>A palavra do seu personagem</h2><p class="lede">Na mesa, cada um lê em voz alta o próprio segredo, em primeira pessoa. Este é o seu:</p>'+
+    '<div class="aviso ouro" style="margin:8px 0 14px">'+T(P[EU_PAPEL].seg)+'</div>'+
+    '<p class="lede">Todo mundo na agência tem um segredo, inclusive quem fez a troca. Por isso a leitura não entrega ninguém: só explica o que confundia a mesa.</p>'+
+    (tm?'<details class="marcadas" open><summary style="color:var(--gold);cursor:pointer">📌 Suas falas marcadas</summary>'+tm+'</details>':'')+
+    '<div class="acoes"><button type="button" id="irDebateFinal">Ir para o debate</button></div>';
+  $('#fecho').scrollTop=0;$('#irDebateFinal').onclick=depois}
+
+/* a revelação, tela própria */
+function pintarRevelacao(){abrirFecho();
+  var fImp=SLOT_DE[IMP];
+  $('#fechoCorpo').innerHTML=REVELA_VIDEO('videoImp','somImp')+
+    '<div id="impLogo" style="display:flex;align-items:center;gap:14px;margin:4px 0 14px;padding:12px 14px;border-radius:14px;border:1px solid #6b5420;border-bottom-width:3px;background:linear-gradient(180deg,#1d1709,#120e06);box-shadow:inset 0 2px 0 #ffffff12,inset 0 -4px 7px #0009,0 4px 0 #020609,0 10px 18px #000a;opacity:0;transform:translateY(8px);transition:opacity .9s,transform .9s">'+
+      avatarDe(fImp,76)+
+      '<div><small style="display:block;color:#c9a95a;letter-spacing:.12em;font:700 11px var(--sans)">NESTA PARTIDA, O IMPOSTOR ERA O NÚMERO</small>'+
+      '<b style="display:block;font:800 30px var(--mono);color:'+(CORES[fImp]||'#efc878')+'">···'+fImp+'</b>'+
+      '<span style="color:#e9dfc6">'+P[IMP].n+' · '+P[IMP].f+'</span></div></div>'+
+    '<p class="kicker">A revelação</p><h1 id="fechoTitulo">Foi '+na(IMP)+'.</h1>'+
+    blocosRevelacao().map(function(l){return '<h2>'+l[0]+'</h2><p class="lede">'+T(l[1])+'</p>'}).join('')+
+    (AJ===EU_PAPEL?'<p class="lede"><b>Era o seu personagem que assinou sem contar:</b> você ajudou sem saber.</p>':'')+
+    (EU_PAPEL==='tecnico'?'<p class="lede"><b>E o seu personagem era quem parecia culpado, sem ser.</b></p>':'')+
+    '<div class="acoes"><button type="button" id="irPlacar">'+(MP?'Ver a mesa':'Ver o placar')+'</button></div>';
+  var vI=$('#videoImp'),lg=$('#impLogo');function mostra(){if(lg){lg.style.opacity=1;lg.style.transform='none'}}
+  if(vI){var pr=vI.play();if(pr&&pr.catch)pr.catch(mostra);vI.addEventListener('ended',mostra);vI.addEventListener('error',mostra);
+    $('#somImp').onclick=function(){vI.muted=false;vI.currentTime=0;vI.play()}}
+  setTimeout(mostra,5000);
+  $('#irPlacar').onclick=function(){if(vI)try{vI.pause()}catch(e){}if(MP)mpPodio();else mostrarPlacar()};
+  $('#fecho').scrollTop=0}
+
+/* no grupo: o pódio, tela própria, antes do placar de cada um. Empate divide o degrau. */
+function htmlPodio(){var S=mpSala(),room=S.sala,hum=mpHumanos(room,S.jogadores);
+  var feitos=hum.filter(function(p){return p.resumo&&p.id!==mpUid}).map(function(p){return {id:p.id,nome:p.nome||'Jogador',r:p.resumo}});
+  if(mpMeuResumo)feitos.push({id:mpUid,nome:mpNomes[mpUid]||'Você',r:mpMeuResumo});
+  function nomeP(x){return '<b>'+String(x.nome).replace(/[<>&]/g,'')+'</b>'+(x.id===mpUid?' (você)':'')}
+  var notas=[];feitos.forEach(function(x){if(notas.indexOf(x.r.final)<0)notas.push(x.r.final)});notas.sort(function(a,b){return b-a});
+  function degrau(d){var v=notas[d-1];if(v===undefined)return '<div class="podio-col"></div>';var q=feitos.filter(function(x){return x.r.final===v});
+    return '<div class="podio-col"><div class="podio-nomes">'+q.map(nomeP).join('<br>')+'</div><div class="podio-bloco d'+d+'"><span>'+d+'º</span><small>'+fmt(v)+'</small></div></div>'}
+  var total=room&&room.oi?Object.keys(room.oi.papeis).length:feitos.length,falta=total-feitos.length;
+  return (feitos.length?'<div class="podio">'+degrau(2)+degrau(1)+degrau(3)+'</div>':'')+
+    '<p class="lede" style="text-align:center">'+(falta>0?'Aguardando '+falta+(falta>1?' jogadores':' jogador')+' terminar a acusação.':'Todos terminaram.')+'</p>'}
+function mpPodio(){mpFimDaPartida();
+  $('#fechoCorpo').innerHTML='<p class="kicker">A mesa · resultados</p><h1 id="fechoTitulo">O pódio</h1><div id="mpPodio">'+htmlPodio()+'</div>'+
+    '<div class="acoes"><button type="button" id="irMeuPlacar">Ver o seu placar</button></div>';
+  $('#irMeuPlacar').onclick=mostrarPlacar;$('#fecho').scrollTop=0}
+function mpPintarPodio(){var el=$('#mpPodio');if(el)el.innerHTML=htmlPodio()}
+var _mpPPPodio=mpPintarPlacar;mpPintarPlacar=function(){_mpPPPodio();mpPintarPodio()};
+
+/* o Epílogo, depois do placar, com a pergunta sem pontos */
+function pintarEpilogo(){
+  var ops=['A intenção de reparar','Os meios escolhidos','O risco imposto aos outros'];
+  $('#fechoCorpo').innerHTML='<p class="kicker">Epílogo</p><h1 id="fechoTitulo">Uma ausência com forma precisa.</h1>'+
+    EPILOGO.map(function(t){return '<p class="lede">'+T(t)+'</p>'}).join('')+
+    (PERGUNTA_SEM_PONTOS?'<h2>Sem pontos</h2><p class="lede">'+PERGUNTA_SEM_PONTOS+'</p>'+
+      '<div class="opcoes">'+ops.map(function(o,i){return '<button type="button" class="op" data-valor="'+i+'"><i>'+'ABC'[i]+'</i><span>'+o+'</span></button>'}).join('')+'</div>'+
+      '<p class="lede">Leve a pergunta para a mesa.</p>':'')+
+    '<div class="acoes"><button type="button" id="fimJogo">Fim</button></div>';
+  document.querySelectorAll('[data-valor]').forEach(function(b){b.onclick=function(){document.querySelectorAll('[data-valor]').forEach(function(x){x.classList.toggle('on',x===b)})}});
+  $('#fimJogo').onclick=function(){fecharFecho();janela('FIM','Obrigado por jogar. A partida '+PARTIDA+' terminou.'+(MP?'':' Para outra partida, toque em "Jogar de novo" no placar ou recarregue a página.'))};
+  $('#fecho').scrollTop=0}
+
+/* o fim do Cap. 8 passa pela palavra do personagem e pela revelação */
+var _executarApur=executar;executar=function(e){
+  if(e[1]==='acusar'){capituloFechado[8]=true;faseFinal=2;
+    setTimeout(function(){janela('A SUA ACUSAÇÃO','Agora é a sua vez. Primeiro, a palavra do seu personagem. Depois, 1 minuto de debate em voz alta e quatro perguntas: quem é o impostor, quem ajudou sem saber, o que aconteceu com o malote e por quê. A resposta certa só aparece no fim.',function(){abrirFecho();telaPalavra(function(){abrirDebate(CAPS[8].debate,irParaPerguntas)})})},TESTE?600:2500);return}
+  if(e[1]==='placar'){capituloFechado[8]=true;faseFinal=4;setTimeout(pintarRevelacao,TESTE?600:4000);return}
+  _executarApur(e)};
 
 /* ── Abertura em terminal ───────────────────────────────────────────── */
 var ABERTURA='Às 7h47, o carro-forte chega com uma hora de antecedência, e ninguém lá dentro diz ter pedido.\nUma auditoria de custódia chega sem aviso.\nQuinze funções. Uma manhã.\nUm de vocês não é quem diz.';
@@ -3153,7 +3245,7 @@ window.addEventListener('mosaico-room-ready',function(e){var d=e.detail||{};if(!
 if(MP){cfiCarregarSala();inicioDoJogo()}
 
 window.CFIMesa={maquete:function(){abrirMaquete()},partida:PCOD,impostor:IMP,casa:CASA,papel:EU_PAPEL,numero:EU,presentes:PRESENTES,pular:function(){inicioDoJogo();prologo.planta=prologo.ondeEstou=prologo.papeis=true;abrirGrupo();$('#janelaOk').click()},
-  tempo:function(s){tRot=s},estado:function(){return {cap:capitulo,tRot:tRot,iRot:iRot,grupo:grupo.length,prologo:prologo,resta:resta,respostas:respostas,apostas:apostas,inv:INVENTARIO.length,envios:envios}},cap:function(n){estiloVisto=true;comecarCapitulo(n)},capComEstilo:function(n){comecarCapitulo(n)},papeis:function(){mostrarPapeis()},fimPrologo:function(){fimDoPrologo()},fim:function(){fimDoCapitulo()},
+  tempo:function(s){tRot=s},estado:function(){return {cap:capitulo,tRot:tRot,iRot:iRot,grupo:grupo.length,prologo:prologo,resta:resta,respostas:respostas,apostas:apostas,inv:INVENTARIO.length,envios:envios}},cap:function(n){estiloVisto=true;comecarCapitulo(n)},capComEstilo:function(n){comecarCapitulo(n)},papeis:function(){mostrarPapeis()},revelacao:function(){pintarRevelacao()},epilogo:function(){abrirFecho();pintarEpilogo()},palavra:function(){abrirFecho();telaPalavra(function(){})},podio:function(){abrirFecho();mpPodio()},blocos:function(){return blocosRevelacao().map(function(l){return l[0]+': '+T(l[1]).slice(0,80)})},epi:function(){return {n:EPILOGO.length,q:PERGUNTA_SEM_PONTOS,c8b:C8B.length}},fimPrologo:function(){fimDoPrologo()},fim:function(){fimDoCapitulo()},
   fecho:{dados:function(){return {respostas:respostas,apostas:apostas,argumentos:argumentos}},estilo:function(e){ESTILO=e},resumo:function(){return resumoPartida()},ler:function(c){return lerCodigoFaro(c)},escrever:function(){return escreverCodigoFaro(resumoPartida())},pistas:function(c){return pistasVistas(c).map(function(p){return p.ids.join('+')+': '+T(p.txt)})},tipo:function(id){return tipoDe(id)},escuro:function(){return escuroAtivo},placar:function(){mostrarPlacar()},rg:function(n){return CAPS[n].rg.map(function(x){return x[0]+' '+x[1]})},rot5:function(){return CAPS[5].rot.slice(0,40).map(function(e){return e[0]+e[1]}).join(' ')}}};
 if(MP&&TESTE)window.CFIMesa.mp={pronto:function(n){mpPronto(n)},estado:function(){return {papel:EU_PAPEL,eu:EU,p:PCOD,casa:CASA,partida:PARTIDA,hum:Object.keys(MP_HUM).sort().join(','),slots:JSON.stringify(SLOT_DE),cap:capitulo,ligado:mpLigado,capApl:mpCapAplicado,esp:mpEsperando,roomCap:JSON.stringify((mpSala()&&mpSala().sala||{}).cap||null),faixa:($('#mpFaixa')||{}).textContent||''}},
   grupo:function(){return grupo.map(function(m){return m.sis?'[N] '+limpo(m.sis):(m.de?m.de+': '+(m.txt||m.anexo||''):'')})},priv:function(f){return (privadas[f]||{msgs:[]}).msgs.map(function(m){return m.sis?'[N] '+limpo(m.sis):m.de+': '+(m.txt||m.anexo||'')})},placar:function(){mostrarPlacar()},chip:function(t){var m={de:EU,txt:t,h:hora()};grupo.push(m);pintarGrupo();replicaGrupo(t);mpEnviar(m,'grupo')}};
