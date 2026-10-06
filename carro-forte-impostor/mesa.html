@@ -928,6 +928,7 @@ button:active,.caixa:active,.redondo:active,.chip:active{
   <section class="how-box"><h2>O fim de cada capítulo.</h2><p>Vem uma pergunta principal e duas secundárias (cada secundária vale metade), sobre o que aconteceu no capítulo. Depois você diz o quanto tem certeza: <b>com certeza</b>, <b>sem certeza</b> ou <b>não sei</b>. Em seguida, se quiser, aposta em quem é o impostor.</p><p>Você só descobre se acertou no fim do jogo.</p></section>
   <section class="how-box"><h2>Os pontos ficam escondidos.</h2><p>O ★ no alto não mostra nada durante a partida. Os pontos só aparecem no fim, capítulo por capítulo.</p><p><b>Com certeza:</b> +4 se acertar, −4 se errar. <b>Sem certeza:</b> +2 ou −1. <b>Não sei:</b> 0. No fim, "quem é o impostor?" vale três vezes e "quem o ajudou?" vale duas.</p></section>
   <section class="how-box destaque"><h2>A pergunta final.</h2><p>Quem é o impostor? Pode ser qualquer personagem da agência, menos o seu, e muda a cada partida. E quem o ajudou, mesmo sem querer? Acertar com certeza vale mais; errar com certeza custa mais; dizer “não sei” nunca tira ponto.</p></section>
+  <p class="credito-ra" style="font-size:11px;line-height:1.5;color:#8fa9b8;margin:10px 2px">A maquete em realidade aumentada no iPhone usa o 8th Wall Engine (© 2026 Niantic Spatial, Inc.), sob a <a href="https://github.com/8thwall/engine/blob/main/LICENSE" target="_blank" rel="noopener" style="color:#9fe9c0">XR Engine License</a>. Este jogo não é afiliado nem endossado pela Niantic Spatial.</p>
   <button type="button" id="comoJogarOk">Entendi</button>
 </dialog>
 <dialog id="fecho" aria-labelledby="fechoTitulo"><div id="fechoCorpo"></div></dialog>
@@ -1254,55 +1255,93 @@ $('#infoBtn').onclick=function(){var d=$('#comoJogar');if(d.showModal)d.showModa
 $('#comoJogarOk').onclick=function(){$('#comoJogar').close()};
 
 /* ── A planta de evacuação (peça do prólogo) ───────────────────────────
-   Geografia da Matriz (abas Lugares e Rotas e visão). A Passagem de Serviço
-   NÃO aparece: só se descobre no Cap. 4. A parede onde ela corre fica em
-   branco. Desenho esquemático, retrato, para o celular. */
+   Desenhada a partir da maquete (06/10). A Passagem de Serviço NÃO aparece:
+   só se descobre no Cap. 4. Onde ela corre, fica só parede. Desenho
+   esquemático, retrato, para o celular. */
+/* A planta segue a MAQUETE (agencia-0688-maquete.glb, decisão do Mario em
+   06/10: "a maquete é que manda"). Cada lugar é dado em metros da maquete
+   (x para leste, z para a avenida) e convertido por uma escala em faixas:
+   o interior da agência ganha mais espaço que a rua, para caber o dedo,
+   mas a ordem, os vizinhos e as portas são os da maquete. */
+var PX=[[-22,0],[-19.4,20],[-18,24],[-13,44],[-10.5,60],[-10.2,63],[-9.4,75],[-7.7,109],[-5.2,149],[-4.5,179],[-2.5,215],[-0.3,259],[0.9,289],[1.2,295],[1.7,301],[2.4,315],[4.2,341],[4.7,345],[5,348],[5.8,352],[8,370],[9,374],[11,396]];
+var PZ=[[-12.7,0],[-9.3,18],[-6.8,28],[-6.5,32],[-6,54],[-5.4,74],[-3,142],[-1.8,176],[-1.5,184],[-1,194],[3,322],[6.1,426],[8.2,488],[8.5,492],[11.5,514],[19.5,578],[21,586],[24,616]];
+function faixa(T,v){if(v<=T[0][0])return T[0][1];for(var i=1;i<T.length;i++)if(v<=T[i][0]){var a=T[i-1],b=T[i];return a[1]+(v-a[0])/(b[0]-a[0])*(b[1]-a[1])}return T[T.length-1][1]}
+function MX(x){return Math.round(faixa(PX,x)*10)/10}
+function MZ(z){return Math.round(faixa(PZ,z)*10)/10}
+function RW(x1,x2,z1,z2){return [MX(x1),MZ(z1),Math.round((MX(x2)-MX(x1))*10)/10,Math.round((MZ(z2)-MZ(z1))*10)/10]}
+/* [nome, texto, retângulo (metros: x1,x2,z1,z2), fora?, rótulo curto]
+   A Passagem de Serviço NÃO aparece: só se descobre no Cap. 4. Onde ela
+   corre, a planta mostra só parede. */
 var LUG={
- 'porta-giratoria':['Porta Giratória','A entrada da agência. O detector apita para fechos de metal. Quem a trava pode isolar a agência inteira.',[168,556,64,16]],
- 'saguao':['Saguão','Frio, com cheiro de papel-moeda, lã molhada e café requentado. O piso de granito guarda pegadas de chuva.',[80,402,218,152]],
- 'guiches':['Guichês','Três guichês numa linha de vidro, à direita de quem entra.',[300,402,90,62]],
- 'mesa-recebimento':['Mesa de Recebimento','Atrás dos guichês, a doze passos da porta, de frente para o vidro da Eclusa. É aqui que o malote é conferido.',[300,466,90,46]],
- 'eclusa':['Eclusa do Carro-Forte','Duas portas e um vidro. Do outro lado, a Vaga Blindada. Daqui se vê a Mesa de Recebimento.',[300,514,90,40]],
- 'sala-gerencia':['Sala da Gerência','Atrás de uma divisória fosca. Cheiro de loção amadeirada. No aparador, a impressora térmica de etiquetas, com um estabilizador que pulsa três vezes rápido e uma devagar; o terminal compartilhado da Gerência e da Subgerência; o telefone; o carregador do rádio reserva. Atrás, um armário de aço.',[80,322,160,78]],
- 'banheiro':['Banheiro dos Funcionários','Tem tranca e nenhuma câmera. Divide uma parede com a Gerência.',[96,234,52,86]],
- 'porta-lateral':['Porta Lateral','Dá para a rua de trás. Por fora, abre com chave; por dentro, com a barra antipânico. Não tem câmera. Em dia de chuva, a lingueta não trava sozinha.',[60,440,22,40]],
- 'corredor-restrito':['Corredor Restrito','Porta de aço com crachá e chave. Vinte e quatro passos de luz branca, estreitos. Um ladrilho oco diante da Central.',[242,82,46,318]],
- 'central':['Central de Monitoramento','A primeira porta à direita do corredor. Dezesseis quadros de câmera, o rádio, o registro de tudo.',[290,232,100,168]],
- 'arquivo-morto':['Arquivo Morto','Em frente à Central. Prateleiras metálicas, caixas de arquivo por ano, sacos de malote reserva, o armário de espelhos contábeis (chave 17-B), um cesto de descarte com tampa de metal. Num canto, uma infiltração que cheira a gesso úmido e demora a secar.',[150,234,90,86]],
- 'nicho-rack':['Nicho do Rack','No fundo do corredor, onde o rodo não alcança e a poeira se acumula atrás do armário.',[150,172,90,60]],
- 'rack-tecnico':['Rack Técnico','Um armário estreito e quente, de ventiladores inquietos, que vibram mais forte num ciclo da manhã. A porta abre com a chave 17-B.',[96,172,52,60]],
- 'antecamara':['Antecâmara do Cofre','Ar parado, cheiro de metal. A plataforma de rodízios onde o malote espera a escolta.',[150,82,140,88]],
- 'cofre':['Cofre','Sempre duas chaves e duas pessoas. Nesta escala, a dupla de abertura é o Subgerente e o Caixa Veterano.',[292,82,98,88]],
- 'vaga-blindada':['Vaga Blindada','Onde o carro-forte encosta, colada à Eclusa. A vitrine da farmácia reflete a vaga.',[300,576,90,34],1],
- 'avenida':['Avenida','A frente da agência, na esquina. Garoa fina; os pedestres viram reflexos no vidro.',[80,576,216,34],1],
- 'farmacia':['Farmácia de plantão','Ao lado da agência, na esquina. Uma lâmpada fria pisca na vitrine.',[4,520,72,90],1],
- 'rua-de-tras':['Rua de trás','Para onde dá a Porta Lateral. Molhada, estreita.',[30,40,26,474],1],
- 'padaria':['Padaria (porta de serviço)','Na esquina oposta. A porta de serviço dá para a rua de trás, de frente para a Porta Lateral da agência. Sacos de farinha empilhados na altura do joelho.',[2,40,26,300],1]
+ 'saguao':['Saguão','Frio, com cheiro de papel-moeda, lã molhada e café requentado. O piso de granito guarda pegadas de chuva.',[-10.2,-0.3,3,8.2],0,'Saguão'],
+ 'guiches':['Guichês','Três guichês numa linha de vidro, à direita de quem entra.',[-0.3,0.9,3,8.2],0,'Guichês'],
+ 'mesa-recebimento':['Mesa de Recebimento','Atrás dos guichês, a seis passos da porta, de frente para o vidro da Eclusa. É aqui que o malote é conferido.',[0.9,2.4,3.6,6.8],0,'Mesa'],
+ 'eclusa':['Eclusa do Carro-Forte','Duas portas e um vidro. Do outro lado, a Vaga Blindada. Daqui se vê a Mesa de Recebimento.',[2.4,4.7,3,8.2],0,'Eclusa'],
+ 'sala-gerencia':['Sala da Gerência','Atrás de uma divisória fosca. Cheiro de loção amadeirada. No aparador, a impressora térmica de etiquetas, com um estabilizador que pulsa três vezes rápido e uma devagar; o terminal compartilhado da Gerência e da Subgerência; o telefone; o carregador do rádio reserva. Atrás, um armário de aço.',[-7.7,-4.5,-1,3],0,'Gerência'],
+ 'banheiro':['Banheiro dos Funcionários','Tem tranca e nenhuma câmera. Divide uma parede com a Gerência.',[-10.2,-7.7,-1,3],0,'Banheiro'],
+ 'corredor-restrito':['Corredor Restrito','Porta de aço com crachá e chave. Treze passos de luz branca, estreitos. Um ladrilho oco diante da Central.',[-4.5,-2.5,-6.5,3],0,'Corredor Restrito'],
+ 'central':['Central de Monitoramento','A primeira porta à direita do corredor. Dezesseis quadros de câmera, o rádio, o registro de tudo.',[-2.5,1.2,-3,3],0,'Central'],
+ 'arquivo-morto':['Arquivo Morto','Em frente à Central. Prateleiras metálicas, caixas de arquivo por ano, sacos de malote reserva, o armário de espelhos contábeis (chave 17-B), um cesto de descarte com tampa de metal. Num canto, uma infiltração que cheira a gesso úmido e demora a secar.',[-9.4,-4.5,-5.4,-1.8],0,'Arquivo Morto'],
+ 'rack-tecnico':['Nicho do Rack · Rack Técnico','No fundo do corredor, onde o rodo não alcança e a poeira se acumula. Dentro do nicho, o Rack Técnico: um armário estreito e quente, de ventiladores inquietos, que vibram mais forte num ciclo da manhã. A porta abre com a chave 17-B.',[-5.2,-4.5,-6.5,-5.4],0,'Rack'],
+ 'antecamara':['Antecâmara do Cofre','Ar parado, cheiro de metal. A plataforma de rodízios onde o malote espera a escolta.',[-2.5,1.2,-6.5,-3],0,'Antecâmara'],
+ 'cofre':['Cofre','Sempre duas chaves e duas pessoas. Nesta escala, a dupla de abertura é o Subgerente e o Caixa Veterano.',[1.7,4.2,-6,-1.5],0,'Cofre'],
+ 'vaga-blindada':['Vaga Blindada','Na rua estreita, entre a agência e a farmácia, colada à Eclusa. É onde o carro-forte encosta. A vitrine da farmácia reflete a vaga.',[5.3,8.7,-0.3,8.9],1,'Vaga Blindada'],
+ 'avenida':['Avenida','A frente da agência, na esquina. Garoa fina; os pedestres viram reflexos no vidro.',[-22,11,11.5,19.5],1,'Avenida'],
+ 'farmacia':['Farmácia de plantão','Do outro lado da rua estreita, na esquina da avenida. Uma lâmpada fria pisca na vitrine.',[9.2,11,-6.8,9],1,'Farmácia'],
+ 'rua-de-tras':['Rua de trás','Para onde dá a Porta Lateral. Molhada, estreita.',[-18,-13,-9.3,11.5],1,'Rua de trás'],
+ 'padaria':['Padaria (porta de serviço)','Na esquina oposta, do outro lado da rua de trás. A porta de serviço dá para a rua de trás, de frente para a Porta Lateral da agência. Sacos de farinha empilhados na altura do joelho.',[-22,-19.4,-0.5,8.5],1,'Padaria'],
+ 'porta-giratoria':['Porta Giratória','A entrada da agência. O detector apita para fechos de metal. Quem a trava pode isolar a agência inteira.',[-4.2,-0.6,7.7,10.8],0,'Porta Giratória'],
+ 'porta-lateral':['Porta Lateral','Dá para a rua de trás. Por fora, abre com chave; por dentro, com a barra antipânico. Não tem câmera. Em dia de chuva, a lingueta não trava sozinha.',[-13,-9.9,2.9,4.5],0,'Lateral']
 };
+Object.keys(LUG).forEach(function(id){var w=LUG[id][2];LUG[id][2]=RW(w[0],w[1],w[2],w[3])});
+/* as portas da maquete (traços dourados na parede) */
+var PORTAS=[[-10.35,-10.35,3.25,4.15],[2.4,2.4,4.5,5.5],[4.85,4.85,6.4,7.4],[-4,-3,3,3],[-5.5,-4.7,3,3],[-9.9,-9.1,3,3],[-2.5,-2.5,-2.45,-1.55],[-2.5,-2.5,-6.1,-5.2],[-4.5,-4.5,-5.2,-4.4],[1.45,1.45,-5,-4],[-19.4,-19.4,3.2,4.2]];
+/* o caminho da Passagem de Serviço, para quando o Cap. 4 a revelar:
+   do fundo do Rack, por trás do Arquivo e da parede do Banheiro, ao painel
+   atrás do armário de aço da Gerência (posições da maquete) */
+var PASSAGEM_CAMINHO=[[-5.2,-5.95],[-9.8,-5.95],[-9.8,-1.4],[-7,-1.4],[-7,-1]];
 var POSTO_ROT={'porta-giratoria':'Porta Giratória','saguao':'Saguão','rack-tecnico':'Rack Técnico','central':'Central','avenida':'calçada da avenida','corredor-restrito':'Corredor Restrito','vaga-blindada':'carro-forte, na Vaga Blindada','padaria':'padaria','farmacia':'farmácia','mesa-recebimento':'Mesa de Recebimento','guiches':'Guichês'};
 function plantaSVG(paraImagem){
   var s='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 396 616" role="img" aria-label="Planta de evacuação da Agência 0688">';
   s+='<rect x="0" y="0" width="396" height="616" fill="#050c09"/>';
-  s+='<rect x="78" y="78" width="314" height="478" fill="#07140f" stroke="#2f6b4e" stroke-width="3"/>';
-  /* a parede sem nome (onde corre o que só o Cap. 4 revela) */
-  s+='<rect x="80" y="172" width="14" height="148" fill="#0a1a13"/>';
-  s+='<rect x="80" y="234" width="14" height="86" fill="#0a1a13"/>';
-  Object.keys(LUG).forEach(function(id){var L=LUG[id],r=L[2],fora=L[3];
-    var rot=L[0].replace(' (porta de serviço)','').replace(' do Carro-Forte','').replace(' de Monitoramento','').replace(' dos Funcionários','').replace(' de plantão','').replace(' do Cofre','');
-    var vert=r[2]<30;
-    s+='<g class="lugar'+(fora?' fora':'')+'" data-lugar="'+id+'"><rect x="'+r[0]+'" y="'+r[1]+'" width="'+r[2]+'" height="'+r[3]+'" rx="3"/>';
-    if(vert)s+='<text x="'+(r[0]+r[2]/2+3)+'" y="'+(r[1]+r[3]/2)+'" text-anchor="middle" transform="rotate(-90 '+(r[0]+r[2]/2)+' '+(r[1]+r[3]/2)+')">'+rot+'</text>';
-    else{var pal=rot.split(' '),linhas=[],l='';pal.forEach(function(w){if((l+' '+w).trim().length>(r[2]/6.2))linhas.push(l.trim()),l=w;else l+=' '+w});linhas.push(l.trim());
-      linhas.forEach(function(t,i){s+='<text x="'+(r[0]+r[2]/2)+'" y="'+(r[1]+r[3]/2+(i-(linhas.length-1)/2)*11+3)+'" text-anchor="middle">'+t+'</text>'})}
+  /* ruas e calçadas da maquete (cenário, sem toque) */
+  s+='<rect x="0" y="0" width="396" height="'+MZ(-9.3)+'" fill="#081016"/>';
+  s+='<text x="'+MX(-6)+'" y="'+(MZ(-9.3)-6)+'" text-anchor="middle" style="font-size:7px;fill:#46667a">rua dos fundos</text>';
+  s+='<rect x="'+MX(-13)+'" y="'+MZ(-9.3)+'" width="'+(MX(5)-MX(-13))+'" height="'+(MZ(11.5)-MZ(-9.3))+'" fill="#0b1511"/>';
+  s+='<rect x="'+MX(-19.4)+'" y="'+MZ(-9.3)+'" width="'+(MX(-18)-MX(-19.4))+'" height="'+(MZ(11.5)-MZ(-9.3))+'" fill="#0b1511"/>';
+  s+='<rect x="'+MX(9)+'" y="'+MZ(-9.3)+'" width="'+(MX(11)-MX(9))+'" height="'+(MZ(11.5)-MZ(-9.3))+'" fill="#0b1511"/>';
+  s+='<rect x="0" y="'+MZ(19.5)+'" width="396" height="'+(616-MZ(19.5))+'" fill="#0b1511"/>';
+  s+='<rect x="'+MX(-22)+'" y="'+MZ(-9.3)+'" width="'+(MX(-19.4)-MX(-22))+'" height="'+(MZ(-0.5)-MZ(-9.3)-2)+'" fill="#0a141b"/>';
+  s+='<text x="'+MX(6.9)+'" y="'+(MZ(-3.5))+'" text-anchor="middle" transform="rotate(-90 '+MX(6.9)+' '+MZ(-3.5)+')" style="font-size:7px;fill:#46667a">rua estreita</text>';
+  /* o prédio: tudo o que não é sala é parede (inclusive onde corre o que
+     só o Cap. 4 revela) */
+  s+='<rect x="'+MX(-10.5)+'" y="'+MZ(-6.8)+'" width="'+(MX(5)-MX(-10.5))+'" height="'+(MZ(8.5)-MZ(-6.8))+'" fill="#0a1a13" stroke="#2f6b4e" stroke-width="3"/>';
+  /* a escada do 2º piso: só desenho, sem toque */
+  var e=RW(1.2,4.7,-1,3);s+='<g style="pointer-events:none"><rect x="'+(e[0]+1.5)+'" y="'+(e[1]+1.5)+'" width="'+(e[2]-3)+'" height="'+(e[3]-3)+'" rx="3" fill="#07140f" stroke="#2f6b4e" stroke-width="1"/>';
+  for(var k=1;k<9;k++)s+='<line x1="'+(e[0]+6)+'" y1="'+(e[1]+k*e[3]/9)+'" x2="'+(e[0]+e[2]-6)+'" y2="'+(e[1]+k*e[3]/9)+'" stroke="#2f6b4e" stroke-width="1"/>';
+  s+='<text x="'+(e[0]+e[2]/2)+'" y="'+(e[1]+e[3]/2+3)+'" text-anchor="middle" style="font-size:8px;fill:#4dba7c;paint-order:stroke;stroke:#07140f;stroke-width:3px">Escada</text></g>';
+  Object.keys(LUG).forEach(function(id){var L=LUG[id],r=L[2],fora=L[3],rot=L[4]||L[0];
+    var x=r[0]+1.5,y=r[1]+1.5,w=r[2]-3,h=r[3]-3;
+    var vert=rot.length*5.8>w-4&&h>w;
+    s+='<g class="lugar'+(fora?' fora':'')+'" data-lugar="'+id+'"><rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="3"/>';
+    if(vert)s+='<text x="'+(x+w/2+3)+'" y="'+(y+h/2)+'" text-anchor="middle" transform="rotate(-90 '+(x+w/2)+' '+(y+h/2)+')">'+rot+'</text>';
+    else{var pal=rot.split(' '),linhas=[],l='';pal.forEach(function(p){if((l+' '+p).trim().length>(w/6.2))linhas.push(l.trim()),l=p;else l+=' '+p});linhas.push(l.trim());
+      linhas=linhas.filter(function(t){return t});
+      linhas.forEach(function(t,i){s+='<text x="'+(x+w/2)+'" y="'+(y+h/2+(i-(linhas.length-1)/2)*11+3)+'" text-anchor="middle">'+t+'</text>'})}
     s+='</g>'});
+  /* portas */
+  PORTAS.forEach(function(p){s+='<line x1="'+MX(p[0])+'" y1="'+MZ(p[2])+'" x2="'+MX(p[1])+'" y2="'+MZ(p[3])+'" stroke="#d6aa58" stroke-width="3" stroke-linecap="round" style="pointer-events:none"/>'});
+  s+='<!--passagem-->';
   /* setas verdes de evacuação e o quadrado vermelho do Cofre */
-  s+='<path d="M200 470 L200 540 M192 530 L200 542 L208 530" stroke="#4dba7c" stroke-width="2.5" fill="none"/>';
-  s+='<path d="M265 300 L265 380 M257 370 L265 382 L273 370" stroke="#4dba7c" stroke-width="2.5" fill="none"/>';
-  s+='<rect x="360" y="90" width="18" height="18" fill="#c4413a"/>';
-  s+='<text x="388" y="606" text-anchor="end" style="font-size:8px;fill:#4dba7c">AGÊNCIA 0688 · PLANTA DE EVACUAÇÃO</text>';
-  if(!paraImagem){var r=LUG[P[EU_PAPEL].posto][2],cx=r[0]+r[2]/2,cy=r[1]+Math.min(r[3]-8,r[3]/2+14);
+  var ax=MX(-2.4),ay1=MZ(5.6),ay2=MZ(7.5);
+  s+='<path d="M'+ax+' '+ay1+' L'+ax+' '+ay2+' M'+(ax-8)+' '+(ay2-10)+' L'+ax+' '+(ay2+2)+' L'+(ax+8)+' '+(ay2-10)+'" stroke="#4dba7c" stroke-width="2.5" fill="none" style="pointer-events:none"/>';
+  var bx=MX(-3.5),by1=MZ(-0.5),by2=MZ(2.4);
+  s+='<path d="M'+bx+' '+by1+' L'+bx+' '+by2+' M'+(bx-7)+' '+(by2-10)+' L'+bx+' '+(by2+2)+' L'+(bx+7)+' '+(by2-10)+'" stroke="#4dba7c" stroke-width="2.5" fill="none" style="pointer-events:none"/>';
+  s+='<rect x="'+(MX(4.2)-22)+'" y="'+(MZ(-6)+5)+'" width="14" height="14" fill="#c4413a" style="pointer-events:none"/>';
+  s+='<text x="390" y="608" text-anchor="end" style="font-size:8px;fill:#4dba7c">AGÊNCIA 0688 · PLANTA DE EVACUAÇÃO</text>';
+  if(!paraImagem){var r=LUG[P[EU_PAPEL].posto][2],cx=r[0]+r[2]/2,cy=r[3]>r[2]*3?r[1]+r[3]-14:r[1]+Math.min(r[3]-8,r[3]/2+14);
     s+='<g id="voceAqui"><circle class="voce-aqui-anel" cx="'+cx+'" cy="'+cy+'" r="9"/><circle class="voce-aqui" cx="'+cx+'" cy="'+cy+'" r="6"/></g>'}
-  else s=s.replace(/<text /g,'<text style="font-family:monospace;font-size:9.5px" fill="#9fe9c0" ');
+  else s=s.replace(/<text (?![^>]*style=)/g,'<text style="font-family:monospace;font-size:9.5px" fill="#9fe9c0" ');
   return s+'</svg>'}
 var PLANTA_URL=(function(){try{return URL.createObjectURL(new Blob([plantaSVG(true)],{type:'image/svg+xml'}))}catch(e){return ''}})();
 var prologo={planta:false,ondeEstou:false,papeis:false,porta:false,grupo:false,envioFarmacia:false};
@@ -1336,7 +1375,7 @@ $('#sairRA').onclick=function(){$('#telaRA').hidden=true;pecaAberta=null;pintarP
 
 /* As peças da aba RA: só a planta abre no prólogo. As outras ganham nome
    quando o capítulo chega nelas (nenhum título antecipa o caso). */
-var PECAS=[{id:'planta',cap:0,nome:'A planta de evacuação',sub:'A agência 0688',ico:'🗺️'}].concat([1,2,3,4,5,6,7,8].map(function(c){return {id:'c'+c,cap:c,nome:'Peça do Capítulo '+c,sub:'Abre quando o capítulo chegar nela',ico:'🔒'}}));
+var PECAS=[{id:'planta',cap:0,nome:'A planta de evacuação',sub:'A agência 0688',ico:'🗺️'},{id:'maquete',cap:1,nome:'A maquete da agência',sub:'Abre no Capítulo 1',ico:'🏛️'}].concat([1,2,3,4,5,6,7,8].map(function(c){return {id:'c'+c,cap:c,nome:'Peça do Capítulo '+c,sub:'Abre quando o capítulo chegar nela',ico:'🔒'}}));
 function pintarPecas(){$('#gradeRA').innerHTML=PECAS.map(function(p){var tr=!(p.cap===0||p.aberta);
   return '<button class="peca'+(tr?' trancada':'')+'" data-peca="'+p.id+'"><span class="ico">'+p.ico+'</span><small>'+(p.cap?'CAPÍTULO '+p.cap:'PRÓLOGO')+'</small><b>'+p.nome+'</b><span>'+p.sub+'</span></button>'}).join('');
   document.querySelectorAll('[data-peca]').forEach(function(b){b.onclick=function(){if(b.dataset.peca==='planta')abrirPlanta();if(b.dataset.peca==='c1')abrirMalote()}})}
@@ -1511,7 +1550,7 @@ var C1=[
  [212,'n','dentro','{caixa_veterano} voltou da Mesa com duas folhas. As mãos tremiam só nas pontas.'],
  [215,'f','caixa_veterano','O malote que passou para a Eclusa estava com o lacre ML-8847.'],
  [226,'n','todos','Por alguns segundos, só os ventiladores do Rack, no fundo do corredor. O saco no chão tinha um número; o malote entregue, outro. {gerente} falou em reetiquetagem operacional. Pelo rádio, o Motorista leu a via de papel que a base mandara junto com a rota: <i>"Na via está ML-8842."</i>'],
- [240,'cond','seguranca_veiculo','n','dentro','{seguranca_veiculo}, que viera da Eclusa, ficou imóvel. <i>"E o senhor conferiu o quê?"</i>, perguntou {auditora}. <i>"A tela da Mesa."</i> Ninguém precisou dizer o resto. Às oito horas, com uma auditora a dez passos, ele conferira o que estava mais perto.'],
+ [240,'cond','seguranca_veiculo','n','dentro','{seguranca_veiculo}, que viera da Eclusa, ficou imóvel. <i>"E o senhor conferiu o quê?"</i>, perguntou {auditora}. <i>"A tela da Mesa."</i> Ninguém precisou dizer o resto. Às oito horas, com uma auditora a seis passos, ele conferira o que estava mais perto.'],
  [258,'n','todos','Pelo rádio, o Motorista avisou que um carro parara duas vezes na esquina. A base recomendava retirada; o protocolo da agência impedia a partida. Cada minuto de retenção deixava três homens e um blindado parados numa avenida que já os tinha notado.'],
  [264,'p',['cliente_cofre','farmaceutica'],'Quanto tempo vão nos prender aqui?'],
  [278,'n','dentro','{auditora} encontrou na cola do lacre um fragmento branco, do tamanho de uma unha. Parecia papel arrancado. Contra a lâmpada, o verso escurecera em listras finas: papel térmico. <i>"Quem imprimiu etiquetas esta manhã?"</i>'],
@@ -1922,7 +1961,7 @@ PECA_DEF.c3={nome:'A impressora de etiquetas',curto:'Impressora',sub:'Do aparado
   return s+svgFim('IMPRESSORA DE ETIQUETAS · GERÊNCIA')}};
 
 
-/* ══ CAPÍTULO 4 · VINTE E SEIS SEGUNDOS (8h51 a 9h25) ══════════════════
+/* ══ CAPÍTULO 4 · A PORTA DE AÇO (8h51 a 9h25) ══════════════════
    Fonte: revisão 2, Cap. 4, e a Matriz. Arco: o espaço. A Passagem de
    Serviço aparece aqui pela primeira vez (e só agora entra na planta).
    Ponto A5: as declarações de onde cada um estava na janela, só registradas,
@@ -1933,7 +1972,13 @@ PECA_DEF.c3={nome:'A impressora de etiquetas',curto:'Impressora',sub:'Do aparado
    pegadas é a Auditora. Sem o Padeiro, sai a cena do guarda-chuva.
    SUBSTITUIDO 05/10 (Mario): o 2º raspado era "quase um minuto e meio
    depois"; passou a "quase dois minutos depois, logo depois de a imagem
-   voltar", para bater com a rota (volta à Gerência às 7h59:54). */
+   voltar", para bater com a rota (volta à Gerência às 7h59:54).
+   SUBSTITUIDO 06/10 (Mario, "a maquete manda"): na maquete, o corredor é
+   curto demais para a conta do tempo (Mesa → Arquivo ~14,5 m: 12 s andando).
+   A dedução passou a ser pela câmera 2, que vê a porta de aço e não caiu
+   (na maquete, a câmera 1 vê a divisória da Gerência e o Saguão):
+   na janela, ninguém entrou pelo corredor. O título era VINTE E SEIS
+   SEGUNDOS. */
 var PASSAGEM_VISIVEL=false;
 var DECL={
  gerente:IMP==='gerente'?'na própria sala, ao telefone':'com a Auditora e a Cliente do Cofre, diante da Porta Giratória',
@@ -1954,9 +1999,9 @@ var C4=[
  [28,'peca','c4'],
  [32,'f','tecnico','Curto no Rack: um cabo encostado na grade quente do exaustor. Não foi na janela. Foi agora, com a gente trancado aqui.'],
  [44,'n','dentro','{gerente} quis revistar todos. {auditora} recusou uma humilhação coletiva sem método e propôs interrogar o lugar antes das pessoas.'],
- [58,'n','dentro','{tecnico} marcou o início na Mesa de Recebimento e cronometrou em voz alta. Até a porta do Arquivo Morto: vinte e seis segundos sem pressa, dezoito correndo. Do Arquivo à Antecâmara, seis. {auditora} pediu que ele simulasse a troca com um saco de reserva e blocos de papel: abrir, passar o conteúdo, fechar, colar a etiqueta. Quarenta segundos. Somado tudo, a rota pelo corredor passava de noventa segundos. <i>"Não cabe. Pelo corredor, quem fizesse isso estaria na frente da câmera quando ela voltou."</i>','9h05'],
+ [58,'n','dentro','{tecnico} quis cronometrar a rota pelo corredor. {auditora} o deteve antes do primeiro passo. <i>"Aqui o relógio não decide. A porta decide."</i> {operadora} abriu a câmera 2, que não caíra em momento algum, e olhou só o canto do quadro onde fica a porta de aço do Corredor Restrito. Durante os oitenta e sete segundos, a porta abriu uma vez só, para fora: o Segurança Interno saindo, chamado pelo rádio. Ninguém entrou. Quem viesse da frente da agência para o Arquivo teria passado por ela, diante de uma câmera acesa. <i>"Então quem fez isso já estava lá dentro"</i>, disse {auditora}, <i>"ou entrou por onde a câmera não vê."</i>','9h05'],
  [60,'libera','corredor'],
- [64,'f','tecnico','Simulação: da Mesa ao Arquivo, 26 s sem pressa, 18 correndo. A troca leva 40 s. Pelo corredor passa de 90 s. Não cabe nos 87.'],
+ [64,'f','operadora','Câmera 2, a janela inteira, o canto da porta de aço: ela só abriu para o Segurança Interno sair. Pelo corredor, ninguém entrou.'],
  [80,'n','dentro','{auditora} passou a lanterna rente ao piso, no canto do Arquivo onde a infiltração nunca secava. A luz rasante desenhou marcas que de pé ninguém via.'],
  [84,'cond','limpeza','n','dentro','{limpeza} se agachou ao lado dela e passou o dedo no ladrilho. <i>"Alguém pisou aqui depois que eu passei."</i>'],
  [84,'condnao','limpeza','n','dentro','{auditora} se agachou e passou o dedo no ladrilho. <i>"Alguém pisou aqui depois do rodo."</i>'],
@@ -1967,8 +2012,8 @@ var C4=[
  [106,'passagem'],
  [112,'f','tecnico','Atrás do Rack tem uma passagem. Corre atrás da parede do banheiro até um painel atrás do armário da Gerência.'],
  [120,'n','dentro','Ninguém respondeu. A passagem ligava o lugar de onde partira a ordem falsa ao lugar onde a câmera fora preparada.'],
- [128,'n','dentro','{tecnico} refez a conta pela passagem. Da Gerência ao Rack, quinze segundos, sem câmera. Do Rack ao Arquivo, quatro. Exposto à câmera, só o trecho entre o Arquivo e a Antecâmara, menos de setenta segundos. Cabia.'],
- [132,'f','tecnico','Pela passagem cabe: Gerência ao Rack em 15 s, sem câmera. Exposto à câmera, menos de 70 s.'],
+ [128,'n','dentro','{tecnico} fez a conta pela passagem. Da Gerência ao Rack, quinze segundos, sem câmera e sem passar pela porta de aço. Do Rack ao Arquivo, quatro. Exposto à câmera, só o trecho entre o Arquivo e a Antecâmara, menos de setenta segundos, e a câmera 3 estava apagada. Cabia.'],
+ [132,'f','tecnico','Pela passagem cabe: Gerência ao Rack em 15 s, sem câmera e sem a porta de aço. Exposto à câmera 3, menos de 70 s.'],
  [146,'n','dentro','{auditora} pediu que cada um dissesse onde estivera durante a janela. Escreveu as declarações numa coluna separada, com um título sublinhado: declarações, não fatos.'],
  [152,'n','dentro',declTxt+' '+(presente('tecnico')?'{tecnico} repetiu: <i>"No Rack."</i>':'')],
  [154,'decl'],
@@ -1997,16 +2042,17 @@ var _executar4=executar;executar=function(e){
   _executar4(e)};
 /* a planta passa a mostrar a passagem */
 var _plantaSVG=plantaSVG;plantaSVG=function(img){var s=_plantaSVG(img);if(!PASSAGEM_VISIVEL)return s;
-  var p='<g class="lugar" data-lugar="passagem-servico"><path d="M88 206 L88 336" stroke="#efc878" stroke-width="5" stroke-dasharray="6 4" fill="none"/><rect x="80" y="200" width="16" height="140" style="fill:transparent!important;stroke:none!important"/></g>';
-  return s.replace('<path d="M200 470',p+'<path d="M200 470')};
+  var d=PASSAGEM_CAMINHO.map(function(q,i){return (i?'L':'M')+MX(q[0])+' '+MZ(q[1])}).join(' ');
+  var p='<g class="lugar" data-lugar="passagem-servico"><path d="'+d+'" stroke="#efc878" stroke-width="5" stroke-dasharray="6 4" fill="none"/><path d="'+d+'" stroke="#000" stroke-opacity="0.01" stroke-width="16" fill="none" style="pointer-events:stroke"/></g>';
+  return s.replace('<!--passagem-->',p)};
 var _tocarLugar=tocarLugar;tocarLugar=function(id,g){if(id==='passagem-servico'){$('#pcRot').textContent='PASSAGEM DE SERVIÇO';$('#pcTxt').innerHTML='';digitar($('#pcTxt'),'Atrás da parede do banheiro, do fundo removível do Rack Técnico a um painel de madeira atrás do armário de aço da Gerência. Da Gerência ao Rack: quinze segundos, sem câmera.',10);return}_tocarLugar(id,g)};
 
-CAPS[4]={nome:'VINTE E SEIS SEGUNDOS',rot:C4,
- rg:[[0,'Quem queimou esse cabo?'],[64,'Pelo corredor não cabe.'],[112,'Quem mais conhece a passagem?'],[168,'Declarações não são fatos.'],[188,'A parede raspou na hora certa.'],[0,'Vamos ficar juntos.']],
+CAPS[4]={nome:'A PORTA DE AÇO',rot:C4,
+ rg:[[0,'Quem queimou esse cabo?'],[64,'Pelo corredor ninguém entrou.'],[112,'Quem mais conhece a passagem?'],[168,'Declarações não são fatos.'],[188,'A parede raspou na hora certa.'],[0,'Vamos ficar juntos.']],
  rp:[[146,'Onde você estava na janela?'],[188,'Você acredita no Caixa Novato?'],[0,'Não confio em ninguém aqui.']],
  rep:{
   'Quem queimou esse cabo?':[['tecnico'],'Alguém com a gente trancado aqui. Não foi há oitenta e sete segundos.'],
-  'Pelo corredor não cabe.':[['auditora'],'Então foi por outro caminho.'],
+  'Pelo corredor ninguém entrou.':[['auditora'],'Então foi por outro caminho.'],
   'Quem mais conhece a passagem?':[['tecnico'],'Eu achei sozinho. Não sei quem mais.'],
   'Declarações não são fatos.':[['auditora'],'Por isso estão numa coluna separada.'],
   'A parede raspou na hora certa.':[['caixa_novato'],'Duas vezes. Eu ouvi.'],
@@ -2016,25 +2062,25 @@ CAPS[4]={nome:'VINTE E SEIS SEGUNDOS',rot:C4,
   'Não confio em ninguém aqui.':'Nem eu.'},
  debate:{pergunta:'Quem podia usar a passagem?',falas:[['auditora','A ordem saiu da Gerência. A passagem começa lá.'],['gerente','Minha sala não é minha culpa.'],['tecnico','Eu a descobri sozinho. Quem mais a conhece, eu não sei.']]},
  perg:[
-  {rotulo:'principal',pergunta:'Por onde a troca cabe nos oitenta e sete segundos?',opcoes:['Pela Passagem de Serviço, entre a Gerência e o Rack.','Pelo Corredor Restrito, correndo.','Pela porta lateral, por fora.','Pela Antecâmara, a partir do Cofre.']},
+  {rotulo:'principal',pergunta:'Por onde quem fez a troca chegou ao Arquivo sem passar diante de uma câmera acesa?',opcoes:['Pela Passagem de Serviço, entre a Gerência e o Rack.','Pelo Corredor Restrito, pela porta de aço.','Pela porta lateral, por fora.','Pela Antecâmara, a partir do Cofre.']},
   {rotulo:'secundária',pergunta:'Quando o cabo do Rack foi encostado no exaustor?',opcoes:['Durante o isolamento, com a agência trancada.','Durante os oitenta e sete segundos.','Na noite anterior.','Às 7h45, quando o Técnico fotografou o conector.']},
   {rotulo:'secundária',pergunta:'O que o Caixa Novato ouviu do banheiro durante a janela?',opcoes:['A parede raspar duas vezes.','O Cofre bater.','A porta lateral bater.','Nada: estava passando mal demais.']}],
- achar:'o armário de vestígios, na aba RA (quando a história chegar nele): o cabo derretido, as rotas cronometradas, as pegadas e, mais tarde, o painel; 1 envio extra escondido nele.'};
+ achar:'o armário de vestígios, na aba RA (quando a história chegar nele): o cabo derretido, a porta de aço na câmera 2, as pegadas e, mais tarde, o painel; 1 envio extra escondido nele.'};
 
 /* A peça do Cap. 4: o armário de vestígios (Matéria para a RA do Cap. 4).
    Mostra oportunidade e incompatibilidades; nunca nomeia. */
-PECA_DEF.c4={nome:'O armário de vestígios',curto:'Vestígios',sub:'O corredor medido pelo corpo',ico:'🧭',topo:'O armário de vestígios · Corredor Restrito',aviso:'Toque num vestígio para examiná-lo.',envio:'disjuntor',
+PECA_DEF.c4={nome:'O armário de vestígios',curto:'Vestígios',sub:'O corredor, a porta e a parede',ico:'🧭',topo:'O armário de vestígios · Corredor Restrito',aviso:'Toque num vestígio para examiná-lo.',envio:'disjuntor',
  det:{
   cabo:['O CABO','Cabo de alimentação encostado na grade quente do exaustor. A capa derreteu até o curto, às 8h51, com a agência trancada.'],
   disjuntor:['O DISJUNTOR','Desligado com a manga sobre a mão. Na tampa, preso por fora, uma coisa sua: um envio extra.'],
-  corredor:['ROTA PELO CORREDOR','Mesa → porta do Arquivo: 26 s sem pressa, 18 correndo. Arquivo → Antecâmara: 6 s. Troca: 40 s (4 + 26 + 10). Ida, troca, descarte e volta: cerca de 98 s. Não cabe nos 87 s.'],
+  corredor:['A PORTA DE AÇO','Câmera 2, que não caiu: durante os 87 s, a porta de aço do corredor abriu uma vez só, para fora, com o Segurança Interno saindo, chamado pelo rádio. Ninguém entrou. Quem viesse da frente da agência teria passado por ela.'],
   pegadas:['AS PEGADAS','Meias-luas úmidas, do cesto do Arquivo, pela porta, até o fundo do Nicho do Rack. Terminam na parede de trás do armário.'],
-  passagem:['ROTA PELA PASSAGEM','Gerência → passagem → interior do Rack: 15 s, sem câmera. Rack → Arquivo: 4 s. Exposto à câmera 3, só o trecho Arquivo–Antecâmara: 69 s. Cabe.'],
+  passagem:['ROTA PELA PASSAGEM','Gerência → passagem → interior do Rack: 15 s, sem câmera e sem a porta de aço. Rack → Arquivo: 4 s. Exposto à câmera 3, que estava apagada, só o trecho Arquivo–Antecâmara: 69 s. Cabe.'],
   raspou:['A PAREDE DO BANHEIRO','Do banheiro, quem está sentado no chão ouve o painel raspar. O Caixa Novato ouviu duas vezes: logo depois do rádio, e de novo quase dois minutos depois, logo depois de a imagem voltar.']},
  svg:function(F){var s=svgBase('O armário de vestígios');
   s+='<g class="lugar" data-det="cabo"><rect x="40" y="40" width="130" height="70" rx="6"/><text x="105" y="70" text-anchor="middle">cabo derretido</text><text x="105" y="88" text-anchor="middle">curto 8h51</text></g>';
   s+='<g class="lugar" data-det="disjuntor"><rect x="190" y="40" width="130" height="70" rx="6"/><text x="255" y="80" text-anchor="middle">disjuntor</text></g>';
-  if(F.corredor)s+='<g class="lugar" data-det="corredor"><rect x="40" y="130" width="280" height="56" rx="6"/><text x="180" y="154" text-anchor="middle">pelo corredor: ~98 s</text><text x="180" y="172" text-anchor="middle">NÃO CABE</text></g>';
+  if(F.corredor)s+='<g class="lugar" data-det="corredor"><rect x="40" y="130" width="280" height="56" rx="6"/><text x="180" y="154" text-anchor="middle">porta de aço · câmera 2</text><text x="180" y="172" text-anchor="middle">NINGUÉM ENTROU</text></g>';
   if(F.pegadas)s+='<g class="lugar" data-det="pegadas"><rect x="40" y="200" width="130" height="80" rx="6"/><text x="105" y="236" text-anchor="middle">◗ ◗ ◗ ◗</text><text x="105" y="256" text-anchor="middle">pegadas</text></g>';
   if(F.passagem)s+='<g class="lugar" data-det="passagem"><rect x="190" y="200" width="130" height="80" rx="6"/><text x="255" y="232" text-anchor="middle">pela passagem</text><text x="255" y="252" text-anchor="middle">69 s · CABE</text></g>';
   if(F.raspou)s+='<g class="lugar" data-det="raspou"><rect x="40" y="296" width="280" height="56" rx="6"/><text x="180" y="328" text-anchor="middle">parede do banheiro: raspou 2×</text></g>';
@@ -2580,7 +2626,23 @@ $('#abEntrar').onclick=inicioDoJogo;
 $('#abPular').onclick=function(){fimAb();inicioDoJogo()};
 
 /* ganchos de teste */
-window.CFIMesa={partida:PCOD,impostor:IMP,casa:CASA,papel:EU_PAPEL,numero:EU,presentes:PRESENTES,pular:function(){inicioDoJogo();prologo.planta=prologo.ondeEstou=prologo.papeis=true;abrirGrupo();$('#janelaOk').click()},
+/* ── A maquete (RA a partir do Cap. 1) ────────────────────────────────
+   Entra com o malote e vai sendo abastecida: cada peça de capítulo vira um
+   marcador no lugar onde a história a põe (maquete.js). A Passagem e os
+   campos das câmeras mudam a própria maquete quando a história os revela. */
+var MAQ_REV={passagem:false,campos:false};
+function abrirMaquete(){
+  if(!window.CFIMaquete){toast('A maquete ainda está carregando. Tente de novo.');return}
+  var itens=PECAS.filter(function(p){return /^c\d$/.test(p.id)&&p.aberta}).map(function(p){return p.id});
+  CFIMaquete.abrir({itens:itens,revelados:MAQ_REV,
+    info:function(id){var L=LUG[id];return L?[L[0],L[1]]:null},
+    digitar:function(el,t){digitar(el,t,10)},
+    aoAbrirItem:function(id){CFIMaquete.fechar().then(function(){var b=document.querySelector('[data-peca="'+id+'"]');if(b)b.click()})}}).catch(function(){})}
+var _pintarPecasM=pintarPecas;pintarPecas=function(){_pintarPecasM();var b=document.querySelector('[data-peca="maquete"]');if(b)b.onclick=function(){if(!b.classList.contains('trancada'))abrirMaquete()}};
+var _abrirPecaCapM=abrirPecaCap;abrirPecaCap=function(id){_abrirPecaCapM(id);
+  if(id==='c1'){var m=PECAS.filter(function(x){return x.id==='maquete'})[0];if(m&&!m.aberta){m.aberta=true;m.sub='A agência em 3D, e na mesa com RA';pintarPecas();setTimeout(function(){toast('A maquete da agência abriu na aba RA. O malote está nela.')},2800)}}};
+var _executarM=executar;executar=function(e){if(e[1]==='passagem')MAQ_REV.passagem=true;if(e[1]==='libera'&&e[2]==='corredor')MAQ_REV.campos=true;_executarM(e)};
+window.CFIMesa={maquete:function(){abrirMaquete()},partida:PCOD,impostor:IMP,casa:CASA,papel:EU_PAPEL,numero:EU,presentes:PRESENTES,pular:function(){inicioDoJogo();prologo.planta=prologo.ondeEstou=prologo.papeis=true;abrirGrupo();$('#janelaOk').click()},
   tempo:function(s){tRot=s},estado:function(){return {cap:capitulo,tRot:tRot,iRot:iRot,grupo:grupo.length,prologo:prologo,resta:resta,respostas:respostas,apostas:apostas,inv:INVENTARIO.length,envios:envios}},cap:function(n){comecarCapitulo(n)},fim:function(){fimDoCapitulo()}};
 if(TESTE)console.log('[CFI] partida',PCOD,'impostor',IMP,'casa',CASA,'papel',EU_PAPEL,'···'+EU);
 })();
@@ -2593,5 +2655,6 @@ document.querySelectorAll('.suspeito').forEach(function(s){var t=s.querySelector
 var cab=document.getElementById('convAvatar'),nome=document.getElementById('convNome');var n=nome&&nome.textContent.match(/(\d{2})/);if(cab&&n)preencher(cab,n[1])}
 var obs=new MutationObserver(varrer);obs.observe(document.body,{childList:true,subtree:true});varrer()})();
 </script>
+<script src="maquete.js?v=20261006"></script>
 </body>
 </html>
