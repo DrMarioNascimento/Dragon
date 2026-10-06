@@ -5,6 +5,7 @@
 | A Casa da Costa | `mosaico-game` | salas do Carro-Forte |
 | A Manhã do Carro-Forte | `mosaico-noite` | salas da Casa da Costa |
 | O Impostor (A Casa da Costa: O Impostor) | `oimpostor-c30e0` | salas das outras mesas |
+| A Manhã do Carro-Forte: O Impostor | `oimpostor-c30e0` (caseId `carro-forte-impostor`) | salas d'A Casa da Costa: O Impostor (o gate recusa código de outro caseId) |
 
 Dentro do mesmo projeto, coleções diferentes (`mosaico/` vs `noite/`) separam o Celular canônico do fluxo de fechamento/alternativo.
 
@@ -54,3 +55,15 @@ raiz, que publica o `firestore.rules` das outras mesas.
 No console do projeto: Firestore (região `southamerica-east1`), Authentication com
 Google e Anônimo, domínio autorizado `drmarionascimento.github.io`, e o documento
 `config/mestres` com o campo `emails` (lista).
+
+## A Manhã do Carro-Forte: O Impostor (06/10/2026)
+
+Mesmo projeto e mesmas regras d'O Impostor (`oimpostor-c30e0`,
+`o-impostor/firestore-impostor.rules`): o protocolo da sala é o mesmo (sorteio em
+`oi`, capítulos em `cap {n, t0Ms}`, `jogadores.etapa/resumo`, `mensagens`). A mesa
+(`carro-forte-impostor/mesa.html?grupo=1`) carrega `firebase-room.js` com
+`data-project="impostor"`, `data-root="mosaico"`, `data-case="carro-forte-impostor"`,
+`data-papel-camada="nao"` e `data-retomar="sim"`. As salas dos dois casos convivem na
+coleção `mosaico/`; o `caseId` gravado na sala separa uma da outra (quem digita o
+código de um caso na página do outro recebe "Esse código pertence a outro caso").
+Nada a publicar no console: as regras atuais já cobrem este caso.

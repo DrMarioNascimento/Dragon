@@ -956,15 +956,28 @@ button:active,.caixa:active,.redondo:active,.chip:active{
 'use strict';
 /* MOSAICO · A Manhã do Carro-Forte · O Impostor — mesa (05/10/2026)
    Base: O Impostor da Casa da Costa (o-impostor/mesa.html), copiada, não
-   compartilhada. Esta versão tem só o PRÓLOGO: apresentação da partida, da
-   agência e das telas. Nada conta pontos. Fonte de tudo: a revisão 2 da
-   história (04/10/2026) e a Matriz_Carro-Forte_O_Impostor.xlsx.
+   compartilhada. Prólogo e Capítulos 1 a 8, do começo ao placar. Fonte de
+   tudo: a revisão 2 da história (04/10/2026) e a Matriz_Carro-Forte_O_Impostor.xlsx.
+   SUBSTITUIDO 06/10: o cabeçalho dizia "Esta versão tem só o PRÓLOGO".
    Parâmetros de teste: ?p=S|G|V  ?papel=<id>  ?casa=6|8|10|12|13
-   ?humanos=N  ?teste=1 (roteiro 8× mais rápido)  ?partida=<semente> */
+   ?humanos=N  ?teste=1 (roteiro 8× mais rápido)  ?partida=<semente>
+   Mesa em grupo (06/10): ?grupo=1 abre a entrada (Abrir / Entrar); ?sala=CÓDIGO. */
 var $=function(s){return document.querySelector(s)};
 var SIL='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4.2"/><path d="M3.5 21c.8-4.6 4.2-7 8.5-7s7.7 2.4 8.5 7z"/></svg>';
 var Q=new URLSearchParams(location.search);
 var TESTE=Q.get('teste')==='1';
+/* ── Mesa em grupo (Firebase, 06/10/2026; motor portado d'O Impostor da Casa da Costa) ──
+   ?grupo=1 abre a entrada da mesa (Abrir / Entrar); ?sala=CÓDIGO entra ou volta a uma sala.
+   Depois do sorteio, a página reabre com ?sala=CÓDIGO&mp=1 e lê do sessionStorage o que a
+   sala sorteou (partida, semente, casa, personagem, quem é humano). Daí em diante tudo que
+   o sistema sorteia sai da mesma semente em todos os celulares. Sem esses parâmetros, o
+   solo é exatamente o de antes. */
+var SALA=(Q.get('sala')||'').toUpperCase(),GRUPO=Q.get('grupo')==='1'||!!SALA;
+var MPCFG=null;
+if(SALA&&Q.get('mp')==='1'){try{MPCFG=JSON.parse(sessionStorage.getItem('cfi:mp:'+SALA)||'null')}catch(e){}}
+var MP=!!(MPCFG&&MPCFG.p&&MPCFG.papel);
+if(MP){Q.set('p',MPCFG.p);Q.set('papel',MPCFG.papel);Q.set('humanos',String(MPCFG.humanos));Q.set('partida',MPCFG.partida);Q.set('casa',String(MPCFG.casa))}
+var MP_HUM={};if(MP)(MPCFG.hum||[]).forEach(function(id){MP_HUM[id]=true});
 var PARTIDA=Q.get('partida')||(function(){try{var k='cfi:partida';var v=sessionStorage.getItem(k);if(!v){v='P-'+Date.now().toString(36).toUpperCase();sessionStorage.setItem(k,v)}return v}catch(e){return 'P-DEMO'}})();
 function gerador(semente){var h=1779033703^semente.length;for(var i=0;i<semente.length;i++){h=Math.imul(h^semente.charCodeAt(i),3432918353);h=h<<13|h>>>19}
   return function(){h=Math.imul(h^h>>>16,2246822507);h=Math.imul(h^h>>>13,3266489909);h^=h>>>16;var t=(h+=0x6D2B79F5);t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
@@ -1070,6 +1083,7 @@ window.OIContatos=ARQ;
 var ID_DE={};Object.keys(SLOT_DE).forEach(function(id){ID_DE[SLOT_DE[id]]=id});
 var EU=SLOT_DE[EU_PAPEL];
 var NUMEROS=Object.keys(ID_DE).sort();
+var HUM_SLOT={};Object.keys(MP_HUM).forEach(function(id){if(SLOT_DE[id])HUM_SLOT[SLOT_DE[id]]=id});
 function na(id){return id===EU_PAPEL?'você':P[id].a+' '+P[id].n}
 function Na(id){var t=na(id);return t.charAt(0).toUpperCase()+t.slice(1)}
 function T(s){return s.replace(/\{([a-z_]+)\}/g,function(m,k,o){if(!P[k])return m;var ini=o===0||/[.!?:]\s*(<[^>]+>)?\s*$/.test(s.slice(0,o));return ini?Na(k):na(k)})}
@@ -1151,7 +1165,9 @@ function pintarGrupo(){
   grupo.forEach(function(m){if(m.sis&&!m.digitada){m.digitada=true;var alvo=el.querySelector('[data-mid="'+m._id+'"]');if(alvo){var hh=m.hh?'<span class="hh">'+m.hh+'</span>':'';digitar(alvo,hh+m.sis,20)}}});
   el.scrollTop=el.scrollHeight}
 function narrar(txt,hh){grupo.push({sis:T(txt),hh:hh});if(aba==='grupo')pintarGrupo();else{glow('grupo',true);grupo[grupo.length-1].digitada=false}}
-function falar(id,txt){if(!id||!presente(id)||id===EU_PAPEL)return;grupo.push({de:SLOT_DE[id],txt:txt,h:hora()});if(aba==='grupo')pintarGrupo();else glow('grupo',true)}
+/* Decisão 2 (grupo): a fala pronta de um personagem que está com um humano sai como
+   narração, nunca como mensagem do número dele; a do próprio jogador vira "Você disse". */
+function falar(id,txt){if(!id||!presente(id))return;if(MP&&MP_HUM[id]){narrar(id===EU_PAPEL?'Você disse: <i>"'+txt+'"</i>':'<b>'+Na(id)+'</b> disse: <i>"'+txt+'"</i>');return}if(id===EU_PAPEL)return;grupo.push({de:SLOT_DE[id],txt:txt,h:hora()});if(aba==='grupo')pintarGrupo();else glow('grupo',true)}
 
 /* ── Privadas ───────────────────────────────────────────────────────── */
 function pintarListaPriv(){
@@ -1168,7 +1184,7 @@ function abrirPriv(f){if(!privadas[f])privadas[f]={nao:0,msgs:[]};abertaPriv=f;p
 function pintarConv(){var el=$('#chatPriv');el.innerHTML=privadas[abertaPriv].msgs.map(bolha).join('')||'<div class="dia">CONVERSA PRIVADA</div>';el.scrollTop=el.scrollHeight}
 $('#voltarPriv').onclick=function(){abertaPriv=null;$('#convPriv').hidden=true;$('#listaPriv').hidden=false;pintarListaPriv()};
 function chegaPrivada(id,txt){if(!presente(id)||id===EU_PAPEL)return;var f=SLOT_DE[id];if(!privadas[f])privadas[f]={nao:0,msgs:[]};
-  privadas[f].msgs.push({de:f,txt:txt,h:hora()});privadas[f].ordem=++ordemPriv;if(!(aba==='privadas'&&abertaPriv===f))privadas[f].nao++;if(abertaPriv===f)pintarConv();pintarListaPriv()}
+  privadas[f].msgs.push(MP&&MP_HUM[id]?{sis:'<b>'+Na(id)+'</b> escreveu só para você: <i>"'+txt+'"</i>'}:{de:f,txt:txt,h:hora()});privadas[f].ordem=++ordemPriv;if(!(aba==='privadas'&&abertaPriv===f))privadas[f].nao++;if(abertaPriv===f)pintarConv();pintarListaPriv()}
 document.addEventListener('click',function(e){var p=e.target.closest('[data-priv]');if(p)abrirPriv(p.dataset.priv)});
 
 /* ── Abas ───────────────────────────────────────────────────────────── */
@@ -1192,13 +1208,17 @@ $('#pontosPill').onclick=function(){janela('OS PONTOS','Seus pontos ficam escond
 /* ── Frases prontas ─────────────────────────────────────────────────── */
 var RESP_GRUPO=CHEGA?['Cheguei agora.','Quem mais está na agência?','O carro-forte chegou cedo, não?','Bom dia a todos.']:['Estou no meu posto.','Quem mais está na agência?','O carro-forte chegou cedo, não?','Bom dia a todos.'];
 var RESP_PRIV=['Cheguei antes.','Não reparei.','Por quê?','Te digo depois.'];
+/* A resposta do sistema a uma frase pronta do grupo (a sua ou a de outro humano da mesa). */
+function replicaGrupo(txt){
+  if(!capitulo){var r=REPLICA[txt];if(r&&!r.feita&&presente(r[0])&&!(r[0]===EU_PAPEL&&!MP)){r.feita=true;setTimeout(function(){falar(r[0],r[1])},2500)}return}
+  var C=CAPS[capitulo],q=C&&C.rep[txt];if(q&&typeof q!=='string'&&typeof q!=='function'){var w=primeiro(q[0]);if(w)setTimeout(function(){falar(w,q[1])},2500+Math.random()*1500)}}
 var REPLICA={'Quem mais está na agência?':['operadora','Todo mundo que está no grupo. A Central registra cada um.'],'O carro-forte chegou cedo, não?':['caixa_veterano','Uma hora antes. Em vinte e sete anos, não lembro de outra assim.']};
 function montarRespostas(id,lista,destino){var el=$('#'+id);
   el.innerHTML=lista.map(function(t){return '<button class="chip">'+t+'</button>'}).join('');
   el.querySelectorAll('.chip').forEach(function(c){c.onclick=function(){if(!gastarEnvio())return;var m={de:EU,txt:c.textContent,h:hora()};
-    if(destino==='grupo'){grupo.push(m);pintarGrupo();var r=REPLICA[c.textContent];if(r&&!r.feita&&presente(r[0])&&r[0]!==EU_PAPEL){r.feita=true;setTimeout(function(){falar(r[0],r[1])},2500)}}
+    if(destino==='grupo'){grupo.push(m);pintarGrupo();replicaGrupo(c.textContent);mpEnviar(m,'grupo')}
     else{privadas[abertaPriv].msgs.push(m);privadas[abertaPriv].ordem=++ordemPriv;pintarConv();pintarListaPriv();
-      var f=abertaPriv;setTimeout(function(){var id2=ID_DE[f];if(!privadas[f].resp&&id2){privadas[f].resp=true;chegaPrivada(id2,'Agora não dá. Depois a gente fala.')}},3000)}
+      var f=abertaPriv;mpEnviar(m,f);if(!(MP&&HUM_SLOT[f]))setTimeout(function(){var id2=ID_DE[f];if(!privadas[f].resp&&id2){privadas[f].resp=true;chegaPrivada(id2,'Agora não dá. Depois a gente fala.')}},3000)}
     el.hidden=true}})}
 document.querySelectorAll('[data-respostas]').forEach(function(b){b.onclick=function(){var id=b.dataset.respostas,el=$('#'+id);
   if(el.hidden){montarRespostas(id,id==='respGrupo'?RESP_GRUPO:RESP_PRIV,id==='respGrupo'?'grupo':'priv');el.hidden=false}else el.hidden=true}});
@@ -1213,7 +1233,7 @@ document.querySelectorAll('[data-anexo]').forEach(function(b){b.onclick=function
     INVENTARIO.map(function(it,i){return '<div class="item"><span style="font-size:24px">'+it.ico+'</span><span style="flex:1"><b>'+it.nome+'</b><span>'+it.desc+'</span></span>'+(it.img?'<button class="mini" data-ver-it="'+i+'">Ver</button>':'')+'<button class="mini ok" data-it="'+i+'">Anexar</button></div>'}).join(''));
   document.querySelectorAll('[data-ver-it]').forEach(function(x){x.onclick=function(){var it=INVENTARIO[+x.dataset.verIt];verDocumento(it.nome,it.img)}});
   document.querySelectorAll('[data-it]').forEach(function(x){x.onclick=function(){if(!gastarEnvio())return;var it=INVENTARIO[+x.dataset.it],m={de:EU,anexo:it.nome,img:it.img,h:hora()};
-    if(destino==='grupo'){grupo.push(m);pintarGrupo()}else{privadas[abertaPriv].msgs.push(m);privadas[abertaPriv].ordem=++ordemPriv;pintarConv();pintarListaPriv()}fecharFolha()}})}});
+    if(destino==='grupo'){grupo.push(m);pintarGrupo();mpEnviar(m,'grupo')}else{privadas[abertaPriv].msgs.push(m);privadas[abertaPriv].ordem=++ordemPriv;pintarConv();pintarListaPriv();mpEnviar(m,abertaPriv)}fecharFolha()}})}});
 var zoomDoc=1;
 function verDocumento(nome,img){fecharFolha();zoomDoc=innerWidth<innerHeight?1.6:1;$('#docTitulo').textContent=nome;var im=$('#docImg');im.src=img;im.style.width=(zoomDoc*100)+'%';$('#visorDoc').hidden=false;$('#docArea').scrollTo(0,0)}
 function zoom(d){zoomDoc=Math.max(1,Math.min(4,zoomDoc+d));$('#docImg').style.width=(zoomDoc*100)+'%'}
@@ -1383,8 +1403,8 @@ function pintarPecas(){$('#gradeRA').innerHTML=PECAS.map(function(p){var tr=!(p.
 /* ── Papéis: quem está na agência ───────────────────────────────────── */
 function mostrarPapeis(){
   var hum=HUMANOS;$('#nJogadores').textContent=hum;$('#papeisTitulo').innerHTML='Nesta partida há <span id="nJogadores">'+hum+'</span> '+(hum>1?'jogadores':'jogador')+'.';
-  $('#papeisLede').textContent='Na agência, esta manhã, estão '+PRESENTES.length+' pessoas, cada uma com a sua função. Os outros personagens ficam com o sistema. Um deles é o impostor. Nunca é o seu.';
-  $('#elenco').innerHTML=PRESENTES.map(function(id){var p=P[id];return '<div class="'+(id===EU_PAPEL?'meu':'')+(p.sis?' sistema-el':'')+'"><span class="sil">'+SIL+'</span><b>'+p.n+'</b><span>'+(p.sis?'apoio · sempre do sistema':p.f)+'</span></div>'}).join('');
+  $('#papeisLede').textContent='Na agência, esta manhã, estão '+PRESENTES.length+' pessoas, cada uma com a sua função. '+(MP&&HUMANOS>1?'Os marcados como jogador da mesa estão com pessoas; os outros ficam com o sistema.':'Os outros personagens ficam com o sistema.')+' Um deles é o impostor. Nunca é o seu, nem de quem joga.';
+  $('#elenco').innerHTML=PRESENTES.map(function(id){var p=P[id];return '<div class="'+(id===EU_PAPEL?'meu':'')+(p.sis?' sistema-el':'')+'"><span class="sil">'+SIL+'</span><b>'+p.n+'</b><span>'+(p.sis?'apoio · sempre do sistema':p.f+(MP&&MP_HUM[id]&&id!==EU_PAPEL?' · jogador da mesa':''))+'</span></div>'}).join('');
   $('#seuIcone').innerHTML=bonecoDe(EU);$('#seuNome').textContent=P[EU_PAPEL].n;
   $('#seuFuncao').textContent=P[EU_PAPEL].f+'. Seu número: ···'+EU+'. '+(CHEGA?'Você chega à agência esta manhã.':'Você já estava na agência quando a manhã começou.');
   var d=$('#papeis');try{d.showModal()}catch(e){d.setAttribute('open','')}}
@@ -1504,7 +1524,8 @@ function fimDoPrologo(){
     '<div class="acoes"><button type="button" id="irCap1">Começar o Capítulo 1</button><button type="button" class="sec" id="fechoFicar">Continuar explorando</button><button type="button" class="sec" id="fechoDeNovo">Jogar o prólogo de novo, outra partida</button></div>';
   var d=$('#fecho');try{d.showModal()}catch(e){d.setAttribute('open','')}d.scrollTop=0;
   $('#fechoFicar').onclick=function(){try{d.close()}catch(e){d.removeAttribute('open')}};
-  $('#irCap1').onclick=function(){try{d.close()}catch(e){d.removeAttribute('open')}comecarCapitulo(1)};
+  $('#irCap1').onclick=function(){try{d.close()}catch(e){d.removeAttribute('open')}if(MP){mpPronto(0);return}comecarCapitulo(1)};
+  if(MP){$('#fechoDeNovo').hidden=true;$('#irCap1').textContent='Pronto para o Capítulo 1'}
   $('#fechoDeNovo').onclick=function(){try{sessionStorage.removeItem('cfi:partida')}catch(e){}var u=new URL(location.href);u.searchParams.delete('partida');location.href=u.toString()}}
 
 
@@ -1618,8 +1639,10 @@ document.querySelectorAll('[data-respostas]').forEach(function(b){var antigo=b.o
   el.innerHTML=lista.map(function(t){return '<button class="chip">'+t+'</button>'}).join('');el.hidden=false;
   el.querySelectorAll('.chip').forEach(function(c){c.onclick=function(){if(capituloFechado[capitulo]){toast('O capítulo fechou.');return}if(!gastarEnvio())return;
     var txt=c.textContent,m={de:EU,txt:txt,h:hora()},r=C.rep[txt];el.hidden=true;
-    if(id==='respGrupo'){grupo.push(m);pintarGrupo();if(r&&typeof r!=='string'){var q=primeiro(r[0]);if(q)setTimeout(function(){falar(q,r[1])},2500+Math.random()*1500)}}
-    else{var f=abertaPriv;privadas[f].msgs.push(m);privadas[f].ordem=++ordemPriv;pintarConv();pintarListaPriv();
+    if(id==='respGrupo'){grupo.push(m);pintarGrupo();replicaGrupo(txt);mpEnviar(m,'grupo')}
+    else{var f=abertaPriv;privadas[f].msgs.push(m);privadas[f].ordem=++ordemPriv;pintarConv();pintarListaPriv();mpEnviar(m,f);
+      /* um humano responde por si: o sistema não fala por ele */
+      if(MP&&HUM_SLOT[f])return;
       if(typeof r==='function')r=r(ID_DE[f]);if(typeof r==='string')setTimeout(function(){chegaPrivada(ID_DE[f],r)},2500+Math.random()*1500)}}})}});
 
 /* ── Fim do capítulo: debate, perguntas, aposta ─────────────────────── */
@@ -1673,6 +1696,7 @@ var _pintarSusp=pintarSusp;pintarSusp=function(){_pintarSusp();if(!capitulo)retu
   L.querySelectorAll('[data-aposta-conf]').forEach(function(b){b.onclick=function(){apostaConf=b.dataset.apostaConf;if(apostaConf==='naosei')votoEm=null;pintarSusp()}});
   $('#seguirCap').onclick=function(){apostas[capitulo]={numero:votoEm,personagem:votoEm?ID_DE[votoEm]:null,confianca:apostaConf};
     try{sessionStorage.setItem('cfi:respostas:'+PARTIDA,JSON.stringify({respostas:respostas,apostas:apostas}))}catch(e){}
+    if(MP){mpPronto(capitulo);return}
     comecarCapitulo(capitulo+1)}};
 
 /* ── A peça do Cap. 1: o malote murcho ──────────────────────────────────
@@ -2608,6 +2632,7 @@ function mostrarPlacar(){
     '<p class="lede" style="font-size:13px;margin-top:10px">Com certeza: +4 se certa, −4 se errada. Sem certeza: +2 ou −1. Não sei: 0. Secundária vale metade; impostor, 3 vezes; quem ajudou, 2 vezes. As apostas não contam pontos: mostram em quem você apostou no fim de cada capítulo (✓ quando era o impostor).</p>'+
     '<div class="acoes"><button type="button" id="placarDeNovo">Jogar de novo, outra partida</button><button type="button" class="sec" id="placarFicar">Rever o Grupo</button></div>';
   abrirFecho();
+  if(MP){$('#placarDeNovo').hidden=true;$('#fechoCorpo').querySelector('h2').insertAdjacentHTML('beforebegin','<div id="mpPlacar"></div>');mpFimDaPartida(tot);mpPintarPlacar()}
   try{sessionStorage.setItem('cfi:respostas:'+PARTIDA,JSON.stringify({respostas:respostas,apostas:apostas,total:tot,max:max}))}catch(e){}
   $('#placarFicar').onclick=function(){fecharFecho()};
   $('#placarDeNovo').onclick=function(){try{sessionStorage.removeItem('cfi:partida')}catch(e){}var u=new URL(location.href);['partida','p','papel','casa'].forEach(function(k){u.searchParams.delete(k)});location.href=u.toString()}}
@@ -2617,6 +2642,8 @@ function mostrarPlacar(){
 var ABERTURA='Às 7h47, o carro-forte chega com uma hora de antecedência, e ninguém lá dentro diz ter pedido.\nUma auditoria de custódia chega sem aviso.\nQuinze funções. Uma manhã.\nUm de vocês não é quem diz.';
 var abFeita=false;
 function inicioDoJogo(){if(abFeita)return;abFeita=true;var ab=$('#abertura');if(ab)ab.remove();
+  /* mesa em grupo: acabada (ou pulada) a abertura, abre a entrada Abrir / Entrar; o prólogo começa depois do sorteio */
+  if(GRUPO&&!MP){cfiCarregarSala();return}
   ['grupo','privadas','suspeitos'].forEach(function(a){document.querySelector('[data-aba="'+a+'"]').classList.add('muda')});
   irPara('ra');glow('ra',true);pintarGrupo();pintarEnvios();
   janela('PARA COMEÇAR','Toque em RA. A primeira peça do caso é a planta de evacuação da agência. Ela fica disponível o jogo todo. Abra a planta e descubra onde você está.')}
@@ -2664,8 +2691,146 @@ var _pintarPecasM=pintarPecas;pintarPecas=function(){_pintarPecasM();var b=docum
 var _abrirPecaCapM=abrirPecaCap;abrirPecaCap=function(id){_abrirPecaCapM(id);
   if(id==='c1'){var m=PECAS.filter(function(x){return x.id==='maquete'})[0];if(m&&!m.aberta){m.aberta=true;m.sub='A agência em 3D, e na mesa com RA';pintarPecas();setTimeout(function(){toast('A maquete da agência abriu na aba RA. O malote está nela.')},2800)}}};
 var _executarM=executar;executar=function(e){if(e[1]==='passagem')MAQ_REV.passagem=true;if(e[1]==='libera'&&e[2]==='corredor')MAQ_REV.campos=true;if(e[1]==='libera'&&e[2]==='pegadas')MAQ_REV.pegadas=true;_executarM(e)};
+/* ── Mesa em grupo: o motor (06/10/2026) ─────────────────────────────────
+   Portado d'O Impostor da Casa da Costa (o-impostor/mesa.html, 03/10), mesmas
+   decisões: 1 capítulos sincronizados (o seguinte abre quando todos terminaram,
+   ou quando o Mestre avança pelo botão Sala); 2 fala pronta de personagem que
+   está com um humano vira narração; 3 humanos trocam só as frases prontas e os
+   anexos; 4 personagens sorteados pelo celular do Mestre; 5 sem telão por ora;
+   6 ranking no fim. A entrada (Abrir / Entrar, código, QR) é a mesma das outras
+   mesas (firebase-room.js), no projeto do Impostor (oimpostor-c30e0), separada
+   d'A Casa pelo caseId 'carro-forte-impostor'. Pela rede passam só: o sorteio,
+   o início de cada capítulo, as mensagens dos humanos e o placar final. */
+var mpCapAplicado=0,mpEsperando=null,mpAvancando={},mpInicio=Date.now(),mpUid='',mpLigado=false,mpFinalizado=false,mpMeuResumo=null,mpNomes={},mpPassouPrologo=false;
+function mpSala(){return window.DragonSala||null}
+function mpHumanos(room,players){var pp=room&&room.oi&&room.oi.papeis||{};return (players||[]).filter(function(p){return pp[p.id]})}
+/* as imagens do inventário são blob: deste aparelho; vão pela rede como data: */
+function mpImagem(url,cb){if(!url){cb('');return}if(/^data:/.test(url)){cb(url);return}
+  try{fetch(url).then(function(r){return r.blob()}).then(function(b){var fr=new FileReader();fr.onload=function(){cb(String(fr.result))};fr.onerror=function(){cb('')};fr.readAsDataURL(b)}).catch(function(){cb('')})}catch(e){cb('')}}
+function mpEnviar(m,para){if(!MP||!mpLigado)return;if(para!=='grupo'&&!HUM_SLOT[para])return;
+  var d={slot:EU,para:para,cap:capitulo};
+  if(m.txt)d.txt=String(m.txt).slice(0,600);
+  if(m.anexo){d.anexo=String(m.anexo).slice(0,120);
+    mpImagem(m.img,function(img){if(img&&img.length<=700000)d.img=img;mpSala().adicionar('mensagens',d)});return}
+  mpSala().adicionar('mensagens',d)}
+function mpRecebeMsgs(lista){lista.sort(function(a,b){return (a.ms||0)-(b.ms||0)}).forEach(function(m){
+  /* o que chegou antes desta página abrir ficou para trás (recarga) */
+  if(m.de===mpUid||(m.ms||0)<mpInicio-3000)return;
+  var de=m.slot;if(!de||!HUM_SLOT[de]||de===EU)return;
+  var b={de:de,h:hora()};if(m.txt)b.txt=m.txt;if(m.anexo){b.anexo=m.anexo;if(m.img)b.img=m.img}
+  if(m.para==='grupo'){grupo.push(b);if(aba==='grupo')pintarGrupo();else glow('grupo',true);
+    /* a resposta do sistema a uma frase pronta sai igual em todos os celulares */
+    if(m.txt&&m.cap===capitulo)replicaGrupo(m.txt)}
+  else if(m.para===EU){if(!privadas[de])privadas[de]={nao:0,msgs:[]};privadas[de].msgs.push(b);privadas[de].ordem=++ordemPriv;
+    if(!(aba==='privadas'&&abertaPriv===de))privadas[de].nao++;if(abertaPriv===de)pintarConv();pintarListaPriv()}
+})}
+function mpFaixa(txt){var el=$('#mpFaixa');if(!txt){if(el)el.remove();return}
+  if(!el){el=document.createElement('div');el.id='mpFaixa';el.setAttribute('role','status');
+    el.style.cssText='position:fixed;left:12px;right:12px;bottom:calc(72px + env(safe-area-inset-bottom));z-index:9000;padding:12px 14px;border-radius:12px;border:1px solid #6e5bd6;background:#1b1640;color:#e4ddff;font:600 14px/1.4 var(--sans);box-shadow:0 10px 30px #000a;text-align:center';
+    document.body.appendChild(el)}
+  el.textContent=txt}
+function mpPronto(n){mpEsperando=n;if(n===0)mpPassouPrologo=true;irPara('grupo');
+  mpSala().atualizarEu({etapa:n});mpChecar(mpSala().sala,mpSala().jogadores)}
+function mpChecar(room,players){if(!MP||!room||!room.oi)return;
+  if(room.ativa===false){mpFaixa('O Mestre encerrou a sala.');return}
+  var n=room.cap?room.cap.n:0;
+  if(n>mpCapAplicado)mpAplicarCap(room.cap);
+  var hum=mpHumanos(room,players),total=Object.keys(room.oi.papeis).length,
+      prontos=hum.filter(function(p){return typeof p.etapa==='number'&&p.etapa>=n}).length;
+  hum.forEach(function(p){mpNomes[p.id]=p.nome});
+  var mestre=mpSala().papel==='master',prox=n+1,alvo=prox===8?'o capítulo final':'o Capítulo '+prox;
+  if(mpEsperando!==null&&mpEsperando>=n)mpFaixa(prontos>=total?(mestre?'Todos prontos. Comece '+alvo+' pelo botão Sala.':'Todos prontos. Aguardando o Mestre abrir '+alvo+'.'):'Aguardando a mesa: '+prontos+' de '+total+' prontos para '+alvo+'.'+(mestre?' Pelo botão Sala você pode começar sem esperar.':''));
+  if(!mestre||n>=8)return;
+  function abrir(){if(mpAvancando[prox])return;mpAvancando[prox]=true;mpSala().acao(null);mpSala().atualizarSala({cap:{n:prox,t0Ms:Date.now()+2500}})}
+  if(prontos>=total&&room.ritmo!=='conduzido'){abrir();return}
+  if(prontos>0)mpSala().acao({rotulo:prox===8?'Abrir o capítulo final':'Começar o Capítulo '+prox,
+    texto:prontos+' de '+total+' prontos para '+alvo+'.'+(prontos>=total?'':' Quem ainda não terminou entra direto.'),aoTocar:abrir});
+  else mpSala().acao(null)}
+/* Quem ainda estava no capítulo quando o Mestre avançou: fecha o que ficou aberto
+   (a aposta feita até ali fica guardada). */
+function mpEncerrarLocal(){
+  if(capitulo>=1&&capitulo<=7){capituloFechado[capitulo]=true;
+    if(!apostas[capitulo])apostas[capitulo]={numero:votoEm,personagem:votoEm?ID_DE[votoEm]:null,confianca:apostaConf}}
+  $('#janela').hidden=true;$('#telaRA').hidden=true;fecharFolha();fecharFecho();
+  if(window.CFIMaquete&&CFIMaquete.aberta())CFIMaquete.fechar()}
+function mpAplicarCap(cap){var n=cap.n;mpCapAplicado=n;mpEsperando=null;mpFaixa(null);
+  setTimeout(function(){
+    if(capitulo===0&&!mpPassouPrologo){mpRetomar(n);return}
+    mpEncerrarLocal();irPara('grupo');comecarCapitulo(n)},Math.max(0,(cap.t0Ms||0)-Date.now()))}
+/* Ainda no prólogo quando a mesa seguiu (o Mestre avançou), ou de volta depois de
+   recarregar no meio da partida: entra direto no capítulo da mesa. */
+function mpRetomar(n){var ab=$('#abertura');if(ab)ab.remove();
+  $('#janela').hidden=true;fecharFecho();
+  ['grupo','privadas','suspeitos','ra'].forEach(function(a){document.querySelector('[data-aba="'+a+'"]').classList.remove('muda')});
+  prologo.planta=prologo.ondeEstou=prologo.papeis=prologo.grupo=true;mpPassouPrologo=true;
+  irPara('grupo');comecarCapitulo(n);
+  janela('A MESA SEGUIU',n===1&&mpCapAplicado===1?'O Mestre abriu o Capítulo 1. O prólogo fica para outra vez; a planta continua na aba RA.':'Você voltou à mesa no meio da partida. O jogo retoma no '+(n===8?'capítulo final':'Capítulo '+n)+'. O que foi feito antes desta volta não ficou neste aparelho.')}
+function mpFimDaPartida(total){if(mpFinalizado)return;mpFinalizado=true;
+  mpMeuResumo={papel:EU_PAPEL,final:Math.round(total*10)/10};
+  mpSala().atualizarEu({resumo:mpMeuResumo,etapa:8});mpPintarPlacar()}
+/* Decisão 6: ranking por pontos; empate divide a posição. */
+function mpPintarPlacar(){var el=$('#mpPlacar');if(!el)return;var S=mpSala(),room=S.sala,hum=mpHumanos(room,S.jogadores);
+  var feitos=hum.filter(function(p){return p.resumo&&p.id!==mpUid}).map(function(p){return {id:p.id,nome:p.nome||'Jogador',r:p.resumo}});
+  if(mpMeuResumo)feitos.push({id:mpUid,nome:mpNomes[mpUid]||'Você',r:mpMeuResumo});
+  feitos.sort(function(a,b){return b.r.final-a.r.final});
+  var total=room&&room.oi?Object.keys(room.oi.papeis).length:feitos.length,pos=0,ant=null;
+  function nomeP(x){return '<b>'+String(x.nome).replace(/[<>&]/g,'')+'</b>'+(x.id===mpUid?' (você)':'')}
+  var linhas=feitos.map(function(x,i){if(x.r.final!==ant){pos=i+1;ant=x.r.final}
+    return '<tr><td><b>'+pos+'º</b></td><td>'+nomeP(x)+'</td><td>'+(P[x.r.papel]?P[x.r.papel].n:'')+'</td><td style="text-align:right;color:'+(x.r.final>=0?'#9ff0c4':'#f0a89a')+'">'+fmt(x.r.final)+'</td></tr>'}).join('');
+  var falta=total-feitos.length;
+  el.innerHTML='<h2>Ranking da mesa</h2><table style="width:100%;border-collapse:collapse;font-size:14px"><tr style="color:#4dba7c"><td></td><td>Jogador</td><td>Personagem</td><td style="text-align:right">pontos</td></tr>'+linhas+'</table>'+
+    (falta>0?'<p class="lede">Aguardando '+falta+(falta>1?' jogadores':' jogador')+' terminar a acusação.</p>':'')}
+function mpIniciar(d){mpUid=mpSala().uid;mpLigado=true;
+  mpSala().ouvirColecao('mensagens',mpRecebeMsgs);
+  mpSala().aoMudar(function(room,players){mpChecar(room,players);if(mpFinalizado)mpPintarPlacar()});
+  mpChecar(d.room,d.players||mpSala().jogadores)}
+/* O sorteio da sala (decisão 4), feito no celular do Mestre quando ele toca em Iniciar:
+   a partida entre as que têm lugar para todos; a casa, a menor que cabe; os
+   personagens, primeiro quem ajudou sem saber e o falso culpado (o Técnico), de
+   preferência para humanos, depois os outros; nunca o impostor nem o Gerente. */
+if(GRUPO&&!MP)window.DragonSalaAntesDeIniciar=function(ctx){var ps=(ctx.players||[]).slice(),N=ps.length;
+  var maxL=Math.max.apply(null,Object.keys(PARTIDAS).map(function(k){return lugares(k,13)}));
+  if(N<1)throw new Error('Ninguém na sala.');
+  if(N>maxL){alert('A mesa aceita até '+maxL+' jogadores.');throw new Error('Jogadores demais.')}
+  var semente='S-'+ctx.code+'-'+Date.now().toString(36).toUpperCase(),r=gerador(semente+'|sala');
+  function mist(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(r()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
+  var bolsa=Object.keys(PARTIDAS).filter(function(k){return lugares(k,13)>=N}),p=bolsa[Math.floor(r()*bolsa.length)];
+  var casa=CASAS.filter(function(c){return c>=PARTIDAS[p].casa&&lugares(p,c)>=N})[0];
+  var cand=JOGAVEIS.filter(function(id){return naCasaDe(casa,id)&&id!==PARTIDAS[p].imp&&NUNCA_HUMANO.indexOf(id)<0});
+  var pref=[{S:'caixa_veterano',G:'subgerente',V:'subgerente'}[p],'tecnico'].filter(function(id){return cand.indexOf(id)>=0});
+  var ordem=pref.concat(mist(cand.filter(function(id){return pref.indexOf(id)<0})));
+  var esc=mist(ordem.slice(0,N));if(esc.length<N)throw new Error('Sem lugar para todos nesta partida.');
+  var papeis={};mist(ps).forEach(function(pl,i){papeis[pl.id]=esc[i]});
+  return {oi:{p:p,partida:semente,humanos:N,casa:casa,papeis:papeis,teste:TESTE}}};
+/* A entrada da mesa (firebase-room.js) só entra depois da abertura: terminal →
+   Abrir / Entrar. Na página da partida (depois do sorteio), entra direto. */
+function cfiCarregarSala(){if(cfiCarregarSala.feito)return;cfiCarregarSala.feito=true;
+  var q=document.createElement('script');q.src='../v1/js/qr.js';document.head.appendChild(q);
+  var m=document.createElement('script');m.type='module';m.src=(window.CFI_SALA_SRC||'../firebase-room.js?v=20261006-cf');
+  var d={project:'impostor',root:'mosaico',case:'carro-forte-impostor',title:'A Manhã do Carro-Forte · O Impostor',papelCamada:'nao',retomar:'sim'};
+  Object.keys(d).forEach(function(k){m.dataset[k]=d[k]});document.body.appendChild(m)}
+/* O botão Sala do Mestre fica no alto, junto da ficha (o flutuante cobriria a barra
+   de escrever). A folha da sala esconde o flutuante quando acha este espelho. */
+if(MP&&MPCFG.mestre){var bS=document.createElement('button');bS.type='button';bS.className='btn-menu-mestre';bS.setAttribute('data-dragon-sala-espelho','');bS.setAttribute('aria-label','Abrir ou fechar a Sala do mestre');bS.textContent='Sala';
+  document.head.insertAdjacentHTML('beforeend','<style>.btn-menu-mestre{height:36px;min-height:36px;padding:0 14px;margin-right:4px;border-radius:100px;border:1px solid rgba(127,212,255,.5);background:rgba(5,7,12,.82);color:#7fd4ff;font:700 clamp(12px,3vw,15px) var(--sans);letter-spacing:.04em;text-transform:none;cursor:pointer}</style>');
+  bS.onclick=function(){var f=document.getElementById('dragonSalaBtn');if(f)f.click()};
+  var hud=document.querySelector('.topbar .hud');if(hud)hud.insertBefore(bS,hud.firstChild)}
+/* Liberada a partida: a primeira vez, a página reabre já com o que a sala sorteou;
+   depois (e em cada recarga), a mesa liga. */
+window.addEventListener('mosaico-room-ready',function(e){var d=e.detail||{};if(!d.code||!d.room)return;
+  if(MP){mpIniciar(d);return}
+  var oi=d.room.oi,uid=mpSala()&&mpSala().uid,papel=oi&&oi.papeis&&oi.papeis[uid];
+  if(!papel){janela('A MESA JÁ COMEÇOU','Esta partida começou sem o seu lugar. Peça ao Mestre para abrir uma mesa nova.');return}
+  var hum=Object.keys(oi.papeis).map(function(k){return oi.papeis[k]});
+  try{sessionStorage.setItem('cfi:mp:'+d.code,JSON.stringify({p:oi.p,partida:oi.partida,humanos:oi.humanos,casa:oi.casa,papel:papel,hum:hum,mestre:d.role==='master'}))}
+  catch(er){janela('NAVEGADOR','Este navegador não deixa o jogo guardar a partida (modo privado?). Abra em uma aba comum.');return}
+  location.replace(location.pathname+'?sala='+d.code+'&mp=1'+(oi.teste?'&teste=1':''))});
+if(MP){cfiCarregarSala();inicioDoJogo()}
+
 window.CFIMesa={maquete:function(){abrirMaquete()},partida:PCOD,impostor:IMP,casa:CASA,papel:EU_PAPEL,numero:EU,presentes:PRESENTES,pular:function(){inicioDoJogo();prologo.planta=prologo.ondeEstou=prologo.papeis=true;abrirGrupo();$('#janelaOk').click()},
   tempo:function(s){tRot=s},estado:function(){return {cap:capitulo,tRot:tRot,iRot:iRot,grupo:grupo.length,prologo:prologo,resta:resta,respostas:respostas,apostas:apostas,inv:INVENTARIO.length,envios:envios}},cap:function(n){comecarCapitulo(n)},fim:function(){fimDoCapitulo()}};
+if(MP&&TESTE)window.CFIMesa.mp={pronto:function(n){mpPronto(n)},estado:function(){return {papel:EU_PAPEL,eu:EU,p:PCOD,casa:CASA,partida:PARTIDA,hum:Object.keys(MP_HUM).sort().join(','),slots:JSON.stringify(SLOT_DE),cap:capitulo,ligado:mpLigado,capApl:mpCapAplicado,esp:mpEsperando,roomCap:JSON.stringify((mpSala()&&mpSala().sala||{}).cap||null),faixa:($('#mpFaixa')||{}).textContent||''}},
+  grupo:function(){return grupo.map(function(m){return m.sis?'[N] '+limpo(m.sis):(m.de?m.de+': '+(m.txt||m.anexo||''):'')})},priv:function(f){return (privadas[f]||{msgs:[]}).msgs.map(function(m){return m.sis?'[N] '+limpo(m.sis):m.de+': '+(m.txt||m.anexo||'')})},placar:function(){mostrarPlacar()},chip:function(t){var m={de:EU,txt:t,h:hora()};grupo.push(m);pintarGrupo();replicaGrupo(t);mpEnviar(m,'grupo')}};
 if(TESTE)console.log('[CFI] partida',PCOD,'impostor',IMP,'casa',CASA,'papel',EU_PAPEL,'···'+EU);
 })();
 </script>
