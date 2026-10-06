@@ -1,10 +1,10 @@
-// Uso: node preparar-maquete.mjs <glb-do-designer> <pasta-de-saida>  (npm i @gltf-transform/core@4 @gltf-transform/functions@4 @gltf-transform/extensions@4 gl-matrix@3)
+// Uso: node preparar-maquete.mjs <glb-do-designer> <pasta-de-saida>  (npm i @gltf-transform/core@4 @gltf-transform/functions@4 @gltf-transform/extensions@4 gl-matrix@3 sharp)
 // Prepara a maquete da Agência 0688 para o jogo:
 //  - base: sem spoilers, sem luzes da noite, peças juntadas por sala+material
 //  - itens: arquivos à parte, no MESMO referencial da base
 import {NodeIO, getBounds} from '@gltf-transform/core';
 import {ALL_EXTENSIONS, KHRLightsPunctual} from '@gltf-transform/extensions';
-import {prune, dedup, joinPrimitives, transformPrimitive} from '@gltf-transform/functions';
+import {prune, dedup, joinPrimitives, transformPrimitive, weld, quantize} from '@gltf-transform/functions';
 import {mat4} from 'gl-matrix';
 
 const [,, SRC, OUT] = process.argv;
@@ -100,7 +100,8 @@ async function base() {
   };
   juntar(doc, isUnit, 'agencia-0688');
   try { doc.createExtension(KHRLightsPunctual).dispose(); } catch (e) {}
-  await doc.transform(prune(), dedup());
+  await doc.transform(prune(), dedup(), weld(), quantize({ quantizePosition: 14, quantizeNormal: 10, quantizeTexcoord: 12 }));
+  await jpeg(doc);
   await io.write(OUT + '/agencia-0688-base.glb', doc);
   console.log('base ok', root.listMeshes().reduce((a, m) => a + m.listPrimitives().length, 0), 'primitivas');
 }
@@ -115,9 +116,21 @@ async function item(nome, alvos) {
   const isUnit = n => alvos.includes(n.getName());
   juntar(doc, isUnit, nome);
   try { doc.createExtension(KHRLightsPunctual).dispose(); } catch (e) {}
-  await doc.transform(prune(), dedup());
+  await doc.transform(prune(), dedup(), weld(), quantize({ quantizePosition: 14, quantizeNormal: 10, quantizeTexcoord: 12 }));
   await io.write(OUT + '/' + nome + '.glb', doc);
   console.log(nome, 'ok', root.listMeshes().reduce((a, m) => a + m.listPrimitives().length, 0), 'primitivas');
+}
+
+/* texturas sem transparência viram JPEG (5,1 MB → 2,7 MB na base); sem o
+   pacote sharp, ficam como estão */
+async function jpeg(doc) {
+  let sharp; try { sharp = (await import('sharp')).default; } catch (e) { return; }
+  for (const t of doc.getRoot().listTextures()) {
+    const img = Buffer.from(t.getImage()), st = await sharp(img).stats(), meta = await sharp(img).metadata();
+    if (meta.hasAlpha && st.channels[3].min < 255) continue;
+    const j = await sharp(img).flatten({ background: '#000' }).jpeg({ quality: 85, mozjpeg: true }).toBuffer();
+    if (j.length < img.length) t.setImage(new Uint8Array(j)).setMimeType('image/jpeg');
+  }
 }
 
 function descend(n) { const a = [n]; for (const c of n.listChildren()) a.push(...descend(c)); return a; }
