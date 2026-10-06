@@ -21,6 +21,7 @@ Proprietary project in development. The repository is public so that GitHub Page
 | **A Casa da Costa** | [Phone](https://drmarionascimento.github.io/Dragon/v1/MOSAICO-mesa.html) · [Shared screen](https://drmarionascimento.github.io/Dragon/telao.html?jogo=casa-da-costa) · [Solo](https://drmarionascimento.github.io/Dragon/solo/) |
 | **A Casa da Costa: O Impostor** (in development) | [Phone: Prologue](https://drmarionascimento.github.io/Dragon/o-impostor/mesa.html) · [AR lab](https://drmarionascimento.github.io/Dragon/o-impostor/) |
 | **A Manhã do Carro-Forte** | [Phone](https://drmarionascimento.github.io/Dragon/carro-forte/celular.html) · [Shared screen](https://drmarionascimento.github.io/Dragon/telao.html?jogo=carro-forte) · [Solo](https://drmarionascimento.github.io/Dragon/carro-forte/celular.html?soloLab=1&bots=max&modo=sem-telao) |
+| **A Manhã do Carro-Forte: O Impostor** (in development) | [Phone](https://drmarionascimento.github.io/Dragon/carro-forte-impostor/mesa.html) · [Group play](https://drmarionascimento.github.io/Dragon/carro-forte-impostor/mesa.html?grupo=1) |
 
 After the morning session, *A Manhã do Carro-Forte* continues into its evening closing game, [A Noite](https://drmarionascimento.github.io/Dragon/carro-forte/noite/), with the same room code. The former AR lab now lives in its own repository: [lab-ra](https://drmarionascimento.github.io/lab-ra/).
 
@@ -34,7 +35,7 @@ After the morning session, *A Manhã do Carro-Forte* continues into its evening 
 
 ## Technology
 
-Static HTML, CSS and JavaScript published on GitHub Pages; multiplayer rooms on Firebase (Firestore + Authentication: anonymous sign-in for players, Google sign-in for the host who opens a room), one Firebase project per case. A separate React/Vite client lives in `mosaico-web/`. Automated checks (`npm test`, `npm run test:regras`, and `typecheck`/`test` in `mosaico-web/`) run on GitHub Actions. Details in the Portuguese section.
+Static HTML, CSS and JavaScript published on GitHub Pages; 3D and AR with three.js (WebXR on Android, the 8th Wall engine on iPhone); multiplayer rooms on Firebase (Firestore + Authentication: anonymous sign-in for players, Google sign-in for the host who opens a room), one Firebase project per case. A separate React/Vite client lives in `mosaico-web/`. Automated checks (`npm test`, `npm run test:regras`, and `typecheck`/`test` in `mosaico-web/`) run on GitHub Actions. Details in the Portuguese section.
 
 ## Authors, license and contact
 
@@ -65,8 +66,9 @@ Tudo o que está descrito abaixo é alcançado a partir do hub: [drmarionascimen
 | Caso | Portas no hub | Firebase |
 |---|---|---|
 | **A Casa da Costa** | [Celular](https://drmarionascimento.github.io/Dragon/v1/MOSAICO-mesa.html) · [Telão](https://drmarionascimento.github.io/Dragon/telao.html?jogo=casa-da-costa) · [Solo](https://drmarionascimento.github.io/Dragon/solo/) | `mosaico-game` |
-| **A Casa da Costa: O Impostor** — em construção | [Celular — Prólogo](https://drmarionascimento.github.io/Dragon/o-impostor/mesa.html) · [Laboratório de RA](https://drmarionascimento.github.io/Dragon/o-impostor/) | — |
+| **A Casa da Costa: O Impostor** — em construção | [Celular — Prólogo](https://drmarionascimento.github.io/Dragon/o-impostor/mesa.html) · [Laboratório de RA](https://drmarionascimento.github.io/Dragon/o-impostor/) | `oimpostor-c30e0` |
 | **A Manhã do Carro-Forte** | [Celular](https://drmarionascimento.github.io/Dragon/carro-forte/celular.html) · [Telão](https://drmarionascimento.github.io/Dragon/telao.html?jogo=carro-forte) · [Solo](https://drmarionascimento.github.io/Dragon/carro-forte/celular.html?soloLab=1&bots=max&modo=sem-telao) | `mosaico-noite` |
+| **A Manhã do Carro-Forte: O Impostor** — em construção | [Jogar](https://drmarionascimento.github.io/Dragon/carro-forte-impostor/mesa.html) · [Jogar em grupo](https://drmarionascimento.github.io/Dragon/carro-forte-impostor/mesa.html?grupo=1) | `oimpostor-c30e0` (caseId `carro-forte-impostor`) |
 
 - A escolha **Celular · Telão · Solo** existe só no hub. As pastas `casa-da-costa/` e `carro-forte/` redirecionam direto para o gate Celular.
 - **A Noite** do Carro-Forte ([`carro-forte/noite/`](https://drmarionascimento.github.io/Dragon/carro-forte/noite/)) é aberta pelo botão **Ir para a Noite** ao fim do relatório da Manhã, com o mesmo código de sala.
@@ -158,6 +160,15 @@ Partida coletiva e investigativa sobre uma única manhã num banco, com **seis p
 | Revisão de hipótese | +5 |
 
 > Os campos desta experiência pertencem à perspectiva específica da partida e não constituem um formulário universal do MOSAICO.
+
+### A Manhã do Carro-Forte: O Impostor — em construção
+
+A mesma manhã da Agência 0688, no modo impostor: o impostor não é um jogador, é o sistema, escondido num dos personagens. Tudo numa página, [`carro-forte-impostor/mesa.html`](./carro-forte-impostor/mesa.html):
+
+- **sozinho ou em grupo** (`?grupo=1`: gate Abrir mesa | Entrar, projeto `oimpostor-c30e0`, caseId `carro-forte-impostor`); os personagens sem jogador são conduzidos pelo sistema;
+- **prólogo** com a planta de evacuação (desenhada a partir da maquete) e **Capítulos 1 a 8**, cada um com relógio, envios contados, debate em voz alta, perguntas com grau de certeza e aposta num número ou num personagem;
+- **maquete em RA** a partir do Capítulo 1 (`maquete.js`, modelos em `modelos/`), abastecida com as peças de cada capítulo;
+- **fechamento:** argumento de exclusão, estilo declarado, títulos, código e cartão de faro; no grupo, ranking, pódio e títulos da mesa.
 
 ### A Manhã do Carro-Forte — Telão, Solo e A Noite
 
@@ -255,9 +266,9 @@ Cada atividade exige um gesto próprio, sem atalho: apontar o aparelho (**A Jane
 
 - **HTML, CSS e JavaScript estáticos**, publicados pelo GitHub Pages, sem etapa de build (exceto o cliente `mosaico-web/`).
 - **Firebase** (Firestore + Authentication), carregado por CDN. Jogadores entram com login anônimo; quem **abre** a sala entra com Google e precisa constar em `config/mestres` do projeto correspondente. O gate de sala (Abrir mesa | Entrar) é compartilhado em `firebase-room.js`.
-- **Um projeto Firebase por caso**: `mosaico-game` (A Casa da Costa) e `mosaico-noite` (A Manhã do Carro-Forte), com coleções de sala `mosaico/{codigo}` e `noite/{codigo}`. Ver `FIREBASE-SECURITY.md`, `FIREBASE-ISOLAMENTO.md` e `FIREBASE-NOITE.md`.
+- **Um projeto Firebase por caso**: `mosaico-game` (A Casa da Costa) e `mosaico-noite` (A Manhã do Carro-Forte), com coleções de sala `mosaico/{codigo}` e `noite/{codigo}`; os dois jogos no modo impostor usam `oimpostor-c30e0`, separados pelo caseId da sala (regras em `o-impostor/firestore-impostor.rules`). Ver `FIREBASE-SECURITY.md`, `FIREBASE-ISOLAMENTO.md` e `FIREBASE-NOITE.md`.
 - **QR code** gerado localmente (`v1/js/qr.js`), sem serviço externo.
-- **3D e RA** com three.js (cópias locais) e, no laboratório de RA de O Impostor, o componente `<model-viewer>` por CDN.
+- **3D e RA** com three.js (cópias locais) e, no laboratório de RA de O Impostor, o componente `<model-viewer>` por CDN. A RA das maquetes usa WebXR no Android e, no iPhone, o motor 8th Wall (Niantic Spatial), baixado do CDN só quando a RA é aberta, com a atribuição exigida pela licença dele nas páginas que o usam.
 
 O `firebaseConfig` presente no HTML é público por natureza; a proteção dos dados depende das regras do Firestore (`firestore.rules`).
 
@@ -280,6 +291,7 @@ O `firebaseConfig` presente no HTML é público por natureza; a proteção dos d
 | `o-impostor/` | O Impostor: Prólogo (`mesa.html`), laboratório de RA, modelos 3D, mídia |
 | `carro-forte/` | A Manhã do Carro-Forte — Celular (`celular.html`, `game.js`, `fragmentos.js`, atividades) |
 | `carro-forte/noite/` | A Noite do Carro-Forte |
+| `carro-forte-impostor/` | A Manhã do Carro-Forte: O Impostor — mesa (`mesa.html`), maquete em RA (`maquete.js`, `modelos/`), mídia e bonecos de contato |
 | `mosaico-web/` · `v2/` | cliente React/Vite de A Noite da Casa da Costa (fonte) · build publicado |
 | `casos/` | material de histórias em desenvolvimento |
 | `ferramentas/` | bancadas de economia e duração, teste das regras, laboratório de bots |

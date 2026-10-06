@@ -827,6 +827,18 @@ button:active,.caixa:active,.redondo:active,.chip:active{
 
 .lugar rect.hit{fill:transparent!important;stroke:none!important}
 .lugar rect.frag{fill:#f4f1ea!important;stroke:#9fe9c0!important}
+/* 07/10 · profundidade das peças próprias deste jogo, no padrão 3D d'O Impostor (3D PASS 2) */
+.planta-card{border-width:1px 1px 3px;border-bottom-color:#03100a;background:linear-gradient(145deg,#0d2219,#08130f 60%,#050c09);box-shadow:inset 0 2px 0 #ffffff12,inset 0 -4px 7px #02070baa,0 4px 0 #020609,0 10px 18px #000a;transform:translateZ(4px)}
+.elenco .sil{position:relative;border-bottom:3px solid #050d13;box-shadow:inset 0 3px 3px #ffffff22,inset 0 -5px 7px #02070baa,0 3px 0 #020609,0 7px 11px #0009;transform:translateZ(6px)}
+.elenco .sil svg{filter:drop-shadow(0 2px 0 #050d13) drop-shadow(0 4px 3px #000b)}
+.o-seu .sil{width:auto;height:auto;flex:0 0 auto;background:none;border:0}
+.o-seu .sil .avatar img[data-oi-contato],.topo-ficha .avatar img[data-oi-contato]{width:100%;height:100%;object-fit:cover;filter:none}
+/* o boneco do número: a mesma peça redonda de vidro das Privadas e da Nota */
+.topo-ficha .avatar{margin-right:2px}
+.persona .avatar{border-width:1px;border-bottom-width:2px;transform:none}
+.persona .avatar::before{inset:2px}
+#impLogo .avatar{transform:none}
+.podio-bloco{border-bottom:0;box-shadow:inset 0 2px 0 #ffffff18,inset 0 -6px 10px #0009,0 -1px 0 #020609,0 10px 18px #0009}
 </style>
 </head>
 <body>
@@ -1265,9 +1277,11 @@ function pintarSusp(){
 
 /* ── Ficha do personagem ────────────────────────────────────────────── */
 function bonecoDe(f){return '<img src="icones/contatos/'+ARQ[f]+'.webp" alt="">'}
-$('#fichaBtn img').src='icones/contatos/'+ARQ[EU]+'.webp';
+/* 07/10: o boneco de vidro de um número sempre na peça redonda (.avatar), como n'O Impostor da Casa da Costa */
+function avatarDe(f,px){return '<span class="avatar" style="width:'+px+'px;height:'+px+'px;flex:0 0 '+px+'px"><img data-oi-contato src="icones/contatos/'+ARQ[f]+'.webp" alt=""></span>'}
+$('#fichaBtn').innerHTML=avatarDe(EU,30);
 $('#fichaBtn').onclick=function(){var p=P[EU_PAPEL];
-  folha('<div class="topo-ficha">'+bonecoDe(EU).replace('<img','<img style="width:72px;height:72px;object-fit:contain"')+'<div><h2>'+p.n+'</h2><p class="sub" style="margin:0">'+p.f+' · seu número: <b>···'+EU+'</b></p></div></div><div class="ficha">'+
+  folha('<div class="topo-ficha">'+avatarDe(EU,72)+'<div><h2>'+p.n+'</h2><p class="sub" style="margin:0">'+p.f+' · seu número: <b>···'+EU+'</b></p></div></div><div class="ficha">'+
   '<div><small>QUEM VOCÊ É</small><p class="term">'+p.quem+'</p></div><div><small>POR QUE ESTÁ AQUI</small><p class="term">'+p.porque+'</p></div>'+
   '<div><small>O QUE SÓ VOCÊ SABE</small><p class="term">'+p.seg+'</p></div><div><small>O QUE PODE TE EXPOR</small><p class="term">'+p.ras+'</p></div>'+
   '<div><small>NESTA PARTIDA</small><p>Você nunca é o impostor. Ninguém vê a sua ficha. Você pode mentir sobre o seu segredo, mas não sobre o que viu.</p></div></div>')};
@@ -1405,7 +1419,7 @@ function mostrarPapeis(){
   var hum=HUMANOS;$('#nJogadores').textContent=hum;$('#papeisTitulo').innerHTML='Nesta partida há <span id="nJogadores">'+hum+'</span> '+(hum>1?'jogadores':'jogador')+'.';
   $('#papeisLede').textContent='Na agência, esta manhã, estão '+PRESENTES.length+' pessoas, cada uma com a sua função. '+(MP&&HUMANOS>1?'Os marcados como jogador da mesa estão com pessoas; os outros ficam com o sistema.':'Os outros personagens ficam com o sistema.')+' Um deles é o impostor. Nunca é o seu, nem de quem joga.';
   $('#elenco').innerHTML=PRESENTES.map(function(id){var p=P[id];return '<div class="'+(id===EU_PAPEL?'meu':'')+(p.sis?' sistema-el':'')+'"><span class="sil">'+SIL+'</span><b>'+p.n+'</b><span>'+(p.sis?'apoio · sempre do sistema':p.f+(MP&&MP_HUM[id]&&id!==EU_PAPEL?' · jogador da mesa':''))+'</span></div>'}).join('');
-  $('#seuIcone').innerHTML=bonecoDe(EU);$('#seuNome').textContent=P[EU_PAPEL].n;
+  $('#seuIcone').innerHTML=avatarDe(EU,84);$('#seuNome').textContent=P[EU_PAPEL].n;
   $('#seuFuncao').textContent=P[EU_PAPEL].f+'. Seu número: ···'+EU+'. '+(CHEGA?'Você chega à agência esta manhã.':'Você já estava na agência quando a manhã começou.');
   var d=$('#papeis');try{d.showModal()}catch(e){d.setAttribute('open','')}}
 $('#papeisOk').onclick=function(){$('#papeis').close();prologo.papeis=true;
@@ -1514,17 +1528,23 @@ function ensinarMarca(){if(ensinouMarca)return;ensinouMarca=true;
     setTimeout(function(){if(treinoMarca){treinoMarca=false;liberarAba('suspeitos');toast('Sem problema: você pode marcar depois. A aba Nota está aberta.')}},30000)})}
 
 /* ── Fim do prólogo ─────────────────────────────────────────────────── */
+/* O vídeo d'O Impostor (o boneco de vidro vira o impostor, de chapéu e capa), o
+   mesmo da Casa da Costa: no fim do prólogo e na revelação do fim. */
+function REVELA_VIDEO(idV,idS){return '<div class="revela"><video id="'+idV+'" src="media/impostor-revela.mp4" poster="media/impostor.webp" playsinline muted autoplay preload="auto" aria-label="O boneco de vidro vira o impostor, de chapéu e capa"></video><button type="button" class="som" id="'+idS+'" aria-label="Ver de novo com som">🔊</button></div>'}
 function fimDoPrologo(){
   var extra=enviosExtras?' (3 do capítulo + '+enviosExtras+' achado'+(enviosExtras>1?'s':'')+')':'';
-  $('#fechoCorpo').innerHTML='<p class="kicker">Fim do prólogo · 8h03</p><h1 id="fechoTitulo">Agora começa O Impostor.</h1>'+
+  $('#fechoCorpo').innerHTML=REVELA_VIDEO('videoRevela','somRevela')+'<p class="kicker">Fim do prólogo · 8h03</p><h1 id="fechoTitulo">Agora começa O Impostor.</h1>'+
     '<p class="lede term" style="font-size:15px">A Porta Giratória está travada. Um saco de malote vazio está no chão do Arquivo Morto, com o lacre rompido. Ninguém sai até a verdade aparecer.</p>'+
     '<p class="lede">O prólogo foi a apresentação: a agência, a manhã e a tela do jogo. Até aqui nada contou pontos. A partir do Capítulo 1, cada capítulo tem tempo, os envios contam e, no fim de cada um, vem uma pergunta.</p>'+
     '<p class="lede">Um dos personagens da agência não é quem diz. <b>Nunca é o seu.</b></p>'+
     '<p class="lede">Você começa o Capítulo 1 com <b>'+(3+enviosExtras)+' envios</b>'+extra+'.</p>'+
     '<div class="acoes"><button type="button" id="irCap1">Começar o Capítulo 1</button><button type="button" class="sec" id="fechoFicar">Continuar explorando</button><button type="button" class="sec" id="fechoDeNovo">Jogar o prólogo de novo, outra partida</button></div>';
   var d=$('#fecho');try{d.showModal()}catch(e){d.setAttribute('open','')}d.scrollTop=0;
-  $('#fechoFicar').onclick=function(){try{d.close()}catch(e){d.removeAttribute('open')}};
-  $('#irCap1').onclick=function(){try{d.close()}catch(e){d.removeAttribute('open')}if(MP){mpPronto(0);return}comecarCapitulo(1)};
+  var v=$('#videoRevela');if(v){var pr=v.play();if(pr&&pr.catch)pr.catch(function(){});$('#somRevela').onclick=function(){v.muted=false;v.currentTime=0;v.play()}}
+  function parar(){if(v)try{v.pause()}catch(e){}}
+  $('#fechoFicar').onclick=function(){parar();try{d.close()}catch(e){d.removeAttribute('open')}};
+  /* no grupo, como n'A Casa da Costa: o estilo vem antes, e o Cap. 1 abre para todos juntos */
+  $('#irCap1').onclick=function(){parar();try{d.close()}catch(e){d.removeAttribute('open')}if(MP){if(!estiloVisto)telaEstilo(function(){mpPronto(0)});else mpPronto(0);return}comecarCapitulo(1)};
   if(MP){$('#fechoDeNovo').hidden=true;$('#irCap1').textContent='Pronto para o Capítulo 1'}
   $('#fechoDeNovo').onclick=function(){try{sessionStorage.removeItem('cfi:partida')}catch(e){}var u=new URL(location.href);u.searchParams.delete('partida');location.href=u.toString()}}
 
@@ -2836,6 +2856,19 @@ function cartaoFaro(R,codigo){
 
 /* ── O placar com o fechamento ── */
 var _mostrarPlacarF=mostrarPlacar;mostrarPlacar=function(){_mostrarPlacarF();
+  /* 07/10: a revelação no padrão d'A Casa da Costa: o vídeo e o boneco do número do impostor nesta partida */
+  var fImp=SLOT_DE[IMP];
+  $('#fechoCorpo').insertAdjacentHTML('afterbegin',REVELA_VIDEO('videoImp','somImp')+
+    '<div id="impLogo" style="display:flex;align-items:center;gap:14px;margin:4px 0 14px;padding:12px 14px;border-radius:14px;border:1px solid #6b5420;border-bottom-width:3px;background:linear-gradient(180deg,#1d1709,#120e06);box-shadow:inset 0 2px 0 #ffffff12,inset 0 -4px 7px #0009,0 4px 0 #020609,0 10px 18px #000a;opacity:0;transform:translateY(8px);transition:opacity .9s,transform .9s">'+
+      avatarDe(fImp,76)+
+      '<div><small style="display:block;color:#c9a95a;letter-spacing:.12em;font:700 11px var(--sans)">NESTA PARTIDA, O IMPOSTOR ERA O NÚMERO</small>'+
+      '<b style="display:block;font:800 30px var(--mono);color:'+(CORES[fImp]||'#efc878')+'">···'+fImp+'</b>'+
+      '<span style="color:#e9dfc6">'+P[IMP].n+' · '+P[IMP].f+'</span></div></div>');
+  var vI=$('#videoImp'),lg=$('#impLogo');function mostra(){if(lg){lg.style.opacity=1;lg.style.transform='none'}}
+  if(vI){var pr=vI.play();if(pr&&pr.catch)pr.catch(mostra);vI.addEventListener('ended',mostra);vI.addEventListener('error',mostra);
+    $('#somImp').onclick=function(){vI.muted=false;vI.currentTime=0;vI.play()}}
+  setTimeout(mostra,5000);
+  $('#fecho').scrollTop=0;
   var R=resumoPartida(),codigo=escreverCodigoFaro(R),evo=frasesEvolucao(R);
   $('#fechoTitulo').textContent=fmt(R.final)+' pontos';
   var h1=$('#fechoTitulo');h1.insertAdjacentHTML('afterend','<p class="lede">Perguntas: '+fmt(R.tot)+' de '+fmt(R.max)+'.'+(R.args.length?' Argumentos de exclusão: '+(R.argPts>0?'+':'')+R.argPts+'.':'')+(R.sob?' Sob suspeita: +2.':'')+'</p>');
@@ -3120,7 +3153,7 @@ window.addEventListener('mosaico-room-ready',function(e){var d=e.detail||{};if(!
 if(MP){cfiCarregarSala();inicioDoJogo()}
 
 window.CFIMesa={maquete:function(){abrirMaquete()},partida:PCOD,impostor:IMP,casa:CASA,papel:EU_PAPEL,numero:EU,presentes:PRESENTES,pular:function(){inicioDoJogo();prologo.planta=prologo.ondeEstou=prologo.papeis=true;abrirGrupo();$('#janelaOk').click()},
-  tempo:function(s){tRot=s},estado:function(){return {cap:capitulo,tRot:tRot,iRot:iRot,grupo:grupo.length,prologo:prologo,resta:resta,respostas:respostas,apostas:apostas,inv:INVENTARIO.length,envios:envios}},cap:function(n){estiloVisto=true;comecarCapitulo(n)},capComEstilo:function(n){comecarCapitulo(n)},fim:function(){fimDoCapitulo()},
+  tempo:function(s){tRot=s},estado:function(){return {cap:capitulo,tRot:tRot,iRot:iRot,grupo:grupo.length,prologo:prologo,resta:resta,respostas:respostas,apostas:apostas,inv:INVENTARIO.length,envios:envios}},cap:function(n){estiloVisto=true;comecarCapitulo(n)},capComEstilo:function(n){comecarCapitulo(n)},papeis:function(){mostrarPapeis()},fimPrologo:function(){fimDoPrologo()},fim:function(){fimDoCapitulo()},
   fecho:{dados:function(){return {respostas:respostas,apostas:apostas,argumentos:argumentos}},estilo:function(e){ESTILO=e},resumo:function(){return resumoPartida()},ler:function(c){return lerCodigoFaro(c)},escrever:function(){return escreverCodigoFaro(resumoPartida())},pistas:function(c){return pistasVistas(c).map(function(p){return p.ids.join('+')+': '+T(p.txt)})},tipo:function(id){return tipoDe(id)},escuro:function(){return escuroAtivo},placar:function(){mostrarPlacar()},rg:function(n){return CAPS[n].rg.map(function(x){return x[0]+' '+x[1]})},rot5:function(){return CAPS[5].rot.slice(0,40).map(function(e){return e[0]+e[1]}).join(' ')}}};
 if(MP&&TESTE)window.CFIMesa.mp={pronto:function(n){mpPronto(n)},estado:function(){return {papel:EU_PAPEL,eu:EU,p:PCOD,casa:CASA,partida:PARTIDA,hum:Object.keys(MP_HUM).sort().join(','),slots:JSON.stringify(SLOT_DE),cap:capitulo,ligado:mpLigado,capApl:mpCapAplicado,esp:mpEsperando,roomCap:JSON.stringify((mpSala()&&mpSala().sala||{}).cap||null),faixa:($('#mpFaixa')||{}).textContent||''}},
   grupo:function(){return grupo.map(function(m){return m.sis?'[N] '+limpo(m.sis):(m.de?m.de+': '+(m.txt||m.anexo||''):'')})},priv:function(f){return (privadas[f]||{msgs:[]}).msgs.map(function(m){return m.sis?'[N] '+limpo(m.sis):m.de+': '+(m.txt||m.anexo||'')})},placar:function(){mostrarPlacar()},chip:function(t){var m={de:EU,txt:t,h:hora()};grupo.push(m);pintarGrupo();replicaGrupo(t);mpEnviar(m,'grupo')}};

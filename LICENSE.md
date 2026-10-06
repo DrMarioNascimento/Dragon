@@ -19,6 +19,7 @@ Copyright © 2026 Mário César Nascimento e Osana Melo Nascimento. Todos os dir
 - imagens, vídeos, sons, animações, ícones e demais recursos gráficos;
 - documentos técnicos, simulações, tabelas, análises, registros de playtest e arquivos de continuidade;
 - gramáticas de criação, prompts autorais, matrizes de perspectivas e perguntas, taxonomias, checklists, critérios de conformidade e demais estruturas textuais originais usadas para criação, revisão ou auditoria de histórias e partidas;
+- todos os casos e modos publicados no repositório, entre eles A Casa da Costa, A Casa da Costa: O Impostor, A Manhã do Carro-Forte, A Manhã do Carro-Forte: O Impostor e as respectivas Noites, com suas maquetes, modelos 3D, peças e bonecos de contato;
 - versões implementadas, experimentais, adaptadas, em construção, históricas ou não publicadas.
 
 2.2. **Ideias e expressão.** Ideias, conceitos, métodos, procedimentos, regras de jogo, mecânicas, categorias abstratas de pergunta ou princípios considerados isoladamente não são reivindicados como objeto de exclusividade autoral. A proteção recai sobre sua expressão concreta e original, bem como sobre a seleção, a disposição, a redação e a combinação criativa dos elementos, nos limites da legislação aplicável.
@@ -91,7 +92,9 @@ A autorização é pessoal, limitada, revogável, intransferível e não sublice
 - **three.js** e seus módulos auxiliares (GLTFLoader, GLTFExporter, OrbitControls), em cópias locais, sob a Licença MIT, cujo texto acompanha as cópias (`THREE-LICENSE.txt`);
 - **Firebase JavaScript SDK** (Google), carregado por CDN;
 - o componente **`<model-viewer>`** (Google), carregado por CDN;
-- fontes da **Google Fonts** (como Cinzel, Cinzel Decorative, Inter, IBM Plex Mono, Cormorant Garamond e Outfit), sob a SIL Open Font License;
+- o **8th Wall Engine** (© Niantic Spatial, Inc.), binário carregado do CDN jsDelivr somente quando a realidade aumentada é aberta no iPhone, sob a 8th Wall XR Engine License; a atribuição exigida é exibida nas páginas que o utilizam, e o projeto não é afiliado nem endossado pela Niantic Spatial;
+- fontes da **Google Fonts** (como Cinzel, Cinzel Decorative, Inter, IBM Plex Mono, DM Mono, Cormorant Garamond, Literata, Caveat, Special Elite e Outfit), cada uma sob a licença indicada pela Google Fonts (SIL Open Font License ou Apache License 2.0);
+- nas ferramentas de preparo dos modelos 3D (fora das páginas publicadas), as bibliotecas **glTF Transform** (MIT) e **sharp** (Apache License 2.0);
 - no cliente `mosaico-web/`, as dependências declaradas em seu `package.json` (entre elas React, Vite, TanStack, Tailwind CSS, Zustand e Zod), cada uma sob sua própria licença.
 
 ## 7. Vínculo institucional
@@ -153,6 +156,7 @@ Copyright © 2026 Mário César Nascimento and Osana Melo Nascimento. All rights
 - images, videos, sounds, animations, icons and other graphic resources;
 - technical documents, simulations, tables, analyses, playtest records and continuity files;
 - creation grammars, authored prompts, matrices of perspectives and questions, taxonomies, checklists, conformity criteria and other original textual structures used to create, review or audit stories and matches;
+- every case and mode published in the repository, including A Casa da Costa, A Casa da Costa: O Impostor, A Manhã do Carro-Forte, A Manhã do Carro-Forte: O Impostor and their respective Noites, with their scale models, 3D models, pieces and contact figures;
 - implemented, experimental, adapted, in-progress, historical or unpublished versions.
 
 2.2. **Ideas and expression.** Ideas, concepts, methods, procedures, game rules, mechanics, abstract question categories or principles, considered in isolation, are not claimed as subject to exclusive authorship. Protection applies to their concrete and original expression, and to the creative selection, arrangement, wording and combination of elements, within the limits of applicable law.
@@ -225,7 +229,9 @@ The authorization is personal, limited, revocable, non-transferable and non-subl
 - **three.js** and its auxiliary modules (GLTFLoader, GLTFExporter, OrbitControls), as local copies, under the MIT License, whose text accompanies the copies (`THREE-LICENSE.txt`);
 - the **Firebase JavaScript SDK** (Google), loaded from a CDN;
 - the **`<model-viewer>`** component (Google), loaded from a CDN;
-- **Google Fonts** typefaces (such as Cinzel, Cinzel Decorative, Inter, IBM Plex Mono, Cormorant Garamond and Outfit), under the SIL Open Font License;
+- the **8th Wall Engine** (© Niantic Spatial, Inc.), a binary loaded from the jsDelivr CDN only when augmented reality is opened on iPhone, under the 8th Wall XR Engine License; the required attribution is shown on the pages that use it, and the project is not affiliated with or endorsed by Niantic Spatial;
+- **Google Fonts** typefaces (such as Cinzel, Cinzel Decorative, Inter, IBM Plex Mono, DM Mono, Cormorant Garamond, Literata, Caveat, Special Elite and Outfit), each under the license stated by Google Fonts (SIL Open Font License or Apache License 2.0);
+- in the 3D model preparation tools (outside the published pages), the **glTF Transform** (MIT) and **sharp** (Apache License 2.0) libraries;
 - in the `mosaico-web/` client, the dependencies declared in its `package.json` (including React, Vite, TanStack, Tailwind CSS, Zustand and Zod), each under its own license.
 
 ## 7. Institutional affiliation
