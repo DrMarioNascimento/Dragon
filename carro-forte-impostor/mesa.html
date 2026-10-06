@@ -790,6 +790,14 @@ button:active,.caixa:active,.redondo:active,.chip:active{
 .ab-term{font:500 16px/1.75 var(--termfont);color:var(--term);text-shadow:var(--term-glow);border-left:2px solid #4dba7c;padding:10px 14px;background:linear-gradient(90deg,#51d88a10,transparent);min-height:9.5em;white-space:pre-line}
 .ab-entrar{min-height:52px;border-radius:10px;border:1px solid #d6aa58;background:linear-gradient(180deg,#f3d078,#e0b13a);color:#1a1206;font:700 14px var(--termfont);letter-spacing:.08em;cursor:pointer;box-shadow:0 4px 0 #6b5220}
 .ab-entrar[hidden]{display:none}
+/* 07/10: a capa (media/capa.jpg, do Mario) aparece inteira primeiro; o toque em Começar escurece e abre o terminal */
+.abertura{background-position:center top;background-size:contain;background-color:#050302}
+.abertura::before{transition:opacity 1s}
+.ab-caixa{transition:opacity .8s}
+.abertura.capa::before{opacity:0}
+.abertura.capa .ab-caixa{opacity:0;pointer-events:none}
+.ab-comecar{display:none}
+.abertura.capa .ab-comecar{display:block;position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 70px);z-index:2;min-height:52px;padding:0 34px;border-radius:12px;border:1px solid #d6aa58;background:linear-gradient(180deg,#f3d078,#e0b13a);color:#1a1206;font:700 15px var(--termfont);letter-spacing:.08em;cursor:pointer;box-shadow:inset 0 2px 0 #fff6,0 4px 0 #5a4310,0 12px 26px #000c}
 .ab-pular{position:absolute;right:12px;bottom:calc(env(safe-area-inset-bottom) + 14px);min-height:40px;padding:0 14px;border-radius:10px;border:1px solid #46667a;background:#0c1b26cc;color:var(--gold2);font:700 12px var(--termfont);cursor:pointer}
 /* a planta de evacuação (peça do prólogo) */
 .tela-ra{display:flex;flex-direction:column}
@@ -847,7 +855,8 @@ button:active,.caixa:active,.redondo:active,.chip:active{
 
 <!-- Abertura: terminal verde (sem vídeo por enquanto). A imagem de fundo é a
      "chegada" da galeria da história (revisão 2). -->
-<div class="abertura" id="abertura" style="background-image:url('media/abertura.jpg')">
+<div class="abertura capa" id="abertura" style="background-image:url('media/capa.jpg')">
+  <button class="ab-comecar" id="abComecar" type="button">Começar ›</button>
   <div class="ab-caixa">
     <span class="ab-kicker">MOSAICO · O IMPOSTOR</span>
     <h1 class="ab-titulo">A Manhã do Carro-Forte<em>Agência 0688 · terça-feira · garoa</em></h1>
@@ -3017,22 +3026,29 @@ function pintarRevelacao(){abrirFecho();
   $('#irPlacar').onclick=function(){if(vI)try{vI.pause()}catch(e){}if(MP)mpPodio();else mostrarPlacar()};
   $('#fecho').scrollTop=0}
 
-/* no grupo: o pódio, tela própria, antes do placar de cada um. Empate divide o degrau. */
-function htmlPodio(){var S=mpSala(),room=S.sala,hum=mpHumanos(room,S.jogadores);
+/* no grupo: o pódio, tela própria, antes do placar de cada um, sobre a arte do
+   Carro-Forte (media/resultados.jpg, 07/10, do Mario), como n'A Casa da Costa.
+   Empate divide o degrau. */
+function dadosPodio(){var S=mpSala(),room=S.sala,hum=mpHumanos(room,S.jogadores);
   var feitos=hum.filter(function(p){return p.resumo&&p.id!==mpUid}).map(function(p){return {id:p.id,nome:p.nome||'Jogador',r:p.resumo}});
   if(mpMeuResumo)feitos.push({id:mpUid,nome:mpNomes[mpUid]||'Você',r:mpMeuResumo});
-  function nomeP(x){return '<b>'+String(x.nome).replace(/[<>&]/g,'')+'</b>'+(x.id===mpUid?' (você)':'')}
-  var notas=[];feitos.forEach(function(x){if(notas.indexOf(x.r.final)<0)notas.push(x.r.final)});notas.sort(function(a,b){return b-a});
-  function degrau(d){var v=notas[d-1];if(v===undefined)return '<div class="podio-col"></div>';var q=feitos.filter(function(x){return x.r.final===v});
-    return '<div class="podio-col"><div class="podio-nomes">'+q.map(nomeP).join('<br>')+'</div><div class="podio-bloco d'+d+'"><span>'+d+'º</span><small>'+fmt(v)+'</small></div></div>'}
-  var total=room&&room.oi?Object.keys(room.oi.papeis).length:feitos.length,falta=total-feitos.length;
-  return (feitos.length?'<div class="podio">'+degrau(2)+degrau(1)+degrau(3)+'</div>':'')+
-    '<p class="lede" style="text-align:center">'+(falta>0?'Aguardando '+falta+(falta>1?' jogadores':' jogador')+' terminar a acusação.':'Todos terminaram.')+'</p>'}
+  var total=room&&room.oi?Object.keys(room.oi.papeis).length:feitos.length;return {feitos:feitos,falta:total-feitos.length}}
 function mpPodio(){mpFimDaPartida();
-  $('#fechoCorpo').innerHTML='<p class="kicker">A mesa · resultados</p><h1 id="fechoTitulo">O pódio</h1><div id="mpPodio">'+htmlPodio()+'</div>'+
+  $('#fechoCorpo').innerHTML='<div id="mpPodio" style="position:relative;margin:-6px -6px 10px;border-radius:14px;overflow:hidden;box-shadow:inset 0 2px 0 #ffffff12,0 4px 0 #020609,0 12px 24px #000a">'+
+    '<img src="media/resultados.jpg" alt="Pódio do placar final" style="display:block;width:100%;height:auto">'+
+    '<div data-degrau="1" style="position:absolute;left:28%;right:28%;top:30%;text-align:center"></div>'+
+    '<div data-degrau="2" style="position:absolute;left:9%;width:42%;top:63%;text-align:center"></div>'+
+    '<div data-degrau="3" style="position:absolute;left:58%;width:34%;top:72%;text-align:center"></div>'+
+    '<p id="mpPodioFalta" style="position:absolute;left:6%;right:6%;bottom:3%;margin:0;text-align:center;color:#e9dfc6;font:600 14px var(--sans);text-shadow:0 1px 4px #000"></p></div>'+
     '<div class="acoes"><button type="button" id="irMeuPlacar">Ver o seu placar</button></div>';
-  $('#irMeuPlacar').onclick=mostrarPlacar;$('#fecho').scrollTop=0}
-function mpPintarPodio(){var el=$('#mpPodio');if(el)el.innerHTML=htmlPodio()}
+  $('#irMeuPlacar').onclick=mostrarPlacar;$('#fecho').scrollTop=0;mpPintarPodio()}
+function mpPintarPodio(){var el=$('#mpPodio');if(!el)return;var D=dadosPodio(),feitos=D.feitos;
+  var notas=[];feitos.forEach(function(x){if(notas.indexOf(x.r.final)<0)notas.push(x.r.final)});notas.sort(function(a,b){return b-a});
+  [1,2,3].forEach(function(d){var alvo=el.querySelector('[data-degrau="'+d+'"]'),v=notas[d-1];
+    var quem=v===undefined?[]:feitos.filter(function(x){return x.r.final===v});
+    alvo.innerHTML=quem.length?quem.map(function(x){return '<b style="display:block;font:800 '+(d===1?'20':'16')+'px var(--sans);color:#ffe3a1;text-shadow:0 2px 6px #000,0 0 12px #000">'+String(x.nome).replace(/[<>&]/g,'')+(x.id===mpUid?' (você)':'')+'</b>'}).join('')+
+      '<span style="display:inline-block;margin-top:3px;padding:1px 8px;border-radius:99px;background:#000a;color:#efc878;font:700 13px var(--mono)">'+d+'º · '+fmt(v)+'</span>':''});
+  $('#mpPodioFalta').textContent=D.falta>0?'Aguardando '+D.falta+(D.falta>1?' jogadores':' jogador')+' terminar a acusação.':''}
 var _mpPPPodio=mpPintarPlacar;mpPintarPlacar=function(){_mpPPPodio();mpPintarPodio()};
 
 /* o Epílogo, depois do placar, com a pergunta sem pontos */
@@ -3064,10 +3080,15 @@ function inicioDoJogo(){if(abFeita)return;abFeita=true;var ab=$('#abertura');if(
   ['grupo','privadas','suspeitos'].forEach(function(a){document.querySelector('[data-aba="'+a+'"]').classList.add('muda')});
   irPara('ra');glow('ra',true);pintarGrupo();pintarEnvios();
   janela('PARA COMEÇAR','Toque em RA. A primeira peça do caso é a planta de evacuação da agência. Ela fica disponível o jogo todo. Abra a planta e descubra onde você está.')}
-var fimAb=digitar($('#abTerm'),ABERTURA,26,function(){var b=$('#abEntrar');if(b)b.hidden=false});
+/* 07/10: a capa primeiro; o terminal só começa a digitar no toque (o toque também libera o som do rádio) */
+var fimAb=null;
+function comecarAbertura(){var ab=$('#abertura');if(!ab||fimAb)return;ab.classList.remove('capa');
+  try{var a=$('#somRadio');if(a){a.muted=true;var pr=a.play();if(pr&&pr.then)pr.then(function(){a.pause();a.muted=false;a.currentTime=0}).catch(function(){a.muted=false})}}catch(e){}
+  fimAb=digitar($('#abTerm'),ABERTURA,26,function(){var b=$('#abEntrar');if(b)b.hidden=false})}
+$('#abComecar').onclick=comecarAbertura;
 $('#abTerm').style.whiteSpace='pre-line';
 $('#abEntrar').onclick=inicioDoJogo;
-$('#abPular').onclick=function(){fimAb();inicioDoJogo()};
+$('#abPular').onclick=function(){if(fimAb)fimAb();inicioDoJogo()};
 
 /* ganchos de teste */
 /* ── A maquete (RA a partir do Cap. 1) ────────────────────────────────
