@@ -21,6 +21,8 @@
   var V1 = BASE + '../v1/js/';
   var SCRIPTS = [V1 + 'three.min.js', V1 + 'vendor/GLTFLoader.js', V1 + 'vendor/OrbitControls.js', V1 + 'ac-ra.js', V1 + 'ac-maquete-ra.js'];
   var MODELO = BASE + 'modelos/agencia-0688-base.glb';
+  /* 07/10: o malote de perto do designer (sem as etiquetas e sem a cinta do envio extra; ver preparar-malote.mjs) */
+  var MALOTE_PERTO = BASE + 'modelos/malote-perto.glb', malotePronto = null;
 
   /* metros da maquete → "1 de pegada" do motor de RA (≈ 42 cm na mesa) */
   var LARGURA = 50, CENTRO = { x: -5, z: 1.5 };
@@ -161,6 +163,7 @@
       modelo.scale.setScalar(1 / LARGURA);
       modelo.position.set(-CENTRO.x / LARGURA, 0, -CENTRO.z / LARGURA);
       raiz.add(modelo);
+      if (opcoes.malote) setTimeout(prepararMalote, 1500);
       modelo.traverse(function (o) { if (o.isMesh) { o.frustumCulled = true; if (o.material && o.material.name === 'vidro') o.material.depthWrite = false; } });
       mostrarAndar(false);
       var caixa = new THREE.Box3().setFromObject(raiz);
@@ -489,8 +492,51 @@
     G.visible = false;
     return G;
   }
+  /* o malote do designer: cada parte ganha o seu detalhe; a aba e a borda ganham
+     dobradiça; o fragmento e o lacre, que são pequenos, ganham um alvo maior. */
+  function montarPertoGLB(cena3d) {
+    var THREE = global.THREE, G = new THREE.Group(); G.name = 'perto-malote'; G.add(cena3d);
+    var achar = function (n) { return cena3d.getObjectByName(n); };
+    var marca = function (o, k) { if (o) o.traverse(function (m) { m.userData.det = k; }); return o; };
+    cena3d.traverse(function (o) { if (o.isMesh) { o.userData.det = /^(chao-umido|ilha-seca)$/.test(o.name) ? 'seco' : (o.userData.det || null); } });
+    marca(achar('saco'), 'vazio');
+    marca(achar('chao-umido'), 'seco'); marca(achar('ilha-seca'), 'seco');
+    /* o vinco: a zona do designer é transparente; serve de alvo */
+    var vz = achar('vinco'); if (vz) { marca(vz, 'vinco'); vz.traverse(function (m) { if (m.material) { m.material.transparent = true; m.material.opacity = 0; m.material.depthWrite = false; } }); }
+    var lac = achar('lacre'); marca(lac, 'lacre');
+    var fr = achar('fragmento'); marca(fr, 'frag');
+    var env = achar('envio-extra'); marca(env, 'borda');
+    var bo = achar('borda'); marca(bo, 'borda');
+    function alvo(obj, raio, k) { if (!obj) return null; var b = new THREE.Box3().setFromObject(obj), c = b.getCenter(new THREE.Vector3());
+      var m = new THREE.Mesh(new THREE.SphereGeometry(raio, 10, 8), new THREE.MeshBasicMaterial({ visible: false })); m.position.copy(c); m.userData.det = k; G.add(m); return m; }
+    cena3d.updateMatrixWorld(true);
+    alvo(lac, 0.06, 'lacre');
+    var fa = alvo(fr, 0.03, 'frag');
+    /* o vinco fica rente à lona: um alvo em caixa, um pouco acima dela */
+    if (vz) { var bv = new THREE.Box3().setFromObject(vz), cv = bv.getCenter(new THREE.Vector3()), sv = bv.getSize(new THREE.Vector3());
+      var mv = new THREE.Mesh(new THREE.BoxGeometry(sv.x, 0.14, sv.z), new THREE.MeshBasicMaterial({ visible: false })); mv.position.set(cv.x, 0.07, cv.z); mv.userData.det = 'vinco'; G.add(mv); }
+    alvo(env, 0.07, 'borda');
+    /* dobradiça da aba: a beira que encosta no saco (o menor x) */
+    var abaM = achar('saco_aba'), abaPivo = new THREE.Group();
+    if (abaM) { var ba = new THREE.Box3().setFromObject(abaM), par = abaM.parent; abaPivo.position.set(ba.min.x, ba.min.y, (ba.min.z + ba.max.z) / 2); par.add(abaPivo); abaPivo.updateMatrixWorld(true); abaPivo.attach(abaM); marca(abaM, 'vazio'); }
+    G.userData.aba = abaPivo; G.userData.abaBase = 0;
+    /* a borda já tem a dobradiça na origem (a beira do saco) */
+    G.userData.borda = bo || new THREE.Group(); G.userData.bordaSinal = 1;
+    G.userData.frag = [fr, fa].filter(Boolean);
+    cena3d.traverse(function (o) { if (o.isMesh && o.material) { o.castShadow = false; if (o.material.name === 'vidro_fosco') o.material.depthWrite = false; } });
+    G.visible = false;
+    return G;
+  }
+  function prepararMalote() {
+    if (!malotePronto) malotePronto = carregarGLB(MALOTE_PERTO).then(function (g) { return montarPertoGLB(g.scene); }, function () { return montarPerto(); });
+    return malotePronto;
+  }
   function entrarPerto() {
-    if (!perto) { perto = montarPerto(); raiz.add(perto); }
+    if (!perto) {
+      cartao('O MALOTE', 'Chegando perto…');
+      prepararMalote().then(function (G) { if (!perto) { perto = G; raiz.add(perto); } entrarPerto(); });
+      return;
+    }
     emPerto = true; bordaAlvo = 0;
     modelo.visible = false; perto.visible = true;
     var f = !!(opcoes.malote && opcoes.malote.fragmento && opcoes.malote.fragmento());
@@ -503,9 +549,9 @@
     cartao('O MALOTE', 'Toque num detalhe do saco para examiná-lo. Com a luz certa, o lacre se deixa ler.');
     if (controles && controles.enabled) {
       /* enquadra ~0,9 de largura, qualquer que seja a proporção da tela */
-      var hf = 2 * Math.atan(Math.tan(camera.fov * Math.PI / 360) * camera.aspect), dist = Math.min(2.3, 0.46 / Math.tan(hf / 2));
+      var hf = 2 * Math.atan(Math.tan(camera.fov * Math.PI / 360) * camera.aspect), dist = Math.min(2.3, 0.53 / Math.tan(hf / 2));
       var dir = new global.THREE.Vector3(0.06, 0.78, 0.62).normalize();
-      controles.minDistance = 0.12; controles.target.set(0, 0.02, 0); camera.position.copy(dir.multiplyScalar(dist)); controles.update();
+      controles.minDistance = 0.12; controles.target.set(0.07, 0.02, 0.03); camera.position.copy(dir.multiplyScalar(dist)); controles.update();
     }
   }
   function sairPerto(silencioso) {
@@ -533,8 +579,9 @@
   }
   function animarPerto(dt) {
     var THREE = global.THREE;
-    var aba = perto.userData.aba; aba.rotation.z = 0.15 + Math.pow(Math.sin(relogio * 1.1), 2) * 0.45;
-    var b = perto.userData.borda; b.rotation.x += ((bordaAlvo ? -1.1 : 0) - b.rotation.x) * Math.min(1, dt * 4);
+    var aba = perto.userData.aba, ab0 = perto.userData.abaBase === undefined ? 0.15 : perto.userData.abaBase, amp = perto.userData.abaBase === undefined ? 0.45 : 0.22;
+    aba.rotation.z = ab0 + Math.pow(Math.sin(relogio * 1.1), 2) * amp;
+    var b = perto.userData.borda, bs = perto.userData.bordaSinal || 1; b.rotation.x += ((bordaAlvo ? -1.1 * bs : 0) - b.rotation.x) * Math.min(1, dt * 4);
     var cam = ra ? ra.cameraAtiva() : camera, p = new THREE.Vector3(), d = new THREE.Vector3();
     cam.getWorldPosition(p); cam.getWorldDirection(d);
     LUZ.lanterna.position.copy(p).addScaledVector(d, -0.02);
@@ -742,6 +789,6 @@
 
   global.CFIMaquete = { abrir: abrir, fechar: fechar, aberta: function () { return ativo; }, ITENS: ITENS,
     _teste: function () { return { pinos: pinos.map(function (p) { var v = p.getWorldPosition(new global.THREE.Vector3()).project(ra ? ra.cameraAtiva() : camera); return { id: p.userData.item, x: (v.x + 1) / 2 * innerWidth, y: (1 - v.y) / 2 * innerHeight }; }), itens: opcoes.itens }; },
-    _perto: function () { entrarPerto(); }, _peca: function (id) { entrarPeca(id); }, _projetarPeca: function (x, y, z) { var v = pecaG.localToWorld(new global.THREE.Vector3(x, y, z)).project(camera); return { x: (v.x + 1) / 2 * innerWidth, y: (1 - v.y) / 2 * innerHeight }; }, _vis: function (n) { var o = modelo.getObjectByName(n); return o ? o.visible : null; }, _camera: function (a, b) { camera.position.fromArray(a); controles.target.fromArray(b); controles.update(); }, _dbg: function () { var b = new global.THREE.Box3().setFromObject(perto); return { cam: camera.position.toArray(), alvo: controles.target.toArray(), raizEsc: raiz.scale.x, raizPos: raiz.position.toArray(), bmin: b.min.toArray(), bmax: b.max.toArray() }; }, _projetarPerto: function (x, y, z) { var v = perto.localToWorld(new global.THREE.Vector3(x, y, z)).project(camera); return { x: (v.x + 1) / 2 * innerWidth, y: (1 - v.y) / 2 * innerHeight }; },
+    _perto: function () { entrarPerto(); }, _hitPerto: function (x, y, z) { var T = global.THREE, v = new T.Vector3(x, y, z); perto.localToWorld(v); var o = camera.position.clone(), r = new T.Raycaster(o, v.clone().sub(o).normalize()), todos = []; perto.traverse(function (m) { if (m.isMesh) todos.push(m); }); return r.intersectObjects(todos, false).slice(0, 6).map(function (h) { return h.object.name + ':' + h.object.userData.det + ':' + h.distance.toFixed(3) + ':' + (h.object.material && h.object.material.side); }); }, _peca: function (id) { entrarPeca(id); }, _projetarPeca: function (x, y, z) { var v = pecaG.localToWorld(new global.THREE.Vector3(x, y, z)).project(camera); return { x: (v.x + 1) / 2 * innerWidth, y: (1 - v.y) / 2 * innerHeight }; }, _vis: function (n) { var o = modelo.getObjectByName(n); return o ? o.visible : null; }, _camera: function (a, b) { camera.position.fromArray(a); controles.target.fromArray(b); controles.update(); }, _dbg: function () { var b = new global.THREE.Box3().setFromObject(perto); return { cam: camera.position.toArray(), alvo: controles.target.toArray(), raizEsc: raiz.scale.x, raizPos: raiz.position.toArray(), bmin: b.min.toArray(), bmax: b.max.toArray() }; }, _projetarPerto: function (x, y, z) { var v = perto.localToWorld(new global.THREE.Vector3(x, y, z)).project(camera); return { x: (v.x + 1) / 2 * innerWidth, y: (1 - v.y) / 2 * innerHeight }; },
     _projetar: function (x, y, z) { var v = modelo.localToWorld(new global.THREE.Vector3(x, y, z)).project(camera); return { x: (v.x + 1) / 2 * innerWidth, y: (1 - v.y) / 2 * innerHeight }; } };
 })(window);
