@@ -56,6 +56,7 @@
   };
 
   var pronto = null, el = null, renderer, cena, camera, controles, raiz, modelo, ra = null, opcoes = {};
+  var LUZ = {}, perto = null, emPerto = false, bordaAlvo = 0;
   var pinos = [], extras = {}, realce = null, relogio = 0, andarDeCima = false, tocando = null, ativo = false;
 
   function carregarScript(src) {
@@ -114,7 +115,7 @@
       'body.in-ar .tela-maq{background:transparent}body.ra-webxr .maq-palco canvas{visibility:hidden}' +
       'body.in-ar #maqAndar{display:none}';
     document.head.appendChild(css);
-    el.querySelector('#maqSair').onclick = fechar;
+    el.querySelector('#maqSair').onclick = function () { if (emPerto) sairPerto(); else fechar(); };
     el.querySelector('#maqAndar').onclick = function () { mostrarAndar(!andarDeCima); };
     el.querySelector('#maqRA').onclick = entrarRA;
     el.querySelector('#maqPousar').onclick = pousar;
@@ -146,10 +147,12 @@
     palco.appendChild(renderer.domElement);
 
     /* Terça, 7h47, garoa: luz fria e difusa, sem sol marcado. */
-    cena.add(new THREE.HemisphereLight(0xd6e2ec, 0x2a2f33, 0.95));
-    var ceu = new THREE.DirectionalLight(0xe9eef2, 0.9); ceu.position.set(-0.6, 1.6, 0.9); cena.add(ceu);
-    var fria = new THREE.DirectionalLight(0xa9c3d6, 0.35); fria.position.set(1.2, 0.8, -1.1); cena.add(fria);
-    cena.add(new THREE.AmbientLight(0xffffff, 0.18));
+    LUZ.hemi = new THREE.HemisphereLight(0xd6e2ec, 0x2a2f33, 0.95); cena.add(LUZ.hemi);
+    LUZ.ceu = new THREE.DirectionalLight(0xe9eef2, 0.9); LUZ.ceu.position.set(-0.6, 1.6, 0.9); cena.add(LUZ.ceu);
+    LUZ.fria = new THREE.DirectionalLight(0xa9c3d6, 0.35); LUZ.fria.position.set(1.2, 0.8, -1.1); cena.add(LUZ.fria);
+    LUZ.amb = new THREE.AmbientLight(0xffffff, 0.18); cena.add(LUZ.amb);
+    /* a lanterna da cena de perto: segue a câmera (na RA, o celular) */
+    LUZ.lanterna = new THREE.SpotLight(0xfff0d2, 0, 8, 0.2, 0.55, 1); cena.add(LUZ.lanterna); cena.add(LUZ.lanterna.target);
 
     raiz = new THREE.Group(); raiz.name = 'raiz-maquete'; cena.add(raiz);
     return carregarGLB(MODELO).then(function (g) {
@@ -254,6 +257,7 @@
     var r = renderer.domElement.getBoundingClientRect();
     var ponto = new THREE.Vector2(((x - r.left) / r.width) * 2 - 1, -((y - r.top) / r.height) * 2 + 1);
     var ray = new THREE.Raycaster(); ray.setFromCamera(ponto, cam);
+    if (emPerto) { tocarPerto(ray); return; }
     var alvos = []; modelo.traverse(function (o) { if (o.isMesh && visivel(o)) alvos.push(o); });
     var hits = ray.intersectObjects(alvos, false);
     if (hits.length) {
@@ -290,6 +294,7 @@
   }
   function escolherItem(id) {
     var D = ITENS[id];
+    if (id === 'c1' && opcoes.malote) { cartao(D.nome.toUpperCase(), 'O malote está no chão do Arquivo Morto.', ['Chegar perto, com a lanterna ›', entrarPerto]); destacar(null); return; }
     cartao(D.nome.toUpperCase(), 'A peça do Capítulo ' + id.slice(1) + ' está aqui.', ['Examinar de perto ›', function () { if (opcoes.aoAbrirItem) opcoes.aoAbrirItem(id); }]);
     destacar(null);
   }
@@ -364,7 +369,156 @@
     pinos.forEach(function (p, i) { var l = p.children[0]; l.position.y = Math.sin(relogio * 2.2 + i) * 0.22; l.rotation.y += dt * 1.2; });
     if (realce && relogio - realce.userData.nasceu > 2.4) { cena.remove(realce); realce = null; }
     if (controles && controles.enabled) controles.update();
+    if (emPerto && perto) animarPerto(dt);
     renderer.render(cena, ra ? ra.cameraAtiva() : camera);
+  }
+
+
+  /* ---------------- de perto: o malote murcho (Cap. 1) ----------------
+     Peça provisória, feita em código, até chegar o modelo do designer.
+     O Arquivo Morto às 8h05: a lona no chão molhado, a ilha seca sob ela, a
+     aba que a corrente de ar ergue, o vinco, o lacre com a grapa cortada, o
+     fragmento (só quando a história chega nele) e a borda que se levanta. */
+  function tela(w, h, pintar) {
+    var c = document.createElement('canvas'); c.width = w; c.height = h; pintar(c.getContext('2d'), w, h);
+    var t = new global.THREE.CanvasTexture(c); t.encoding = global.THREE.sRGBEncoding; t.anisotropy = 4; return t;
+  }
+  function ruido(g, w, h, n, cor, a) { for (var i = 0; i < n; i++) { g.fillStyle = cor; g.globalAlpha = Math.random() * a; g.fillRect(Math.random() * w, Math.random() * h, 1 + Math.random() * 2, 1 + Math.random() * 2); } g.globalAlpha = 1; }
+  function montarPerto() {
+    var THREE = global.THREE, G = new THREE.Group(); G.name = 'perto-malote';
+    var marca = function (o, k) { o.traverse(function (m) { m.userData.det = k; }); return o; };
+    /* o piso: granilite molhado (brilha sob a lanterna) e a ilha seca */
+    var tPiso = tela(512, 512, function (g, w, h) { g.fillStyle = '#3a4146'; g.fillRect(0, 0, w, h); ruido(g, w, h, 9000, '#8a949a', 0.35); g.strokeStyle = '#22282c'; g.lineWidth = 3; for (var i = 0; i <= 4; i++) { g.beginPath(); g.moveTo(i * w / 4, 0); g.lineTo(i * w / 4, h); g.stroke(); g.beginPath(); g.moveTo(0, i * h / 4); g.lineTo(w, i * h / 4); g.stroke(); } });
+    tPiso.wrapS = tPiso.wrapT = THREE.RepeatWrapping; tPiso.repeat.set(2, 2);
+    var piso = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.5), new THREE.MeshStandardMaterial({ map: tPiso, roughness: 0.12, metalness: 0.15 }));
+    piso.rotation.x = -Math.PI / 2; G.add(marca(piso, 'seco'));
+    var ilha = new THREE.Mesh(new THREE.CircleGeometry(0.5, 48), new THREE.MeshStandardMaterial({ map: tPiso, roughness: 0.97, metalness: 0, color: 0xd9dcd6, polygonOffset: true, polygonOffsetFactor: -1 }));
+    ilha.rotation.x = -Math.PI / 2; ilha.scale.set(0.7, 0.62, 1); ilha.position.set(0.01, 0.001, 0.01); G.add(marca(ilha, 'seco'));
+    /* a lona */
+    var tLona = tela(256, 256, function (g, w, h) { g.fillStyle = '#5b6355'; g.fillRect(0, 0, w, h); for (var y = 0; y < h; y += 3) { g.fillStyle = y % 6 ? '#545c4f' : '#636b5c'; g.fillRect(0, y, w, 1); } ruido(g, w, h, 3000, '#2f352c', 0.4); });
+    tLona.wrapS = tLona.wrapT = THREE.RepeatWrapping; tLona.repeat.set(2, 2);
+    var mLona = new THREE.MeshStandardMaterial({ map: tLona, roughness: 0.9, side: THREE.DoubleSide });
+    /* um saco retangular vazio, achatado no chão: a lona assenta nas bordas e
+       guarda dobras no meio */
+    var W = 0.6, D = 0.5, gs = new THREE.PlaneGeometry(W, D, 60, 50); gs.rotateX(-Math.PI / 2);
+    var pos = gs.attributes.position;
+    for (var i = 0; i < pos.count; i++) {
+      var x = pos.getX(i), z = pos.getZ(i), u = 2 * x / W, v = 2 * z / D;
+      var f = Math.max(0, 1 - Math.pow(Math.abs(u), 6)) * Math.max(0, 1 - Math.pow(Math.abs(v), 6));
+      var dobra = Math.sin(x * 26 + z * 9) * 0.35 + Math.sin(z * 31 - x * 12) * 0.25 + Math.sin((x + z) * 55) * 0.08;
+      /* bordas levemente irregulares */
+      var bx = x * (1 + 0.03 * Math.sin(z * 40)), bz = z * (1 + 0.03 * Math.sin(x * 33));
+      pos.setXYZ(i, bx, 0.004 + f * (0.026 + 0.012 * dobra), bz);
+    }
+    gs.computeVertexNormals();
+    var saco = new THREE.Mesh(gs, mLona); saco.rotation.y = 0.18; G.add(marca(saco, 'vazio'));
+    var fecho = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.006, 0.012), new THREE.MeshStandardMaterial({ color: 0x23272a, roughness: 0.5, metalness: 0.6 }));
+    fecho.position.set(-0.005, 0.012, -0.235); fecho.rotation.y = 0.18; G.add(marca(fecho, 'vazio'));
+    /* a aba que respira */
+    var abaPivo = new THREE.Group(); abaPivo.position.set(0.29, 0.01, 0.0); abaPivo.rotation.y = 0.18;
+    var aba = new THREE.Mesh(new THREE.PlaneGeometry(0.12, 0.08), mLona); aba.position.x = 0.06; aba.rotation.x = -Math.PI / 2;
+    abaPivo.add(marca(aba, 'vazio')); G.add(abaPivo); G.userData.aba = abaPivo;
+    /* o vinco, do lado oposto ao lacre: uma boca torta */
+    var curva = new THREE.CatmullRomCurve3([new THREE.Vector3(0.07, 0.036, -0.08), new THREE.Vector3(0.12, 0.04, -0.12), new THREE.Vector3(0.17, 0.036, -0.15), new THREE.Vector3(0.23, 0.022, -0.2)]);
+    var vinco = new THREE.Mesh(new THREE.TubeGeometry(curva, 24, 0.003, 6), new THREE.MeshStandardMaterial({ color: 0x14170f, roughness: 1, metalness: 0 }));
+    G.add(marca(vinco, 'vinco'));
+    var vincoAlvo = new THREE.Mesh(new THREE.TubeGeometry(curva, 12, 0.03, 6), new THREE.MeshBasicMaterial({ visible: false })); G.add(marca(vincoAlvo, 'vinco'));
+    /* o lacre, com a grapa cortada */
+    var lacre = new THREE.Group(); lacre.position.set(-0.24, 0.012, 0.19); lacre.rotation.y = 0.35;
+    var tLacre = tela(256, 96, function (g, w, h) { g.fillStyle = '#c7782b'; g.fillRect(0, 0, w, h); ruido(g, w, h, 600, '#7a4512', 0.3); g.fillStyle = '#2a1606'; g.font = 'bold 52px monospace'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('ML-8842', w / 2, h / 2 + 3); });
+    var corpo = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.012, 0.03), [0, 0, 1, 0, 0, 0].map(function (k) { return new THREE.MeshStandardMaterial(k ? { map: tLacre, roughness: 0.45 } : { color: 0xb5682a, roughness: 0.45 }); }));
+    lacre.add(corpo);
+    var mAco = new THREE.MeshStandardMaterial({ color: 0xb9c0c6, metalness: 0.9, roughness: 0.25 });
+    [[0.012, 0.6], [-0.012, -0.5]].forEach(function (p) { var gr = new THREE.Mesh(new THREE.CylinderGeometry(0.0022, 0.0022, 0.026, 8), mAco); gr.rotation.z = Math.PI / 2; gr.rotation.y = p[1]; gr.position.set(0.052, 0, p[0]); lacre.add(gr); });
+    var lacreAlvo = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.04, 0.07), new THREE.MeshBasicMaterial({ visible: false })); lacre.add(lacreAlvo);
+    G.add(marca(lacre, 'lacre'));
+    /* o fragmento de papel térmico, na cola do lacre */
+    var frag = new THREE.Mesh(new THREE.PlaneGeometry(0.016, 0.011), new THREE.MeshStandardMaterial({ color: 0xf4f1ea, roughness: 0.6, side: THREE.DoubleSide }));
+    frag.rotation.x = -Math.PI / 2; frag.position.set(-0.2, 0.02, 0.212); frag.visible = false;
+    var fragAlvo = new THREE.Mesh(new THREE.SphereGeometry(0.025, 8, 6), new THREE.MeshBasicMaterial({ visible: false })); fragAlvo.position.copy(frag.position);
+    G.add(marca(frag, 'frag')); G.add(marca(fragAlvo, 'frag')); G.userData.frag = [frag, fragAlvo];
+    /* a borda dobrada; embaixo, o envio extra */
+    var bordaPivo = new THREE.Group(); bordaPivo.position.set(0.04, 0.004, 0.25); bordaPivo.rotation.y = 0.18;
+    var borda = new THREE.Mesh(new THREE.PlaneGeometry(0.2, 0.05), mLona); borda.rotation.x = -Math.PI / 2; borda.position.z = -0.025;
+    bordaPivo.add(borda); G.add(marca(bordaPivo, 'borda')); G.userData.borda = bordaPivo;
+    var envio = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.003, 0.03), new THREE.MeshStandardMaterial({ color: 0xefc878, emissive: 0x6b4d10, emissiveIntensity: 0.6, metalness: 0.4, roughness: 0.3 }));
+    envio.position.set(0.05, 0.003, 0.235); envio.rotation.y = 0.18; G.add(marca(envio, 'borda'));
+    var bordaAlvo2 = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.05, 0.08), new THREE.MeshBasicMaterial({ visible: false })); bordaAlvo2.position.set(0.04, 0.02, 0.25); G.add(marca(bordaAlvo2, 'borda'));
+    /* o canto do Arquivo: parede com infiltração, estante, cesto, porta entreaberta */
+    var tParede = tela(512, 256, function (g, w, h) { g.fillStyle = '#c9c6bd'; g.fillRect(0, 0, w, h); ruido(g, w, h, 4000, '#8e8b82', 0.25); var r = g.createRadialGradient(70, h, 10, 70, h, 150); r.addColorStop(0, 'rgba(92,84,60,.75)'); r.addColorStop(1, 'rgba(92,84,60,0)'); g.fillStyle = r; g.fillRect(0, 0, w, h); });
+    var parede = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.6), new THREE.MeshStandardMaterial({ map: tParede, roughness: 0.95 })); parede.position.set(0, 0.3, -0.62); G.add(parede);
+    var mMetal = new THREE.MeshStandardMaterial({ color: 0x6d757b, metalness: 0.5, roughness: 0.5 });
+    var estante = new THREE.Group(); estante.position.set(0.42, 0, -0.5);
+    [0.02, 0.16, 0.3, 0.44].forEach(function (y) { var pr = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.008, 0.18), mMetal); pr.position.y = y; estante.add(pr); });
+    [[-0.2, -0.09], [0.2, -0.09], [-0.2, 0.09], [0.2, 0.09]].forEach(function (q) { var m = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.46, 0.01), mMetal); m.position.set(q[0], 0.23, q[1]); estante.add(m); });
+    var mCaixa = new THREE.MeshStandardMaterial({ color: 0x8c7b5d, roughness: 0.9 });
+    [[-0.12, 0.05], [0, 0.05], [0.12, 0.05], [-0.12, 0.19], [0.12, 0.19], [-0.06, 0.33], [0.08, 0.33]].forEach(function (q) { var c = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.09, 0.15), mCaixa); c.position.set(q[0], q[1] + 0.04, 0); estante.add(c); });
+    G.add(estante);
+    var cesto = new THREE.Group(); cesto.position.set(-0.47, 0, -0.38);
+    cesto.add(new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.055, 0.15, 24, 1, true), new THREE.MeshStandardMaterial({ color: 0x4f565b, metalness: 0.6, roughness: 0.4, side: THREE.DoubleSide })));
+    cesto.children[0].position.y = 0.075;
+    var tampa = new THREE.Mesh(new THREE.CylinderGeometry(0.069, 0.069, 0.01, 24), new THREE.MeshStandardMaterial({ color: 0x8d969c, metalness: 0.8, roughness: 0.3 }));
+    tampa.position.set(0.006, 0.156, 0); tampa.rotation.z = 0.11; cesto.add(tampa); G.add(cesto);
+    var batente = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.6, 0.03), mMetal); batente.position.set(-0.72, 0.3, 0.1); G.add(batente);
+    var porta = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.58, 0.32), new THREE.MeshStandardMaterial({ color: 0x59636a, metalness: 0.4, roughness: 0.5 }));
+    porta.geometry.translate(0, 0.29, 0.16); porta.position.set(-0.72, 0, 0.12); porta.rotation.y = -0.5; G.add(porta);
+    var balde = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.05, 0.1, 20), new THREE.MeshStandardMaterial({ color: 0x2f6fae, roughness: 0.6 })); balde.position.set(-0.58, 0.05, 0.42); G.add(balde);
+    G.visible = false;
+    return G;
+  }
+  function entrarPerto() {
+    if (!perto) { perto = montarPerto(); raiz.add(perto); }
+    emPerto = true; bordaAlvo = 0;
+    modelo.visible = false; perto.visible = true;
+    var f = !!(opcoes.malote && opcoes.malote.fragmento && opcoes.malote.fragmento());
+    perto.userData.frag.forEach(function (o) { o.visible = f; });
+    LUZ.hemi.intensity = 0.1; LUZ.ceu.intensity = 0.06; LUZ.fria.intensity = 0.03; LUZ.amb.intensity = 0.04; LUZ.lanterna.intensity = 4.2;
+    if (realce) { cena.remove(realce); realce = null; }
+    el.querySelector('#maqAndar').hidden = true;
+    el.querySelector('.maq-tit b').textContent = 'O malote murcho · Arquivo Morto';
+    dica('A lanterna segue o seu olhar. Gire em volta e toque nos detalhes.');
+    cartao('O MALOTE', 'Toque num detalhe do saco para examiná-lo. Com a luz certa, o lacre se deixa ler.');
+    if (controles && controles.enabled) {
+      /* enquadra ~0,9 de largura, qualquer que seja a proporção da tela */
+      var hf = 2 * Math.atan(Math.tan(camera.fov * Math.PI / 360) * camera.aspect), dist = Math.min(2.3, 0.46 / Math.tan(hf / 2));
+      var dir = new global.THREE.Vector3(0.06, 0.78, 0.62).normalize();
+      controles.minDistance = 0.12; controles.target.set(0, 0.02, 0); camera.position.copy(dir.multiplyScalar(dist)); controles.update();
+    }
+  }
+  function sairPerto(silencioso) {
+    emPerto = false;
+    if (perto) perto.visible = false;
+    modelo.visible = true;
+    LUZ.hemi.intensity = 0.95; LUZ.ceu.intensity = 0.9; LUZ.fria.intensity = 0.35; LUZ.amb.intensity = 0.18; LUZ.lanterna.intensity = 0;
+    if (silencioso) return;
+    el.querySelector('#maqAndar').hidden = false;
+    el.querySelector('.maq-tit b').textContent = 'A maquete · Agência 0688';
+    dica('Arraste para girar. Toque numa sala ou num marcador dourado.');
+    cartao('A MAQUETE', 'Toque numa sala para ver o que há nela. Os marcadores dourados são as peças do caso.');
+    if (controles) { controles.minDistance = 0.18; enquadrar(); }
+  }
+  function tocarPerto(ray) {
+    var alvos = []; perto.traverse(function (o) { if (o.isMesh && o.userData.det && visivel(o)) alvos.push(o); });
+    var h = ray.intersectObjects(alvos, false);
+    if (!h.length) return;
+    var ordem = ['frag', 'lacre', 'borda', 'vinco', 'vazio', 'seco'], k = h[0].object.userData.det;
+    /* entre alvos sobrepostos perto do dedo, o detalhe pequeno ganha */
+    h.forEach(function (x) { if (x.distance - h[0].distance < 0.04 && ordem.indexOf(x.object.userData.det) < ordem.indexOf(k)) k = x.object.userData.det; });
+    if (k === 'borda') bordaAlvo = 1;
+    var d = opcoes.malote && opcoes.malote.detalhe ? opcoes.malote.detalhe(k) : null;
+    if (d) cartao(d[0], d[1]);
+  }
+  function animarPerto(dt) {
+    var THREE = global.THREE;
+    var aba = perto.userData.aba; aba.rotation.z = 0.15 + Math.pow(Math.sin(relogio * 1.1), 2) * 0.45;
+    var b = perto.userData.borda; b.rotation.x += ((bordaAlvo ? -1.1 : 0) - b.rotation.x) * Math.min(1, dt * 4);
+    var cam = ra ? ra.cameraAtiva() : camera, p = new THREE.Vector3(), d = new THREE.Vector3();
+    cam.getWorldPosition(p); cam.getWorldDirection(d);
+    LUZ.lanterna.position.copy(p).addScaledVector(d, -0.02);
+    LUZ.lanterna.target.position.copy(p).addScaledVector(d, 1);
+    LUZ.lanterna.target.updateMatrixWorld();
+    var f = !!(opcoes.malote && opcoes.malote.fragmento && opcoes.malote.fragmento());
+    if (perto.userData.frag[0].visible !== f) perto.userData.frag.forEach(function (o) { o.visible = f; });
   }
 
   /* ---------------- abrir e fechar ---------------- */
@@ -387,6 +541,7 @@
   }
   function fechar() {
     ativo = false;
+    if (emPerto) sairPerto(true);
     var sai = ra && ra.estado().modo === 'ra' ? ra.sair() : Promise.resolve();
     return sai.then(function () {
       if (renderer) renderer.setAnimationLoop(null);
@@ -397,5 +552,6 @@
 
   global.CFIMaquete = { abrir: abrir, fechar: fechar, aberta: function () { return ativo; }, ITENS: ITENS,
     _teste: function () { return { pinos: pinos.map(function (p) { var v = p.getWorldPosition(new global.THREE.Vector3()).project(ra ? ra.cameraAtiva() : camera); return { id: p.userData.item, x: (v.x + 1) / 2 * innerWidth, y: (1 - v.y) / 2 * innerHeight }; }), itens: opcoes.itens }; },
+    _perto: function () { entrarPerto(); }, _dbg: function () { var b = new global.THREE.Box3().setFromObject(perto); return { cam: camera.position.toArray(), alvo: controles.target.toArray(), raizEsc: raiz.scale.x, raizPos: raiz.position.toArray(), bmin: b.min.toArray(), bmax: b.max.toArray() }; }, _projetarPerto: function (x, y, z) { var v = perto.localToWorld(new global.THREE.Vector3(x, y, z)).project(camera); return { x: (v.x + 1) / 2 * innerWidth, y: (1 - v.y) / 2 * innerHeight }; },
     _projetar: function (x, y, z) { var v = modelo.localToWorld(new global.THREE.Vector3(x, y, z)).project(camera); return { x: (v.x + 1) / 2 * innerWidth, y: (1 - v.y) / 2 * innerHeight }; } };
 })(window);

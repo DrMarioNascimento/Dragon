@@ -2631,12 +2631,20 @@ $('#abPular').onclick=function(){fimAb();inicioDoJogo()};
    marcador no lugar onde a história a põe (maquete.js). A Passagem e os
    campos das câmeras mudam a própria maquete quando a história os revela. */
 var MAQ_REV={passagem:false,campos:false};
+/* a peça de perto do malote, em 3D: mesmos textos, inventário e envio do desenho */
+function maloteDet(k){var d=DET[k];if(!d)return null;
+  if(k==='borda'){if(!maloteEnvio){maloteEnvio=true;setTimeout(achouEnvioCap,500)}return d}
+  if(k==='frag'&&!fragmentoVisivel)return null;
+  if(!maloteVistos[k]){maloteVistos[k]=true;if(!MALOTE_URL)try{MALOTE_URL=URL.createObjectURL(new Blob([maloteSVG()],{type:'image/svg+xml'}))}catch(e){}
+    INVENTARIO.push({ico:'📷',nome:'Malote: '+d[0].toLowerCase(),desc:d[1],img:MALOTE_URL});toast('Guardado no inventário: '+d[0].toLowerCase())}
+  return d}
 function abrirMaquete(){
   if(!window.CFIMaquete){toast('A maquete ainda está carregando. Tente de novo.');return}
   var itens=PECAS.filter(function(p){return /^c\d$/.test(p.id)&&p.aberta}).map(function(p){return p.id});
   CFIMaquete.abrir({itens:itens,revelados:MAQ_REV,
     info:function(id){var L=LUG[id];return L?[L[0],L[1]]:null},
     digitar:function(el,t){digitar(el,t,10)},
+    malote:{fragmento:function(){return fragmentoVisivel},detalhe:maloteDet},
     aoAbrirItem:function(id){CFIMaquete.fechar().then(function(){var b=document.querySelector('[data-peca="'+id+'"]');if(b)b.click()})}}).catch(function(){})}
 var _pintarPecasM=pintarPecas;pintarPecas=function(){_pintarPecasM();var b=document.querySelector('[data-peca="maquete"]');if(b)b.onclick=function(){if(!b.classList.contains('trancada'))abrirMaquete()}};
 var _abrirPecaCapM=abrirPecaCap;abrirPecaCap=function(id){_abrirPecaCapM(id);
@@ -2655,6 +2663,6 @@ document.querySelectorAll('.suspeito').forEach(function(s){var t=s.querySelector
 var cab=document.getElementById('convAvatar'),nome=document.getElementById('convNome');var n=nome&&nome.textContent.match(/(\d{2})/);if(cab&&n)preencher(cab,n[1])}
 var obs=new MutationObserver(varrer);obs.observe(document.body,{childList:true,subtree:true});varrer()})();
 </script>
-<script src="maquete.js?v=20261006"></script>
+<script src="maquete.js?v=20261006b"></script>
 </body>
 </html>
