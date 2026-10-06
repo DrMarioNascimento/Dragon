@@ -51,7 +51,8 @@
   };
   /* Revelações que mudam a própria maquete. */
   var REVELA = {
-    passagem: { modelo: 'modelos/item-passagem.glb', esconde: ['macico'] },
+    passagem: { modelo: 'modelos/item-passagem.glb', esconde: ['macico', 'rack-fundo', 'painel'] },
+    pegadas: { fazer: fazerPegadas },
     campos: { modelo: 'modelos/item-campos.glb' }
   };
 
@@ -233,8 +234,28 @@
     Object.keys(REVELA).forEach(function (k) {
       var R = REVELA[k], sim = !!rev[k];
       (R.esconde || []).forEach(function (n) { var o = modelo.getObjectByName(n); if (o) o.visible = !sim; });
-      if (sim && !extras[k]) extras[k] = carregarGLB(BASE + R.modelo).then(function (g) { modelo.add(g.scene); if (k === 'campos') g.scene.traverse(function (o) { if (o.isMesh) { o.material.transparent = true; o.material.opacity = 0.28; o.material.depthWrite = false; o.raycast = function () {}; } }); return g.scene; }).catch(function () {});
+      if (sim && R.fazer && !extras[k]) { extras[k] = R.fazer(); return; }
+      if (sim && R.modelo && !extras[k]) extras[k] = carregarGLB(BASE + R.modelo).then(function (g) { modelo.add(g.scene); if (k === 'campos') g.scene.traverse(function (o) { if (o.isMesh) { o.material.transparent = true; o.material.opacity = 0.28; o.material.depthWrite = false; o.raycast = function () {}; } }); return g.scene; }).catch(function () {});
     });
+  }
+  /* Cap. 4: meias-luas úmidas do cesto do Arquivo, pela porta e pelo
+     corredor, até o fundo do Nicho do Rack (metros da maquete) */
+  function fazerPegadas() {
+    var THREE = global.THREE, G = new THREE.Group(); G.name = 'pegadas';
+    var rota = [[-8.6, -2.35], [-6.2, -3.9], [-4.65, -4.8], [-3.6, -5.15], [-3.75, -5.95], [-4.85, -5.95]];
+    var mat = new THREE.MeshStandardMaterial({ color: 0x2a3d4a, emissive: 0x0b1820, roughness: 0.05, metalness: 0.3, transparent: true, opacity: 0.9, polygonOffset: true, polygonOffsetFactor: -2 });
+    var geo = new THREE.CircleGeometry(0.12, 16, 0, Math.PI); geo.rotateX(-Math.PI / 2);
+    var lado = 1;
+    for (var i = 0; i < rota.length - 1; i++) {
+      var a = rota[i], b = rota[i + 1], dx = b[0] - a[0], dz = b[1] - a[1], L = Math.sqrt(dx * dx + dz * dz), ang = Math.atan2(dx, dz);
+      for (var d = 0; d < L; d += 0.4) {
+        var m = new THREE.Mesh(geo, mat), t = d / L;
+        m.position.set(a[0] + dx * t + Math.cos(ang) * 0.07 * lado, 0.445, a[1] + dz * t - Math.sin(ang) * 0.07 * lado);
+        m.rotation.y = ang; m.scale.set(1, 1, 1.5); lado = -lado; G.add(m);
+      }
+    }
+    G.traverse(function (o) { o.raycast = function () {}; });
+    modelo.add(G); return Promise.resolve(G);
   }
   function marcar(obj, id) { obj.traverse(function (o) { o.userData.item = id; }); }
 
@@ -552,6 +573,6 @@
 
   global.CFIMaquete = { abrir: abrir, fechar: fechar, aberta: function () { return ativo; }, ITENS: ITENS,
     _teste: function () { return { pinos: pinos.map(function (p) { var v = p.getWorldPosition(new global.THREE.Vector3()).project(ra ? ra.cameraAtiva() : camera); return { id: p.userData.item, x: (v.x + 1) / 2 * innerWidth, y: (1 - v.y) / 2 * innerHeight }; }), itens: opcoes.itens }; },
-    _perto: function () { entrarPerto(); }, _dbg: function () { var b = new global.THREE.Box3().setFromObject(perto); return { cam: camera.position.toArray(), alvo: controles.target.toArray(), raizEsc: raiz.scale.x, raizPos: raiz.position.toArray(), bmin: b.min.toArray(), bmax: b.max.toArray() }; }, _projetarPerto: function (x, y, z) { var v = perto.localToWorld(new global.THREE.Vector3(x, y, z)).project(camera); return { x: (v.x + 1) / 2 * innerWidth, y: (1 - v.y) / 2 * innerHeight }; },
+    _perto: function () { entrarPerto(); }, _vis: function (n) { var o = modelo.getObjectByName(n); return o ? o.visible : null; }, _camera: function (a, b) { camera.position.fromArray(a); controles.target.fromArray(b); controles.update(); }, _dbg: function () { var b = new global.THREE.Box3().setFromObject(perto); return { cam: camera.position.toArray(), alvo: controles.target.toArray(), raizEsc: raiz.scale.x, raizPos: raiz.position.toArray(), bmin: b.min.toArray(), bmax: b.max.toArray() }; }, _projetarPerto: function (x, y, z) { var v = perto.localToWorld(new global.THREE.Vector3(x, y, z)).project(camera); return { x: (v.x + 1) / 2 * innerWidth, y: (1 - v.y) / 2 * innerHeight }; },
     _projetar: function (x, y, z) { var v = modelo.localToWorld(new global.THREE.Vector3(x, y, z)).project(camera); return { x: (v.x + 1) / 2 * innerWidth, y: (1 - v.y) / 2 * innerHeight }; } };
 })(window);

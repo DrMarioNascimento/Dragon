@@ -2630,7 +2630,7 @@ $('#abPular').onclick=function(){fimAb();inicioDoJogo()};
    Entra com o malote e vai sendo abastecida: cada peça de capítulo vira um
    marcador no lugar onde a história a põe (maquete.js). A Passagem e os
    campos das câmeras mudam a própria maquete quando a história os revela. */
-var MAQ_REV={passagem:false,campos:false};
+var MAQ_REV={passagem:false,campos:false,pegadas:false};
 /* a peça de perto do malote, em 3D: mesmos textos, inventário e envio do desenho */
 function maloteDet(k){var d=DET[k];if(!d)return null;
   if(k==='borda'){if(!maloteEnvio){maloteEnvio=true;setTimeout(achouEnvioCap,500)}return d}
@@ -2649,7 +2649,7 @@ function abrirMaquete(){
 var _pintarPecasM=pintarPecas;pintarPecas=function(){_pintarPecasM();var b=document.querySelector('[data-peca="maquete"]');if(b)b.onclick=function(){if(!b.classList.contains('trancada'))abrirMaquete()}};
 var _abrirPecaCapM=abrirPecaCap;abrirPecaCap=function(id){_abrirPecaCapM(id);
   if(id==='c1'){var m=PECAS.filter(function(x){return x.id==='maquete'})[0];if(m&&!m.aberta){m.aberta=true;m.sub='A agência em 3D, e na mesa com RA';pintarPecas();setTimeout(function(){toast('A maquete da agência abriu na aba RA. O malote está nela.')},2800)}}};
-var _executarM=executar;executar=function(e){if(e[1]==='passagem')MAQ_REV.passagem=true;if(e[1]==='libera'&&e[2]==='corredor')MAQ_REV.campos=true;_executarM(e)};
+var _executarM=executar;executar=function(e){if(e[1]==='passagem')MAQ_REV.passagem=true;if(e[1]==='libera'&&e[2]==='corredor')MAQ_REV.campos=true;if(e[1]==='libera'&&e[2]==='pegadas')MAQ_REV.pegadas=true;_executarM(e)};
 window.CFIMesa={maquete:function(){abrirMaquete()},partida:PCOD,impostor:IMP,casa:CASA,papel:EU_PAPEL,numero:EU,presentes:PRESENTES,pular:function(){inicioDoJogo();prologo.planta=prologo.ondeEstou=prologo.papeis=true;abrirGrupo();$('#janelaOk').click()},
   tempo:function(s){tRot=s},estado:function(){return {cap:capitulo,tRot:tRot,iRot:iRot,grupo:grupo.length,prologo:prologo,resta:resta,respostas:respostas,apostas:apostas,inv:INVENTARIO.length,envios:envios}},cap:function(n){comecarCapitulo(n)},fim:function(){fimDoCapitulo()}};
 if(TESTE)console.log('[CFI] partida',PCOD,'impostor',IMP,'casa',CASA,'papel',EU_PAPEL,'···'+EU);
@@ -2663,6 +2663,6 @@ document.querySelectorAll('.suspeito').forEach(function(s){var t=s.querySelector
 var cab=document.getElementById('convAvatar'),nome=document.getElementById('convNome');var n=nome&&nome.textContent.match(/(\d{2})/);if(cab&&n)preencher(cab,n[1])}
 var obs=new MutationObserver(varrer);obs.observe(document.body,{childList:true,subtree:true});varrer()})();
 </script>
-<script src="maquete.js?v=20261006b"></script>
+<script src="maquete.js?v=20261006c"></script>
 </body>
 </html>

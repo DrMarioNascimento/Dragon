@@ -89,7 +89,9 @@ async function base() {
   const ag = root.listNodes().find(n => n.getName() === 'agencia-0688-maquete');
   for (const [x1, x2, z1, z2] of blocos) macico.addChild(doc.createNode('bloco').setMesh(doc.createMesh().addPrimitive(caixa(doc, x1, x2, 0.42, 4.02, z1, z2, parede))));
   ag.addChild(macico);
-  const UNIDADES_FIXAS = ['piso-2', 'telhado', 'macico', 'base-da-maquete', 'vizinhanca', 'agencia', 'etiquetas'];
+  /* peças que mudam de estado no Cap. 4: separadas, com nome neutro */
+  for (const n of root.listNodes()) { if (n.getName() === 'rack-fundo-removivel') n.setName('rack-fundo'); if (n.getName() === 'painel-de-madeira') n.setName('painel'); }
+  const UNIDADES_FIXAS = ['piso-2', 'telhado', 'macico', 'base-da-maquete', 'vizinhanca', 'agencia', 'etiquetas', 'rack-fundo', 'painel'];
   const isUnit = n => {
     const nm = n.getName(), ex = n.getExtras() || {};
     if (/^etiqueta-\d+$/.test(nm)) return true;
