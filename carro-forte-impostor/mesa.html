@@ -2638,6 +2638,19 @@ function maloteDet(k){var d=DET[k];if(!d)return null;
   if(!maloteVistos[k]){maloteVistos[k]=true;if(!MALOTE_URL)try{MALOTE_URL=URL.createObjectURL(new Blob([maloteSVG()],{type:'image/svg+xml'}))}catch(e){}
     INVENTARIO.push({ico:'📷',nome:'Malote: '+d[0].toLowerCase(),desc:d[1],img:MALOTE_URL});toast('Guardado no inventário: '+d[0].toLowerCase())}
   return d}
+/* as peças dos Caps. 2 a 7 em 3D usam a lógica do desenho 2D: o que está
+   no desenho (e com que rótulo) e o mesmo toque em cada detalhe */
+function pecaSVG(id){return id==='c1'?maloteSVG():id==='c2'?radioSVG():PECA_DEF[id].svg(PECA_FLAGS)}
+function pecaListar(id){var d=new DOMParser().parseFromString(pecaSVG(id),'image/svg+xml'),out=[];
+  Array.prototype.forEach.call(d.querySelectorAll('[data-det]'),function(g){var ts=Array.prototype.map.call(g.querySelectorAll('text'),function(t){return t.textContent});
+    var k=g.getAttribute('data-det'),D=PECA_DEF[id]&&PECA_DEF[id].det[k],nome=ts[0]||(D?D[0].toLowerCase():(id==='c2'&&DET2[k]?DET2[k][0].toLowerCase():k));
+    out.push({k:k,label:nome,extra:ts.slice(1).join(' ')})});return out}
+function pecaExaminar(id,k){if(!$('#svgPlanta')){abrirPlanta();$('#telaRA').hidden=true}
+  if(id==='c2')pintarRadio();else if(id==='c1')pintarMalote();else pintarPecaGen(id);
+  var g=$('#svgMalote').querySelector('[data-det="'+k+'"]');if(!g||!g.onclick)return null;
+  var capt=null,orig=digitar;digitar=function(el,t,v,f){capt=t;return orig(el,t,v,f)};
+  try{g.onclick()}finally{digitar=orig}
+  return [$('#pcRot').textContent,capt||$('#pcTxt').textContent]}
 function abrirMaquete(){
   if(!window.CFIMaquete){toast('A maquete ainda está carregando. Tente de novo.');return}
   var itens=PECAS.filter(function(p){return /^c\d$/.test(p.id)&&p.aberta}).map(function(p){return p.id});
@@ -2645,6 +2658,7 @@ function abrirMaquete(){
     info:function(id){var L=LUG[id];return L?[L[0],L[1]]:null},
     digitar:function(el,t){digitar(el,t,10)},
     malote:{fragmento:function(){return fragmentoVisivel},detalhe:maloteDet},
+    pecas:{listar:pecaListar,examinar:pecaExaminar,aviso:function(id){return PECA_DEF[id]?PECA_DEF[id].aviso:'Toque num detalhe do rádio para examiná-lo.'}},
     aoAbrirItem:function(id){CFIMaquete.fechar().then(function(){var b=document.querySelector('[data-peca="'+id+'"]');if(b)b.click()})}}).catch(function(){})}
 var _pintarPecasM=pintarPecas;pintarPecas=function(){_pintarPecasM();var b=document.querySelector('[data-peca="maquete"]');if(b)b.onclick=function(){if(!b.classList.contains('trancada'))abrirMaquete()}};
 var _abrirPecaCapM=abrirPecaCap;abrirPecaCap=function(id){_abrirPecaCapM(id);
@@ -2663,6 +2677,6 @@ document.querySelectorAll('.suspeito').forEach(function(s){var t=s.querySelector
 var cab=document.getElementById('convAvatar'),nome=document.getElementById('convNome');var n=nome&&nome.textContent.match(/(\d{2})/);if(cab&&n)preencher(cab,n[1])}
 var obs=new MutationObserver(varrer);obs.observe(document.body,{childList:true,subtree:true});varrer()})();
 </script>
-<script src="maquete.js?v=20261006c"></script>
+<script src="maquete.js?v=20261006d"></script>
 </body>
 </html>
