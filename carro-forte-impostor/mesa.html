@@ -1606,7 +1606,7 @@ document.head.insertAdjacentHTML('beforeend','<style>.debate-relogio{position:re
 function embaralhar(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
 function irParaPerguntas(){filaPerg=CAPS[capitulo].perg.slice();respostas[capitulo]=[];proximaPerg()}
 function proximaPerg(){PQ=filaPerg.shift();pqEsc=null;pqConf=null;pqOrdem=PQ.opcoes?embaralhar(PQ.opcoes.map(function(_,i){return i})):[];pintarPerg()}
-function pintarPerg(){var L='ABCD';
+function pintarPerg(){var L='ABCDEFGHIJKLMNOP';
   $('#fechoCorpo').innerHTML='<p class="kicker">Capítulo '+capitulo+' · pergunta '+PQ.rotulo+(PQ.rotulo==='secundária'?' (vale metade)':'')+'</p><h1 id="fechoTitulo">'+PQ.pergunta+'</h1>'+
     '<div class="opcoes">'+pqOrdem.map(function(k,i){return '<button type="button" class="op'+(pqEsc===k?' on':'')+'" data-op="'+k+'"'+(pqConf==='naosei'?' disabled':'')+'><i>'+L[i]+'</i><span>'+PQ.opcoes[k]+'</span></button>'}).join('')+'</div>'+
     (marcasDoCap(capitulo).length?'<details class="marcadas" style="margin-top:10px"><summary style="color:var(--gold);cursor:pointer">📌 Suas falas marcadas ('+marcasDoCap(capitulo).length+')</summary>'+listaMarcas(capitulo,false)+'</details>':'')+
@@ -1614,7 +1614,7 @@ function pintarPerg(){var L='ABCD';
     '<div class="acoes"><button type="button" id="pqResp"'+((pqConf&&(pqEsc!==null||pqConf==='naosei'))?'':' disabled')+'>Responder</button></div>';
   document.querySelectorAll('#fecho [data-op]').forEach(function(b){b.onclick=function(){pqEsc=+b.dataset.op;pintarPerg()}});
   document.querySelectorAll('#fecho [data-conf]').forEach(function(b){b.onclick=function(){pqConf=b.dataset.conf;if(pqConf==='naosei')pqEsc=null;pintarPerg()}});
-  $('#pqResp').onclick=function(){respostas[capitulo].push({pergunta:PQ.pergunta,tipo:PQ.rotulo,opcao:pqEsc,certa:pqEsc===0,confianca:pqConf});
+  $('#pqResp').onclick=function(){respostas[capitulo].push({pergunta:PQ.pergunta,tipo:PQ.rotulo,opcao:pqEsc,certa:pqEsc===0,confianca:pqConf,peso:PQ.peso});
     if(filaPerg.length){proximaPerg();$('#fecho').scrollTop=0;return}
     fimDasPerguntas()}}
 function fimDasPerguntas(){{
@@ -1808,7 +1808,7 @@ var _pintarPerg=pintarPerg;pintarPerg=function(){if(PQ.tipo!=='todos'){_pintarPe
   document.querySelectorAll('#fecho [data-todo]').forEach(function(b){b.onclick=function(){var i=+b.dataset.todo,k=pqEsc.indexOf(i);if(k>=0)pqEsc.splice(k,1);else pqEsc.push(i);pintarPerg()}});
   document.querySelectorAll('#fecho [data-conf]').forEach(function(b){b.onclick=function(){pqConf=b.dataset.conf;if(pqConf==='naosei')pqEsc=[];pintarPerg()}});
   $('#pqResp').onclick=function(){var certa=pqEsc.length===PQ.certos.length&&PQ.certos.every(function(i){return pqEsc.indexOf(i)>=0});
-    respostas[capitulo].push({pergunta:PQ.pergunta,tipo:PQ.rotulo,opcao:pqEsc.slice(),certa:certa,confianca:pqConf});
+    respostas[capitulo].push({pergunta:PQ.pergunta,tipo:PQ.rotulo,opcao:pqEsc.slice(),certa:certa,confianca:pqConf,peso:PQ.peso});
     if(filaPerg.length){proximaPerg();$('#fecho').scrollTop=0;return}fimDasPerguntas()}};
 
 
@@ -2383,6 +2383,188 @@ PECA_DEF.c7=(function(){var det={},F2={cabo:['O CABO','Câmera 1, 8h31: o Gerent
     return s+'<text x="20" y="508" style="font-size:8px;fill:#4dba7c;font-family:monospace">ESCRIVANINHA DAS QUINZE VERSÕES</text></svg>'}}})();
 /* as gavetas mostram a confirmação só depois que a história a abre (10h28 em diante) */
 var _gavetaExaminar=examinarGen;examinarGen=function(id,k,g){if(id==='c7'&&k.indexOf('g_')===0&&!PECA_FLAGS.cameras){var pid=k.slice(2);$('#pcRot').textContent=P[pid].n.toUpperCase();$('#pcTxt').innerHTML='';digitar($('#pcTxt'),DECL[pid]?'Disse: '+DECL[pid]+'. A confirmação ainda não chegou.':'A confirmação ainda não chegou.',10);return}_gavetaExaminar(id,k,g)};
+
+
+/* ══ CAPÍTULO 8 · A SOMA IMPOSSÍVEL (10h52 a 11h12; epílogo no dia seguinte) ══
+   Fonte: revisão 2, Cap. 8 (texto público = partida S) e as Variantes G e V,
+   com out/variantes_c8.json. Sem relógio e sem RA. Três fases:
+   A) 10h52, a acusação de cada um (o jogador não fala: a acusação dele são
+      as quatro perguntas finais); B) debate e perguntas finais (impostor ×3,
+      ajudante ×2, mecanismo e intenção ×1); C) a revelação em seis
+      movimentos, o epílogo, a última mensagem do oculto e o placar.
+   Ajustes desta montagem: na V, o Caixa Veterano não se denuncia na fase A
+   (seria entregar a resposta antes das perguntas); diz "Fui eu" durante a
+   reconstrução, "antes de a Auditora terminar". O texto público não usa a
+   palavra "impostor": a função vai no lugar. Fita no indicador (A3, 05/10). */
+var AJ={S:'caixa_veterano',G:'subgerente',V:'subgerente'}[PCOD];
+var V8={
+ S:{a1:'Oito dias antes, ao reler o espelho do reprocessamento, {subgerente} percebeu que o depósito do frigorífico entrara duas vezes, e calou.',
+    cracha:'sete e dezesseis',
+    a5:function(){return 'a câmera 2, que mostra os Guichês sem ele até as oito e zero cinco'+(presente('estagiaria')?', e {estagiaria}, que estava lá':'')+'; {cliente_cofre} e a câmera 1, que viram dois entrarem na Gerência e um sair.'},
+    ouviu:'{subgerente} ouviu sem interromper. O homem cortês ia se desfazendo, e no lugar dele ficava alguém cansado, com noites sem sono acumuladas sob os olhos.',
+    gerenteCabo:' {gerente} tinha um cabo queimado, que era seu de fato, mas era outra coisa.',
+    a10:'{subgerente} saiu acompanhado e deixou sobre o balcão o rolo de fita que trazia no bolso.'},
+ G:{a1:'Oito dias antes, ao assinar o balancete semanal do Cofre, {gerente} percebeu que o depósito do frigorífico entrara duas vezes, e calou.',
+    cracha:'sete e doze',
+    a5:function(){return 'a câmera 1, que o viu entrar sozinho atrás da divisória às sete e cinquenta e sete e cinquenta; {auditora}, que ele deixara "para um telefonema"; e o ramal da Gerência, sem nenhuma chamada entre as sete e cinquenta e as oito e dez.'},
+    ouviu:'{gerente} ouviu sem interromper. A autoridade ia se desfazendo, e no lugar dela ficava um homem que esperara onze dias por esta conversa.',
+    gerenteCabo:' E o cabo queimado das oito e trinta e um não era outra coisa: era o mesmo plano, agora escondendo a si mesmo.',
+    a10:'{gerente} tirou o anel, deixou o crachá sobre a mesa e saiu acompanhado. Sem o anel, a mão parecia menor.'},
+ V:{a1:'Oito dias antes, numa noite sem sono, ao refazer de cabeça a soma do frigorífico, {caixa_veterano} percebeu que o depósito entrara duas vezes, e calou.',
+    cracha:'sete e vinte e um',
+    a5:function(){return 'a câmera 2, que mostra a Mesa vazia até as oito e zero zero e dois'+(presente('seguranca_veiculo')?', e {seguranca_veiculo}, que viu a Mesa vazia pelo vidro da Eclusa':'')+'; {cliente_cofre} e a câmera 1, que viram dois entrarem na Gerência e um sair.'},
+    ouviu:'{caixa_veterano} ouviu de olhos baixos. Vinte e sete anos de arquivo vivo iam se desfazendo, e no lugar deles ficava um homem cansado, com noites sem sono acumuladas sob os olhos.',
+    gerenteCabo:' {gerente} tinha um cabo queimado, que era seu de fato, mas era outra coisa.',
+    a10:'{caixa_veterano} pendurou de volta na parede a fotografia antiga da equipe e saiu acompanhado.'}
+}[PCOD];
+var CONF8={
+ S:'Eu descobri três dias depois. Se comunicasse, viria a regional. Meu reprocessamento, a assinatura dele, a saída do Gerente, a trava do Técnico. Seria uma fila de gente. Empenhei as joias da minha mãe. Agendei o saque. Fechei o malote curto porque não tinha o dinheiro às quinze e cinquenta, e ia pôr o que faltava antes de ele sair. Auditoria surpresa costuma chegar com a abertura, às oito. Antecipei a coleta para as sete e cinquenta. Vocês chegaram às sete e quarenta e sete.',
+ G:'Eu saí às sete naquela noite porque um homem ia me denunciar. Quando vi o número, entendi que a minha saída estava dentro dele. Se a regional viesse, viria por tudo: pela saída, pelo crédito, por mim. Resgatei a previdência. Fechei o malote curto e ia completar antes da coleta. Queimei o cabo porque o arquivo dizia \'G sai\'. Eu mesmo escrevi isso, para não esquecer quem eu tinha sido naquela noite.',
+ V:'Eu assinei sem contar para ir enterrar um amigo. Vinte e sete anos sem uma diferença, e a primeira foi minha. Tirei o dinheiro da aposentadoria. Não era para ninguém pagar por isso, nem eu, nem o nome desta agência. Fechei o malote curto porque às quinze e cinquenta eu ainda não tinha o dinheiro. Pensei que ninguém nunca saberia que eu tinha errado.'
+}[PCOD];
+function so(id,t){return presente(id)&&id!==EU_PAPEL?t:''}
+
+/* Fase A: a acusação de cada um (10h52). Tempos atribuídos pelo tamanho do texto. */
+var C8A_SEQ=[
+ ['n','todos','Às dez e cinquenta e duas, {gerente} exigiu uma acusação formal. Talvez esperasse que a solenidade lhe devolvesse a ordem que perdera.','10h52'],
+ ['sisfora','No grupo, a agência avisa: cada um vai dizer de quem desconfiou. Depois, a acusação formal.'],
+ ['n','todos',(function(){var s=[];
+   s.push(so('seguranca_interno','{seguranca_interno} apontou {operadora}, pelo esmalte, e pediu desculpas antes de terminar.'));
+   s.push(so('cliente_cofre','{cliente_cofre} apontou {gerente}, pela frase de ontem'+(PCOD==='G'?', e não recuou quando ele a encarou.':'.')));
+   s.push('O Motorista, pelo rádio, apontou {tecnico}, pela câmera.');
+   s.push(so('estagiaria','{estagiaria} também apontou {tecnico} e ficou vermelha.'));
+   s.push(so('farmaceutica','{farmaceutica} apontou {caixa_novato} e logo se corrigiu.'));
+   s.push('{caixa_novato} apontou para si mesmo, e foi o momento mais cruel da manhã.');
+   s.push(so('tecnico','{tecnico} disse: a parede.'));
+   s.push(so('seguranca_veiculo','{seguranca_veiculo} disse: eu, que deixei passar.'));
+   s.push(so('limpeza','{limpeza} disse que desconfiara do saco, não de gente.'));
+   s.push(so('padeiro','{padeiro}, ao telefone, disse: de quem atravessou minha porta sem comprar nada.'));
+   s.push('O Operador de Rádio disse que não identificava pessoas, só códigos, e que o código era de tesouraria.');
+   s.push(PCOD==='G'?'{gerente} repetiu a acusação contra {tecnico}, alto, duas vezes, como quem fecha uma porta.':'{gerente} repetiu a acusação contra {tecnico}, sem convicção.');
+   s.push(so('caixa_veterano','{caixa_veterano} não disse nome.'));
+   s.push(so('subgerente','{subgerente} disse que desconfiara de todos, porque era o seu trabalho.'));
+   return '{operadora} abriu uma página nova na ata, e cada um disse de quem desconfiara. '+s.filter(Boolean).join(' ')})()],
+ ['f','seguranca_interno','Eu desconfiei da Operadora. Pelo esmalte. Desculpa.'],
+ ['f','tecnico','A parede.'],
+ ['f','caixa_novato','De mim.'],
+ ['f','gerente',PCOD==='G'?'O Técnico. Ele tinha a conta, a chave e o segredo. Foi o Técnico.':'O Técnico.'],
+ ['f','subgerente','Desconfiei de todos. É o meu trabalho.'],
+ ['cond','transportador','n','todos','{transportador} falou por último, do outro lado do rádio, com a voz de quem tem pressa de voltar para a estrada. <i>"Eu disse às oito e quarenta e oito: pesava o certo. Ninguém tirou. Alguém pôs."</i>'],
+ ['cond','transportador','f','transportador','Pesava o certo. Ninguém tirou. Alguém pôs.'],
+ ['condnao','transportador','n','todos','O Motorista falou por último, do outro lado do rádio, e repetiu o que o Transportador dissera às oito e quarenta e oito: <i>"Pesava o certo. Ninguém tirou. Alguém pôs."</i>'],
+ ['acusar']
+];
+/* Fase C: a revelação, o epílogo e o placar */
+var C8B_SEQ=[
+ ['n','todos','{auditora} retomou as sete perguntas da manhã, não como lista, mas como caminho. O saco do Arquivo era o malote da véspera, esvaziado e largado no chão por um homem com medo de uma chave emprestada. A voz a mais saíra da Gerência. A etiqueta nascera às seis e cinquenta e oito, antes de qualquer pane. A rota era a parede. Nos oitenta e sete segundos, o dinheiro entrara. O número sem corpo nascera de quatro falhas numa noite de chuva. E as outras mentiras protegiam vergonhas verdadeiras e pequenas.','11h00'],
+ ['f','auditora','Nos 87 segundos, o dinheiro entrou. Ninguém tirou. Alguém pôs.'],
+ ['n','todos','Depois falou devagar, separando cada coisa da seguinte. '+V8.a1+' Na véspera, às quinze e cinquenta, contou o excedente, encontrou trezentos e oitenta e quatro mil onde a guia pedia quatrocentos e oitenta, e lacrou assim mesmo. {'+AJ+'} assinou sem contar. Era o que ele sabia: o malote sairia curto e a base descobriria.'],
+ ['n','todos','Por onde foi: da Gerência para a passagem, da passagem para o Rack, do Rack para o Arquivo e para a Antecâmara, e de volta, sem atravessar o Saguão.'],
+ ['n','todos','Quem o viu não estar: '+V8.a5()],
+ ['n','todos','O que o registro desmente: o sensor da porta lateral, aberta às seis e trinta e seis, quando nenhum crachá tinha passado, e o crachá '+(P[IMP].a==='a'?'dela':'dele')+', às '+V8.cracha+', que pretendia ser a chegada; os dígitos do cartão dele no rádio; o saque em nome dele na 0392; a farinha da padaria na barra da calça; a fita da farmácia no indicador e a luva rasgada no cesto.'],
+ ['cond','caixa_veterano','n','todos',PCOD==='V'?'Antes que {auditora} terminasse, {caixa_veterano} disse, em voz baixa, como quem assina o livro: <i>"Fui eu."</i>':''],
+ ['n','todos','Quem ajudou, sem saber: '+na(AJ)+', que assinou sem contar; {seguranca_interno}, que deixou o rádio fora do carregador; '+(presente('seguranca_veiculo')?'{seguranca_veiculo}, que conferiu a tela; ':'')+'{limpeza}, que transformou o descarte numa cena.'],
+ ['n','todos','E por que os outros pareceram culpados: '+na('tecnico')+' tinha a conta, a chave e o segredo de uma caixa sem nota; {caixa_novato} tinha uma pasta trocada e um pânico sem testemunha; '+(presente('estagiaria')?'{estagiaria} guardava uma senha e uma cópia; ':'')+'{operadora} tinha um esmalte e uma omissão; {cliente_cofre}, uma planta; '+(EU_PAPEL==='auditora'?'você mesma':'a própria Auditora')+', um guarda-chuva e um passado.'+V8.gerenteCabo],
+ ['n','todos',V8.ouviu],
+ ['n','todos','<i>"'+CONF8+'"</i>'],
+ ['f',IMP,CONF8],
+ ['n','todos','<i>"E a voz no rádio?"</i>, perguntou {auditora}. <i>"Eu precisava do corredor sem ninguém."</i> <i>"E a câmera?"</i> <i>"Para que ninguém visse dinheiro entrando e achasse que era dinheiro saindo."</i>'],
+ ['n','todos','<i>"Foi exatamente o que achamos"</i>, disse {caixa_novato}. <i>"Eu achei. Em voz alta."</i>'],
+ ['f','caixa_novato','Foi exatamente o que achamos. Eu achei. Em voz alta.'],
+ ['n','todos',(PCOD==='G'?'Alguém falou em fraude.':'{gerente} quis falar de fraude.')+' {auditora} não deixou que a palavra fosse a primeira. <i>"Ninguém roubou. Uma pessoa falsificou a realidade para que ela obedecesse a um registro falso. E, para isso, usou o descuido e o medo de todos nós."</i>'],
+ ['f','auditora','Ninguém roubou. Uma pessoa falsificou a realidade para que ela obedecesse a um registro falso.'],
+ ['n','todos',(function(){var falhas=['estagiaria','farmaceutica','operadora','limpeza'].filter(function(id){return presente(id)}).map(function(id){return '{'+id+'}'});falhas.push('os seguranças');
+   return '{auditora} separou os atos em voz alta, para a ata. '+Na(IMP)+' responderia pela custódia violada, pelo uso indevido de credencial, pela sabotagem da câmera, pela ordem falsa e pela exposição dos colegas'+(PCOD==='G'?', e também pela destruição de evidência e pela saída daquela noite.':'. {gerente} responderia pela destruição de evidência e pela saída daquela noite.')+' {tecnico}, pela conta e pelas peças sem nota. {'+AJ+'}, pela assinatura sem contagem. '+falhas.slice(0,-1).join(', ')+' e '+falhas[falhas.length-1]+' teriam as falhas registradas com o contexto ao lado. {caixa_novato} não responderia por ter tido medo.'})(),'11h05'],
+ ['n','todos','Às dez e cinquenta e oito, a base confirmara a contagem final. Às onze e doze, a Porta Giratória foi destravada. Lá fora, a chuva parara, mas a cidade conservava o brilho sujo das coisas lavadas sem ficarem limpas. '+V8.a10,'11h12'],
+ ['cond','padeiro','n','todos','{padeiro} esperava na calçada com um café. Entregou o copo sem perguntar nada. Não era perdão nem condenação; era só a lembrança de que, depois de um caso, as pessoas continuam precisando segurar alguma coisa quente.'],
+ ['n','todos',(function(){var s=['Na manhã seguinte, a agência abriu às dez, como sempre.','O Motorista contestou formalmente a advertência antiga.'];
+   if(presente('seguranca_veiculo'))s.push('{seguranca_veiculo} marcou a renovação da certificação.');
+   if(presente('transportador'))s.push('{transportador} pediu avaliação médica.');
+   if(presente('farmaceutica'))s.push('{farmaceutica} registrou a ocorrência do calmante e telefonou para {caixa_novato}, que atendeu no segundo toque.');
+   s.push('{tecnico} apresentou as notas que conseguiu e uma lista das que não existiam.');
+   s.push('{limpeza} recuperou a calma, recusou o primeiro favor que lhe pediram e trocou a tampa do cesto.');
+   if(presente('estagiaria'))s.push('{estagiaria} rasgou o papel com a senha e propôs dupla validação.');
+   s.push('{cliente_cofre} deixou cópias da planta para a apuração e levou as cartas.');
+   return s.join(' ')})(),'dia seguinte'],
+ ['n','todos',PCOD==='S'?'{caixa_veterano} não desistiu da transferência. Pendurou a fotografia de volta na parede antes de ir, e ensinou {caixa_novato} a ouvir o Cofre fechar. <i>"Não é magia"</i>, disse. <i>"É atenção."</i> '+Na('gerente')+' trabalhou o dia inteiro com a porta da sala aberta. Sem o anel, a mão parecia menor.'
+   :PCOD==='G'?'{caixa_veterano} não desistiu da transferência. Pendurou a fotografia de volta na parede antes de ir, e ensinou {caixa_novato} a ouvir o Cofre fechar. <i>"Não é magia"</i>, disse. <i>"É atenção."</i> A sala do Gerente ficou o dia inteiro com a porta aberta, e sem ninguém.'
+   :'Na Mesa, {subgerente} ensinou {caixa_novato} a ouvir o Cofre fechar. <i>"Não é magia"</i>, disse {caixa_novato}, repetindo quem lhe ensinara primeiro. <i>"É atenção."</i> '+Na('gerente')+' trabalhou o dia inteiro com a porta da sala aberta. Sem o anel, a mão parecia menor.'],
+ ['n','todos','Às oito e dez, no terminal da Central, chegou uma mensagem sem origem. {operadora} a leu duas vezes. <i>"Onze dias atrás. Dezenove e vinte. Alarme de fechamento sem contagem. Posto vazio. Silenciado depois. Por isso a auditoria."</i> Não havia assinatura. '+(EU_PAPEL==='operadora'?'Você registrou':'Ela registrou')+' a mensagem na ocorrência oficial, com a hora, e dessa vez não apagou.','8h10'],
+ ['j','MENSAGEM SEM ORIGEM','"Onze dias atrás. Dezenove e vinte. Alarme de fechamento sem contagem. Posto vazio. Silenciado depois. Por isso a auditoria."'],
+ ['n','todos','{auditora} releu o relatório antigo que a perseguia havia anos. Não podia devolver a carreira que destruíra, mas podia recusar o mesmo tipo de certeza. Registrou fatos, dúvidas, falhas, atos e contexto, em colunas separadas. Antes de fechar o arquivo, escreveu a pergunta que não cabia em nenhuma norma.'],
+ ['j','A PERGUNTA QUE NÃO CABE EM NENHUMA NORMA','Quando alguém sacrifica o que é seu para corrigir em segredo um erro que não o enriqueceu, o que deve pesar mais: a intenção de reparar, os meios escolhidos ou o risco imposto aos outros? Leve a pergunta para a mesa. Ela não vale pontos.'],
+ ['n','todos','Na tela da Central, a câmera 3 mostrava o Corredor Restrito vazio. No Arquivo Morto, a infiltração secava devagar, e o piso ainda guardava o contorno do saco, uma ausência com forma precisa.'],
+ ['placar']
+];
+/* tempos: alguns segundos por evento, mais o tempo de leitura do texto */
+function cronometrar(seq){var t=0;return seq.map(function(e){var txt=e.filter(function(x){return typeof x==='string'}).join(' '),ev=[t].concat(e);
+  if(e[0]==='n'||(e[0]==='cond'&&e[2]==='n')||(e[0]==='condnao'&&e[2]==='n'))t+=5+Math.min(30,txt.length/45);else if(e[0]==='j')t+=2;else t+=3;return ev})}
+var C8A=cronometrar(C8A_SEQ),C8B=cronometrar(C8B_SEQ.filter(function(e){return e[4]!==''}));
+
+var PERG8=[
+ {rotulo:'final · o impostor (vale 3 vezes)',peso:3,pergunta:'Quem é o impostor?',opcoes:[P[IMP].n].concat(PRESENTES.filter(function(id){return id!==IMP&&id!==EU_PAPEL}).map(function(id){return P[id].n}))},
+ {rotulo:'final · quem ajudou sem saber (vale 2 vezes)',peso:2,pergunta:'Quem ajudou sem saber, assinando o malote da véspera sem contar?',opcoes:[AJ===EU_PAPEL?'Você ('+P[AJ].n+')':P[AJ].n].concat(PRESENTES.filter(function(id){return id!==IMP&&id!==AJ}).map(function(id){return id===EU_PAPEL?'Você ('+P[id].n+')':P[id].n}))},
+ {rotulo:'final · o mecanismo',peso:1,pergunta:'O que aconteceu com o malote 41 nos 87 segundos?',opcoes:['Saiu curto na véspera e foi completado: o conteúdo passou para um saco novo, com mais R$ 96.000 e o lacre ML-8847.','R$ 96.000 foram tirados do malote e escondidos no Arquivo Morto.','O malote nunca saiu: o carro-forte levou o saco vazio da véspera.','Nada: o malote estava completo e o desvio foi só no sistema.']},
+ {rotulo:'final · a intenção',peso:1,pergunta:'O que a pessoa queria com tudo isso?',opcoes:['Cobrir em segredo os R$ 96.000 que só existiam no sistema, antes que a auditoria achasse a diferença.','Roubar R$ 96.000 e deixar a culpa com o Técnico.','Esconder a saída do Gerente de onze dias antes.','Testar a segurança da agência a pedido da regional.']}];
+
+CAPS[8]={nome:'A SOMA IMPOSSÍVEL',rot:C8A,
+ rg:[[0,'Quero ouvir a Auditora até o fim.'],[0,'Eu desconfiei da pessoa errada.'],[0,'Ninguém tirou. Alguém pôs.']],
+ rp:[[0,'Você sabia?'],[0,'Obrigado por esta manhã.']],
+ rep:{'Eu desconfiei da pessoa errada.':[['caixa_novato'],'Eu também. De mim.'],'Ninguém tirou. Alguém pôs.':[['auditora'],'É por aí que vamos começar.'],
+  'Você sabia?':function(id){return id===IMP?'Eu sabia de tudo. Só não sabia como ia acabar.':'Não. Ninguém sabia tudo.'},'Obrigado por esta manhã.':'Ainda não acabou.'},
+ debate:{pergunta:'Quem pôs, e por quê?',falas:[['auditora','Uma conclusão decisiva precisa de prova material e de confirmação independente.'],['tecnico','A parede tem dono. Três chaves sabiam dela.'],['caixa_novato','Eu achei que tinham tirado. Em voz alta.'],['cliente_cofre','Dois entraram na Gerência. A conta não fecha com um só.']]},
+ perg:PERG8,
+ achar:'nada: o capítulo final não tem RA nem relógio.'};
+
+/* ── Fluxo do capítulo final ─────────────────────────────────────────── */
+var faseFinal=0;
+function iniciarFinal(){capitulo=8;faseFinal=1;fimDeCapitulo=false;votoEm=null;apostaConf=null;enviosNoCap=0;capituloFechado[8]=false;
+  envios=3;pintarEnvios();$('#capNum').textContent=8;$('#capNome').textContent=CAPS[8].nome;
+  TOTAL=1;resta=0;$('#tempo').style.visibility='hidden';$('#telaRA').hidden=true;
+  ROT=C8A;tRot=0;iRot=0;RESP_GRUPO=null;RESP_PRIV=null;
+  grupo.push({dia:'CAPÍTULO 8 · A SOMA IMPOSSÍVEL'});pintarGrupo();irPara('grupo');
+  if(!rotLigado)iniciarRoteiro();
+  janela('CAPÍTULO 8 · FINAL','Às 10h52 o caso fecha. Este capítulo não tem relógio nem RA. Primeiro, cada um diz de quem desconfiou. Depois vem a sua acusação formal, em quatro perguntas que valem mais: o impostor vale 3 vezes, quem ajudou sem saber vale 2. Por fim, a revelação e o placar.')}
+var _cc8=comecarCapitulo;comecarCapitulo=function(n){if(n===8){iniciarFinal();return}_cc8(n)};
+var _pausado8=pausado;pausado=function(){if(capitulo===8&&!capituloFechado[8])return !$('#janela').hidden||$('#fecho').open;return _pausado8()};
+var _executar8=executar;executar=function(e){
+  if(e[1]==='acusar'){capituloFechado[8]=true;faseFinal=2;
+    setTimeout(function(){janela('A SUA ACUSAÇÃO','Agora é a sua vez. Primeiro, 1 minuto de debate em voz alta. Depois, quatro perguntas: quem é o impostor, quem ajudou sem saber, o que aconteceu com o malote e por quê. A resposta certa só aparece no fim.',function(){abrirFecho();abrirDebate(CAPS[8].debate,irParaPerguntas)})},2500);return}
+  if(e[1]==='placar'){capituloFechado[8]=true;faseFinal=4;setTimeout(mostrarPlacar,TESTE?600:4000);return}
+  _executar8(e)};
+var _fdp8=fimDasPerguntas;fimDasPerguntas=function(){if(capitulo!==8){_fdp8();return}
+  $('#fechoCorpo').innerHTML='<p class="kicker">Capítulo 8 · acusação registrada</p><h1 id="fechoTitulo">A sua acusação está na ata.</h1><p class="lede">Agora a Auditora fala. A revelação corre no Grupo; o placar vem no fim.</p><div class="acoes"><button type="button" id="ouvirAuditora">Ouvir a Auditora</button></div>';
+  $('#ouvirAuditora').onclick=function(){fecharFecho();faseFinal=3;ROT=C8B;tRot=0;iRot=0;capituloFechado[8]=false;irPara('grupo')}};
+/* a Nota no capítulo final: só o caderno (sem "Concluí" nem aposta) */
+var _ps8=pintarSusp;pintarSusp=function(){if(capitulo===8){_pintarSusp();return}_ps8();
+  var b=$('#seguirCap');if(b&&capitulo===7)b.textContent='Seguir para o Capítulo 8 (final)'};
+
+/* ── Placar ─────────────────────────────────────────────────────────── */
+function pontos(r){var p=r.peso||(r.tipo==='secundária'?0.5:1),b=r.confianca==='certeza'?(r.certa?4:-4):r.confianca==='sem'?(r.certa?2:-1):0;return {pts:b*p,max:4*p}}
+function fmt(x){return (Math.round(x*10)/10).toString().replace('.',',')}
+function mostrarPlacar(){
+  var tot=0,max=0,linhas='';
+  for(var n=1;n<=8;n++){var R=respostas[n]||[],s=0,m=0;
+    if(!R.length&&n<8&&!CAPS[n])continue;
+    (CAPS[n]?CAPS[n].perg:[]).forEach(function(q,i){var r=R[i];var p=q.peso||(q.rotulo==='secundária'?0.5:1);m+=4*p;if(r)s+=pontos(r).pts});
+    tot+=s;max+=m;
+    var ap=apostas[n],apTxt=n===8?'':(ap&&ap.personagem?(ap.personagem===IMP?'✓ ':'✗ ')+P[ap.personagem].n:'—');
+    linhas+='<tr><td>'+n+'</td><td>'+CAPS[n].nome.charAt(0)+CAPS[n].nome.slice(1).toLowerCase()+'</td><td style="text-align:right">'+fmt(s)+' / '+fmt(m)+'</td><td>'+apTxt+'</td></tr>'}
+  var R8=respostas[8]||[],fin=PERG8.map(function(q,i){var r=R8[i],sua=r?(r.confianca==='naosei'||r.opcao===null?'Não sei':q.opcoes[r.opcao]):'—',pt=r?pontos(r):{pts:0,max:4*q.peso};
+    return '<div class="debate-fala"><b>'+q.pergunta+'</b><br>Certa: '+q.opcoes[0]+'<br>Sua: '+sua+' '+(r&&r.certa?'✓':'✗')+' <span style="color:#efc878">('+fmt(pt.pts)+' de '+fmt(pt.max)+')</span></div>'}).join('');
+  var pct=max?Math.max(0,Math.round(tot/max*100)):0,veredito=pct>=70?'Investigação de auditoria.':pct>=40?'Boa leitura, com lacunas.':pct>0?'Muita coisa ficou no escuro.':'O impostor ganhou esta.';
+  $('#fechoCorpo').innerHTML='<p class="kicker">Fim do jogo · placar</p><h1 id="fechoTitulo">'+fmt(tot)+' de '+fmt(max)+' pontos</h1>'+
+    '<p class="lede term" style="font-size:15px">'+veredito+'</p>'+
+    '<p class="lede">Nesta partida, o impostor era '+na(IMP).replace(/^o /,'o ')+'. Quem ajudou sem saber: '+na(AJ)+'. O falso culpado da manhã: o Técnico.</p>'+
+    '<h2>As quatro perguntas finais</h2><div class="debate-falas">'+fin+'</div>'+
+    '<h2>Por capítulo</h2><table style="width:100%;border-collapse:collapse;font-size:14px"><tr style="color:#4dba7c"><td>Cap.</td><td></td><td style="text-align:right">pontos</td><td>aposta</td></tr>'+linhas+'</table>'+
+    '<p class="lede" style="font-size:13px;margin-top:10px">Com certeza: +4 se certa, −4 se errada. Sem certeza: +2 ou −1. Não sei: 0. Secundária vale metade; impostor, 3 vezes; quem ajudou, 2 vezes. As apostas não contam pontos: mostram em quem você apostou no fim de cada capítulo (✓ quando era o impostor).</p>'+
+    '<div class="acoes"><button type="button" id="placarDeNovo">Jogar de novo, outra partida</button><button type="button" class="sec" id="placarFicar">Rever o Grupo</button></div>';
+  abrirFecho();
+  try{sessionStorage.setItem('cfi:respostas:'+PARTIDA,JSON.stringify({respostas:respostas,apostas:apostas,total:tot,max:max}))}catch(e){}
+  $('#placarFicar').onclick=function(){fecharFecho()};
+  $('#placarDeNovo').onclick=function(){try{sessionStorage.removeItem('cfi:partida')}catch(e){}var u=new URL(location.href);['partida','p','papel','casa'].forEach(function(k){u.searchParams.delete(k)});location.href=u.toString()}}
+
 
 /* ── Abertura em terminal ───────────────────────────────────────────── */
 var ABERTURA='Às 7h47, o carro-forte chega com uma hora de antecedência, e ninguém lá dentro diz ter pedido.\nUma auditoria de custódia chega sem aviso.\nQuinze funções. Uma manhã.\nUm de vocês não é quem diz.';
