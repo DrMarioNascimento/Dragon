@@ -16,8 +16,16 @@
    · RA: o motor comum (lib/ac-ra.js e lib/ac-maquete-ra.js): WebXR no Android,
      8th Wall no iPhone. Sem RA, a maquete fica na tela, com órbita.
 
+   10/10 (tarde, pedido do Mario): os andares não abrem fácil. Só os que o jogo
+   passa em `abertos` entram de primeira; os outros mostram a trava (chave, senha
+   no teclado ou segredo de cofre: travas.js), e só o jogo sabe a resposta. Dentro,
+   as pistas ficam ESCONDIDAS: nada de losango; é preciso tocar no lugar certo.
+   Achado o lugar, ele ganha um marcador discreto e "Fotografar". Depois de um tempo
+   procurando, acende o botão de dica, que faz brilhar um lugar por instantes.
+
    Uso (mesa.html): VCMaquete.abrir({andares, eu, itens, rota, digitar, alvo, entrar,
-     pontos, aoAbrirItem, aoAndar, aoEntrar, aoSair, aoPonto, aoFoto}). */
+     pontos, abertos, trancas, tem, conferir, achados, aoDestrancar, aoAchar, aoItem,
+     aoObjeto, aoAbrirItem, aoAndar, aoEntrar, aoSair, aoPonto, aoFoto}). */
 (function (global) {
   'use strict';
   var BASE = (function () { var s = document.currentScript && document.currentScript.src; return s ? s.replace(/[^/]*$/, '') : ''; })();
@@ -33,16 +41,16 @@
 
   /* Onde cada peça de capítulo fica (metros do modelo) */
   var LUGAR_ITEM = { c1: ['+4', [3.9, 19.9, 7.9]], c2: ['+1', [-2.0, 10.8, 9.8]], c3: ['+1', [7.1, 10.6, 0.1]], c4: ['+2', [-4.2, 14.6, -0.3]],
-    c5: ['-1', [6.2, 2.4, -6.6]], c6: ['+2', [4.3, 15.0, 1.8]], c7: ['+2', [6.6, 13.8, 2.3]], c8: ['+2', [0.9, 14.6, 1.8]] };
+    c5: ['-1', [6.2, 2.6, -3.6]], c6: ['+2', [4.3, 15.0, 1.8]], c7: ['+2', [6.6, 13.8, 2.3]], c8: ['+2', [0.9, 14.6, 1.8]] };
 
   /* O que dá para examinar dentro de cada andar (metros do modelo). Só o que se vê: nada
      aqui resolve o caso; a história e os registros dizem o resto. */
   var PONTOS = {
     '+12B': [
-      { id: 'reuniao', n: 'A sala de reunião de vidro', pos: [6.6, 49.4, 7.6], d: 'A tela grande da sala de vidro ainda repete o selo do Echo. É por uma tela assim que a noite vai chegando: o terminal conta o que acontece na torre, linha por linha. No jogo, é a Narração.' },
-      { id: 'mesas', n: 'As mesas do andar', pos: [0.6, 49.1, 4.0], d: 'Três fileiras de mesas, telas em descanso, cadeiras empurradas para trás. O que se fala aqui, todos ouvem. No jogo, é o Grupo: uma fala sua aparece para a mesa inteira.' },
-      { id: 'sofa', n: 'O sofá do canto', pos: [-6.1, 48.8, 7.2], d: 'Um sofá coral, longe das mesas, onde dá para falar baixo. No jogo, são as Privadas: só as duas pontas veem a conversa.' },
-      { id: 'terminais', n: 'A caixa dos terminais', pos: [5.7, 49.0, -0.1], d: 'Uma caixa aberta com os terminais de anotação já configurados, um para cada lugar da mesa da Sala de Crise. Tudo o que você guarda vai para o Inventário: fotos, cartões e peças.' },
+      { id: 'reuniao', visivel: true, n: 'A sala de reunião de vidro', pos: [6.6, 49.4, 7.6], d: 'A tela grande da sala de vidro ainda repete o selo do Echo. É por uma tela assim que a noite vai chegando: o terminal conta o que acontece na torre, linha por linha. No jogo, é a Narração.' },
+      { id: 'mesas', visivel: true, n: 'As mesas do andar', pos: [0.6, 49.1, 4.0], d: 'Três fileiras de mesas, telas em descanso, cadeiras empurradas para trás. O que se fala aqui, todos ouvem. No jogo, é o Grupo: uma fala sua aparece para a mesa inteira.' },
+      { id: 'sofa', visivel: true, n: 'O sofá do canto', pos: [-6.1, 48.8, 7.2], d: 'Um sofá coral, longe das mesas, onde dá para falar baixo. No jogo, são as Privadas: só as duas pontas veem a conversa.' },
+      { id: 'terminais', visivel: true, n: 'A caixa dos terminais', pos: [5.7, 49.0, -0.1], d: 'Uma caixa aberta com os terminais de anotação já configurados, um para cada lugar da mesa da Sala de Crise. Tudo o que você guarda vai para o Inventário: fotos, cartões e peças.' },
       { id: 'poco12b', n: 'A grade do poço', pos: [-2.7, 49.4, -3.4], d: 'A grade de inspeção do poço de cabos, no hall da corta-fogo, soldada desde a reforma. O lacre de solda está à vista.' }
     ],
     '+12': [
@@ -81,7 +89,7 @@
     '0': [{ id: 'atrio', n: 'O Átrio de Vidro', pos: [0.7, 5.4, 9.0], d: 'As catracas biométricas, a parede de chuva e, ao fundo, a escada principal.' }],
     '-1': [
       { id: 'distribuidor', n: 'O distribuidor', pos: [-3.0, 2.4, 2.0], d: 'As fileiras de cobre da antiga central, sob uma redoma de poeira.' },
-      { id: 'quadro', n: 'O quadro elétrico', pos: [6.2, 2.4, -6.6], d: 'O quadro do subsolo, com cabos de quatro cores.' },
+      { id: 'quadro', n: 'O quadro elétrico', pos: [6.2, 2.4, -3.6], d: 'O quadro do subsolo, com cabos de quatro cores.' },
       { id: 'alcapao', n: 'O alçapão', pos: [-2.7, 3.1, -3.4], d: 'O alçapão do poço de cabos, no teto da Central, com trinco de mola.' },
       { id: 'baterias', n: 'O banco de baterias', pos: [8.0, 1.6, 5.0], d: 'As baterias que seguraram a torre no apagão.' }
     ]
@@ -102,7 +110,7 @@
     el = document.createElement('div'); el.id = 'telaMaquete'; el.className = 'tela-maq'; el.hidden = true;
     el.innerHTML = '<div class="maq-palco" id="maqPalco"></div>' +
       '<div class="maq-topo"><button type="button" class="sair-ra" id="maqSair">‹ Voltar</button><div class="maq-tit"><b id="maqTitulo">A maquete · Torre de Continuidade</b><span id="maqDica">Arraste para girar. Toque num andar: ele sai como uma gaveta.</span></div></div>' +
-      '<div class="maq-ferr"><button type="button" id="maqTorre" hidden>‹ Voltar à torre</button><button type="button" id="maqFechar">Guardar as gavetas</button><button type="button" id="maqRA" hidden>Pôr na mesa (RA)</button><button type="button" id="maqPousar" hidden>Pousar aqui</button></div>' +
+      '<div class="maq-ferr"><button type="button" id="maqTorre" hidden>‹ Voltar à torre</button><button type="button" id="maqDicaBtn" hidden>🔍 Dica</button><button type="button" id="maqFechar">Guardar as gavetas</button><button type="button" id="maqRA" hidden>Pôr na mesa (RA)</button><button type="button" id="maqPousar" hidden>Pousar aqui</button></div>' +
       '<div class="planta-card maq-card"><small id="maqRot">A MAQUETE</small><p id="maqTxt">Toque num andar para ver o que há nele.</p><div id="maqAcao"></div></div>' +
       '<div class="maq-carregando" id="maqCarregando">Montando a maquete…</div>';
     document.body.appendChild(el);
@@ -125,6 +133,7 @@
     el.querySelector('#maqSair').onclick = function () { fechar(); };
     el.querySelector('#maqFechar').onclick = function () { abrirGaveta(null); cartao('A MAQUETE', 'Toque num andar para ver o que há nele.'); };
     el.querySelector('#maqTorre').onclick = function () { sairDoAndar(); };
+    el.querySelector('#maqDicaBtn').onclick = function () { darDica(); };
     el.querySelector('#maqRA').onclick = entrarRA; el.querySelector('#maqPousar').onclick = pousar;
   }
   function cartao(rot, txt, acoes) {
@@ -258,9 +267,14 @@
     if (pontosG) { pontosG.parent && pontosG.parent.remove(pontosG); pontosG = null; }
     if (!a) return; var A = andares[a], THREE = global.THREE; pontosG = new THREE.Group(); A.piv.add(pontosG);
     pontosDe(a).forEach(function (p) {
-      var g = losango(0x86e1ea, 0.32); g.traverse(function (o) { o.userData.ponto = p.id; o.userData.andar = a; }); g.position.set(p.pos[0], p.pos[1], p.pos[2]).sub(A.base); pontosG.add(g);
+      if (!visivelP(a, p)) return;
+      var g = losango(achadoP(a, p) && !p.visivel ? 0xb9a27a : 0x86e1ea, p.visivel ? 0.32 : 0.22); g.traverse(function (o) { o.userData.ponto = p.id; o.userData.andar = a; }); g.position.set(p.pos[0], p.pos[1], p.pos[2]).sub(A.base); pontosG.add(g);
     });
   }
+  function visivelP(a, p) { return !!p.visivel || achadoP(a, p); }
+  function achadoP(a, p) { return !!(opcoes.achados && opcoes.achados[a + ':' + p.id]); }
+  function escondidosDe(a) { return pontosDe(a).filter(function (p) { return !visivelP(a, p); }); }
+  function trancado(a) { return !LACRADO[a] && !!(opcoes.trancas && opcoes.trancas[a]) && !(opcoes.abertos && opcoes.abertos[a]); }
   function pontosDe(a) { var extra = (opcoes.pontos && opcoes.pontos[a]) || []; return (PONTOS[a] || []).concat(extra); }
 
   /* ── gavetas e o andar que vira ── */
@@ -282,7 +296,8 @@
   var ESC_DENTRO = 2.6;
   function entrarNoAndar(a) {
     var A = andares[a]; if (!A || LACRADO[a]) return;
-    dentro = a; aberta = null; moldura(null); var i0 = ORDEM.indexOf(a);
+    if (trancado(a)) { if (dentro) sairDoAndar(); abrirGaveta(a); cartaoTrava(a); return; }
+    dentro = a; tProcura = 0; aberta = null; moldura(null); var i0 = ORDEM.indexOf(a);
     Object.keys(andares).forEach(function (k) {
       var B = andares[k], i = ORDEM.indexOf(k);
       B.alvo.x = 0; B.alvo.z = 0; B.alvo.gir = 0; B.alvo.esc = 1;
@@ -297,9 +312,9 @@
     var vd = vistaDentro(); animarCamera(vd[0], vd[1], { min: 0.18, max: 2.4 });
     el.querySelector('#maqTorre').hidden = false; el.querySelector('#maqFechar').hidden = true;
     el.querySelector('#maqTitulo').textContent = a + ' · ' + nomeAndar(a);
-    dica('Gire com um dedo. Os pontos ciano são o que dá para examinar.');
-    var pts = pontosDe(a);
-    cartao((a + ' · ' + nomeAndar(a)).toUpperCase(), 'O andar virou para você. ' + (pts.length ? 'Toque num ponto ciano para examinar' + (pinos.some(function (p) { return p.parent === A.piv; }) ? '; o losango dourado é a peça do capítulo.' : '.') : 'Nada aqui para examinar de perto.'));
+    dica('Gire com um dedo. Toque nos móveis e nos cantos: o que importa não está marcado.');
+    var vis = pontosDe(a).filter(function (p) { return p.visivel; }).length, esc = escondidosDe(a).length;
+    cartao((a + ' · ' + nomeAndar(a)).toUpperCase(), 'O andar virou para você. ' + (vis ? 'Os pontos ciano são o que dá para examinar. ' : '') + (esc ? 'Há mais coisa aqui do que se vê: toque nos móveis, nas paredes, nos cantos.' : (vis ? '' : 'Nada pede um olhar mais demorado.')) + (pinos.some(function (p) { return p.parent === A.piv; }) ? ' O losango dourado é a peça do capítulo.' : ''));
     if (opcoes.aoEntrar) opcoes.aoEntrar(a);
   }
   function sairDoAndar() {
@@ -310,7 +325,7 @@
     setTimeout(function () { if (dentro) return; extras.forEach(function (n) { n.visible = true; }); if (lote) lote.visible = true; if (euG) euG.visible = true; if (rotaG) rotaG.visible = true; }, 450);
     mostrarPontos(null);
     var vf = vistaFora(); animarCamera(vf[0], vf[1], { min: 0.12, max: 4.5 });
-    el.querySelector('#maqTorre').hidden = true; el.querySelector('#maqFechar').hidden = false;
+    el.querySelector('#maqTorre').hidden = true; el.querySelector('#maqFechar').hidden = false; el.querySelector('#maqDicaBtn').hidden = true;
     el.querySelector('#maqTitulo').textContent = 'A maquete · Torre de Continuidade';
     dica('Arraste para girar. Toque num andar: ele sai como uma gaveta.');
     cartao('A MAQUETE', 'De volta à torre. Toque num andar para abrir a gaveta.');
@@ -332,8 +347,14 @@
     var THREE = global.THREE, cam = ra ? ra.cameraAtiva() : camera, r = renderer.domElement.getBoundingClientRect();
     var ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(((x - r.left) / r.width) * 2 - 1, -((y - r.top) / r.height) * 2 + 1), cam);
     var alvos = [];
-    if (dentro) { andares[dentro].piv.traverse(function (o) { if (o.isMesh && (o.userData.ponto || o.userData.item)) alvos.push(o); }); }
-    else raiz.traverse(function (o) { if (o.isMesh && o.visible && !o.userData.lote) alvos.push(o); });
+    if (dentro) {
+      andares[dentro].piv.traverse(function (o) { if (o.isMesh && (o.userData.ponto || o.userData.item)) alvos.push(o); });
+      var hm = ray.intersectObjects(alvos, false); if (hm.length) { var um = hm[0].object.userData; if (um.item) return tocarItem(um.item); return tocarPonto(dentro, um.ponto); }
+      var geo = []; andares[dentro].piv.traverse(function (o) { if (o.isMesh && visivelObj(o) && !o.userData.ponto) geo.push(o); });
+      var hg = ray.intersectObjects(geo, false); if (!hg.length) return;
+      return procurar(dentro, andares[dentro].no.worldToLocal(hg[0].point.clone()));
+    }
+    raiz.traverse(function (o) { if (o.isMesh && o.visible && !o.userData.lote) alvos.push(o); });
     var hits = ray.intersectObjects(alvos, false); if (!hits.length) return;
     var u = hits[0].object.userData;
     if (u.circ && /fachada|frisos|letreiro/.test(u.circ)) { var y = modelo.worldToLocal(hits[0].point.clone()).y, mel = null, md = 1e9; Object.keys(andares).forEach(function (k) { var d = Math.abs(andares[k].base.y - y); if (d < md) { md = d; mel = k; } }); if (mel) return tocarAndar(mel); }
@@ -342,16 +363,53 @@
     if (u.circ) return tocarCirc(u.circ);
     if (u.andar) return tocarAndar(u.andar);
   }
+  function visivelObj(o) { for (var q = o; q; q = q.parent) if (!q.visible) return false; return true; }
+  /* procurar: o toque caiu no andar; perto de um lugar escondido, ele aparece */
+  function procurar(a, q) {
+    var mel = null, md = 1e9;
+    escondidosDe(a).forEach(function (p) { var dx = p.pos[0] - q.x, dz = p.pos[2] - q.z, dy = Math.abs(p.pos[1] - q.y); var d = Math.sqrt(dx * dx + dz * dz); if (d < (p.raio || 1.5) && dy < 2.6 && d < md) { md = d; mel = p; } });
+    if (!mel) { var frases = ['Nada de especial aqui.', 'Você olha de perto. Nada.', 'Só poeira e fio.', 'Nada fora do lugar, aqui.']; cartao('PROCURANDO', frases[Math.floor(Math.random() * frases.length)]); return; }
+    achar(a, mel);
+  }
+  function achar(a, p) {
+    if (opcoes.aoAchar) opcoes.aoAchar(a, p);
+    if (global.VCTrava) { global.VCTrava.bip(520, 0.08, 'sine', 0.06); setTimeout(function () { global.VCTrava.bip(780, 0.12, 'sine', 0.06); }, 90); }
+    mostrarPontos(a); tocarPonto(a, p.id, true);
+  }
+  var tProcura = 0, brilho = null;
+  function darDica() {
+    var THREE = global.THREE, a = dentro; if (!a) return; var esc = escondidosDe(a); if (!esc.length) { cartao('DICA', 'Neste andar você já achou o que havia para achar.'); return; }
+    var p = esc[Math.floor(Math.random() * esc.length)], A = andares[a];
+    if (brilho) brilho.parent && brilho.parent.remove(brilho);
+    brilho = new THREE.Mesh(new THREE.SphereGeometry(0.7, 16, 12), new THREE.MeshBasicMaterial({ color: 0xffe9a8, transparent: true, opacity: 0.0, depthTest: false, toneMapped: false })); brilho.renderOrder = 50; brilho.raycast = function () {};
+    brilho.position.set(p.pos[0], p.pos[1], p.pos[2]).sub(A.base); brilho.userData.t = 0; A.piv.add(brilho);
+    tProcura = -40; el.querySelector('#maqDicaBtn').hidden = true;
+    cartao('DICA', 'Um brilho, por um instante. Toque ali.');
+  }
+  function cartaoTrava(a) {
+    var T = opcoes.trancas[a], acoes = [], txt = '<b style="color:#f0bf8f">Trancado.</b> ' + T.txt;
+    if (T.tipo === 'chave') {
+      if (opcoes.tem && opcoes.tem(T.chave)) acoes.push(['Usar ' + ((opcoes.nomeChave && opcoes.nomeChave[T.chave]) || 'a chave') + ' ›', function () { if (opcoes.conferir(a)) abrirTrava(a); }]);
+      else txt += '<br><i>Você ainda não tem com que abrir. Procure pela torre.</i>';
+    }
+    if (T.tipo === 'pin') acoes.push(['Digitar a senha ›', function () { teclado = global.VCTrava.teclado({ rot: 'PORTA · ' + a, txt: T.txt, digitos: 4, conferir: function (v) { return opcoes.conferir(a, v); }, aoAbrir: function () { abrirTrava(a); } }); }]);
+    if (T.tipo === 'segredo') acoes.push(['Girar o segredo ›', function () { teclado = global.VCTrava.segredo({ rot: 'COFRE DE CHAVES · ' + a, txt: 'Direita até o primeiro número, esquerda até o segundo, direita até o terceiro. Depois, a alavanca.', conferir: function (v) { return opcoes.conferir(a, v); }, aoAbrir: function () { abrirTrava(a); } }); }]);
+    cartao((a + ' · ' + nomeAndar(a)).toUpperCase(), txt + '<br>' + infoAndar(a), acoes);
+  }
+  var teclado = null;
+  function abrirTrava(a) { if (opcoes.aoDestrancar) opcoes.aoDestrancar(a); if (global.VCTrava) global.VCTrava.bip(300, 0.2, 'sine', 0.08); cartao((a + ' · ' + nomeAndar(a)).toUpperCase(), 'Abriu. ' + infoAndar(a), [['Entrar no andar ›', function () { entrarNoAndar(a); }]]); }
   function tocarItem(id) {
     var it = (opcoes.itens || []).filter(function (x) { return x.id === id; })[0], L = LUGAR_ITEM[id];
     cartao((it ? it.nome : 'PEÇA').toUpperCase(), 'A peça do Capítulo ' + id.slice(1) + ' está aqui, no ' + L[0] + ' · ' + nomeAndar(L[0]) + '.', [['Examinar de perto ›', function () { if (opcoes.aoAbrirItem) opcoes.aoAbrirItem(id); }], dentro ? null : ['Entrar no andar ›', function () { entrarNoAndar(L[0]); }, true]]);
   }
-  function tocarPonto(a, id) {
+  function tocarPonto(a, id, novo) {
     var p = pontosDe(a).filter(function (x) { return x.id === id; })[0]; if (!p) return; pontoAtual = p;
     var extra = opcoes.aoPonto ? opcoes.aoPonto(a, p) : null;
-    var acoes = [['Fotografar para o inventário', function () { fotografar(a, p); }]];
+    var acoes = [['📷 Fotografar', function () { fotografar(a, p); }, true]];
+    var txt = (extra && extra.txt) || p.d;
+    if (p.item) { if (opcoes.tem && opcoes.tem(p.item)) txt += ' <i>(Já está com você.)</i>'; else acoes.unshift(['Guardar no inventário ›', function () { var img = ''; try { renderer.render(cena, ra ? ra.cameraAtiva() : camera); img = renderer.domElement.toDataURL('image/jpeg', 0.8); } catch (e) {} if (opcoes.aoItem) opcoes.aoItem(a, p, img); cartao(p.n.toUpperCase(), 'Guardado no inventário.', [['📷 Fotografar', function () { fotografar(a, p); }, true]]); }]); }
     if (extra && extra.acao) acoes.unshift(extra.acao);
-    cartao(p.n.toUpperCase(), (extra && extra.txt) || p.d, acoes);
+    cartao((novo ? 'ACHADO · ' : '') + p.n.toUpperCase(), txt, acoes);
   }
   function fotografar(a, p) {
     var img = '';
@@ -370,6 +428,7 @@
     var txt = infoAndar(a);
     if (opcoes.eu && opcoes.eu.andar === a) txt += '<br><b style="color:#efc878">O seu posto fica neste andar.</b>';
     var acoes = [];
+    if (abre && trancado(a)) { cartaoTrava(a); var ex0 = opcoes.aoAndar ? opcoes.aoAndar(a, abre) : null; if (ex0 && ex0.acao) { var bb = document.createElement('button'); bb.className = 'acao sec'; bb.type = 'button'; bb.textContent = ex0.acao[0]; bb.onclick = ex0.acao[1]; el.querySelector('#maqAcao').appendChild(bb); } return; }
     if (abre && !LACRADO[a]) acoes.push(['Entrar no andar ›', function () { entrarNoAndar(a); }]);
     if (LACRADO[a]) txt += '<br><i>' + LACRADO[a] + '</i>';
     var extra = opcoes.aoAndar ? opcoes.aoAndar(a, abre) : null;
@@ -409,6 +468,8 @@
     });
     pinos.concat(pontosG ? pontosG.children : []).forEach(function (p, i) { var l = p.children[0]; l.position.y = Math.sin(relogio * 2.2 + i) * 0.25; l.rotation.y += dt * 1.2; p.children[1].scale.setScalar(1 + 0.15 * Math.sin(relogio * 3 + i)); });
     if (euG) euG.scale.setScalar(1 + Math.sin(relogio * 3) * 0.04);
+    if (dentro && !anim) { tProcura += dt; var bd = el.querySelector('#maqDicaBtn'); if (bd.hidden && tProcura > 25 && escondidosDe(dentro).length) bd.hidden = false; }
+    if (brilho) { brilho.userData.t += dt; var bt = brilho.userData.t; brilho.material.opacity = Math.max(0, Math.sin(Math.min(1, bt / 2.6) * Math.PI)) * 0.75; brilho.scale.setScalar(1 + 0.3 * Math.sin(bt * 8)); if (bt > 2.6) { brilho.parent && brilho.parent.remove(brilho); brilho = null; } }
     if (anim) {
       anim.t = Math.min(1, anim.t + dt / 1.1); var s = suave(anim.t);
       camera.position.lerpVectors(anim.de, anim.para, s); controles.target.lerpVectors(anim.alvoDe, anim.alvoPara, s);
@@ -427,7 +488,7 @@
       if (!ra || ra.estado().modo !== 'ra') { if (!dentro) enquadrar(); }
       renderer.setAnimationLoop(desenhar);
       if (opcoes.alvo && andares[opcoes.alvo] && !dentro) { var A = andares[opcoes.alvo], f = fator(); controles.target.set(0, (A.base.y - CHAO) * S, 0); camera.position.set(0.7 * f, (A.base.y - CHAO) * S + 0.35, 1.05 * f); controles.update(); tocarAndar(opcoes.alvo); }
-      if (opcoes.entrar && andares[opcoes.entrar] && dentro !== opcoes.entrar) setTimeout(function () { entrarNoAndar(opcoes.entrar); }, 500);
+      if (opcoes.entrar && andares[opcoes.entrar] && dentro !== opcoes.entrar) setTimeout(function () { if (trancado(opcoes.entrar)) { var A3 = andares[opcoes.entrar], f3 = fator(); controles.target.set(0, (A3.base.y - CHAO) * S, 0); camera.position.set(0.7 * f3, (A3.base.y - CHAO) * S + 0.35, 1.05 * f3); controles.update(); } entrarNoAndar(opcoes.entrar); }, 500);
     }).catch(function (e) { el.querySelector('#maqCarregando').textContent = 'A maquete não abriu: ' + ((e && e.message) || e); throw e; });
   }
   function fechar() {
@@ -437,5 +498,7 @@
   global.VCMaquete = { abrir: abrir, fechar: fechar, aberta: function () { return ativo; }, dentro: function () { return dentro; }, ORDEM: ORDEM, PONTOS: PONTOS,
     _caixa: function (a) { var THREE = global.THREE, A = andares[a], out = []; A.no.traverse(function (o) { if (o.isMesh) { var b = new THREE.Box3().setFromObject(o), t = b.getSize(new THREE.Vector3()); out.push([o.name, +t.y.toFixed(4)]); } }); out.sort(function (x, y) { return y[1] - x[1]; }); return { w: A.piv.getWorldScale(new THREE.Vector3()).toArray(), top: out.slice(0, 4) }; },
     _teste: function () { return { cam: camera.position.toArray(), alvo: controles.target.toArray(), andares: Object.keys(andares).length, pinos: pinos.length, rota: !!rotaG, aberta: aberta, dentro: dentro, pontos: pontosG ? pontosG.children.length : 0 }; },
-    _tocarAndar: function (a) { tocarAndar(a); }, _entrar: function (a) { entrarNoAndar(a); }, _sair: function () { sairDoAndar(); }, _ponto: function (id) { tocarPonto(dentro, id); }, _marcas: function (v) { if (pontosG) pontosG.visible = v; pinos.forEach(function (x) { x.visible = v; }); }, _vista: function (pos, alvo) { anim = null; camera.position.set(pos[0], pos[1], pos[2]); controles.target.set(alvo[0], alvo[1], alvo[2]); controles.minDistance = 0.01; controles.maxDistance = 10; controles.update(); }, _foto: function () { if (pontoAtual) fotografar(dentro, pontoAtual); } };
+    _tocarAndar: function (a) { tocarAndar(a); }, _entrar: function (a) { entrarNoAndar(a); }, _sair: function () { sairDoAndar(); }, _ponto: function (id) { tocarPonto(dentro, id); }, _marcas: function (v) { if (pontosG) pontosG.visible = v; pinos.forEach(function (x) { x.visible = v; }); }, _vista: function (pos, alvo) { anim = null; camera.position.set(pos[0], pos[1], pos[2]); controles.target.set(alvo[0], alvo[1], alvo[2]); controles.minDistance = 0.01; controles.maxDistance = 10; controles.update(); }, _foto: function () { if (pontoAtual) fotografar(dentro, pontoAtual); },
+    _procurar: function (id) { var p = pontosDe(dentro).filter(function (x) { return x.id === id; })[0]; if (!p) return false; procurar(dentro, { x: p.pos[0], y: p.pos[1], z: p.pos[2] }); return achadoP(dentro, p); },
+    _acao: function (i) { var b = el.querySelector('[data-maq-acao="' + (i || 0) + '"]'); if (b) b.click(); return !!b; }, _trava: function (v) { if (teclado && teclado._digitar && typeof v === 'string') teclado._digitar(v); else if (teclado && teclado._girar) teclado._girar(v); }, _trancado: function (a) { return trancado(a); }, _dicaBtn: function () { return !el.querySelector('#maqDicaBtn').hidden; } };
 })(window);

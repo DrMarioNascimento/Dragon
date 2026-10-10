@@ -7,7 +7,7 @@
 <title>MOSAICO — O Eco do Amanhã · O Impostor</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@900&family=Cormorant+Garamond:wght@600;700&family=DM+Mono:wght@400;500&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@900&family=Cormorant+Garamond:wght@600;700&family=DM+Mono:wght@400;500&family=Inter:wght@400;600;700;800&family=Caveat:wght@600&display=swap" rel="stylesheet" />
 <!-- MOSAICO · O Eco do Amanhã · O Impostor (10/10/2026). Do prólogo ao placar e ao epílogo.
      Base visual e de tela: cópia (não compartilhada) da Manhã do Carro-Forte.
      A história: revisão 9 (dados.js, gerado do modelo; partida.js monta cada partida). -->
@@ -1045,8 +1045,8 @@ button:active,.caixa:active,.redondo:active,.chip:active{
 </div>
 <div class="veu" id="veu" hidden><div class="folha" id="folha"></div></div>
 
-<script src="dados.js?v=20261010a"></script>
-<script src="partida.js?v=20261010a"></script>
+<script src="dados.js?v=20261010c"></script>
+<script src="partida.js?v=20261010c"></script>
 <script>
 (function(){
 'use strict';
@@ -1405,7 +1405,7 @@ function tocarAndar(a, g) {
   g.classList.add('visto'); var A = D.geo.andares.filter(function (x) { return x.a === a; })[0], acoes = [];
   var txt = infoAndar(a), meu = andarDoJogador();
   if (a === meu) txt += '<br><b style="color:#efc878">Você está aqui' + (E[EU_PAPEL].chega && !prologo.grupo ? ', chegando pela catraca.' : ': ' + E[EU_PAPEL].posto + '.') + '</b>';
-  if (a === meu && !prologo.ondeEstou) { prologo.ondeEstou = true; alvoAndar(null); acoes.push(['Ver quem está na torre ›', function () { mostrarPapeis(); }]); }
+  if (a === meu && !prologo.papeis) { prologo.ondeEstou = true; alvoAndar(null); acoes.push(['Ver quem está na torre ›', function () { mostrarPapeis(); }]); }
   else if (a === '+2' && prologo.papeis && !prologo.grupo) { alvoAndar(null); acoes.push(['Ir à Sala de Crise, às 20h00 ›', function () { abrirGrupo(); }]); }
   else if (a === '+12' && !prologo.envioMirante) { prologo.envioMirante = true; setTimeout(achouEnvio, 700); }
   else if (a === '+12B') txt += '<br><b style="color:#efc878">Na maquete, este andar abre como uma sala: é onde ficaram os terminais.</b>';
@@ -1576,7 +1576,7 @@ function pintarPecas() {
 function liberarPeca(id) {
   var p = PECAS.filter(function (x) { return x.id === id; })[0], Dp = PECA_DEF[id]; if (!p || p.aberta) return;
   p.aberta = true; p.nome = Dp.nome; p.sub = Dp.sub; p.ico = Dp.ico; ESTADO_PECA[id] = { etapa: 0, vistos: {} };
-  pintarPecas(); glow('ra', true); toast('Uma peça nova abriu na aba RA: ' + Dp.nome.toLowerCase() + '. Na maquete, o ' + ANDAR_PECA[id] + ' abre como sala.');
+  pintarPecas(); glow('ra', true); toast('Uma peça nova abriu na aba RA: ' + Dp.nome.toLowerCase() + '. Na maquete, ela fica no ' + ANDAR_PECA[id] + '.');
 }
 function abrirPeca(id) {
   var Dp = PECA_DEF[id], st = ESTADO_PECA[id]; pecaAberta = id;
@@ -1628,16 +1628,124 @@ var TELAS_12B = {
   reuniao: ['narracao', 'A NARRAÇÃO', 'A tela grande conta a noite, linha por linha: é a aba Narração do seu terminal. Quando o seu personagem aparece nela, o nome vem em dourado. Quando a história chega na fala dele, ela vira um cartão “SUA FALA”, e quem diz é você.'],
   mesas: ['grupo', 'O GRUPO', 'O que se fala nas mesas, todos ouvem: é a aba Grupo. Cada fala sua gasta um envio (✉) nos capítulos; no prólogo, é treino e não gasta.'],
   sofa: ['privadas', 'AS PRIVADAS', 'No sofá, a conversa é a dois: é a aba Privadas. Só as duas pontas veem. Ninguém mais, nem o narrador, comenta o que foi dito ali.'],
-  terminais: ['inventario', 'O INVENTÁRIO', 'O terminal guarda o que você junta: fotos, cartões e peças. Tudo fica no inventário (📎) e pode ir anexado numa mensagem. O seu terminal está guardado.']
+  terminais: ['inventario', 'O INVENTÁRIO', 'O terminal guarda o que você junta: fotos, cartões, chaves e peças. Tudo fica no inventário (📎) e pode ir anexado numa mensagem. O seu terminal está guardado. A mesa da recepção, ao lado, tem gavetas.']
 };
+
+/* ══ Travas e achados (10/10, pedido do Mario: "não quero que abra fácil o andar") ══
+   Só dois andares abrem livres: o 12B (o prólogo) e a Sala de Crise. Os outros pedem
+   chave, cartão, senha ou segredo de cofre, numa corrente pela torre; as pistas ficam
+   escondidas e só aparecem para quem procura. Os números mudam a cada partida.
+   As peças dos capítulos continuam abrindo pela aba RA: a corrente é exploração,
+   nunca trava a história. */
+var RNG_T = VP.gerador(PARTIDA + '|travas');
+function numeroT(n) { var s = '' + (1 + Math.floor(RNG_T() * 9)); while (s.length < n) s += Math.floor(RNG_T() * 10); return s; }
+var PIN_MIRANTE = numeroT(4), PIN_IMPRENSA = numeroT(4);
+var SEGREDO_ARQ = (function () { var a = 3 + Math.floor(RNG_T() * 34), b, c; do { b = 2 + Math.floor(RNG_T() * 36); } while (Math.abs(b - a) < 6); do { c = 1 + Math.floor(RNG_T() * 38); } while (Math.abs(c - b) < 6); return [a, b, c]; })();
+var CHAVES = {}, ABERTOS = { '+12B': 1, '+2': 1 }, ACHADOS = {}, ITENS_OBJ = {};
+var NOME_CHAVE = { cracha: 'o crachá de visitante', 'chave-gabinete': 'a chave do gabinete', 'chave-subsolo': 'a chave do subsolo', 'cartao-tecnico': 'o cartão técnico', 'chave-mestra': 'a chave mestra', 'chave-elevador': 'a chave do elevador' };
+var TRANCAS = {
+  '+12': { tipo: 'pin', txt: 'A porta do Mirante tem teclado. A senha ficou com quem recebeu os convidados no 12B.' },
+  '0': { tipo: 'chave', chave: 'cracha', txt: 'As catracas do Átrio só liberam com crachá.' },
+  '+4': { tipo: 'chave', chave: 'chave-gabinete', txt: 'A porta do andar clínico está trancada; a do gabinete tem chave própria, que a Presidente não deixava no chaveiro.' },
+  '+1': { tipo: 'segredo', txt: 'A porta acústica do Arquivo Frio está fechada. A chave fica num cofre de parede no hall, de segredo: direita, esquerda, direita.' },
+  '-1': { tipo: 'chave', chave: 'chave-subsolo', txt: 'A escada interna para o subsolo tem duas portas de controle. À noite, só com a chave de serviço do subsolo.' },
+  '+3': { tipo: 'chave', chave: 'cartao-tecnico', txt: 'A porta do Núcleo pede cartão técnico.' },
+  '+5': { tipo: 'chave', chave: 'cartao-tecnico', txt: 'A sala técnica pede cartão técnico.' },
+  '+8': { tipo: 'pin', txt: 'A porta magnética da imprensa tem teclado próprio.' },
+  '+10': { tipo: 'chave', chave: 'chave-mestra', txt: 'O arquivo de fitas fecha à noite; o leitor de cartão não reconhece crachá de visitante. Tem também uma fechadura comum.' },
+  '+11': { tipo: 'chave', chave: 'chave-mestra', txt: 'O corredor dos quartos está trancado.' },
+  '+13': { tipo: 'chave', chave: 'chave-elevador', txt: 'A casa de máquinas só abre com a chave do elevador.' },
+  '+14': { tipo: 'chave', chave: 'chave-elevador', txt: 'A porta da cobertura é a mesma da casa de máquinas: chave do elevador.' }
+};
+/* o que está escondido nos andares (só aparece para quem toca no lugar) */
+var ESCONDIDOS = {
+  '+2': [{ id: 'sob-mesa', n: 'Debaixo da mesa oval', pos: [2.9, 13.3, 7.0], d: 'Presa com fita sob o tampo da mesa oval, uma chave pequena com etiqueta de papel: GABINETE · 4º.', item: 'chave-gabinete' }],
+  '0': [{ id: 'gancho', n: 'O console do Jardim', pos: [0.7, 4.9, -5.0], d: 'Atrás do console de inspeção do Jardim, num gancho, uma chave de serviço com plaqueta de latão: SUBSOLO · ESCADA INTERNA.', item: 'chave-subsolo' }],
+  '-1': [{ id: 'atras-quadro', n: 'Atrás do quadro elétrico', pos: [6.2, 2.0, -3.6], d: 'Enfiado entre o quadro elétrico e a parede, um cartão técnico de manutenção, com a foto apagada pela umidade.', item: 'cartao-tecnico' }],
+  '+5': [{ id: 'bilhete-painel', n: 'Debaixo do teclado do painel', pos: [3.6, 23.6, 5.8], d: 'Debaixo do teclado do painel de manutenção, um bilhete amarelo: “Imprensa trocou a senha da porta: ' + PIN_IMPRENSA + '”.', item: 'bilhete-imprensa' }],
+  '+8': [{ id: 'gaveta-balcao', n: 'A gaveta do credenciamento', pos: [1.7, 32.6, 1.3], d: 'Na gaveta do balcão do credenciamento, esquecida entre crachás em branco, a chave mestra da governança.', item: 'chave-mestra' }],
+  '+11': [{ id: 'mesa-quarto', n: 'O criado-mudo do quarto do meio', pos: [0.7, 41.6, 6.0], d: 'No criado-mudo do quarto do meio, junto do telefone, uma chave pequena com chaveiro de borracha: ELEVADOR · MÁQUINAS.', item: 'chave-elevador' }]
+};
+var ITEM_DEF = {
+  'chave-gabinete': { ico: '🗝️', nome: 'Chave do gabinete', desc: 'Abre o andar clínico e o gabinete da Presidente (+4).' },
+  'chave-subsolo': { ico: '🗝️', nome: 'Chave do subsolo', desc: 'Abre as portas da escada interna até o subsolo (−1).' },
+  'cartao-tecnico': { ico: '💳', nome: 'Cartão técnico', desc: 'Abre o Núcleo (+3) e a sala técnica (+5).' },
+  'bilhete-imprensa': { ico: '📝', nome: 'Bilhete: senha da imprensa', desc: 'A senha da porta magnética da Sala de Imprensa (+8): ' + PIN_IMPRENSA + '.' },
+  'chave-mestra': { ico: '🗝️', nome: 'Chave mestra da governança', desc: 'Abre o arquivo de fitas (+10) e os quartos (+11).' },
+  'chave-elevador': { ico: '🗝️', nome: 'Chave do elevador', desc: 'Abre a casa de máquinas (+13) e a cobertura (+14).' },
+  cracha: { ico: '🪪', nome: 'Crachá de visitante', desc: 'Passa nas catracas do Átrio. No verso: “Mirante · senha ' + PIN_MIRANTE + '”.' },
+  'segredo-arquivo': { ico: '📄', nome: 'Folha: o segredo do Arquivo', desc: 'Cofre de chaves do hall do Arquivo Frio: direita ' + SEGREDO_ARQ[0] + ', esquerda ' + SEGREDO_ARQ[1] + ', direita ' + SEGREDO_ARQ[2] + '.' }
+};
+function pegarItem(id, img) {
+  if (CHAVES[id]) return; CHAVES[id] = true; var I = ITEM_DEF[id] || { ico: '🔎', nome: id, desc: '' };
+  guardar({ ico: I.ico, nome: I.nome, desc: I.desc, img: img || '' });
+}
+function conferirTranca(a, v) { if (a === '+12') return String(v) === PIN_MIRANTE; if (a === '+8') return String(v) === PIN_IMPRENSA; if (a === '+1') return v && v.length === 3 && v.every(function (x, i) { return +x === SEGREDO_ARQ[i]; }); var T = TRANCAS[a]; return !!(T && T.chave && CHAVES[T.chave]); }
+function destrancar(a) { ABERTOS[a] = 1; toast('Aberto: ' + a + '.'); }
+/* os dois objetos de perto (objeto.js): a mesa da recepção do 12B e o gaveteiro do gabinete */
+function objetoDe(qual) {
+  if (qual === 'recepcao') return {
+    titulo: 'A mesa da recepção · 12B', sub: 'Gavetas, folhas e a pasta do terminal.', movel: 'mesa', extras: ['caneca'],
+    abertura: 'A mesa onde a equipe recebeu os convidados, às sete e meia. Gire com um dedo; toque numa gaveta para abrir, numa folha para ler, na pasta para folhear.',
+    gavetas: [
+      { nome: 'Recepção', folhas: [
+        { titulo: 'Programa da noite', linhas: ['19h30 · recepção dos convidados no 12B', '20h00 · Sala de Crise (2º andar): reunião e preparativos', '23h00 · demonstração supervisionada, com margem para parar antes da conexão neural', '06h00 · publicação da atualização'] },
+        { titulo: 'Credenciais emitidas', linhas: ['Crachás de convidado: ' + PRESENTES.length + '.', 'Crachás de visitante, para as catracas do Átrio: 2 (um na gaveta, para emergência).'], cor: 'azul' },
+        { titulo: 'Aviso à equipe', linhas: ['O Mirante tranca às 19h45, depois da recepção.', 'A senha da porta está no verso do crachá de visitante.'], mao: 'deixei o crachá aqui embaixo — recepção', cor: 'amarela' }
+      ], item: { id: 'cracha', tipo: 'cracha', nome: 'Crachá de visitante', cabecalho: 'VESTCHIP · VISITANTE', rotulo: 'CATRACAS DO ÁTRIO · verso: MIRANTE ' + PIN_MIRANTE, ico: '🪪', desc: 'Um crachá de visitante. No verso, a caneta: “Mirante · ' + PIN_MIRANTE + '”.' } },
+      { nome: 'Material', folhas: [{ titulo: 'Lista de material', linhas: ['Terminais de anotação: um por lugar da mesa.', 'Carregadores, fita, etiquetas, canetas.'], cor: 'branca' }] }
+    ],
+    monte: { folhas: [{ titulo: 'Bem-vindos à Torre de Continuidade', linhas: ['Esta noite, a torre fica em quarentena até as seis, a mesma hora da publicação.', 'Os andares de baixo guardam o cobre da antiga central; os de cima, a obra.'], timbre: 'VESTCHIP · RECEPÇÃO' }] },
+    pasta: { titulo: 'Manual do terminal de anotação', paginas: [
+      { titulo: '1 · Narração', linhas: ['A tela conta a noite, linha por linha. O seu nome aparece em dourado.'] },
+      { titulo: '2 · Grupo', linhas: ['O que se diz ali, a mesa inteira lê. Nos capítulos, cada fala gasta um envio.'] },
+      { titulo: '3 · Privadas', linhas: ['Conversa a dois. Só as duas pontas veem.'] },
+      { titulo: '4 · Inventário', linhas: ['O que você guarda: fotos, cartões, chaves. Dá para anexar numa mensagem.'] }
+    ] }
+  };
+  if (qual === 'gabinete') return {
+    titulo: 'O gaveteiro do gabinete · +4', sub: 'O arquivo lateral da Presidente.', movel: 'escrivaninha',
+    abertura: 'O gaveteiro lateral do gabinete, ao lado da escrivaninha. Papéis de quem planejava a demonstração das onze.',
+    gavetas: [
+      { nome: 'Agenda', folhas: [
+        { titulo: 'Agenda da Presidente', linhas: ['20h55 · Câmara Branca: calibração', '23h00 · demonstração supervisionada', 'Margem: parar antes da conexão neural.'], cor: 'branca' },
+        { titulo: 'Rascunho', linhas: ['Lote sem dono: abrir só com testemunhas, câmeras e tempo.'], mao: 'não antes das onze.', cor: 'amarela' }
+      ] },
+      { nome: 'Chaves', folhas: [
+        { titulo: 'Troca de segredo', linhas: ['Cofre de chaves do hall do Arquivo Frio, trocado hoje.'], mao: 'D ' + SEGREDO_ARQ[0] + ' · E ' + SEGREDO_ARQ[1] + ' · D ' + SEGREDO_ARQ[2], cor: 'amarela' }
+      ], item: { id: 'segredo-arquivo', tipo: 'bilhete', nome: 'O segredo do Arquivo', cabecalho: 'ARQUIVO FRIO', rotulo: 'D ' + SEGREDO_ARQ[0] + ' · E ' + SEGREDO_ARQ[1] + ' · D ' + SEGREDO_ARQ[2], ico: '📄', desc: 'Uma etiqueta de cofre com três números: direita ' + SEGREDO_ARQ[0] + ', esquerda ' + SEGREDO_ARQ[1] + ', direita ' + SEGREDO_ARQ[2] + '.' } }
+    ],
+    pasta: { titulo: 'Protocolo da demonstração', paginas: [
+      { titulo: 'Objetivo', linhas: ['Abrir o lote sem dono numa demonstração supervisionada, às 23h00.'] },
+      { titulo: 'Margem', linhas: ['Parar antes da conexão neural. Médica presente o tempo todo.'] },
+      { titulo: 'Quem decide', linhas: ['Só a Presidente antecipa ou adia. Qualquer mudança vai por escrito.'] }
+    ] }
+  };
+  return null;
+}
+function abrirObjeto(qual, voltarAndar) {
+  var O = objetoDe(qual); if (!O || !window.VCObjeto) return;
+  ITENS_OBJ[qual] = ITENS_OBJ[qual] || {};
+  O.achados = ITENS_OBJ[qual];
+  O.aoAchar = function (it, img) { pegarItem(it.id, img); };
+  O.aoFoto = function (f) { guardar({ ico: '📷', nome: 'Foto: ' + f.nome.toLowerCase(), desc: f.desc, img: f.img }); };
+  O.aoFechar = function () { if (voltarAndar) setTimeout(function () { abrirMaquete({ entrar: voltarAndar }); }, 60); };
+  (window.VCMaquete && VCMaquete.aberta() ? VCMaquete.fechar() : Promise.resolve()).then(function () { VCObjeto.abrir(O); });
+}
 function abrirMaquete(extra) {
   extra = extra || {};
   if (!window.VCMaquete) { toast('A maquete ainda está carregando. Tente de novo.'); return; }
   var noProlo = capitulo === 0 && !prologo.grupo;
   var entrar = extra.entrar || (noProlo && !prologo.escritorios ? '+12B' : null);
+  var pontos = {}; Object.keys(ESCONDIDOS).forEach(function (a) { pontos[a] = ESCONDIDOS[a].map(function (p) { return Object.assign({ oculto: true }, p); }); });
   VCMaquete.abrir({
-    andares: D.geo.andares, circ: D.geo.circ, eu: { andar: andarDoJogador(), nome: nm(EU_PAPEL) }, rota: rotaRevelada, entrar: entrar,
+    andares: D.geo.andares, circ: D.geo.circ, eu: { andar: andarDoJogador(), nome: nm(EU_PAPEL) }, rota: rotaRevelada, entrar: entrar, pontos: pontos,
     itens: PECAS.filter(function (p) { return /^c\d$/.test(p.id) && p.aberta; }).map(function (p) { return { id: p.id, nome: p.nome }; }),
+    abertos: ABERTOS, achados: ACHADOS, trancas: TRANCAS, nomeChave: NOME_CHAVE, tem: function (k) { return !!CHAVES[k]; },
+    conferir: conferirTranca, aoDestrancar: destrancar,
+    aoAchar: function (a, p) { ACHADOS[a + ':' + p.id] = true; },
+    aoItem: function (a, p, img) { pegarItem(p.item, img); },
+    aoObjeto: function (a, p) { abrirObjeto(p.objeto, a); },
     digitar: function (el, t) { digitar(el, t, 8); },
     aoAbrirItem: function (id) { VCMaquete.fechar().then(function () { irPara('ra'); abrirPeca(id); }); },
     aoEntrar: function (a) { prologo['dentro' + a] = true; },
@@ -1646,9 +1754,10 @@ function abrirMaquete(extra) {
         var T = TELAS_12B[p.id]; prologo.telas = prologo.telas || {}; prologo.telas[T[0]] = true;
         if (p.id === 'terminais') guardar({ ico: '📟', nome: 'Terminal de anotação', desc: 'Configurado no 12B, um para cada lugar da mesa da Sala de Crise.', img: '' });
         var vistas = Object.keys(prologo.telas).length;
-        if (vistas === 4 && !prologo.escritorios) { prologo.escritorios = true; setTimeout(function () { toast('Você conheceu as quatro telas. Agora desça: o Mirante fica logo abaixo.'); }, 400); }
-        return { txt: T[2] + (vistas < 4 ? ' (' + vistas + ' de 4 telas.)' : '') };
+        if (vistas === 4 && !prologo.escritorios) { prologo.escritorios = true; setTimeout(function () { toast('Você conheceu as quatro telas. A mesa da recepção tem gavetas; o Mirante, logo abaixo, tem senha.'); }, 400); }
+        return { txt: T[2] + (vistas < 4 ? ' (' + vistas + ' de 4 telas.)' : ''), acao: p.id === 'terminais' ? ['Abrir a mesa da recepção ›', function () { abrirObjeto('recepcao', '+12B'); }] : null };
       }
+      if (a === '+4' && p.id === 'escrivaninha') return { acao: ['Abrir o gaveteiro ›', function () { abrirObjeto('gabinete', '+4'); }] };
       if (a === '+12' && p.id === 'poltronas' && !prologo.envioMirante) { prologo.envioMirante = true; setTimeout(achouEnvio, 700); return { txt: p.d + ' Dentro, um envio extra.' }; }
       return null;
     },
@@ -1656,7 +1765,7 @@ function abrirMaquete(extra) {
     aoAndar: function (a, abriu) {
       if (!noProlo || !abriu) return null;
       var meu = andarDoJogador();
-      if (a === meu && !prologo.ondeEstou) { prologo.ondeEstou = true; return { acao: ['Ver quem está na torre ›', function () { VCMaquete.fechar().then(function () { mostrarPapeis(); }); }] }; }
+      if (a === meu && !prologo.papeis) { prologo.ondeEstou = true; return { acao: ['Ver quem está na torre ›', function () { VCMaquete.fechar().then(function () { mostrarPapeis(); }); }] }; }
       if (a === '+2' && prologo.papeis && !prologo.grupo) return { acao: ['Ir à Sala de Crise, às 20h00 ›', function () { VCMaquete.fechar().then(function () { abrirGrupo(); }); }] };
       return null;
     }
@@ -1721,7 +1830,7 @@ function pausado() {
   if (capitulo > 0 && capitulo < 8) return !!capituloFechado[capitulo];
   if (capitulo === 8 && !capituloFechado[8]) return !$('#janela').hidden || $('#fecho').open || !$('#telaRA').hidden;
   if (capitulo === 8) return true;
-  return !$('#janela').hidden || !$('#telaRA').hidden || $('#papeis').open || $('#comoJogar').open || !$('#veu').hidden || !$('#visorDoc').hidden || treinoMarca || (window.VCMaquete && VCMaquete.aberta());
+  return !$('#janela').hidden || !$('#telaRA').hidden || $('#papeis').open || $('#comoJogar').open || !$('#veu').hidden || !$('#visorDoc').hidden || treinoMarca || (window.VCMaquete && VCMaquete.aberta()) || (window.VCObjeto && VCObjeto.aberto()) || (window.VCTrava && VCTrava.aberta());
 }
 function tick() {
   var agora = Date.now(), dt = (agora - ultimoTick) / 1000; ultimoTick = agora; if (pausado()) return;
@@ -1867,7 +1976,7 @@ var filaPerg = [], PQ = null, pqEsc = null, pqConf = null, pqOrdem = [];
 function fimDoCapitulo() {
   if (!capitulo || capituloFechado[capitulo]) return; capituloFechado[capitulo] = true;
   $('#telaRA').hidden = true; $('#tempo').classList.add('parado'); $('#respGrupo').hidden = true; $('#respPriv').hidden = true;
-  if (window.VCMaquete && VCMaquete.aberta()) VCMaquete.fechar();
+  if (window.VCMaquete && VCMaquete.aberta()) VCMaquete.fechar(); if (window.VCObjeto && VCObjeto.aberto()) VCObjeto.fechar(true); if (window.VCTrava) VCTrava.fechar();
   janela('FIM DO CAPÍTULO ' + capitulo, (resta > 0 ? 'Você concluiu o capítulo.' : 'O tempo acabou.') + ' O relógio parou. Antes das perguntas, a mesa tem um minuto para debater em voz alta.', function () { abrirFecho(); abrirDebate(capitulo, irParaPerguntas); });
 }
 function abrirDebate(cap, depois) {
@@ -2221,7 +2330,7 @@ function mpChecar(room, players) {
 }
 function mpEncerrarLocal() {
   if (capitulo >= 1 && capitulo <= 7) { capituloFechado[capitulo] = true; if (!apostas[capitulo]) apostas[capitulo] = apostaAtual(); }
-  $('#janela').hidden = true; $('#telaRA').hidden = true; fecharFolha(); fecharFecho(); if (window.VCMaquete && VCMaquete.aberta()) VCMaquete.fechar();
+  $('#janela').hidden = true; $('#telaRA').hidden = true; fecharFolha(); fecharFecho(); if (window.VCMaquete && VCMaquete.aberta()) VCMaquete.fechar(); if (window.VCObjeto && VCObjeto.aberto()) VCObjeto.fechar(true); if (window.VCTrava) VCTrava.fechar();
 }
 function mpAplicarCap(cap) { var n = cap.n; mpCapAplicado = n; mpEsperando = null; mpFaixa(null); setTimeout(function () { if (capitulo === 0 && !mpPassouPrologo) { mpRetomar(n); return; } mpEncerrarLocal(); irPara('grupo'); comecarCapitulo(n); }, Math.max(0, (cap.t0Ms || 0) - Date.now())); }
 function mpRetomar(n) {
@@ -2306,6 +2415,7 @@ window.VCMesa = {
   abrirPeca: function (id) { irPara('ra'); abrirPeca(id); }, examinar: function (id, k) { var g = document.querySelector('#plantaArea [data-det="' + k + '"]'); if (g) g.dispatchEvent(new MouseEvent('click', { bubbles: true })); },
   codigo: function (v) { var i = $('#pcCod'); if (i) { i.value = v; $('#pcCodOk').click(); } }, def: PECA_DEF, cores: CORES_CABO, gavetaPen: GAVETA_PEN, lote: LOTE_DIG,
   pq: function () { return PQ; },
+  objeto: function (q, volta) { abrirObjeto(q, volta); }, travas: function () { return { mirante: PIN_MIRANTE, imprensa: PIN_IMPRENSA, segredo: SEGREDO_ARQ, chaves: CHAVES, abertos: ABERTOS }; },
   maquete: function () { abrirMaquete(); }, maqueteAndar: function (a) { abrirMaquete({ entrar: a }); }, revelacao: function () { pintarRevelacao(); },
   cap: function (n) { estiloVisto = true; ['grupo', 'privadas', 'suspeitos', 'ra'].forEach(function (a) { document.querySelector('[data-aba="' + a + '"]').classList.remove('muda'); }); var ab = $('#abertura'); if (ab) ab.remove(); abFeita = true; comecarCapitulo(n); },
   liberar: function (id) { liberarPeca(id); }, tempo: function (s) { tRot = s; }, fimPrologo: function () { fimDoPrologo(); }, placarJa: function () { mostrarPlacar(); }, epilogo: function () { abrirFecho(); pintarEpilogo(); }, debate: function (c) { capitulo = c; abrirFecho(); abrirDebate(c, irParaPerguntas); }
@@ -2322,6 +2432,8 @@ document.querySelectorAll('.suspeito').forEach(function(s){var t=s.querySelector
 var cab=document.getElementById('convAvatar'),nome=document.getElementById('convNome');var n=nome&&nome.textContent.match(/(\d{2})/);if(cab&&n)preencher(cab,n[1])}
 var obs=new MutationObserver(varrer);obs.observe(document.body,{childList:true,subtree:true});varrer()})();
 </script>
-<script src="maquete.js?v=20261010a"></script>
+<script src="travas.js?v=20261010c"></script>
+<script src="maquete.js?v=20261010c"></script>
+<script src="objeto.js?v=20261010c"></script>
 </body>
 </html>
