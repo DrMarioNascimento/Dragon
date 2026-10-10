@@ -869,7 +869,7 @@ button:active,.caixa:active,.redondo:active,.chip:active{
 </div>
 <dialog id="papeis" aria-labelledby="papeisTitulo">
   <p class="kicker">A casa está aberta</p>
-  <h1 id="papeisTitulo">Nesta partida há <span id="nJogadores">6</span> convocados.</h1>
+  <h1 id="papeisTitulo">Nesta partida há <span id="nJogadores">4</span> jogadores.</h1>
   <p class="lede">Estes são os convocados da lista do proprietário, cada um com a sua função.</p>
   <div class="elenco" id="elenco"></div>
   <div class="o-seu"><img id="seuIcone" alt="" /><div><small>O seu é:</small><b id="seuNome"></b><span id="seuFuncao"></span></div></div>
@@ -1170,8 +1170,7 @@ function chegaPrivada(f,txt){
   var hid=mpVoz(f);if(hid===EU_PAPEL)return;
   if(!privadas[f])privadas[f]={nao:0,msgs:[]};
   /* SUBSTITUIDO 03/10: privadas[f].msgs.push({de:f,txt:txt,h:hora()}); */
-  /* SUBSTITUIDO 09/10 (Mario): personagem humano e do sistema aparecem iguais na tela; o jogador não distingue. Antes: privadas[f].msgs.push(hid?{sis:'...escreveu só para você...'}:{de:f,txt:txt,h:hora()}); */
-  privadas[f].msgs.push({de:f,txt:txt,h:hora()});privadas[f].ordem=++ordemPriv;
+  privadas[f].msgs.push(hid?{sis:'<b>'+Na(hid)+'</b> escreveu só para você: <i>"'+txt+'"</i>'}:{de:f,txt:txt,h:hora()});privadas[f].ordem=++ordemPriv;
   if(!(aba==='privadas'&&abertaPriv===f))privadas[f].nao++;
   if(abertaPriv===f)pintarConv();
   pintarListaPriv();
@@ -1584,8 +1583,7 @@ function fecharPortao(remoto){
     roteiroTimers.push(setTimeout(function(){abrirPortao(prox)},(prox.t-g.retoma)*1000*escalaRoteiro))}
 }
 /* SUBSTITUIDO 03/10: ...grupo.push({de:SLOT_DE[id],txt:variaTexto(txt,id),h:hora()}); (agora passa por mpVoz) */
-function falaNoGrupo(ids,txt){var id=voz(ids);if(!id)return;var ft=variaTexto(txt,id);grupo.push({de:SLOT_DE[id],txt:ft,h:hora()});   /* SUBSTITUIDO 09/10 (Mario): personagem humano e do sistema aparecem iguais na tela; o jogador não distingue. Antes: mpVoz(...)?{sis:mpNarra(...)}:{de:...} */
-pintarGrupo();if(aba!=='grupo')document.querySelector('[data-aba="grupo"]').classList.add('glow')}
+function falaNoGrupo(ids,txt){var id=voz(ids);if(!id)return;var ft=variaTexto(txt,id);grupo.push(mpVoz(SLOT_DE[id])?{sis:mpNarra(SLOT_DE[id],ft)}:{de:SLOT_DE[id],txt:ft,h:hora()});pintarGrupo();if(aba!=='grupo')document.querySelector('[data-aba="grupo"]').classList.add('glow')}
 /* ── O relógio (Cap. 3) dentro da tela do jogo ───────────────────────────
    modo: parar (a Herdeira jogada por você) · religar (quem religa, jogado por
    você) · ver (os outros). estado: andando · parado · religado. */
@@ -1658,8 +1656,7 @@ function tocarRoteiro(r,escala){
     else if(ev[1]==='sis'){grupo.push({sis:ev[2]});if(SOU_FUNC&&!encontroFeito)grupoServ.push({sis:ev[2]});pintarGrupo();if(aba!=='grupo')document.querySelector('[data-aba="grupo"]').classList.add('glow')}
     else if(ev[1]==='sisserv'){if(ev[3])grupoServ.push(ev[3]);grupoServ.push({sis:ev[2]});pintarGrupo();if(aba!=='grupo')document.querySelector('[data-aba="grupo"]').classList.add('glow')}
     /* SUBSTITUIDO 03/10: else if(ev[1].indexOf('serv:')===0){grupoServ.push({de:ev[1].slice(5),txt:ev[2],h:hora()});pintarGrupo()} */
-    /* SUBSTITUIDO 09/10 (Mario): personagem humano e do sistema aparecem iguais na tela; o jogador não distingue. Antes: grupoServ.push(mpVoz(...)?{sis:mpNarra(...)}:{de:...}) */
-    else if(ev[1].indexOf('serv:')===0){grupoServ.push({de:ev[1].slice(5),txt:ev[2],h:hora()});pintarGrupo()}
+    else if(ev[1].indexOf('serv:')===0){grupoServ.push(mpVoz(ev[1].slice(5))?{sis:mpNarra(ev[1].slice(5),ev[2])}:{de:ev[1].slice(5),txt:ev[2],h:hora()});pintarGrupo()}
     else if(ev[1]==='add'){foraDoGrupo={};
       if(SOU_FUNC){grupoVisivelDesde=grupo.length;verServ=false;grupo.push({sis:'<b>O Tabelião adicionou você ao grupo da casa.</b> Agora são '+N_CONTATOS+' números. Você não vê o que foi dito antes de entrar.'});
         janela('O GRUPO DA CASA','O Tabelião pôs o seu número no grupo do cartório. A partir de agora você vê o que os convocados escrevem, e eles veem o que você escreve. O grupo do serviço continua lá: toque em "ver o do serviço", no alto da conversa.')}
@@ -1668,8 +1665,7 @@ function tocarRoteiro(r,escala){
     else if(ev[1].indexOf('priv:')===0)chegaPrivada(ev[1].slice(5),ev[2]);
     else if(ev[1].indexOf('op:')===0){grupo.push({de:ev[1].slice(3),op:'TELEFÔNICA MOSAICO',txt:ev[2],h:hora()});pintarGrupo()}
     /* SUBSTITUIDO 03/10: else{grupo.push({de:ev[1],txt:ev[2],h:hora()});pintarGrupo()} */
-    /* SUBSTITUIDO 09/10 (Mario): personagem humano e do sistema aparecem iguais na tela; o jogador não distingue. Antes: grupo.push(mpVoz(ev[1])?{sis:mpNarra(...)}:{de:...}) */
-    else{grupo.push({de:ev[1],txt:ev[2],h:hora()});pintarGrupo()}
+    else{grupo.push(mpVoz(ev[1])?{sis:mpNarra(ev[1],ev[2])}:{de:ev[1],txt:ev[2],h:hora()});pintarGrupo()}
     if(ev.id)aoMarco(ev.id);
   },ev[0]*1000*escala))});
 }
@@ -1678,14 +1674,13 @@ function responder(txt,priv,quem){   /* 03/10: quem = número de quem perguntou 
   /* no privado, a Acompanhante responde do jeito dela (personalidade) */
   if(priv&&priv===ACOMP&&R.acompPriv)r=R.acompPriv[txt]||R.acompPriv['*'];
   if(!r)return;
-  /* SUBSTITUIDO 09/10 (Mario): personagem humano e do sistema aparecem iguais na tela; o jogador não distingue. Antes: if(priv&&mpVoz(priv))return; — o silêncio no privado denunciava o humano. Agora todo personagem responde do mesmo jeito. */
+  if(priv&&mpVoz(priv))return;   /* 03/10: no privado de um humano, quem responde é ele */
   setTimeout(function(){
     /* SUBSTITUIDO 02/10: if(priv)chegaPrivada(priv,typeof r==='string'?r:r[1]); else{grupo.push({de:r[0],txt:r[1],h:hora()});pintarGrupo()} */
     if(priv)chegaPrivada(priv,variaTexto(typeof r==='string'?r:r[1],idDoSlot(priv)));
     /* SUBSTITUIDO 03/10: else{grupo.push({de:r[0],txt:variaTexto(r[1],idDoSlot(r[0])),h:hora()});pintarGrupo()} */
     else{if(MP&&r[0]===(quem||EU))return;   /* no grupo, ninguém responde à própria pergunta */
-      var rt=variaTexto(r[1],idDoSlot(r[0]));grupo.push({de:r[0],txt:rt,h:hora()});pintarGrupo()}   /* SUBSTITUIDO 09/10 (Mario): personagem humano e do sistema aparecem iguais na tela; o jogador não distingue. Antes: mpVoz(r[0])?{sis:mpNarra(...)}:{de:...} */
-
+      var rt=variaTexto(r[1],idDoSlot(r[0]));grupo.push(mpVoz(r[0])?{sis:mpNarra(r[0],rt)}:{de:r[0],txt:rt,h:hora()});pintarGrupo()}
   },2500+Math.random()*2000);
 }
 var capituloFechado={},bandejaEnvio=false,escrivEnvio=false,avisouFoto=false,enviosNoCap=0,avisouMinimo=false;
@@ -1719,8 +1714,7 @@ function abrirDebate(D,depois){
   falas.forEach(function(f,i){setTimeout(function(){var el=$('#debateFalas');if(!el||!timerDebate)return;
     /* SUBSTITUIDO 03/10: el.insertAdjacentHTML('beforeend','<div class="debate-fala"><b style="color:'+CORES[f[0]]+'">'+nomeDe(f[0])+'</b> '+variaTexto(f[1],idDoSlot(f[0]))+'</div>') */
     var dt=variaTexto(f[1],idDoSlot(f[0]));
-    el.insertAdjacentHTML('beforeend','<div class="debate-fala"><b style="color:'+CORES[f[0]]+'">'+nomeDe(f[0])+'</b> '+dt+'</div>')}   /* SUBSTITUIDO 09/10 (Mario): personagem humano e do sistema aparecem iguais na tela; o jogador não distingue. Antes: (mpVoz(f[0])?mpNarra(...):...) */
-,(i+1)*Math.max(1500,total*1000/(falas.length+2)))});
+    el.insertAdjacentHTML('beforeend','<div class="debate-fala">'+(mpVoz(f[0])?mpNarra(f[0],dt):'<b style="color:'+CORES[f[0]]+'">'+nomeDe(f[0])+'</b> '+dt)+'</div>')},(i+1)*Math.max(1500,total*1000/(falas.length+2)))});
   function pinta(){var el=$('#debateT');if(!el)return;el.textContent=('0'+Math.floor(t/60)).slice(-2)+':'+('0'+t%60).slice(-2);$('#debateBarra').style.width=(t/total*100)+'%'}
   pinta();timerDebate=setInterval(function(){t--;pinta();if(t<=0)fim()},1000);
 }
@@ -3567,8 +3561,7 @@ var MEU=EU_PAPEL;
 var N_JOGADORES=+(new URLSearchParams(location.search)).get('jogadores')||4;
 function mostrarPapeis(){
   var d=$('#papeis');if(d.open)return;
-  /* SUBSTITUIDO 09/10 (Mario): personagem humano e do sistema aparecem iguais na tela; o jogador não distingue. Antes: $('#nJogadores').textContent=N_JOGADORES; (contava jogadores, e na sala ficava 4) */
-  $('#papeisTitulo').innerHTML='Nesta partida há <span id="nJogadores">'+CONVOCADOS.length+'</span> convocados.';
+  $('#nJogadores').textContent=N_JOGADORES;
   if(SOU_FUNC){var ef=EXTRAS.filter(function(c){return c.id===MEU})[0];
     $('#papeisTitulo').textContent='Você não está na lista.';
     $('#papeis .lede').textContent='Você veio preparar a casa para a leitura do testamento, marcada para amanhã. Amanhã chegam os convocados do proprietário, mas ninguém disse quantos, nem quem.';
@@ -3871,12 +3864,10 @@ function mpIniciar(d){mpUid=mpSala().uid;mpLigado=true;
 /* As falas de abertura do grupo e das privadas (o prólogo) já vêm prontas: no grupo,
    as dos personagens humanos viram narração; as do próprio jogador somem. */
 if(MP)(function(){
-  /* SUBSTITUIDO 09/10 (Mario): personagem humano e do sistema aparecem iguais na tela; o jogador não distingue. Antes: .map(...{sis:mpNarra(m.de,m.txt)}...) — as do próprio jogador continuam saindo da tela dele */
-  function conv(lista){return lista.filter(function(m){return !(m.de&&HUM_SLOT[m.de]===EU_PAPEL)})}
+  function conv(lista){return lista.filter(function(m){return !(m.de&&HUM_SLOT[m.de]===EU_PAPEL)}).map(function(m){return m.de&&HUM_SLOT[m.de]&&m.txt?{sis:mpNarra(m.de,m.txt)}:m})}
   grupo=conv(grupo);grupoServ=conv(grupoServ);
   Object.keys(privadas).forEach(function(f){var id=HUM_SLOT[f];if(!id)return;if(id===EU_PAPEL){delete privadas[f];return}
-    /* SUBSTITUIDO 09/10 (Mario): personagem humano e do sistema aparecem iguais na tela; o jogador não distingue. Antes: privadas[f].msgs=...map(...escreveu só para você...) */
-  });
+    privadas[f].msgs=privadas[f].msgs.map(function(m){return m.de===f&&m.txt?{sis:'<b>'+Na(id)+'</b> escreveu só para você: <i>"'+m.txt+'"</i>'}:m})});
 })();
 /* O sorteio da sala (decisão 4), feito no celular do Mestre quando ele toca em Iniciar:
    a partida entre as que têm lugar para todos; os personagens, primeiro os convocados

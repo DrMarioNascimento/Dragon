@@ -1188,8 +1188,7 @@ function pintarGrupo(){
 function narrar(txt,hh){grupo.push({sis:T(txt),hh:hh});if(aba==='grupo')pintarGrupo();else{glow('grupo',true);grupo[grupo.length-1].digitada=false}}
 /* Decisão 2 (grupo): a fala pronta de um personagem que está com um humano sai como
    narração, nunca como mensagem do número dele; a do próprio jogador vira "Você disse". */
-/* SUBSTITUIDO 09/10 (Mario): personagem humano e do sistema aparecem iguais na tela; o jogador não distingue. Antes: if(MP&&MP_HUM[id]){narrar('...disse...');return} — a fala do roteiro de um humano virava narração */
-function falar(id,txt){if(!id||!presente(id))return;if(id===EU_PAPEL)return;grupo.push({de:SLOT_DE[id],txt:txt,h:hora()});if(aba==='grupo')pintarGrupo();else glow('grupo',true)}
+function falar(id,txt){if(!id||!presente(id))return;if(MP&&MP_HUM[id]){narrar(id===EU_PAPEL?'Você disse: <i>"'+txt+'"</i>':'<b>'+Na(id)+'</b> disse: <i>"'+txt+'"</i>');return}if(id===EU_PAPEL)return;grupo.push({de:SLOT_DE[id],txt:txt,h:hora()});if(aba==='grupo')pintarGrupo();else glow('grupo',true)}
 
 /* ── Privadas ───────────────────────────────────────────────────────── */
 function pintarListaPriv(){
@@ -1206,8 +1205,7 @@ function abrirPriv(f){if(!privadas[f])privadas[f]={nao:0,msgs:[]};abertaPriv=f;p
 function pintarConv(){var el=$('#chatPriv');el.innerHTML=privadas[abertaPriv].msgs.map(bolha).join('')||'<div class="dia">CONVERSA PRIVADA</div>';el.scrollTop=el.scrollHeight}
 $('#voltarPriv').onclick=function(){abertaPriv=null;$('#convPriv').hidden=true;$('#listaPriv').hidden=false;pintarListaPriv()};
 function chegaPrivada(id,txt){if(!presente(id)||id===EU_PAPEL)return;var f=SLOT_DE[id];if(!privadas[f])privadas[f]={nao:0,msgs:[]};
-  /* SUBSTITUIDO 09/10 (Mario): personagem humano e do sistema aparecem iguais na tela; o jogador não distingue. Antes: MP&&MP_HUM[id]?{sis:'...escreveu só para você...'}:{de:...} */
-  privadas[f].msgs.push({de:f,txt:txt,h:hora()});privadas[f].ordem=++ordemPriv;if(!(aba==='privadas'&&abertaPriv===f))privadas[f].nao++;if(abertaPriv===f)pintarConv();pintarListaPriv()}
+  privadas[f].msgs.push(MP&&MP_HUM[id]?{sis:'<b>'+Na(id)+'</b> escreveu só para você: <i>"'+txt+'"</i>'}:{de:f,txt:txt,h:hora()});privadas[f].ordem=++ordemPriv;if(!(aba==='privadas'&&abertaPriv===f))privadas[f].nao++;if(abertaPriv===f)pintarConv();pintarListaPriv()}
 document.addEventListener('click',function(e){var p=e.target.closest('[data-priv]');if(p)abrirPriv(p.dataset.priv)});
 
 /* ── Abas ───────────────────────────────────────────────────────────── */
@@ -1241,7 +1239,7 @@ function montarRespostas(id,lista,destino){var el=$('#'+id);
   el.querySelectorAll('.chip').forEach(function(c){c.onclick=function(){if(!gastarEnvio())return;var m={de:EU,txt:c.textContent,h:hora()};
     if(destino==='grupo'){grupo.push(m);pintarGrupo();replicaGrupo(c.textContent);mpEnviar(m,'grupo')}
     else{privadas[abertaPriv].msgs.push(m);privadas[abertaPriv].ordem=++ordemPriv;pintarConv();pintarListaPriv();
-      var f=abertaPriv;mpEnviar(m,f);/* SUBSTITUIDO 09/10: if(!(MP&&HUM_SLOT[f])) — todo personagem responde igual */setTimeout(function(){var id2=ID_DE[f];if(!privadas[f].resp&&id2){privadas[f].resp=true;chegaPrivada(id2,'Agora não dá. Depois a gente fala.')}},3000)}
+      var f=abertaPriv;mpEnviar(m,f);if(!(MP&&HUM_SLOT[f]))setTimeout(function(){var id2=ID_DE[f];if(!privadas[f].resp&&id2){privadas[f].resp=true;chegaPrivada(id2,'Agora não dá. Depois a gente fala.')}},3000)}
     el.hidden=true}})}
 document.querySelectorAll('[data-respostas]').forEach(function(b){b.onclick=function(){var id=b.dataset.respostas,el=$('#'+id);
   if(el.hidden){montarRespostas(id,id==='respGrupo'?RESP_GRUPO:RESP_PRIV,id==='respGrupo'?'grupo':'priv');el.hidden=false}else el.hidden=true}});
@@ -1427,11 +1425,9 @@ function pintarPecas(){$('#gradeRA').innerHTML=PECAS.map(function(p){var tr=!(p.
 
 /* ── Papéis: quem está na agência ───────────────────────────────────── */
 function mostrarPapeis(){
-  /* SUBSTITUIDO 09/10 (Mario): personagem humano e do sistema aparecem iguais na tela; o jogador não distingue. Antes: título contava jogadores; o texto dizia quem era jogador da mesa e quem era do sistema; o apoio aparecia apagado e marcado 'sempre do sistema' */
-  $('#papeisTitulo').innerHTML='Nesta partida há <span id="nJogadores">'+PRESENTES.length+'</span> personagens.';
-  $('#papeisLede').textContent='Na agência, esta manhã, estão estas pessoas, cada uma com a sua função. Uma delas não é quem diz ser. Nunca é o seu personagem.';
-  var FUNC_APOIO={seguranca_interno:'Quem guarda a agência',caixa_novato:'O caixa mais novo'};
-  $('#elenco').innerHTML=PRESENTES.map(function(id){var p=P[id];return '<div class="'+(id===EU_PAPEL?'meu':'')+'"><span class="sil">'+SIL+'</span><b>'+p.n+'</b><span>'+(p.sis?FUNC_APOIO[id]:p.f)+'</span></div>'}).join('');
+  var hum=HUMANOS;$('#nJogadores').textContent=hum;$('#papeisTitulo').innerHTML='Nesta partida há <span id="nJogadores">'+hum+'</span> '+(hum>1?'jogadores':'jogador')+'.';
+  $('#papeisLede').textContent='Na agência, esta manhã, estão '+PRESENTES.length+' pessoas, cada uma com a sua função. '+(MP&&HUMANOS>1?'Os marcados como jogador da mesa estão com pessoas; os outros ficam com o sistema.':'Os outros personagens ficam com o sistema.')+' Um deles é o impostor. Nunca é o seu, nem de quem joga.';
+  $('#elenco').innerHTML=PRESENTES.map(function(id){var p=P[id];return '<div class="'+(id===EU_PAPEL?'meu':'')+(p.sis?' sistema-el':'')+'"><span class="sil">'+SIL+'</span><b>'+p.n+'</b><span>'+(p.sis?'apoio · sempre do sistema':p.f+(MP&&MP_HUM[id]&&id!==EU_PAPEL?' · jogador da mesa':''))+'</span></div>'}).join('');
   $('#seuIcone').innerHTML=avatarDe(EU,84);$('#seuNome').textContent=P[EU_PAPEL].n;
   $('#seuFuncao').textContent=P[EU_PAPEL].f+'. Seu número: ···'+EU+'. '+(CHEGA?'Você chega à agência esta manhã.':'Você já estava na agência quando a manhã começou.');
   var d=$('#papeis');try{d.showModal()}catch(e){d.setAttribute('open','')}}
@@ -1674,7 +1670,8 @@ document.querySelectorAll('[data-respostas]').forEach(function(b){var antigo=b.o
     var txt=c.textContent,m={de:EU,txt:txt,h:hora()},r=C.rep[txt];el.hidden=true;
     if(id==='respGrupo'){grupo.push(m);pintarGrupo();replicaGrupo(txt);mpEnviar(m,'grupo')}
     else{var f=abertaPriv;privadas[f].msgs.push(m);privadas[f].ordem=++ordemPriv;pintarConv();pintarListaPriv();mpEnviar(m,f);
-      /* SUBSTITUIDO 09/10 (Mario): personagem humano e do sistema aparecem iguais na tela; o jogador não distingue. Antes: if(MP&&HUM_SLOT[f])return; — o silêncio no privado denunciava o humano */
+      /* um humano responde por si: o sistema não fala por ele */
+      if(MP&&HUM_SLOT[f])return;
       if(typeof r==='function')r=r(ID_DE[f]);if(typeof r==='string')setTimeout(function(){chegaPrivada(ID_DE[f],r)},2500+Math.random()*1500)}}})}});
 
 /* ── Fim do capítulo: debate, perguntas, aposta ─────────────────────── */
@@ -2718,7 +2715,7 @@ function falaDoTipo(id){var L=FALA_TIPO[tipoDe(id)],k=tipoConta[id]||0;tipoConta
 /* a privada que não tinha resposta: no prólogo e nos capítulos */
 var _chegaPrivTipo=chegaPrivada;chegaPrivada=function(id,txt){if(txt==='Agora não dá. Depois a gente fala.')txt=falaDoTipo(id);_chegaPrivTipo(id,txt)};
 document.addEventListener('click',function(e){var c=e.target.closest('#respPriv .chip');if(!c||!capitulo||!abertaPriv)return;
-  var C=CAPS[capitulo],f=abertaPriv,id=ID_DE[f];if(!C||!id||C.rep[c.textContent]!==undefined||capituloFechado[capitulo])return;   /* SUBSTITUIDO 09/10: ||(MP&&HUM_SLOT[f]) */
+  var C=CAPS[capitulo],f=abertaPriv,id=ID_DE[f];if(!C||!id||C.rep[c.textContent]!==undefined||(MP&&HUM_SLOT[f])||capituloFechado[capitulo])return;
   /* o handler do chip (depois deste) gasta o envio e põe a frase na conversa; aqui só a resposta, se a frase saiu */
   var n0=privadas[f]?privadas[f].msgs.length:0;
   setTimeout(function(){var ms=privadas[f]&&privadas[f].msgs;if(ms&&ms.length>n0&&ms[n0].de===EU)chegaPrivada(id,falaDoTipo(id))},2600+Math.random()*1500)},true);
