@@ -1,5 +1,12 @@
 # Dragon Games
 
+## Estado e manutenção — 10 de outubro de 2026
+
+O hub reúne os percursos de A Casa da Costa e A Manhã do Carro-Forte, com entradas para mesa, telão, solo e outros modos descritos abaixo. Há também experiências de O Impostor em desenvolvimento. As pastas históricas e os protótipos não devem ser tratados como lançamentos equivalentes.
+
+Para manutenção, consulte [o padrão de salas](PADRAO-SALA-MULTIPLAYER.md), [a separação entre modo, papel e camada](MOSAICO-ACESSIBILIDADE-PAPEIS.md) e [a segurança do Firebase](FIREBASE-SECURITY.md). A suíte de regras e integridade existe no repositório; ela não substitui partidas com pessoas, verificação de reconexão e teste de todas as perspectivas do mistério. A autoria conjunta de Mário César Nascimento e Osana Melo Nascimento permanece conforme [LICENSE.md](LICENSE.md).
+
+
 **English** · [Português](#português)
 
 Dragon Games is a home for deduction and investigation games. The first title is **MOSAICO — A Verdade é um Fragmento** ("The Truth Is a Fragment"), a distributed-deduction mystery for groups on smartphones, with an optional shared screen. No one holds all the facts: players observe, trade, negotiate and deduce.

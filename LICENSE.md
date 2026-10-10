@@ -265,3 +265,11 @@ Requests for authorization of any use not expressly permitted should be addresse
 **Year:** 2026
 
 All rights not expressly granted remain reserved to the rights holders.
+
+---
+
+## Nota editorial — 10 de outubro de 2026
+
+Esta revisão mantém a autoria conjunta de Mário César Nascimento e Osana Melo Nascimento e a distinção entre os percursos de jogo, protótipos e componentes de terceiros.
+
+Esta nota registra a revisão da documentação. Não altera as cláusulas anteriores, os titulares, as permissões, as restrições nem as licenças próprias de terceiros.
