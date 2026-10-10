@@ -67,3 +67,17 @@ Mesmo projeto e mesmas regras d'O Impostor (`oimpostor-c30e0`,
 coleção `mosaico/`; o `caseId` gravado na sala separa uma da outra (quem digita o
 código de um caso na página do outro recebe "Esse código pertence a outro caso").
 Nada a publicar no console: as regras atuais já cobrem este caso.
+
+## O Eco do Amanhã: O Impostor (10/10/2026)
+
+Mesmo projeto e mesmas regras d'O Impostor (`oimpostor-c30e0`,
+`o-impostor/firestore-impostor.rules`), com o mesmo protocolo de sala (sorteio em
+`oi`, capítulos em `cap {n, t0Ms}`, `jogadores.etapa/resumo`, `mensagens`). A mesa
+(`vestchip-impostor/mesa.html?grupo=1`) carrega `firebase-room.js` com
+`data-project="impostor"`, `data-root="mosaico"`, `data-case="vestchip-impostor"`,
+`data-papel-camada="nao"` e `data-retomar="sim"`. As salas convivem na coleção
+`mosaico/` com as dos outros dois casos; o `caseId` gravado na sala separa uma da outra.
+O estado local do aparelho usa o prefixo `vci:` no sessionStorage, separado do `cfi:`.
+Nada a publicar no console: as regras atuais já cobrem este caso.
+Pendente: o modo grupo foi validado só com a simulação local de jogadores (`humsim`);
+falta um teste ao vivo com aparelhos reais na sala Firebase.
