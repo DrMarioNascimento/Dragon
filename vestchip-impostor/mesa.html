@@ -907,6 +907,16 @@ button:active,.caixa:active,.redondo:active,.chip:active{
 .debate-falas small{color:#f0bf8f!important}
 .debate-fala{border-top-color:#1d3540!important}
 
+/* o filme da abertura (10/10): tela cheia, legenda própria, botão em profundidade */
+.ab-filme{position:absolute;inset:0;z-index:5;background:#000;display:flex;align-items:center;justify-content:center}
+.ab-filme[hidden]{display:none}
+.ab-filme video{width:100%;height:100%;object-fit:contain;background:#000}
+.ab-filme video::cue{opacity:0}
+.ab-legenda{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom) + 76px);transform:translateX(-50%);width:min(620px,calc(100% - 32px));padding:0;text-align:center;font:600 16px/1.45 var(--sans);color:#f3f6f4;text-shadow:0 2px 6px #000,0 0 2px #000;opacity:0;transition:opacity .35s}
+.ab-legenda.on{opacity:1;padding:8px 12px;border-radius:10px;background:#020609a8}
+.ab-pular-filme{position:absolute;right:12px;bottom:calc(env(safe-area-inset-bottom) + 14px);min-height:42px;padding:0 15px;border-radius:10px;border:1px solid #46667a;border-bottom:3px solid #020609;background:linear-gradient(180deg,#14303d,#0a1a24);color:#efc878;font:700 13px var(--termfont);letter-spacing:.06em;cursor:pointer;box-shadow:inset 0 2px 0 #ffffff14,0 4px 0 #020609,0 8px 14px #0008}
+.ab-pular-filme:active{transform:translateY(3px);box-shadow:inset 0 2px 0 #ffffff14,0 1px 0 #020609}
+
 </style>
 </head>
 <body>
@@ -922,6 +932,13 @@ button:active,.caixa:active,.redondo:active,.chip:active{
     <button class="ab-entrar" id="abEntrar" type="button" hidden>Entrar na torre ›</button>
   </div>
   <button class="ab-pular" id="abPular" type="button">Pular ›</button>
+  <div class="ab-filme" id="abFilme" hidden>
+    <video id="abVideo" src="media/abertura.mp4" poster="media/abertura-poster.jpg" playsinline preload="metadata" aria-label="O filme da Torre de Continuidade, com narração">
+      <track kind="captions" src="media/abertura.vtt" srclang="pt" label="Português" default>
+    </video>
+    <div class="ab-legenda" id="abLegenda" aria-live="polite"></div>
+    <button class="ab-pular-filme" id="abPularFilme" type="button">Pular o filme ›</button>
+  </div>
 </div>
 
 <div class="janela" id="janela" hidden><div class="caixa-j"><small id="janelaRot">PARA COMEÇAR</small><p id="janelaTxt"></p><button id="janelaOk">Entendi</button></div></div>
@@ -2145,7 +2162,18 @@ function inicioDoJogo() {
   janela('PARA COMEÇAR', 'Toque em RA. A noite começa no alto da torre: abra a maquete e entre no 12B, o andar de escritórios, onde ficaram os terminais; lá você conhece as quatro telas do jogo. Ao lado da maquete, a planta mostra onde você está. As duas ficam disponíveis o jogo todo e vão para a mesa em realidade aumentada.');
 }
 function comecarAbertura() { var ab = $('#abertura'); if (!ab || fimAb) return; ab.classList.remove('capa'); fimAb = digitar($('#abTerm'), D.abertura, 24, function () { var b = $('#abEntrar'); if (b) b.hidden = false; }); }
-$('#abComecar').onclick = comecarAbertura;
+/* 10/10: o filme da torre (do designer) com a narração, antes do terminal. Legenda própria
+   (o iPhone não mostra a trilha nativa sem tela cheia); sem som, segue mudo com a legenda. */
+var filmeVisto = false;
+function filmeAbertura() {
+  var f = $('#abFilme'), v = $('#abVideo'), leg = $('#abLegenda'); if (!f || !v || filmeVisto || TESTE) { filmeVisto = true; comecarAbertura(); return; }
+  filmeVisto = true; f.hidden = false; $('#abComecar').hidden = true; $('#abPular').hidden = true;
+  var tr = v.textTracks && v.textTracks[0]; if (tr) { tr.mode = 'hidden'; tr.oncuechange = function () { var c = tr.activeCues && tr.activeCues[0]; leg.textContent = c ? c.text : ''; leg.classList.toggle('on', !!c); }; }
+  function acabar() { if (f.hidden) return; try { v.pause(); } catch (e) {} f.hidden = true; $('#abPular').hidden = false; comecarAbertura(); }
+  v.onended = acabar; $('#abPularFilme').onclick = acabar; v.onerror = acabar;
+  var pr = v.play(); if (pr && pr.catch) pr.catch(function () { v.muted = true; var p2 = v.play(); if (p2 && p2.catch) p2.catch(acabar); });
+}
+$('#abComecar').onclick = filmeAbertura;
 $('#abEntrar').onclick = inicioDoJogo;
 $('#abPular').onclick = function () { if (fimAb) fimAb(); inicioDoJogo(); };
 
