@@ -28,7 +28,9 @@ const CONFIGS={
   mesa:{apiKey:'AIzaSyDwshZbqaMOKxdRuyLtdpbijPRdrjVOcxE',authDomain:'mosaico-game.firebaseapp.com',projectId:'mosaico-game',storageBucket:'mosaico-game.firebasestorage.app',messagingSenderId:'436141261767',appId:'1:436141261767:web:6a83555a2f7c4ed4550fe2'},
   noite:{apiKey:'AIzaSyA160bkgHBrYBwvIxlENax-aAyLWPMaOU4',authDomain:'mosaico-noite.firebaseapp.com',projectId:'mosaico-noite',storageBucket:'mosaico-noite.firebasestorage.app',messagingSenderId:'703343424116',appId:'1:703343424116:web:e6990b5c00d43aca6e9721'},
   /* O Impostor (03/10/2026): projeto próprio, um por caso. Sem Analytics: não serve ao jogo. */
-  impostor:{apiKey:'AIzaSyB_iz5CI0lvml-t7nlgTGmQGGL6i79drjs',authDomain:'oimpostor-c30e0.firebaseapp.com',projectId:'oimpostor-c30e0',storageBucket:'oimpostor-c30e0.firebasestorage.app',messagingSenderId:'182177484646',appId:'1:182177484646:web:48efa34591444c6af1c2a7'}
+  impostor:{apiKey:'AIzaSyB_iz5CI0lvml-t7nlgTGmQGGL6i79drjs',authDomain:'oimpostor-c30e0.firebaseapp.com',projectId:'oimpostor-c30e0',storageBucket:'oimpostor-c30e0.firebasestorage.app',messagingSenderId:'182177484646',appId:'1:182177484646:web:48efa34591444c6af1c2a7'},
+  /* O Eco do Amanhã: O Impostor (11/10/2026): projeto próprio do VestChip. Sem Analytics. */
+  vestchip:{apiKey:'AIzaSyCVFRwufDXTY6qVaBKrToGCHd5CS35obWE',authDomain:'vestchip.firebaseapp.com',projectId:'vestchip',storageBucket:'vestchip.firebasestorage.app',messagingSenderId:'688895060786',appId:'1:688895060786:web:336053a414675f6edc452b'}
 };
 const app=getApps().find(a=>a.name===`dragon-${PROJECT}`)||initializeApp(CONFIGS[PROJECT],`dragon-${PROJECT}`);
 const auth=getAuth(app),db=getFirestore(app);

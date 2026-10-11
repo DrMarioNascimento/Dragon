@@ -2583,8 +2583,8 @@ if (GRUPO && !MP) window.DragonSalaAntesDeIniciar = function (ctx) {
 function vciCarregarSala() {
   if (vciCarregarSala.feito) return; vciCarregarSala.feito = true;
   var q = document.createElement('script'); q.src = 'lib/qr.js'; document.head.appendChild(q);
-  var m = document.createElement('script'); m.type = 'module'; m.src = (window.VCI_SALA_SRC || '../firebase-room.js?v=20261010-vc');
-  var d = { project: 'impostor', root: 'mosaico', case: 'vestchip-impostor', title: 'O Eco do Amanhã · O Impostor', papelCamada: 'nao', retomar: 'sim' };
+  var m = document.createElement('script'); m.type = 'module'; m.src = (window.VCI_SALA_SRC || '../firebase-room.js?v=20261011-vc');
+  var d = { project: 'vestchip', root: 'mosaico', case: 'vestchip-impostor', title: 'O Eco do Amanhã · O Impostor', papelCamada: 'nao', retomar: 'sim' };
   Object.keys(d).forEach(function (k) { m.dataset[k] = d[k]; }); document.body.appendChild(m);
 }
 if (MP && MPCFG.mestre) {

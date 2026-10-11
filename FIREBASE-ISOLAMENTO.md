@@ -6,6 +6,7 @@
 | A Manhã do Carro-Forte | `mosaico-noite` | salas da Casa da Costa |
 | O Impostor (A Casa da Costa: O Impostor) | `oimpostor-c30e0` | salas das outras mesas |
 | A Manhã do Carro-Forte: O Impostor | `oimpostor-c30e0` (caseId `carro-forte-impostor`) | salas d'A Casa da Costa: O Impostor (o gate recusa código de outro caseId) |
+| O Eco do Amanhã: O Impostor (VestChip) | `vestchip` (desde 11/10/2026) | salas dos outros casos |
 
 Dentro do mesmo projeto, coleções diferentes (`mosaico/` vs `noite/`) separam o Celular canônico do fluxo de fechamento/alternativo.
 
@@ -68,16 +69,19 @@ coleção `mosaico/`; o `caseId` gravado na sala separa uma da outra (quem digit
 código de um caso na página do outro recebe "Esse código pertence a outro caso").
 Nada a publicar no console: as regras atuais já cobrem este caso.
 
-## O Eco do Amanhã: O Impostor (10/10/2026)
+## O Eco do Amanhã: O Impostor (10/10/2026; projeto próprio desde 11/10/2026)
 
-Mesmo projeto e mesmas regras d'O Impostor (`oimpostor-c30e0`,
-`o-impostor/firestore-impostor.rules`), com o mesmo protocolo de sala (sorteio em
-`oi`, capítulos em `cap {n, t0Ms}`, `jogadores.etapa/resumo`, `mensagens`). A mesa
-(`vestchip-impostor/mesa.html?grupo=1`) carrega `firebase-room.js` com
-`data-project="impostor"`, `data-root="mosaico"`, `data-case="vestchip-impostor"`,
-`data-papel-camada="nao"` e `data-retomar="sim"`. As salas convivem na coleção
-`mosaico/` com as dos outros dois casos; o `caseId` gravado na sala separa uma da outra.
+Projeto próprio, `vestchip`. A mesa (`vestchip-impostor/mesa.html?grupo=1`) carrega
+`firebase-room.js` com `data-project="vestchip"`, `data-root="mosaico"`,
+`data-case="vestchip-impostor"`, `data-papel-camada="nao"` e `data-retomar="sim"`.
+O protocolo da sala é o mesmo d'O Impostor (sorteio em `oi`, agora com `formas` por papel;
+capítulos em `cap {n, t0Ms}`, `jogadores.etapa/resumo`, `mensagens`), e as regras são as mesmas:
+colar `o-impostor/firestore-impostor.rules` no console do projeto `vestchip`.
 O estado local do aparelho usa o prefixo `vci:` no sessionStorage, separado do `cfi:`.
-Nada a publicar no console: as regras atuais já cobrem este caso.
+
+No console do projeto `vestchip`: Firestore (região `southamerica-east1`), Authentication com
+Google e Anônimo, domínio autorizado `drmarionascimento.github.io`, as regras coladas e o
+documento `config/mestres` com o campo `emails` (lista).
+
 Pendente: o modo grupo foi validado só com a simulação local de jogadores (`humsim`);
 falta um teste ao vivo com aparelhos reais na sala Firebase.
