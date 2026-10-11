@@ -916,6 +916,123 @@ button:active,.caixa:active,.redondo:active,.chip:active{
 .ab-legenda.on{opacity:1;padding:8px 12px;border-radius:10px;background:#020609a8}
 .ab-pular-filme{position:absolute;right:12px;bottom:calc(env(safe-area-inset-bottom) + 14px);min-height:42px;padding:0 15px;border-radius:10px;border:1px solid #46667a;border-bottom:3px solid #020609;background:linear-gradient(180deg,#14303d,#0a1a24);color:#efc878;font:700 13px var(--termfont);letter-spacing:.06em;cursor:pointer;box-shadow:inset 0 2px 0 #ffffff14,0 4px 0 #020609,0 8px 14px #0008}
 .ab-pular-filme:active{transform:translateY(3px);box-shadow:inset 0 2px 0 #ffffff14,0 1px 0 #020609}
+/* o pódio da mesa em grupo (faltava nesta cópia: a regra vinha do motor do Carro-Forte) */
+.podio{display:grid;grid-template-columns:1fr 1fr 1fr;align-items:end;gap:8px;margin:6px 0 14px}
+.podio-col{display:flex;flex-direction:column;align-items:stretch;text-align:center}
+.podio-nomes{font:600 13px/1.3 var(--sans);color:#eafcff;margin-bottom:6px;min-height:18px;word-break:break-word}
+.podio-bloco{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:8px;border-radius:10px 10px 0 0;border:1px solid #2b6470;background:linear-gradient(#1b4f5c,#0b1a20)}
+.podio-bloco span{font:800 22px var(--sans);color:#efc878}
+.podio-bloco small{font:700 13px var(--mono);color:#9fc3c9}
+.podio-bloco.d1{height:120px;border-color:#efc878;background:linear-gradient(#5a4a1e,#1d1a0c)}
+.podio-bloco.d2{height:88px}
+.podio-bloco.d3{height:64px}
+
+/* ══ Telas de fechamento, visual novo (10/10, aprovado pelo Mario): ouro fino, cantos chanfrados, magenta só para o impostor ══ */
+
+:root{--mag:#e0418f;--mag2:#ff7cc0;--ouroL:#8a6f3d;--ouro:#e2bf78;--ouro2:#f6dca0}
+#fecho.fim{background:radial-gradient(120% 60% at 50% 0%,#11262e,#070f13 60%,#04090c)!important;border:1px solid var(--ouroL)!important;border-radius:0!important;
+  clip-path:polygon(16px 0,calc(100% - 16px) 0,100% 16px,100% calc(100% - 16px),calc(100% - 16px) 100%,16px 100%,0 calc(100% - 16px),0 16px);
+  box-shadow:inset 0 0 0 4px #04090c,inset 0 0 0 5px #8a6f3d66,inset 0 2px 0 #ffffff10!important;padding:26px 20px!important}
+#fecho.fim .kicker{color:var(--ouro)!important;letter-spacing:.32em!important;text-align:center;font-size:10.5px!important}
+#fecho.fim .kicker::before{content:'// '}#fecho.fim .kicker::after{content:' //'}
+#fecho.fim h1{font:700 clamp(30px,8vw,40px)/1.05 'Cormorant Garamond',Georgia,serif!important;text-align:center;letter-spacing:.02em;
+  background:linear-gradient(180deg,var(--ouro2),var(--ouro) 55%,#b8893e);-webkit-background-clip:text;background-clip:text;color:transparent!important;margin-bottom:6px!important}
+#fecho.fim h2{display:flex;align-items:center;gap:10px;color:var(--ouro)!important;letter-spacing:.22em!important;font-size:11.5px!important;margin:18px 0 10px!important}
+#fecho.fim h2::before,#fecho.fim h2::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,#8a6f3d)}
+#fecho.fim h2::after{background:linear-gradient(90deg,#8a6f3d,transparent)}
+#fecho.fim .lede{color:#c9d8de!important}
+#fecho.fim .acoes button{border-radius:0!important;clip-path:polygon(10px 0,calc(100% - 10px) 0,100% 50%,calc(100% - 10px) 100%,10px 100%,0 50%);background:linear-gradient(180deg,#f3d078,#e0b13a)!important;color:#1a1206!important;border:0!important;font:700 13px var(--termfont)!important;letter-spacing:.14em;text-transform:uppercase;box-shadow:inset 0 2px 0 #fff6,inset 0 -4px 0 #a07a24!important}
+#fecho.fim .acoes button.sec{background:linear-gradient(180deg,#16303a,#0b1a20)!important;color:var(--ouro)!important;box-shadow:inset 0 0 0 1px #8a6f3d,inset 0 2px 0 #ffffff14!important}
+/* a revelação: o impostor ganha cor própria */
+#fecho.revelado #impLogo{border-color:var(--mag)!important;background:radial-gradient(90% 120% at 20% 50%,#4a0f2c,#1a0710 70%)!important;box-shadow:0 0 0 1px #e0418f55,0 0 28px #e0418f44,inset 0 2px 0 #ffffff12!important;border-radius:0!important;clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px)}
+#fecho.revelado #impLogo small{color:var(--mag2)!important;letter-spacing:.24em!important}
+#fecho.revelado #impLogo b{color:var(--mag2)!important;text-shadow:0 0 12px #e0418faa}
+#fecho.revelado #fechoTitulo{background:linear-gradient(180deg,#ffd0e8,var(--mag2) 50%,var(--mag))!important;-webkit-background-clip:text!important;background-clip:text!important}
+#fecho.revelado .revela{border-color:var(--mag)!important;box-shadow:0 0 30px #e0418f55!important}
+#fecho.revelado .kicker{color:var(--mag2)!important}
+#fecho.revelado h2{color:var(--ouro)!important}
+#fecho.revelado h2.quem-fez{color:var(--mag2)!important}
+/* o placar: o número grande, a escala, os losangos e as estatísticas */
+.pv-escala{text-align:center;font:600 12px var(--termfont);letter-spacing:.26em;color:#c9b38a;margin:-2px 0 12px}
+.pv-losangos{display:flex;justify-content:center;gap:7px;margin:0 0 16px}.pv-losangos i{width:12px;height:12px;transform:rotate(45deg);background:#1d3540;box-shadow:inset 0 1px 0 #ffffff12}.pv-losangos i.on{background:linear-gradient(135deg,#a6eef5,#3fb6c4);box-shadow:0 0 8px #3fb6c488}
+.pv-veredito{text-align:center;font:600 13px var(--termfont);letter-spacing:.18em;color:#86e1ea;text-transform:uppercase;margin:0 0 14px}
+.pv-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin:4px 0 16px;border:1px solid #8a6f3d;clip-path:polygon(10px 0,calc(100% - 10px) 0,100% 10px,100% calc(100% - 10px),calc(100% - 10px) 100%,10px 100%,0 calc(100% - 10px),0 10px);background:linear-gradient(180deg,#0e1d24,#081216)}
+.pv-stats div{padding:10px 4px 9px;text-align:center;border-right:1px solid #8a6f3d55}.pv-stats div:last-child{border-right:0}
+.pv-stats small{display:block;font:600 9px var(--termfont);letter-spacing:.14em;color:#c9b38a;text-transform:uppercase;min-height:22px}
+.pv-stats b{display:block;font:700 22px 'Cormorant Garamond',serif;color:var(--ouro2)}
+.pv-stats em{display:block;font:600 10.5px var(--termfont);font-style:normal;color:#86e1ea}
+.pv-stats .imp b{color:var(--mag2)}.pv-stats .imp em{color:var(--mag2)}
+.pv-imp{display:flex;gap:12px;align-items:center;padding:10px 12px;margin:0 0 14px;border:1px solid var(--mag);background:radial-gradient(90% 140% at 15% 50%,#3a0c24,#12060c 70%);clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
+.pv-imp small{display:block;font:600 9.5px var(--termfont);letter-spacing:.22em;color:var(--mag2)}.pv-imp b{font:700 20px 'Cormorant Garamond',serif;color:var(--mag2)}.pv-imp span{display:block;font:500 12.5px var(--sans);color:#e9cfdc}
+#fecho.fim table tr td{border-bottom:1px solid #8a6f3d33;padding:6px 2px}
+#fecho.fim h1.pv-numero{font-size:72px!important;line-height:.95!important;margin-top:4px!important}
+#fecho.fim .debate-falas{background:linear-gradient(180deg,#0e1d24,#081216)!important;border:1px solid #8a6f3d66!important;border-left:3px solid var(--ouro)!important;border-radius:0!important;padding:4px 12px!important}
+
+/* o pódio holográfico (10/10): só o jogador, nunca o personagem */
+.hp{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr) minmax(0,1fr);align-items:end;gap:6px;margin:14px -6px 6px;padding-top:8px}
+.hp::before{content:'';position:absolute;left:-10px;right:-10px;bottom:-6px;height:70px;background:radial-gradient(60% 100% at 50% 100%,#3fb6c433,transparent 70%);pointer-events:none}
+.hp-col{position:relative;display:flex;flex-direction:column;align-items:center}
+.hp-fig{position:relative;width:100%;height:190px;display:flex;justify-content:center;align-items:flex-end;margin-bottom:-14px;z-index:2}
+.hp-c1 .hp-fig{height:230px}
+.hp-fig img{height:100%;width:100%;object-fit:contain;animation:hpFlut 3.2s ease-in-out infinite;filter:drop-shadow(0 0 10px #3fb6c4aa) saturate(1.15);
+  -webkit-mask-image:linear-gradient(180deg,#000 75%,transparent);mask-image:linear-gradient(180deg,#000 75%,transparent);opacity:.92}
+
+.hp-c1 .hp-fig img{filter:drop-shadow(0 0 14px #f3d078aa) hue-rotate(-140deg) saturate(.75) brightness(1.25) sepia(.35)}
+.hp-c3 .hp-fig img{filter:drop-shadow(0 0 10px #d49a6aaa) hue-rotate(160deg) saturate(.7) sepia(.5)}
+/* o feixe que sobe do pedestal */
+.hp-feixe{position:absolute;left:12%;right:12%;bottom:62px;height:150px;z-index:1;background:linear-gradient(0deg,#3fb6c455,#3fb6c400);clip-path:polygon(0 100%,100% 100%,82% 0,18% 0);filter:blur(1px)}
+.hp-c1 .hp-feixe{height:190px;background:linear-gradient(0deg,#f3d07866,#f3d07800)}
+.hp-c3 .hp-feixe{background:linear-gradient(0deg,#d49a6a55,#d49a6a00)}
+/* a placa do nome */
+.hp-nome{position:relative;z-index:3;margin:0 0 6px;padding:5px 8px;min-width:86%;text-align:center;border:1px solid #3fb6c4aa;background:linear-gradient(180deg,#0b2a33e6,#061418e6);clip-path:polygon(8px 0,calc(100% - 8px) 0,100% 50%,calc(100% - 8px) 100%,8px 100%,0 50%);box-shadow:0 0 14px #3fb6c455}
+.hp-nome b{display:block;font:700 11.5px var(--termfont);letter-spacing:.12em;color:#eafcff;text-transform:uppercase}
+.hp-nome small{display:block;font:600 9px var(--termfont);letter-spacing:.16em;color:#86e1ea;text-transform:uppercase}
+.hp-c1 .hp-nome{border-color:#f3d078;background:linear-gradient(180deg,#3a2c10e6,#140e04e6);box-shadow:0 0 18px #f3d07866}.hp-c1 .hp-nome b{color:#fff3cf}.hp-c1 .hp-nome small{color:#f3d078}
+.hp-c3 .hp-nome{border-color:#d49a6a;background:linear-gradient(180deg,#3a2414e6,#140a04e6)}.hp-c3 .hp-nome small{color:#f0bf8f}
+/* o pedestal de vidro */
+.hp-ped{position:relative;width:100%;height:96px;z-index:2}
+.hp-c1 .hp-ped{height:122px}.hp-c3 .hp-ped{height:78px}
+.hp-ped .tampa{position:absolute;left:0;right:0;top:0;height:22px;border-radius:50%;border:2px solid #7ff0ff;background:radial-gradient(closest-side,#bff8ff88,#3fb6c422 70%,transparent);box-shadow:0 0 16px #3fb6c4,inset 0 0 12px #3fb6c4}
+.hp-ped .corpo{position:absolute;left:0;right:0;top:11px;bottom:11px;border-left:1px solid #7ff0ff99;border-right:1px solid #7ff0ff99;
+  background:linear-gradient(90deg,#3fb6c433,#0b2a3399 20%,#06141888 50%,#0b2a3399 80%,#3fb6c433),repeating-linear-gradient(90deg,transparent 0 18px,#3fb6c41c 18px 19px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center}
+.hp-ped .corpo::before{content:'';position:absolute;left:10%;right:10%;top:30%;height:1px;background:linear-gradient(90deg,transparent,#7ff0ff88,transparent)}
+.hp-ped .base{position:absolute;left:-4%;right:-4%;bottom:0;height:24px;border-radius:50%;border:2px solid #3fb6c4;background:radial-gradient(closest-side,#3fb6c444,transparent);box-shadow:0 0 22px #3fb6c4aa}
+.hp-ped .pos{position:relative;font:700 34px/1 'Cormorant Garamond',serif;color:#eafcff;text-shadow:0 0 14px #3fb6c4}
+.hp-ped .pos sup{font-size:.45em}
+.hp-ped .pts{position:relative;font:700 13px var(--termfont);letter-spacing:.08em;color:#a6eef5}
+.hp-c1 .tampa{border-color:#ffe9a8;background:radial-gradient(closest-side,#fff3cf99,#f3d07822 70%,transparent);box-shadow:0 0 20px #f3d078,inset 0 0 14px #f3d078}
+.hp-c1 .corpo{border-color:#ffe9a8aa;background:linear-gradient(90deg,#f3d07844,#3a2c10aa 20%,#140e04aa 50%,#3a2c10aa 80%,#f3d07844),repeating-linear-gradient(90deg,transparent 0 18px,#f3d07822 18px 19px)}
+.hp-c1 .base{border-color:#f3d078;box-shadow:0 0 26px #f3d078aa}
+.hp-c1 .pos{font-size:44px;color:#fff3cf;text-shadow:0 0 16px #f3d078}.hp-c1 .pts{color:#f6dca0}
+.hp-c3 .tampa{border-color:#f0bf8f;background:radial-gradient(closest-side,#f0bf8f88,#d49a6a22 70%,transparent);box-shadow:0 0 16px #d49a6a,inset 0 0 12px #d49a6a}
+.hp-c3 .corpo{border-color:#f0bf8f99;background:linear-gradient(90deg,#d49a6a33,#3a2414aa 20%,#140a04aa 50%,#3a2414aa 80%,#d49a6a33)}
+.hp-c3 .base{border-color:#d49a6a;box-shadow:0 0 22px #d49a6aaa}.hp-c3 .pos{text-shadow:0 0 14px #d49a6a}.hp-c3 .pts{color:#f0bf8f}
+.hp-coroa{white-space:nowrap;position:absolute;top:-6px;left:50%;transform:translateX(-50%);z-index:4;font:700 10px var(--termfont);letter-spacing:.3em;color:#f3d078;text-shadow:0 0 8px #f3d078}
+
+.hp-ped .pos,.pv-stats b,#fecho.fim h1{font-variant-numeric:lining-nums}
+.hp-nome b{font-size:10px!important;letter-spacing:.08em!important}
+
+/* as torres de luz atrás das figuras (como na proposta) */
+.hp-col::before{content:'';position:absolute;left:6%;right:6%;bottom:60px;height:200px;z-index:0;opacity:.55;
+  background:repeating-linear-gradient(90deg,transparent 0 9px,#3fb6c455 9px 10px,transparent 10px 23px,#3fb6c42a 23px 25px);
+  -webkit-mask-image:linear-gradient(0deg,#000,transparent);mask-image:linear-gradient(0deg,#000,transparent)}
+.hp-c1::before{height:250px;background:repeating-linear-gradient(90deg,transparent 0 9px,#f3d07866 9px 10px,transparent 10px 23px,#c8a0ff33 23px 25px)}
+.hp-c3::before{background:repeating-linear-gradient(90deg,transparent 0 9px,#d49a6a55 9px 10px,transparent 10px 23px,#d49a6a2a 23px 25px)}
+.hp-fig,.hp-nome,.hp-ped{z-index:2}
+/* o vencedor: ouro iridescente (o magenta fica só para o impostor) */
+.hp-c1 .corpo{background:linear-gradient(90deg,#f3d07855,#c8a0ff22 15%,#3a2c10aa 30%,#140e04aa 50%,#3a2c10aa 70%,#a0f0ff22 85%,#f3d07855),repeating-linear-gradient(90deg,transparent 0 18px,#f3d07822 18px 19px)!important}
+.hp-ped .corpo::after{content:'';position:absolute;left:18%;right:18%;top:14%;bottom:14%;border:1px solid #7ff0ff55;clip-path:polygon(10px 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%,0 10px)}
+.hp-c1 .corpo::after{border-color:#f3d07888}.hp-c3 .corpo::after{border-color:#d49a6a77}
+.hp-resumo{display:grid;grid-template-columns:repeat(3,1fr);margin:10px 0 4px;border:1px solid #8a6f3d;clip-path:polygon(8px 0,calc(100% - 8px) 0,100% 8px,100% calc(100% - 8px),calc(100% - 8px) 100%,8px 100%,0 calc(100% - 8px),0 8px);background:linear-gradient(180deg,#0e1d24,#081216)}
+.hp-resumo div{padding:8px 4px;text-align:center;border-right:1px solid #8a6f3d55}.hp-resumo div:last-child{border-right:0}
+.hp-resumo small{display:block;font:600 8.5px var(--termfont);letter-spacing:.14em;color:#c9b38a;text-transform:uppercase}
+.hp-resumo b{display:block;font:700 19px 'Cormorant Garamond',serif;color:#f6dca0;font-variant-numeric:lining-nums}
+.hp-resumo .imp b{color:#ff7cc0}
+@keyframes hpFlut{50%{transform:translateY(-4px);opacity:.82}}
+.hp-c1 .hp-fig img{filter:drop-shadow(0 0 14px #f3d078aa) sepia(1) saturate(2.2) hue-rotate(-12deg) brightness(1.15)}
+.hp-c3 .hp-fig img{filter:drop-shadow(0 0 10px #d49a6aaa) sepia(1) saturate(1.6) hue-rotate(-28deg) brightness(.95)}
+@media (prefers-reduced-motion:reduce){.hp-fig img{animation:none}}
 
 </style>
 </head>
@@ -1666,6 +1783,12 @@ var ESCONDIDOS = {
   '+8': [{ id: 'gaveta-balcao', n: 'A gaveta do credenciamento', pos: [1.7, 32.6, 1.3], d: 'Na gaveta do balcão do credenciamento, esquecida entre crachás em branco, a chave mestra da governança.', item: 'chave-mestra' }],
   '+11': [{ id: 'mesa-quarto', n: 'O criado-mudo do quarto do meio', pos: [0.7, 41.6, 6.0], d: 'No criado-mudo do quarto do meio, junto do telefone, uma chave pequena com chaveiro de borracha: ELEVADOR · MÁQUINAS.', item: 'chave-elevador' }]
 };
+/* o Arquivo Dragon Games (pedido do Mario, 10/10): não é da noite nem do caso. O bonequinho guarda
+   um envio extra, a mais do que os que já existem. */
+(ESCONDIDOS['+12B'] = ESCONDIDOS['+12B'] || []).push({ id: 'retrato-12b', n: 'O quadro do hall', pos: [-4.15, 49.45, -0.4], d: 'Um retrato na parede, ao lado da porta corta-fogo: um homem careca, de óculos de aro grosso, sorrindo para quem sai da escada. Na plaqueta, só: ARQUIVO DRAGON GAMES. Não está em nenhum registro da noite.', img: 'criador-retrato.webp', raio: 1.2 });
+(ESCONDIDOS['+12'] = ESCONDIDOS['+12'] || []).push({ id: 'retrato-mirante', n: 'O quadro do núcleo', pos: [-2.45, 46.3, 1.08], d: 'De novo o homem de óculos, num quadro do lado de trás do núcleo, longe da vista da cidade. Alguém espalhou esse rosto pela torre, e nenhuma das pessoas desta noite sabe dizer quem é.', img: 'criador-retrato.webp', raio: 1.2 });
+(ESCONDIDOS['0'] = ESCONDIDOS['0'] || []).push({ id: 'placa-atrio', n: 'A placa no piso', pos: [-1.5, 4.25, 0.6], d: 'No piso do Átrio, ao pé da escada, uma placa de bronze: um cavaleiro de armadura, escudo de dragão e espada em chamas. Em volta: ARQUIVO DRAGON GAMES © · PRIMAVERA DE 2026. O mesmo selo vermelho que aparece carimbado nas folhas da torre.', img: 'medalhao.webp', raio: 1.2 });
+(ESCONDIDOS['+10'] = ESCONDIDOS['+10'] || []).push({ id: 'boneco', n: 'O bonequinho da estante', pos: [6.34, 41.2, 2.88], d: 'Em cima de uma estante, entre as fitas, um bonequinho de vinil: o homem de óculos, uma pilha de livros debaixo do braço e um livro vermelho aberto na mão.', img: 'criador-boneco.webp', raio: 1.1 });
 var ITEM_DEF = {
   'chave-gabinete': { ico: '🗝️', nome: 'Chave do gabinete', desc: 'Abre o andar clínico e o gabinete da Presidente (+4).' },
   'chave-subsolo': { ico: '🗝️', nome: 'Chave do subsolo', desc: 'Abre as portas da escada interna até o subsolo (−1).' },
@@ -1758,10 +1881,11 @@ function abrirMaquete(extra) {
         return { txt: T[2] + (vistas < 4 ? ' (' + vistas + ' de 4 telas.)' : ''), acao: p.id === 'terminais' ? ['Abrir a mesa da recepção ›', function () { abrirObjeto('recepcao', '+12B'); }] : null };
       }
       if (a === '+4' && p.id === 'escrivaninha') return { acao: ['Abrir o gaveteiro ›', function () { abrirObjeto('gabinete', '+4'); }] };
+      if (a === '+10' && p.id === 'boneco' && !ACHADOS.envioBoneco) { ACHADOS.envioBoneco = true; setTimeout(achouEnvio, 700); return { txt: p.d + ' Dentro do livro vermelho, um bilhete dobrado: um envio extra, além dos que você já tem.' }; }
       if (a === '+12' && p.id === 'poltronas' && !prologo.envioMirante) { prologo.envioMirante = true; setTimeout(achouEnvio, 700); return { txt: p.d + ' Dentro, um envio extra.' }; }
       return null;
     },
-    aoFoto: function (a, p, img) { guardar({ ico: '📷', nome: 'Foto: ' + p.n.replace(/^[OA]s? /, '').toLowerCase(), desc: a + ' · ' + p.d, img: img }); },
+    aoFoto: function (a, p, img) { guardar({ ico: '📷', nome: 'Foto: ' + p.n.replace(/^[OA]s? /, '').toLowerCase(), desc: a + ' · ' + p.d, img: p.img ? 'media/' + p.img : img }); },
     aoAndar: function (a, abriu) {
       if (!noProlo || !abriu) return null;
       var meu = andarDoJogador();
@@ -1924,7 +2048,7 @@ document.querySelectorAll('[data-respostas]').forEach(function (b) {
 
 /* ══ Fim do prólogo ══ */
 function REVELA_VIDEO(idV, idS) { return '<div class="revela"><video id="' + idV + '" src="media/impostor-revela.mp4" poster="media/impostor.webp" playsinline muted autoplay preload="auto" aria-label="O boneco de vidro vira o impostor, de chapéu e capa"></video><button type="button" class="som" id="' + idS + '" aria-label="Ver de novo com som">🔊</button></div>'; }
-function abrirFecho() { var d = $('#fecho'); try { d.showModal(); } catch (e) { d.setAttribute('open', ''); } d.scrollTop = 0; }
+function abrirFecho() { var d = $('#fecho'); d.classList.remove('fim', 'revelado'); try { d.showModal(); } catch (e) { d.setAttribute('open', ''); } d.scrollTop = 0; }
 function fecharFecho() { var d = $('#fecho'); try { d.close(); } catch (e) { d.removeAttribute('open'); } }
 function fimDoPrologo() {
   var extra = enviosExtras ? ' (3 do capítulo + ' + enviosExtras + ' achado' + (enviosExtras > 1 ? 's' : '') + ')' : '';
@@ -2126,13 +2250,14 @@ function pintarRevelacao() {
   abrirFecho(); var fImp = SLOT_DE[IMP];
   $('#fechoCorpo').innerHTML = REVELA_VIDEO('videoImp', 'somImp') +
     '<div id="impLogo" style="display:flex;align-items:center;gap:14px;margin:4px 0 14px;padding:12px 14px;border-radius:14px;border:1px solid #6b5420;border-bottom-width:3px;background:linear-gradient(180deg,#1d1709,#120e06);box-shadow:inset 0 2px 0 #ffffff12,inset 0 -4px 7px #0009,0 4px 0 #020609,0 10px 18px #000a;opacity:0;transform:translateY(8px);transition:opacity .9s,transform .9s">' +
-      avatarDe(fImp, 76) + '<div><small style="display:block;color:#c9a95a;letter-spacing:.12em;font:700 11px var(--sans)">NESTA PARTIDA, O IMPOSTOR ERA O NÚMERO</small>' +
+      avatarDe(fImp, 76) + '<div><small style="display:block;color:#c9a95a;letter-spacing:.12em;font:700 11px var(--sans)">REVELAÇÃO · O IMPOSTOR ERA O NÚMERO</small>' +
       '<b style="display:block;font:800 30px var(--termfont);color:' + (CORES[fImp] || '#efc878') + '">···' + fImp + '</b><span style="color:#e9dfc6">' + nm(IMP) + ' · ' + E[IMP].f + '</span></div></div>' +
     '<p class="kicker">A revelação</p><h1 id="fechoTitulo">Foi ' + nomeMin(IMP) + '.</h1>' +
     VP.revelacao(P, CTX).map(function (l) { return '<h2>' + l[0] + '</h2><p class="lede">' + l[1] + '</p>'; }).join('') +
     (AJ === EU_PAPEL ? '<p class="lede"><b>Era o seu personagem que passou o acesso:</b> você ajudou sem saber.</p>' : '') +
     (FC === EU_PAPEL ? '<p class="lede"><b>E o seu personagem era quem parecia culpado, sem ser.</b></p>' : '') +
     '<div class="acoes"><button type="button" id="irPlacar">' + (MP ? 'Ver a mesa' : 'Ver o placar') + '</button></div>';
+  $('#fecho').classList.add('fim', 'revelado'); [].forEach.call(document.querySelectorAll('#fechoCorpo h2'), function (h) { if (/^(O que fez|Por quê)/.test(h.textContent)) h.classList.add('quem-fez'); });
   var vI = $('#videoImp'), lg = $('#impLogo'); function mostra() { if (lg) { lg.style.opacity = 1; lg.style.transform = 'none'; } }
   if (vI) { var pr = vI.play(); if (pr && pr.catch) pr.catch(mostra); vI.addEventListener('ended', mostra); vI.addEventListener('error', mostra); $('#somImp').onclick = function () { vI.muted = false; vI.currentTime = 0; vI.play(); }; }
   setTimeout(mostra, TESTE ? 100 : 5000);
@@ -2222,10 +2347,17 @@ function mostrarPlacar() {
     return '<div class="debate-fala"><b>' + q.pergunta + '</b><br>Certa: ' + certa + '<br>Sua: ' + sua + ' ' + (r && r.certa ? '✓' : '✗') + ' <span style="color:#efc878">(' + fmt(pt.pts) + ' de ' + fmt(pt.max) + ')</span></div>'; }).join('');
   var pct = R.max ? Math.max(0, Math.round(R.tot / R.max * 100)) : 0, veredito = pct >= 70 ? 'Uma ata que se sustenta.' : pct >= 40 ? 'Boa leitura, com lacunas.' : pct > 0 ? 'Muita coisa ficou no escuro.' : 'O impostor ganhou esta.';
   var argTxt = R.args.map(function (x) { return '<p class="lede">Cap. ' + x.cap + ': ' + rotuloDe(x.a.quem) + ' não pode ter feito o percurso porque ' + x.a.pista.txt.replace(/^./, function (c) { return c.toLowerCase(); }).replace(/\.$/, '') + '. <b>' + (x.p > 0 ? '+1, válido' : (x.p < 0 ? '−1: era o impostor' : '0: a prova não o exclui')) + '</b></p>'; }).join('');
-  $('#fechoCorpo').innerHTML = '<p class="kicker">Fim do jogo · placar</p><h1 id="fechoTitulo">' + fmt(R.final) + ' pontos</h1>' +
-    '<p class="lede term" style="font-size:15px">' + veredito + '</p>' +
+  var certas = 0, feitas = 0, apNoImp = 0, apFeitas = 0;
+  Object.keys(respostas).forEach(function (c) { (respostas[c] || []).forEach(function (r) { if (!r) return; feitas++; if (r.certa) certas++; }); });
+  Object.keys(apostas).forEach(function (c) { var a = apostas[c]; if (!a || !a.personagem) return; apFeitas++; if (a.personagem === IMP) apNoImp++; });
+  var nLos = R.max ? Math.round(Math.max(0, Math.min(1, R.tot / R.max)) * 10) : 0, los = '';
+  for (var li = 0; li < 10; li++) los += '<i class="' + (li < nLos ? 'on' : '') + '"></i>';
+  function pc(a, b) { return b ? Math.round(a / b * 100) + '%' : '—'; }
+  $('#fechoCorpo').innerHTML = '<p class="kicker">Fim do jogo · placar</p><h1 id="fechoTitulo" class="pv-numero">' + fmt(R.final) + '<small style="display:block;font:600 13px var(--termfont);letter-spacing:.3em;-webkit-text-fill-color:#c9b38a;margin-top:12px">PONTOS</small></h1>' +
+    '<p class="pv-escala">DE ' + fmt(R.max) + ' POSSÍVEIS</p><div class="pv-losangos" aria-hidden="true">' + los + '</div><p class="pv-veredito">' + veredito + '</p>' +
+    '<div class="pv-stats"><div><small>Perguntas certas</small><b>' + certas + '/' + feitas + '</b><em>' + pc(certas, feitas) + '</em></div><div class="imp"><small>Apostas no impostor</small><b>' + apNoImp + '/' + apFeitas + '</b><em>' + pc(apNoImp, apFeitas) + '</em></div><div><small>Exclusões válidas</small><b>' + R.argVal + '</b><em>' + (R.argPts > 0 ? '+' : '') + R.argPts + ' pts</em></div><div><small>Certezas certeiras</small><b>' + R.certezasCertas + '/' + R.certezas + '</b><em>calibração</em></div></div>' +
     '<p class="lede">Perguntas: ' + fmt(R.tot) + ' de ' + fmt(R.max) + '.' + (R.args.length ? ' Argumentos de exclusão: ' + (R.argPts > 0 ? '+' : '') + R.argPts + '.' : '') + (R.sob ? ' Sob suspeita: +2.' : '') + ' Uma boa noite fica a partir de ' + fmt(Math.round(R.max / 2)) + '.</p>' +
-    '<p class="lede">Nesta partida, o impostor era ' + nomeMin(IMP) + '. Quem ajudou sem saber: ' + nomeMin(AJ) + '. Quem parecia culpado: ' + nomeMin(FC) + '.</p>' +
+    '<div class="pv-imp"><div style="width:46px;height:46px;flex:0 0 46px">' + avatarDe(SLOT_DE[IMP], 46) + '</div><div><small>REVELAÇÃO · IMPOSTOR</small><b>' + nm(IMP) + '</b><span>Ajudou sem saber: ' + nomeMin(AJ) + ' · Parecia culpado: ' + nomeMin(FC) + '</span></div></div>' +
     (MP ? '<div id="mpPlacar"></div>' : '') +
     '<h2>As perguntas finais</h2><div class="debate-falas">' + fin + '</div>' +
     '<h2>Por capítulo</h2><table style="width:100%;border-collapse:collapse;font-size:14px"><tr style="color:#f0bf8f"><td>Cap.</td><td></td><td style="text-align:right">pontos</td><td>aposta</td></tr>' + linhas + '</table>' +
@@ -2239,7 +2371,7 @@ function mostrarPlacar() {
     '<p class="lede" style="font:800 22px var(--termfont);color:#efc878;letter-spacing:.06em" id="codigoFaro">' + codigo + '</p>' +
     '<img id="cartaoImg" alt="Cartão de faro" style="width:100%;max-width:420px;border-radius:12px;border:1px solid #2b6470;display:block;margin:0 0 10px">' +
     '<div class="acoes"><button type="button" id="baixarCartao">Salvar o cartão</button><button type="button" id="irEpilogo">Epílogo</button>' + (MP ? '' : '<button type="button" class="sec" id="placarDeNovo">Jogar de novo, outra partida</button>') + '<button type="button" class="sec" id="placarFicar">Rever o Grupo</button></div>';
-  abrirFecho(); $('#fecho').scrollTop = 0;
+  abrirFecho(); $('#fecho').classList.add('fim'); $('#fecho').scrollTop = 0;
   if (MP) { mpFimDaPartida(R); mpPintarPlacar(); }
   try { var url = cartaoFaro(R, codigo); $('#cartaoImg').src = url; $('#baixarCartao').onclick = function () { var a = document.createElement('a'); a.href = url; a.download = 'cartao-de-faro-' + PARTIDA + '.png'; document.body.appendChild(a); a.click(); a.remove(); }; } catch (e) { $('#cartaoImg').remove(); $('#baixarCartao').remove(); }
   salvar({ final: R.final, codigo: codigo });
@@ -2258,7 +2390,7 @@ function pintarEpilogo() {
     '<p class="lede">Leve a pergunta para a mesa. Ela não vale pontos.</p><div class="acoes"><button type="button" id="fimJogo">Fim</button></div>';
   document.querySelectorAll('[data-valor]').forEach(function (b) { b.onclick = function () { document.querySelectorAll('[data-valor]').forEach(function (x) { x.classList.toggle('on', x === b); }); }; });
   $('#fimJogo').onclick = function () { fecharFecho(); janela('FIM', 'Obrigado por jogar. A partida ' + PARTIDA + ' terminou.' + (MP ? '' : ' Para outra partida, toque em “Jogar de novo” no placar ou recarregue a página.')); };
-  $('#fecho').scrollTop = 0; window.__vcEpilogo = true;
+  $('#fecho').classList.add('fim'); $('#fecho').scrollTop = 0; window.__vcEpilogo = true;
 }
 
 /* ══ Abertura em terminal ══ */
@@ -2360,13 +2492,18 @@ function mpPintarPlacar() {
 }
 function mpPodio() {
   mpFimDaPartida(resumoPartida());
-  $('#fechoCorpo').innerHTML = '<p class="kicker">A mesa</p><h1 id="fechoTitulo">O pódio</h1><div id="mpPodio" class="podio"></div><p class="lede" id="mpPodioFalta"></p><div class="acoes"><button type="button" id="irMeuPlacar">Ver o seu placar</button></div>';
+  $('#fecho').classList.add('fim');
+  $('#fechoCorpo').innerHTML = '<p class="kicker">A mesa</p><h1 id="fechoTitulo">O pódio</h1><div id="mpPodio" class="hp"></div><p class="lede" id="mpPodioFalta"></p><div class="acoes"><button type="button" id="irMeuPlacar">Ver o seu placar</button></div>';
   $('#irMeuPlacar').onclick = mostrarPlacar; $('#fecho').scrollTop = 0; mpPintarPodio();
 }
 function mpPintarPodio() {
   var el = $('#mpPodio'); if (!el) return; var Dd = dadosPodio(), feitos = Dd.feitos, notas = [];
   feitos.forEach(function (x) { if (notas.indexOf(x.r.final) < 0) notas.push(x.r.final); }); notas.sort(function (a, b) { return b - a; });
-  function degrau(d) { var v = notas[d - 1]; if (v === undefined) return '<div class="podio-col"></div>'; var q = feitos.filter(function (x) { return x.r.final === v; }); return '<div class="podio-col"><div class="podio-nomes">' + q.map(nomeP).join('<br>') + '</div><div class="podio-bloco d' + d + '"><span>' + d + 'º</span><small>' + fmt(v) + '</small></div></div>'; }
+  /* o pódio é do jogador: nome e pontos; nunca o personagem nem o arquétipo */
+  function degrau(d) { var v = notas[d - 1]; if (v === undefined) return '<div class="hp-col hp-c' + d + '"></div>'; var q = feitos.filter(function (x) { return x.r.final === v; });
+    return '<div class="hp-col hp-c' + d + '">' + (d === 1 ? '<span class="hp-coroa">◆ VENCEDOR ◆</span>' : '') + '<div class="hp-feixe"></div><div class="hp-fig"><img src="media/holo-jogador.svg" alt=""></div>' +
+      '<div class="hp-nome">' + q.map(function (x) { return '<b>' + String(x.nome).replace(/[<>&]/g, '') + '</b>' + (x.id === mpUid ? '<small>você</small>' : ''); }).join('') + '</div>' +
+      '<div class="hp-ped"><div class="base"></div><div class="corpo"><span class="pos">' + d + '<sup>º</sup></span><span class="pts">' + fmt(v) + ' PTS</span></div><div class="tampa"></div></div></div>'; }
   el.innerHTML = degrau(2) + degrau(1) + degrau(3);
   var f = $('#mpPodioFalta'); if (f) f.textContent = Dd.falta > 0 ? 'Aguardando ' + Dd.falta + (Dd.falta > 1 ? ' jogadores' : ' jogador') + ' terminar a acusação.' : '';
 }

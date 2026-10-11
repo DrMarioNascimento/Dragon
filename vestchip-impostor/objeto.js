@@ -21,6 +21,14 @@
   var gavetas = [], montes = [], pasta = null, itens = [], animando = [], anim = null, relogio = 0, tocando = null, atual = null;
   var FL = 0.24, FC = 0.33; /* folha: largura e comprimento (um pouco maior que A4, para ler na tela) */
 
+  /* o selo do Arquivo Dragon Games, carimbado em vermelho nas folhas (pedido do Mario, 10/10) */
+  var CARIMBO = (function () { try { var i = new Image(); i.src = BASE + 'media/carimbo.webp'; return i; } catch (e) { return null; } })();
+  function hashTxt(t) { var h = 7; for (var i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) % 9973; return h; }
+  function carimbar(g, c, f) {
+    if (!CARIMBO || !CARIMBO.complete || !CARIMBO.naturalWidth || f.carimbo === false) return;
+    var h = hashTxt((f.titulo || '') + (f.linhas || []).join('')), tam = 150 + h % 40, x = c.width - tam - 30 - (h % 50), y = c.height - tam - 40 - (h % 90);
+    g.save(); g.globalAlpha = 0.62 + (h % 20) / 100; g.translate(x + tam / 2, y + tam / 2); g.rotate(((h % 40) - 20) * Math.PI / 180); g.drawImage(CARIMBO, -tam / 2, -tam / 2, tam, tam); g.restore();
+  }
   function carregarScript(src) { return new Promise(function (ok, falha) { if (document.querySelector('script[data-maq="' + src + '"]')) return ok(); var s = document.createElement('script'); s.src = src; s.async = false; s.setAttribute('data-maq', src); s.onload = function () { ok(); }; s.onerror = function () { falha(Error('Não carregou ' + src)); }; document.head.appendChild(s); }); }
   function carregar() { if (pronto) return pronto; var c = Promise.resolve(); SCRIPTS.forEach(function (s) { c = c.then(function () { if (/three\.min/.test(s) && global.THREE) return; if (/OrbitControls/.test(s) && global.THREE && global.THREE.OrbitControls) return; if (/ac-ra\.js/.test(s) && global.ACRA) return; if (/ac-maquete-ra/.test(s) && global.ACMaquetteRA) return; return carregarScript(s); }); }); pronto = c.then(montarCena); pronto.catch(function () { pronto = null; }); return pronto; }
 
@@ -43,6 +51,7 @@
       '.obj-ferr{position:relative;z-index:3;display:flex;flex-wrap:wrap;gap:8px;padding:0 10px;margin-top:auto;justify-content:center}' +
       '.obj-card{position:relative;z-index:3;margin:8px 10px calc(env(safe-area-inset-bottom) + 10px)!important;max-height:38vh;overflow:auto;border-left-color:#d49a6a!important}' +
       '.obj-card #objTxt .folha-txt{display:block;margin-top:6px;padding:10px 12px;border-radius:8px;background:linear-gradient(180deg,#f4ecd8,#e8dcc0);color:#2a2014;font:500 13.5px/1.5 var(--termfont,monospace);box-shadow:inset 0 1px 0 #fff8,0 3px 0 #0006;white-space:pre-line}' +
+      '.obj-card #objTxt .folha-txt{position:relative;overflow:hidden}.obj-card #objTxt .folha-txt .carimbo{position:absolute;right:6px;bottom:4px;width:84px;height:84px;background:url(' + BASE + 'media/carimbo.webp) center/contain no-repeat;opacity:.55;transform:rotate(var(--rot,-8deg));pointer-events:none;mix-blend-mode:multiply}' +
       '.obj-card #objTxt .folha-txt i{display:block;margin-top:6px;font:600 17px/1.3 Caveat,cursive;color:#1d3a8a;font-style:normal}' +
       '.obj-card #objAcao{display:flex;flex-wrap:wrap;gap:8px;margin-top:9px}.obj-card .acao{flex:1 1 45%;min-height:44px;border-radius:10px;border:1px solid #d6aa58;border-bottom:3px solid #5a4310;background:linear-gradient(180deg,#f3d078,#e0b13a);color:#1a1206;font:700 12.5px var(--termfont,monospace);cursor:pointer;box-shadow:inset 0 2px 0 #fff6,0 4px 0 #5a4310,0 8px 14px #0007}' +
       '.obj-card .acao.sec{background:linear-gradient(180deg,#3a2c1c,#1e160e);color:#efc878;border-color:#6b5636;border-bottom-color:#0a0604;box-shadow:inset 0 2px 0 #ffffff14,0 4px 0 #0a0604}';
@@ -92,6 +101,7 @@
     g.font = '500 23px "DM Mono",monospace'; g.fillStyle = '#2a2014';
     (f.linhas || []).forEach(function (t) { quebra(g, t, c.width - 72).forEach(function (l) { g.fillText(l, 36, y); y += 31; }); y += 8; });
     if (f.mao) { y += 14; g.save(); g.translate(40, y); g.rotate(-0.035); g.font = '600 38px Caveat,"Segoe Print",cursive'; g.fillStyle = '#1d3a8a'; var yy = 0; [].concat(f.mao).forEach(function (t) { quebra(g, t, c.width - 100).forEach(function (l) { g.fillText(l, 0, yy); yy += 42; }); }); g.restore(); }
+    carimbar(g, c, f);
     g.strokeStyle = 'rgba(60,40,20,.25)'; g.lineWidth = 3; g.strokeRect(2, 2, c.width - 4, c.height - 4);
     var t = new global.THREE.CanvasTexture(c); t.encoding = global.THREE.sRGBEncoding; t.anisotropy = 8; return t;
   }
@@ -226,7 +236,7 @@
       cartao(('Gaveta · ' + (g.nome || '')).toUpperCase(), m ? (resto ? 'Dentro, ' + resto + (resto > 1 ? ' folhas, umas por cima das outras' : ' folha') + '. Toque na de cima para ler.' : (m.item && m.item.mesh.visible ? 'As folhas estão de lado. No fundo, alguma coisa.' : 'As folhas já foram lidas.')) : 'Vazia.');
     } else cartao(('Gaveta · ' + (g.nome || '')).toUpperCase(), 'Fechada.');
   }
-  function textoFolha(f) { return '<span class="folha-txt"><b>' + (f.titulo || '') + '</b>\n' + (f.linhas || []).join('\n') + (f.mao ? '<i>' + [].concat(f.mao).join('<br>') + '</i>' : '') + '</span>'; }
+  function textoFolha(f) { var h = hashTxt((f.titulo || '') + (f.linhas || []).join('')), sel = f.carimbo !== false; return '<span class="folha-txt"' + (sel ? ' style="--rot:' + ((h % 40) - 20) + 'deg"' : '') + '>' + (sel ? '<em class="carimbo" aria-hidden="true"></em>' : '') + '<b>' + (f.titulo || '') + '</b>\n' + (f.linhas || []).join('\n') + (f.mao ? '<i>' + [].concat(f.mao).join('<br>') + '</i>' : '') + '</span>'; }
   function lerFolha(m) {
     if (m.lidas >= m.folhas.length) return; var me = m.folhas[m.lidas], f = me.userData.folha;
     var wp = me.getWorldPosition(new global.THREE.Vector3()); voar([wp.x, wp.y + 0.42, wp.z + 0.28], [wp.x, wp.y, wp.z]);
@@ -297,6 +307,7 @@
   global.VCObjeto = { abrir: abrir, fechar: fechar, aberto: function () { return aberto; },
     _estado: function () { return { gavetas: gavetas.map(function (g) { return g.aberta; }), montes: montes.map(function (m) { return [m.lidas, m.folhas.length, !!(m.item && m.item.mesh.visible)]; }), pasta: pasta ? pasta.atual : null }; },
     /* gancho de teste: abre tudo e pega os achados, pelo mesmo caminho do dedo */
+    _ler: function () { var m = montes.filter(function (x) { return x.lidas < x.folhas.length && acessivel(x); })[0]; if (m) lerFolha(m); return !!m; },
     _vasculhar: function () { gavetas.forEach(function (g) { if (!g.aberta) mexerGaveta(g); }); montes.forEach(function (m) { while (m.lidas < m.folhas.length) { lerFolha(m); tirar(m); } if (m.item && m.item.mesh.visible) guardar(m.item); }); return itens.filter(function (i) { return !i.mesh.visible; }).length; },
     _acao: function (i) { var b = el.querySelector('[data-obj-acao="' + (i || 0) + '"]'); if (b) b.click(); return !!b; } };
 })(window);

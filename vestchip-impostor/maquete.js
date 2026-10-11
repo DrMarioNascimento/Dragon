@@ -95,8 +95,17 @@
     ]
   };
 
+  /* Os achados do Arquivo Dragon Games (pedido do Mario, 10/10): dois quadros do rosto, a placa
+     de bronze do Átrio e o bonequinho da estante. Posições no espaço do modelo, como os PONTOS;
+     "face" é para onde o quadro olha. Não fazem parte do caso: estão na torre, não na noite. */
+  var ENFEITES = {
+    '+12B': [{ tipo: 'quadro', img: 'criador-retrato.webp', pos: [-4.15, 48.55, -0.53], larg: 0.95, alt: 1.19, face: 'z' }],
+    '+12': [{ tipo: 'quadro', img: 'criador-retrato.webp', pos: [-2.31, 45.45, 1.08], larg: 0.95, alt: 1.19, face: '-x' }],
+    '0': [{ tipo: 'placa', img: 'medalhao.webp', pos: [-1.5, 3.66, 0.6], larg: 1.7, face: 'chao' }],
+    '+10': [{ tipo: 'boneco', img: 'criador-boneco.webp', pos: [6.34, 40.0, 2.88], alt: 0.92 }]
+  };
   var pronto = null, el = null, renderer, cena, camera, controles, raiz, modelo, ra = null, opcoes = {}, ativo = false;
-  var andares = {}, extras = [], lote = null, aberta = null, dentro = null, anim = null, pinos = [], pontosG = null, rotaG = null, euG = null, relogio = 0, tocando = null, pontoAtual = null;
+  var M = null, andares = {}, extras = [], lote = null, aberta = null, dentro = null, anim = null, pinos = [], pontosG = null, rotaG = null, euG = null, relogio = 0, tocando = null, pontoAtual = null;
 
   function carregarScript(src) { return new Promise(function (ok, falha) { if (document.querySelector('script[data-maq="' + src + '"]')) return ok(); var s = document.createElement('script'); s.src = src; s.async = false; s.setAttribute('data-maq', src); s.onload = function () { ok(); }; s.onerror = function () { falha(Error('Não carregou ' + src)); }; document.head.appendChild(s); }); }
   function carregarTudo() {
@@ -115,7 +124,7 @@
       '<div class="maq-carregando" id="maqCarregando">Montando a maquete…</div>';
     document.body.appendChild(el);
     var css = document.createElement('style');
-    css.textContent = '.tela-maq{position:fixed;inset:0;z-index:86;background:radial-gradient(120% 80% at 50% 30%,#0d2330,#071219 60%,#03080c);display:flex;flex-direction:column;touch-action:none}.tela-maq[hidden]{display:none}' +
+    css.textContent = '.maq-ovo{display:block;float:left;width:76px;height:auto;max-height:96px;object-fit:contain;margin:2px 12px 6px 0;border-radius:6px;box-shadow:0 0 0 1px #c9a06166,0 6px 14px #0008}.tela-maq{position:fixed;inset:0;z-index:86;background:radial-gradient(120% 80% at 50% 30%,#0d2330,#071219 60%,#03080c);display:flex;flex-direction:column;touch-action:none}.tela-maq[hidden]{display:none}' +
       '.maq-palco{position:absolute;inset:0}.maq-palco canvas{display:block;width:100%;height:100%;touch-action:none}' +
       '.maq-topo{position:relative;z-index:3;display:flex;gap:10px;align-items:flex-start;padding:calc(env(safe-area-inset-top) + 10px) 10px 8px;background:linear-gradient(#071219f0,#07121900);pointer-events:none}.maq-topo>*{pointer-events:auto}' +
       '.maq-topo .sair-ra{position:static;flex:0 0 auto;min-height:42px;padding:0 14px;border-radius:10px;border:1px solid #46667a;border-bottom:3px solid #020609;background:linear-gradient(180deg,#14303e,#0c1b26);color:#efc878;font:700 13px var(--sans,system-ui);cursor:pointer;box-shadow:inset 0 2px 0 #ffffff14,inset 0 -3px 6px #02070baa,0 4px 0 #020609,0 8px 14px #0008}' +
@@ -147,6 +156,7 @@
   function infoAndar(a) { var A = (opcoes.andares || []).filter(function (x) { return x.a === a; })[0]; return A ? A.salas.map(function (s) { return '<b>' + s.n + '.</b> ' + s.d; }).join('<br>') : ''; }
 
   /* ── o modelo ── */
+  function noAndar(A, x, y, z) { return new global.THREE.Vector3(x - M.x - A.base.x, y - M.y - A.base.y, z - M.z - A.base.z); }
   function local(p) { return new global.THREE.Vector3((p[0] - EIXO.x) * S, (p[1] - CHAO) * S, (p[2] - EIXO.z) * S); }
   function montar() {
     var THREE = global.THREE, palco = el.querySelector('#maqPalco');
@@ -181,6 +191,8 @@
       var m = o.material; if (m && m.userData && m.userData.gltfExtensions && m.userData.gltfExtensions.KHR_materials_emissive_strength) m.emissiveIntensity = m.userData.gltfExtensions.KHR_materials_emissive_strength.emissiveStrength || 1;
     });
     var torre = cenaG.getObjectByName('torre'); lote = cenaG.getObjectByName('lote');
+    /* a torre vem deslocada dentro do modelo (o nó "maquete"): as posições deste arquivo estão no espaço do modelo; dentro de um andar, desconta-se esse deslocamento */
+    M = modelo.worldToLocal(torre.getWorldPosition(new THREE.Vector3()));
     /* cada andar ganha um pivô no próprio centro: é em torno dele que a gaveta desliza e o andar gira */
     torre.children.slice().forEach(function (n) {
       var a = codigo(n.name);
@@ -194,7 +206,7 @@
     });
     extras.forEach(function (n) { n.traverse(function (o) { o.userData.circ = n.name; }); });
     if (lote) lote.traverse(function (o) { o.userData.lote = true; });
-    interiorSubsolo(); interiorImprensa();
+    interiorSubsolo(); interiorImprensa(); enfeites();
   }
 
   /* ── interiores feitos aqui (o modelo não tem) ── */
@@ -202,7 +214,7 @@
   function bloco(g, w, h, d, m, x, y, z) { var THREE = global.THREE, b = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); b.position.set(x, y + h / 2, z); g.add(b); return b; }
   function interiorSubsolo() {
     var A = andares['-1']; if (!A) return; var THREE = global.THREE, g = new THREE.Group(), o = A.base;
-    g.position.set(-o.x, -o.y, -o.z); g.visible = false; A.no.add(g); A.interior = g;
+    g.position.set(-M.x, -M.y, -M.z); g.visible = false; A.no.add(g); A.interior = g;
     var piso = mat(0x2a3036, { roughness: 0.9 }), parede = mat(0x4a3a30, { roughness: 0.95 }), cobre = mat(0xd9864a, { metalness: 0.55, roughness: 0.35, emissive: 0x3a1a08, emissiveIntensity: 0.6 }), escuro = mat(0x14191d), vidro = mat(0xc9dde6, { transparent: true, opacity: 0.1, roughness: 0.1, depthWrite: false });
     bloco(g, 16, 0.12, 15, piso, 0.7, 0, 3.3); bloco(g, 16, 3.1, 0.2, parede, 0.7, 0.12, -4.2); bloco(g, 0.2, 3.1, 15, parede, -7.2, 0.12, 3.3);
     /* o distribuidor: fileiras de cobre sob a redoma */
@@ -221,9 +233,32 @@
     /* luz de emergência */
     var l = new THREE.PointLight(0xffb070, 0.6, 14); l.position.set(0.7, 2.8, 2); g.add(l);
   }
+  function enfeites() {
+    var THREE = global.THREE, L = new THREE.TextureLoader();
+    Object.keys(ENFEITES).forEach(function (a) {
+      var A = andares[a]; if (!A) return; var g = new THREE.Group(); g.position.set(-M.x, -M.y, -M.z); A.no.add(g);
+      ENFEITES[a].forEach(function (E) {
+        var tx = L.load(BASE + 'media/' + E.img); tx.encoding = THREE.sRGBEncoding; tx.anisotropy = 4;
+        var e = new THREE.Group(); e.position.set(E.pos[0], E.pos[1], E.pos[2]); if (E.face === 'chao') e.rotation.x = -Math.PI / 2; else e.rotation.y = { z: 0, x: Math.PI / 2, '-z': Math.PI, '-x': -Math.PI / 2 }[E.face || 'z'];
+        if (E.tipo === 'quadro') {
+          var mold = new THREE.Mesh(new THREE.BoxGeometry(E.larg + 0.14, E.alt + 0.14, 0.06), mat(0x2b2118, { metalness: 0.35, roughness: 0.5 })); mold.position.z = 0.03; e.add(mold);
+          var fil = new THREE.Mesh(new THREE.BoxGeometry(E.larg + 0.04, E.alt + 0.04, 0.065), mat(0xc9a061, { metalness: 0.8, roughness: 0.3 })); fil.position.z = 0.032; e.add(fil);
+          var tela = new THREE.Mesh(new THREE.PlaneGeometry(E.larg, E.alt), new THREE.MeshStandardMaterial({ map: tx, roughness: 0.55, emissive: 0xffffff, emissiveMap: tx, emissiveIntensity: 0.25 })); tela.position.z = 0.067; e.add(tela);
+        } else if (E.tipo === 'placa') {
+          var aro = new THREE.Mesh(new THREE.CylinderGeometry(E.larg / 2 + 0.05, E.larg / 2 + 0.05, 0.06, 40), mat(0x6b4a22, { metalness: 0.85, roughness: 0.35 })); aro.rotation.x = Math.PI / 2; aro.position.z = 0.03; e.add(aro);
+          var face = new THREE.Mesh(new THREE.CircleGeometry(E.larg / 2, 48), new THREE.MeshStandardMaterial({ map: tx, transparent: true, metalness: 0.4, roughness: 0.45, emissive: 0xffffff, emissiveMap: tx, emissiveIntensity: 0.2 })); face.position.z = 0.062; e.add(face);
+        } else if (E.tipo === 'boneco') {
+          var sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tx, transparent: true, alphaTest: 0.25 })); sp.scale.set(E.alt * 0.65, E.alt, 1); sp.position.y = E.alt / 2; e.add(sp);
+          var pe = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.19, 0.04, 20), mat(0x1d2a33, { metalness: 0.4 })); pe.position.y = 0.02; e.add(pe);
+        }
+        e.traverse(function (o) { o.userData.andar = a; o.userData.enfeite = true; });
+        g.add(e);
+      });
+    });
+  }
   function interiorImprensa() {
     var A = andares['+8']; if (!A) return; var THREE = global.THREE, g = new THREE.Group(), o = A.base;
-    g.position.set(-o.x, -o.y, -o.z); g.visible = false; A.no.add(g); A.interior = g;
+    g.position.set(-M.x, -M.y, -M.z); g.visible = false; A.no.add(g); A.interior = g;
     var y = 31.5, mesa = mat(0xe8ecef), cad = mat(0x1f4a55), tela = mat(0x0a1a22, { emissive: 0x3fb6c4, emissiveIntensity: 0.45 });
     for (var r = 0; r < 2; r++) for (var i = 0; i < 4; i++) { bloco(g, 1.6, 0.06, 0.8, mesa, -2.5 + i * 2.1, y + 0.72, 5.5 + r * 2.6); bloco(g, 0.5, 0.3, 0.04, tela, -2.5 + i * 2.1, y + 0.8, 5.25 + r * 2.6); bloco(g, 0.5, 0.45, 0.5, cad, -2.5 + i * 2.1, y, 6.2 + r * 2.6); }
     var l = new THREE.PointLight(0xdfefff, 0.5, 12); l.position.set(0.7, y + 2.6, 6); g.add(l);
@@ -249,7 +284,7 @@
     (opcoes.itens || []).forEach(function (it) {
       var L = LUGAR_ITEM[it.id]; if (!L || !andares[L[0]]) return; var A = andares[L[0]];
       var g = losango(0xffb21f, 0.55); g.traverse(function (o) { o.userData.item = it.id; o.userData.andar = A.a; });
-      g.position.set(L[1][0], L[1][1] + 0.6, L[1][2]).sub(A.base); A.piv.add(g); pinos.push(g);
+      g.position.copy(noAndar(A, L[1][0], L[1][1] + 0.6, L[1][2])); A.piv.add(g); pinos.push(g);
     });
     if (euG) { euG.parent && euG.parent.remove(euG); euG = null; }
     if (opcoes.eu && andares[opcoes.eu.andar]) {
@@ -260,7 +295,7 @@
     if (opcoes.rota) {
       var pts = [[-4.2, 13.4, -0.3], [-2.0, 13.4, -3.4], [-2.7, 13.4, -3.4], [-2.7, 10.4, -3.4], [-2.0, 10.4, -3.4], [-2.7, 10.4, -3.4], [-2.7, 1.6, -3.4], [6.2, 1.6, -3.6]].map(function (q) { return new THREE.Vector3(q[0], q[1], q[2]); });
       rotaG = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: 0xefc878, depthTest: false, toneMapped: false })); rotaG.renderOrder = 30; rotaG.raycast = function () {};
-      modelo.children[0].getObjectByName('torre').add(rotaG);
+      modelo.children[0].add(rotaG);
     }
   }
   function mostrarPontos(a) {
@@ -268,7 +303,7 @@
     if (!a) return; var A = andares[a], THREE = global.THREE; pontosG = new THREE.Group(); A.piv.add(pontosG);
     pontosDe(a).forEach(function (p) {
       if (!visivelP(a, p)) return;
-      var g = losango(achadoP(a, p) && !p.visivel ? 0xb9a27a : 0x86e1ea, p.visivel ? 0.32 : 0.22); g.traverse(function (o) { o.userData.ponto = p.id; o.userData.andar = a; }); g.position.set(p.pos[0], p.pos[1], p.pos[2]).sub(A.base); pontosG.add(g);
+      var g = losango(achadoP(a, p) && !p.visivel ? 0xb9a27a : 0x86e1ea, p.visivel ? 0.32 : 0.22); g.traverse(function (o) { o.userData.ponto = p.id; o.userData.andar = a; }); g.position.copy(noAndar(A, p.pos[0], p.pos[1], p.pos[2])); pontosG.add(g);
     });
   }
   function visivelP(a, p) { return !!p.visivel || achadoP(a, p); }
@@ -307,6 +342,7 @@
     A.alvo.gir = Math.PI / 2; A.alvo.esc = ESC_DENTRO; A.alvo.y = -(A.base.y - CHAO) + 2.0; A.alvo.x = EIXO.x - A.base.x; A.alvo.z = EIXO.z - A.base.z;
     A.peles.forEach(function (p) { p.visible = false; });
     if (A.interior) { A.interior.visible = true; A.no.traverse(function (o) { if (o.isMesh && (o.name === 'central-de-energia' || /vedacao$/.test(o.name))) o.visible = false; }); }
+    A.no.traverse(function (o) { if (o.isMesh && /laje-cobertura|teto-verde/.test(o.name)) { o.visible = false; o.userData.tampa = true; } });
     extras.forEach(function (n) { n.visible = false; }); if (lote) lote.visible = false; if (euG) euG.visible = false; if (rotaG) rotaG.visible = false;
     mostrarPontos(a);
     var vd = vistaDentro(); animarCamera(vd[0], vd[1], { min: 0.18, max: 2.4 });
@@ -322,6 +358,7 @@
     Object.keys(andares).forEach(function (k) { var B = andares[k]; B.alvo.x = 0; B.alvo.y = 0; B.alvo.z = 0; B.alvo.gir = 0; B.alvo.esc = 1; });
     A.peles.forEach(function (p) { p.visible = true; });
     if (A.interior) { A.interior.visible = false; A.no.traverse(function (o) { if (o.isMesh && (o.name === 'central-de-energia' || /vedacao$/.test(o.name))) o.visible = true; }); }
+    A.no.traverse(function (o) { if (o.userData.tampa) o.visible = true; });
     setTimeout(function () { if (dentro) return; extras.forEach(function (n) { n.visible = true; }); if (lote) lote.visible = true; if (euG) euG.visible = true; if (rotaG) rotaG.visible = true; }, 450);
     mostrarPontos(null);
     var vf = vistaFora(); animarCamera(vf[0], vf[1], { min: 0.12, max: 4.5 });
@@ -350,9 +387,7 @@
     if (dentro) {
       andares[dentro].piv.traverse(function (o) { if (o.isMesh && (o.userData.ponto || o.userData.item)) alvos.push(o); });
       var hm = ray.intersectObjects(alvos, false); if (hm.length) { var um = hm[0].object.userData; if (um.item) return tocarItem(um.item); return tocarPonto(dentro, um.ponto); }
-      var geo = []; andares[dentro].piv.traverse(function (o) { if (o.isMesh && visivelObj(o) && !o.userData.ponto) geo.push(o); });
-      var hg = ray.intersectObjects(geo, false); if (!hg.length) return;
-      return procurar(dentro, andares[dentro].no.worldToLocal(hg[0].point.clone()));
+      return procurarNaTela(dentro, x - r.left, y - r.top, r.width, r.height, cam);
     }
     raiz.traverse(function (o) { if (o.isMesh && o.visible && !o.userData.lote) alvos.push(o); });
     var hits = ray.intersectObjects(alvos, false); if (!hits.length) return;
@@ -365,6 +400,17 @@
   }
   function visivelObj(o) { for (var q = o; q; q = q.parent) if (!q.visible) return false; return true; }
   /* procurar: o toque caiu no andar; perto de um lugar escondido, ele aparece */
+  /* o toque procura pelo que está perto dele NA TELA: as malhas do modelo vêm quantizadas
+     (meshopt) e o raycast do three r128 não as desnormaliza, então o ponto 3D do toque não serve */
+  function procurarNaTela(a, x, y, w, h, cam) {
+    var A = andares[a], mel = null, md = 1e9, lim = Math.max(46, Math.min(w, h) * 0.11);
+    A.piv.updateMatrixWorld(true);
+    escondidosDe(a).forEach(function (p) { var v = A.piv.localToWorld(noAndar(A, p.pos[0], p.pos[1], p.pos[2])).project(cam); if (v.z > 1) return; var sx = (v.x + 1) / 2 * w, sy = (1 - v.y) / 2 * h, d = Math.hypot(sx - x, sy - y); if (d < lim * (p.raio || 1) && d < md) { md = d; mel = p; } });
+    ultimoQ = mel ? mel.id : null;
+    if (!mel) { var frases = ['Nada de especial aqui.', 'Você olha de perto. Nada.', 'Só poeira e fio.', 'Nada fora do lugar, aqui.']; cartao('PROCURANDO', frases[Math.floor(Math.random() * frases.length)]); return; }
+    achar(a, mel);
+  }
+  var ultimoQ = null;
   function procurar(a, q) {
     var mel = null, md = 1e9;
     escondidosDe(a).forEach(function (p) { var dx = p.pos[0] - q.x, dz = p.pos[2] - q.z, dy = Math.abs(p.pos[1] - q.y); var d = Math.sqrt(dx * dx + dz * dz); if (d < (p.raio || 1.5) && dy < 2.6 && d < md) { md = d; mel = p; } });
@@ -382,7 +428,7 @@
     var p = esc[Math.floor(Math.random() * esc.length)], A = andares[a];
     if (brilho) brilho.parent && brilho.parent.remove(brilho);
     brilho = new THREE.Mesh(new THREE.SphereGeometry(0.7, 16, 12), new THREE.MeshBasicMaterial({ color: 0xffe9a8, transparent: true, opacity: 0.0, depthTest: false, toneMapped: false })); brilho.renderOrder = 50; brilho.raycast = function () {};
-    brilho.position.set(p.pos[0], p.pos[1], p.pos[2]).sub(A.base); brilho.userData.t = 0; A.piv.add(brilho);
+    brilho.position.copy(noAndar(A, p.pos[0], p.pos[1], p.pos[2])); brilho.userData.t = 0; A.piv.add(brilho);
     tProcura = -40; el.querySelector('#maqDicaBtn').hidden = true;
     cartao('DICA', 'Um brilho, por um instante. Toque ali.');
   }
@@ -407,6 +453,7 @@
     var extra = opcoes.aoPonto ? opcoes.aoPonto(a, p) : null;
     var acoes = [['📷 Fotografar', function () { fotografar(a, p); }, true]];
     var txt = (extra && extra.txt) || p.d;
+    if (p.img && (novo || achadoP(a, p))) txt = '<img class="maq-ovo" src="' + BASE + 'media/' + p.img + '" alt="">' + txt;
     if (p.item) { if (opcoes.tem && opcoes.tem(p.item)) txt += ' <i>(Já está com você.)</i>'; else acoes.unshift(['Guardar no inventário ›', function () { var img = ''; try { renderer.render(cena, ra ? ra.cameraAtiva() : camera); img = renderer.domElement.toDataURL('image/jpeg', 0.8); } catch (e) {} if (opcoes.aoItem) opcoes.aoItem(a, p, img); cartao(p.n.toUpperCase(), 'Guardado no inventário.', [['📷 Fotografar', function () { fotografar(a, p); }, true]]); }]); }
     if (extra && extra.acao) acoes.unshift(extra.acao);
     cartao((novo ? 'ACHADO · ' : '') + p.n.toUpperCase(), txt, acoes);
@@ -499,6 +546,8 @@
     _caixa: function (a) { var THREE = global.THREE, A = andares[a], out = []; A.no.traverse(function (o) { if (o.isMesh) { var b = new THREE.Box3().setFromObject(o), t = b.getSize(new THREE.Vector3()); out.push([o.name, +t.y.toFixed(4)]); } }); out.sort(function (x, y) { return y[1] - x[1]; }); return { w: A.piv.getWorldScale(new THREE.Vector3()).toArray(), top: out.slice(0, 4) }; },
     _teste: function () { return { cam: camera.position.toArray(), alvo: controles.target.toArray(), andares: Object.keys(andares).length, pinos: pinos.length, rota: !!rotaG, aberta: aberta, dentro: dentro, pontos: pontosG ? pontosG.children.length : 0 }; },
     _tocarAndar: function (a) { tocarAndar(a); }, _entrar: function (a) { entrarNoAndar(a); }, _sair: function () { sairDoAndar(); }, _ponto: function (id) { tocarPonto(dentro, id); }, _marcas: function (v) { if (pontosG) pontosG.visible = v; pinos.forEach(function (x) { x.visible = v; }); }, _vista: function (pos, alvo) { anim = null; camera.position.set(pos[0], pos[1], pos[2]); controles.target.set(alvo[0], alvo[1], alvo[2]); controles.minDistance = 0.01; controles.maxDistance = 10; controles.update(); }, _foto: function () { if (pontoAtual) fotografar(dentro, pontoAtual); },
+    _ultimoQ: function () { return ultimoQ; },
+    _telaDe: function (id) { var A = andares[dentro], p = pontosDe(dentro).filter(function (x) { return x.id === id; })[0]; if (!A || !p) return null; A.piv.updateMatrixWorld(true); var cam = ra ? ra.cameraAtiva() : camera, r = renderer.domElement.getBoundingClientRect(), v = A.piv.localToWorld(noAndar(A, p.pos[0], p.pos[1], p.pos[2])).project(cam); return [Math.round(r.left + (v.x + 1) / 2 * r.width), Math.round(r.top + (1 - v.y) / 2 * r.height)]; },
     _procurar: function (id) { var p = pontosDe(dentro).filter(function (x) { return x.id === id; })[0]; if (!p) return false; procurar(dentro, { x: p.pos[0], y: p.pos[1], z: p.pos[2] }); return achadoP(dentro, p); },
     _acao: function (i) { var b = el.querySelector('[data-maq-acao="' + (i || 0) + '"]'); if (b) b.click(); return !!b; }, _trava: function (v) { if (teclado && teclado._digitar && typeof v === 'string') teclado._digitar(v); else if (teclado && teclado._girar) teclado._girar(v); }, _trancado: function (a) { return trancado(a); }, _dicaBtn: function () { return !el.querySelector('#maqDicaBtn').hidden; } };
 })(window);
