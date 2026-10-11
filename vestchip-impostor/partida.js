@@ -52,6 +52,10 @@
     };
     p.OBJ_F = D.objeto[F];
     p.tipos = {}; elenco.forEach(function (c) { p.tipos[c] = D.tipos[Math.floor(gerador(semente + '|tipo|' + c)() * 6)]; });
+    /* Bem-vindo / Bem-vinda: a forma de cada personagem nesta partida. A dos humanos vem da
+       escolha deles (o.formas, 'f' ou 'm'; 'n' = tanto faz, sorteado); a do sistema, impostor
+       incluído, é sorteada pela semente, para que a forma nunca diga quem é humano. */
+    p.formas = {}; TODOS.forEach(function (c) { var q = o.formas && o.formas[c]; p.formas[c] = (q === 'f' || q === 'm') ? q : (gerador(semente + '|forma|' + c)() < 0.5 ? 'f' : 'm'); });
     p.D_ini = hms(20, 26, 5);
     var ro = gerador(semente + '|ordem');
     p.ordemDI = ro() < 0.5 ? ['D', 'I'] : ['I', 'D'];
@@ -82,10 +86,23 @@
   /* ── nomes ── */
   var PREP = { de: ['da', 'do', 'de você'], a: ['à', 'ao', 'a você'], em: ['na', 'no', 'em você'], por: ['pela', 'pelo', 'por você'] };
   /* o personagem do jogador aparece pelo nome, em destaque (os pronomes da história continuam certos) */
-  function nome(id, forma, ctx, maiusc) {
-    var P = E[id] || D.remotos[id], art = forma ? PREP[forma][P.a === 'a' ? 0 : 1] : P.a;
+  var FORMAS = null;   /* as formas da partida em jogo (usarFormas); sem elas, a forma canônica */
+  function usarFormas(f) { FORMAS = f || null; }
+  function formaDe(id, ctx) { var f = (ctx && ctx.formas) || FORMAS, P = E[id]; if (!P) return D.remotos[id] && D.remotos[id].a === 'o' ? 'm' : 'f'; return (f && f[id]) || (P.a === 'o' ? 'm' : 'f'); }
+  function nomeDe(id, ctx) { var P = E[id]; if (!P) return D.remotos[id].n; if (!P.nf) return P.n; return formaDe(id, ctx) === 'm' ? P.nm : P.nf; }
+  function artDe(id, ctx) { return formaDe(id, ctx) === 'm' ? 'o' : 'a'; }
+  function nome(id, prep, ctx, maiusc) {
+    var P = E[id] || D.remotos[id], fem = formaDe(id, ctx) === 'f', art = prep ? PREP[prep][fem ? 0 : 1] : (fem ? 'a' : 'o'), n = nomeDe(id, ctx);
     if (maiusc) art = cap1(art);
-    return (ctx && ctx.eu === id) ? art + ' <b class="eu">' + P.n + '</b>' : art + ' ' + P.n;
+    return (ctx && ctx.eu === id) ? art + ' <b class="eu">' + n + '</b>' : art + ' ' + n;
+  }
+  /* {g:X:fem|masc}: X = ids ligados por + (fem só se todos forem fem); ids ausentes não contam */
+  function generos(t, ctx, p) {
+    return t.replace(/\{g:([A-Za-z0-9+]+):([^{}|]*)\|([^{}]*)\}/g, function (m, x, f, ms) {
+      var ids = x.split('+').map(function (c) { return c === 'eu' && ctx ? ctx.eu : c; }).filter(function (c) { return E[c] && (!p || p.elenco.indexOf(c) >= 0); });
+      if (!ids.length) ids = x.split('+').filter(function (c) { return E[c]; });
+      return ids.every(function (c) { return formaDe(c, ctx) === 'f'; }) ? f : ms;
+    });
   }
   function lista(ids) { ids = ids.map(function (c) { return '{' + c + '}'; }); return ids.length < 2 ? ids.join('') : ids.slice(0, -1).join(', ') + ' e ' + ids[ids.length - 1]; }
   var ROLES = { I: 1, A: 1, F: 1, D: 1, RECON: 1, PRESSAO: 1, S7a: 1, S7b: 1 };
@@ -132,6 +149,7 @@
       });
       if (t === antes) break;
     }
+    t = t.replace(/\{g:([A-Za-z0-9+]+):/g, function (m, x) { return '{g:' + x.split('+').map(function (r) { return ROLES[r] ? papel(p, r) : r; }).join('+') + ':'; });
     /* papéis nas fichas de nome: {I} {de:F} */
     t = t.replace(/\{(?:(de|a|em|por):)?(I|A|F|D|RECON|PRESSAO|S7a|S7b)\}/g, function (m, f, R) {
       var c = papel(p, R);
@@ -175,7 +193,7 @@
   function reqOk(req, p) { for (var i = 0; i < req.length; i++) if (p.elenco.indexOf(req[i]) < 0) return false; return true; }
   function citados(t) { var o = [], re = /\{(?:(?:de|a|em|por):)?([a-z]+)\}/g, m; while ((m = re.exec(t))) o.push(m[1]); return o; }
   function nomes(t, ctx) {
-    return t.replace(/\{(?:(de|a|em|por):)?([a-z]+)\}/g, function (m, f, c, pos, s) {
+    return generos(t, ctx).replace(/\{~?(?:(de|a|em|por):)?([a-z]+)\}/g, function (m, f, c, pos, s) {
       if (!E[c] && !D.remotos[c]) return m;
       var antes = s.slice(0, pos).replace(/<[^>]+>/g, '').replace(/\s+$/, '');
       return nome(c, f, ctx, !antes || /[.!?]$/.test(antes) || /^—$|[.!?]\s*—$/.test(antes));
@@ -185,7 +203,7 @@
   /* render(texto, p, ctx, sps) → [{txt, sp, fala}] — uma batida em linhas */
   function render(tpl, p, ctx, sps) {
     ctx = ctx || {};
-    var t = alternativas(condicionais(macros(tpl, p), p, ctx), p);
+    var t = generos(alternativas(condicionais(macros(tpl, p), p, ctx), p), ctx, p);
     var out = [];
     t.split('\n').forEach(function (linha, li) {
       linha = linha.trim(); var req = [];
@@ -223,7 +241,18 @@
   }
 
   /* ── perguntas (a certa primeiro) ── */
-  function rotulo(c, ctx) { return ctx && ctx.eu === c ? 'Você (' + E[c].n + ')' : E[c].n; }
+  /* fixa as formas da partida no texto inteiro (uma vez por página): {g:..} e {~..} viram texto */
+  function fixarFormas(p) {
+    usarFormas(p.formas);
+    function anda(o, k) {
+      if (typeof o === 'string') return o.indexOf('{') < 0 ? o : generos(o, null, p).replace(/\{~(?:(de|a|em|por):)?([a-z]+)\}/g, function (m, f, c) { return E[c] ? nome(c, f) : m; });
+      if (Array.isArray(o)) { for (var i = 0; i < o.length; i++) o[i] = anda(o[i]); return o; }
+      if (o && typeof o === 'object') { for (var q in o) if (q !== 'geo') o[q] = anda(o[q], q); return o; }
+      return o;
+    }
+    anda(D);
+  }
+  function rotulo(c, ctx) { return ctx && ctx.eu === c ? 'Você (' + nomeDe(c, ctx) + ')' : nomeDe(c, ctx); }
   function perguntas(p, cap, ctx) {
     var r = gerador(p.semente + '|perg|' + cap), out = [];
     function outros(certo, n, excl) { return misturar(p.elenco.filter(function (c) { return c !== certo && (excl || []).indexOf(c) < 0; }), r).slice(0, n); }
@@ -279,7 +308,7 @@
       ['Quem viu não estar', 'Ninguém viu. A presença lacrada mostrou o posto vazio de ' + hora(j[0]) + ' a ' + hora(j[1]) + ', e a porta da corta-fogo não tem sensor.'],
       ['O que o registro desmente', '{mentira:I} ' + (d[1].replace(/\{ini\}/g, hora(j[0])).replace(/\{fim\}/g, hora(j[1]))) + d[2]],
       ['Quem ajudou, sem saber', '{A} passou adiante, às 20h03, o acesso de emergência que abriu o modo de manutenção. Achou que era uma tarefa atrasada.'],
-      ['Por que os outros pareceram culpados', '{F} retirou do Arquivo {objeto:F} às {hora_fc}, depois do ato. {D} saiu do posto por ' + E[p.D].aus[1] + ' segundos, curto demais para o caminho. A Diretora antecipou a demonstração às 20h58, pressionada pela mensagem das 20h57{?PRESSAO=conselho}, do conselho do fundo{:}, {de:PRESSAO}{/}.'],
+      ['Por que os outros pareceram culpados', '{F} retirou do Arquivo {objeto:F} às {hora_fc}, depois do ato. {D} saiu do posto por ' + E[p.D].aus[1] + ' segundos, curto demais para o caminho. {diretora} antecipou a demonstração às 20h58, {g:diretora:pressionada|pressionado} pela mensagem das 20h57{?PRESSAO=conselho}, do conselho do fundo{:}, {de:PRESSAO}{/}.'],
       ['Por quê', '“{confissao:I}”']
     ];
     return B.map(function (b) { return [b[0], render(b[1].replace('{posto}', E[I].posto), p, ctx).map(function (l) { return l.txt; }).join(' ')]; });
@@ -338,7 +367,7 @@
   function linhaPapel(p, c, cap) {
     if (c === p.I) return { 4: 'Eu não saí do meu posto: ' + E[c].posto + '.', 5: 'O registro do meu posto mostra atividade o tempo todo.', 6: 'O registro está errado. Eu estava no meu posto.', 7: 'Ninguém me viu colocar peça nenhuma.', 8: 'Eu falo quando a ata estiver aberta.' }[cap] || null;
     if (c === p.F) { var l = { 1: 'Essa mídia é minha e não tem nada a ver com o apagão.', 3: 'Podem pesar. Não há ponte nenhuma nela.' }; if (p.REFORCO) l[6] = 'Agora apareceu um lacre com o meu código também? Alguém está montando isso em cima de mim.'; return l[cap] || null; }
-    if (c === p.PRESSAO && cap === 6) return { investidora: 'Mandei, sim, a mensagem das 20h57. Pedir pressa é o meu trabalho; credencial eu não tenho.', advogada: 'Encaminhei o pedido do conselho às 20h57. Repassar prazo é o meu trabalho; credencial eu não tenho.', jornalista: 'Às 20h57 perguntei à Diretora se o teste sairia antes do fechamento. Pergunta não é ordem.' }[c];
+    if (c === p.PRESSAO && cap === 6) return { investidora: 'Mandei, sim, a mensagem das 20h57. Pedir pressa é o meu trabalho; credencial eu não tenho.', advogada: 'Encaminhei o pedido do conselho às 20h57. Repassar prazo é o meu trabalho; credencial eu não tenho.', jornalista: 'Às 20h57 perguntei ' + nome('diretora', 'a') + ' se o teste sairia antes do fechamento. Pergunta não é ordem.' }[c];
     if (c === p.D && cap === 6) return 'Saí, sim: ' + E[c].aus[0] + '. Foram uns ' + E[c].aus[1] + ' segundos, não mais.';
     if (c === p.A && cap === 5) return 'Passei o acesso adiante às 20h03. Achei que era uma tarefa atrasada.';
     return null;
@@ -381,7 +410,7 @@
     return out;
   }
 
-  var API = { D: D, gerador: gerador, misturar: misturar, hash: hash, montar: montar, render: render, semMarca: semMarca, nome: nome, nomes: nomes, macros: macros,
+  var API = { D: D, gerador: gerador, misturar: misturar, hash: hash, montar: montar, render: render, semMarca: semMarca, nome: nome, nomes: nomes, macros: macros, usarFormas: usarFormas, fixarFormas: fixarFormas, formaDe: formaDe, nomeDe: nomeDe, artDe: artDe, generos: generos,
     perguntas: perguntas, registros: registros, exclusoes: exclusoes, revelacao: revelacao, acusacoes: acusacoes, desconfianca: desconfianca,
     falas: falas, linhaPapel: linhaPapel, capitulo: capitulo, hora: hora, ext: ext, janela: janela, cap1: cap1, TODOS: TODOS };
   if (typeof module !== 'undefined' && module.exports) module.exports = API; else g.VCPartida = API;

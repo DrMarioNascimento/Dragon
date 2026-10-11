@@ -1034,6 +1034,38 @@ button:active,.caixa:active,.redondo:active,.chip:active{
 .hp-c3 .hp-fig img{filter:drop-shadow(0 0 10px #d49a6aaa) sepia(1) saturate(1.6) hue-rotate(-28deg) brightness(.95)}
 @media (prefers-reduced-motion:reduce){.hp-fig img{animation:none}}
 
+/* Bem-vindo / Bem-vinda / Tanto faz na capa (solo): o mesmo cartão da sala do grupo */
+.ab-formas{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 46px);z-index:3;width:min(440px,calc(100% - 32px));padding:16px 14px 12px;border-radius:14px;border:1px solid rgba(159,228,255,.42);background:linear-gradient(165deg,#13283a,#0d2030 60%,#0a1824);box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 18px 44px rgba(0,0,0,.6);animation:abFormasEntra .35s ease-out}
+.ab-formas[hidden]{display:none}
+@keyframes abFormasEntra{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+.ab-formas-q{margin:0 0 12px;text-align:center;font:600 19px/1.25 Georgia,'Cormorant Garamond',serif;color:#f4f9fd}
+.ab-formas-ops{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.ab-forma{min-height:100px;border:1px solid rgba(45,68,82,.75);border-radius:11px;background:#060d14;color:#dce8ed;padding:10px 5px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;cursor:pointer;box-shadow:inset 0 2px 6px rgba(0,0,0,.45),0 3px 0 #02060a;transition:transform .12s}
+.ab-forma:active{transform:translateY(2px)}
+.ab-forma .em{font-size:28px;line-height:1}
+.ab-forma .lb{font:16px Georgia,serif;text-align:center}
+.ab-forma.ultima{border-color:rgba(232,169,74,.45)}
+.ab-forma.on{border-color:#e8a94a;background:#25190e;color:#ffc46b;box-shadow:inset 0 0 0 2px #e8a94a,inset 0 0 16px rgba(232,169,74,.1)}
+.ab-formas-nota{margin:10px 0 0;text-align:center;font:12.5px/1.4 var(--termfont,monospace);color:#8fa6b2}
+
+/* 10/10: pódio com o holograma na cor do contato de cada jogador (sem rosto, sem personagem) */
+.hp-fig{gap:2px}
+.hp-fig img,.hp-c1 .hp-fig img,.hp-c3 .hp-fig img{width:auto;max-width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 0 9px color-mix(in srgb,var(--hc,#7fd4ff) 55%,transparent))}
+.hp-fig img + img{margin-left:-18%}
+/* revelação: o impostor em holograma magenta, a cor que só ele tem */
+.rev-holo{position:relative;height:240px;display:flex;justify-content:center;align-items:flex-end;margin:4px 0 10px;opacity:0;transform:scale(.96);transition:opacity 1.2s ease,transform 1.2s ease}
+.rev-holo.on{opacity:1;transform:none}
+.rev-holo img{position:relative;z-index:1;height:100%;width:auto;filter:drop-shadow(0 0 12px #ff5dff77);animation:hpFlut 3.2s ease-in-out infinite}
+.rev-feixe{position:absolute;bottom:0;left:50%;width:150px;height:30px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(ellipse at center,#ff54e788 0%,#ff54e722 45%,transparent 70%);filter:blur(2px)}
+.rev-holo.on .rev-feixe{animation:revPulso 2.4s ease-in-out infinite}
+@keyframes revPulso{50%{opacity:.55}}
+@media (prefers-reduced-motion:reduce){.rev-holo img{animation:none}}
+
+.hp-c1 .hp-fig{height:200px}.hp-coroa{position:relative;z-index:3}
+
+/* 3º lugar: o número descia sob a tampa */
+.hp-c3 .hp-ped{height:92px}.hp-c3 .hp-ped .corpo{padding-top:12px;box-sizing:border-box}
+
 </style>
 </head>
 <body>
@@ -1042,6 +1074,15 @@ button:active,.caixa:active,.redondo:active,.chip:active{
 
 <div class="abertura capa" id="abertura" style="background-image:url('media/capa.svg')">
   <button class="ab-comecar" id="abComecar" type="button">Começar ›</button>
+  <div class="ab-formas" id="abFormas" hidden>
+    <p class="ab-formas-q">Como a torre deve receber você?</p>
+    <div class="ab-formas-ops">
+      <button type="button" class="ab-forma" data-forma="m"><span class="em">👨</span><span class="lb">Bem-vindo</span></button>
+      <button type="button" class="ab-forma" data-forma="f"><span class="em">👩</span><span class="lb">Bem-vinda</span></button>
+      <button type="button" class="ab-forma" data-forma="n"><span class="em">👥</span><span class="lb">Tanto faz</span></button>
+    </div>
+    <p class="ab-formas-nota">O seu personagem segue a sua escolha nesta partida.</p>
+  </div>
   <div class="ab-caixa">
     <span class="ab-kicker">MOSAICO · O IMPOSTOR</span>
     <h1 class="ab-titulo">O Eco do Amanhã<em>Torre de Continuidade · véspera do lançamento · tempestade</em></h1>
@@ -1162,8 +1203,8 @@ button:active,.caixa:active,.redondo:active,.chip:active{
 </div>
 <div class="veu" id="veu" hidden><div class="folha" id="folha"></div></div>
 
-<script src="dados.js?v=20261010c"></script>
-<script src="partida.js?v=20261010c"></script>
+<script src="dados.js?v=20261010d"></script>
+<script src="partida.js?v=20261010d"></script>
 <script>
 (function(){
 'use strict';
@@ -1197,15 +1238,24 @@ var EU_PAPEL = MP ? MPCFG.papel : (P.humanos.indexOf(Q.get('papel')) >= 0 ? Q.ge
 var HUM = {}; (MP ? MPCFG.hum : (TESTE && Q.get('humsim') === '1' ? P.humanos : [EU_PAPEL])).forEach(function (c) { HUM[c] = true; });  /* humsim: só no teste, simula os outros humanos da mesa (que não mandam nada) */
 var CTX = { eu: EU_PAPEL };
 var PRESENTES = P.elenco;
-var FALAS = VP.falas(P);
+/* Bem-vindo / Bem-vinda: a forma do seu personagem vem da sua escolha (no grupo, da tela da
+   sala; no solo, da capa); a dos outros, a mesma em todos os aparelhos (sorteio pela semente,
+   ou a escolha de cada humano da mesa). Fixada uma vez, antes de qualquer texto da história. */
+var FALAS = [];
+function fixarFormas(forma) {
+  if (fixarFormas.feito) return; fixarFormas.feito = true;
+  if (MP && MPCFG.formas) Object.keys(MPCFG.formas).forEach(function (c) { var q = MPCFG.formas[c]; if (P.formas[c] && (q === 'f' || q === 'm')) P.formas[c] = q; });
+  if (forma === 'f' || forma === 'm') P.formas[EU_PAPEL] = forma;
+  CTX.formas = P.formas; VP.fixarFormas(P); FALAS = VP.falas(P);
+}
+/* no grupo a escolha veio da sala; no teste, de ?forma= (sem ela, sorteio); no solo, da capa */
+if (MP || GRUPO || TESTE) fixarFormas(TESTE ? Q.get('forma') : null);
 function presente(id) { return PRESENTES.indexOf(id) >= 0; }
 function sistema(id) { return presente(id) && !HUM[id]; }
 
 /* ── números e cores (mudam a cada partida) ── */
-var PALETA = [{ arq: 'azul', cor: '#6fa8ff' }, { arq: 'transparente', cor: '#a9b8c8' }, { arq: 'esmeralda', cor: '#5fd68a' }, { arq: 'dourado', cor: '#e6c36a' },
-  { arq: 'roxo', cor: '#b9a6ff' }, { arq: 'verde-agua', cor: '#3cc9a8' }, { arq: 'ciano', cor: '#5fd8ec' }, { arq: 'vermelho', cor: '#ff8a80' },
-  { arq: 'rosa', cor: '#f28cc0' }, { arq: 'laranja', cor: '#ffa05a' }, { arq: 'lima', cor: '#b8e05a' }, { arq: 'cobre', cor: '#d49a6a' }, { arq: 'indigo', cor: '#9a9eff' },
-  { arq: 'branco', cor: '#f4f1ea' }, { arq: 'extra', cor: '#c9c2a8' }];
+/* 10/10: os hologramas sem rosto do Mario, um por cor (o magenta é só do impostor) */
+var PALETA = [{ arq: 'vermelho', cor: '#ff5b59' }, { arq: 'laranja', cor: '#ffa233' }, { arq: 'ouro', cor: '#ffe957' }, { arq: 'amarelo-limao', cor: '#ffff40' }, { arq: 'lima', cor: '#97ff5c' }, { arq: 'verde', cor: '#65ff71' }, { arq: 'verde-agua', cor: '#48ffd3' }, { arq: 'ciano', cor: '#35ffff' }, { arq: 'ciano-vivo', cor: '#a3feff' }, { arq: 'azul', cor: '#3994ff' }, { arq: 'indigo', cor: '#4d44ff' }, { arq: 'roxo', cor: '#bc5cff' }, { arq: 'rosa', cor: '#ff7ed2' }, { arq: 'branco', cor: '#ffffff' }, { arq: 'cobre', cor: '#ffc07e' }];
 var SLOT_DE = {}, CORES = {}, ARQ = {};
 (function () {
   var r = VP.gerador(PARTIDA + '|numeros'), usados = {};
@@ -1217,8 +1267,8 @@ var ID_DE = {}; Object.keys(SLOT_DE).forEach(function (id) { ID_DE[SLOT_DE[id]] 
 var EU = SLOT_DE[EU_PAPEL];
 var NUMEROS = Object.keys(ID_DE).sort();
 var HUM_SLOT = {}; Object.keys(HUM).forEach(function (id) { if (SLOT_DE[id] && id !== EU_PAPEL) HUM_SLOT[SLOT_DE[id]] = id; });
-function nm(id) { return E[id].n; }
-function nomeMin(id) { return E[id].a + ' ' + E[id].n; }
+function nm(id) { return VP.nomeDe(id, CTX); }
+function nomeMin(id) { return VP.artDe(id, CTX) + ' ' + VP.nomeDe(id, CTX); }
 function Na(id) { return VP.nomes('{' + id + '}', CTX); }
 function T(s) { return VP.nomes(s, CTX); }
 function tipoDe(id) { return P.tipos[id]; }
@@ -1424,7 +1474,7 @@ function pintarSusp() {
 }
 
 /* ── Ficha do personagem ── */
-function avatarDe(f, px) { return '<span class="avatar" style="width:' + px + 'px;height:' + px + 'px;flex:0 0 ' + px + 'px"><img data-oi-contato src="icones/contatos/' + ARQ[f] + '.webp" alt=""></span>'; }
+function avatarDe(f, px) { return '<span class="avatar" style="width:' + px + 'px;height:' + px + 'px;flex:0 0 ' + px + 'px"><img data-oi-contato src="icones/holo/' + ARQ[f] + '.webp" alt=""></span>'; }
 $('#fichaBtn').innerHTML = avatarDe(EU, 30);
 function meuSegredo() { return 'Você ' + D.seg3[EU_PAPEL]; }
 function minhaPercepcao() {
@@ -1433,7 +1483,7 @@ function minhaPercepcao() {
 }
 $('#fichaBtn').onclick = function () {
   var p = E[EU_PAPEL], F = D.ficha[EU_PAPEL];
-  folha('<div class="topo-ficha">' + avatarDe(EU, 72) + '<div><h2>' + p.n + '</h2><p class="sub" style="margin:0">' + p.f + ' · seu número: <b>···' + EU + '</b></p></div></div><div class="ficha">' +
+  folha('<div class="topo-ficha">' + avatarDe(EU, 72) + '<div><h2>' + nm(EU_PAPEL) + '</h2><p class="sub" style="margin:0">' + p.f + ' · seu número: <b>···' + EU + '</b></p></div></div><div class="ficha">' +
     '<div><small>QUEM VOCÊ É</small><p class="term">' + F[0] + '</p></div><div><small>POR QUE ESTÁ AQUI</small><p class="term">' + F[1] + '</p></div>' +
     '<div><small>O QUE SÓ VOCÊ SABE</small><p class="term">' + meuSegredo() + '</p></div><div><small>O QUE VOCÊ VÊ DO SEU POSTO</small><p class="term">' + minhaPercepcao() + '</p></div>' +
     (verdades.length ? '<div><small>O QUE VOCÊ FEZ ESTA NOITE</small><p class="term">' + verdades.join(' ') + '</p></div>' : '') +
@@ -1509,7 +1559,7 @@ function abrirPlanta() {
     prologo.planta = true; try { PLANTA_URL = URL.createObjectURL(new Blob([plantaSVG()], { type: 'image/svg+xml' })); } catch (e) {}
     guardar({ ico: '🗼', nome: 'Planta da torre', desc: 'O corte da Torre de Continuidade, do −1 ao +14, com o 12B', img: PLANTA_URL });
     var meu = andarDoJogador(); tarefa('O ponto dourado é você. Toque no seu andar: ' + meu + '.'); alvoAndar(meu);
-    janela('A PLANTA', 'A Documentarista distribuiu a planta da torre: dezessete níveis, contando o 12B, do subsolo à cobertura, a escada corta-fogo, o elevador e o poço de cabos que atravessa tudo. O ponto dourado é você, agora. Toque no seu andar.');
+    janela('A PLANTA', VP.nome('documentarista', null, null, true) + ' distribuiu a planta da torre: dezessete níveis, contando o 12B, do subsolo à cobertura, a escada corta-fogo, o elevador e o poço de cabos que atravessa tudo. O ponto dourado é você, agora. Toque no seu andar.');
   }
 }
 function infoAndar(a) {
@@ -1587,7 +1637,7 @@ var PECA_DEF = {
       { aviso: 'O cofre abre com o lote e a prateleira.', svg: function () {
           return caixa(70, 60, 220, 260, '#141c22', '#86e1ea', 8) + det('teclado', caixa(120, 150, 120, 120, '#0a1218', '#3fb6c4') + tx(180, 215, '1 2 3 · 4 5 6', 11, '#a6eef5', 'middle'), [120, 150, 120, 120]) +
             det('etiqueta', caixa(110, 90, 140, 36, '#efe9dc', '#8a7a5a') + tx(180, 113, 'LOTE + PRATELEIRA', 9, '#3a2a1c', 'middle')) + det('tapete', '<rect x="60" y="330" width="240" height="14" rx="4" fill="#2a3a46"/>', [60, 322, 240, 30]);
-        }, det: { teclado: ['O TECLADO', 'Seis dígitos.', 'codigo'], etiqueta: ['A ETIQUETA', 'Abre com o número do lote e a prateleira, como o Curador explicou.'], tapete: ['O TAPETE', 'Embaixo do tapete de borracha, um bilhete dobrado: um envio extra.', 'envio'] },
+        }, det: { teclado: ['O TECLADO', 'Seis dígitos.', 'codigo'], etiqueta: ['A ETIQUETA', 'Abre com o número do lote e a prateleira, como ' + VP.nome('curador') + ' explicou.'], tapete: ['O TAPETE', 'Embaixo do tapete de borracha, um bilhete dobrado: um envio extra.', 'envio'] },
         codigo: { perg: 'Combinação (lote e prateleira, seis dígitos)', certo: function (v) { return String(v).replace(/\D/g, '') === LOTE_DIG; }, erro: 'O cofre não abre. Os números vieram da voz e do fichário.' } },
       { aviso: 'Duas peças azuis. Ponha cada uma na balança.', svg: function (st) {
           var s = det('a', caixa(50, 90, 100, 60, '#1d4f9e', '#9fc6ff') + tx(100, 125, 'A', 14, '#fff', 'middle')) + det('b', caixa(210, 90, 100, 60, '#1d4f9e', '#9fc6ff') + tx(260, 125, 'B', 14, '#fff', 'middle'));
@@ -1611,7 +1661,7 @@ var PECA_DEF = {
           return s;
         }, det: { galeria: ['GALERIA DE CABOS', '', 'seq'], arquivo: ['ARQUIVO FRIO', '', 'seq'], central: ['CENTRAL DE ENERGIA', '', 'seq'] },
         seq: ['galeria', 'arquivo', 'central', 'galeria'] },
-      { aviso: 'O cronômetro da Auditora, com os tempos do percurso.', svg: function () {
+      { aviso: 'O cronômetro ' + VP.nome('auditora', 'de') + ', com os tempos do percurso.', svg: function () {
           return det('crono', '<circle cx="180" cy="200" r="110" fill="#0e1d28" stroke="#86e1ea" stroke-width="3"/>' + tx(180, 190, '194 s', 30, '#efc878', 'middle') + tx(180, 220, 'da chave à devolução', 10, '#a6eef5', 'middle'), [70, 90, 220, 220]);
         }, det: { crono: ['O CRONÔMETRO', 'Armário → grade (11 s) → poço até o Arquivo (16 s, chiado às 20h26) → Central (45 s) → instalação (40 s) → volta pelo poço (54 s) → trancar (22 s) → armário (6 s).', 'fim'] } }
     ] },
@@ -1840,7 +1890,7 @@ function objetoDe(qual) {
     ],
     pasta: { titulo: 'Protocolo da demonstração', paginas: [
       { titulo: 'Objetivo', linhas: ['Abrir o lote sem dono numa demonstração supervisionada, às 23h00.'] },
-      { titulo: 'Margem', linhas: ['Parar antes da conexão neural. Médica presente o tempo todo.'] },
+      { titulo: 'Margem', linhas: ['Parar antes da conexão neural. ' + nm('medica') + ' presente o tempo todo.'] },
       { titulo: 'Quem decide', linhas: ['Só a Presidente antecipa ou adia. Qualquer mudança vai por escrito.'] }
     ] }
   };
@@ -1994,7 +2044,7 @@ function saudacao() { var s = PRESENTES.filter(sistema); for (var i = 0; i < 2 &
 function papelPessoal(r) {
   var t = null;
   if (r === 'posto') t = 'Às 20h20, você está no seu posto: ' + E[EU_PAPEL].posto + '. ' + (D.geo.visao[E[EU_PAPEL].sala] ? 'Dali você vê ' + D.geo.visao[E[EU_PAPEL].sala].ve + '; não vê ' + D.geo.visao[E[EU_PAPEL].sala].nao + '.' : '');
-  if (r === 'A' && EU_PAPEL === P.A) t = 'Às 20h03, você passou adiante, ' + (presente('engenheira') ? 'para a Engenheira' : 'para o canal de manutenção') + ', o acesso de emergência que a Presidente tinha habilitado. Parecia uma tarefa atrasada. Ninguém mais viu.';
+  if (r === 'A' && EU_PAPEL === P.A) t = 'Às 20h03, você passou adiante, ' + (presente('engenheira') ? 'para ' + VP.nome('engenheira') : 'para o canal de manutenção') + ', o acesso de emergência que a Presidente tinha habilitado. Parecia uma tarefa atrasada. Ninguém mais viu.';
   if (r === 'D' && EU_PAPEL === P.D) t = 'Às 20h26min05s, você sai do posto: ' + E[EU_PAPEL].aus[0] + '. São uns ' + E[EU_PAPEL].aus[1] + ' segundos. Ninguém vê.';
   if (r === 'F' && EU_PAPEL === P.F) t = 'Às ' + P.hora_fc + ', você retira do Arquivo ' + D.objeto[EU_PAPEL] + ', numa caixa isolante. Ninguém precisa saber por quê. Ainda.';
   if (!t) return; verdades.push(t);
@@ -2232,7 +2282,7 @@ function acusar() {
 function telaPalavra(depois) {
   var tm = [1, 2, 3, 4, 5, 6, 7].map(function (c) { return listaMarcas(c, false); }).join('');
   $('#fechoCorpo').innerHTML = '<p class="kicker">A acusação</p><h1 id="fechoTitulo">Antes das respostas finais.</h1>' +
-    '<p class="lede">A Notária, ou quem guarda a ata esta noite, abriu uma página nova: cada um diz, uma vez e sem interrupção, de quem desconfiou.</p>' +
+    '<p class="lede">' + VP.nome('notaria', null, null, true) + ', ou quem guarda a ata esta noite, abriu uma página nova: cada um diz, uma vez e sem interrupção, de quem desconfiou.</p>' +
     '<h2>A palavra do seu personagem</h2><p class="lede">Na mesa, cada um lê em voz alta o próprio segredo, em primeira pessoa. Este é o seu:</p>' +
     '<div class="aviso ouro" style="margin:8px 0 14px">' + meuSegredo() + (verdades.length ? ' ' + verdades.join(' ') : '') + '</div>' +
     '<p class="lede">Todo mundo na torre tem um segredo, inclusive quem instalou a peça. Por isso a leitura não entrega ninguém: só explica o que confundia a mesa.</p>' +
@@ -2249,6 +2299,7 @@ function depoisDaAcusacao() {
 function pintarRevelacao() {
   abrirFecho(); var fImp = SLOT_DE[IMP];
   $('#fechoCorpo').innerHTML = REVELA_VIDEO('videoImp', 'somImp') +
+    '<div class="rev-holo" id="impHolo"><div class="rev-feixe"></div><img src="icones/holo/corpo-magenta.webp" alt=""></div>' +
     '<div id="impLogo" style="display:flex;align-items:center;gap:14px;margin:4px 0 14px;padding:12px 14px;border-radius:14px;border:1px solid #6b5420;border-bottom-width:3px;background:linear-gradient(180deg,#1d1709,#120e06);box-shadow:inset 0 2px 0 #ffffff12,inset 0 -4px 7px #0009,0 4px 0 #020609,0 10px 18px #000a;opacity:0;transform:translateY(8px);transition:opacity .9s,transform .9s">' +
       avatarDe(fImp, 76) + '<div><small style="display:block;color:#c9a95a;letter-spacing:.12em;font:700 11px var(--sans)">REVELAÇÃO · O IMPOSTOR ERA O NÚMERO</small>' +
       '<b style="display:block;font:800 30px var(--termfont);color:' + (CORES[fImp] || '#efc878') + '">···' + fImp + '</b><span style="color:#e9dfc6">' + nm(IMP) + ' · ' + E[IMP].f + '</span></div></div>' +
@@ -2258,7 +2309,7 @@ function pintarRevelacao() {
     (FC === EU_PAPEL ? '<p class="lede"><b>E o seu personagem era quem parecia culpado, sem ser.</b></p>' : '') +
     '<div class="acoes"><button type="button" id="irPlacar">' + (MP ? 'Ver a mesa' : 'Ver o placar') + '</button></div>';
   $('#fecho').classList.add('fim', 'revelado'); [].forEach.call(document.querySelectorAll('#fechoCorpo h2'), function (h) { if (/^(O que fez|Por quê)/.test(h.textContent)) h.classList.add('quem-fez'); });
-  var vI = $('#videoImp'), lg = $('#impLogo'); function mostra() { if (lg) { lg.style.opacity = 1; lg.style.transform = 'none'; } }
+  var vI = $('#videoImp'), lg = $('#impLogo'), hl = $('#impHolo'); function mostra() { if (lg) { lg.style.opacity = 1; lg.style.transform = 'none'; } if (hl) hl.classList.add('on'); }
   if (vI) { var pr = vI.play(); if (pr && pr.catch) pr.catch(mostra); vI.addEventListener('ended', mostra); vI.addEventListener('error', mostra); $('#somImp').onclick = function () { vI.muted = false; vI.currentTime = 0; vI.play(); }; }
   setTimeout(mostra, TESTE ? 100 : 5000);
   $('#irPlacar').onclick = function () { if (vI) try { vI.pause(); } catch (e) {} if (MP) mpPodio(); else mostrarPlacar(); };
@@ -2414,9 +2465,20 @@ function filmeAbertura() {
   v.onended = acabar; $('#abPularFilme').onclick = acabar; v.onerror = acabar;
   var pr = v.play(); if (pr && pr.catch) pr.catch(function () { v.muted = true; var p2 = v.play(); if (p2 && p2.catch) p2.catch(acabar); });
 }
-$('#abComecar').onclick = filmeAbertura;
+/* Bem-vindo / Bem-vinda / Tanto faz, no solo: a mesma pergunta da sala do grupo, na capa */
+function comForma(depois) {
+  if (fixarFormas.feito) { depois(); return; }
+  var F = $('#abFormas'); F.hidden = false; $('#abComecar').hidden = true; $('#abPular').hidden = true;
+  F.querySelectorAll('[data-forma]').forEach(function (b) { b.onclick = function () {
+    F.querySelectorAll('[data-forma]').forEach(function (x) { x.classList.toggle('on', x === b); });
+    try { localStorage.setItem('vci:forma', b.dataset.forma); } catch (e) {}
+    fixarFormas(b.dataset.forma); setTimeout(function () { F.hidden = true; $('#abPular').hidden = false; depois(); }, 260);
+  }; });
+  try { var ult = localStorage.getItem('vci:forma'); var bu = ult && F.querySelector('[data-forma="' + ult + '"]'); if (bu) bu.classList.add('ultima'); } catch (e) {}
+}
+$('#abComecar').onclick = function () { comForma(filmeAbertura); };
 $('#abEntrar').onclick = inicioDoJogo;
-$('#abPular').onclick = function () { if (fimAb) fimAb(); inicioDoJogo(); };
+$('#abPular').onclick = function () { comForma(function () { if (fimAb) fimAb(); inicioDoJogo(); }); };
 
 /* ══ Mesa em grupo (Firebase): o motor das outras mesas, com o caso 'vestchip-impostor' ══
    Pela rede passam só: o sorteio, o início de cada capítulo, as mensagens dos
@@ -2477,7 +2539,7 @@ function dadosPodio() { var S = mpSala(), room = S.sala, hum = mpHumanos(room, S
 function nomeP(x) { return '<b>' + String(x.nome).replace(/[<>&]/g, '') + '</b>' + (x.id === mpUid ? ' (você)' : ''); }
 function mpPintarPlacar() {
   var el = $('#mpPlacar'); if (!el) return; var Dd = dadosPodio(), feitos = Dd.feitos.slice().sort(function (a, b) { return b.r.final - a.r.final; }), pos = 0, ant = null;
-  var linhas = feitos.map(function (x, i) { if (x.r.final !== ant) { pos = i + 1; ant = x.r.final; } return '<tr><td><b>' + pos + 'º</b></td><td>' + nomeP(x) + '</td><td>' + (E[x.r.papel] ? E[x.r.papel].n : '') + '</td><td style="text-align:right;color:' + (x.r.final >= 0 ? '#9ff0c4' : '#f0a89a') + '">' + fmt(x.r.final) + '</td></tr>'; }).join('');
+  var linhas = feitos.map(function (x, i) { if (x.r.final !== ant) { pos = i + 1; ant = x.r.final; } return '<tr><td><b>' + pos + 'º</b></td><td>' + nomeP(x) + '</td><td>' + (E[x.r.papel] ? nm(x.r.papel) : '') + '</td><td style="text-align:right;color:' + (x.r.final >= 0 ? '#9ff0c4' : '#f0a89a') + '">' + fmt(x.r.final) + '</td></tr>'; }).join('');
   function melhores(f, menor) { var vs = feitos.map(function (x) { return f(x.r); }).filter(function (v) { return v !== null && v !== undefined && (menor || v > 0); }); if (!vs.length) return null; var alvo = menor ? Math.min.apply(null, vs) : Math.max.apply(null, vs); return { v: alvo, quem: feitos.filter(function (x) { return f(x.r) === alvo; }) }; }
   function lista(q) { return q.map(nomeP).join(', '); }
   var tit = [], m;
@@ -2501,7 +2563,7 @@ function mpPintarPodio() {
   feitos.forEach(function (x) { if (notas.indexOf(x.r.final) < 0) notas.push(x.r.final); }); notas.sort(function (a, b) { return b - a; });
   /* o pódio é do jogador: nome e pontos; nunca o personagem nem o arquétipo */
   function degrau(d) { var v = notas[d - 1]; if (v === undefined) return '<div class="hp-col hp-c' + d + '"></div>'; var q = feitos.filter(function (x) { return x.r.final === v; });
-    return '<div class="hp-col hp-c' + d + '">' + (d === 1 ? '<span class="hp-coroa">◆ VENCEDOR ◆</span>' : '') + '<div class="hp-feixe"></div><div class="hp-fig"><img src="media/holo-jogador.svg" alt=""></div>' +
+    return '<div class="hp-col hp-c' + d + '">' + (d === 1 ? '<span class="hp-coroa">◆ VENCEDOR ◆</span>' : '') + '<div class="hp-feixe"></div><div class="hp-fig">' + q.slice(0, 3).map(function (x) { var a = ARQ[SLOT_DE[x.r.papel]] || 'branco'; return '<img src="icones/holo/corpo-' + a + '.webp" alt="" style="--hc:' + (CORES[SLOT_DE[x.r.papel]] || '#7fd4ff') + '">'; }).join('') + '</div>' +
       '<div class="hp-nome">' + q.map(function (x) { return '<b>' + String(x.nome).replace(/[<>&]/g, '') + '</b>' + (x.id === mpUid ? '<small>você</small>' : ''); }).join('') + '</div>' +
       '<div class="hp-ped"><div class="base"></div><div class="corpo"><span class="pos">' + d + '<sup>º</sup></span><span class="pts">' + fmt(v) + ' PTS</span></div><div class="tampa"></div></div></div>'; }
   el.innerHTML = degrau(2) + degrau(1) + degrau(3);
@@ -2515,8 +2577,8 @@ if (GRUPO && !MP) window.DragonSalaAntesDeIniciar = function (ctx) {
   var ps = (ctx.players || []).slice(), N = ps.length; if (N < 1) throw new Error('Ninguém na sala.');
   if (N > 12) { alert('A mesa aceita até 12 jogadores.'); throw new Error('Jogadores demais.'); }
   var semente = 'S-' + ctx.code + '-' + Date.now().toString(36).toUpperCase(), r = VP.gerador(semente + '|sala'), p = VP.montar(semente, { humanos: N });
-  var papeis = {}; VP.misturar(ps, r).forEach(function (pl, i) { papeis[pl.id] = p.humanos[i]; });
-  return { oi: { partida: semente, humanos: N, papeis: papeis, teste: TESTE } };
+  var papeis = {}, formas = {}; VP.misturar(ps, r).forEach(function (pl, i) { papeis[pl.id] = p.humanos[i]; formas[p.humanos[i]] = pl.forma === 'f' || pl.forma === 'm' ? pl.forma : 'n'; });
+  return { oi: { partida: semente, humanos: N, papeis: papeis, formas: formas, teste: TESTE } };
 };
 function vciCarregarSala() {
   if (vciCarregarSala.feito) return; vciCarregarSala.feito = true;
@@ -2536,7 +2598,7 @@ window.addEventListener('mosaico-room-ready', function (e) {
   var oi = d.room.oi, uid = mpSala() && mpSala().uid, papel = oi && oi.papeis && oi.papeis[uid];
   if (!papel) { janela('A MESA JÁ COMEÇOU', 'Esta partida começou sem o seu lugar. Peça ao Mestre para abrir uma mesa nova.'); return; }
   var hum = Object.keys(oi.papeis).map(function (k) { return oi.papeis[k]; });
-  try { sessionStorage.setItem('vci:mp:' + d.code, JSON.stringify({ partida: oi.partida, humanos: oi.humanos, papel: papel, hum: hum, mestre: d.role === 'master' })); }
+  try { sessionStorage.setItem('vci:mp:' + d.code, JSON.stringify({ partida: oi.partida, humanos: oi.humanos, papel: papel, hum: hum, formas: oi.formas || {}, mestre: d.role === 'master' })); }
   catch (er) { janela('NAVEGADOR', 'Este navegador não deixa o jogo guardar a partida (modo privado?). Abra em uma aba comum.'); return; }
   location.replace(location.pathname + '?sala=' + d.code + '&mp=1' + (oi.teste ? '&teste=1' : ''));
 });
@@ -2563,14 +2625,14 @@ if (TESTE) console.log('[VC] partida', PARTIDA, 'impostor', IMP, 'casa', P.casa,
 </script>
 <script>
 /* Troca o boneco cinza pelos bonecos de vidro coloridos (cópia de o-impostor/icones/contatos/ligar.js) */
-(function(){function preencher(el,id){if(!el||!id)return;if(el.querySelector('img[data-oi-contato]'))return;var arq=(window.OIContatos&&window.OIContatos[id])||id;el.innerHTML='<img data-oi-contato src="icones/contatos/'+arq+'.webp" alt="">'}
+(function(){function preencher(el,id){if(!el||!id)return;if(el.querySelector('img[data-oi-contato]'))return;var arq=(window.OIContatos&&window.OIContatos[id])||id;el.innerHTML='<img data-oi-contato src="icones/holo/'+arq+'.webp" alt="">'}
 function varrer(){document.querySelectorAll('[data-priv]').forEach(function(b){preencher(b.querySelector('.avatar'),b.getAttribute('data-priv'))});
 document.querySelectorAll('.suspeito').forEach(function(s){var t=s.querySelector('b');var m=t&&t.textContent.match(/(\d{2})/);if(m)preencher(s.querySelector('.avatar'),m[1])});
 var cab=document.getElementById('convAvatar'),nome=document.getElementById('convNome');var n=nome&&nome.textContent.match(/(\d{2})/);if(cab&&n)preencher(cab,n[1])}
 var obs=new MutationObserver(varrer);obs.observe(document.body,{childList:true,subtree:true});varrer()})();
 </script>
-<script src="travas.js?v=20261010c"></script>
-<script src="maquete.js?v=20261010c"></script>
-<script src="objeto.js?v=20261010c"></script>
+<script src="travas.js?v=20261010d"></script>
+<script src="maquete.js?v=20261010d"></script>
+<script src="objeto.js?v=20261010d"></script>
 </body>
 </html>
