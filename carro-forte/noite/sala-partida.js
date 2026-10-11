@@ -21,13 +21,13 @@
    No ensaio deste aparelho e no Solo Lab não há sala, e este módulo não se
    instala: o núcleo decide local, que é o certo lá. */
 
-import { getApps } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
+import { getApps } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js';
 import {
   getFirestore,
   doc,
   onSnapshot,
   updateDoc,
-} from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+} from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 
 const sala = window.MOSAICO_ROOM;
 

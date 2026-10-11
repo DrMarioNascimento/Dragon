@@ -1065,6 +1065,25 @@ button:active,.caixa:active,.redondo:active,.chip:active{
 
 /* 3º lugar: o número descia sob a tampa */
 .hp-c3 .hp-ped{height:92px}.hp-c3 .hp-ped .corpo{padding-top:12px;box-sizing:border-box}
+/* ══ Peças de RA em 3D (peca3d.js, 11/10/2026): o modelo ocupa a tela atrás do topo e do cartão;
+   o esquema 2D fica guardado por baixo (reserva e botão "Esquema 2D") ══ */
+.planta-area .peca-svg{display:contents}
+.tela-ra.com3d{background:radial-gradient(110% 80% at 50% 30%,#14242c,#060c10 62%,#030608)}
+.tela-ra.com3d .planta-area{position:absolute;inset:0;padding:0;overflow:hidden;display:block}
+.tela-ra.com3d .planta-area .peca3d-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.tela-ra.com3d .planta-area .peca-svg{display:none}
+.tela-ra.com3d .planta-area.ver-esquema .peca-svg,.tela-ra.com3d .planta-area.so-esquema .peca-svg{display:flex;position:absolute;z-index:2;inset:calc(env(safe-area-inset-top) + 92px) 10px 190px;justify-content:center;align-items:flex-start;background:#050b12f2;border-radius:12px;padding:6px}
+.tela-ra.com3d .planta-area.so-esquema .p3-btn[data-p3="esquema"]{display:none}
+.tela-ra.com3d .planta-topo,.tela-ra.com3d .planta-card{position:relative;z-index:3}
+.tela-ra.com3d .planta-topo{background:linear-gradient(#050b12f0,#050b1200);pointer-events:none}.tela-ra.com3d .planta-topo>*{pointer-events:auto}
+.tela-ra.com3d .planta-card{margin-top:auto;background:#071318ee}
+.tela-ra.com3d .sair-ra{z-index:4}
+.peca3d-ui{position:absolute;z-index:3;right:10px;top:calc(env(safe-area-inset-top) + 96px);display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+.p3-btn{min-height:42px;padding:0 13px;border-radius:10px;border:1px solid #2b6470;border-bottom:3px solid #020609;background:linear-gradient(180deg,#123340,#08161d);color:#a6eef5;font:700 12.5px var(--sans,system-ui);cursor:pointer;box-shadow:inset 0 2px 0 #ffffff12,0 4px 0 #020609,0 8px 14px #0008}
+.p3-btn[hidden]{display:none}.p3-btn:active{transform:translateY(3px);box-shadow:0 1px 0 #020609}
+.p3-btn.ouro{background:linear-gradient(180deg,#f3d078,#e0b13a);color:#1a1206;border-color:#d6aa58;border-bottom-color:#5a4310}
+.planta-area.carregando3d::after{content:'Carregando a peça em 3D…';position:absolute;z-index:2;left:50%;top:42%;transform:translateX(-50%);font:600 13px var(--termfont,monospace);color:#86e1ea;background:#050b12d0;padding:8px 14px;border-radius:10px}
+body.in-ar .tela-ra.com3d{background:transparent}
 
 </style>
 </head>
@@ -1203,8 +1222,8 @@ button:active,.caixa:active,.redondo:active,.chip:active{
 </div>
 <div class="veu" id="veu" hidden><div class="folha" id="folha"></div></div>
 
-<script src="dados.js?v=20261010d"></script>
-<script src="partida.js?v=20261010d"></script>
+<script src="dados.js?v=20261011a"></script>
+<script src="partida.js?v=20261011a"></script>
 <script>
 (function(){
 'use strict';
@@ -1549,7 +1568,7 @@ function cartaoRA(rot, txt, acoes) {
   (acoes || []).forEach(function (x) { var b = document.createElement('button'); b.className = 'acao'; b.type = 'button'; b.textContent = x[0]; b.onclick = x[1]; a.appendChild(b); });
 }
 function abrirPlanta() {
-  pecaAberta = 'planta';
+  fechar3d(); pecaAberta = 'planta';
   $('#plantaArea').innerHTML = plantaSVG();
   $('#plantaArea').querySelectorAll('.andar').forEach(function (g) { g.onclick = function () { tocarAndar(g.dataset.andar, g); }; });
   $('#plantaTopo').innerHTML = '<b>A torre, do subsolo à cobertura</b><span id="plantaTarefa">Toque num andar para ver o que há nele.</span>';
@@ -1578,7 +1597,7 @@ function tocarAndar(a, g) {
   else if (a === '+12B') txt += '<br><b style="color:#efc878">Na maquete, este andar abre como uma sala: é onde ficaram os terminais.</b>';
   cartaoRA(A.a + ' · ' + A.nome.toUpperCase(), txt, acoes);
 }
-$('#sairRA').onclick = function () { $('#telaRA').hidden = true; pecaAberta = null; pintarPecas(); };
+$('#sairRA').onclick = function () { fechar3d(); $('#telaRA').hidden = true; pecaAberta = null; pintarPecas(); };
 
 /* ══ As peças de RA: um mecanismo só, em etapas (contêineres genéricos do 3d.md) ══ */
 var pecaAberta = null, ESTADO_PECA = {};
@@ -1666,7 +1685,7 @@ var PECA_DEF = {
         }, det: { crono: ['O CRONÔMETRO', 'Armário → grade (11 s) → poço até o Arquivo (16 s, chiado às 20h26) → Central (45 s) → instalação (40 s) → volta pelo poço (54 s) → trancar (22 s) → armário (6 s).', 'fim'] } }
     ] },
   c5: { cap: 5, nome: 'O quadro elétrico do subsolo', sub: 'Depois da oscilação das 23h31', ico: '⚡', topo: 'Quadro elétrico · subsolo',
-    cartao: function () { return { ico: '🔑', nome: 'O acesso das 20h03', desc: 'O histórico religado: 20h03, acesso de emergência entregue por ' + limpo(Na(P.A)) + '; 20h05, instalação do módulo; 20h10 a 20h40, catraca do Arquivo em modo de carga, sem anotar nomes.' }; },
+    cartao: function () { return { ico: '🔑', nome: 'O acesso das 20h03', desc: 'O histórico religado: 20h03, acesso de emergência entregue ' + limpo(VP.nome(P.A, 'por', CTX)) + '; 20h05, instalação do módulo; 20h10 a 20h40, catraca do Arquivo em modo de carga, sem anotar nomes.' }; },
     etapas: [
       { aviso: 'A porta do quadro tem o esquema colado por dentro.', svg: function () {
           return caixa(50, 40, 260, 340, '#141c22', '#86e1ea', 6) + det('esquema', caixa(80, 70, 200, 80, '#efe9dc', '#8a7a5a') + tx(180, 100, 'ESQUEMA DE RELIGAMENTO', 9, '#3a2a1c', 'middle') + CORES_CABO.map(function (c, i) { return '<rect x="' + (100 + i * 42) + '" y="114" width="30" height="16" fill="' + c[1] + '"/>' + tx(115 + i * 42, 145, String(i + 1), 9, '#3a2a1c', 'middle'); }).join('')) +
@@ -1679,7 +1698,7 @@ var PECA_DEF = {
       { aviso: 'A tela do histórico voltou inteira.', svg: function () {
           var l = ['20h03 · acesso de emergência entregue', '20h05 · módulo instalado', '20h10 · catraca do Arquivo em modo de carga', '20h40 · modo de carga desativado'];
           return caixa(30, 50, 300, 300, '#06121a', '#3fb6c4') + l.map(function (t, i) { return i === 0 ? det('l0', tx(46, 90 + i * 40, t, 10, '#efc878'), [36, 72, 290, 28]) : tx(46, 90 + i * 40, t, 10, '#a6eef5'); }).join('');
-        }, det: { l0: ['A LINHA DAS 20H03', 'O acesso de emergência, previamente habilitado pela Presidente, foi entregue por ' + limpo(Na(P.A)) + ' às 20h03.', 'fim'] } }
+        }, det: { l0: ['A LINHA DAS 20H03', 'O acesso de emergência, previamente habilitado pela Presidente, foi entregue ' + limpo(VP.nome(P.A, 'por', CTX)) + ' às 20h03.', 'fim'] } }
     ] },
   c6: { cap: 6, nome: 'O relógio de parede e as atas', sub: 'Sala de Crise', ico: '🕰️', topo: 'Relógio de parede · compartimento de custódia',
     cartao: function () { return { ico: '🗒️', nome: 'A ordem das 20h58', desc: 'Com o relógio corrigido em ' + P.atraso + ' s, a frase cortada cai às 20h58: “Antecipe para vinte e uma e dez. Ela não precisa saber até estar conectada.” Comando às 20h58min40s, credencial operacional.' }; },
@@ -1729,6 +1748,161 @@ var PECA_DEF = {
         seq: ['isolar', 'revogar'] }
     ] }
 };
+/* ══ As peças em 3D: que nó responde a que detalhe, como as partes se mexem e o que se escreve
+   nas áreas lisas do modelo. A informação é a mesma do esquema 2D (PECA_DEF); os números vêm da partida. ══ */
+var PECA_3D = (function () {
+  var M = 'modelos/pecas/', PI = Math.PI, PT = P;
+  function et(st) { return st.feito ? 9 : st.etapa; }
+  function viu(st, e, k) { return !!(st.vistos && st.vistos[e + ':' + k]); }
+  function vistosEt(st) { var o = {}; Object.keys(st.vistos || {}).forEach(function (x) { var q = x.split(':'); if (+q[0] === st.etapa) o[q[1]] = 1; }); return o; }
+  function fonte(g, tam, peso) { g.font = (peso || '700') + ' ' + Math.round(tam) + 'px "DM Mono",monospace'; }
+  function rnd(nome) { return VP.gerador(PARTIDA + '|p3d|' + nome); }
+  /* c1: a fita do monitor da pulseira, três faixas; fora de passo até o atraso ser corrigido */
+  function fita(g, w, h, ok) {
+    g.fillStyle = '#efe9dc'; g.fillRect(0, 0, w, h);
+    var nomes = ['pulso', 'energia', 'transf.'], rh = h / 3, xr = w * 0.58, d = ok ? 0 : w * 0.07;
+    nomes.forEach(function (n, i) {
+      var y = rh * i + rh * 0.62, x0 = xr + (i === 1 ? 0 : d);
+      fonte(g, rh * 0.42, '600'); g.fillStyle = '#5a4630'; g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillText(n, w * 0.015, y - rh * 0.05);
+      g.strokeStyle = '#1d3a8a'; g.lineWidth = Math.max(2, h * 0.018); g.beginPath(); g.moveTo(w * 0.13, y); g.lineTo(x0 - 10, y); g.lineTo(x0, y - rh * 0.38); g.lineTo(x0 + 10, y + rh * 0.3); g.lineTo(x0 + 20, y); g.lineTo(w * 0.99, y); g.stroke();
+    });
+    g.setLineDash([8, 6]); g.strokeStyle = '#c08a1e'; g.lineWidth = 3; g.beginPath(); g.moveTo(xr + 2, 0); g.lineTo(xr + 2, h); g.stroke(); g.setLineDash([]);
+    fonte(g, rh * 0.34); g.fillStyle = '#9a6a10'; g.textAlign = 'left'; g.fillText(ok ? '21h13min08s' : '21h13min08s ?', xr + 26, rh * 0.22);
+  }
+  /* c4: a planta antiga (de quando a torre era central telefônica) */
+  var PLANTA_Z = { galeria: [0.04, 0.10, 0.92, 0.30], arquivo: [0.04, 0.33, 0.92, 0.53], central: [0.04, 0.68, 0.92, 0.88] };
+  function planta(g, w, h, st, cron) {
+    g.fillStyle = '#16314f'; g.fillRect(0, 0, w, h);
+    g.strokeStyle = '#ffffff22'; g.lineWidth = 1; for (var x = 0; x < w; x += w / 16) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, h); g.stroke(); } for (var y = 0; y < h; y += w / 16) { g.beginPath(); g.moveTo(0, y); g.lineTo(w, y); g.stroke(); }
+    var px = w * 0.8, seq = st.seq || [], feito = cron;
+    g.setLineDash([14, 10]); g.strokeStyle = '#f0bf8f'; g.lineWidth = 5; g.beginPath(); g.moveTo(px, h * 0.06); g.lineTo(px, h * 0.94); g.stroke(); g.setLineDash([]);
+    fonte(g, w * 0.04, '600'); g.fillStyle = '#f0bf8f'; g.textAlign = 'center'; g.fillText('POÇO', px, h * 0.04 + 6);
+    [['galeria', 'Galeria · grade (+2)'], ['arquivo', 'Arquivo · grade (+1)'], ['central', 'Central · alçapão (−1)']].forEach(function (n) {
+      var r = PLANTA_Z[n[0]], on = feito || seq.indexOf(n[0]) >= 0, y0 = r[1] * h, y1 = r[3] * h, cy = (y0 + y1) / 2;
+      g.fillStyle = on ? '#1b4f5c' : '#0e1d28'; g.strokeStyle = on ? '#efc878' : '#a6eef5'; g.lineWidth = 4; g.fillRect(w * 0.06, y0, w * 0.6, y1 - y0); g.strokeRect(w * 0.06, y0, w * 0.6, y1 - y0);
+      fonte(g, w * 0.041); g.fillStyle = '#e9fbff'; g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillText(n[1], w * 0.085, cy);
+      g.strokeStyle = on ? '#efc878' : '#a6eef588'; g.beginPath(); g.moveTo(w * 0.66, cy); g.lineTo(px, cy); g.stroke();
+      g.fillStyle = on ? '#efc878' : '#d49a6a'; g.beginPath(); g.arc(px, cy, w * 0.025, 0, 2 * PI); g.fill();
+    });
+    if (seq.length > 1 || feito) {
+      var pts = (feito ? ['galeria', 'arquivo', 'central', 'galeria'] : seq).map(function (k) { var r = PLANTA_Z[k]; return (r[1] + r[3]) / 2 * h; });
+      g.strokeStyle = '#efc878'; g.lineWidth = 9; g.globalAlpha = 0.85; g.beginPath(); g.moveTo(px + 14, pts[0]); pts.slice(1).forEach(function (y, i) { g.lineTo(px + 14 + (i % 2 ? 0 : 14), y); }); g.stroke(); g.globalAlpha = 1;
+    }
+    if (cron) {
+      g.fillStyle = '#0e1d28ee'; g.fillRect(w * 0.08, h * 0.545, w * 0.84, h * 0.125); g.strokeStyle = '#86e1ea'; g.lineWidth = 3; g.strokeRect(w * 0.08, h * 0.545, w * 0.84, h * 0.125);
+      fonte(g, w * 0.085); g.fillStyle = '#efc878'; g.textAlign = 'center'; g.fillText('194 s', w * 0.5, h * 0.585);
+      fonte(g, w * 0.036, '600'); g.fillStyle = '#a6eef5'; g.fillText('da chave à devolução', w * 0.5, h * 0.64);
+    }
+  }
+  /* c8: a cortiça, com as três cadeias */
+  var CORT_Z = { autoria: [0.04, 0.06, 0.96, 0.32], mecanismo: [0.04, 0.37, 0.96, 0.63], intencao: [0.04, 0.68, 0.96, 0.94] };
+  function cortica(g, w, h, st, tudo) {
+    g.fillStyle = '#a77a4c'; g.fillRect(0, 0, w, h);
+    for (var i = 0; i < 900; i++) { g.fillStyle = i % 2 ? '#8e6538' : '#c09062'; g.globalAlpha = 0.35; g.fillRect((i * 97) % w, (i * 53) % h, 3, 3); } g.globalAlpha = 1;
+    var v = st.vistos || {};
+    [['autoria', 'AUTORIA', 'peça · sessão · ausência'], ['mecanismo', 'MECANISMO', 'chave · grade · poço'], ['intencao', 'INTENÇÃO', 'a fala de quem fez']].forEach(function (x) {
+      var r = CORT_Z[x[0]], on = tudo || v['0:' + x[0]], y0 = r[1] * h, y1 = r[3] * h, cy = (y0 + y1) / 2;
+      [0, 1, 2].forEach(function (j) { var cx = w * (0.08 + j * 0.31); g.fillStyle = on ? '#f4ecd8' : '#d8cfb8'; g.fillRect(cx, y0 + 8, w * 0.25, y1 - y0 - 16); g.fillStyle = '#c0392b'; g.beginPath(); g.arc(cx + w * 0.125, y0 + 16, 9, 0, 2 * PI); g.fill(); });
+      fonte(g, (y1 - y0) * 0.22); g.fillStyle = '#3a2a1c'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(x[1], w * 0.205, cy);
+      fonte(g, (y1 - y0) * 0.13, '600'); x[2].split(' · ').forEach(function (t, j) { if (j < 2) g.fillText(t, w * (0.515 + j * 0.31), cy); else g.fillText(t, w * 0.825, cy + (y1 - y0) * 0.18); });
+      if (on) { g.strokeStyle = '#c0392b'; g.lineWidth = 5; g.beginPath(); g.moveTo(w * 0.205, y0 + 16); g.lineTo(w * 0.515, y0 + 16); g.lineTo(w * 0.825, y0 + 16); g.stroke(); }
+    });
+  }
+  /* c7: a tela do notebook */
+  function telaNote(g, w, h, st) {
+    g.fillStyle = '#06121a'; g.fillRect(0, 0, w, h); g.textAlign = 'left'; g.textBaseline = 'middle';
+    function caber(t, larg, tam, peso) { fonte(g, tam, peso); while (g.measureText(t).width > larg && tam > 8) { tam *= 0.92; fonte(g, tam, peso); } return tam; }
+    if (et(st) < 2) { caber('PAREAR · token · posto · presença', w * 0.9, h * 0.08); g.fillStyle = '#86e1ea'; g.fillText('PAREAR · token · posto · presença', w * 0.05, h * 0.2); caber('Insira o pendrive lacrado da presença.', w * 0.9, h * 0.06, '600'); g.fillStyle = '#a6eef5'; g.fillText('Insira o pendrive lacrado da presença.', w * 0.05, h * 0.36); return; }
+    var j = VP.janela(P, P.I), l = VP.misturar([[E[P.S7[0]].posto, 'presente'], [E[P.S7[1]].posto, 'presente'], [E[P.I].posto, 'vazio ' + VP.hora(j[0]) + '–' + VP.hora(j[1])]], VP.gerador(PARTIDA + '|pareia'));
+    var tok = 'token 20h23min30s · código = peça do distribuidor'; caber(tok, w * 0.92, h * 0.062); g.fillStyle = '#efc878'; g.fillText(tok, w * 0.04, h * 0.14);
+    var tt = h * 0.058; l.forEach(function (x) { tt = Math.min(tt, caber(String(x[0]), w * 0.5, h * 0.058, '600'), caber(x[1], w * 0.4, h * 0.058, '600')); });
+    l.forEach(function (x, i) { var y = h * (0.36 + i * 0.2); fonte(g, tt, '600'); g.fillStyle = '#a6eef5'; g.fillText(String(x[0]), w * 0.04, y); g.textAlign = 'right'; g.fillStyle = /vazio/.test(x[1]) ? '#ff9b8e' : '#5fd68a'; g.fillText(x[1], w * 0.96, y); g.textAlign = 'left'; });
+  }
+  var FICHAS = (function () { var r = rnd('fichas'), l = []; while (l.length < 3) { var n = 2 + Math.floor(r() * 10); if (l.indexOf(n) < 0) l.push(n); } return l.map(function (n) { return 'gaveta_cancelados/ficha_' + (n < 10 ? '0' : '') + n; }); })();
+  var CAIDOS = (function () { var r = rnd('disj'), a = 1 + Math.floor(r() * 12), b; do { b = 1 + Math.floor(r() * 12); } while (b === a); return [a, b].map(function (n) { return 'disjuntor_' + (n < 10 ? '0' : '') + n; }); })();
+  var PONTA = { azul: [-0.16, 0.235, -0.155], vermelho: [-0.10, 0.215, -0.145], amarelo: [-0.04, 0.245, -0.145], verde: [0.02, 0.225, -0.135] }, BORNE_X = [-0.095, -0.045, 0.005, 0.055];
+  var GAV_X = [-1.05, -0.53, 0];
+  return {
+    c1: { glb: M + 'rec-escrivaninha-gabinete.glb',
+      alvos: function (st) { var e = et(st); if (e === 0) return { tampo: ['tampo_borda', 'chave_gaveta'], gaveta: ['gaveta'], retrato: ['porta_retrato'], caneca: ['caneca', 'bilhete_caneca'], monitor: ['monitor'] }; if (e === 1) return { fita: ['fita'], impressora: ['impressora'] }; if (e === 2) return { regua: ['fita', 'gaveta'] }; return {}; },
+      vistos: function (st) { var o = vistosEt(st); if (st.etapa === 2 && !st.ok) delete o.regua; return o; },
+      pose: function (st) { var e = et(st), P = {}; if (e >= 1) { P.gaveta = { p: [0, 0, 0.36] }; P.chave_gaveta = { v: false }; } if (viu(st, 0, 'caneca')) P.caneca = { p: [0.09, 0.07, 0.03], r: [0, 0, -0.25] }; return P; },
+      textos: function (st) { var ok = !!st.ok || st.feito; return { monitor_area_texto: { linhas: ['APAGÃO', '21h13', 'relógio da Sala, sem correção'], fundo: '#06121a', cor: '#86e1ea', tam: 0.15 }, fita_area_texto: { desenho: function (g, w, h) { fita(g, w, h, ok); }, k: ok } }; },
+      vista: function (st) { var e = et(st); return e === 0 ? [[0.7, 1.45, 1.55], [0, 0.85, 0]] : e === 1 ? [[0.45, 1.6, 1.35], [0.15, 0.74, 0.18]] : [[-0.06, 1.2, 0.88], [-0.06, 0.63, 0.4]]; } },
+    c2: { glb: M + 'rec-fichario-consentimentos.glb',
+      so2d: function (st) { return et(st) === 0; },
+      alvos: function (st) { var e = et(st); if (e === 1) return { ativos: ['gaveta_ativos'], familia: ['gaveta_familia'], cancelados: ['gaveta_cancelados'] }; if (e === 2) return { f1: [FICHAS[0]], violeta: [FICHAS[1]], f3: [FICHAS[2]] }; return {}; },
+      vistos: vistosEt,
+      pose: function (st) { var e = et(st), P = {}; if (e === 1 && viu(st, 1, 'familia')) P.gaveta_familia = { p: [0, 0, 0.42] }; if (e === 1 && viu(st, 1, 'ativos')) P.gaveta_ativos = { p: [0, 0, 0.16] };
+        if (e >= 2) { P.gaveta_cancelados = { p: [0, 0, 0.46] }; ['f1', 'violeta', 'f3'].forEach(function (k, i) { P[FICHAS[i]] = viu(st, 2, k) || (e > 2 && k === 'violeta') ? { p: [0, 0.03, 0], r: [0.8, 0, 0] } : { p: [0, 0.035, 0] }; }); } return P; },
+      textos: function (st) { var T = { gaveta_ativos_etiqueta_area_texto: { linhas: ['LOTES ATIVOS'], tam: 0.42 }, gaveta_familia_etiqueta_area_texto: { linhas: ['LOTES DE FAMÍLIA'], tam: 0.42 }, gaveta_cancelados_etiqueta_area_texto: { linhas: ['LOTES CANCELADOS'], tam: 0.42 } };
+        T[FICHAS[0] + '_area_texto'] = { linhas: ['LOTE CANCELADO', 'sem assinatura'], tam: 0.13 }; T[FICHAS[2] + '_area_texto'] = { linhas: ['LOTE DEVOLVIDO', 'à família'], tam: 0.13 };
+        T[FICHAS[1] + '_area_texto'] = { desenho: function (g, w, h) { g.fillStyle = '#efe9dc'; g.fillRect(0, 0, w, h); fonte(g, h * 0.16); g.fillStyle = '#3a2a1c'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('LOTE ' + P.lote, w / 2, h * 0.2); fonte(g, h * 0.09, '600'); g.fillText('contribuição destruída', w / 2, h * 0.38); g.strokeStyle = '#8a4fd0'; g.lineWidth = 6; for (var j = 0; j < 3; j++) { g.beginPath(); for (var x = w * 0.08; x <= w * 0.92; x += 8) { var y = h * (0.58 + j * 0.12) + Math.sin(x / 26 + j) * h * 0.04; if (x === w * 0.08) g.moveTo(x, y); else g.lineTo(x, y); } g.stroke(); } }, k: P.lote };
+        return T; },
+      vista: function (st) { return et(st) <= 1 ? [[0.55, 1.15, 1.6], [0, 0.55, 0.1]] : [[0, 1.2, 0.95], [0, 0.3, 0.45]]; } },
+    c3: { glb: M + 'rec-cofre-balanca.glb',
+      alvos: function (st) { var e = et(st); if (e === 0) return { teclado: ['tecla_0', 'tecla_1', 'tecla_2', 'tecla_3', 'tecla_4', 'tecla_5', 'tecla_6', 'tecla_7', 'tecla_8', 'tecla_9', 'tecla_ok', 'tecla_apaga', 'visor_cofre_area_texto'], etiqueta: ['etiqueta_area_texto'], tapete: ['tapete', 'bilhete_tapete'] }; if (e === 1) return { a: ['peca_a'], b: ['peca_b'] }; if (e === 2) return { lupa: ['lupa', 'peca_b'] }; return {}; },
+      vistos: function (st) { var o = vistosEt(st); if (st.etapa === 0 && !st.ok) delete o.teclado; if (st.etapa === 1) { delete o.a; delete o.b; if (st.pesou) { if (st.pesou.a) o.a = 1; if (st.pesou.b) o.b = 1; } } return o; },
+      pose: function (st) { var e = et(st), P = { peca_b_ponte: { v: e >= 2 } }; if (viu(st, 0, 'tapete')) P.tapete = { r: [-0.45, 0, 0] }; if (e >= 1) P.cofre_porta = { r: [0, -1.92, 0] };
+        if (e === 1 && st.ultima === 'a') { P.peca_a = { p: [0.56, -0.09, -0.01] }; P.balanca_prato = { p: [0, -0.002, 0] }; }
+        if (e === 1 && st.ultima === 'b') { P.peca_b = { p: [0.42, -0.09, -0.01] }; P.balanca_prato = { p: [0, -0.002, 0] }; }
+        if (e >= 2) { P.peca_b = { p: [0.61, -0.19, 0.17] }; P.peca_a = { p: [0.59, -0.19, 0.29] }; } return P; },
+      textos: function (st) { var e = et(st); return { visor_cofre_area_texto: { linhas: [e >= 1 || st.ok ? 'ABERTO' : '— — — — — —'], fundo: '#0a1218', cor: '#86e1ea', tam: 0.5 }, etiqueta_area_texto: { linhas: ['LOTE + PRATELEIRA', '(seis dígitos)'], tam: 0.17 }, visor_balanca_area_texto: { linhas: [e === 1 ? (st.massa || '— g') : (e >= 2 ? '0 g' : '— g')], fundo: '#0a1218', cor: '#efc878', tam: 0.55 } }; },
+      vista: function (st) { var e = et(st); return e === 0 ? [[-0.05, 0.85, 1.35], [-0.12, 0.2, 0]] : e === 1 ? [[-0.05, 0.85, 1.1], [-0.08, 0.18, -0.1]] : [[0.36, 0.42, 0.42], [0.33, 0.03, 0.06]]; } },
+    c4: { glb: M + 'rec-armario-servico.glb',
+      alvos: function (st) { var e = et(st), z = function (k) { return { no: 'planta_area_texto', r: PLANTA_Z[k] }; }; if (e === 0) return { chave: ['chave_triangular', 'ganchos'], produtos: ['frasco_1', 'frasco_2', 'frasco_3', 'frasco_4', 'bilhete_frascos'], pano: ['pano'] }; if (e === 1) return { galeria: [z('galeria')], arquivo: [z('arquivo')], central: [z('central')] }; if (e === 2) return { crono: ['planta_area_texto', 'planta_moldura'] }; return {}; },
+      vistos: vistosEt,
+      pose: function (st) { var P = { armario_porta: { r: [0, 1.83, 0] }, cadeado_haste: { p: [0, 0.012, 0] } }; if (viu(st, 0, 'chave') || et(st) >= 1) P.chave_triangular = { r: [0, 0, PI] }; if (viu(st, 0, 'produtos')) { P.frasco_1 = { p: [-0.04, 0, 0.07] }; P.frasco_2 = { p: [-0.02, 0, 0.1] }; P.frasco_3 = { p: [0.03, 0, 0.1] }; P.frasco_4 = { p: [0.05, 0, 0.07] }; } return P; },
+      textos: function (st) { var e = et(st); return { planta_area_texto: { desenho: function (g, w, h) { planta(g, w, h, st, e >= 2); }, k: [e, (st.seq || []).join(',')] } }; },
+      vista: function (st) { return et(st) === 0 ? [[-0.8, 1.5, 1.6], [-0.45, 1.02, 0]] : [[0.35, 1.12, 1.25], [0.35, 1.12, -0.29]]; } },
+    c5: { glb: M + 'rec-quadro-eletrico.glb',
+      alvos: function (st) { var e = et(st); if (e === 0) { var d = []; for (var i = 1; i <= 12; i++) d.push('disjuntor_' + (i < 10 ? '0' : '') + i); return { esquema: ['esquema_area_texto'], disjuntores: d, dobradica: ['ficha_dobradica'] }; }
+        if (e === 1) { var o = {}; CORES_CABO.forEach(function (c) { o[c[0]] = ['cabo_' + c[0], 'cabo_' + c[0] + '_ponta']; }); return o; } if (e === 2) return { l0: ['tela_area_texto'] }; return {}; },
+      vistos: function (st) { var o = vistosEt(st); if (st.etapa === 1) { o = {}; CORES_CABO.forEach(function (c) { o[c[0]] = 1; }); } return o; },
+      pose: function (st) { var e = et(st), P = { quadro_porta: { r: [0, -2.09, 0] } }; if (e < 2) CAIDOS.forEach(function (n) { P[n] = { r: [0.85, 0, 0] }; }); if (viu(st, 0, 'dobradica')) P.ficha_dobradica = { p: [0.02, -0.03, 0.06] };
+        CORES_CABO.forEach(function (c, i) { if (e >= 2 || (e === 1 && (st.seq || []).indexOf(c[0]) >= 0)) { var p0 = PONTA[c[0]]; P['cabo_' + c[0] + '_ponta'] = { p: [BORNE_X[i] - p0[0], 0.45 - p0[1], -0.248 - p0[2]] }; } }); return P; },
+      textos: function (st) { var e = et(st); return {
+        esquema_area_texto: { desenho: function (g, w, h) { g.fillStyle = '#efe9dc'; g.fillRect(0, 0, w, h); fonte(g, w * 0.06); g.fillStyle = '#3a2a1c'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('ESQUEMA DE RELIGAMENTO', w / 2, h * 0.09); CORES_CABO.forEach(function (c, i) { var y = h * (0.24 + i * 0.18); g.fillStyle = c[1]; g.fillRect(w * 0.12, y, w * 0.5, h * 0.1); fonte(g, w * 0.09); g.fillStyle = '#3a2a1c'; g.fillText(String(i + 1), w * 0.76, y + h * 0.05); fonte(g, w * 0.05, '600'); g.fillText(c[0], w * 0.37, y + h * 0.135); }); }, k: CORES_CABO.join() },
+        tela_area_texto: e < 2 ? { linhas: ['SEM SINAL'], fundo: '#06121a', cor: '#ff9b8e', tam: 0.2 } : { desenho: function (g, w, h) { g.fillStyle = '#06121a'; g.fillRect(0, 0, w, h); g.textAlign = 'left'; g.textBaseline = 'middle'; var L = ['20h03 · acesso de emergência entregue', '20h05 · módulo instalado', '20h10 · catraca do Arquivo em modo de carga', '20h40 · modo de carga desativado'], tam = h * 0.075; fonte(g, tam); while (g.measureText(L[2]).width > w * 0.92 && tam > 8) { tam *= 0.92; fonte(g, tam); } L.forEach(function (t, i) { fonte(g, tam, i ? '600' : '700'); g.fillStyle = i ? '#a6eef5' : '#efc878'; g.fillText(t, w * 0.04, h * (0.16 + i * 0.22)); }); }, k: 'hist' } }; },
+      vista: function (st) { var e = et(st); return e === 0 ? [[0.25, 0.8, 1.3], [-0.32, 0.58, 0.05]] : e === 1 ? [[0.0, 0.52, 0.72], [-0.04, 0.34, -0.2]] : [[0.12, 0.86, 0.42], [0.1, 0.84, -0.27]]; } },
+    c6: { glb: M + 'rec-relogio-custodia.glb',
+      alvos: function (st) { var e = et(st); if (e === 0) return { relogio: ['relogio_mostrador', 'relogio_caixa', 'relogio_vidro', 'ponteiro_hora', 'ponteiro_min', 'ponteiro_seg', 'coroa'], moldura: ['relogio_suporte_placa', 'bilhete_moldura'] }; if (e === 1) return { impressa: ['folha_impressa'], invest: ['folha_investidores'], local: ['folha_local'] }; if (e === 2) return { frase: ['folha_impressa', 'folha_investidores', 'folha_local'] }; return {}; },
+      vistos: function (st) { var o = vistosEt(st); if (st.etapa === 0 && !st.ok) delete o.relogio; return o; },
+      pose: function (st) { var e = et(st), P = {};
+        /* o relógio da Sala atrasa: antes do acerto, os ponteiros ficam atrás da hora da rede */
+        if (e === 0 && !st.ok) { var s = +PT.atraso || 0; P.ponteiro_seg = { r: [0, 0, s * 2 * PI / 60] }; P.ponteiro_min = { r: [0, 0, s * 2 * PI / 3600] }; }
+        if (viu(st, 0, 'moldura')) P.bilhete_moldura = { p: [0.05, 0.05, 0.02] };
+        if (e >= 1) { P.relogio = { r: [0, -1.75, 0] }; P.compartimento_porta = { r: [1.57, 0, 0] };
+          var fol = ['folha_impressa', 'folha_investidores', 'folha_local'], ks = ['impressa', 'invest', 'local'];
+          /* as que ainda não foram lidas ficam à frente, abertas em leque; as lidas vão para a pilha, atrás */
+          fol.forEach(function (f, i) { P[f] = e >= 2 ? { p: [0, 0.02, 0.4 + i * 0.006] } : viu(st, 1, ks[i]) ? { p: [0, 0.1, 0.24 + i * 0.006] } : { p: [(i - 1) * 0.23, 0.0, 0.5] }; }); }
+        return P; },
+      textos: function (st) { var e = et(st), T = {
+        folha_impressa_area_texto: { linhas: ['ATA · VERSÃO IMPRESSA', 'sincronização às 21h10'], fundo: 'rgba(200,235,245,0.16)', cor: '#e9fbff', transparente: true, tam: 0.05, alinhar: 'left', topo: 0.06 },
+        folha_investidores_area_texto: { linhas: ['ATA · INVESTIDORES', 'horário sem histórico'], fundo: 'rgba(200,235,245,0.10)', cor: '#a6eef5', transparente: true, tam: 0.05, alinhar: 'left', topo: 0.24 },
+        folha_local_area_texto: e >= 2 ? { desenho: function (g, w, h) { g.fillStyle = 'rgba(200,235,245,0.10)'; g.fillRect(0, 0, w, h); g.textAlign = 'center'; g.textBaseline = 'middle'; fonte(g, h * 0.1); g.fillStyle = '#efc878'; g.fillText('20h58', w / 2, h * 0.7); fonte(g, h * 0.032, '600'); g.fillStyle = '#e9fbff'; g.fillText('“Antecipe para vinte e uma e dez.”', w / 2, h * 0.8); }, transparente: true, k: 'frase' }
+          : { linhas: ['ATA · CÓPIA LOCAL', 'demonstração ________'], fundo: 'rgba(200,235,245,0.10)', cor: '#c9f6fb', transparente: true, tam: 0.05, alinhar: 'left', topo: 0.42 } }; return T; },
+      vista: function (st) { var e = et(st); return e === 0 ? [[0.12, 0.82, 0.78], [0, 0.64, -0.14]] : e === 1 ? [[0, 0.82, 1.4], [0, 0.64, 0.15]] : [[0, 0.66, 0.52], [0, 0.64, 0.14]]; } },
+    c7: { glb: M + 'rec-notebook-pendrive.glb',
+      alvos: function (st) { var e = et(st); if (e === 0) return { g0: ['gaveta_1'], g1: ['gaveta_2'], g2: ['gaveta_3'] }; if (e === 1) return { porta: ['porta_usb', 'notebook_base', 'notebook_tampa', 'pendrive'] }; if (e === 2) return { token: ['notebook_tela_area_texto', 'notebook_tampa'] }; return {}; },
+      vistos: vistosEt,
+      pose: function (st) { var e = et(st), P = {}, ab = [0, 0, 0];
+        if (e === 0) [0, 1, 2].forEach(function (i) { if (viu(st, 0, 'g' + i)) { ab[i] = 0.4; P['gaveta_' + (i + 1)] = { p: [0, 0, 0.4] }; } });
+        if (e === 0) P.pendrive = P.pendrive_lacre = { p: [GAV_X[GAVETA_PEN], 0, ab[GAVETA_PEN] - ab[2]] };
+        if (e >= 1) { P.notebook_tampa = { r: [-1.92, 0, 0] }; }
+        if (e === 1) P.pendrive = P.pendrive_lacre = { p: [-0.42, 0.16, -0.02] };
+        if (e >= 2) { P.pendrive = { p: [-0.49, 0.162, -0.15], r: [0, -0.88, 0] }; P.pendrive_lacre = { v: false }; } return P; },
+      textos: function (st) { var e = et(st); return { notebook_tela_area_texto: { desenho: function (g, w, h) { telaNote(g, w, h, st); }, k: e }, pendrive_lacre_area_texto: { linhas: ['20h10'], tam: 0.5 } }; },
+      vista: function (st) { var e = et(st); return e === 0 ? [[0.05, 1.35, 2.3], [0, 0.78, 0.1]] : e === 1 ? [[0.42, 1.26, 0.9], [0.22, 0.95, 0.05]] : [[0.22, 1.2, 0.62], [0.22, 1.03, -0.06]]; } },
+    c8: { glb: M + 'rec-cortica-alavancas.glb',
+      alvos: function (st) { var e = et(st), z = function (k) { return { no: 'cortica_area_texto', r: CORT_Z[k] }; }; if (e === 0) return { autoria: [z('autoria')], mecanismo: [z('mecanismo')], intencao: [z('intencao')] }; if (e === 1) return { isolar: ['alavanca_isolar'], revogar: ['alavanca_revogar'], maca: ['alavanca_maca'] }; return {}; },
+      vistos: function (st) { var o = vistosEt(st); if (st.etapa === 1) { o = {}; (st.seq || []).forEach(function (k) { o[k] = 1; }); } return o; },
+      pose: function (st) { var e = et(st), q = st.seq || [], P = { luz_maca: { e: '#5fd68a' } };
+        ['isolar', 'revogar'].forEach(function (k) { var on = e > 1 || (e === 1 && q.indexOf(k) >= 0); P['alavanca_' + k] = on ? {} : { r: [-1.047, 0, 0] }; if (on) P['luz_' + k] = { e: '#ffb21f' }; }); return P; },
+      textos: function (st) { var e = et(st); return { cortica_area_texto: { desenho: function (g, w, h) { cortica(g, w, h, st, e >= 1); }, k: [e, Object.keys(st.vistos || {}).join()] }, rotulo_isolar_area_texto: { linhas: ['ISOLAR REDUNDÂNCIA'], fundo: '#0a1218', cor: '#efc878', tam: 0.36 }, rotulo_revogar_area_texto: { linhas: ['REVOGAR FILA'], fundo: '#0a1218', cor: '#efc878', tam: 0.36 }, rotulo_maca_area_texto: { linhas: ['CIRCUITO DA MACA'], fundo: '#0a1218', cor: '#5fd68a', tam: 0.36 } }; },
+      vista: function (st) { return et(st) === 0 ? [[-0.55, 1.18, 3.3], [-0.55, 1.17, -0.29]] : [[0.8, 1.08, 1.3], [0.8, 0.85, -0.1]]; } }
+  };
+})();
 var PECAS = [{ id: 'maquete', cap: 0, nome: 'A maquete da torre', sub: 'Em 3D: os andares abrem e viram sala', ico: '🏙️', aberta: true }, { id: 'planta', cap: 0, nome: 'A planta da torre', sub: 'Do −1 ao +14, com o 12B', ico: '🗼', aberta: true }]
   .concat([1, 2, 3, 4, 5, 6, 7, 8].map(function (c) { return { id: 'c' + c, cap: c, nome: 'Peça do Capítulo ' + c, sub: 'Abre quando a história chegar nela', ico: '🔒' }; }));
 function pintarPecas() {
@@ -1750,25 +1924,45 @@ function abrirPeca(id) {
   $('#plantaTopo').innerHTML = '<b>' + Dp.topo + '</b><span>Toque nos detalhes. Etapa ' + Math.min(st.etapa + 1, Dp.etapas.length) + ' de ' + Dp.etapas.length + '.</span><div class="passos">' + Dp.etapas.map(function (_, i) { return '<i class="' + (i < st.etapa || st.feito ? 'feito' : '') + '"></i>'; }).join('') + '</div>';
   pintarPeca(id);
   var et = Dp.etapas[Math.min(st.etapa, Dp.etapas.length - 1)];
-  cartaoRA(Dp.nome.toUpperCase(), st.feito ? 'Peça concluída. O cartão está no seu inventário: ' + Dp.cartao().nome + '.' : et.aviso, [['Ver o andar na maquete ›', function () { $('#telaRA').hidden = true; pecaAberta = null; abrirMaquete({ entrar: ANDAR_PECA[id] }); }]]);
+  cartaoRA(Dp.nome.toUpperCase(), st.feito ? 'Peça concluída. O cartão está no seu inventário: ' + Dp.cartao().nome + '.' : et.aviso, [['Ver o andar na maquete ›', function () { fechar3d(); $('#telaRA').hidden = true; pecaAberta = null; abrirMaquete({ entrar: ANDAR_PECA[id] }); }]]);
   $('#telaRA').hidden = false;
+  abrir3d(id);
 }
+/* ══ As peças em 3D (peca3d.js, 11/10): os GLB do designer no lugar do desenho, com a mesma mecânica.
+   O esquema 2D fica por baixo: é a reserva se o 3D não carregar e o botão "Esquema 2D" o mostra. ══ */
+var P3D_FALHOU = {}, p3dAtual = null;
+function abrir3d(id) {
+  var C = PECA_3D[id], area = $('#plantaArea'), tela = $('#telaRA');
+  if (!C || P3D_FALHOU[id] || !window.VCPeca3D || !VCPeca3D.suporta() || /[?&]sem3d=1/.test(location.search)) { tela.classList.remove('com3d'); return; }
+  tela.classList.add('com3d');
+  if (p3dAtual === id && VCPeca3D.ativo()) { VCPeca3D.atualizar(ESTADO_PECA[id]); return; }
+  p3dAtual = id; area.classList.add('carregando3d');
+  VCPeca3D.abrir(area, Object.assign({ aoTocar: function (k) { examinar(id, k, null); }, aoAviso: function (t) { cartaoRA('NA MESA', t); } }, C)).then(function (ok) {
+    area.classList.remove('carregando3d'); if (!ok || pecaAberta !== id) return; VCPeca3D.atualizar(ESTADO_PECA[id]);
+  }).catch(function () { area.classList.remove('carregando3d'); P3D_FALHOU[id] = true; p3dAtual = null; tela.classList.remove('com3d'); });
+}
+function fechar3d() { if (p3dAtual && window.VCPeca3D) VCPeca3D.fechar(); p3dAtual = null; $('#telaRA').classList.remove('com3d'); }
 function pintarPeca(id) {
   var Dp = PECA_DEF[id], st = ESTADO_PECA[id], et = Dp.etapas[Math.min(st.etapa, Dp.etapas.length - 1)];
-  $('#plantaArea').innerHTML = svgBase(Dp.nome) + et.svg(st) + svgFim(Dp.topo.toUpperCase());
-  $('#plantaArea').querySelectorAll('[data-det]').forEach(function (g) { var k = g.dataset.det; if (st.vistos[st.etapa + ':' + k]) g.classList.add('visto'); g.onclick = function () { examinar(id, k, g); }; });
+  var area = $('#plantaArea'), alvo = area.querySelector('.peca-svg');
+  if (!alvo) { area.innerHTML = '<div class="peca-svg"></div>'; alvo = area.querySelector('.peca-svg'); }
+  alvo.innerHTML = svgBase(Dp.nome) + et.svg(st) + svgFim(Dp.topo.toUpperCase());
+  alvo.querySelectorAll('[data-det]').forEach(function (g) { var k = g.dataset.det; if (st.vistos[st.etapa + ':' + k]) g.classList.add('visto'); g.onclick = function () { examinar(id, k, g); }; });
+  if (p3dAtual === id && window.VCPeca3D && VCPeca3D.ativo()) VCPeca3D.atualizar(st);
 }
-function snapshot(id) { var Dp = PECA_DEF[id], st = ESTADO_PECA[id], et = Dp.etapas[Math.min(st.etapa, Dp.etapas.length - 1)]; try { return URL.createObjectURL(new Blob([svgBase(Dp.nome) + et.svg(st) + svgFim(Dp.topo.toUpperCase())], { type: 'image/svg+xml' })); } catch (e) { return ''; } }
+function snapshot(id) { if (p3dAtual === id && window.VCPeca3D && VCPeca3D.ativo()) { var f = VCPeca3D.foto(); if (f) return f; } var Dp = PECA_DEF[id], st = ESTADO_PECA[id], et = Dp.etapas[Math.min(st.etapa, Dp.etapas.length - 1)]; try { return URL.createObjectURL(new Blob([svgBase(Dp.nome) + et.svg(st) + svgFim(Dp.topo.toUpperCase())], { type: 'image/svg+xml' })); } catch (e) { return ''; } }
 function avancar(id) { var st = ESTADO_PECA[id]; st.etapa++; st.seq = []; st.massa = null; st.vistosEt = {}; setTimeout(function () { if (pecaAberta === id) abrirPeca(id); }, TESTE ? 50 : 900); }
 function concluir(id) {
   var Dp = PECA_DEF[id], st = ESTADO_PECA[id]; if (st.feito) return; st.feito = true;
+  if (p3dAtual === id && window.VCPeca3D && VCPeca3D.ativo()) VCPeca3D.atualizar(st);
   var c = Dp.cartao(); guardar({ ico: c.ico, nome: c.nome, desc: c.desc, img: snapshot(id) }); pecasFeitas++;
   setTimeout(function () { janela('CARTÃO GUARDADO', c.nome + '. ' + c.desc + ' O cartão está no inventário (📎) e pode ser anexado a uma mensagem.'); }, TESTE ? 50 : 600);
 }
 var pecasFeitas = 0;
 function examinar(id, k, g) {
   var Dp = PECA_DEF[id], st = ESTADO_PECA[id]; if (st.feito) return; var et = Dp.etapas[st.etapa], d = et.det[k]; if (!d) return;
-  g.classList.add('visto'); st.vistos[st.etapa + ':' + k] = true;
+  if (g) g.classList.add('visto'); st.vistos[st.etapa + ':' + k] = true;
+  if (!g) { var sv = document.querySelector('#plantaArea [data-det="' + k + '"]'); if (sv) sv.classList.add('visto'); }
   var acao = d[2];
   if (acao === 'seq') {
     st.seq = st.seq || []; var esperado = et.seq[st.seq.length];
@@ -1777,9 +1971,9 @@ function examinar(id, k, g) {
     return;
   }
   if (acao === 'nao') { st.seq = []; pintarPeca(id); cartaoRA(d[0], d[1] + ' A sequência recomeçou.'); return; }
-  cartaoRA(d[0], d[1]);
+  cartaoRA(d[0], d[1]); if (p3dAtual === id && window.VCPeca3D && VCPeca3D.ativo()) VCPeca3D.atualizar(st);
   if (acao === 'envio') { st.envio = st.envio || {}; if (!st.envio[k]) { st.envio[k] = true; setTimeout(achouEnvio, 500); } return; }
-  if (acao === 'massa') { st.massa = (k === 'b' ? (18 + P.peso) : 18) + ' g'; st.pesou = st.pesou || {}; st.pesou[k] = 1; pintarPeca(id); if (st.pesou.a && st.pesou.b) avancar(id); return; }
+  if (acao === 'massa') { st.ultima = k; st.massa = (k === 'b' ? (18 + P.peso) : 18) + ' g'; st.pesou = st.pesou || {}; st.pesou[k] = 1; pintarPeca(id); if (st.pesou.a && st.pesou.b) avancar(id); return; }
   if (acao === 'junta') { var n = Object.keys(st.vistos).filter(function (x) { return x.indexOf(st.etapa + ':') === 0; }).length; pintarPeca(id); if (n >= Object.keys(et.det).length) { if (st.etapa === Dp.etapas.length - 1) concluir(id); else avancar(id); } return; }
   if (acao === 'prox') { guardar({ ico: Dp.ico, nome: Dp.nome.replace(/^[OA]s? /, '') + ': ' + d[0].toLowerCase(), desc: d[1], img: snapshot(id) }); avancar(id); return; }
   if (acao === 'fim') { concluir(id); return; }
@@ -1828,9 +2022,9 @@ var TRANCAS = {
 var ESCONDIDOS = {
   '+2': [{ id: 'sob-mesa', n: 'Debaixo da mesa oval', pos: [2.9, 13.3, 7.0], d: 'Presa com fita sob o tampo da mesa oval, uma chave pequena com etiqueta de papel: GABINETE · 4º.', item: 'chave-gabinete' }],
   '0': [{ id: 'gancho', n: 'O console do Jardim', pos: [0.7, 4.9, -5.0], d: 'Atrás do console de inspeção do Jardim, num gancho, uma chave de serviço com plaqueta de latão: SUBSOLO · ESCADA INTERNA.', item: 'chave-subsolo' }],
-  '-1': [{ id: 'atras-quadro', n: 'Atrás do quadro elétrico', pos: [6.2, 2.0, -3.6], d: 'Enfiado entre o quadro elétrico e a parede, um cartão técnico de manutenção, com a foto apagada pela umidade.', item: 'cartao-tecnico' }],
+  '-1': [{ id: 'atras-quadro', n: 'Atrás do quadro elétrico', pos: [-4.55, 1.6, -6.9], d: 'Enfiado entre o quadro elétrico e a parede, um cartão técnico de manutenção, com a foto apagada pela umidade.', item: 'cartao-tecnico' }],
   '+5': [{ id: 'bilhete-painel', n: 'Debaixo do teclado do painel', pos: [3.6, 23.6, 5.8], d: 'Debaixo do teclado do painel de manutenção, um bilhete amarelo: “Imprensa trocou a senha da porta: ' + PIN_IMPRENSA + '”.', item: 'bilhete-imprensa' }],
-  '+8': [{ id: 'gaveta-balcao', n: 'A gaveta do credenciamento', pos: [1.7, 32.6, 1.3], d: 'Na gaveta do balcão do credenciamento, esquecida entre crachás em branco, a chave mestra da governança.', item: 'chave-mestra' }],
+  '+8': [{ id: 'gaveta-balcao', n: 'A gaveta do credenciamento', pos: [4.64, 32.35, 7.82], d: 'Na gaveta do balcão do credenciamento, esquecida entre crachás em branco, a chave mestra da governança.', item: 'chave-mestra' }],
   '+11': [{ id: 'mesa-quarto', n: 'O criado-mudo do quarto do meio', pos: [0.7, 41.6, 6.0], d: 'No criado-mudo do quarto do meio, junto do telefone, uma chave pequena com chaveiro de borracha: ELEVADOR · MÁQUINAS.', item: 'chave-elevador' }]
 };
 /* o Arquivo Dragon Games (pedido do Mario, 10/10): não é da noite nem do caso. O bonequinho guarda
@@ -1858,7 +2052,7 @@ function destrancar(a) { ABERTOS[a] = 1; toast('Aberto: ' + a + '.'); }
 /* os dois objetos de perto (objeto.js): a mesa da recepção do 12B e o gaveteiro do gabinete */
 function objetoDe(qual) {
   if (qual === 'recepcao') return {
-    titulo: 'A mesa da recepção · 12B', sub: 'Gavetas, folhas e a pasta do terminal.', movel: 'mesa', extras: ['caneca'],
+    titulo: 'A mesa da recepção · 12B', sub: 'Gavetas, folhas e a pasta do terminal.', movel: 'mesa', extras: ['caneca'], glb: 'modelos/obj-mesa-recepcao-12b.glb',
     abertura: 'A mesa onde a equipe recebeu os convidados, às sete e meia. Gire com um dedo; toque numa gaveta para abrir, numa folha para ler, na pasta para folhear.',
     gavetas: [
       { nome: 'Recepção', folhas: [
@@ -1877,7 +2071,7 @@ function objetoDe(qual) {
     ] }
   };
   if (qual === 'gabinete') return {
-    titulo: 'O gaveteiro do gabinete · +4', sub: 'O arquivo lateral da Presidente.', movel: 'escrivaninha',
+    titulo: 'O gaveteiro do gabinete · +4', sub: 'O arquivo lateral da Presidente.', movel: 'escrivaninha', glb: 'modelos/obj-gaveteiro-gabinete.glb',
     abertura: 'O gaveteiro lateral do gabinete, ao lado da escrivaninha. Papéis de quem planejava a demonstração das onze.',
     gavetas: [
       { nome: 'Agenda', folhas: [
@@ -2006,8 +2200,9 @@ function pausado() {
   if (capitulo === 8) return true;
   return !$('#janela').hidden || !$('#telaRA').hidden || $('#papeis').open || $('#comoJogar').open || !$('#veu').hidden || !$('#visorDoc').hidden || treinoMarca || (window.VCMaquete && VCMaquete.aberta()) || (window.VCObjeto && VCObjeto.aberto()) || (window.VCTrava && VCTrava.aberta());
 }
+var PAUSA_TESTE = false;   /* só o teste de interface usa (?teste=1): para o relógio enquanto resolve uma peça em 3D */
 function tick() {
-  var agora = Date.now(), dt = (agora - ultimoTick) / 1000; ultimoTick = agora; if (pausado()) return;
+  var agora = Date.now(), dt = (agora - ultimoTick) / 1000; ultimoTick = agora; if (pausado() || PAUSA_TESTE) return;
   tRot += dt * VELOZ;
   while (iRot < ROT.length && ROT[iRot][0] <= tRot) { var ev = ROT[iRot][1]; iRot++; try { executar(ev); } catch (e) { console.error('[VC] evento', ev && ev.k, e); } }
 }
@@ -2122,7 +2317,7 @@ var TOTAL = 420, resta = 420, relogioLigado = false;
 function relogio() {
   if (relogioLigado) return; relogioLigado = true;
   setInterval(function () {
-    if (!capitulo || capitulo > 7 || capituloFechado[capitulo]) return;
+    if (!capitulo || capitulo > 7 || capituloFechado[capitulo] || PAUSA_TESTE) return;
     if (resta > 0) {
       resta = Math.max(0, resta - VELOZ); if (resta === 0) fimDoCapitulo();
       if (resta <= 60 && !enviosNoCap && !avisouMinimo) { avisouMinimo = true; janela('FALTA 1 MINUTO', 'Você ainda não mandou nada neste capítulo. Mande pelo menos 1 mensagem ou anexo antes de o tempo acabar.'); }
@@ -2614,6 +2809,10 @@ window.VCMesa = {
   abrirPeca: function (id) { irPara('ra'); abrirPeca(id); }, examinar: function (id, k) { var g = document.querySelector('#plantaArea [data-det="' + k + '"]'); if (g) g.dispatchEvent(new MouseEvent('click', { bubbles: true })); },
   codigo: function (v) { var i = $('#pcCod'); if (i) { i.value = v; $('#pcCodOk').click(); } }, def: PECA_DEF, cores: CORES_CABO, gavetaPen: GAVETA_PEN, lote: LOTE_DIG,
   pq: function () { return PQ; },
+  ativo3d: function () { return !!(window.VCPeca3D && VCPeca3D.ativo() && document.querySelector('#telaRA.com3d')); },
+  pausaTeste: function (b) { if (TESTE) PAUSA_TESTE = !!b; },
+  parado3d: function () { return !!(window.VCPeca3D && VCPeca3D.parado && VCPeca3D.parado()); },
+  toque3d: function (k) { var c = window.VCPeca3D && VCPeca3D.ondeEsta(k); if (!c) return null; VCPeca3D.tocarEm(c[0], c[1]); return c; },
   objeto: function (q, volta) { abrirObjeto(q, volta); }, travas: function () { return { mirante: PIN_MIRANTE, imprensa: PIN_IMPRENSA, segredo: SEGREDO_ARQ, chaves: CHAVES, abertos: ABERTOS }; },
   maquete: function () { abrirMaquete(); }, maqueteAndar: function (a) { abrirMaquete({ entrar: a }); }, revelacao: function () { pintarRevelacao(); },
   cap: function (n) { estiloVisto = true; ['grupo', 'privadas', 'suspeitos', 'ra'].forEach(function (a) { document.querySelector('[data-aba="' + a + '"]').classList.remove('muda'); }); var ab = $('#abertura'); if (ab) ab.remove(); abFeita = true; comecarCapitulo(n); },
@@ -2631,8 +2830,9 @@ document.querySelectorAll('.suspeito').forEach(function(s){var t=s.querySelector
 var cab=document.getElementById('convAvatar'),nome=document.getElementById('convNome');var n=nome&&nome.textContent.match(/(\d{2})/);if(cab&&n)preencher(cab,n[1])}
 var obs=new MutationObserver(varrer);obs.observe(document.body,{childList:true,subtree:true});varrer()})();
 </script>
-<script src="travas.js?v=20261010d"></script>
-<script src="maquete.js?v=20261010d"></script>
-<script src="objeto.js?v=20261010d"></script>
+<script src="travas.js?v=20261011a"></script>
+<script src="maquete.js?v=20261011a"></script>
+<script src="objeto.js?v=20261011a"></script>
+<script src="peca3d.js?v=20261011a"></script>
 </body>
 </html>

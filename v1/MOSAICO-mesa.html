@@ -1494,7 +1494,8 @@
 <script src="../papel-camada.js?v=20261004-janelas"></script>
 <script src="js/qr.js?v=20261004-janelas"></script>
 <script src="js/casa-firebase-room-bridge.js?v=20261004-janelas"></script>
-<script type="module" src="../firebase-room.js?v=20260907-playtest-ux"
+<script type="module" src="../firebase-room.js?v=20261011-sdk12"
+        data-retomar="sim"
         data-project="mesa"
         data-root="mosaico"
         data-case="casa-da-costa"
@@ -1561,6 +1562,23 @@ if("serviceWorker" in navigator && location.protocol.indexOf("http")===0){
 function flex(txt, forma){
   return String(txt==null?"":txt).replace(/\{([^|}]*)\|([^}]*)\}/g,
     function(_,m,f){ return forma==="f" ? f : m; });
+}
+/* 11/10/2026: "Tanto faz" também é escolha: a casa decide, uma vez por jogador, pela semente
+   (código da sala + jogador), como no Eco do Amanhã. Antes, quase tudo virava masculino. */
+function formaDaCasa(forma,id,codigo){
+  if(forma!=="n"&&forma!=="?") return forma;
+  var t=String(codigo||"")+"|"+String(id||""),h=2166136261;
+  for(var i=0;i<t.length;i++) h=Math.imul(h^t.charCodeAt(i),16777619)>>>0;
+  return ((h>>>8)%2)?"f":"m";
+}
+function comFormaDaCasa(j,codigo){
+  if(!j||(j.forma!=="n"&&j.forma!=="?")) return j;
+  var c={}; for(var k in j) c[k]=j[k]; c.forma=formaDaCasa(j.forma,j.id,codigo); return c;
+}
+/* a forma de quem jogou um personagem (para falar dele na revelação); sem ninguém, a canônica */
+function formaDoPersonagem(pid){
+  var j=(STATE.jogadores||[]).filter(function(x){return x.personagem===pid;})[0];
+  return j&&j.forma?j.forma:"m";
 }
 
 /* ---------- arquetipos (Cap. 3 — Os Seis Convidados) ---------- */
@@ -3598,7 +3616,7 @@ function telaResultado(){
   if(etapa===0){
     var suspeito=personagemPor(sol.suspeito);
     return '<span class="eyebrow">A verdade</span><h2>'+esc(rev.titulo||"A verdade foi reconstruída")+'</h2><p class="lead">'+esc(rev.sintese||"")+'</p><div class="revelacao-chave">'+
-      '<div class="card"><b>Suspeito principal</b>'+esc(nomePers(suspeito,"m"))+'</div>'+
+      '<div class="card"><b>Suspeito principal</b>'+esc(nomePers(suspeito,formaDoPersonagem(sol.suspeito)))+'</div>'+
       '<div class="card"><b>Motivo</b>'+esc(rotuloDeducao("motivos",sol.motivo))+'</div>'+
       '<div class="card"><b>Ação decisiva</b>'+esc(rotuloDeducao("acoes",sol.acao))+'</div>'+
       '<div class="card"><b>Prova-chave</b>'+esc(rotuloDeducao("provas",sol.prova))+'</div>'+
@@ -4204,7 +4222,7 @@ function assinarSala(codigo,comoJogador){
   esperarFB().then(function(FB){
     desligarOuvintes();
     _unsubJog=FB.ouvirJogadores(codigo,function(l){
-      STATE.jogadores=l; processarAcoesMestre(); comoJogador?sincronizarJogador():render();
+      STATE.jogadores=l.map(function(j){return comFormaDaCasa(j,codigo);}); processarAcoesMestre(); comoJogador?sincronizarJogador():render();
     });
     _unsubMesa=FB.ouvirMesa(codigo,function(d){
       var repeticaoAntes=Number(STATE.doc&&STATE.doc.apuracaoRepeticao)||0;
@@ -4249,7 +4267,7 @@ async function tentarReconectar(codigoUrl){
     if(jogador&&jogador.codigo===alvo&&jogador.id===uid){
       var salvo=await FB.obterJogador(alvo,jogador.id);
       if(salvo){
-        STATE.eu={codigo:alvo,id:jogador.id,nome:salvo.nome,personagem:salvo.personagem,forma:salvo.forma};
+        STATE.eu={codigo:alvo,id:jogador.id,nome:salvo.nome,personagem:salvo.personagem,forma:formaDaCasa(salvo.forma,jogador.id,alvo)};
         STATE.mesa={codigo:alvo,link:linkDaSala(alvo),fb:true,modo:mesa.modo||"com-telao"};
         STATE.modoMesa=mesa.modo||"com-telao"; STATE.doc=mesa;
         try{sessionStorage.setItem("mosaico_eu",JSON.stringify(STATE.eu));}catch(e){}
@@ -4393,7 +4411,7 @@ async function entrarNaMesa(){
     var escolha=MPC?MPC.lerSeletor(document.querySelector('.mpc-bloco'),{papel:STATE.papelCognitivo||'investigador',camada:STATE.camadaAcessibilidade||'livre'}):{papel:'investigador',camada:'livre'};
     if(MPC)MPC.salvar('casa-da-costa',escolha);
     STATE.papelCognitivo=escolha.papel;STATE.camadaAcessibilidade=escolha.camada;
-    STATE.eu={codigo:codigo,id:id,nome:nome,personagem:sorteado,forma:forma,papelCognitivo:escolha.papel,camadaAcessibilidade:escolha.camada};
+    STATE.eu={codigo:codigo,id:id,nome:nome,personagem:sorteado,forma:formaDaCasa(forma,id,codigo),papelCognitivo:escolha.papel,camadaAcessibilidade:escolha.camada};
     try{ sessionStorage.setItem("mosaico_eu",JSON.stringify(STATE.eu)); }catch(e){}
     try{ localStorage.setItem("mosaico_reconexao",JSON.stringify(STATE.eu)); }catch(e){}
 
@@ -4402,7 +4420,7 @@ async function entrarNaMesa(){
       papelCognitivo:escolha.papel, camadaAcessibilidade:escolha.camada,
       pronto:false,          /* so o proprio jogador se declara pronto */
       entrouMs:Date.now(), votos:0,
-      moedas:((CASO.configuracao||{}).moedasIniciais||9), total:0
+      moedas:((CASO.configuracao||{}).moedasIniciais||12), total:0
     });
     assinarSala(codigo,true);
     STATE.tela="esperando";

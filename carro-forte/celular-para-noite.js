@@ -316,9 +316,9 @@
   async function firebase() {
     if (api) return api;
     const [appmod, authmod, fs] = await Promise.all([
-      import('https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js'),
-      import('https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js'),
-      import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js'),
+      import('https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js'),
+      import('https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js'),
+      import('https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js'),
     ]);
     const app =
       appmod.getApps().find((a) => a.name === 'dragon-noite') ||

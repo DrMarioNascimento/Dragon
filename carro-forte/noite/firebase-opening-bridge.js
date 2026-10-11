@@ -25,9 +25,9 @@
     if (api) return api;
     if (initPromise) return initPromise;
     initPromise = (async () => {
-      const appmod = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js');
-      const authmod = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js');
-      const fs = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js');
+      const appmod = await import('https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js');
+      const authmod = await import('https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js');
+      const fs = await import('https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js');
       const name = 'dragon-opening-bridge';
       const app =
         appmod.getApps().find((a) => a.name === name) || appmod.initializeApp(CONFIG, name);

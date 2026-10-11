@@ -41,7 +41,7 @@
 
   /* Onde cada peça de capítulo fica (metros do modelo) */
   var LUGAR_ITEM = { c1: ['+4', [3.9, 19.9, 7.9]], c2: ['+1', [-2.0, 10.8, 9.8]], c3: ['+1', [7.1, 10.6, 0.1]], c4: ['+2', [-4.2, 14.6, -0.3]],
-    c5: ['-1', [6.2, 2.6, -3.6]], c6: ['+2', [4.3, 15.0, 1.8]], c7: ['+2', [6.6, 13.8, 2.3]], c8: ['+2', [0.9, 14.6, 1.8]] };
+    c5: ['-1', [-5.0, 2.6, -5.6]], c6: ['+2', [4.3, 15.0, 1.8]], c7: ['+2', [6.6, 13.8, 2.3]], c8: ['+2', [0.9, 14.6, 1.8]] };
 
   /* O que dá para examinar dentro de cada andar (metros do modelo). Só o que se vê: nada
      aqui resolve o caso; a história e os registros dizem o resto. */
@@ -81,17 +81,17 @@
       { id: 'radio', n: 'O rádio', pos: [-2.7, 23.5, 9.7], d: 'O rádio ligado à Meteorologista, do lado de fora.' }
     ],
     '+3': [{ id: 'nucleo', n: 'O Núcleo de Servidores', pos: [0.7, 17.0, 4.0], d: 'Fileiras de servidores atrás de vidro fosco. O ar seca os olhos.' }],
-    '+8': [{ id: 'credenciamento', n: 'O credenciamento', pos: [1.7, 32.8, 1.3], d: 'O balcão de credenciais da imprensa e a porta magnética da sala, sem janela.' }],
+    '+8': [{ id: 'credenciamento', n: 'O credenciamento', pos: [3.94, 32.95, 8.08], d: 'O balcão de credenciais da imprensa e a porta magnética da sala, sem janela.' }],
     '+10': [{ id: 'fitas', n: 'O arquivo de fitas', pos: [0.7, 39.0, 4.0], d: 'Estantes de fitas magnéticas de consentimentos antigos. O leitor de cartão fica na porta.' }],
     '+11': [{ id: 'quartos', n: 'Os quartos de hóspedes', pos: [0.7, 42.0, 4.0], d: 'Quartos pequenos, camas feitas, cortinas petróleo.' }],
     '+13': [{ id: 'maquinas', n: 'A casa de máquinas', pos: [-0.8, 52.6, 3.8], d: 'O motor e as polias do elevador, a caixa-d’água e o quadro de comando.' }],
     '+14': [{ id: 'heliponto', n: 'O heliponto', pos: [0.7, 57.4, 0.6], d: 'A pista sob a luz vermelha, com o helicóptero travado pelo vento.' }],
     '0': [{ id: 'atrio', n: 'O Átrio de Vidro', pos: [0.7, 5.4, 9.0], d: 'As catracas biométricas, a parede de chuva e, ao fundo, a escada principal.' }],
     '-1': [
-      { id: 'distribuidor', n: 'O distribuidor', pos: [-3.0, 2.4, 2.0], d: 'As fileiras de cobre da antiga central, sob uma redoma de poeira.' },
-      { id: 'quadro', n: 'O quadro elétrico', pos: [6.2, 2.4, -3.6], d: 'O quadro do subsolo, com cabos de quatro cores.' },
+      { id: 'distribuidor', n: 'O distribuidor', pos: [-6.4, 2.6, -2.5], d: 'As fileiras de cobre da antiga central, sob uma redoma de poeira.' },
+      { id: 'quadro', n: 'O quadro elétrico', pos: [-5.0, 2.4, -5.9], d: 'O quadro do subsolo, com cabos de quatro cores.' },
       { id: 'alcapao', n: 'O alçapão', pos: [-2.7, 3.1, -3.4], d: 'O alçapão do poço de cabos, no teto da Central, com trinco de mola.' },
-      { id: 'baterias', n: 'O banco de baterias', pos: [8.0, 1.6, 5.0], d: 'As baterias que seguraram a torre no apagão.' }
+      { id: 'baterias', n: 'O banco de baterias', pos: [3.3, 1.6, -6.4], d: 'As baterias que seguraram a torre no apagão.' }
     ]
   };
 
@@ -206,7 +206,42 @@
     });
     extras.forEach(function (n) { n.traverse(function (o) { o.userData.circ = n.name; }); });
     if (lote) lote.traverse(function (o) { o.userData.lote = true; });
-    interiorSubsolo(); interiorImprensa(); enfeites();
+    interiorSubsolo(); interiorImprensa(); enfeites(); interioresDoModelo();
+  }
+
+  /* ── os interiores do designer (11/10/2026): int-subsolo-central-energia.glb e int-sala-de-imprensa.glb.
+     Entram no lugar dos feitos em código (que ficam de reserva enquanto carregam, ou se falharem).
+     O subsolo vem no referencial da torre (o poço em −2,7; −3,4, como nos outros andares); a imprensa,
+     centrada na sala: vai para o eixo da coluna do +8. ── */
+  var INTERIORES = { '-1': ['modelos/int-subsolo-central-energia.glb', [0, 0, 0]], '+8': ['modelos/int-sala-de-imprensa.glb', [EIXO.x, 31.45, EIXO.z]] };
+  function telasImprensa(g) {
+    var THREE = global.THREE, no = g.getObjectByName('telas_area_texto'); if (!no) return; var malha = null; no.traverse(function (o) { if (!malha && o.isMesh) malha = o; }); if (!malha) return;
+    var c = document.createElement('canvas'); c.width = 1024; c.height = 96; var x = c.getContext('2d'); x.fillStyle = '#06121a'; x.fillRect(0, 0, 1024, 96);
+    x.fillStyle = '#86e1ea'; x.font = '700 34px "DM Mono",monospace'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('VESTCHIP · TRANSMISSÃO DAS 06H00 · EM ESPERA', 512, 50);
+    var tx = new THREE.CanvasTexture(c); tx.encoding = THREE.sRGBEncoding; malha.material = new THREE.MeshBasicMaterial({ map: tx, toneMapped: false });
+  }
+  function interioresDoModelo() {
+    if (/[?&]sem3d=1/.test(global.location.search)) return;
+    Object.keys(INTERIORES).forEach(function (a) {
+      var A = andares[a], I = INTERIORES[a]; if (!A || !A.interior) return;
+      try {
+        var L = new global.THREE.GLTFLoader(); if (global.MeshoptDecoder) L.setMeshoptDecoder(global.MeshoptDecoder);
+        L.load(BASE + I[0], function (gl) {
+          var g = gl.scene; g.name = 'interior-modelo'; g.position.set(I[1][0], I[1][1], I[1][2]);
+          g.traverse(function (o) {
+            o.userData.andar = a;
+            if (o.isLight) { o.intensity = Math.min(o.intensity, 1.2); if (o.distance === 0 || o.distance > 14) o.distance = 14; }
+            if (!o.isMesh) return; o.frustumCulled = true;
+            var m = o.material; if (m && m.userData && m.userData.gltfExtensions && m.userData.gltfExtensions.KHR_materials_emissive_strength) m.emissiveIntensity = m.userData.gltfExtensions.KHR_materials_emissive_strength.emissiveStrength || 1;
+          });
+          /* o teto sai: o andar é visto de cima, como uma maquete aberta */
+          g.traverse(function (o) { if (/^teto/.test(o.name)) o.visible = false; });
+          if (a === '+8') telasImprensa(g);
+          A.interior.children.slice().forEach(function (c) { A.interior.remove(c); });
+          A.interior.add(g);
+        }, undefined, function () { /* fica o interior feito em código */ });
+      } catch (e) { /* idem */ }
+    });
   }
 
   /* ── interiores feitos aqui (o modelo não tem) ── */

@@ -1,9 +1,9 @@
 /* MOSAICO · Ensaio Carro-Forte · sala Firebase real para teste end-to-end */
 (async function () {
   if (new URLSearchParams(location.search).get('soloLab') !== '1') return;
-  const appmod = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js');
-  const authmod = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js');
-  const fs = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js');
+  const appmod = await import('https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js');
+  const authmod = await import('https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js');
+  const fs = await import('https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js');
   const cfg = {
     apiKey: 'AIzaSyA160bkgHBrYBwvIxlENax-aAyLWPMaOU4',
     authDomain: 'mosaico-noite.firebaseapp.com',

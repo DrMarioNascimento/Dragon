@@ -215,6 +215,12 @@ function opcoesDaTela(){
 const $=id=>document.getElementById(id);
 const screens=[...document.querySelectorAll('.screen')];
 const embaralhar=a=>a.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(p=>p[1]);
+/* 11/10/2026: o dossiê sai de uma semente própria (state.sementeDossie; a ordem das opções
+   continua com a sua, sorteada). Na sala, ela é o código da sala com a pergunta: todos os aparelhos montam o mesmo complemento e os mesmos terços (o que muda
+   entre eles é só o que cada um colheu nas atividades). Sem sala, a semente segue sorteada. */
+function rngDe(chave){let h=((state.sementeDossie>>>0)^2166136261)>>>0;for(let i=0;i<chave.length;i++)h=Math.imul(h^chave.charCodeAt(i),16777619)>>>0;return ()=>{h=Math.imul(h^h>>>15,2246822507)>>>0;h=Math.imul(h^h>>>13,3266489909)>>>0;return ((h^h>>>16)>>>0)/4294967296}}
+const embaralharS=(a,r)=>a.map(v=>[r(),v]).sort((x,y)=>x[0]-y[0]).map(p=>p[1]);
+function sementeDaSala(id){const sala=window.MOSAICO_ROOM,c=sala&&!sala.local&&sala.code;if(!c)return (Math.random()*0xffffffff)>>>0;let h=2166136261;const t=String(c).toUpperCase()+'|'+id;for(let i=0;i<t.length;i++)h=Math.imul(h^t.charCodeAt(i),16777619)>>>0;return h>>>0}
 const listar=a=>a.length<2?a.join(''):`${a.slice(0,-1).join(', ')} e ${a[a.length-1]}`;
 const mao=()=>new Set(state.tercos.slice(0,state.aberto).flat());
 
@@ -275,7 +281,8 @@ function montarDossie(){
   garantidas++;
  }
  const resto=Object.keys(FRAGMENTOS).filter(c=>!tem.has(c)&&!proibido(c));
- const peso=c=>(g.incidentais.includes(c)?2:0)+({estrutural:0,interpretativo:.3,relacional:.5,contextual:1.2})[FRAGMENTOS[c].f]+Math.random();
+ const sorte={};resto.forEach(c=>sorte[c]=rngDe('dossie|'+c)());
+ const peso=c=>(g.incidentais.includes(c)?2:0)+({estrutural:0,interpretativo:.3,relacional:.5,contextual:1.2})[FRAGMENTOS[c].f]+sorte[c];
  resto.sort((a,b)=>peso(a)-peso(b));
  for(const c of resto){if(tem.size>=alvo)break;tem.add(c)}
  state.dossie=[...tem].sort();
@@ -284,7 +291,7 @@ function montarDossie(){
 }
 
 function distribuirTercos(lista){
- const fecho=embaralhar(lista.filter(c=>FRAGMENTOS[c].fecho)),livres=embaralhar(lista.filter(c=>!FRAGMENTOS[c].fecho));
+ const rt=rngDe('tercos'),fecho=embaralharS(lista.filter(c=>FRAGMENTOS[c].fecho),rt),livres=embaralharS(lista.filter(c=>!FRAGMENTOS[c].fecho),rt);
  const tam=Math.ceil(lista.length/3),t=[[],[],[]];
  /* O primeiro terço não recebe nenhuma pista de fechamento; o segundo recebe no
     máximo duas, para que a tensão entre “retirada” e “inserção” cresça sem que
@@ -342,7 +349,7 @@ function fechadas(){
 
 /* ── Telas ─────────────────────────────────────────────────────────────── */
 function selectGame(id){
- state.game=id;state.semente=(Math.random()*0xffffffff)>>>0;state.hipoteseProv='';state.hipoteseFinal='';state.final={};state.reveal=0;state.sensorDone.clear();state.colhidos.clear();state.lotes=montarLotes();
+ state.game=id;state.semente=(Math.random()*0xffffffff)>>>0;state.sementeDossie=sementeDaSala(id);state.hipoteseProv='';state.hipoteseFinal='';state.final={};state.reveal=0;state.sensorDone.clear();state.colhidos.clear();state.lotes=montarLotes();
  /* A rodada nova apaga a fila da anterior: relógio parado, nenhuma atividade
     aberta e o alerta do Mestre desligado. Sem isto o cronômetro da última
     atividade da partida passada continuaria correndo por cima da nova. */

@@ -16,7 +16,7 @@
 (function (global) {
   'use strict';
   var BASE = (function () { var s = document.currentScript && document.currentScript.src; return s ? s.replace(/[^/]*$/, '') : ''; })();
-  var LIB = BASE + 'lib/', SCRIPTS = [LIB + 'three.min.js', LIB + 'OrbitControls.js', LIB + 'ac-ra.js', LIB + 'ac-maquete-ra.js'];
+  var LIB = BASE + 'lib/', SCRIPTS = [LIB + 'three.min.js', LIB + 'GLTFLoader.js', LIB + 'OrbitControls.js', LIB + 'ac-ra.js', LIB + 'ac-maquete-ra.js'];
   var el = null, renderer, cena, camera, controles, raiz, mundo, ra = null, op = {}, aberto = false, pronto = null;
   var gavetas = [], montes = [], pasta = null, itens = [], animando = [], anim = null, relogio = 0, tocando = null, atual = null;
   var FL = 0.24, FC = 0.33; /* folha: largura e comprimento (um pouco maior que A4, para ler na tela) */
@@ -30,7 +30,7 @@
     g.save(); g.globalAlpha = 0.62 + (h % 20) / 100; g.translate(x + tam / 2, y + tam / 2); g.rotate(((h % 40) - 20) * Math.PI / 180); g.drawImage(CARIMBO, -tam / 2, -tam / 2, tam, tam); g.restore();
   }
   function carregarScript(src) { return new Promise(function (ok, falha) { if (document.querySelector('script[data-maq="' + src + '"]')) return ok(); var s = document.createElement('script'); s.src = src; s.async = false; s.setAttribute('data-maq', src); s.onload = function () { ok(); }; s.onerror = function () { falha(Error('Não carregou ' + src)); }; document.head.appendChild(s); }); }
-  function carregar() { if (pronto) return pronto; var c = Promise.resolve(); SCRIPTS.forEach(function (s) { c = c.then(function () { if (/three\.min/.test(s) && global.THREE) return; if (/OrbitControls/.test(s) && global.THREE && global.THREE.OrbitControls) return; if (/ac-ra\.js/.test(s) && global.ACRA) return; if (/ac-maquete-ra/.test(s) && global.ACMaquetteRA) return; return carregarScript(s); }); }); pronto = c.then(montarCena); pronto.catch(function () { pronto = null; }); return pronto; }
+  function carregar() { if (pronto) return pronto; var c = Promise.resolve(); SCRIPTS.forEach(function (s) { c = c.then(function () { if (/three\.min/.test(s) && global.THREE) return; if (/GLTFLoader/.test(s) && global.THREE && global.THREE.GLTFLoader) return; if (/OrbitControls/.test(s) && global.THREE && global.THREE.OrbitControls) return; if (/ac-ra\.js/.test(s) && global.ACRA) return; if (/ac-maquete-ra/.test(s) && global.ACMaquetteRA) return; return carregarScript(s); }); }); pronto = c.then(montarCena); pronto.catch(function () { pronto = null; }); return pronto; }
 
   /* ── tela ── */
   function criarTela() {
@@ -116,10 +116,52 @@
   }
 
   /* ── o móvel ── */
+  /* ── o móvel do designer (11/10/2026): obj-mesa-recepcao-12b.glb e obj-gaveteiro-gabinete.glb.
+     O corpo e as gavetas vêm do modelo; as folhas, a pasta e o que está escondido continuam do jogo
+     (o texto e a senha mudam a cada partida). Sem o GLB, o móvel feito em código, como antes. ── */
+  var cacheGLB = {};
+  function carregarGLB(url) {
+    if (!url) return Promise.resolve(null);
+    if (!cacheGLB[url]) cacheGLB[url] = new Promise(function (ok) { try { var L = new global.THREE.GLTFLoader(); L.load(url, function (g) { ok(g.scene); }, undefined, function () { delete cacheGLB[url]; ok(null); }); } catch (e) { delete cacheGLB[url]; ok(null); } });
+    return cacheGLB[url];
+  }
+  function escreverArea(no, txt) {
+    if (!no || !txt) return; var malha = null; no.traverse(function (o) { if (!malha && o.isMesh) malha = o; }); if (!malha) return;
+    var c = document.createElement('canvas'); c.width = 512; c.height = 128; var g = c.getContext('2d'); g.fillStyle = '#f1e6c8'; g.fillRect(0, 0, 512, 128); g.fillStyle = '#2a2014'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    var t = String(txt).toUpperCase().slice(0, 20), tam = 64; g.font = '700 ' + tam + 'px "DM Mono",monospace'; while (g.measureText(t).width > 470 && tam > 20) { tam -= 4; g.font = '700 ' + tam + 'px "DM Mono",monospace'; } g.fillText(t, 256, 66);
+    var tx = new global.THREE.CanvasTexture(c); tx.encoding = global.THREE.sRGBEncoding; malha.material = new global.THREE.MeshBasicMaterial({ map: tx, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 });
+  }
+  function slug(t) { return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '_'); }
+  function montarDoModelo(cenaG) {
+    var THREE = global.THREE;
+    var chao = new THREE.Mesh(new THREE.PlaneGeometry(4, 4), new THREE.ShadowMaterial({ opacity: 0.35 })); chao.rotation.x = -Math.PI / 2; chao.receiveShadow = true; mundo.add(chao);
+    mundo.add(cenaG);
+    cenaG.traverse(function (o) {
+      if (!o.userData.base3d) o.userData.base3d = { p: o.position.clone(), v: o.visible }; o.position.copy(o.userData.base3d.p); o.visible = o.userData.base3d.v;
+      /* as folhas, a pasta e os achados do modelo saem: os do jogo entram no lugar, com o texto da partida */
+      if (/^(folha_|pasta_|cracha|etiqueta_cofre|bilhete)/.test(o.name) && o.parent && !/^(folha_|pasta_|cracha|etiqueta_cofre|bilhete)/.test(o.parent.name)) o.visible = false;
+      if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; var m = o.material; if (m && m.userData && m.userData.gltfExtensions && m.userData.gltfExtensions.KHR_materials_emissive_strength && !o.userData.forca) { o.userData.forca = true; m.emissiveIntensity = m.userData.gltfExtensions.KHR_materials_emissive_strength.emissiveStrength || 1; } }
+    });
+    cenaG.updateMatrixWorld(true);
+    (op.gavetas || []).forEach(function (G, i) {
+      var no = cenaG.getObjectByName('gaveta_' + slug(G.nome)) || cenaG.getObjectByName(['gaveta_recepcao', 'gaveta_material', 'gaveta_agenda', 'gaveta_chaves'].filter(function (n) { return cenaG.getObjectByName(n); })[i]);
+      if (!no) return;
+      no.traverse(function (o) { if (o.isMesh && o.visible) o.userData.gaveta = i; });
+      escreverArea(cenaG.getObjectByName('gaveta_' + slug(G.nome) + '_etiqueta_area_texto') || no.getObjectByName(no.name + '_etiqueta_area_texto'), G.nome);
+      var gv = { g: no, z0: no.position.z, aberta: false, z: 0, alvo: 0, nome: G.nome, i: i }; gavetas.push(gv);
+      /* o fundo da gaveta, no espaço da própria gaveta */
+      var b = new THREE.Box3().setFromObject(no), c = b.getCenter(new THREE.Vector3()), base = no.worldToLocal(new THREE.Vector3(c.x, b.min.y + 0.025, c.z + 0.02));
+      if (G.folhas || G.item) montes.push(criarMonte(no, base, G.folhas || [], G.item, 0.6, gv));
+    });
+    var tampo = new THREE.Box3().setFromObject(cenaG.getObjectByName('mesa') || cenaG.getObjectByName('gaveteiro') || cenaG), y = tampo.max.y + 0.004, cx = (tampo.min.x + tampo.max.x) / 2;
+    if (op.monte) montes.push(criarMonte(mundo, new THREE.Vector3(Math.min(0.32, tampo.max.x - 0.16), y, 0.08), op.monte.folhas || [], op.monte.item, 1, null));
+    if (op.pasta) criarPasta(cenaG.getObjectByName('mesa') ? new THREE.Vector3(tampo.min.x + 0.09, y, 0.04) : new THREE.Vector3(cx - 0.13, y, 0.02));
+  }
   function montarMovel() {
     var THREE = global.THREE;
     if (mundo) raiz.remove(mundo); mundo = new THREE.Group(); raiz.add(mundo);
     gavetas = []; montes = []; pasta = null; itens = []; animando = []; atual = null;
+    if (op._modelo) { montarDoModelo(op._modelo); return; }
     var escura = op.movel === 'escrivaninha';
     var madeira = mat(escura ? 0x4a2e1c : 0xd8d2c6, { roughness: escura ? 0.55 : 0.4 }), lateral = mat(escura ? 0x3a2416 : 0xbfb8aa), metal = mat(0xb9a27a, { metalness: 0.8, roughness: 0.3 }), fundoG = mat(escura ? 0x2a1a10 : 0x9a948a);
     var chao = new THREE.Mesh(new THREE.PlaneGeometry(4, 4), new THREE.ShadowMaterial({ opacity: 0.35 })); chao.rotation.x = -Math.PI / 2; chao.receiveShadow = true; mundo.add(chao);
@@ -201,7 +243,7 @@
   function desenhar(tempo, xr) {
     var t = tempo || performance.now(), dt = Math.min(0.05, (t - (antes || t)) / 1000); antes = t; relogio += dt;
     if (ra) ra.atualizar(dt, xr);
-    gavetas.forEach(function (g) { g.z += (g.alvo - g.z) * Math.min(1, dt * 7); g.g.position.z = g.z; });
+    gavetas.forEach(function (g) { g.z += (g.alvo - g.z) * Math.min(1, dt * 7); g.g.position.z = (g.z0 || 0) + g.z; });
     if (pasta) { var c = pasta.capa; c.ang += (c.alvo - c.ang) * Math.min(1, dt * 6); c.piv.rotation.z = c.ang; pasta.paginas.forEach(function (p) { if (!p) return; p.ang += (p.alvo - p.ang) * Math.min(1, dt * 6); p.piv.rotation.z = p.ang; }); }
     animando = animando.filter(function (fn) { return fn(dt) !== true; });
     itens.forEach(function (it, i) { if (it.mesh.visible && livre(it)) { it.mesh.position.y += Math.sin(relogio * 3 + i) * 0.00003; } });
@@ -214,6 +256,7 @@
 
   /* ── toque ── */
   function tocar(x, y) {
+    if (!mundo) return;
     var THREE = global.THREE, cam = ra ? ra.cameraAtiva() : camera, r = renderer.domElement.getBoundingClientRect();
     var ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2(((x - r.left) / r.width) * 2 - 1, -((y - r.top) / r.height) * 2 + 1), cam);
     var alvos = []; mundo.traverse(function (o) { if (o.isMesh && o.visible && (o.userData.gaveta != null || o.userData.folha || o.userData.item || o.userData.capa || o.userData.pagina != null)) alvos.push(o); });
@@ -230,8 +273,8 @@
   function mexerGaveta(g) {
     g.aberta = !g.aberta; g.alvo = g.aberta ? 0.36 : 0; if (global.VCTrava) global.VCTrava.bip(g.aberta ? 180 : 140, 0.18, 'triangle', 0.05);
     if (g.aberta) {
-      var m = montes.filter(function (x) { return x.gv === g; })[0], wy = g.g.position.y;
-      voar([0.35, wy + 0.55, 0.95], [0.35, wy, 0.36]);
+      var m = montes.filter(function (x) { return x.gv === g; })[0], wp = g.g.getWorldPosition(new global.THREE.Vector3()), wx = g.z0 != null ? new global.THREE.Box3().setFromObject(g.g).getCenter(new global.THREE.Vector3()).x : 0.35, wy = g.z0 != null ? new global.THREE.Box3().setFromObject(g.g).min.y + 0.05 : wp.y;
+      voar([wx, wy + 0.55, 0.95], [wx, wy, 0.36]);
       var resto = m ? m.folhas.length - m.lidas : 0;
       cartao(('Gaveta · ' + (g.nome || '')).toUpperCase(), m ? (resto ? 'Dentro, ' + resto + (resto > 1 ? ' folhas, umas por cima das outras' : ' folha') + '. Toque na de cima para ler.' : (m.item && m.item.mesh.visible ? 'As folhas estão de lado. No fundo, alguma coisa.' : 'As folhas já foram lidas.')) : 'Vazia.');
     } else cartao(('Gaveta · ' + (g.nome || '')).toUpperCase(), 'Fechada.');
@@ -292,12 +335,14 @@
   function inicio() { anim = null; var f = camera.aspect < 0.8 ? 1.9 : 1; camera.position.set(0.05 + 0.3 * f, 0.72 + 0.62 * f, 0.05 + 1.05 * f); controles.target.set(0.05, 0.66, 0.05); controles.update(); }
   function abrir(o) {
     op = o || {}; if (!el) criarTela(); el.hidden = false; aberto = true;
+    /* o móvel anterior sai já (o novo pode demorar a carregar): nada responde por ele */
+    gavetas = []; montes = []; pasta = null; itens = []; animando = []; if (mundo && raiz) { raiz.remove(mundo); mundo = null; }
     el.querySelector('#objTitulo').textContent = op.titulo || 'De perto'; el.querySelector('#objDica').textContent = op.sub || 'Toque nas gavetas, nas folhas e na pasta.';
     cartao((op.titulo || 'DE PERTO').toUpperCase(), op.abertura || 'Gire com um dedo. Toque nas gavetas para abrir; nas folhas, para ler.');
     return carregar().then(function () {
       var fontes = document.fonts && document.fonts.load ? Promise.all(['600 38px Caveat', '500 23px "DM Mono"'].map(function (f) { return document.fonts.load(f).catch(function () {}); })) : Promise.resolve();
       return Promise.race([fontes, new Promise(function (ok) { setTimeout(ok, 1500); })]);
-    }).then(function () { montarMovel(); redimensionar(); inicio(); renderer.setAnimationLoop(desenhar); });
+    }).then(function () { return /[?&]sem3d=1/.test(location.search) ? null : carregarGLB(op.glb); }).then(function (cenaG) { op._modelo = cenaG; montarMovel(); redimensionar(); inicio(); renderer.setAnimationLoop(desenhar); });
   }
   function fechar(silencioso) {
     if (silencioso === true) op.aoFechar = null;

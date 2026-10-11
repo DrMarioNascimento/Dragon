@@ -12,13 +12,15 @@
 
   global.MOSAICO_GATE_EXTERNO = true;
 
+  /* 11/10/2026: os ids de reserva acompanham o elenco do caso (casa-da-costa.json → elenco);
+     antes eram ids de uma versão antiga (anfitria, viuva, medico), que nenhum personagem usa mais. */
   var PERSONAGENS_FALLBACK = [
-    "anfitria",
+    "investigador",
     "herdeiro",
-    "viuva",
-    "medico",
+    "morador",
     "jornalista",
     "policial",
+    "menina",
   ];
 
   function escutaPronto(fn) {
@@ -78,7 +80,7 @@
 
   function moedasIniciais() {
     var c = global.CASO;
-    return ((c && c.configuracao) || {}).moedasIniciais || 9;
+    return ((c && c.configuracao) || {}).moedasIniciais || 12;
   }
 
   function tarefaInteriorNova() {
@@ -227,13 +229,15 @@
     global.STATE.modoMesa = modo;
     global.STATE.ritmoMesa = ritmo;
     global.STATE.doc = mesaDoc;
-    global.STATE.jogadores = jogadores;
+    /* 11/10/2026: "Tanto faz" → a casa decide pela semente (mesma regra de formaDaCasa na mesa) */
+    var formaCasa = function (f, id) { if (typeof global.formaDaCasa === "function") return global.formaDaCasa(f, id, codigo); if (f !== "n" && f !== "?") return f; var t = String(codigo || "") + "|" + String(id || ""), h = 2166136261; for (var i = 0; i < t.length; i++) h = Math.imul(h ^ t.charCodeAt(i), 16777619) >>> 0; return ((h >>> 8) % 2) ? "f" : "m"; };
+    global.STATE.jogadores = (jogadores || []).map(function (j) { if (!j || (j.forma !== "n" && j.forma !== "?")) return j; var c = {}; for (var k in j) c[k] = j[k]; c.forma = formaCasa(j.forma, j.id); return c; });
     global.STATE.eu = {
       codigo: codigo,
       id: meu.id,
       nome: meu.nome,
       personagem: meu.personagem,
-      forma: meu.forma || "n",
+      forma: formaCasa(meu.forma || "n", meu.id),
       papelCognitivo: meu.papelCognitivo || (detail.papelCamada && detail.papelCamada.papel) || "investigador",
       camadaAcessibilidade: meu.camadaAcessibilidade || (detail.papelCamada && detail.papelCamada.camada) || "livre",
     };

@@ -62,9 +62,9 @@
   async function firebase() {
     if (api) return api;
     const [appmod, authmod, fs] = await Promise.all([
-      import('https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js'),
-      import('https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js'),
-      import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js'),
+      import('https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js'),
+      import('https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js'),
+      import('https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js'),
     ]);
     const app =
       appmod.getApps().find((a) => a.name === 'dragon-noite') ||
@@ -190,7 +190,7 @@
 
     const { db, doc, updateDoc } = await firebase().catch(() => ({}));
     if (!db) { tocarAqui(entrar); return; }
-    const fs2 = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js');
+    const fs2 = await import('https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js');
     const ref = doc(db, 'noite', code);
 
     if (!souMestre()) {
@@ -281,7 +281,7 @@
     let db, doc, updateDoc, fs2, uid;
     try {
       ({ db, doc, updateDoc } = await firebase());
-      fs2 = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js');
+      fs2 = await import('https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js');
       uid = await meuUid();
       if (!uid) return null;
     } catch (e) {
@@ -333,7 +333,12 @@
       if (!naSala.length) return null;
       const baralho = baralhoComSemente(todosIds, opts.preferredIds);
       const maos = {};
-      naSala.forEach((u) => (maos[u] = baralho.splice(0, naMao)));
+      /* 11/10/2026: o baralho tem 19 fragmentos. Com 7 ou mais na sala, 3 por mão
+         não cabe: o 7º recebia 1 e o 8º, nenhum, e a pilha de compra zerava. A mão
+         só encolhe quando não cabe — igual para todos, e a pilha guarda pelo menos
+         um fragmento. Até 6 na sala, nada muda. */
+      const naMaoMesa = Math.max(1, Math.min(naMao, Math.floor((baralho.length - 1) / naSala.length)));
+      naSala.forEach((u) => (maos[u] = baralho.splice(0, naMaoMesa)));
       const mesa = { maos, pool: baralho, distribuidoEmMs: Date.now() };
       try {
         await updateDoc(ref, { mesa });
@@ -379,7 +384,7 @@
     if (!code || unsubMesa) return;
     try {
       const { db, doc } = await firebase();
-      const fs2 = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js');
+      const fs2 = await import('https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js');
       const uid = await meuUid();
       unsubMesa = fs2.onSnapshot(doc(db, 'noite', code), (snap) => {
         const m = (snap.exists() && snap.data()?.mesa) || null;
@@ -396,7 +401,7 @@
     if (!code) return false;
     try {
       const { db } = await firebase();
-      const fs2 = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js');
+      const fs2 = await import('https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js');
       const uid = await meuUid();
       await fs2.addDoc(fs2.collection(db, 'noite', code, 'acoes'), {
         jogadorId: uid, tipo, ...dados, pedidoEmMs: Date.now(), atendido: false,
@@ -415,7 +420,7 @@
     const code = codigoDaSala();
     if (!code || unsubAcoes) return;
     const { db, doc, updateDoc } = await firebase();
-    const fs2 = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js');
+    const fs2 = await import('https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js');
     const ref = doc(db, 'noite', code);
     let ocupado = false;
     unsubAcoes = fs2.onSnapshot(

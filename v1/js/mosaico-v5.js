@@ -6,7 +6,7 @@
   const inteiro = n => Math.trunc(Number(n) || 0);
 
   V5.CONFIG_PADRAO = Object.freeze({
-    moedasIniciais: 9,
+    moedasIniciais: 12,
     precos: { baixo: 1, justo: 3, alto: 5 },
     /* 02/09/2026 — as rodadas sensoriais passaram a pontuar. Os 5 saíram de
        `tempo` (3) e `cooperacao` (2), decisão do Mario, e o total segue 100.
