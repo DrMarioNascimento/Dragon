@@ -30,7 +30,9 @@ const CONFIGS={
   /* O Impostor (03/10/2026): projeto próprio, um por caso. Sem Analytics: não serve ao jogo. */
   impostor:{apiKey:'AIzaSyB_iz5CI0lvml-t7nlgTGmQGGL6i79drjs',authDomain:'oimpostor-c30e0.firebaseapp.com',projectId:'oimpostor-c30e0',storageBucket:'oimpostor-c30e0.firebasestorage.app',messagingSenderId:'182177484646',appId:'1:182177484646:web:48efa34591444c6af1c2a7'},
   /* O Eco do Amanhã: O Impostor (11/10/2026): projeto próprio do VestChip. Sem Analytics. */
-  vestchip:{apiKey:'AIzaSyCVFRwufDXTY6qVaBKrToGCHd5CS35obWE',authDomain:'vestchip.firebaseapp.com',projectId:'vestchip',storageBucket:'vestchip.firebasestorage.app',messagingSenderId:'688895060786',appId:'1:688895060786:web:336053a414675f6edc452b'}
+  vestchip:{apiKey:'AIzaSyCVFRwufDXTY6qVaBKrToGCHd5CS35obWE',authDomain:'vestchip.firebaseapp.com',projectId:'vestchip',storageBucket:'vestchip.firebasestorage.app',messagingSenderId:'688895060786',appId:'1:688895060786:web:336053a414675f6edc452b'},
+  /* A Manhã do Carro-Forte: O Impostor (11/10/2026): projeto próprio. Sem Analytics. */
+  carroforte:{apiKey:'AIzaSyDdrtMf067L1K4v1nTzmyAJ9rbQErKMTYk',authDomain:'o-impostor-carro-forte.firebaseapp.com',projectId:'o-impostor-carro-forte',storageBucket:'o-impostor-carro-forte.firebasestorage.app',messagingSenderId:'62421791853',appId:'1:62421791853:web:0eaec8f768119a14bc3b64'}
 };
 const app=getApps().find(a=>a.name===`dragon-${PROJECT}`)||initializeApp(CONFIGS[PROJECT],`dragon-${PROJECT}`);
 const auth=getAuth(app),db=getFirestore(app);

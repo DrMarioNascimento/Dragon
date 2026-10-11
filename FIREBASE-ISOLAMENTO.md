@@ -5,7 +5,7 @@
 | A Casa da Costa | `mosaico-game` | salas do Carro-Forte |
 | A Manhã do Carro-Forte | `mosaico-noite` | salas da Casa da Costa |
 | O Impostor (A Casa da Costa: O Impostor) | `oimpostor-c30e0` | salas das outras mesas |
-| A Manhã do Carro-Forte: O Impostor | `oimpostor-c30e0` (caseId `carro-forte-impostor`) | salas d'A Casa da Costa: O Impostor (o gate recusa código de outro caseId) |
+| A Manhã do Carro-Forte: O Impostor | `o-impostor-carro-forte` (desde 11/10/2026) | salas dos outros casos |
 | O Eco do Amanhã: O Impostor (VestChip) | `vestchip` (desde 11/10/2026) | salas dos outros casos |
 
 Dentro do mesmo projeto, coleções diferentes (`mosaico/` vs `noite/`) separam o Celular canônico do fluxo de fechamento/alternativo.
@@ -85,3 +85,17 @@ documento `config/mestres` com o campo `emails` (lista).
 
 Pendente: o modo grupo foi validado só com a simulação local de jogadores (`humsim`);
 falta um teste ao vivo com aparelhos reais na sala Firebase.
+
+## A Manhã do Carro-Forte: O Impostor — projeto próprio (11/10/2026)
+
+Desde 11/10/2026 o Carro-Forte: O Impostor sai do `oimpostor-c30e0` e usa o projeto
+`o-impostor-carro-forte`. A mesa carrega `firebase-room.js?v=20261011-cf` com
+`data-project="carroforte"` (resto igual: `data-root="mosaico"`,
+`data-case="carro-forte-impostor"`, `data-papel-camada="nao"`, `data-retomar="sim"`).
+Regras: as mesmas de `o-impostor/firestore-impostor.rules`, coladas no console.
+A seção de 06/10/2026 acima fica como histórico.
+
+No console do projeto `o-impostor-carro-forte`: Firestore (região `southamerica-east1`),
+Authentication com Google e Anônimo, domínio autorizado `drmarionascimento.github.io`,
+as regras coladas e o documento `config/mestres` com o campo `emails` (lista).
+Salas abertas antes da troca, no projeto antigo, não aparecem no novo.

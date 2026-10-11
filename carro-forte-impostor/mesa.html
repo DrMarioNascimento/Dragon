@@ -3139,7 +3139,7 @@ var _executarM=executar;executar=function(e){if(e[1]==='passagem')MAQ_REV.passag
    está com um humano vira narração; 3 humanos trocam só as frases prontas e os
    anexos; 4 personagens sorteados pelo celular do Mestre; 5 sem telão por ora;
    6 ranking no fim. A entrada (Abrir / Entrar, código, QR) é a mesma das outras
-   mesas (firebase-room.js), no projeto do Impostor (oimpostor-c30e0), separada
+   mesas (firebase-room.js), no projeto próprio do Carro-Forte (o-impostor-carro-forte), separada
    d'A Casa pelo caseId 'carro-forte-impostor'. Pela rede passam só: o sorteio,
    o início de cada capítulo, as mensagens dos humanos e o placar final. */
 var mpCapAplicado=0,mpEsperando=null,mpAvancando={},mpInicio=Date.now(),mpUid='',mpLigado=false,mpFinalizado=false,mpMeuResumo=null,mpNomes={},mpPassouPrologo=false;
@@ -3247,8 +3247,8 @@ if(GRUPO&&!MP)window.DragonSalaAntesDeIniciar=function(ctx){var ps=(ctx.players|
    Abrir / Entrar. Na página da partida (depois do sorteio), entra direto. */
 function cfiCarregarSala(){if(cfiCarregarSala.feito)return;cfiCarregarSala.feito=true;
   var q=document.createElement('script');q.src='../v1/js/qr.js';document.head.appendChild(q);
-  var m=document.createElement('script');m.type='module';m.src=(window.CFI_SALA_SRC||'../firebase-room.js?v=20261006-cf');
-  var d={project:'impostor',root:'mosaico',case:'carro-forte-impostor',title:'A Manhã do Carro-Forte · O Impostor',papelCamada:'nao',retomar:'sim'};
+  var m=document.createElement('script');m.type='module';m.src=(window.CFI_SALA_SRC||'../firebase-room.js?v=20261011-cf');
+  var d={project:'carroforte',root:'mosaico',case:'carro-forte-impostor',title:'A Manhã do Carro-Forte · O Impostor',papelCamada:'nao',retomar:'sim'};
   Object.keys(d).forEach(function(k){m.dataset[k]=d[k]});document.body.appendChild(m)}
 /* O botão Sala do Mestre fica no alto, junto da ficha (o flutuante cobriria a barra
    de escrever). A folha da sala esconde o flutuante quando acha este espelho. */
