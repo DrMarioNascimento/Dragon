@@ -1,5 +1,31 @@
 # Dragon Games
 
+## O voo da Dragon
+
+> A tecnologia tece o seu próprio universo,  
+> Na tela escura onde o código desperta.  
+> A lógica fria em mágica se liberta,  
+> E cada comando pulsa, feito um verso.  
+>
+> Linha por linha, eu construo um sonho,  
+> De mundos invisíveis, de lendas e luz.  
+> Um reino onde a imaginação nos conduz,  
+> E a cada nova fase, a alma eu exponho.  
+>
+> Assim nasce a Dragon Games, forjada na chama,  
+> Da paixão por jogar, de criar, de inovar.  
+> Um portal infinito para quem ousa explorar,  
+> Onde o herói se levanta e a aventura nos chama.  
+>
+> Deixo aqui o meu voo, a minha melhor arte,  
+> O suor da rotina virando uma nova história.  
+> Um pedaço de mim entregue à sua memória...  
+> Espero que faça parte, e também curta...  
+
+*Primavera de 2026*
+
+---
+
 ## Estado e manutenção — 10 de outubro de 2026
 
 O hub reúne os percursos de A Casa da Costa e A Manhã do Carro-Forte, com entradas para mesa, telão, solo e outros modos descritos abaixo. Há também experiências de O Impostor em desenvolvimento. As pastas históricas e os protótipos não devem ser tratados como lançamentos equivalentes.
