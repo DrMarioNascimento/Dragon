@@ -83,7 +83,9 @@
      { nome: 'Manual do rádio', estilo: 'maquina', linhas: ['RÁDIO MOSAICO — MOD. 7', 'MANUAL DE USO', '', '1. Coloque 4 pilhas AA.', '2. Gire o botão até ouvir', '   um clique.', '3. Procure a estação com', '   o dial lateral.', '', 'Em dias de chuva o sinal', 'pode falhar.'] }],
     [{ nome: 'Folheto do farol', estilo: 'maquina', linhas: ['FAROL DA COSTA', 'VISITAÇÃO', '', 'Sábados e domingos', 'das 9h às 16h.', '', 'Não é permitido subir', 'com chuva ou vento forte.', '', 'O feixe gira sem parar', 'desde 1911.'] }],
     [{ nome: 'Carta de um amigo', estilo: 'mao', linhas: ['Meu caro,', '', 'a pescaria de domingo', 'rendeu pouco, mas o', 'café na sua varanda', 'valeu a viagem.', '', 'Quando a reforma acabar,', 'me chame para ver a casa.', '', 'Um abraço do velho amigo.'] },
-     { nome: 'Postal da ilha', estilo: 'mao', linhas: ['Lembrança da Ilha', '', 'Tempo bom, mar calmo.', 'Voltamos na sexta.', '', 'Beijos a todos.'] }],
+     { nome: 'Postal da ilha', estilo: 'mao', linhas: ['Lembrança da Ilha', '', 'Tempo bom, mar calmo.', 'Voltamos na sexta.', '', 'Beijos a todos.'] },
+     /* 11/10 (Mario: um achado do Arquivo Dragon por jogo, sem envio extra). Não é do caso nem da noite. */
+     { nome: 'Fotografia antiga', estilo: 'maquina', foto: 'media/criador-retrato.webp', linhas: ['ARQUIVO DRAGON GAMES'] }],
     [{ nome: 'Mapa das trilhas', estilo: 'maquina', linhas: ['TRILHAS DA COSTA', '', 'A  Praia  → Farol    40 min', 'B  Farol  → Mirante   25 min', 'C  Casa   → Praia    15 min', '', 'Trilha C fechada em', 'dias de ressaca.'] }],
     [{ nome: 'Contas de luz antigas', estilo: 'mao', linhas: ['Luz — 2019', '', 'jan  84,00', 'fev  91,50', 'mar  77,20', 'abr  80,10', '', 'O fogão a lenha', 'economiza no inverno.'] },
      { nome: 'Folha manchada', estilo: 'mao', linhas: ['', '', '(uma mancha de café', ' e nada escrito)'] }],
@@ -115,8 +117,20 @@
     for (var i = 0; i < 700; i++) { g.fillStyle = 'rgba(120,95,60,' + Math.random() * 0.06 + ')'; g.fillRect(Math.random() * w, Math.random() * h, 2, 2); }
     var gr = g.createRadialGradient(w / 2, h / 2, w * 0.3, w / 2, h / 2, w * 0.9); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(120,90,40,.18)'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
   }
+  /* 11/10: a fotografia do Arquivo Dragon (carregada antes de montar) */
+  var FOTOS = {};
+  function carregarFotos() { var ps = []; [].concat.apply([], GAVETAS).forEach(function (f) { if (f.foto && !FOTOS[f.foto]) ps.push(new Promise(function (ok) { var im = new Image(); im.onload = function () { FOTOS[f.foto] = im; ok(); }; im.onerror = function () { ok(); }; im.src = f.foto; })); }); return Promise.all(ps); }
   function escrever(f) {
     var c = document.createElement('canvas'); c.width = W; c.height = H; var g = c.getContext('2d');
+    if (f.foto) {                                   /* uma fotografia: papel fotográfico de borda branca, a legenda à máquina embaixo */
+      g.fillStyle = '#f2efe6'; g.fillRect(0, 0, W, H);
+      var im = FOTOS[f.foto], mx = W * 0.08, lw = W - 2 * mx, lh = H * 0.72;
+      g.fillStyle = '#2b2a28'; g.fillRect(mx, mx, lw, lh);
+      if (im) { var k = Math.min(lw / im.width, lh / im.height), iw = im.width * k, ih = im.height * k; g.save(); g.filter = 'sepia(.55) contrast(.95)'; g.drawImage(im, mx + (lw - iw) / 2, mx + (lh - ih) / 2, iw, ih); g.restore(); }
+      g.fillStyle = '#3a3128'; g.font = '19px "Special Elite", "Courier New", monospace'; g.textAlign = 'center';
+      g.fillText(f.linhas[0] || '', W / 2, mx + lh + H * 0.1);
+      return c;
+    }
     papel(g, W, H, f.estilo === 'recibo');
     var mao = f.estilo === 'mao', tam = f.grande ? 46 : mao ? 30 : 21;
     var fonte = mao ? '600 ' + tam + 'px Caveat, "Segoe Print", cursive' : tam + 'px "Special Elite", "Courier New", monospace';
@@ -201,7 +215,7 @@
     Promise.all(['600 30px Caveat', '700 38px Caveat', '21px "Special Elite"'].map(function (f) { return document.fonts ? document.fonts.load(f) : null; })),
     new Promise(function (ok) { setTimeout(ok, 3000); })
   ]).catch(function () {});
-  Promise.all([b.carregar(['modelos/escrivaninha.glb']), fontes]).then(function (tudo) { var r = tudo[0];
+  Promise.all([b.carregar(['modelos/escrivaninha.glb']), fontes, carregarFotos()]).then(function (tudo) { var r = tudo[0];
     mesa = r[0].scene; b.raiz.add(mesa);
     montarGavetas();
     texVerso = textura(verso());
