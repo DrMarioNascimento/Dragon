@@ -114,10 +114,9 @@ test("landings e redirects chegam a fluxos que existem", () => {
   assert.equal(/data-mode-ctas/.test(LANDING_CASA), false);
   assert.match(LANDING_CARRO, /celular\.html/);
   assert.equal(/data-mode-ctas/.test(LANDING_CARRO), false);
-  assert.match(HUB, /telao\.html\?jogo=casa-da-costa/);
-  assert.match(HUB, /telao\.html\?jogo=carro-forte/);
-  assert.match(HUB, /href="solo\/"/);
-  assert.match(HUB, /celular\.html\?soloLab=1/);
+  assert.ok(HUB.includes('href="historias/casa-da-costa/a-mesa/"'));
+  assert.ok(HUB.includes('href="historias/a-manha-do-carro-forte/a-mesa/"'));
+  assert.doesNotMatch(HUB, /href="solo\/"|soloLab=1/);
   assert.match(REDIRECT_MESA, /carro-forte\/celular\.html/);
   assert.match(REDIRECT_NOITE, /carro-forte\/noite\//);
   assert.match(ROOT_MESA, /id="app"/);

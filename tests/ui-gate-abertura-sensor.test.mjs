@@ -72,7 +72,7 @@ describe("abertura · Carro Celular / Solo / Telão wiring", () => {
   });
 
   it("Solo ?soloLab=1 libera ensaio local (sem Google) e toca neste aparelho", () => {
-    assert.match(HUB, /celular\.html\?soloLab=1/);
+    assert.doesNotMatch(HUB, /soloLab=1/);
     assert.match(ROOM, /async function iniciarEnsaioLocal\(/);
     assert.match(ROOM, /if\(querEnsaio\)return iniciarEnsaioLocal\(\)/);
     assert.match(PAUTA, /if \(!code\) \{ tocarAqui\(entrar\); return; \}/);

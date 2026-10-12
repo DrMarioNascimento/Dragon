@@ -8,7 +8,7 @@ test("o hub não oferece mais o card 03 do Laboratório RA", async () => {
   const home = await text("index.html");
   assert.doesNotMatch(home, /id="laboratorio-ra"/);
   assert.doesNotMatch(home, /id="ra-access-form"/);
-  assert.match(home, /lab-ra/i);
+  assert.doesNotMatch(home, /lab-ra/i);
 });
 
 test("laboratorio-ra/ redireciona para o repositório Lab RA", async () => {
