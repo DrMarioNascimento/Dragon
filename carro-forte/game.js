@@ -209,7 +209,9 @@ function aplicarOpcoes(o){
  state.telao=!!o.telao;
 }
 function opcoesDaTela(){
- return {players:+$('playerCount').value,pace:$('pace').value,duration:$('duration').value};
+ /* 11/10/2026: na sala, o número de investigadores é o de aparelhos que entraram (até 12); o campo só vale sem sala */
+ const naSala=(window.MOSAICO_ROOM&&!window.MOSAICO_ROOM.local&&Array.isArray(window.MOSAICO_ROOM.players))?window.MOSAICO_ROOM.players.length:0;
+ return {players:naSala?Math.max(1,Math.min(12,naSala)):+$('playerCount').value,pace:$('pace').value,duration:$('duration').value};
 }
 
 const $=id=>document.getElementById(id);
@@ -375,6 +377,7 @@ function selectGame(id){
  $('planCards').innerHTML=[
   `<article class="plan-card depth-card gold"><small>DOSSIÊ</small><strong>até ${cfg.n} fragmentos</strong><p>${cfg.rot}. ${sensoriais().length} deles só entram se a mesa descobrir nas atividades — o que ficar para trás não volta por outra porta. Depois, o dossiê abre em três terços.</p></article>`,
   `<article class="plan-card depth-card green"><small>CAMPOS DESTA PERGUNTA</small><strong>${g.fields.length} campos</strong><p>${g.fields.map(f=>f[0]).join(' · ')}</p></article>`,
+  ...(window.CarroVariacoes?.presentes?.().length?[`<article class="plan-card depth-card"><small>NA AGÊNCIA NESTA MANHÃ</small><strong>${window.CarroVariacoes.presentes().length} pessoas</strong><p>${window.CarroVariacoes.presentes().map(p=>p.nome).join(' · ')}</p></article>`]:[]),
   `<article class="plan-card depth-card blue"><small>ATIVIDADES SENSORIAIS</small><strong>${g.activities.length} atividade${g.activities.length===1?'':'s'}</strong><p>${g.activities.map(a=>SENSORS[a].title).join(' · ')}</p></article>`
  ].join('');
  /* Quem abre a fase é o Mestre; o convidado recebe o prazo pela sala e cai
@@ -491,7 +494,7 @@ function iniciarAtividade(id,fimMs){
    acabar — com <a target="_blank"> a aba fica órfã e a pessoa some do jogo. */
 function abrirJanelaAtividade(id){
  const s=SENSORS[id],lote=state.lotes[id]||[];
- const url=`${s.href}?partida=${state.game}&itens=${lote.join(',')}&fim=${state.prazo||0}`;
+ const url=`${s.href}?partida=${state.game}&itens=${lote.join(',')}&fim=${state.prazo||0}${state.variacao?`&var=${state.variacao}`:''}`;
  let j=null;
  try{j=window.open(url,'mosaico-atividade')}catch(e){j=null}
  if(!j){alert('O navegador bloqueou a janela da atividade. Libere as janelas para esta página e toque de novo.');return}
@@ -693,6 +696,13 @@ function renderDossie(){
   renderDossie();
  });
  const tem=mao(),abertas=RELACOES.filter(r=>relacaoCompleta(r,tem)).length;
+ /* 11/10/2026 (Tarefa 4): os depoimentos que só este aparelho ouviu. Cada pessoa que estava na
+    agência fala para UM aparelho; a mentira de quem montou a janela só cai quando alguém conta o seu
+    depoimento à mesa e outro acha o fragmento que o desmente. */
+ const depo=window.CarroVariacoes?.meusDepoimentos?.()||[];
+ if(depo.length){
+  host.insertAdjacentHTML('beforeend',`<section class="wave depoimentos"><div class="wave-head"><small>DEPOIMENTOS · SÓ NESTE APARELHO</small><span>${depo.length} pessoa${depo.length===1?'':'s'}</span></div><p class="depo-nota">Ninguém mais na mesa leu estes. Conte o que importa.</p><div class="hand">${depo.map(d=>`<article class="fragment depth depo"><b class="depo-quem">${d.av} ${d.nome}</b><em class="depo-tom">${d.tom}</em><p>${d.fala}</p></article>`).join('')}</div></section>`);
+ }
  $('dossierMeta').innerHTML=`<b>${state.marcados.size}</b> marcado${state.marcados.size===1?'':'s'} de ${tem.size} em mesa · <b>${abertas}</b> ${abertas===1?'relação já costurável':'relações já costuráveis'}`;
  /* O botão "abrir o segundo terço" era do JOGADOR, e isso dava a quem tocasse
     primeiro mais tempo com as pistas de fechamento na mão. Agora os terços
@@ -873,7 +883,7 @@ function passosDaRevelacao(incluirCaidas){
   ...g.reveals.map((x,i)=>({k:`RELAÇÃO ${i+1}`,h:x,p:'Nenhum fato anterior foi alterado. Mudou a relação entre as evidências.'})),
   {k:'HIPÓTESES QUE CAEM',h:caidas.length?caidas.map(h=>h.id).join(' · '):'Nenhuma hipótese foi derrubada nesta mesa.',
    p:caidas.length?caidas.map(h=>`${h.id} — ${h.t}`).join('; ')+'. Cada uma nasceu de fatos verdadeiros lidos de forma incompleta.':'As pistas de fechamento não chegaram a se cruzar nesta duração.'},
-  {k:'INFERÊNCIA CANÔNICA',h:g.answer,p:'A realidade é a mesma em todas as partidas. Esta pergunta apenas exige outro corte dela.'},
+  {k:'O QUE ACONTECEU',h:g.answer,p:'Nesta partida foi assim. Na próxima, a mesma manhã pode ter outra pessoa, outro motivo e outro valor.'},
   {k:'PRINCÍPIO',h:'A verdade devolve o dinheiro; a mentira fica com ele.',p:'No MOSAICO, um fato verdadeiro pode estar associado à interpretação errada.'}
  ];
  return incluirCaidas?steps:steps.filter(x=>x.k!=='HIPÓTESES QUE CAEM');
@@ -1124,14 +1134,26 @@ function pedirAbertura(){
    do ensaio e do aparelho solto, que continua sendo a maioria das partidas.
    Ver pauta-da-mesa.js: o defeito era dois celulares abrindo perguntas
    diferentes, cada um achando que jogava com o outro. */
+/* 11/10/2026 (Tarefa 4): a variação da solução (variacoes-carro.js). Vem da sala, escolhida pelo
+   Mestre junto com a pergunta; sem sala, este aparelho escolhe a menos jogada. Troca no lugar os
+   fragmentos, as hipóteses, as relações e as perguntas, e reparte os depoimentos entre os aparelhos. */
+function aplicarVariacao(vid){
+ const CV=window.CarroVariacoes;if(!CV)return;
+ state.variacao=vid&&CV.dados().variacoes[vid]?vid:CV.escolher(sementeDaSala('variacao'));
+ CV.aplicar(state.variacao,{PARTIDAS,HIPOTESES,RELACOES,FRAGMENTOS},{jogadores:state.players});
+}
 function abrirPauta(anterior){
  const meu=opcoesDaTela();
  const local=()=>proximaPartida();
- const seguir=r=>{aplicarOpcoes(r?.opcoes||meu);selectGame(r?.pergunta||local())};
- if(!window.MosaicoPauta){aplicarOpcoes(meu);return selectGame(local())}
+ const seguir=r=>{aplicarOpcoes(r?.opcoes||meu);const id=r?.pergunta||local();aplicarVariacao(r?.variacao);selectGame(id)};
+ if(!window.MosaicoPauta){aplicarOpcoes(meu);aplicarVariacao(null);return selectGame(local())}
  /* avancarRodizio sobe o saco para a sala; local() só entra sem sala / fallback. */
- window.MosaicoPauta.escolher(local,anterior||null,meu,avancarRodizio).then(seguir)
-  .catch(e=>{console.error('MOSAICO: pauta falhou; sorteio local.',e);aplicarOpcoes(meu);selectGame(local())});
+ /* 11/10/2026 (Tarefa 4): o saco das seis perguntas continua entre salas. Cada sala nova chegava
+    com o saco vazio, e a mesma pergunta podia sair três vezes seguidas em três noites. Sala sem saco
+    herda o deste aparelho (o do Mestre), e o resultado volta para ele. */
+ const avancarSalaELocal=r=>{const temSaco=r&&((Array.isArray(r.saco)&&r.saco.length)||r.ultima);const t=avancarRodizio(temSaco?r:{...lerRodizio(),...(r&&r.ultima?{ultima:r.ultima}:{})});salvarRodizio(t.rodizio);return t};
+ window.MosaicoPauta.escolher(local,anterior||null,meu,avancarSalaELocal).then(seguir)
+  .catch(e=>{console.error('MOSAICO: pauta falhou; sorteio local.',e);aplicarOpcoes(meu);aplicarVariacao(null);selectGame(local())});
 }
 /* A ABERTURA TOCA NUM APARELHO SÓ. Quem decide onde é o pauta-da-mesa.js: com
    telão vivo na sala, a narração vai para a tela grande e os celulares esperam;
@@ -1219,7 +1241,7 @@ $('toNoite')&&($('toNoite').onclick=()=>{
  const nomes=(window.MOSAICO_ROOM?.players||[]).map(p=>p?.nome||p?.name||p?.displayName).filter(Boolean);
  const fragmentosRevelados=[...new Set([...state.colhidos,...state.marcados])];
  const handoff={
-  pergunta,sala,jogadores,nomes,
+  pergunta,sala,jogadores,nomes,variacao:state.variacao||null,
   fecho:{total:s.total,campos:s.campos,hipotese:s.hipotese,relacoes:s.relacoes,leitura:s.leitura,sensorial:s.sensorial,revisao:s.revisao,acertos:s.acertos},
   hipoteseFinal:state.hipoteseFinal||null,
   hipoteseProv:state.hipoteseProv||null,

@@ -107,7 +107,9 @@
     if (!pergunta) throw new Error('pergunta inválida para o handoff');
     const sala = normalizeSala(input.sala);
     const fecho = normalizeFecho(input.fecho);
-    const jogadores = clampInt(input.jogadores, 0, 8, 0);
+    const jogadores = clampInt(input.jogadores, 0, 12, 0); /* 11/10/2026: até 12 (era 8) */
+    /* 11/10/2026 (Tarefa 4): a variação da solução da manhã atravessa para a Noite */
+    const variacao = /^v\d{2}$/.test(String(input.variacao || '')) ? String(input.variacao) : null;
     const hipoteseFinal = String(input.hipoteseFinal ?? '')
       .trim()
       .toUpperCase();
@@ -125,6 +127,7 @@
       hipoteseFinal: /^H([1-9]|10)$/.test(hipoteseFinal) ? hipoteseFinal : null,
       hipoteseProv: /^H([1-9]|10)$/.test(hipoteseProv) ? hipoteseProv : null,
       fragmentosRevelados: limparIds(input.fragmentosRevelados),
+      ...(variacao ? { variacao } : {}),
       emMs: Number(input.emMs) || Date.now(),
     };
   }
@@ -205,7 +208,10 @@
       };
     }
     const h = normalizeHandoff(opts.handoff);
-    const preferred = mapFragmentosManhaParaCaptura(h && h.fragmentosRevelados).filter(function (id) {
+    /* 11/10/2026: com variação, o baralho da Noite é o da própria manhã (F01…F31) e os ids
+       revelados entram como estão, sem o mapa para o baralho antigo de 19 cartas. */
+    const mesmoBaralho = allIds.indexOf('F01') >= 0;
+    const preferred = (mesmoBaralho ? limparIds(h && h.fragmentosRevelados) : mapFragmentosManhaParaCaptura(h && h.fragmentosRevelados)).filter(function (id) {
       return allIds.indexOf(id) >= 0;
     });
     if (!preferred.length) {
@@ -296,6 +302,7 @@
       fromCelular: p.get('from') === 'celular',
       sala: normalizeSala(p.get('sala')),
       pergunta: normalizePergunta(p.get('pergunta')),
+      variacao: /^v\d{2}$/.test(String(p.get('var') || '')) ? String(p.get('var')) : null,
     };
   }
 
@@ -308,6 +315,7 @@
     const pergunta = normalizePergunta(opts.pergunta);
     if (sala) q.set('sala', sala);
     if (pergunta) q.set('pergunta', pergunta);
+    if (/^v\d{2}$/.test(String(opts.variacao || ''))) q.set('var', String(opts.variacao));
     const qs = q.toString();
     return qs ? withSlash + '?' + qs : withSlash;
   }
@@ -352,7 +360,7 @@
     const perguntaFinal = normalizePergunta(data?.partida?.pergunta) || id;
     const n = Math.max(
       0,
-      Math.min(8, Number(jogadores) || Number(payload.jogadores) || Number(data?.partida?.jogadores) || 0),
+      Math.min(12, Number(jogadores) || Number(payload.jogadores) || Number(data?.partida?.jogadores) || 0),
     );
     const continuidade = {
       from: 'celular',
@@ -369,6 +377,7 @@
       handoff: handoffDoc,
       atualizadaEmMs: Date.now(),
       ...(n >= 2 ? { jogadores: n } : {}),
+      ...(payload.variacao ? { variacao: payload.variacao } : {}),
     };
     if (!snap.exists()) {
       /* 1) create permitido só com fase:'sala' + ativa + mestreUid. */
@@ -395,6 +404,7 @@
         'partida.atualizadaEmMs': Date.now(),
       };
       if (n >= 2) patch['partida.jogadores'] = n;
+      if (payload.variacao) patch['partida.variacao'] = payload.variacao;
       if (data?.fase !== 'jogo') patch.fase = 'jogo';
       await fs.updateDoc(ref, patch);
     }
@@ -434,6 +444,7 @@
       sala: code,
       pergunta: id,
       fromCelular: true,
+      variacao: payload?.variacao || handoff?.variacao,
     });
     if (code && id && window.MOSAICO_ROOM?.role === 'master') {
       try {

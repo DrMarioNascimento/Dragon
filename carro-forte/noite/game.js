@@ -10,16 +10,21 @@
     document.head.appendChild(s);
   };
   carregar('opening-flow.js?v=20260915-audio-cta', () => {
-    carregar('game-fixed.js?v=20260906-captura-frag', () => {
+    /* 11/10/2026 (Tarefa 4): as variações da solução, antes do núcleo */
+    carregar('../variacoes-carro-dados.js?v=20261011-t4', () => carregar('../variacoes-carro.js?v=20261011-t4', () => {
+    carregar('game-fixed.js?v=20261011-t4', () => {
       carregar('layout-compacto.js?v=20260901-toque3', () => {
         carregar('touch-router.js?v=20260901-toque1', () => {
           carregar('telemetria-teste.js?v=20261011-sdk12', () => {
             /* Depois do núcleo, porque lê QUESTIONS e a sala. É acessório: se
                falhar, o console avisa e a partida segue sem telão. */
             carregar('telao-publica.js?v=20261011-sdk12');
+            /* 11/10/2026: o aprendizado da tela (o mesmo arquivo da manhã) */
+            carregar('../aprendizado-carro.js?v=20261011-t4');
           });
         });
       });
     });
+    }));
   });
 })();

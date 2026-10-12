@@ -106,6 +106,7 @@
         pergunta: d?.partida?.pergunta || null,
         opcoes: d?.partida?.opcoes || null,
         rodizio: d?.partida?.rodizio || null,
+        variacao: d?.partida?.variacao || null,
       };
     };
 
@@ -122,10 +123,10 @@
          se a sala ainda tem exatamente esse id, a próxima precisa sair. */
       const congelada = atual?.pergunta;
       if (congelada && !novaRodada) {
-        return { pergunta: congelada, opcoes: atual.opcoes || { ...(opcoes || {}), telao: usouTelao } };
+        return { pergunta: congelada, opcoes: atual.opcoes || { ...(opcoes || {}), telao: usouTelao }, variacao: atual.variacao };
       }
       if (congelada && novaRodada && congelada !== novaRodada) {
-        return { pergunta: congelada, opcoes: atual.opcoes || { ...(opcoes || {}), telao: usouTelao } };
+        return { pergunta: congelada, opcoes: atual.opcoes || { ...(opcoes || {}), telao: usouTelao }, variacao: atual.variacao };
       }
 
       let id;
@@ -144,8 +145,12 @@
         id = sortear();
       }
       const combinado = { ...(opcoes || {}), telao: usouTelao };
+      /* 11/10/2026 (Tarefa 4): a variação da solução sai junto com a pergunta, escolhida aqui,
+         uma vez, pela menos jogada desta mesa (variacoes-carro.js). */
+      const variacao = window.CarroVariacoes ? window.CarroVariacoes.escolher(code + '|' + Date.now()) : null;
       const patch = {
         'partida.pergunta': id,
+        'partida.variacao': variacao,
         'partida.abertaEmMs': Date.now(),
         'partida.opcoes': combinado,
         /* O fecho e a fase da rodada passada não podem sobreviver à nova:
@@ -163,7 +168,7 @@
            sincronia, não a partida de quem está com o aparelho na mão. */
         console.error('MOSAICO: não consegui gravar a pauta na sala.', e);
       }
-      return { pergunta: id, opcoes: combinado };
+      return { pergunta: id, opcoes: combinado, variacao };
     }
 
     /* Convidado. Numa rodada nova ele precisa esperar a pergunta MUDAR, senão

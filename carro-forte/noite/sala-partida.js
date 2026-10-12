@@ -42,7 +42,7 @@ if (sala && !sala.local && sala.code) {
     const ref = doc(db, 'noite', sala.code);
     const mestre = sala.role === 'master';
 
-    const estado = { pergunta: '', jogadores: 0, ritmo: 0, handoff: null, ...(sala.room?.partida || {}) };
+    const estado = { pergunta: '', jogadores: 0, ritmo: 0, handoff: null, variacao: null, ...(sala.room?.partida || {}) };
     const esperando = { pergunta: [], ritmo: [] };
 
     /* Ponte Celular → Noite: se a Manhã já congelou a pergunta e ela veio na
@@ -74,6 +74,7 @@ if (sala && !sala.local && sala.code) {
         const p = (s.exists() && s.data()?.partida) || {};
         if (p.jogadores) estado.jogadores = p.jogadores;
         if (p.handoff) estado.handoff = p.handoff;
+        if (p.variacao) estado.variacao = p.variacao;
         recebeu('pergunta', p.pergunta);
         recebeu('ritmo', p.ritmo);
       },
@@ -91,10 +92,10 @@ if (sala && !sala.local && sala.code) {
        sala quando ela começou, não um seletor por aparelho. */
     function abrir(ids, jogadoresNaSala) {
       if (estado.pergunta)
-        return Promise.resolve({ pergunta: estado.pergunta, jogadores: estado.jogadores });
+        return Promise.resolve({ pergunta: estado.pergunta, jogadores: estado.jogadores, variacao: estado.variacao });
       if (!mestre) {
         return new Promise((resolve) =>
-          esperando.pergunta.push((pergunta) => resolve({ pergunta, jogadores: estado.jogadores })),
+          esperando.pergunta.push((pergunta) => resolve({ pergunta, jogadores: estado.jogadores, variacao: estado.variacao })),
         );
       }
       const daUrl = String(new URLSearchParams(location.search).get('pergunta') || '')
@@ -103,8 +104,14 @@ if (sala && !sala.local && sala.code) {
       const escolhida =
         (daUrl && ids.includes(daUrl) && daUrl) ||
         ids[Math.floor(Math.random() * ids.length)];
-      const quantos = Math.max(2, Math.min(8, jogadoresNaSala || 0)) || 8;
+      const quantos = Math.max(2, Math.min(12, jogadoresNaSala || 0)) || 8; /* 11/10/2026: até 12 (era 8) */
       const patch = { 'partida.pergunta': escolhida, 'partida.jogadores': quantos };
+      /* 11/10/2026 (Tarefa 4): a variação da solução — a da manhã, se veio pela ponte; senão a menos
+         jogada desta mesa. Gravada junto com a pergunta, numa escrita só. */
+      const daPonte = (estado.handoff && estado.handoff.variacao) ||
+        (/^v\d{2}$/.test(String(new URLSearchParams(location.search).get('var') || '')) ? new URLSearchParams(location.search).get('var') : null);
+      const variacao = daPonte || (window.CarroVariacoes ? window.CarroVariacoes.escolher(sala.code + '|' + Date.now()) : null);
+      if (variacao) patch['partida.variacao'] = variacao;
       if (new URLSearchParams(location.search).get('from') === 'celular') {
         patch['partida.origem'] = 'celular';
         const h =
@@ -132,7 +139,8 @@ if (sala && !sala.local && sala.code) {
       return gravar(patch).then(() => {
         estado.pergunta = estado.pergunta || escolhida;
         estado.jogadores = estado.jogadores || quantos;
-        return { pergunta: estado.pergunta, jogadores: estado.jogadores };
+        estado.variacao = estado.variacao || variacao;
+        return { pergunta: estado.pergunta, jogadores: estado.jogadores, variacao: estado.variacao };
       });
     }
 

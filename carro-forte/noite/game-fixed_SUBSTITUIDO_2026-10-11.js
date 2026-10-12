@@ -1,0 +1,926 @@
+/* MOSAICO A Noite — núcleo funcional restaurado */
+const QUESTIONS = {
+  peso: {
+    nature: 'QUANTO + QUANDO',
+    title: 'O Peso do Malote 41',
+    question:
+      'O banco anuncia que faltam quatrocentos e oitenta mil reais. Quanto realmente desapareceu?',
+    fields: [
+      'Valor declarado',
+      'Valor físico real',
+      'Movimentação da manhã',
+      'Diferença real',
+      'Data de origem',
+    ],
+    answers: ['R$ 480.000', 'R$ 384.000', '+ R$ 96.000', 'R$ 0', 'Onze dias antes'],
+    options: [
+      ['R$ 480.000', 'R$ 384.000', 'R$ 576.000', 'R$ 96.000'],
+      ['R$ 384.000', 'R$ 480.000', 'R$ 288.000', 'R$ 576.000'],
+      ['+ R$ 96.000', '− R$ 96.000', 'R$ 0', '− R$ 480.000'],
+      ['R$ 0', 'R$ 96.000', 'R$ 384.000', 'R$ 480.000'],
+      ['Onze dias antes', 'Na véspera', 'Às 7h47', 'Às 8h02'],
+    ],
+  },
+  janela: {
+    nature: 'O QUÊ + COMO',
+    title: 'Os 87 Segundos',
+    question: 'O que realmente aconteceu enquanto a câmera 3 ficou cega?',
+    fields: [
+      'Primeiro evento',
+      'Intervenção no malote',
+      'Lacre',
+      'Direção do fluxo',
+      'Fim da janela',
+    ],
+    answers: [
+      'Rádio afasta Vigilância',
+      'R$ 96.000 entram',
+      'ML-8847 substitui ML-8842',
+      'Fora → dentro do malote',
+      '7h59min39s',
+    ],
+    options: [
+      ['Rádio afasta Vigilância', 'Câmera 3 sai do ar', 'Lacre é rompido', 'Malote sai da agência'],
+      ['R$ 96.000 entram', 'R$ 96.000 saem', 'R$ 480.000 saem', 'Nenhum valor é movimentado'],
+      [
+        'ML-8847 substitui ML-8842',
+        'ML-8842 permanece intacto',
+        'ML-8847 é rompido',
+        'Nenhum lacre é trocado',
+      ],
+      [
+        'Fora → dentro do malote',
+        'Dentro → fora do malote',
+        'Malote → saco vazio',
+        'Tesouraria → agência',
+      ],
+      ['7h59min39s', '7h58min12s', '8h00', '8h02'],
+    ],
+  },
+  roubo: {
+    nature: 'QUAL / QUE TIPO',
+    title: 'Foi um roubo?',
+    question: 'Todo mundo viu os sinais de um assalto. Mas houve realmente um roubo?',
+    fields: [
+      'Natureza da manhã',
+      'Houve subtração?',
+      'Falha da câmera',
+      'Natureza da diferença',
+      'Leitura “só bagunça”',
+    ],
+    answers: [
+      'Encenação operacional',
+      'Não',
+      'Deliberadamente preparada',
+      'Escritural',
+      'Parcialmente correta',
+    ],
+    options: [
+      ['Encenação operacional', 'Roubo interno', 'Erro logístico', 'Falha casual'],
+      ['Não', 'Sim, R$ 96.000', 'Sim, R$ 384.000', 'Sim, R$ 480.000'],
+      ['Deliberadamente preparada', 'Falha espontânea', 'Pane elétrica', 'Erro da transportadora'],
+      ['Escritural', 'Física', 'De transporte', 'De conferência'],
+      [
+        'Parcialmente correta',
+        'Totalmente correta',
+        'Totalmente falsa',
+        'Sem relação com os fatos',
+      ],
+    ],
+  },
+  antes: {
+    nature: 'QUANDO',
+    title: 'Antes das 8h02',
+    question: 'Quando nasceu a diferença que todos procuram?',
+    fields: [
+      'Âncora da manhã',
+      'Janela crítica',
+      'Origem da duplicidade',
+      'Evento de urgência',
+      'Diferença física',
+    ],
+    answers: ['7h47', '87 segundos', 'Onze dias antes', 'Auditoria na véspera', 'Nunca nasce'],
+    options: [
+      ['7h47', '6h20', '7h53', '8h02'],
+      ['87 segundos', '39 segundos', '2 minutos', '13 minutos'],
+      ['Onze dias antes', 'Na véspera', 'Às 6h20', 'Às 8h02'],
+      ['Auditoria na véspera', 'Chegada do carro-forte', 'Saque das 6h20', 'Conferência das 8h40'],
+      ['Nunca nasce', 'Às 6h20', 'Às 7h58min50s', 'Às 8h02'],
+    ],
+  },
+  quem: {
+    nature: 'QUEM COMPOSTO',
+    title: 'Quem construiu a janela?',
+    question: 'Quem colocou cada peça daqueles 87 segundos em movimento?',
+    fields: [
+      'Quem decide',
+      'Quem prepara',
+      'Quem abre sem conhecer a finalidade',
+      'Quem executa o reset',
+      'Quem autoriza sem contingência',
+    ],
+    answers: ['Subgerente', 'Subgerente', 'Limpeza', 'Manutenção', 'Gerência'],
+    options: [
+      ['Subgerente', 'Gerência', 'Manutenção', 'Limpeza'],
+      ['Subgerente', 'Manutenção', 'Vigilância', 'Transporte'],
+      ['Limpeza', 'Aprendiz', 'Vigilância', 'Caixa Sênior'],
+      ['Manutenção', 'Subgerente', 'Gerência', 'Transporte'],
+      ['Gerência', 'Subgerente', 'Manutenção', 'Vigilância'],
+    ],
+  },
+  proteger: {
+    nature: 'POR QUÊ',
+    title: 'O que estava sendo protegido?',
+    question: 'Se não era o dinheiro, o que alguém estava tentando salvar?',
+    fields: [
+      'Objeto protegido',
+      'Função dos R$ 96.000',
+      'Gatilho de urgência',
+      'Ato original ocultado',
+      'Objetivo final',
+    ],
+    answers: [
+      'Assinatura e carreira',
+      'Completar o saldo físico',
+      'Auditoria integral',
+      'Assinatura sem conferência',
+      'Fazer registro e físico coincidirem',
+    ],
+    options: [
+      ['Assinatura e carreira', 'Dinheiro do banco', 'Equipe de transporte', 'Cliente Corporativo'],
+      [
+        'Completar o saldo físico',
+        'Retirar dinheiro do malote',
+        'Pagar a transportadora',
+        'Criar um falso saque',
+      ],
+      ['Auditoria integral', 'Chegada do carro-forte', 'Falha da câmera', 'Protocolo do cliente'],
+      [
+        'Assinatura sem conferência',
+        'Saque das 6h20',
+        'Troca da pasta azul',
+        'Atraso da transportadora',
+      ],
+      [
+        'Fazer registro e físico coincidirem',
+        'Ocultar R$ 480.000',
+        'Transferir culpa à Limpeza',
+        'Cancelar a Auditoria',
+      ],
+    ],
+  },
+};
+const FRAGMENTS = [
+  [
+    'F1',
+    'Antecipação interna',
+    'Às 6h52, o terminal registra solicitação de rota alternativa com credencial da subgerência; a transportadora confirma alteração originada pelo cliente bancário.',
+  ],
+  [
+    'F2',
+    'Âncora 7h47',
+    'Recibo anotado por Caixa Sênior e registros de horário fixam a chegada do carro-forte às 7h47.',
+  ],
+  [
+    'F3',
+    'Erro 17',
+    'O Erro 17 é enviado às 6h58 e apagado remotamente às 7h02; Manutenção preserva registro do evento.',
+  ],
+  [
+    'F4',
+    'Contato preparado',
+    'O contato do rack estava recém-solto e sem poeira; o sistema permanecera estável até 6h49.',
+  ],
+  [
+    'F5',
+    'Zona cega',
+    'A câmera 3 fica fora entre 7h58min12s e 7h59min39s: uma janela exata de 87 segundos.',
+  ],
+  [
+    'F6',
+    'Afastamento',
+    'Vigilância é afastada pelo rádio reserva; gravação e registro de retirada/devolução documentam a ordem.',
+  ],
+  [
+    'F7',
+    'Duas etiquetas',
+    'ML-8842 aparece rompido e ML-8847 no malote; a nova etiqueta foi impressa às 7h53 no terminal da subgerência.',
+  ],
+  [
+    'F8',
+    'O saco vazio',
+    'O objeto encontrado às 8h02 pesa 0,4 kg e está sem conteúdo; o inventário registra o lacre rompido.',
+  ],
+  [
+    'F9',
+    'O peso',
+    'Às 8h06, a prancheta registra o malote 41 com 5,1 kg, faixa compatível com R$ 480.000 e incompatível com R$ 384.000.',
+  ],
+  [
+    'F10',
+    'Conferência de destino',
+    'Às 8h40, a tesouraria confirma R$ 480.000 íntegros e recebe o lacre ML-8847 intacto.',
+  ],
+  [
+    'F11',
+    'Saque de madrugada',
+    'Às 6h20, a agência 0392 registra saque de R$ 96.000 em espécie; um cliente presente reconhece a sacola.',
+  ],
+  [
+    'F12',
+    'Origem do penhor',
+    'Joias foram empenhadas e um empréstimo pessoal foi acionado na véspera, compondo a origem rastreável dos R$ 96.000.',
+  ],
+  [
+    'F13',
+    'Consolidação duplicada',
+    'O relatório registra o mesmo depósito em dois pontos; o extrato do Cliente Corporativo mostra apenas um depósito de R$ 96.000.',
+  ],
+  [
+    'F14',
+    'Assinatura sem contagem',
+    'A consolidação foi assinada sem registro de abertura ou contagem física do cofre naquela noite.',
+  ],
+  [
+    'F15',
+    'Convocação da Auditoria',
+    'Às 21h47 da véspera chega convocação para contagem física integral às 8h00.',
+  ],
+  [
+    'F16',
+    'Trajeto do malote',
+    'Marcas de água ligam mesa, arquivos e chão; o sensor da porta dos arquivos registra passagem às 7h58min24s.',
+  ],
+  [
+    'F17',
+    'Chave 17-B',
+    'O inventário registra a chave reserva 17-B como retirada; a queda das pastas ocorre às 7h57min40s.',
+  ],
+  [
+    'F18',
+    'Pasta azul',
+    'Câmeras 1 e 2 registram troca acidental de pastas; o recibo da padaria permanece dentro da pasta trocada.',
+  ],
+  [
+    'F19',
+    'Protocolo do Cliente',
+    'Um envelope é protocolado às 8h05; a sequência é corroborada pela caneta emprestada e devolvida à Aprendiz.',
+  ],
+].map((x) => ({ id: x[0], title: x[1], text: x[2] }));
+const byId = (id) => FRAGMENTS.find((f) => f.id === id),
+  state = {
+    players: 8,
+    question: null,
+    pace: 30,
+    turn: 0,
+    coins: 12,
+    score: 100,
+    creditUsed: 0,
+    hand: [],
+    opponents: [],
+    pool: [],
+    log: [],
+    locked: new Set(),
+    lockedBy: new Map(),
+    burned: new Set(),
+    left: 30,
+    timer: null,
+  };
+const shuffle = (a) => a.sort(() => Math.random() - 0.5),
+  go = (n) => {
+    document
+      .querySelectorAll('.screen')
+      .forEach((s) => s.classList.toggle('active', s.dataset.screen === n));
+    scrollTo(0, 0);
+  },
+  actorName = (slot = state.turn + 1) =>
+    slot === 1
+      ? 'Você'
+      : state.opponents[slot - 2]?.name || `Arquivo ${String(slot).padStart(2, '0')}`;
+const dialogEl = () => document.getElementById('modal');
+function modal(k, t, b) {
+  const d = dialogEl();
+  modalKicker.textContent = k;
+  modalTitle.textContent = t;
+  modalBody.innerHTML = b;
+  if (!d.open) d.showModal();
+}
+function close() {
+  const d = dialogEl();
+  if (d.open) d.close();
+}
+function nota(texto) {
+  if (!texto) return;
+  state.log.push({ at: Date.now(), texto: String(texto) });
+  if (state.log.length > 150) state.log.shift();
+}
+function timer() {
+  clearInterval(state.timer);
+  state.left = state.pace;
+  turnTimer.textContent = `00:${state.left}`;
+  state.timer = setInterval(() => {
+    state.left--;
+    turnTimer.textContent = `00:${String(Math.max(0, state.left)).padStart(2, '0')}`;
+    if (state.left <= 0) {
+      clearInterval(state.timer);
+      close();
+      nota(actorName() + ': tempo esgotado.');
+      next();
+    }
+  }, 1000);
+}
+function outrosJogam() {
+  return (
+    new URLSearchParams(location.search).get('soloLab') === '1' ||
+    !!window.MosaicoSoloBots ||
+    !!window.MosaicoSalaSincronizada
+  );
+}
+function next() {
+  if (!outrosJogam()) {
+    state.turn = 0;
+    turnPlayer.textContent = actorName();
+    timer();
+    return;
+  }
+  state.turn = (state.turn + 1) % state.players;
+  turnPlayer.textContent = actorName();
+  timer();
+}
+function render() {
+  coins.textContent = state.coins;
+  handCount.textContent = state.hand.length;
+  hand.innerHTML = state.hand
+    .map(
+      (f) =>
+        `<article class="fragment depth"><strong>${f.title}</strong><p>${f.text}</p></article>`,
+    )
+    .join('');
+  const q = QUESTIONS[state.question];
+  if (q)
+    fields.innerHTML = q.fields
+      .map(
+        (f, i) =>
+          `<div class="field-row ${state.locked.has(i) ? 'locked' : ''}"><div><b>${f}</b><span>${state.locked.has(i) ? `FECHADO · ${state.lockedBy.get(i) || ''}` : state.burned.has(i) ? 'QUEIMADO PARA VOCÊ' : 'ABERTO'}</span></div><span>${state.locked.has(i) ? '✓' : '○'}</span></div>`,
+      )
+      .join('');
+  opponents.innerHTML = state.opponents
+    .map(
+      (o) =>
+        `<div class="opponent"><b>${o.name}</b><span>${o.hand.length} fragmentos · observando</span></div>`,
+    )
+    .join('');
+}
+/* Os nomes de quem está na mesa, colhidos uma vez na repartição. O documento
+   da mesa guarda só as mãos por uid — nome ali dentro seria a mesma verdade em
+   dois lugares, e um deles ficaria velho. */
+const NOMES = {};
+
+/* ── O FECHO ───────────────────────────────────────────────────────────────
+   Até 03/09/2026 a reunião não acabava: fechava-se o último campo e o turno
+   seguia girando, o cronômetro rodando, o `risk()` só voltando vazio. Não era
+   caso de borda — era o destino de toda partida.
+
+   A PONTUAÇÃO ABAIXO É PROVISÓRIA e foi montada com o que a economia do jogo
+   já produz, não inventada por cima dela: quem fecha campo faz a mesa andar,
+   quem erra queima a própria chance, e moeda que sobra é risco que não foi
+   preciso correr. Os números são o palpite mais defensável que consegui, não
+   uma decisão de desenho — essa é do Mario. Estão todos aqui, num lugar só,
+   de propósito: trocar a tabela é trocar estas quatro linhas. */
+const PONTOS = {
+  campoFechado: 25, /* o que move a dedução da mesa inteira */
+  campoQueimado: -10, /* errar custa, mas não afunda */
+  moedaQueSobra: 2, /* eficiência: não precisou comprar para chegar lá */
+  fragmentoNaMao: 1, /* leitura acumulada, vale pouco de propósito */
+};
+function pontuar() {
+  const eu = actorName(1);
+  const fechados = [...state.lockedBy.values()].filter((n) => n === eu).length;
+  const linhas = [
+    ['Campos que você fechou', fechados, fechados * PONTOS.campoFechado],
+    ['Campos que você queimou', state.burned.size, state.burned.size * PONTOS.campoQueimado],
+    ['Moedas que sobraram', state.coins, state.coins * PONTOS.moedaQueSobra],
+    ['Fragmentos no dossiê', state.hand.length, state.hand.length * PONTOS.fragmentoNaMao],
+  ];
+  return { linhas, total: linhas.reduce((s, l) => s + l[2], 0), fechados };
+}
+
+let fimDado = false;
+/* Chamado dos dois lados: de quem acabou de fechar o último campo, e de quem
+   soube pela mesa que outro fechou. O guarda existe porque as duas coisas
+   acontecem no mesmo aparelho quando quem fecha é você. */
+function conferirFim() {
+  if (fimDado || !state.question) return;
+  const q = QUESTIONS[state.question];
+  if (state.locked.size < q.fields.length) return;
+  fimDado = true;
+  clearInterval(state.timer);
+  const p = pontuar();
+  if (state.naMesa) window.MosaicoTelao.pedir('placar', { pontos: p.total, nome: actorName(1) });
+  mostrarFim(p, q);
+}
+function mostrarFim(p, q) {
+  const tabela = p.linhas
+    .map(
+      (l) =>
+        `<div style="display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid #ffffff14">
+           <span>${l[0]}<small style="color:#8fa4ad"> · ${l[1]}</small></span><b>${l[2] > 0 ? '+' : ''}${l[2]}</b></div>`,
+    )
+    .join('');
+  modal(
+    'FIM DA REUNIÃO',
+    'O dossiê está fechado',
+    /* Não existe um `q.answer` em prosa — a resolução DESTA pergunta são os
+       campos com o valor certo, que é o que a mesa passou a noite fechando.
+       Mostrar campo a campo, com quem fechou cada um, é o relatório. */
+    `<p><b>${q.question}</b></p>` +
+      `<div style="margin:12px 0">${q.fields
+        .map(
+          (f, i) =>
+            `<div style="display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid #ffffff10">
+               <span>${f}<br><small style="color:#8fa4ad">${state.lockedBy.get(i) || '—'}</small></span>
+               <b style="text-align:right">${q.answers[i]}</b></div>`,
+        )
+        .join('')}</div>` +
+      `<div style="margin:14px 0">${tabela}</div>` +
+      `<div style="display:flex;justify-content:space-between;font-size:19px"><b>Sua pontuação</b><b>${p.total}</b></div>` +
+      `<p class="muted" id="fimPlacar" style="margin-top:12px">${state.naMesa ? 'Aguardando o fechamento dos outros dossiês…' : ''}</p>`,
+  );
+}
+/* O placar da mesa chega pelo documento, e só quando todo mundo fechou: quem
+   termina primeiro não pode ver a nota de quem ainda está jogando — é a regra
+   do "sem ranking ao vivo", que vale até o último dossiê fechar. */
+function pintarPlacar(placar) {
+  const alvo = document.getElementById('fimPlacar');
+  if (!alvo || !placar) return;
+  const gente = Object.entries(placar);
+  if (gente.length < state.opponents.length + 1) return;
+  const ordem = gente.sort((a, b) => (b[1].pontos || 0) - (a[1].pontos || 0));
+  alvo.innerHTML =
+    '<b style="display:block;margin-bottom:6px">Placar da mesa</b>' +
+    ordem
+      .map(
+        ([, v], i) =>
+          `<div style="display:flex;justify-content:space-between;padding:5px 0">
+             <span>${i + 1}º · ${v.nome || 'Investigador'}</span><b>${v.pontos || 0}</b></div>`,
+      )
+      .join('');
+}
+/* A mesa manda, o estado local espelha. Chamado a cada mudança do documento:
+   minha compra, a captura que alguém fez em mim, o campo que outro fechou. */
+function aplicarMesa(mesa, uid) {
+  const maos = mesa.maos || {};
+  state.hand = (maos[uid] || []).map(byId).filter(Boolean);
+  state.pool = mesa.pool || [];
+  /* Do dossiê alheio guardo só o TAMANHO. Trazer os ids para cá seria pôr a
+     mão de todo mundo dentro de cada telefone — e a captura é cega de
+     propósito: leva um fragmento sorteado, não um escolhido. */
+  state.opponents = Object.keys(maos)
+    .filter((u) => u !== uid)
+    .map((u) => ({ uid: u, name: NOMES[u] || 'Investigador', hand: new Array((maos[u] || []).length).fill(null) }));
+  state.players = state.opponents.length + 1;
+  state.locked.clear();
+  state.lockedBy.clear();
+  Object.entries(mesa.fechados || {}).forEach(([i, nome]) => {
+    state.locked.add(+i);
+    state.lockedBy.set(+i, nome);
+  });
+  render();
+  conferirFim();
+  pintarPlacar(mesa.placar);
+}
+function economiaInicial() {
+  const ponte = window.MosaicoCelularParaNoite;
+  const search = ponte?.parseHandoffSearch?.(location.search) || {
+    fromCelular: new URLSearchParams(location.search).get('from') === 'celular',
+  };
+  const handoff = ponte?.resolveHandoff?.() || null;
+  if (ponte?.deriveNoiteEconomy) {
+    return ponte.deriveNoiteEconomy(handoff, { fromCelular: !!search.fromCelular });
+  }
+  if (search.fromCelular) return { coins: 10, handSize: 3, source: 'celular-sem-fecho' };
+  return { coins: 12, handSize: 3, source: 'standalone' };
+}
+function setup() {
+  const q = QUESTIONS[state.question];
+  const eco = economiaInicial();
+  const ponte = window.MosaicoCelularParaNoite;
+  const search = ponte?.parseHandoffSearch?.(location.search) || {
+    fromCelular: new URLSearchParams(location.search).get('from') === 'celular',
+  };
+  const handoff = ponte?.resolveHandoff?.() || null;
+  const allIds = FRAGMENTS.map((f) => f.id);
+  const seed = ponte?.seedCapturaDeck
+    ? ponte.seedCapturaDeck({
+        allIds,
+        handoff,
+        fromCelular: !!search.fromCelular,
+      })
+    : {
+        deck: shuffle(allIds.slice()),
+        seededIds: [],
+        seededLabels: [],
+        source: search.fromCelular ? 'celular-sem-fragmentos' : 'standalone-default',
+      };
+  const deck = seed.deck.slice();
+  state.coins = eco.coins;
+  state.economia = eco;
+  state.capturaSeed = seed;
+  state.score = 100;
+  state.creditUsed = 0;
+  /* Zerado a cada partida: `playAgain` chama setup de novo, e uma segunda
+     rodada sem sala herdaria o `true` da primeira — passaria a pedir a uma
+     mesa que não existe mais, e as ações sumiriam sem erro. */
+  state.naMesa = false;
+  /* Zerado junto: sem isto a segunda partida nasceria já encerrada, e o fecho
+     nunca mais apareceria na mesma sessão. */
+  fimDado = false;
+  state.turn = 0;
+  state.log.length = 0;
+  state.locked.clear();
+  state.lockedBy.clear();
+  state.burned.clear();
+  /* A repartição LOCAL fica como estava, e é o que vale sem sala: ensaio,
+     solo-lab, aparelho solto. Havendo sala, ela é substituída logo abaixo
+     pela repartição da mesa — um baralho só, mãos que não se repetem, e os
+     nomes de quem está de verdade em vez de `Arquivo 02`.
+     handSize vem do handoff quando from=celular (Noite rica v1.1).
+     seedCapturaDeck prioriza evidências reveladas na Manhã no topo do
+     baralho (mão + pool de compra). */
+  const handN = Math.max(2, Math.min(4, Number(eco.handSize) || 3));
+  state.hand = deck.splice(0, handN).map(byId);
+  if (eco.source && eco.source !== 'standalone') {
+    nota(
+      'Continuidade da manhã: ' +
+        eco.coins +
+        ' moedas · ' +
+        handN +
+        ' fragmentos (' +
+        (eco.rule || eco.source) +
+        ').',
+    );
+  }
+  if (seed.source === 'handoff-fragmentos' && seed.seededIds.length) {
+    nota(
+      'Evidências da manhã no Captura: ' +
+        seed.seededLabels.slice(0, 4).join(', ') +
+        (seed.seededLabels.length > 4 ? '…' : '') +
+        ' (' +
+        seed.seededIds.length +
+        ').',
+    );
+  }
+  state.opponents = Array.from({ length: state.players - 1 }, (_, i) => ({
+    name: `Arquivo ${String(i + 2).padStart(2, '0')}`,
+    hand: [],
+  }));
+  state.pool = deck;
+  window.MosaicoTelao?.distribuir(seed.deck.slice(), handN, {
+    preferredIds: seed.seededIds,
+  })
+    .then((m) => {
+      if (!m) return;
+      state.naMesa = true;
+      m.jogadores.forEach((j) => (NOMES[j.uid] = j.nome));
+      /* Não aplico o retorno de `distribuir`: quem entrega o estado é sempre
+         `ouvirMesa`, inclusive na primeira vez. Ter dois caminhos para a mesma
+         coisa é ter dois lugares onde ela pode ficar diferente. */
+      window.MosaicoTelao.ouvirMesa(aplicarMesa);
+    })
+    .catch((e) => console.error('MOSAICO: mesa repartida falhou; segue a local.', e));
+  gameNature.textContent = q.nature;
+  gameTitle.textContent = q.title;
+  questionBanner.textContent = q.question;
+  turnPlayer.textContent = actorName(1);
+  render();
+  go('table');
+  timer();
+}
+function insufficient() {
+  modal(
+    'SALDO INSUFICIENTE',
+    'Você não pode executar esta ação.',
+    '<p>Seu saldo de moedas não permite essa ação.</p><button class="btn primary" id="ok">ENTENDI</button>',
+  );
+  ok.onclick = close;
+}
+function buy() {
+  if (state.coins < 4) return insufficient();
+  if (!state.pool.length) return;
+  const offers = state.pool.slice(0, Math.min(3, state.pool.length));
+  modal(
+    'COMPRAR FRAGMENTO · 4 MOEDAS',
+    'A sorte está atrás.',
+    `<p>Escolha um fragmento lacrado. O conteúdo só será revelado depois da compra.</p><div class="choice-list">${offers.map((id, i) => `<button class="choice-item" data-buy="${id}"><b>Fragmento lacrado ${i + 1}</b><span>Conteúdo oculto · 4 moedas</span></button>`).join('')}</div>`,
+  );
+  modalBody.querySelectorAll('[data-buy]').forEach(
+    (b) =>
+      (b.onclick = () => {
+        const id = b.dataset.buy,
+          p = state.pool.indexOf(id);
+        if (p < 0) return;
+        state.coins -= 4;
+        if (state.naMesa) {
+          /* A pilha é uma só. Tirar daqui e esperar a mesa concordar deixaria
+             duas versões dela vivas por um instante — e é nesse instante que
+             duas pessoas compram a mesma peça. */
+          window.MosaicoTelao.pedir('comprar', { fragmento: id });
+          nota(actorName() + ': comprou da pilha.');
+        } else {
+          state.pool.splice(p, 1);
+          state.hand.push(byId(id));
+          nota(actorName() + ': comprou ' + byId(id).title + '.');
+        }
+        render();
+        close();
+        next();
+      }),
+  );
+}
+function capture() {
+  if (state.coins < 2) return insufficient();
+  const available = state.opponents
+      .map((o, i) => ({ o, slot: i + 2 }))
+      .filter((x) => x.o.hand.length),
+    fechados = (s) => [...state.lockedBy.values()].filter((n) => n === actorName(s)).length;
+  if (!available.length) {
+    modal(
+      'CAPTURAR · 2 MOEDAS',
+      'Nenhum fragmento disponível',
+      '<p>Nenhum outro dossiê possui fragmento disponível para captura neste momento.</p>',
+    );
+    return;
+  }
+  modal(
+    'CAPTURAR · 2 MOEDAS',
+    'De qual dossiê você quer capturar?',
+    `<p>Escolha o jogador. Um fragmento dele será transferido aleatoriamente para o seu dossiê.</p><div class="choice-list">${available.map((x) => `<button class="choice-item" data-cap="${x.slot}"><b>${x.o.name}</b><span>${x.o.hand.length} ${x.o.hand.length === 1 ? 'fragmento disponível' : 'fragmentos disponíveis'} · ${fechados(x.slot)} ${fechados(x.slot) === 1 ? 'campo fechado' : 'campos fechados'}</span></button>`).join('')}</div>`,
+  );
+  modalBody.querySelectorAll('[data-cap]').forEach(
+    (b) =>
+      (b.onclick = () => {
+        const o = state.opponents[+b.dataset.cap - 2];
+        if (!o?.hand.length) return;
+        state.coins -= 2;
+        if (state.naMesa) {
+          /* Havendo mesa, quem move o fragmento é o Mestre: tirar do dossiê de
+             outra pessoa e pôr no meu são dois lados, e nenhum aparelho pode
+             escrever no do vizinho. O sorteio de QUAL fragmento também é dele
+             — feito aqui, seria escolher olhando uma mão que este telefone nem
+             conhece. A tela repinta quando a mesa responder. */
+          window.MosaicoTelao.pedir('capturar', { alvo: o.uid });
+          nota(actorName() + ': pediu captura no dossiê de ' + o.name + '.');
+        } else {
+          const id = o.hand[Math.floor(Math.random() * o.hand.length)];
+          o.hand.splice(o.hand.indexOf(id), 1);
+          state.hand.push(byId(id));
+          nota(actorName() + ': capturou ' + byId(id).title + ' de ' + o.name + '.');
+        }
+        render();
+        close();
+        next();
+      }),
+  );
+}
+function risk() {
+  if (state.coins < 3) return insufficient();
+  const q = QUESTIONS[state.question],
+    available = q.fields
+      .map((f, i) => ({ f, i }))
+      .filter((x) => !state.locked.has(x.i) && !state.burned.has(x.i));
+  if (!available.length) return;
+  modal(
+    'ARRISCAR · 3 MOEDAS',
+    'Qual campo você quer tentar fechar?',
+    `<p>Escolha o campo. Se acertar, ele fecha para todos; se errar, fica queimado apenas para você.</p><div class="choice-list">${available.map((x) => `<button class="choice-item" data-field="${x.i}"><b>${x.f}</b><span>Campo aberto</span></button>`).join('')}</div>`,
+  );
+  modalBody
+    .querySelectorAll('[data-field]')
+    .forEach((b) => (b.onclick = () => riskField(+b.dataset.field)));
+}
+function riskField(i) {
+  const q = QUESTIONS[state.question],
+    choices = shuffle([...(q.options?.[i] || [q.answers[i]])]);
+  modal(
+    'ARRISCAR · 3 MOEDAS',
+    q.fields[i],
+    `<div class="choice-list">${choices.map((v) => `<button class="choice-item" data-a="${encodeURIComponent(v)}"><b>${v}</b></button>`).join('')}</div>`,
+  );
+  modalBody.querySelectorAll('[data-a]').forEach(
+    (b) =>
+      (b.onclick = () => {
+        const v = decodeURIComponent(b.dataset.a);
+        state.coins -= 3;
+        if (v === q.answers[i]) {
+          state.locked.add(i);
+          state.lockedBy.set(i, actorName());
+          state.coins += 3;
+          /* "Se acertar, ele fecha para todos" — a tela dizia isso desde
+             agosto e fechava só neste aparelho. Agora o campo sobe para a
+             mesa e desce para os outros dossiês. O local segue marcado na
+             hora: quem acertou não deve esperar a rede para ver. */
+          if (state.naMesa) window.MosaicoTelao.pedir('fechar', { campo: i, nome: actorName() });
+          window.dispatchEvent(
+            new CustomEvent('mosaico-public-field-closed', {
+              detail: {
+                eventId: `${Date.now()}-${i}`,
+                fieldIndex: i,
+                fieldLabel: q.fields[i],
+                closedBy: actorName(),
+              },
+            }),
+          );
+        } else state.burned.add(i);
+        nota(actorName() + (v === q.answers[i] ? ': fechou ' : ': errou ') + q.fields[i] + '.');
+        render();
+        close();
+        /* Sem mesa, quem percebe o fim é este aparelho — não há documento para
+           avisar. Com mesa, `aplicarMesa` também chama, e o guarda `fimDado`
+           impede a segunda. */
+        conferirFim();
+        if (!fimDado) next();
+      }),
+  );
+}
+window.MosaicoCore = {
+  getSnapshot: () => ({
+    question: state.question,
+    questionData: state.question ? QUESTIONS[state.question] : null,
+    pace: state.pace,
+    turn: state.turn,
+    left: state.left,
+    locked: [...state.locked],
+    burned: [...state.burned],
+    humanHand: state.hand.map((f) => f.id),
+    opponents: state.opponents.map((o) => ({ name: o.name, hand: [...o.hand] })),
+    pool: [...state.pool],
+    log: state.log.map((x) => ({ ...x })),
+    answers: state.question ? [...QUESTIONS[state.question].answers] : [],
+  }),
+  getLog: () => state.log.map((x) => ({ ...x })),
+  solo: {
+    rename(slot, nome) {
+      const o = state.opponents[slot - 2];
+      if (!o || !nome) return false;
+      o.name = String(nome);
+      render();
+      return true;
+    },
+    deal(slot, id) {
+      const o = state.opponents[slot - 2],
+        p = state.pool.indexOf(id);
+      if (!o || p < 0) return false;
+      state.pool.splice(p, 1);
+      o.hand.push(id);
+      render();
+      return true;
+    },
+    buy(slot) {
+      const o = state.opponents[slot - 2];
+      if (!o || !state.pool.length) return null;
+      const offers = state.pool.slice(0, Math.min(3, state.pool.length));
+      const id = offers[Math.floor(Math.random() * offers.length)];
+      state.pool.splice(state.pool.indexOf(id), 1);
+      o.hand.push(id);
+      render();
+      return id;
+    },
+    capture(slot, target, id) {
+      const a = state.opponents[target - 2],
+        b = state.opponents[slot - 2];
+      if (!a || !b) return false;
+      const p = a.hand.indexOf(id);
+      if (p < 0) return false;
+      a.hand.splice(p, 1);
+      b.hand.push(id);
+      render();
+      return true;
+    },
+    risk(slot, i, correct) {
+      if (state.locked.has(i)) return 'locked';
+      if (correct) {
+        state.locked.add(i);
+        state.lockedBy.set(i, actorName(slot));
+        render();
+        return 'locked';
+      }
+      return 'wrong';
+    },
+    finishTurn(aviso) {
+      nota(aviso);
+      next();
+      return true;
+    },
+    render,
+  },
+};
+questionGrid.innerHTML = '';
+function mostrarRitmo() {
+  paceTitle.textContent = QUESTIONS[state.question].title;
+  paceQuestion.textContent = QUESTIONS[state.question].question;
+  go('pace');
+}
+function chooseQuestionAutomatically() {
+  const ids = Object.keys(QUESTIONS),
+    sala = window.MosaicoSalaPartida;
+  if (sala) {
+    if (!sala.atual && !sala.mestre)
+      modal(
+        'PAUTA DA NOITE',
+        'Aguardando o Mestre',
+        '<p>A pergunta desta noite é aberta pelo Mestre e vale para a mesa inteira. Assim que ele abrir, ela aparece aqui.</p>',
+      );
+    sala.abrir(ids, (window.MOSAICO_ROOM?.players || []).length).then(({ pergunta, jogadores }) => {
+      state.question = QUESTIONS[pergunta] ? pergunta : ids[0];
+      if (jogadores) state.players = jogadores;
+      close();
+      if (sala.mestre) return mostrarRitmo();
+      modal(
+        'RITMO DA NOITE',
+        'Aguardando o Mestre',
+        '<p>O relógio da mesa é um só, e quem define é o Mestre. A reunião começa assim que ele escolher.</p>',
+      );
+      sala.ritmo().then((v) => {
+        state.pace = v;
+        close();
+        setup();
+      });
+    });
+    return;
+  }
+  const handoff = window.MosaicoCelularParaNoite?.parseHandoffSearch?.(location.search);
+  if (handoff?.fromCelular && handoff.pergunta && QUESTIONS[handoff.pergunta]) {
+    state.question = handoff.pergunta;
+    mostrarRitmo();
+    return;
+  }
+  const daUrl = String(new URLSearchParams(location.search).get('pergunta') || '')
+    .trim()
+    .toLowerCase();
+  if (daUrl && QUESTIONS[daUrl] && new URLSearchParams(location.search).get('from') === 'celular') {
+    state.question = daUrl;
+    mostrarRitmo();
+    return;
+  }
+  state.question = ids[Math.floor(Math.random() * ids.length)];
+  mostrarRitmo();
+}
+let openingReleased = false;
+function releaseAfterOpening() {
+  if (openingReleased) return;
+  openingReleased = true;
+  chooseQuestionAutomatically();
+}
+window.addEventListener('mosaico-opening-finished', releaseAfterOpening);
+enterBtn.onclick = () => {
+  state.players = +playerCount.value;
+  /* A ABERTURA É OBRIGATÓRIA E TOCA NUM APARELHO SÓ.
+     Até 03/09/2026 isto era `if (isMaster && …)`: quem entrava pelo QR ia
+     direto para a pergunta e nunca via a abertura — a reunião começava para o
+     convidado sem que a casa tivesse falado. Era o "pulava a abertura" do
+     playtest, e não era falha de áudio: era o portão.
+     O primeiro conserto foi tocar em TODOS, e estava errado do outro lado:
+     oito telefones narrando com atrasos diferentes na mesma sala. A regra é
+     uma sala, um som — com telão vai para a tela grande, sem telão para o
+     aparelho do Mestre, e os outros esperam vendo que a casa está falando. */
+  /* Quem decide ONDE a abertura toca é o telao-publica.js: com telão vai para
+     a tela grande e os celulares esperam; sem telão toca no aparelho do
+     Mestre e os convidados esperam; sem sala, toca aqui mesmo. Ele chama de
+     volta uma vez em qualquer um dos caminhos, inclusive nos que dão errado. */
+  /* Por `releaseAfterOpening`, não direto: no caminho local a abertura também
+     dispara `mosaico-opening-finished`, e as duas chamadas sorteariam a
+     pergunta duas vezes. O guarda `openingReleased` funila as duas. */
+  if (window.MosaicoTelao?.abertura) {
+    window.MosaicoTelao.abertura(releaseAfterOpening);
+    return;
+  }
+  if (window.MosaicoOpening?.show) {
+    window.MosaicoOpening.show();
+    return;
+  }
+  chooseQuestionAutomatically();
+};
+document.querySelectorAll('[data-pace]').forEach(
+  (b) =>
+    (b.onclick = () => {
+      const v = +b.dataset.pace;
+      state.pace = v;
+      window.MosaicoSalaPartida?.definirRitmo(v);
+      setup();
+    }),
+);
+document.querySelectorAll('[data-action]').forEach((b) =>
+  b.addEventListener('click', () => {
+    const fn = { buy, capture, risk }[b.dataset.action];
+    if (fn) fn();
+  }),
+);
+scoreBtn.onclick = () =>
+  modal(
+    'CUSTOS DAS AÇÕES',
+    'Consulta estratégica',
+    '<p><b>Arriscar 3 moedas</b><br><b>Capturar 2 moedas</b><br><b>Comprar fragmento 4 moedas</b></p>',
+  );
+modalClose.onclick = close;
+drawerClose.onclick = () => drawer.classList.remove('on');
+infoBtn.onclick = () => drawer.classList.add('on');

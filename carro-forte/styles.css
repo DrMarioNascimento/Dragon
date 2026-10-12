@@ -321,3 +321,9 @@ body.fase-vencida .screen.active .sensor-actions{opacity:.45;pointer-events:none
    programático do #hudSala continua funcionando, e a presença do nó ainda é
    como o game.js reconhece que este aparelho é o do Mestre. */
 #dragonSalaBtn{display:none}
+
+/* 11/10/2026 (Tarefa 4): os depoimentos que só este aparelho ouviu */
+.wave.depoimentos .depo-nota{margin:2px 0 10px;font-size:13px;opacity:.78}
+.fragment.depo{cursor:default}
+.fragment.depo .depo-quem{font:700 14px var(--serif,Georgia,serif);letter-spacing:.02em}
+.fragment.depo .depo-tom{display:block;margin:4px 0 6px;font-size:12px;opacity:.75}

@@ -87,9 +87,11 @@ test("o rodízio do Carro-Forte sobe para o documento da sala em multiplayer", (
   assert.match(GAME_CF, /function avancarRodizio/, "game.js perdeu avancarRodizio");
   assert.match(
     GAME_CF,
-    /escolher\(local,anterior\|\|null,meu,avancarRodizio\)/,
+    /escolher\(local,anterior\|\|null,meu,(avancarRodizio|avancarSalaELocal)\)/,
     "abrirPauta não passa avancarRodizio para a pauta",
   );
+  /* 11/10/2026 (Tarefa 4): o invólucro continua usando o avançador do saco e guarda o saco no aparelho do Mestre */
+  assert.match(GAME_CF, /avancarSalaELocal=r=>\{[^}]*avancarRodizio\(/, "o invólucro do rodízio deixou de usar avancarRodizio");
   assert.match(GAME_CF, /marcarFechadaSala/, "marcarFechada não delega à sala em multiplayer");
   assert.match(
     GAME_CF,

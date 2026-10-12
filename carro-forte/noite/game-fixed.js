@@ -547,7 +547,9 @@ function setup() {
      handSize vem do handoff quando from=celular (Noite rica v1.1).
      seedCapturaDeck prioriza evidências reveladas na Manhã no topo do
      baralho (mão + pool de compra). */
-  const handN = Math.max(2, Math.min(4, Number(eco.handSize) || 3));
+  /* 11/10/2026: o baralho tem de bastar para a mesa inteira (até 12) e ainda deixar compra:
+     a mão encolhe até caber, nunca abaixo de 2. */
+  const handN = Math.max(2, Math.min(4, Number(eco.handSize) || 3, Math.floor((allIds.length - 3) / Math.max(1, state.players))));
   state.hand = deck.splice(0, handN).map(byId);
   if (eco.source && eco.source !== 'standalone') {
     nota(
@@ -820,6 +822,16 @@ function mostrarRitmo() {
   paceQuestion.textContent = QUESTIONS[state.question].question;
   go('pace');
 }
+/* 11/10/2026 (Tarefa 4): a variação da solução da manhã (variacoes-carro.js). Vem da sala ou do
+   handoff; sem nenhum dos dois, este aparelho escolhe a menos jogada. Troca no lugar as perguntas
+   e o baralho, que passa a ser o dos fragmentos da própria manhã. */
+function aplicarVariacaoNoite(vid) {
+  const CV = window.CarroVariacoes;
+  if (!CV) return;
+  const ok = vid && CV.dados().variacoes[vid];
+  state.variacao = ok ? vid : CV.escolher(String(window.MOSAICO_ROOM?.code || '') + '|' + Date.now());
+  CV.noite(state.variacao, { QUESTIONS, FRAGMENTS });
+}
 function chooseQuestionAutomatically() {
   const ids = Object.keys(QUESTIONS),
     sala = window.MosaicoSalaPartida;
@@ -830,7 +842,8 @@ function chooseQuestionAutomatically() {
         'Aguardando o Mestre',
         '<p>A pergunta desta noite é aberta pelo Mestre e vale para a mesa inteira. Assim que ele abrir, ela aparece aqui.</p>',
       );
-    sala.abrir(ids, (window.MOSAICO_ROOM?.players || []).length).then(({ pergunta, jogadores }) => {
+    sala.abrir(ids, (window.MOSAICO_ROOM?.players || []).length).then(({ pergunta, jogadores, variacao }) => {
+      aplicarVariacaoNoite(variacao);
       state.question = QUESTIONS[pergunta] ? pergunta : ids[0];
       if (jogadores) state.players = jogadores;
       close();
@@ -849,6 +862,7 @@ function chooseQuestionAutomatically() {
     return;
   }
   const handoff = window.MosaicoCelularParaNoite?.parseHandoffSearch?.(location.search);
+  aplicarVariacaoNoite(handoff?.variacao || window.MosaicoCelularParaNoite?.resolveHandoff?.()?.variacao || null);
   if (handoff?.fromCelular && handoff.pergunta && QUESTIONS[handoff.pergunta]) {
     state.question = handoff.pergunta;
     mostrarRitmo();

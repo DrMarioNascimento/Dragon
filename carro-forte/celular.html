@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
   <meta name="theme-color" content="#050b12" />
   <title>MOSAICO — Celular · A Manhã do Carro-Forte</title>
-  <link rel="stylesheet" href="styles.css?v=20261011-sdk12" />
+  <link rel="stylesheet" href="styles.css?v=20261011-t4" />
   <link rel="stylesheet" href="../carro-forte-terminal.css?v=20260901-linha-inteira" />
   <link rel="stylesheet" href="iphone-guard.css?v=20260906-pf-all" />
   <link rel="stylesheet" href="../v1/css/profundidade-1mais1.css?v=20260930-foco" />
@@ -37,7 +37,7 @@
       <div class="intro-copy">
         <span class="eyebrow">AGÊNCIA 0417 · GAROA · 8H02</span>
         <h1>A Manhã do<br><em>Carro-Forte</em></h1>
-        <p>Um saco vazio no chão. O lacre partido. A câmera 3 perdeu exatamente 87 segundos. Alguém grita: “falta dinheiro”.</p>
+        <p>Um saco vazio no chão. O lacre partido. A câmera 3 ficou cega por menos de dois minutos. Alguém grita: “falta dinheiro”.</p>
         <div class="principle depth-card green"><small>REGRA DA MESA</small><strong>A realidade é uma só.</strong><span>A pergunta muda o que cada fragmento vale. Não muda o que aconteceu.</span></div>
       </div>
       <div class="intro-actions">
@@ -48,7 +48,7 @@
              só existem para o Mestre; quem entra pelo QR recebe a decisão dele
              junto com a pergunta. game.js esconde o bloco para o convidado. -->
         <div class="mestre-fields" id="mesaOptions">
-          <label class="field depth-card">Investigadores<select id="playerCount"><option>2</option><option>3</option><option>4</option><option>5</option><option selected>6</option><option>7</option><option>8</option></select></label>
+          <label class="field depth-card">Investigadores<select id="playerCount"><option>2</option><option>3</option><option>4</option><option>5</option><option selected>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></select></label>
           <label class="field depth-card">Tempo de cada atividade<select id="pace"><option value="pressure">Sob pressão · 60 s</option><option value="calm">Calma · 120 s</option></select></label>
           <label class="field depth-card">Duração<select id="duration"><option value="curta">Curta · 13 fragmentos</option><option value="padrao" selected>Padrão · 18 fragmentos</option><option value="longa">Longa · 24 fragmentos</option></select></label>
         </div>
@@ -65,7 +65,7 @@
       <div class="section-head"><span class="eyebrow" id="gameNature">PARTIDA</span><h2 id="gameTitle"></h2><p id="pautaNota"></p></div>
       <p class="question-banner depth-card" id="gameQuestion"></p>
       <div class="brief-grid">
-        <article class="depth-card gold"><small>O QUE PARECE</small><p>Houve um assalto interno e R$ 480.000 desapareceram durante uma janela de 87 segundos.</p></article>
+        <article class="depth-card gold"><small>O QUE PARECE</small><p>Houve um assalto interno e R$ 480.000 desapareceram durante uma janela de menos de dois minutos.</p></article>
         <article class="depth-card green"><small>REGRA DE LEITURA</small><p>Fato não é interpretação. Uma evidência pode ser verdadeira e ainda sustentar uma leitura errada.</p></article>
       </div>
       <div class="plan-grid" id="planCards"></div>
@@ -156,7 +156,7 @@
   </aside>
 
   <script src="../v1/js/qr.js"></script>
-  <script src="../hipoteses-por-camada.js?v=20260906-hpc-pf"></script>
+  <script src="../hipoteses-por-camada.js?v=20261011-t4"></script>
 <script src="../papel-camada.js?v=20260919-ra"></script>
   <script src="../carro-forte-terminal.js?v=20260901-linha-inteira"></script>
   <script type="module" src="../firebase-room.js?v=20261011-sdk12"
@@ -182,15 +182,18 @@
         s.onload=()=>depois?.();
         document.body.appendChild(s);
       };
-      carregar('pauta-da-mesa.js?v=20261011-sdk12',()=>{
+      carregar('pauta-da-mesa.js?v=20261011-t4',()=>{
       carregar('fragmentos.js?v=20260901-colheita1',()=>{
+        /* 11/10/2026 (Tarefa 4): as 15 variações da solução, antes do game.js */
+        carregar('variacoes-carro-dados.js?v=20261011-t4',()=>carregar('variacoes-carro.js?v=20261011-t4',()=>{
         carregar('opening-flow.js?v=20260915-audio-cta',()=>{
-          carregar('celular-para-noite.js?v=20261011-sdk12',()=>{
-            carregar('game.js?v=20261011-sdk12',()=>{
-              carregar('iphone-guard.js?v=20260901-rodizio1');
+          carregar('celular-para-noite.js?v=20261011-t4',()=>{
+            carregar('game.js?v=20261011-t4',()=>{
+              carregar('iphone-guard.js?v=20260901-rodizio1',()=>carregar('aprendizado-carro.js?v=20261011-t4'));
             });
           });
         });
+        }));
       });
       });
     },{once:true});
