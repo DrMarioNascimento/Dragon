@@ -74,7 +74,7 @@
   var CODIGOS = [];
   async function carregarCodigos() {
     try {
-      var r = await fetch("../../v1/casos/casa-da-costa.json");
+      var r = await fetch("../../jogos/casa-da-costa/a-mesa/casos/casa-da-costa.json");
       var caso = await r.json();
       CODIGOS = Object.keys(caso.fragmentos || {});
     } catch (e) { CODIGOS = []; }

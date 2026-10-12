@@ -281,12 +281,12 @@ test('a lista por nome é sorteada: o esconderijo não nasce sempre em cima', ()
 /* -------------------------------------------------------------- geometria */
 
 test('o modelo publicado está no repositório e a página pede ele', () => {
-  assert.ok(existsSync(new URL('../v1/assets/ac/casa-da-costa-pisos-nova.glb', import.meta.url)),
+  assert.ok(existsSync(new URL('../jogos/casa-da-costa/a-mesa/assets/ac/casa-da-costa-pisos-nova.glb', import.meta.url)),
     'o GLB da maquete precisa estar publicado em v1/assets/ac/');
-  const html = ler('v1/AC-maquete.html');
+  const html = ler('jogos/casa-da-costa/a-mesa/AC-maquete.html');
   for (const script of ['ac-maquete-mundo.js', 'ac-maquete-ra.js', 'ac-maquete.js', 'vendor/GLTFLoader.js'])
     assert.ok(html.includes(script), 'a página precisa carregar ' + script);
-  assert.ok(ler('v1/js/ac-maquete-mundo.js').includes('assets/ac/casa-da-costa-pisos-nova.glb'));
+  assert.ok(ler('jogos/casa-da-costa/a-mesa/js/ac-maquete-mundo.js').includes('assets/ac/casa-da-costa-pisos-nova.glb'));
 });
 
 test('geometria real: fechaduras, alvos, camadas e o relógio do caso', async () => {
@@ -514,7 +514,7 @@ test('geometria real: fechaduras, alvos, camadas e o relógio do caso', async ()
 /* ------------------------------------------------------------------ fiação */
 
 test('o Solo lê o mesmo motor da Mesa, sem cópia dos capítulos', () => {
-  const coop = ler('v1/js/ac-cooperacao.js');
+  const coop = ler('jogos/casa-da-costa/a-mesa/js/ac-cooperacao.js');
   assert.match(coop, /ac-maquete-state\.mjs/, 'o Solo precisa importar o motor, não recriá-lo');
   assert.match(coop, /ac-core\.mjs/, 'o Solo roda o MESMO motor da dupla (ac-core.mjs)');
   assert.match(coop, /core\.apply\(room/);
@@ -528,7 +528,7 @@ test('o Solo lê o mesmo motor da Mesa, sem cópia dos capítulos', () => {
 });
 
 test('a maquete publicada guarda os dois olhares na tela', () => {
-  const js = ler('v1/js/ac-maquete.js');
+  const js = ler('jogos/casa-da-costa/a-mesa/js/ac-maquete.js');
   assert.match(js, /idFechadura && anc\.id === idFechadura/, 'a fechadura acende pelo que o motor mandou, não por nível');
   assert.match(js, /function podeMoverChave\(\)[^}]*temLadoDaChave\(\) && ambosAcharam\(\)/, 'só quem tem a chave move, e só com as duas metades achadas');
   /* A recusa tem de ser VISTA, em dois tempos: chacoalha, e só insistindo aparece a frase. */
@@ -539,7 +539,7 @@ test('a maquete publicada guarda os dois olhares na tela', () => {
     assert.ok(!js.includes(frase), 'a tela voltou a avisar o papel: "' + frase + '"');
   }
   assert.match(js, /posta\(\)/, 'a atividade depende da maquete estar posta no ambiente');
-  const ra = ler('v1/js/ac-maquete-ra.js'), motor = ler('v1/js/ac-ra.js');
+  const ra = ler('jogos/casa-da-costa/a-mesa/js/ac-maquete-ra.js'), motor = ler('jogos/casa-da-costa/a-mesa/js/ac-ra.js');
   for (const modo of ['ra', 'mesa']) assert.ok(ra.includes("'" + modo + "'"), 'falta o modo ' + modo);
   assert.match(ra, /ACRA\.criar/, 'a maquete usa o motor de RA comum');
   assert.ok(!/deviceorientation/.test(ra), 'o modo câmera+giroscópio (sem rastreio de posição) não pode voltar');

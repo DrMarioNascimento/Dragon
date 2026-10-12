@@ -35,22 +35,22 @@ function carregarPonte(store) {
   ctx.addEventListener = (type, fn) => {
     (listeners[type] || (listeners[type] = [])).push(fn);
   };
-  runInContext(ler('solo/estado-solo.js'), ctx);
+  runInContext(ler('jogos/casa-da-costa/solo/estado-solo.js'), ctx);
   return { ctx, tick, listeners };
 }
 
 test('checkpoint incompleto do Solo recomeça na Janela do Norte, não na escrivaninha', () => {
-  const cloud = ler('solo/estado-solo.js');
+  const cloud = ler('jogos/casa-da-costa/solo/estado-solo.js');
   assert.doesNotMatch(cloud, /percursoEtapa==='janela'\?'janela':'escrivaninha'/,
     'o default "qualquer coisa → escrivaninha" voltou: snapshot antigo abre a mesa como 1ª atividade');
   assert.match(cloud, /aplicarIntroIncompleta/);
   assert.match(cloud, /state\._partidaNova/);
   assert.match(cloud, /state\.percursoEtapa="janela"/);
   assert.match(cloud, /mosaico-cloud-ready/);
-  assert.match(ler('solo/mesa-solo.js'), /abrirPercurso3D\(\)\{[\s\S]*percursoEtapa='janela'/);
-  assert.match(ler('solo/mesa-solo.js'), /if\(state\.phase==='home'\)[\s\S]*_partidaNova=true/);
-  assert.match(ler('solo/mesa-solo.js'), /MOSAICO-26-a-janela-do-norte\.html\?embed=1/);
-  assert.doesNotMatch(ler('solo/mesa-solo.js'), /PERCURSO 3D E RA/);
+  assert.match(ler('jogos/casa-da-costa/solo/mesa-solo.js'), /abrirPercurso3D\(\)\{[\s\S]*percursoEtapa='janela'/);
+  assert.match(ler('jogos/casa-da-costa/solo/mesa-solo.js'), /if\(state\.phase==='home'\)[\s\S]*_partidaNova=true/);
+  assert.match(ler('jogos/casa-da-costa/solo/mesa-solo.js'), /MOSAICO-26-a-janela-do-norte\.html\?embed=1/);
+  assert.doesNotMatch(ler('jogos/casa-da-costa/solo/mesa-solo.js'), /PERCURSO 3D E RA/);
 });
 
 test('restaurar snapshot antigo em percurso3d não salta a janela', () => {
@@ -194,11 +194,11 @@ test('pós-abertura não retoma sala nem escrivaninha: volta à Janela', () => {
 });
 
 test('a escrivaninha não expõe RA de ensaio; a maquete abre RA de produção', () => {
-  const html = ler('v1/AC-escrivaninha.html');
-  const maquete = ler('v1/AC-maquete.html');
-  const percurso = ler('v1/AC-percurso.html');
-  const desk = ler('v1/js/ac-investigacao.js');
-  const maqueteJs = ler('v1/js/ac-maquete.js');
+  const html = ler('jogos/casa-da-costa/a-mesa/AC-escrivaninha.html');
+  const maquete = ler('jogos/casa-da-costa/a-mesa/AC-maquete.html');
+  const percurso = ler('jogos/casa-da-costa/a-mesa/AC-percurso.html');
+  const desk = ler('jogos/casa-da-costa/a-mesa/js/ac-investigacao.js');
+  const maqueteJs = ler('jogos/casa-da-costa/a-mesa/js/ac-maquete.js');
 
   /* A proibição original (15/09/2026) era contra os controles de ENSAIO que
      tinham vazado para as páginas publicadas — “Criar novo ensaio”, “Bônus
@@ -225,7 +225,7 @@ test('a escrivaninha não expõe RA de ensaio; a maquete abre RA de produção',
   assert.doesNotMatch(html, /href="MOSAICO-mesa\.html\?teste=/);
   assert.doesNotMatch(maquete, /pontos de ensaio/);
   assert.doesNotMatch(maqueteJs, /pontos de ensaio/);
-  assert.doesNotMatch(ler('v1/js/ac-percurso.js'), /Este ensaio foi aberto/);
+  assert.doesNotMatch(ler('jogos/casa-da-costa/a-mesa/js/ac-percurso.js'), /Este ensaio foi aberto/);
   /* A escrivaninha oferece RA a quem tem — e a RA é a TAREFA INTEIRA (Mario,
      18/09/2026: "a escrivaninha em RA só coloca a escrivaninha e acabou").
      O Quick Look (que só posiciona um modelo parado) saiu; o motor comum
@@ -246,7 +246,7 @@ test('a escrivaninha não expõe RA de ensaio; a maquete abre RA de produção',
   assert.match(maquete, /id="sair-ra"/);
   assert.match(maqueteJs, /ACMaquetteRA\.criar/);
 
-  const sala = ler('v1/MOSAICO-26-a-sala-as-escuras.html');
+  const sala = ler('jogos/casa-da-costa/a-mesa/MOSAICO-26-a-sala-as-escuras.html');
   assert.match(sala, /id="b-entrar-ra" type="button" hidden>Entrar em RA</);
   assert.doesNotMatch(sala, />Alternar visual</);
 });

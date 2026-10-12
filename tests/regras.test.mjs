@@ -518,7 +518,7 @@ test('AC grupos do mestre, eventos do proprio papel e imutabilidade',async()=>{
 });
 
 test('AC Firestore: trio percorre nove objetos, vela e tres chaves com resultados convergentes',async()=>{
- const {receipts}=await import('../v1/js/ac-replay.mjs');
+ const {receipts}=await import('../jogos/casa-da-costa/a-mesa/js/ac-replay.mjs');
  const master=env.authenticatedContext(MESTRE).firestore(),users={luz:ANA,conhecimento:BIA,apoio:'uid-caio'};
  await env.withSecurityRulesDisabled(ctx=>setDoc(doc(ctx.firestore(),'mosaico',SALA,'jogadores',users.apoio),{nome:'Caio'}));
  const clients=Object.fromEntries(Object.entries(users).map(([role,uid])=>[role,env.authenticatedContext(uid).firestore()]));
@@ -546,7 +546,7 @@ test('AC Firestore: trio percorre nove objetos, vela e tres chaves com resultado
 test('AC adaptador Firebase executa entrada e progresso sem API Node',async()=>{
  const fs=await import('node:fs'),url=await import('node:url');
  const dir=new URL('../.ac-ensaio/',import.meta.url);fs.mkdirSync(dir,{recursive:true});
- const source=fs.readFileSync(new URL('../v1/js/ac-firestore.mjs',import.meta.url),'utf8').replace('https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js','firebase/firestore').replace("'./ac-replay.mjs'",JSON.stringify(new URL('../v1/js/ac-replay.mjs',import.meta.url).href));
+ const source=fs.readFileSync(new URL('../jogos/casa-da-costa/a-mesa/js/ac-firestore.mjs',import.meta.url),'utf8').replace('https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js','firebase/firestore').replace("'./ac-replay.mjs'",JSON.stringify(new URL('../jogos/casa-da-costa/a-mesa/js/ac-replay.mjs',import.meta.url).href));
  const file=new URL('adapter-test.mjs',dir);fs.writeFileSync(file,source);
  const master=env.authenticatedContext(MESTRE).firestore(),a=env.authenticatedContext(ANA).firestore();
  const previousWindow=globalThis.window,previousLocation=globalThis.location;

@@ -9,7 +9,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 function caso() {
-  return JSON.parse(readFileSync(new URL("../v1/casos/casa-da-costa.json", import.meta.url), "utf8"));
+  return JSON.parse(readFileSync(new URL("../jogos/casa-da-costa/a-mesa/casos/casa-da-costa.json", import.meta.url), "utf8"));
 }
 
 test("o caso canônico declara realidade única e partidas modulares", () => {
@@ -205,7 +205,7 @@ test("a pergunta-mãe reúne as três famílias de evidência nas centrais", () 
 test("as duas camadas que gastam o banco existem e compilam", async () => {
   const { execFileSync } = await import("node:child_process");
   const { fileURLToPath } = await import("node:url");
-  const camadas = ["../v1/js/banco-casa-da-costa.js", "../mosaico-web/public/noite-auto.js"];
+  const camadas = ["../jogos/casa-da-costa/a-mesa/js/banco-casa-da-costa.js", "../desenvolvimento/casa-da-costa/a-noite/public/noite-auto.js"];
   for (const rel of camadas) {
     const caminho = fileURLToPath(new URL(rel, import.meta.url));
     try {
@@ -214,10 +214,10 @@ test("as duas camadas que gastam o banco existem e compilam", async () => {
       assert.fail(`${rel} não compila:\n${erro.stderr?.toString() ?? erro.message}`);
     }
   }
-  const v5 = readFileSync(new URL("../v1/js/mosaico-v5.js", import.meta.url), "utf8");
+  const v5 = readFileSync(new URL("../jogos/casa-da-costa/a-mesa/js/mosaico-v5.js", import.meta.url), "utf8");
   assert.match(v5, /banco-casa-da-costa\.js\?v=/,
     "a Mesa deixou de carregar o banco modular: o dossiê some sem erro nenhum");
-  const noite = readFileSync(new URL("../mosaico-web/public/noite-auto.js", import.meta.url), "utf8");
+  const noite = readFileSync(new URL("../desenvolvimento/casa-da-costa/a-noite/public/noite-auto.js", import.meta.url), "utf8");
   assert.ok(noite.includes("CASO.fragmentos"),
     "A Noite voltou a ter a própria lista de evidências em vez de ler o banco do caso");
 });
@@ -225,7 +225,7 @@ test("as duas camadas que gastam o banco existem e compilam", async () => {
 /* ── Duas atividades por partida (V4 §17) ────────────────────────────────
    As fases `inclinacao` e `constelacao` viraram VAGAS, e a pergunta decide
    quais das três mecânicas sensoriais as ocupam. A camada que faz isso é
-   `v1/js/atividades-casa-da-costa.js`, injetada no fim da cascata de
+   `jogos/casa-da-costa/a-mesa/js/atividades-casa-da-costa.js`, injetada no fim da cascata de
    `mosaico-v5.js`. Nada avisa quando ela some ou quando um nome de atividade
    deixa de bater com `CASO.tarefas`: a Mesa simplesmente volta a jogar sempre
    A Janela do Norte na primeira vaga, sem erro nenhum no console — que foi o
@@ -233,13 +233,13 @@ test("as duas camadas que gastam o banco existem e compilam", async () => {
 test("a Mesa carrega a camada das duas atividades, e ela compila", async () => {
   const { execFileSync } = await import("node:child_process");
   const { fileURLToPath } = await import("node:url");
-  const caminho = fileURLToPath(new URL("../v1/js/atividades-casa-da-costa.js", import.meta.url));
+  const caminho = fileURLToPath(new URL("../jogos/casa-da-costa/a-mesa/js/atividades-casa-da-costa.js", import.meta.url));
   try {
     execFileSync(process.execPath, ["--check", caminho], { stdio: "pipe" });
   } catch (erro) {
     assert.fail(`atividades-casa-da-costa.js não compila:\n${erro.stderr?.toString() ?? erro.message}`);
   }
-  const v5 = readFileSync(new URL("../v1/js/mosaico-v5.js", import.meta.url), "utf8");
+  const v5 = readFileSync(new URL("../jogos/casa-da-costa/a-mesa/js/mosaico-v5.js", import.meta.url), "utf8");
   assert.match(v5, /atividades-casa-da-costa\.js\?v=/,
     "a Mesa deixou de carregar a camada: volta a jogar sempre a mesma atividade na primeira vaga");
   const banco = v5.indexOf("banco-casa-da-costa.js");
@@ -254,7 +254,7 @@ test("a Mesa carrega a camada das duas atividades, e ela compila", async () => {
 async function camadaAtividades() {
   const vm = await import("node:vm");
   const { fileURLToPath } = await import("node:url");
-  const fonte = readFileSync(fileURLToPath(new URL("../v1/js/atividades-casa-da-costa.js", import.meta.url)), "utf8");
+  const fonte = readFileSync(fileURLToPath(new URL("../jogos/casa-da-costa/a-mesa/js/atividades-casa-da-costa.js", import.meta.url)), "utf8");
   const guarda = {};
   const win = {
     CASO: caso(), STATE: { doc: null },
@@ -346,7 +346,7 @@ test("o banco do Mosaico é próprio, e toda referência dele tem hora", () => {
 test("a virada do dia é respeitada: a madrugada vem depois da noite", async () => {
   const vm = await import("node:vm");
   const { fileURLToPath } = await import("node:url");
-  const fonte = readFileSync(fileURLToPath(new URL("../v1/js/mosaico-casa-da-costa.js", import.meta.url)), "utf8");
+  const fonte = readFileSync(fileURLToPath(new URL("../jogos/casa-da-costa/a-mesa/js/mosaico-casa-da-costa.js", import.meta.url)), "utf8");
   const win = { CASO: caso(), STATE: { mesa: { codigo: "T" }, doc: { partidaId: "sete" } },
     pistasMosaico: () => [], dicasMosaico: () => [], rotuloPistaMosaico: p => p, render: () => {} };
   win.window = win;
@@ -372,10 +372,10 @@ test("a virada do dia é respeitada: a madrugada vem depois da noite", async () 
 test("a Mesa carrega a camada do Mosaico, e ela compila", async () => {
   const { execFileSync } = await import("node:child_process");
   const { fileURLToPath } = await import("node:url");
-  const caminho = fileURLToPath(new URL("../v1/js/mosaico-casa-da-costa.js", import.meta.url));
+  const caminho = fileURLToPath(new URL("../jogos/casa-da-costa/a-mesa/js/mosaico-casa-da-costa.js", import.meta.url));
   try { execFileSync(process.execPath, ["--check", caminho], { stdio: "pipe" }); }
   catch (e) { assert.fail(`mosaico-casa-da-costa.js não compila:\n${e.stderr?.toString() ?? e.message}`); }
-  const v5 = readFileSync(new URL("../v1/js/mosaico-v5.js", import.meta.url), "utf8");
+  const v5 = readFileSync(new URL("../jogos/casa-da-costa/a-mesa/js/mosaico-v5.js", import.meta.url), "utf8");
   assert.match(v5, /mosaico-casa-da-costa\.js\?v=/,
     "a Mesa deixou de carregar a camada: o Mosaico volta a ser sempre o mesmo");
 });
@@ -388,7 +388,7 @@ test("a Mesa carrega a camada do Mosaico, e ela compila", async () => {
 test("o Mosaico não imprime o fato completo de fragmento que ninguém conquistou", async () => {
   const vm = await import("node:vm");
   const { fileURLToPath } = await import("node:url");
-  const fonte = readFileSync(fileURLToPath(new URL("../v1/js/mosaico-casa-da-costa.js", import.meta.url)), "utf8");
+  const fonte = readFileSync(fileURLToPath(new URL("../jogos/casa-da-costa/a-mesa/js/mosaico-casa-da-costa.js", import.meta.url)), "utf8");
   const c = caso();
   let achouFragmento = false;
   for (const codigo of ["A1", "B2", "C3", "D4", "E5", "F6", "G7", "H8"]) {
@@ -434,10 +434,10 @@ test("o Mercado declara as três ações e o preço da repassada é menor", () =
 test("a Mesa carrega a camada do Mercado, e ela compila", async () => {
   const { execFileSync } = await import("node:child_process");
   const { fileURLToPath } = await import("node:url");
-  const caminho = fileURLToPath(new URL("../v1/js/mercado-casa-da-costa.js", import.meta.url));
+  const caminho = fileURLToPath(new URL("../jogos/casa-da-costa/a-mesa/js/mercado-casa-da-costa.js", import.meta.url));
   try { execFileSync(process.execPath, ["--check", caminho], { stdio: "pipe" }); }
   catch (e) { assert.fail(`mercado-casa-da-costa.js não compila:\n${e.stderr?.toString() ?? e.message}`); }
-  const v5 = readFileSync(new URL("../v1/js/mosaico-v5.js", import.meta.url), "utf8");
+  const v5 = readFileSync(new URL("../jogos/casa-da-costa/a-mesa/js/mosaico-v5.js", import.meta.url), "utf8");
   assert.match(v5, /mercado-casa-da-costa\.js\?v=/,
     "a Mesa deixou de carregar o Mercado novo e voltaria ao de negociação");
   /* A confiança é a única coisa que sobrou da Casa; se o Mercado parar de

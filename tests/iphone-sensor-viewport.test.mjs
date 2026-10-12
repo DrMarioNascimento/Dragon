@@ -31,8 +31,8 @@ function fnSlice(src, name, nextNames) {
   return src.slice(start, end);
 }
 
-const MESA = ler("v1/MOSAICO-mesa.html");
-const CASA = ler("v1/js/casa-da-costa-v2.js");
+const MESA = ler("jogos/casa-da-costa/a-mesa/MOSAICO-mesa.html");
+const CASA = ler("jogos/casa-da-costa/a-mesa/js/casa-da-costa-v2.js");
 const CSS = sliceCss(MESA);
 
 describe("Casa Celular · viewport iPhone (fase-sensor)", () => {
@@ -92,8 +92,8 @@ describe("Casa Celular · viewport iPhone (fase-sensor)", () => {
 
 describe("overlays embed · quadro da Mesa, não dvh do Safari", () => {
   const pares = [
-    ["v1/MOSAICO-26-a-janela-do-norte.html", "v1/MOSAICO-26-a-sala-as-escuras.html", "v1/MOSAICO-26-vidro-embacado.html"],
-    ["mosaico-web/public/modulos/janela-do-norte.html", "mosaico-web/public/modulos/sala-as-escuras.html", "mosaico-web/public/modulos/vidro-embacado.html"],
+    ["jogos/casa-da-costa/a-mesa/MOSAICO-26-a-janela-do-norte.html", "jogos/casa-da-costa/a-mesa/MOSAICO-26-a-sala-as-escuras.html", "jogos/casa-da-costa/a-mesa/MOSAICO-26-vidro-embacado.html"],
+    ["desenvolvimento/casa-da-costa/a-noite/public/modulos/janela-do-norte.html", "desenvolvimento/casa-da-costa/a-noite/public/modulos/sala-as-escuras.html", "desenvolvimento/casa-da-costa/a-noite/public/modulos/vidro-embacado.html"],
   ];
   it("html.embed trava altura em 100% do iframe", () => {
     for (const grupo of pares) {

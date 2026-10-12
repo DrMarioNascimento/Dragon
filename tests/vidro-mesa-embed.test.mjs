@@ -27,8 +27,8 @@ function fnSlice(src, name, nextNames) {
   return src.slice(start, end);
 }
 
-const VIDRO = ler("v1/MOSAICO-26-vidro-embacado.html");
-const MESA = ler("v1/MOSAICO-mesa.html");
+const VIDRO = ler("jogos/casa-da-costa/a-mesa/MOSAICO-26-vidro-embacado.html");
+const MESA = ler("jogos/casa-da-costa/a-mesa/MOSAICO-mesa.html");
 
 function fragmentosDoVidro(src) {
   const ini = src.indexOf("var FRAGMENTOS = [");

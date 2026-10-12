@@ -8,8 +8,8 @@ import { resolve, extname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { startMaquette, actMaquette, maquetteView } from './ac-maquete-state.mjs';
 
-import {apply,snapshot,earnedStages} from '../v1/js/ac-core.mjs';
-export {apply,snapshot,earnedStages,FECHADURAS,TOLERANCIA,bonus} from '../v1/js/ac-core.mjs';
+import {apply,snapshot,earnedStages} from '../jogos/casa-da-costa/a-mesa/js/ac-core.mjs';
+export {apply,snapshot,earnedStages,FECHADURAS,TOLERANCIA,bonus} from '../jogos/casa-da-costa/a-mesa/js/ac-core.mjs';
 export function createRoom(now = Date.now()) {
   return { id: randomBytes(6).toString('hex'), tokens: { luz: randomBytes(18).toString('hex'), conhecimento: randomBytes(18).toString('hex') }, stage: 'posicionar', startedAt: null, finishedAt: null, createdAt: now, updatedAt: now, beam: null, peers: new Map() };
 }
@@ -81,11 +81,11 @@ export function createServer(root,{stateFile=null}={}) {
       return json(404,{error:'Rota ausente'});
     }
     if (!['GET','HEAD'].includes(req.method)) return json(405,{error:'Metodo invalido'});
-    if(url.pathname==='/'){res.writeHead(302,{Location:'/v1/AC-escrivaninha.html'+url.search,'Cache-Control':'no-store'});res.end();return;}
-    let path;try{path=resolve(root,'.'+decodeURIComponent(url.pathname === '/' ? '/v1/AC-escrivaninha.html' : url.pathname));}catch{return json(400,{error:'Caminho invalido'});}
+    if(url.pathname==='/'){res.writeHead(302,{Location:'/jogos/casa-da-costa/a-mesa/AC-escrivaninha.html'+url.search,'Cache-Control':'no-store'});res.end();return;}
+    let path;try{path=resolve(root,'.'+decodeURIComponent(url.pathname === '/' ? '/jogos/casa-da-costa/a-mesa/AC-escrivaninha.html' : url.pathname));}catch{return json(400,{error:'Caminho invalido'});}
     const relative=path.slice(root.length+1);
     if (!path.startsWith(root+sep) || relative.split(sep).some(part=>part.startsWith('.'))) return json(403,{error:'Caminho restrito'});
-    const publicCase=url.pathname==='/v1/casos/casa-da-costa.json';
+    const publicCase=url.pathname==='/jogos/casa-da-costa/a-mesa/casos/casa-da-costa.json';
     const mime=publicCase?'application/json; charset=utf-8':{'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.glb':'model/gltf-binary','.usdz':'model/vnd.usdz+zip','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml'}[extname(path)];
     if(!mime)return json(403,{error:'Tipo restrito'});
     try{const content=await readFile(path);res.writeHead(200,{'Content-Type':mime,'Cache-Control':'no-store'});res.end(req.method==='HEAD'?undefined:content);}catch{json(404,{error:'Arquivo ausente'});}
@@ -96,5 +96,5 @@ export function createServer(root,{stateFile=null}={}) {
 }
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const root=resolve(fileURLToPath(new URL('..',import.meta.url)));
-  createServer(root,{stateFile:resolve(root,'.ac-ensaio','salas.json')}).listen(Number(process.env.AC_PORT || 8781),'127.0.0.1',()=>process.stdout.write('AC cooperacao local: http://127.0.0.1:'+(process.env.AC_PORT||8781)+'/v1/AC-escrivaninha.html\n'));
+  createServer(root,{stateFile:resolve(root,'.ac-ensaio','salas.json')}).listen(Number(process.env.AC_PORT || 8781),'127.0.0.1',()=>process.stdout.write('AC cooperacao local: http://127.0.0.1:'+(process.env.AC_PORT||8781)+'/jogos/casa-da-costa/a-mesa/AC-escrivaninha.html\n'));
 }

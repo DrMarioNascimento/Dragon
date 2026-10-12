@@ -11,20 +11,20 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const ler = (p) => readFileSync(join(root, p), "utf8").replace(/\r\n/g, "\n");
 
 const ROOM = ler("firebase-room.js");
-const PAUTA = ler("carro-forte/pauta-da-mesa.js");
-const MESA = ler("v1/MOSAICO-mesa.html");
-const TS = ler("v1/js/tarefa-sensor.js");
-const JANELA = ler("v1/MOSAICO-26-a-janela-do-norte.html");
-const ATIV = ler("carro-forte/atividade.js");
+const PAUTA = ler("jogos/a-manha-do-carro-forte/a-mesa/pauta-da-mesa.js");
+const MESA = ler("jogos/casa-da-costa/a-mesa/MOSAICO-mesa.html");
+const TS = ler("jogos/casa-da-costa/a-mesa/js/tarefa-sensor.js");
+const JANELA = ler("jogos/casa-da-costa/a-mesa/MOSAICO-26-a-janela-do-norte.html");
+const ATIV = ler("jogos/a-manha-do-carro-forte/a-mesa/atividade.js");
 const TELAO = ler("telao.html");
-const PADRAO = ler("PADRAO-SALA-MULTIPLAYER.md");
-const CEL = ler("carro-forte/celular.html");
-const GAME = ler("carro-forte/game.js");
-const OPEN = ler("carro-forte/opening-flow.js");
-const OPEN_NOITE = ler("carro-forte/noite/opening-flow.js");
+const PADRAO = ler("documentos/PADRAO-SALA-MULTIPLAYER.md");
+const CEL = ler("jogos/a-manha-do-carro-forte/a-mesa/celular.html");
+const GAME = ler("jogos/a-manha-do-carro-forte/a-mesa/game.js");
+const OPEN = ler("jogos/a-manha-do-carro-forte/a-mesa/opening-flow.js");
+const OPEN_NOITE = ler("jogos/a-manha-do-carro-forte/a-noite/opening-flow.js");
 const OPEN_CASA = ler("abertura-casa.js");
 const HUB = ler("index.html");
-const SOLO_CASA = ler("solo/index.html");
+const SOLO_CASA = ler("jogos/casa-da-costa/solo/index.html");
 
 describe("abertura · roteamento", () => {
   it("Carro: convidado espera; Mestre toca local ou aciona telão", () => {
@@ -55,7 +55,7 @@ describe("abertura · Carro Celular / Solo / Telão wiring", () => {
   });
 
   it("fora d'A Casa, entrar na atividade ainda recolhe; n'A Casa, recolher é gesto", () => {
-    const windows = ler("v1/js/ac-janelas.js");
+    const windows = ler("jogos/casa-da-costa/a-mesa/js/ac-janelas.js");
     assert.match(windows, /!CASA&&document\.getElementById\('loading'\)[\s\S]{0,100}?entrarAtividade\(\)/);
     assert.match(windows, /function entrarAtividade\(\)[\s\S]{0,200}?if\(!CASA\)recolherLegado\(\)/);
   });
@@ -84,8 +84,8 @@ describe("abertura · Carro Celular / Solo / Telão wiring", () => {
 
   it("Telão carro-forte tem arte + áudio e consome opening.command", () => {
     assert.match(TELAO, /const ARTE_CF=\{/);
-    assert.match(TELAO, /abertura:'carro-forte\/noite\/AberturaTel/);
-    assert.match(TELAO, /audio:'carro-forte\/noite\/Amanha-do-carroforte\.mp3/);
+    assert.match(TELAO, /abertura:'jogos\/a-manha-do-carro-forte\/a-noite\/AberturaTel/);
+    assert.match(TELAO, /audio:'jogos\/a-manha-do-carro-forte\/a-noite\/Amanha-do-carroforte\.mp3/);
     assert.match(TELAO, /'carro-forte':\{fb:FB_NOITE,colecao:'mosaico'[\s\S]*?\.\.\.ARTE_CF\}/);
     assert.match(TELAO, /async function startOpening/);
     assert.match(TELAO, /if\(o\.command==='start'&&token&&token!==lastToken\)/);
@@ -94,12 +94,12 @@ describe("abertura · Carro Celular / Solo / Telão wiring", () => {
   });
 
   it("arquivos da abertura do Carro existem no disco", () => {
-    const noite = join(root, "carro-forte", "noite");
+    const noite = join(root, "jogos/a-manha-do-carro-forte/a-noite");
     const nomes = readdirSync(noite);
     assert.ok(nomes.includes("AberturaCelular.jpg"), "faltou AberturaCelular.jpg");
     assert.ok(nomes.some((n) => /^AberturaTel/.test(n) && n.endsWith(".jpg")), "faltou AberturaTelão.jpg");
     assert.ok(nomes.includes("Amanha-do-carroforte.mp3"), "faltou Amanha-do-carroforte.mp3");
-    assert.ok(existsSync(join(root, "carro-forte", "opening-flow.js")));
+    assert.ok(existsSync(join(root, "jogos/a-manha-do-carro-forte/a-mesa", "opening-flow.js")));
   });
 
   it("opening-flow resolve mídia a partir do script, não do documento", () => {
@@ -121,7 +121,7 @@ describe("abertura · Carro Celular / Solo / Telão wiring", () => {
      as telas-marco da Encenação e da Votação de performance (etapas que só
      existem em grupo), e então a Janela do Norte — a primeira jogável. */
   it("Solo: após a abertura vêm as telas-marco da Mesa e depois a Janela do Norte", () => {
-    const solo = ler("solo/mesa-solo.js");
+    const solo = ler("jogos/casa-da-costa/solo/mesa-solo.js");
     assert.match(solo, /abrirPercurso3D\(\)\{[\s\S]*percursoEtapa='janela'[\s\S]*phase='percurso3d'/);
     assert.match(solo, /1 \/ 4 · Chegada pela estrada/);
     assert.match(solo, /MOSAICO-26-a-janela-do-norte\.html\?embed=1/);
@@ -131,7 +131,7 @@ describe("abertura · Carro Celular / Solo / Telão wiring", () => {
     assert.doesNotMatch(startFn, /mostrarSeletor|htmlAndaime|phase='mosaico'/);
     assert.match(startFn, /abrirMarco\('encenacao'\)/);
     assert.match(solo, /function abrirAnalise\(\)[\s\S]*mostrarSeletor/);
-    const cloud = ler("solo/estado-solo.js");
+    const cloud = ler("jogos/casa-da-costa/solo/estado-solo.js");
     assert.match(cloud, /aplicarIntroIncompleta/);
     assert.match(cloud, /state\._partidaNova/);
   });
@@ -237,7 +237,7 @@ describe("sensor · finger + soft deadline", () => {
     assert.equal(api.elencoChromeDuplo(false, true), false);
     assert.equal(/ts-pf-li\.meu/.test(TS) && /li\.className\s*=\s*ehMeu/.test(TS), false,
       "elenco não pode marcar lista E rodapé ao mesmo tempo");
-    const casa = JSON.parse(ler("v1/casos/casa-da-costa.json"));
+    const casa = JSON.parse(ler("jogos/casa-da-costa/a-mesa/casos/casa-da-costa.json"));
     const host = (v) => JSON.parse(JSON.stringify(v));
     assert.deepEqual(
       host(api.ELENCO_CASA_CANONICO.map((p) => p.id)),
@@ -271,9 +271,9 @@ describe("sensor · finger + soft deadline", () => {
 
   it("Casa sensor: overlayPausa é cartão 1+1, não scrim plano", () => {
     for (const path of [
-      "v1/MOSAICO-26-vidro-embacado.html",
-      "v1/MOSAICO-26-a-sala-as-escuras.html",
-      "v1/MOSAICO-26-a-janela-do-norte.html",
+      "jogos/casa-da-costa/a-mesa/MOSAICO-26-vidro-embacado.html",
+      "jogos/casa-da-costa/a-mesa/MOSAICO-26-a-sala-as-escuras.html",
+      "jogos/casa-da-costa/a-mesa/MOSAICO-26-a-janela-do-norte.html",
     ]) {
       const src = ler(path);
       assert.match(src, /className="pf-pausa"/, path);
@@ -284,8 +284,8 @@ describe("sensor · finger + soft deadline", () => {
   });
 
   it("Vidro e Sala Casa: cairNoModoDedo antes do dedo", () => {
-    const VIDRO = ler("v1/MOSAICO-26-vidro-embacado.html");
-    const SALA = ler("v1/MOSAICO-26-a-sala-as-escuras.html");
+    const VIDRO = ler("jogos/casa-da-costa/a-mesa/MOSAICO-26-vidro-embacado.html");
+    const SALA = ler("jogos/casa-da-costa/a-mesa/MOSAICO-26-a-sala-as-escuras.html");
     for (const src of [VIDRO, SALA, JANELA]) {
       assert.match(src, /function cairNoModoDedo/);
       assert.match(src, /avisoAntesModoDedo/);

@@ -15,22 +15,22 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const ler = (p) => readFileSync(join(root, p), "utf8").replace(/\r\n/g, "\n");
 
 const CASA = ler("casa-da-costa/index.html");
-const CARRO = ler("carro-forte/index.html");
+const CARRO = ler("jogos/a-manha-do-carro-forte/a-mesa/index.html");
 const HUB = ler("index.html");
 const TELAO = ler("telao.html");
-const MESA = ler("v1/MOSAICO-mesa.html");
-const CEL = ler("carro-forte/celular.html");
+const MESA = ler("jogos/casa-da-costa/a-mesa/MOSAICO-mesa.html");
+const CEL = ler("jogos/a-manha-do-carro-forte/a-mesa/celular.html");
 const ROOM = ler("firebase-room.js");
 const MPC = ler("papel-camada.js");
-const SOLO = ler("solo/index.html");
-const SOLO_JS = ler("solo/mesa-solo.js");
-const GAME = ler("carro-forte/game.js");
-const DOC = ler("MOSAICO-ACESSIBILIDADE-PAPEIS.md");
+const SOLO = ler("jogos/casa-da-costa/solo/index.html");
+const SOLO_JS = ler("jogos/casa-da-costa/solo/mesa-solo.js");
+const GAME = ler("jogos/a-manha-do-carro-forte/a-mesa/game.js");
+const DOC = ler("documentos/MOSAICO-ACESSIBILIDADE-PAPEIS.md");
 const README = ler("README.md");
 
 describe("hub · histórias e versões", () => {
-  it("apresenta três histórias sem o bloco Solo", () => {
-    assert.equal((HUB.match(/<article class="game">/g)||[]).length, 3);
+  it("apresenta cinco jogos sem o bloco Solo", () => {
+    assert.equal((HUB.match(/<article class="game(?: external-game)?"/g)||[]).length, 5);
     assert.match(HUB, />A Mesa</);
     assert.match(HUB, />O Impostor</);
     assert.doesNotMatch(HUB, />Solo<|Ensaiar neste aparelho|lab-ra/);
@@ -54,9 +54,9 @@ describe("hub · histórias e versões", () => {
 
 describe("pasta do caso · redirect ao Celular, sem três portas", () => {
   it("Casa /casa-da-costa/ redireciona ao gate Celular", () => {
-    assert.match(CASA, /location\.replace\(["']\.\.\/v1\/MOSAICO-mesa\.html/);
+    assert.match(CASA, /location\.replace\(["']\.\.\/jogos\/casa-da-costa\/a-mesa\/MOSAICO-mesa\.html/);
     assert.match(CASA, /http-equiv="refresh"/);
-    assert.match(CASA, /href="\.\.\/v1\/MOSAICO-mesa\.html"/);
+    assert.match(CASA, /href="\.\.\/jogos\/casa-da-costa\/a-mesa\/MOSAICO-mesa\.html"/);
     assert.equal(/data-mode-ctas/.test(CASA), false);
     assert.equal(/Tr[eê]s portas/.test(CASA), false);
   });
@@ -73,7 +73,7 @@ describe("pasta do caso · redirect ao Celular, sem três portas", () => {
 describe("módulo papel-camada", () => {
   it("existe na raiz e expõe a API", () => {
     assert.equal(existsSync(join(root, "papel-camada.js")), true);
-    assert.equal(existsSync(join(root, "v1/css/profundidade-1mais1.css")), true);
+    assert.equal(existsSync(join(root, "jogos/casa-da-costa/a-mesa/css/profundidade-1mais1.css")), true);
     const sandbox = { window: {}, globalThis: {} };
     sandbox.window = sandbox;
     sandbox.globalThis = sandbox;
@@ -159,9 +159,9 @@ describe("celular / solo · seletor presente", () => {
 
 describe("profundidade 1+1 · tokens compartilhados", () => {
   it("folha de tokens e injetores falam a mesma língua", () => {
-    const pf = ler("v1/css/profundidade-1mais1.css");
+    const pf = ler("jogos/casa-da-costa/a-mesa/css/profundidade-1mais1.css");
     const room = ler("firebase-room.js");
-    const ts = ler("v1/js/tarefa-sensor.js");
+    const ts = ler("jogos/casa-da-costa/a-mesa/js/tarefa-sensor.js");
     assert.match(pf, /--pf-navy/);
     assert.match(pf, /\.pf-card\{/);
     assert.match(pf, /\.pf-inset\{/);
@@ -174,19 +174,19 @@ describe("profundidade 1+1 · tokens compartilhados", () => {
     assert.match(room, /rgba\(127,212,255/);
     assert.match(room, /#060d14/);
     assert.match(ts, /mosaico-pf-1mais1/);
-    assert.match(ler("v1/MOSAICO-mesa.html"), /profundidade-1mais1\.css/);
+    assert.match(ler("jogos/casa-da-costa/a-mesa/MOSAICO-mesa.html"), /profundidade-1mais1\.css/);
   });
 
   it("toda porta de produção carrega a língua 1+1", () => {
     const portas = [
-      ["Casa Celular", "v1/MOSAICO-mesa.html", /profundidade-1mais1\.css/],
+      ["Casa Celular", "jogos/casa-da-costa/a-mesa/MOSAICO-mesa.html", /profundidade-1mais1\.css/],
       ["Casa Telão", "telao.html", /profundidade-1mais1\.css/],
-      ["Casa Solo", "solo/index.html", /profundidade-1mais1\.css/],
-      ["Carro Celular/Solo", "carro-forte/celular.html", /profundidade-1mais1\.css/],
-      ["Carro Noite", "carro-forte/noite/index.html", /profundidade-1mais1\.css/],
-      ["Vidro Casa", "v1/MOSAICO-26-vidro-embacado.html", /profundidade-1mais1\.css/],
-      ["Sala Casa", "v1/MOSAICO-26-a-sala-as-escuras.html", /profundidade-1mais1\.css/],
-      ["Janela Casa", "v1/MOSAICO-26-a-janela-do-norte.html", /profundidade-1mais1\.css/],
+      ["Casa Solo", "jogos/casa-da-costa/solo/index.html", /profundidade-1mais1\.css/],
+      ["Carro Celular/Solo", "jogos/a-manha-do-carro-forte/a-mesa/celular.html", /profundidade-1mais1\.css/],
+      ["Carro Noite", "jogos/a-manha-do-carro-forte/a-noite/index.html", /profundidade-1mais1\.css/],
+      ["Vidro Casa", "jogos/casa-da-costa/a-mesa/MOSAICO-26-vidro-embacado.html", /profundidade-1mais1\.css/],
+      ["Sala Casa", "jogos/casa-da-costa/a-mesa/MOSAICO-26-a-sala-as-escuras.html", /profundidade-1mais1\.css/],
+      ["Janela Casa", "jogos/casa-da-costa/a-mesa/MOSAICO-26-a-janela-do-norte.html", /profundidade-1mais1\.css/],
     ];
     for (const [nome, path, re] of portas) {
       assert.match(ler(path), re, nome);
@@ -194,10 +194,10 @@ describe("profundidade 1+1 · tokens compartilhados", () => {
     assert.match(ler("telao.html"), /waiting-card pf-card/);
     assert.match(ler("telao.html"), /openbox pf-card/);
     assert.match(ler("telao.html"), /fecho-card pf-card/);
-    assert.match(ler("carro-forte/noite/index.html"), /modal-card depth-card pf-card/);
-    assert.match(ler("carro-forte/noite/index.html"), /drawer-card depth-card pf-card/);
-    assert.match(ler("carro-forte/celular.html"), /drawer-card depth-card pf-card/);
-    assert.match(ler("solo/index.html"), /mesa-solo\.css\?v=20261004-janelas/);
+    assert.match(ler("jogos/a-manha-do-carro-forte/a-noite/index.html"), /modal-card depth-card pf-card/);
+    assert.match(ler("jogos/a-manha-do-carro-forte/a-noite/index.html"), /drawer-card depth-card pf-card/);
+    assert.match(ler("jogos/a-manha-do-carro-forte/a-mesa/celular.html"), /drawer-card depth-card pf-card/);
+    assert.match(ler("jogos/casa-da-costa/solo/index.html"), /mesa-solo\.css\?v=20261004-janelas/);
     assert.match(ler("abertura-casa.js"), /cartao pf-card/);
     assert.match(ler("abertura-casa.js"), /cartao-inset pf-inset/);
   });

@@ -15,9 +15,9 @@ const ler = (p) =>
 
 const semComentarios = (s) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "");
 
-const PUB = ler("v1/js/telao-publica.js");
-const V5 = ler("v1/js/mosaico-v5.js");
-const MESA = ler("v1/MOSAICO-mesa.html");
+const PUB = ler("jogos/casa-da-costa/a-mesa/js/telao-publica.js");
+const V5 = ler("jogos/casa-da-costa/a-mesa/js/mosaico-v5.js");
+const MESA = ler("jogos/casa-da-costa/a-mesa/MOSAICO-mesa.html");
 const TELAO = ler("telao.html");
 const LANDING = ler("casa-da-costa/index.html");
 const HUB = ler("index.html");

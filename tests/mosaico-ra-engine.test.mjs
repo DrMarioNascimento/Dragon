@@ -9,11 +9,11 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const ler = (p) => readFileSync(join(root, p), "utf8").replace(/\r\n/g, "\n");
 
 describe("Mosaico RA & Sala 3D Volumétrica · Motor e Integração", () => {
-  const threePath = join(root, "v1/js/three.min.js");
-  const engineSrc = ler("v1/js/mosaico-ra-engine.js");
-  const mesaHtml = ler("v1/MOSAICO-mesa.html");
-  const salaHtml = ler("v1/MOSAICO-26-a-sala-as-escuras.html");
-  const cssSrc = ler("v1/css/mosaico-3d.css");
+  const threePath = join(root, "jogos/casa-da-costa/a-mesa/js/three.min.js");
+  const engineSrc = ler("jogos/casa-da-costa/a-mesa/js/mosaico-ra-engine.js");
+  const mesaHtml = ler("jogos/casa-da-costa/a-mesa/MOSAICO-mesa.html");
+  const salaHtml = ler("jogos/casa-da-costa/a-mesa/MOSAICO-26-a-sala-as-escuras.html");
+  const cssSrc = ler("jogos/casa-da-costa/a-mesa/css/mosaico-3d.css");
 
   it('girar por mouse ou toque não abre inspeção; um clique seguinte continua funcionando',()=>{
     const events={},globalEvents={};let raycasts=0;
@@ -30,7 +30,7 @@ describe("Mosaico RA & Sala 3D Volumétrica · Motor e Integração", () => {
   });
 
   it("Three.js local offline está presente e tem tamanho adequado (> 500 KB)", () => {
-    assert.ok(existsSync(threePath), "v1/js/three.min.js deve existir");
+    assert.ok(existsSync(threePath), "jogos/casa-da-costa/a-mesa/js/three.min.js deve existir");
     const st = statSync(threePath);
     assert.ok(st.size > 500000, `Three.js deve ser a biblioteca completa (>500KB), achou ${st.size}`);
   });
@@ -54,7 +54,7 @@ describe("Mosaico RA & Sala 3D Volumétrica · Motor e Integração", () => {
       "gaveta", "secretaria", "espelho", "janela", "relogio"
     ];
     for (const obj of objetos) {
-      assert.match(ler("v1/js/ac-room.js").replaceAll("objects[", "objetos3D["), new RegExp(`objetos3D\\["${obj}"\\]`), `Objeto canônico 3D ausente: ${obj}`);
+      assert.match(ler("jogos/casa-da-costa/a-mesa/js/ac-room.js").replaceAll("objects[", "objetos3D["), new RegExp(`objetos3D\\["${obj}"\\]`), `Objeto canônico 3D ausente: ${obj}`);
     }
   });
 

@@ -26,7 +26,7 @@ const ARQUIVOS = [
 function carimbos() {
   const achados = [];
   for (const nome of ARQUIVOS) {
-    const texto = readFileSync(new URL(`../v1/${nome}`, import.meta.url), "utf8");
+    const texto = readFileSync(new URL(`../jogos/casa-da-costa/a-mesa/${nome}`, import.meta.url), "utf8");
     const re = /src="(js\/[^"?]+)\?v=([^"]+)"/g;
     let m;
     while ((m = re.exec(texto)) !== null) {
@@ -54,7 +54,7 @@ test("os cinco carimbos dizem a mesma versão", () => {
 });
 
 test("o carimbo lido em window.MOSAICO_VERSAO é o mesmo das tags", () => {
-  const html = readFileSync(new URL("../v1/MOSAICO-mesa.html", import.meta.url), "utf8");
+  const html = readFileSync(new URL("../jogos/casa-da-costa/a-mesa/MOSAICO-mesa.html", import.meta.url), "utf8");
   const daTag = /src="js\/mosaico-v5\.js\?v=([^"]+)"/.exec(html);
   assert.ok(daTag, "não encontrei a tag de js/mosaico-v5.js com ?v=");
   assert.ok(/querySelector\('script\[src\*="mosaico-v5\.js"\]'\)/.test(html),
