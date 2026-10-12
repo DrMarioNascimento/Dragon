@@ -146,6 +146,11 @@
     "#apCasa button{min-height:44px;padding:8px 14px;border-radius:10px;font-weight:800;cursor:pointer;border:0}" +
     "#apCasa .ap-ok{flex:1;background:linear-gradient(180deg,#ffc878,#d6aa58);color:#1b1005;box-shadow:inset 0 1px #ffe2b4,0 4px 0 #6a3712}" +
     "#apCasa .ap-sei{background:#0c1b26;color:#cfe3ef;border:1px solid #46667a}" +
+    /* 11/10 (padronização): o volume e o afundar comuns a todos os jogos */
+    "#apCasa .ap-sei{box-shadow:inset 0 1px 0 #ffffff14,0 4px 0 #020609,0 8px 12px #0007}" +
+    "#apCasa .ap-ok,#apCasa .ap-sei{transition:transform .12s ease,box-shadow .12s ease}" +
+    "#apCasa .ap-ok:active{transform:translateY(3px);box-shadow:inset 0 1px #ffe2b4,0 1px 0 #6a3712}" +
+    "#apCasa .ap-sei:active{transform:translateY(3px);box-shadow:inset 0 2px 5px #0008,0 1px 0 #020609}" +
     ".ap-alvo{outline:3px solid #efc878!important;outline-offset:3px;border-radius:12px;animation:apPulso 1.4s ease-in-out infinite}" +
     "@keyframes apPulso{50%{outline-color:rgba(239,200,120,.25)}}";
   document.head.appendChild(css);
@@ -242,6 +247,20 @@
     }
     return null;
   }
+  /* e quando a tela muda sozinha (a fase aberta pelo Mestre chega pela sala, sem toque neste aparelho):
+     no máximo uma vez por quadro, só enquanto há cartão na tela */
+  var pedidoQuadro = 0;
+  try {
+    new MutationObserver(function (lista) {
+      if (!cartao || !atual || pedidoQuadro) return;
+      /* as mudanças que o próprio posicionar faz (no cartão e no respiro do #app) não contam */
+      var deFora = lista.some(function (m) { return !(cartao.contains(m.target) || (m.target.id === "app" && m.attributeName === "style") || (m.target.classList && m.target.classList.contains("ap-alvo") && m.attributeName === "class")); });
+      if (!deFora) return;
+      pedidoQuadro = requestAnimationFrame(function () { pedidoQuadro = 0; try { posicionar(); } catch (e) {} });
+    }).observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["class", "hidden", "style"] });
+  } catch (e) {}
+  /* reposicionar logo depois de um toque: a troca de tela (e a doca que chega com ela) não espera o próximo ciclo */
+  document.addEventListener("click", function () { setTimeout(function () { try { posicionar(); } catch (e) {} }, 40); setTimeout(function () { try { posicionar(); } catch (e) {} }, 260); }, false);
   setInterval(volta, 700);
   global.CasaAprendizado = {
     passos: function () { return PASSOS.map(function (p) { return p.id; }); },

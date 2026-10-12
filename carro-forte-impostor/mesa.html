@@ -148,7 +148,7 @@ button,input,textarea{font:inherit;color:inherit}
 .ficha p{margin:0;font-size:14px;line-height:1.4}
 .topo-ficha{display:flex;align-items:center;gap:12px;margin-bottom:10px}
 .topo-ficha img{width:72px;height:72px;object-fit:contain}
-.toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 110px);transform:translateX(-50%);z-index:70;padding:9px 14px;border-radius:10px;background:#123024;border:1px solid #58c78a;color:#dff8ea;font-size:13px;box-shadow:0 8px 20px #000a;max-width:90vw}
+.toast{pointer-events:none;position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 110px);transform:translateX(-50%);z-index:70;padding:9px 14px;border-radius:10px;background:#123024;border:1px solid #58c78a;color:#dff8ea;font-size:13px;box-shadow:0 8px 20px #000a;max-width:90vw}
 .proto{position:fixed;right:8px;bottom:calc(env(safe-area-inset-bottom) + 8px);z-index:40;font:600 10px var(--mono);color:#9aa9b388;pointer-events:none}
 @media (min-width:760px){.grade{grid-template-columns:repeat(3,1fr)}}
 
@@ -854,6 +854,21 @@ button:active,.caixa:active,.redondo:active,.chip:active{
 #impLogo .avatar{transform:none}
 .podio-bloco{border-bottom:0;box-shadow:inset 0 2px 0 #ffffff18,inset 0 -6px 10px #0009,0 -1px 0 #020609,0 10px 18px #0009}
 </style>
+<style id="profundidade-comum">
+/* PROFUNDIDADE COMUM A TODOS OS JOGOS (11/10/2026): o que é tocável tem parede e afunda ao toque.
+   O pulso de novidade (aba ou selo piscando) era só brilho e apagava a parede; agora a parede pulsa junto. */
+.hud-pill[role=button]{transition:transform .12s ease,box-shadow .12s ease}
+.hud-pill[role=button]:active{transform:translateY(2px);box-shadow:0 1px 0 #020609}
+@keyframes glow{0%,100%{box-shadow:0 3px 0 #020609,0 0 0 0 #70d6a000,inset 0 0 0 0 #70d6a000}50%{box-shadow:0 3px 0 #020609,0 0 16px 3px #70d6a0aa,inset 0 0 10px #70d6a055;color:#bff5d6}}
+@keyframes alerta-aba{
+  0%{box-shadow:0 4px 0 #020609,0 0 16px 3px #70d6a0bb,inset 0 0 10px #70d6a066;border-color:#70d6a0;color:#bff5d6}
+  50%{box-shadow:0 4px 0 #020609,0 0 16px 3px #ff5a4ebb,inset 0 0 10px #ff5a4e66;border-color:#ff6b5e;color:#ffd0cb}}
+@media (prefers-reduced-motion:reduce){.orelha.glow{box-shadow:0 4px 0 #020609,0 0 12px 2px #ff5a4e99}}
+.marcada-item button{box-shadow:inset 0 1px 0 #ffffff12,0 3px 0 #020609;transition:transform .12s ease,box-shadow .12s ease}
+.marcada-item button:active{transform:translateY(2px);box-shadow:inset 0 2px 5px #0008,0 1px 0 #020609}
+/* o ícone das peças da RA fica no canto de cima: o título longo (três linhas) subia por baixo dele */
+.peca{padding-top:48px}
+</style>
 </head>
 <body>
 <div class="scene" aria-hidden="true"></div>
@@ -1419,7 +1434,7 @@ function janela(rot,txt,depois){
   if(!$('#janela').hidden){filaJanelas.push([rot,txt,depois]);return}
   $('#janelaRot').textContent=rot;$('#janela').hidden=false;var completar=digitar($('#janelaTxt'),txt,12);
   $('#janelaOk').onclick=function(){completar();$('#janela').hidden=true;if(depois)depois();var prox=filaJanelas.shift();if(prox)setTimeout(function(){janela(prox[0],prox[1],prox[2])},250)}}
-function toast(t){var d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(function(){d.remove()},2600)}
+function toast(t){var d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);/* o aviso nasce logo abaixo das abas (não cobre a aba que ele aponta) e empilha se já houver outro */try{var oo=document.querySelector('.orelhas'),ro=oo&&oo.getBoundingClientRect(),y=(ro&&ro.height&&ro.bottom>0&&ro.bottom<innerHeight*.5)?ro.bottom+8:110;Array.prototype.forEach.call(document.querySelectorAll('.toast'),function(o){if(o!==d){var r=o.getBoundingClientRect();if(r.height&&r.bottom+6>y)y=r.bottom+6}});d.style.top=Math.round(y)+'px'}catch(e){}setTimeout(function(){d.remove()},2600)}
 function liberarAba(a){var o=document.querySelector('[data-aba="'+a+'"]');o.classList.remove('muda');o.classList.add('nasce');setTimeout(function(){o.classList.remove('nasce')},3400)}
 function glow(a,on){var o=document.querySelector('[data-aba="'+a+'"]');if(o)o.classList.toggle('glow',!!on)}
 

@@ -20,7 +20,7 @@
                falhar, o console avisa e a partida segue sem telão. */
             carregar('telao-publica.js?v=20261011-sdk12');
             /* 11/10/2026: o aprendizado da tela (o mesmo arquivo da manhã) */
-            carregar('../aprendizado-carro.js?v=20261011-t4');
+            carregar('../aprendizado-carro.js?v=20261011-pele2');
           });
         });
       });
