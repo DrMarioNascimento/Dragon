@@ -54,9 +54,9 @@ import vm from "node:vm";
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
 const ler = (p) => readFileSync(join(RAIZ, p), "utf8");
 
-const CASO_BASE = JSON.parse(ler("v1/casos/casa-da-costa.json"));
-const BANCO = ler("v1/js/banco-casa-da-costa.js");
-const MERCADO = ler("v1/js/mercado-casa-da-costa.js");
+const CASO_BASE = JSON.parse(ler("jogos/casa-da-costa/a-mesa/casos/casa-da-costa.json"));
+const BANCO = ler("jogos/casa-da-costa/a-mesa/js/banco-casa-da-costa.js");
+const MERCADO = ler("jogos/casa-da-costa/a-mesa/js/mercado-casa-da-costa.js");
 
 /* ── argumentos ───────────────────────────────────────────────────────── */
 const arg = (nome, padrao) => {

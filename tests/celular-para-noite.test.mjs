@@ -27,7 +27,7 @@ import {
   CUSTOS_CAPTURA,
   mapFragmentosManhaParaCaptura,
   seedCapturaDeck,
-} from '../carro-forte/celular-para-noite-contrato.mjs';
+} from '../jogos/a-manha-do-carro-forte/a-mesa/celular-para-noite-contrato.mjs';
 
 const ler = (p) =>
   readFileSync(new URL(`../${p}`, import.meta.url), 'utf8').replace(/\r\n/g, '\n');
@@ -54,11 +54,11 @@ test('parseHandoffSearch lê from=celular, sala e pergunta', () => {
 test('buildNoiteHandoffUrl monta deep link estável (sem payload rico na URL)', () => {
   assert.equal(
     buildNoiteHandoffUrl({ sala: '4chrml', pergunta: 'peso' }),
-    'noite/?from=celular&sala=4CHRML&pergunta=peso',
+    '../../../jogos/a-manha-do-carro-forte/a-noite/?from=celular&sala=4CHRML&pergunta=peso',
   );
   assert.equal(
     buildNoiteHandoffUrl({ fromCelular: true, pergunta: 'roubo' }),
-    'noite/?from=celular&pergunta=roubo',
+    '../../../jogos/a-manha-do-carro-forte/a-noite/?from=celular&pergunta=roubo',
   );
   assert.equal(FROM_CELULAR, 'celular');
   assert.ok(!buildNoiteHandoffUrl({ sala: '4CHRML', pergunta: 'peso' }).includes('fecho'));
@@ -200,11 +200,11 @@ test('banner de continuidade resume pergunta + fecho + economia', () => {
 });
 
 test('o Celular expõe CTA e carrega a ponte com handoff', () => {
-  const html = ler('carro-forte/celular.html');
-  const game = ler('carro-forte/game.js');
-  const ponte = ler('carro-forte/celular-para-noite.js');
-  assert.ok(existsSync(new URL('../carro-forte/celular-para-noite.js', import.meta.url)));
-  assert.ok(existsSync(new URL('../carro-forte/celular-para-noite-contrato.mjs', import.meta.url)));
+  const html = ler('jogos/a-manha-do-carro-forte/a-mesa/celular.html');
+  const game = ler('jogos/a-manha-do-carro-forte/a-mesa/game.js');
+  const ponte = ler('jogos/a-manha-do-carro-forte/a-mesa/celular-para-noite.js');
+  assert.ok(existsSync(new URL('../jogos/a-manha-do-carro-forte/a-mesa/celular-para-noite.js', import.meta.url)));
+  assert.ok(existsSync(new URL('../jogos/a-manha-do-carro-forte/a-mesa/celular-para-noite-contrato.mjs', import.meta.url)));
   assert.match(html, /id="toNoite"/, 'faltou o botão Ir para a Noite');
   assert.match(html, /celular-para-noite\.js\?v=/, 'celular.html não carrega a ponte');
   assert.match(game, /toNoite/, 'game.js não liga o CTA');
@@ -222,7 +222,7 @@ test('o Celular expõe CTA e carrega a ponte com handoff', () => {
 });
 
 test('seedNoiteRoom cria com fase sala e só depois avança para jogo', () => {
-  const ponte = ler('carro-forte/celular-para-noite.js');
+  const ponte = ler('jogos/a-manha-do-carro-forte/a-mesa/celular-para-noite.js');
   const regras = ler('firestore.rules');
   assert.match(regras, /fase == 'sala'/, 'create de sala exige fase sala');
   const i = ponte.indexOf('async function seedNoiteRoom');
@@ -242,9 +242,9 @@ test('seedNoiteRoom cria com fase sala e só depois avança para jogo', () => {
 })
 
 test('a Noite aceita deep link from=celular, herda pergunta e economia do handoff', () => {
-  const index = ler('carro-forte/noite/index.html');
-  const sala = ler('carro-forte/noite/sala-partida.js');
-  const nucleo = ler('carro-forte/noite/game-fixed.js');
+  const index = ler('jogos/a-manha-do-carro-forte/a-noite/index.html');
+  const sala = ler('jogos/a-manha-do-carro-forte/a-noite/sala-partida.js');
+  const nucleo = ler('jogos/a-manha-do-carro-forte/a-noite/game-fixed.js');
   assert.match(index, /fromCelular|continuidadeCelular/, 'Noite sem UI de continuidade');
   assert.match(index, /continuidadeCelular|Continuação da manhã|continuityBannerText/, 'lobby sem continuação da manhã');
   assert.match(index, /noiteStandaloneHint|PARTIDA SÓ DE FECHAMENTO|fechamento/, 'standalone sem marcação');
@@ -336,11 +336,11 @@ test('firebase-room preserva Mestre Google ao reassumir a própria sala', () => 
 });
 
 test('standalone da Noite e solo do Celular não quebram sem params', () => {
-  const index = ler('carro-forte/noite/index.html');
+  const index = ler('jogos/a-manha-do-carro-forte/a-noite/index.html');
   assert.match(index, /root:'noite'|root:"noite"/, 'Noite saiu da coleção noite');
-  const cel = ler('carro-forte/celular.html');
+  const cel = ler('jogos/a-manha-do-carro-forte/a-mesa/celular.html');
   assert.match(cel, /data-root="mosaico"/, 'Celular saiu da coleção mosaico');
   assert.match(cel, /data-project="noite"/, 'Celular saiu do projeto mosaico-noite');
-  const nucleo = ler('carro-forte/noite/game-fixed.js');
+  const nucleo = ler('jogos/a-manha-do-carro-forte/a-noite/game-fixed.js');
   assert.match(nucleo, /coins:\s*12|ECONOMIA_STANDALONE|source:\s*['"]standalone['"]/, 'standalone perdeu default 12');
 });

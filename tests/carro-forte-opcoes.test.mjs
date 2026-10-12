@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url";
    Por isso ele arranca o `ordenar` do próprio game.js e roda o sorteio. */
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
-const fonte = readFileSync(join(root, "carro-forte/game.js"), "utf8");
+const fonte = readFileSync(join(root, "jogos/a-manha-do-carro-forte/a-mesa/game.js"), "utf8");
 
 /* Se a função sumir, o teste NÃO para aqui: cai na ordem escrita no arquivo,
    que é exatamente o estado a que não se pode voltar. Assim a reprovação vem

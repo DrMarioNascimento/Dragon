@@ -12,12 +12,12 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const ler = (p) => readFileSync(join(root, p), "utf8").replace(/\r\n/g, "\n");
 
 const ROOM = ler("firebase-room.js");
-const CASA = ler("v1/MOSAICO-mesa.html");
-const BRIDGE = ler("v1/js/casa-firebase-room-bridge.js");
+const CASA = ler("jogos/casa-da-costa/a-mesa/MOSAICO-mesa.html");
+const BRIDGE = ler("jogos/casa-da-costa/a-mesa/js/casa-firebase-room-bridge.js");
 const PADRAO = ler("documentos/PADRAO-SALA-MULTIPLAYER.md");
 const ISO = ler("documentos/FIREBASE-ISOLAMENTO.md");
-const CEL = ler("carro-forte/celular.html");
-const NOITE = ler("carro-forte/noite/index.html");
+const CEL = ler("jogos/a-manha-do-carro-forte/a-mesa/celular.html");
+const NOITE = ler("jogos/a-manha-do-carro-forte/a-noite/index.html");
 
 function stripComments(src) {
   return src
@@ -32,12 +32,12 @@ describe("Casa carrega firebase-room no projeto certo", () => {
     assert.match(CASA, /data-root="mosaico"/);
     assert.match(CASA, /data-case="casa-da-costa"/);
     assert.match(CASA, /data-ready-event="casa-mesa-ready"/);
-    assert.match(CASA, /data-telao="\.\.\/telao\.html\?jogo=casa-da-costa"/);
+    assert.match(CASA, /data-telao="\.\.\/\.\.\/\.\.\/telao\.html\?jogo=casa-da-costa"/);
     assert.match(CASA, /data-title="A Casa da Costa"/);
   });
 
   it("ponte existe e marca gate externo", () => {
-    assert.ok(existsSync(join(root, "v1/js/casa-firebase-room-bridge.js")));
+    assert.ok(existsSync(join(root, "jogos/casa-da-costa/a-mesa/js/casa-firebase-room-bridge.js")));
     assert.match(CASA, /casa-firebase-room-bridge\.js\?v=/);
     assert.match(BRIDGE, /MOSAICO_GATE_EXTERNO\s*=\s*true/);
     assert.match(BRIDGE, /casa-mesa-ready/);
@@ -46,7 +46,7 @@ describe("Casa carrega firebase-room no projeto certo", () => {
   });
 
   it("Ensaiar no gate redireciona para Solo", () => {
-    assert.match(BRIDGE, /\.\.\/solo\//);
+    assert.match(BRIDGE, /\.\.\/jogos\/casa-da-costa\/solo\//);
     assert.match(BRIDGE, /detail\.ensaio|detail\.local/);
   });
 });

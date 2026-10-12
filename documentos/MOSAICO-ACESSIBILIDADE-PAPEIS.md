@@ -234,10 +234,10 @@ O MOSAICO não deve tornar o mistério mais simples para incluir jogadores difer
 |---|---|
 | Módulo compartilhado (papéis, aliases, camadas, seletor, chips, andaimes) | `papel-camada.js` (raiz) |
 | Hub (único seletor Celular · Telão · Solo) | `index.html` |
-| `/casa-da-costa/` e `/carro-forte/` → gate Celular | `casa-da-costa/index.html`, `carro-forte/index.html` |
+| `/casa-da-costa/` e `/jogos/a-manha-do-carro-forte/a-mesa/` → gate Celular | `casa-da-costa/index.html`, `jogos/a-manha-do-carro-forte/a-mesa/index.html` |
 | Seletor no lobby Celular (Carro + ensaio) | `firebase-room.js` → formulário de entrada / ensaio |
-| Seletor Casa Celular | `v1/MOSAICO-mesa.html` → tela de entrar |
-| Seletor Solo Casa | `solo/solo-auto.js` (antes de “Começar”) |
+| Seletor Casa Celular | `jogos/casa-da-costa/a-mesa/MOSAICO-mesa.html` → tela de entrar |
+| Seletor Solo Casa | `jogos/casa-da-costa/solo/solo-auto.js` (antes de “Começar”) |
 | Chip no HUD + andaime Assistida/Guiada | `MosaicoPapelCamada.aplicarEmJogo` / `htmlAndaime` |
 | Telão (sem papel/camada; pede `?sala=`) | `telao.html` |
 | Modal de elenco antes da encenação (Casa) | mesa `telaElencoIntro` · `elencoEmJogo` (só assentos ocupados) · `tarefa-sensor.js` `resolverElenco` |
@@ -257,7 +257,7 @@ Camadas **não** alteram fatos, pistas nem pontuação. Assistida/Guiada são an
 | Catálogo player-facing (sem `resposta` / sem `canonica`) | `hipoteses-por-camada.json` |
 | API de apresentação + HTML por densidade | `hipoteses-por-camada.js` → `MosaicoHipotesesCamada` |
 | Integração no andaime (substitui slots vazios do MVP) | `papel-camada.js` → `htmlAndaime` / `trocarCamada` |
-| Carro · fase HIPÓTESE com scaffold Assistida/Guiada | `carro-forte/game.js` → `renderHypothesis` |
+| Carro · fase HIPÓTESE com scaffold Assistida/Guiada | `jogos/a-manha-do-carro-forte/a-mesa/game.js` → `renderHypothesis` |
 | Testes de invariância / densidade / proibições | `tests/hipoteses-por-camada.test.mjs` |
 
 | Camada | Densidade do painel de hipóteses |

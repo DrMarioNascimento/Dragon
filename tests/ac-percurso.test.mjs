@@ -8,9 +8,9 @@ import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 
 test('percurso da Mesa segue sala escura, escrivaninha e maquete depois da Janela do Norte',()=>{
- const src=readFileSync('v1/js/ac-percurso.js','utf8');
- const html=readFileSync('v1/AC-percurso.html','utf8');
- const atividades=readFileSync('v1/js/atividades-casa-da-costa.js','utf8');
+ const src=readFileSync('jogos/casa-da-costa/a-mesa/js/ac-percurso.js','utf8');
+ const html=readFileSync('jogos/casa-da-costa/a-mesa/AC-percurso.html','utf8');
+ const atividades=readFileSync('jogos/casa-da-costa/a-mesa/js/atividades-casa-da-costa.js','utf8');
  assert.match(html,/ac-percurso\.js\?v=/);
  assert.match(atividades,/PAR_CANONICO = \{ inclinacao: "janela", constelacao: "salaEscura" \}/);
  assert.doesNotMatch(atividades,/\bn % opcoes\.length\b/);
@@ -27,8 +27,8 @@ test('percurso da Mesa segue sala escura, escrivaninha e maquete depois da Janel
 
 test('prazo do percurso (20 min: soma dos tempos de cada tarefa) vale somente para percurso novo e segue o documento da mesa',()=>{
  const c={STATE:{doc:{atividades:{inclinacao:'janela',constelacao:'salaEscura'},percursoAC:1,percursoLimiteSegundos:1500}},CASO:{configuracao:{limitesSegundos:{inclinacao:150,constelacao:180}},tarefas:{}}};c.window=c;
- vm.runInNewContext(readFileSync('v1/js/ac-ritmo.js','utf8'),c);
- vm.runInNewContext(readFileSync('v1/js/atividades-casa-da-costa.js','utf8'),c);
+ vm.runInNewContext(readFileSync('jogos/casa-da-costa/a-mesa/js/ac-ritmo.js','utf8'),c);
+ vm.runInNewContext(readFileSync('jogos/casa-da-costa/a-mesa/js/atividades-casa-da-costa.js','utf8'),c);
  assert.equal(c.limiteTarefaSensorMs('constelacao'),1500000);
  assert.equal(c.limiteTarefaSensorMs('inclinacao'),150000);
  /* Mesas abertas antes de 19/09/2026 gravaram 900 s — menos que a soma das
@@ -49,7 +49,7 @@ test('navegador encaminha etapas e devolve apenas conclusao final da rodada corr
  EventSource:class{constructor(){context.stream=this;}close(){}},
  fetch:async(url,options)=>{if(url.startsWith('/api/ac/action'))actions.push(JSON.parse(options.body));return {ok:true,json:async()=>view};},
  addEventListener:(type,handler)=>listeners[type]=handler};context.window=context;
- vm.runInNewContext(readFileSync('v1/js/ac-percurso.js','utf8'),context);
+ vm.runInNewContext(readFileSync('jogos/casa-da-costa/a-mesa/js/ac-percurso.js','utf8'),context);
  const flush=()=>new Promise(r=>setImmediate(r));await flush();
  assert.match(node('scene').src,/MOSAICO-26-a-sala-as-escuras/);
  const message=(source,runId)=>listeners.message({origin:'http://localhost',source,data:{mosaico:'tarefa-ok',runId,tempoMs:1200}});
@@ -116,7 +116,7 @@ test('HTTP vincula convite a rodada, protege consulta e serve apenas JSON canoni
    const state=await(await fetch(base+'/api/ac/state?'+query)).json();
    assert.equal(state.percurso.runId,'mesa-123');assert.equal(state.maquete,null);
    query.set('chave','errada');assert.equal((await fetch(base+'/api/ac/state?'+query)).status,403);
-   assert.equal((await fetch(base+'/v1/casos/casa-da-costa.json')).status,200);
+   assert.equal((await fetch(base+'/jogos/casa-da-costa/a-mesa/casos/casa-da-costa.json')).status,200);
    assert.equal((await fetch(base+'/package.json')).status,403);
    assert.equal((await fetch(base+'/.ac-ensaio/salas.json')).status,403);
  }finally{server.closeAllConnections();await new Promise(r=>server.close(r));}
@@ -129,12 +129,12 @@ test('fila restaura descoberta apos falha e confirma resposta perdida sem reenvi
  const view=()=>({percurso:{runId:'r',ready:[],paused:[],salaIndividual:{luz:{pontos:accepted}}},maquete:null});
  const c={URL,URLSearchParams,Date,JSON,Math,crypto:{randomUUID:()=> 'x'},location:{search:'?run=r&sala=s&papel=luz&chave=k',href:'http://localhost/v1/AC-percurso.html',origin:'http://localhost'},history:{replaceState(){}},parent,document:{getElementById:node},sessionStorage:{getItem:k=>store.get(k),setItem:(k,v)=>store.set(k,v)},EventSource:class{close(){}},setTimeout:()=>1,clearTimeout(){},addEventListener:(n,h)=>handlers[n]=h,
  fetch:async(url,opts)=>{if(url.startsWith('/api/ac/action')){const e=JSON.parse(opts.body);if(e.type==='sala_progresso'){actions.push(e);accepted=e.objetos;if(fail)throw Error('resposta perdida');}}return {ok:true,json:async()=>view()};}};c.window=c;
- vm.runInNewContext(readFileSync('v1/js/ac-percurso.js','utf8'),c);
+ vm.runInNewContext(readFileSync('jogos/casa-da-costa/a-mesa/js/ac-percurso.js','utf8'),c);
  const flush=()=>new Promise(r=>setImmediate(r));await flush();
  handlers.message({source:child,origin:'http://localhost',data:{runId:'r',mosaico:'ac-sala-progresso',objetos:4,total:9}});await flush();
  assert.equal(actions.length,1);assert.equal(node('sync-status').hidden,false);
  assert.equal(JSON.parse(store.get('ac:percurso:r:visitante:pending'))[0].objetos,4);
- fail=false;vm.runInNewContext(readFileSync('v1/js/ac-percurso.js','utf8'),c);await flush();
+ fail=false;vm.runInNewContext(readFileSync('jogos/casa-da-costa/a-mesa/js/ac-percurso.js','utf8'),c);await flush();
  assert.equal(actions.length,1,'servidor ja confirmou: nao repetir descoberta');
  assert.deepEqual(JSON.parse(store.get('ac:percurso:r:visitante:pending')),[]);
  assert.equal(node('sync-status').hidden,true);

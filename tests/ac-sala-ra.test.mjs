@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
-const html=readFileSync(new URL('../v1/MOSAICO-26-a-sala-as-escuras.html',import.meta.url),'utf8');
+const html=readFileSync(new URL('../jogos/casa-da-costa/a-mesa/MOSAICO-26-a-sala-as-escuras.html',import.meta.url),'utf8');
 test('scripts da entrada RA continuam sintaticamente válidos',()=>{
   for(const match of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g))new vm.Script(match[1]);
 });

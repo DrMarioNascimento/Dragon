@@ -58,10 +58,10 @@ const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
 const ler = (p) => readFileSync(join(RAIZ, p), "utf8");
 
 const FONTES = {
-  vidroMesa: "v1/MOSAICO-26-vidro-embacado.html",
-  vidroNoite: "mosaico-web/public/modulos/vidro-embacado.html",
-  salaMesa: "v1/MOSAICO-26-a-sala-as-escuras.html",
-  salaNoite: "mosaico-web/public/modulos/sala-as-escuras.html",
+  vidroMesa: "jogos/casa-da-costa/a-mesa/MOSAICO-26-vidro-embacado.html",
+  vidroNoite: "desenvolvimento/casa-da-costa/a-noite/public/modulos/vidro-embacado.html",
+  salaMesa: "jogos/casa-da-costa/a-mesa/MOSAICO-26-a-sala-as-escuras.html",
+  salaNoite: "desenvolvimento/casa-da-costa/a-noite/public/modulos/sala-as-escuras.html",
 };
 const SRC = Object.fromEntries(
   Object.entries(FONTES).map(([k, p]) => [k, ler(p)]),

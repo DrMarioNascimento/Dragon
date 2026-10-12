@@ -186,7 +186,7 @@ async function liberarEnsaio(){
   liberar({local:true,ensaio:true});
 }
 /* Solo do hub (`?soloLab=1`): sem Google e sem sala — o mesmo espírito da
-   porta `/solo/` da Casa. A abertura toca NESTE aparelho assim que o jogo
+   porta `/jogos/casa-da-costa/solo/` da Casa. A abertura toca NESTE aparelho assim que o jogo
    libera. Pedir conta de Mestre aqui fazia o ensaio morrer no gate e a
    manhã nunca falava. */
 async function iniciarEnsaioLocal(){

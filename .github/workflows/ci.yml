@@ -52,11 +52,11 @@ jobs:
         with:
           node-version: "24"   # o node --test lê TypeScript direto
       - name: Dependências da noite
-        working-directory: mosaico-web
+        working-directory: desenvolvimento/casa-da-costa/a-noite
         run: npm install --no-audit --no-fund
       - name: Tipos
-        working-directory: mosaico-web
+        working-directory: desenvolvimento/casa-da-costa/a-noite
         run: npm run typecheck
       - name: Máquina de fases e infraestrutura
-        working-directory: mosaico-web
+        working-directory: desenvolvimento/casa-da-costa/a-noite
         run: npm test

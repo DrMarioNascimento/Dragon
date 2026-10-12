@@ -13,7 +13,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const fonte = readFileSync(new URL("../v1/js/qr.js", import.meta.url), "utf8");
+const fonte = readFileSync(new URL("../jogos/casa-da-costa/a-mesa/js/qr.js", import.meta.url), "utf8");
 const janela = {};
 new Function("window", fonte)(janela);
 const QR = janela.MosaicoQR;
@@ -205,9 +205,9 @@ test("o SVG sai autocontido e com rótulo acessível", () => {
    Só a amarração pode diferir. Se o corpo divergir, um dos dois jogos passa a
    gerar QR com outro código — e QR errado tem a aparência exata de QR certo. */
 test("as duas cópias do codificador têm o mesmo corpo", () => {
-  const mesa = readFileSync(new URL("../v1/js/qr.js", import.meta.url), "utf8");
+  const mesa = readFileSync(new URL("../jogos/casa-da-costa/a-mesa/js/qr.js", import.meta.url), "utf8");
   const noite = readFileSync(
-    new URL("../mosaico-web/src/lib/mosaico/qr.js", import.meta.url),
+    new URL("../desenvolvimento/casa-da-costa/a-noite/src/lib/mosaico/qr.js", import.meta.url),
     "utf8",
   );
   const corpo = (texto) => {
@@ -219,6 +219,6 @@ test("as duas cópias do codificador têm o mesmo corpo", () => {
   assert.equal(
     corpo(noite),
     corpo(mesa),
-    "mosaico-web/src/lib/mosaico/qr.js divergiu de v1/js/qr.js",
+    "desenvolvimento/casa-da-costa/a-noite/src/lib/mosaico/qr.js divergiu de v1/js/qr.js",
   );
 });

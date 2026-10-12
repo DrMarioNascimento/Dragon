@@ -2,7 +2,7 @@
  *
  * Este arquivo existe por causa de uma classe inteira de erro que passou por
  * toda a revisão anterior: caminho que funciona em localhost e morre em
- * /Dragon/v2/. O Vite reescreve a base dentro do CSS, nunca dentro de string,
+ * /Dragon/jogos/casa-da-costa/a-noite/. O Vite reescreve a base dentro do CSS, nunca dentro de string,
  * então "/media/foto-agenda.jpg" vai para a raiz do domínio e dá 404 — no
  * site no ar, a fase inteira do Encaixe abria sem uma única imagem.
  *
@@ -16,15 +16,15 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
-const V2 = join(RAIZ, "v2");
-const BASE = "/Dragon/v2/";
+const V2 = join(RAIZ, "jogos/casa-da-costa/a-noite");
+const BASE = "/Dragon/jogos/casa-da-costa/a-noite/";
 
 /** Referências que não são arquivo e nunca serão — documentadas, não ignoradas. */
 const NAO_SAO_ARQUIVO = new Set([
   /* Rota de função de servidor do TanStack Start. O GitHub Pages não tem
      servidor e a noite não chama nenhuma; se um dia chamar, dará 404 e este
      comentário é onde a pessoa vai procurar. */
-  "/Dragon/v2/_serverFn/",
+  "/Dragon/jogos/casa-da-costa/a-noite/_serverFn/",
 ]);
 
 function arquivos(dir, filtro) {
@@ -86,9 +86,9 @@ test("todo endereço sob a base resolve para um arquivo do build", () => {
   for (const caminho of textoDoBuild) {
     const texto = readFileSync(caminho, "utf8");
     /* Só o que está em contexto de string ou atributo. Os módulos explicam em
-       comentário por que /Dragon/v2/noite dá 404 — citar um endereço não é
+       comentário por que /Dragon/jogos/casa-da-costa/a-noite/noite dá 404 — citar um endereço não é
        pedi-lo, e um teste que não distingue os dois vira ruído. */
-    for (const m of texto.matchAll(/["'`=(]\s*(\/Dragon\/v2\/[A-Za-z0-9._/-]*)/g)) {
+    for (const m of texto.matchAll(/["'`=(]\s*(\/Dragon\/jogos\/casa-da-costa\/a-noite\/[A-Za-z0-9._/-]*)/g)) {
       const url = m[1];
       if (NAO_SAO_ARQUIVO.has(url)) continue;
       if (url === BASE) continue;
@@ -102,7 +102,7 @@ test("o manifesto do PWA existe e aponta para ícones que existem", () => {
   /* O manifesto vinha de um middleware que só roda no dev: no Pages era 404,
      e no iPhone o ícone da tela de início virava um retrato da página. */
   const caminho = join(V2, "manifest.webmanifest");
-  assert.ok(existsSync(caminho), "v2/manifest.webmanifest não foi publicado");
+  assert.ok(existsSync(caminho), "jogos/casa-da-costa/a-noite/manifest.webmanifest não foi publicado");
   const m = JSON.parse(readFileSync(caminho, "utf8"));
   assert.ok(m.name && m.short_name, "manifesto sem nome");
   for (const icone of m.icons ?? []) {
@@ -121,12 +121,12 @@ test("o manifesto do PWA existe e aponta para ícones que existem", () => {
 test("os módulos publicados são idênticos aos da fonte", () => {
   /* v2/ é cópia manual de dist/client. Já houve deriva — o favicon foi editado
      direto no v2/ e o build seguinte o desfez. */
-  const fonte = join(RAIZ, "mosaico-web", "public", "modulos");
+  const fonte = join(RAIZ, "desenvolvimento/casa-da-costa/a-noite", "public", "modulos");
   for (const nome of readdirSync(fonte)) {
     assert.equal(
       readFileSync(join(V2, "modulos", nome), "utf8"),
       readFileSync(join(fonte, nome), "utf8"),
-      `v2/modulos/${nome} não corresponde à fonte — refaça o build`,
+      `jogos/casa-da-costa/a-noite/modulos/${nome} não corresponde à fonte — refaça o build`,
     );
   }
 });
@@ -143,7 +143,7 @@ test("o fallback de SPA é o mesmo documento em três nomes", () => {
 });
 
 test("as rotas do build usam hash, senão o 404 do Pages assume", () => {
-  /* Em /Dragon/v2/ só existe arquivo na raiz do app. Sem hash history, uma
+  /* Em /Dragon/jogos/casa-da-costa/a-noite/ só existe arquivo na raiz do app. Sem hash history, uma
      rota digitada na barra de endereço nunca chega ao roteador. */
   const bundles = arquivos(join(V2, "assets"), (n) => n.endsWith(".js"))
     .map((c) => readFileSync(c, "utf8"))

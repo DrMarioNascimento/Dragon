@@ -11,15 +11,15 @@ import { readFileSync, existsSync } from "node:fs";
 const ler = (p) =>
   readFileSync(new URL(`../${p}`, import.meta.url), "utf8").replace(/\r\n/g, "\n");
 
-const PAUTA = ler("carro-forte/pauta-da-mesa.js");
-const CELULAR = ler("carro-forte/celular.html");
-const CASA = ler("v1/MOSAICO-mesa.html");
-const CASA_V2 = ler("v1/js/casa-da-costa-v2.js");
-const MOSAICO_V5 = ler("v1/js/mosaico-v5.js");
-const PAUTA_CF = ler("carro-forte/pauta-da-mesa.js");
-const GAME_CF = ler("carro-forte/game.js");
+const PAUTA = ler("jogos/a-manha-do-carro-forte/a-mesa/pauta-da-mesa.js");
+const CELULAR = ler("jogos/a-manha-do-carro-forte/a-mesa/celular.html");
+const CASA = ler("jogos/casa-da-costa/a-mesa/MOSAICO-mesa.html");
+const CASA_V2 = ler("jogos/casa-da-costa/a-mesa/js/casa-da-costa-v2.js");
+const MOSAICO_V5 = ler("jogos/casa-da-costa/a-mesa/js/mosaico-v5.js");
+const PAUTA_CF = ler("jogos/a-manha-do-carro-forte/a-mesa/pauta-da-mesa.js");
+const GAME_CF = ler("jogos/a-manha-do-carro-forte/a-mesa/game.js");
 const LANDING_CASA = ler("casa-da-costa/index.html");
-const LANDING_CARRO = ler("carro-forte/index.html");
+const LANDING_CARRO = ler("jogos/a-manha-do-carro-forte/a-mesa/index.html");
 const HUB = ler("index.html");
 const TELAO = ler("telao.html");
 const REDIRECT_MESA = ler("carro-forte-mesa/index.html");
@@ -42,7 +42,7 @@ test("a pauta do Carro-Forte Celular fala com mosaico-noite, não com mosaico-ga
 test("o celular do Carro-Forte carrega firebase-room no projeto noite", () => {
   assert.match(CELULAR, /data-project="noite"/, "celular.html perdeu data-project=noite");
   assert.match(CELULAR, /data-root="mosaico"/, "celular.html perdeu a coleção mosaico");
-  assert.match(CELULAR, /data-telao="\.\.\/telao\.html\?jogo=carro-forte"/);
+  assert.match(CELULAR, /data-telao="\.\.\/\.\.\/\.\.\/telao\.html\?jogo=carro-forte"/);
 });
 
 test("finalizarPartida aplica o placar no STATE local antes da fase resultado", () => {
@@ -110,24 +110,24 @@ test("o rodízio do Carro-Forte sobe para o documento da sala em multiplayer", (
 });
 
 test("landings e redirects chegam a fluxos que existem", () => {
-  assert.match(LANDING_CASA, /\.\.\/v1\/MOSAICO-mesa\.html/);
+  assert.match(LANDING_CASA, /\.\.\/jogos\/casa-da-costa\/a-mesa\/MOSAICO-mesa\.html/);
   assert.equal(/data-mode-ctas/.test(LANDING_CASA), false);
   assert.match(LANDING_CARRO, /celular\.html/);
   assert.equal(/data-mode-ctas/.test(LANDING_CARRO), false);
   assert.ok(HUB.includes('href="historias/casa-da-costa/a-mesa/"'));
   assert.ok(HUB.includes('href="historias/a-manha-do-carro-forte/a-mesa/"'));
-  assert.doesNotMatch(HUB, /href="solo\/"|soloLab=1/);
-  assert.match(REDIRECT_MESA, /carro-forte\/celular\.html/);
-  assert.match(REDIRECT_NOITE, /carro-forte\/noite\//);
+  assert.doesNotMatch(HUB, /href="jogos\/casa-da-costa\/jogos\/casa-da-costa\/solo\/"|soloLab=1/);
+  assert.match(REDIRECT_MESA, /jogos\/a-manha-do-carro-forte\/a-mesa\/celular\.html/);
+  assert.match(REDIRECT_NOITE, /jogos\/a-manha-do-carro-forte\/a-noite\//);
   assert.match(ROOT_MESA, /id="app"/);
   /* A raiz é só a porta: leva à Mesa de verdade com o código da sala. A cópia
      velha que morava aqui carregava o modo de teste 3D inteiro. */
-  assert.match(ROOT_MESA, /location\.replace\("v1\/MOSAICO-mesa\.html" \+ location\.search \+ location\.hash\)/);
+  assert.match(ROOT_MESA, /location\.replace\("jogos\/casa-da-costa\/a-mesa\/MOSAICO-mesa\.html" \+ location\.search \+ location\.hash\)/);
   assert.doesNotMatch(ROOT_MESA, /Teste3D|<script type="module">/);
-  assert.ok(existsSync(new URL("../carro-forte/celular.html", import.meta.url)));
-  assert.ok(existsSync(new URL("../carro-forte/noite/index.html", import.meta.url)));
-  assert.ok(existsSync(new URL("../v1/MOSAICO-mesa.html", import.meta.url)));
-  assert.ok(existsSync(new URL("../solo/index.html", import.meta.url)));
+  assert.ok(existsSync(new URL("../jogos/a-manha-do-carro-forte/a-mesa/celular.html", import.meta.url)));
+  assert.ok(existsSync(new URL("../jogos/a-manha-do-carro-forte/a-noite/index.html", import.meta.url)));
+  assert.ok(existsSync(new URL("../jogos/casa-da-costa/a-mesa/MOSAICO-mesa.html", import.meta.url)));
+  assert.ok(existsSync(new URL("../jogos/casa-da-costa/solo/index.html", import.meta.url)));
 });
 
 test("o telão isola Casa em mosaico-game e Carro em mosaico-noite", () => {

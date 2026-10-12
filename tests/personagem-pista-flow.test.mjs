@@ -22,10 +22,10 @@ function fnSlice(src, name, nextNames) {
   return src.slice(start, end);
 }
 
-const TS = ler("v1/js/tarefa-sensor.js");
-const MESA = ler("v1/MOSAICO-mesa.html");
-const JANELA = ler("v1/MOSAICO-26-a-janela-do-norte.html");
-const PF = ler("v1/css/profundidade-1mais1.css");
+const TS = ler("jogos/casa-da-costa/a-mesa/js/tarefa-sensor.js");
+const MESA = ler("jogos/casa-da-costa/a-mesa/MOSAICO-mesa.html");
+const JANELA = ler("jogos/casa-da-costa/a-mesa/MOSAICO-26-a-janela-do-norte.html");
+const PF = ler("jogos/casa-da-costa/a-mesa/css/profundidade-1mais1.css");
 
 describe("elenco · destaque uma vez", () => {
   it("lista limpa + rodapé único; overlay opaco some o vazamento da Janela", async () => {
@@ -146,29 +146,29 @@ describe("números de carta · mínimo 22px", () => {
 
   it("Carro: códigos F## nas cartas de sensor e no dossiê", () => {
     for (const p of [
-      "carro-forte/janela-do-norte.html",
-      "carro-forte/vidro-embacado.html",
-      "carro-forte/sala-as-escuras.html",
+      "jogos/a-manha-do-carro-forte/a-mesa/janela-do-norte.html",
+      "jogos/a-manha-do-carro-forte/a-mesa/vidro-embacado.html",
+      "jogos/a-manha-do-carro-forte/a-mesa/sala-as-escuras.html",
     ]) {
       const src = ler(p);
       assert.match(src, /id="carta-cod"[^>]*carta-num/, p);
       assert.match(src, /clamp\(22px,\s*6\.5vw,\s*34px\)/, p);
       assert.equal(/#carta b\{display:block;font:700 10px/.test(src), false, p);
     }
-    const css = ler("carro-forte/styles.css");
+    const css = ler("jogos/a-manha-do-carro-forte/a-mesa/styles.css");
     assert.match(css, /\.fragment small\{font:800 clamp\(22px/);
     assert.equal(/\.fragment small\{font:700 8px/.test(css), false);
-    assert.match(ler("carro-forte/game.js"), /class="carta-num"/);
+    assert.match(ler("jogos/a-manha-do-carro-forte/a-mesa/game.js"), /class="carta-num"/);
   });
 
   it("Carro: hint do dossiê na carta do fragmento (as três portas)", () => {
-    const css = ler("carro-forte/atividade.css");
+    const css = ler("jogos/a-manha-do-carro-forte/a-mesa/atividade.css");
     assert.match(css, /\.pista-arquivo-hint \.pista-arquivo-curta\{display:none\}/);
     assert.match(css, /@media \(max-height:600px\),\(max-width:330px\)/);
     for (const p of [
-      "carro-forte/janela-do-norte.html",
-      "carro-forte/vidro-embacado.html",
-      "carro-forte/sala-as-escuras.html",
+      "jogos/a-manha-do-carro-forte/a-mesa/janela-do-norte.html",
+      "jogos/a-manha-do-carro-forte/a-mesa/vidro-embacado.html",
+      "jogos/a-manha-do-carro-forte/a-mesa/sala-as-escuras.html",
     ]) {
       const src = ler(p);
       assert.match(src, /data-pista-arquivo-hint="1"/, p);
@@ -181,13 +181,13 @@ describe("números de carta · mínimo 22px", () => {
 
 describe("portas sem este padrão", () => {
   it("Casa Solo não tem elenco+pista privada (reconstrução factual)", () => {
-    const solo = ler("solo/mesa-solo.js");
+    const solo = ler("jogos/casa-da-costa/solo/mesa-solo.js");
     assert.equal(/avisoElencoAntesJanela/.test(solo), false);
     assert.equal(/telaRevelacao/.test(solo), false);
   });
 
   it("Carro Janela não inventa elenco da Casa", () => {
-    const carro = ler("carro-forte/janela-do-norte.html");
+    const carro = ler("jogos/a-manha-do-carro-forte/a-mesa/janela-do-norte.html");
     assert.equal(/avisoElencoAntesJanela/.test(carro), false);
     assert.equal(/O seu personagem é:/.test(carro), false);
   });

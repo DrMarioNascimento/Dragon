@@ -10,13 +10,13 @@ const ler = (p) =>
 
 const RULES = ler("firestore.rules");
 const ROOM = ler("firebase-room.js");
-const CELULAR = ler("carro-forte/celular.html");
-const NOITE_INDEX = ler("carro-forte/noite/index.html");
-const PAUTA = ler("carro-forte/pauta-da-mesa.js");
-const PONTE = ler("carro-forte/celular-para-noite.js");
-const CASA = ler("v1/MOSAICO-mesa.html");
+const CELULAR = ler("jogos/a-manha-do-carro-forte/a-mesa/celular.html");
+const NOITE_INDEX = ler("jogos/a-manha-do-carro-forte/a-noite/index.html");
+const PAUTA = ler("jogos/a-manha-do-carro-forte/a-mesa/pauta-da-mesa.js");
+const PONTE = ler("jogos/a-manha-do-carro-forte/a-mesa/celular-para-noite.js");
+const CASA = ler("jogos/casa-da-costa/a-mesa/MOSAICO-mesa.html");
 const TELAO = ler("telao.html");
-const SOLO = ler("solo/index.html");
+const SOLO = ler("jogos/casa-da-costa/solo/index.html");
 const SEC = ler("documentos/FIREBASE-SECURITY.md");
 const ISO = ler("documentos/FIREBASE-ISOLAMENTO.md");
 const NOITE_DOC = ler("documentos/FIREBASE-NOITE.md");
@@ -38,11 +38,11 @@ test("clientes canônicos não usam raízes carroforte / carroforte-noite", () =
   /* data-root / root: / RAIZ / colecao / COLECAO / doc(db, '…') */
   const fontes = [
     ["firebase-room.js", ROOM],
-    ["carro-forte/celular.html", CELULAR],
-    ["carro-forte/noite/index.html", NOITE_INDEX],
-    ["carro-forte/pauta-da-mesa.js", PAUTA],
-    ["carro-forte/celular-para-noite.js", PONTE],
-    ["v1/MOSAICO-mesa.html", CASA],
+    ["jogos/a-manha-do-carro-forte/a-mesa/celular.html", CELULAR],
+    ["jogos/a-manha-do-carro-forte/a-noite/index.html", NOITE_INDEX],
+    ["jogos/a-manha-do-carro-forte/a-mesa/pauta-da-mesa.js", PAUTA],
+    ["jogos/a-manha-do-carro-forte/a-mesa/celular-para-noite.js", PONTE],
+    ["jogos/casa-da-costa/a-mesa/MOSAICO-mesa.html", CASA],
     ["telao.html", TELAO],
   ];
   for (const [nome, src] of fontes) {
@@ -99,7 +99,7 @@ test("Carro grava pergunta aninhada; não escreve partidaId na raiz da sala", ()
   ]) {
     assert.ok(!/\bpartidaId\b/.test(src), `${nome} passou a mencionar partidaId na raiz`);
   }
-  const rotacao = ler("v1/js/rotacao-partidas-casa.js");
+  const rotacao = ler("jogos/casa-da-costa/a-mesa/js/rotacao-partidas-casa.js");
   assert.match(rotacao, /atualizarMesa\([^)]*partidaId/, "Casa perdeu gravação de partidaId");
 });
 

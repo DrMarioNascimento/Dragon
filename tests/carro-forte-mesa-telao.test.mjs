@@ -28,14 +28,14 @@ import { readFileSync, existsSync } from "node:fs";
 const ler = (p) =>
   readFileSync(new URL(`../${p}`, import.meta.url), "utf8").replace(/\r\n/g, "\n");
 
-const GAME = ler("carro-forte/game.js");
-const ATIVIDADE = ler("carro-forte/atividade.js");
-const PAUTA = ler("carro-forte/pauta-da-mesa.js");
-const MESA_HTML = ler("carro-forte/celular.html");
-const ESTILO = ler("carro-forte/styles.css");
+const GAME = ler("jogos/a-manha-do-carro-forte/a-mesa/game.js");
+const ATIVIDADE = ler("jogos/a-manha-do-carro-forte/a-mesa/atividade.js");
+const PAUTA = ler("jogos/a-manha-do-carro-forte/a-mesa/pauta-da-mesa.js");
+const MESA_HTML = ler("jogos/a-manha-do-carro-forte/a-mesa/celular.html");
+const ESTILO = ler("jogos/a-manha-do-carro-forte/a-mesa/styles.css");
 const SALA = ler("firebase-room.js");
 const TELAO = ler("telao.html");
-const NOITE = ler("carro-forte/noite/telao-publica.js");
+const NOITE = ler("jogos/a-manha-do-carro-forte/a-noite/telao-publica.js");
 const REGRAS = ler("firestore.rules");
 const PAGINAS = ["sala-as-escuras", "vidro-embacado", "janela-do-norte"];
 
@@ -61,7 +61,7 @@ test("a atividade não tem mais um concluir sempre liberado", () => {
     "voltou o botão que encerrava a atividade a qualquer instante",
   );
   for (const p of PAGINAS) {
-    const html = ler(`carro-forte/${p}.html`);
+    const html = ler(`jogos/a-manha-do-carro-forte/a-mesa/${p}.html`);
     assert.match(
       html,
       /<button id="finish"[^>]*\shidden>/,
@@ -669,7 +669,7 @@ test("o pódio não some quando os celulares abrem o relatório", () => {
    partida: o arquivo mudou e o carimbo não. A Noite carrega telao-publica.js
    pela cascata de carro-forte/noite/game.js, e ele também mudou hoje. */
 test("o carimbo do telão d'A Noite acompanha o arquivo", () => {
-  const cascata = ler("carro-forte/noite/game.js");
+  const cascata = ler("jogos/a-manha-do-carro-forte/a-noite/game.js");
   const carimbo = cascata.match(/telao-publica\.js\?v=([^']+)/)?.[1];
   assert.ok(carimbo, "telao-publica.js perdeu o carimbo e deixou de furar o cache");
   assert.match(
@@ -683,7 +683,7 @@ test("o carimbo do telão d'A Noite acompanha o arquivo", () => {
    ainda carimbam `caseId` na sala. Um código digitado no jogo errado não pode
    entrar sem aviso. */
 test("as duas mesas carimbam o caso e recusam o do vizinho", () => {
-  const CASA = ler("v1/MOSAICO-mesa.html");
+  const CASA = ler("jogos/casa-da-costa/a-mesa/MOSAICO-mesa.html");
   assert.match(CASA, /caseId:"casa-da-costa"/, "a Casa voltou a criar mesa sem dizer de que caso é");
   assert.match(
     CASA,
@@ -699,13 +699,13 @@ test("as duas mesas carimbam o caso e recusam o do vizinho", () => {
 });
 
 /* O cânone antigo da Casa saiu das FRASES em 02/09/2026, mas voltou em outra
-   forma: `v2/noite-auto.js` carregava EVIDENCIAS_ANTIGAS, dez dos trinta e seis
+   forma: `jogos/casa-da-costa/a-noite/noite-auto.js` carregava EVIDENCIAS_ANTIGAS, dez dos trinta e seis
    fragmentos cravados no arquivo como "rede de segurança" da migração. Ela era
    inalcançável — o fetch ou traz o caso inteiro ou mostra erro — e mesmo assim
    já tinha derivado: F13 dizia "O consumo" e o caso diz "Consumo de água".
    Uma cópia velha do cânone esperando o dia em que vence calada. */
 test("A Noite da Casa não guarda uma cópia própria do banco", () => {
-  const NOITE_CASA = ler("v2/noite-auto.js").replace(/\/\*[\s\S]*?\*\//g, " ");
+  const NOITE_CASA = ler("jogos/casa-da-costa/a-noite/noite-auto.js").replace(/\/\*[\s\S]*?\*\//g, " ");
   assert.ok(
     !/EVIDENCIAS_ANTIGAS/.test(NOITE_CASA),
     "voltou um banco de fragmentos cravado dentro d'A Noite da Casa",
@@ -727,15 +727,15 @@ test("A Noite da Casa não guarda uma cópia própria do banco", () => {
    noite-auto.js ficava de fora. O favicon já derivou assim uma vez: editado no
    v2/ e desfeito pelo build seguinte. */
 test("o noite-auto.js publicado é o mesmo da fonte", () => {
-  const a = ler("v2/noite-auto.js");
-  const b = ler("mosaico-web/public/noite-auto.js");
-  assert.equal(a, b, "v2/noite-auto.js divergiu de mosaico-web/public — o próximo build desfaz a correção");
+  const a = ler("jogos/casa-da-costa/a-noite/noite-auto.js");
+  const b = ler("desenvolvimento/casa-da-costa/a-noite/public/noite-auto.js");
+  assert.equal(a, b, "jogos/casa-da-costa/a-noite/noite-auto.js divergiu de mosaico-web/public — o próximo build desfaz a correção");
   /* dist/ é ignorado pelo git: num clone limpo ele não existe, e exigir a
      terceira cópia reprovaria a suíte por ausência de arquivo, não por deriva.
      Quando ela estiver aqui, tem de bater. */
-  const dist = new URL("../mosaico-web/dist/client/noite-auto.js", import.meta.url);
+  const dist = new URL("../desenvolvimento/casa-da-costa/a-noite/dist/client/noite-auto.js", import.meta.url);
   if (existsSync(dist))
-    assert.equal(a, ler("mosaico-web/dist/client/noite-auto.js"), "v2/noite-auto.js divergiu de dist/client");
+    assert.equal(a, ler("desenvolvimento/casa-da-costa/a-noite/dist/client/noite-auto.js"), "jogos/casa-da-costa/a-noite/noite-auto.js divergiu de dist/client");
 });
 
 /* 05/09/2026: a TV ficou congelada em "📺 Conectando o Telão…" para sempre —
@@ -773,7 +773,7 @@ test("o telão confere o jogo antes de usá-lo", () => {
    seis letras, com o selo "Conectando…" no canto, e NENHUMA sala no Firestore.
    O Mestre passava esse código para a mesa e ninguém conseguia entrar. */
 test("a Mesa da Casa abre o pop-up dentro do toque, e só mostra código de sala que existe", () => {
-  const CASA = ler("v1/MOSAICO-mesa.html");
+  const CASA = ler("jogos/casa-da-costa/a-mesa/MOSAICO-mesa.html");
   const fn = CASA.match(/async function autenticarGoogle\(\)\{[\s\S]*?\n\}/)?.[0] || "";
   assert.ok(fn, "autenticarGoogle sumiu");
   const login = fn.indexOf("signInWithPopup");
@@ -811,12 +811,12 @@ test("a Mesa da Casa abre o pop-up dentro do toque, e só mostra código de sala
    div: o gesto era arrastar o mouse, o mundo nao existia, e um lote de quatro
    cabia inteiro na tela ao mesmo tempo. As da Casa pedem o corpo.            */
 test("as atividades do Carro-Forte usam a bussola, e nao varredura de ponteiro", () => {
-  const BUSSOLA = ler("carro-forte/bussola.js");
+  const BUSSOLA = ler("jogos/a-manha-do-carro-forte/a-mesa/bussola.js");
   assert.match(BUSSOLA, /webkitCompassHeading/, "o instrumento perdeu o tratamento de iOS");
   assert.match(BUSSOLA, /oitoNoAr/, "o portao do oito saiu do instrumento");
 
   for (const nome of ["janela-do-norte", "sala-as-escuras"]) {
-    const pagina = ler(`carro-forte/${nome}.html`);
+    const pagina = ler(`jogos/a-manha-do-carro-forte/a-mesa/${nome}.html`);
     const codigo = semComentarios(pagina);
     assert.match(pagina, /bussola\.js/, `${nome} nao carrega mais a bussola`);
     assert.match(codigo, /MosaicoBussola/, `${nome} parou de usar o instrumento`);
@@ -834,14 +834,14 @@ test("as atividades do Carro-Forte usam a bussola, e nao varredura de ponteiro",
    nunca libera - com a tela por cima de tudo. A anistia afrouxa as metas, mas
    multiplica por zero do mesmo jeito. */
 test("o portao do oito sempre tem saida, mesmo sem sensor nenhum", () => {
-  const BUSSOLA = semComentarios(ler("carro-forte/bussola.js"));
+  const BUSSOLA = semComentarios(ler("jogos/a-manha-do-carro-forte/a-mesa/bussola.js"));
   assert.match(
     BUSSOLA,
     /seg\s*>\s*25\s*&&\s*bt\.disabled/,
     "sumiu a saida por tempo do oito: sem sensor, o botao fica desabilitado para sempre",
   );
   for (const nome of ["janela-do-norte", "sala-as-escuras"]) {
-    const dedo = semComentarios(ler(`carro-forte/${nome}.html`))
+    const dedo = semComentarios(ler(`jogos/a-manha-do-carro-forte/a-mesa/${nome}.html`))
       .match(/function porDedo\(\)\{[\s\S]*?\n\}/)?.[0] || "";
     assert.ok(dedo, `${nome}: porDedo sumiu`);
     assert.match(
@@ -857,13 +857,13 @@ test("o portao do oito sempre tem saida, mesmo sem sensor nenhum", () => {
    metros de distancia ocupa meia tela, e cobrar 3,4 graus do centro exato dele
    deixava a barra em zero com o facho cheio em cima da coisa. */
 test("a mira da Sala acompanha o tamanho do movel, e o texto le a mesma janela", () => {
-  const BUSSOLA = semComentarios(ler("carro-forte/bussola.js"));
+  const BUSSOLA = semComentarios(ler("jogos/a-manha-do-carro-forte/a-mesa/bussola.js"));
   assert.match(
     BUSSOLA,
     /function tolerancia\(alto, altoEl\)/,
     "a tolerancia voltou a ter altura fixa; alvos grandes viram impossiveis",
   );
-  const ESCURA = semComentarios(ler("carro-forte/sala-as-escuras.html"));
+  const ESCURA = semComentarios(ler("jogos/a-manha-do-carro-forte/a-mesa/sala-as-escuras.html"));
   assert.match(ESCURA, /mira\.passo\(dt, altoAz, altoEl\)/, "a Sala parou de alargar a mira pelo tamanho do alvo");
   assert.match(
     ESCURA,
@@ -876,7 +876,7 @@ test("a mira da Sala acompanha o tamanho do movel, e o texto le a mesma janela",
    tinha: uma coisa esconde outra. Sem isso, quatro alvos em 360 graus sao
    quatro alvos, e a busca acaba antes do relogio. */
 test("a Sala mantem um objeto escondido atras de outro", () => {
-  const ESCURA = semComentarios(ler("carro-forte/sala-as-escuras.html"));
+  const ESCURA = semComentarios(ler("jogos/a-manha-do-carro-forte/a-mesa/sala-as-escuras.html"));
   assert.match(ESCURA, /escondeAtras:'arquivo'/, "o painel deixou de nascer coberto pelo armario");
   assert.match(
     ESCURA,
@@ -896,7 +896,7 @@ test("a Sala mantem um objeto escondido atras de outro", () => {
    tarefa e de GRAVIDADE e nao de rumo. O que ele precisa manter e a regra que
    o tornava uma tarefa sensorial - nao se limpa o vidro com o dedo. */
 test("o Vidro do Carro-Forte revela por inclinacao, nao por esfregar", () => {
-  const VIDRO = ler("carro-forte/vidro-embacado.html");
+  const VIDRO = ler("jogos/a-manha-do-carro-forte/a-mesa/vidro-embacado.html");
   const codigo = semComentarios(VIDRO);
   assert.match(codigo, /deviceorientation/, "o Vidro parou de ler a inclinacao do aparelho");
   assert.match(codigo, /function cava\(/, "sumiu a agua que cava a trilha no embaco");
@@ -921,7 +921,7 @@ test("o Vidro do Carro-Forte revela por inclinacao, nao por esfregar", () => {
    dito em voz alta na mesa vira conselho errado. */
 test("os alvos das atividades saem da partida, e nao de Math.random", () => {
   for (const nome of ["janela-do-norte", "sala-as-escuras", "vidro-embacado"]) {
-    const codigo = semComentarios(ler(`carro-forte/${nome}.html`));
+    const codigo = semComentarios(ler(`jogos/a-manha-do-carro-forte/a-mesa/${nome}.html`));
     assert.match(codigo, /function semente\(/, `${nome} perdeu a semente da partida`);
     assert.match(
       codigo,

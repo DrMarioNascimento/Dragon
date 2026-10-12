@@ -16,24 +16,24 @@ import { describe, it } from "node:test";
 
 const ler = (p) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8").replace(/\r\n/g, "\n");
 
-const JANELAS = ler("v1/css/ac-janelas.css");
-const JANELAS_JS = ler("v1/js/ac-janelas.js");
+const JANELAS = ler("jogos/casa-da-costa/a-mesa/css/ac-janelas.css");
+const JANELAS_JS = ler("jogos/casa-da-costa/a-mesa/js/ac-janelas.js");
 const CASA = {
-  escrivaninha: ler("v1/AC-escrivaninha.html"),
-  maquete: ler("v1/AC-maquete.html"),
-  percurso: ler("v1/AC-percurso.html"),
-  sala: ler("v1/MOSAICO-26-a-sala-as-escuras.html"),
-  papeis: ler("v1/AC-papeis.html")
+  escrivaninha: ler("jogos/casa-da-costa/a-mesa/AC-escrivaninha.html"),
+  maquete: ler("jogos/casa-da-costa/a-mesa/AC-maquete.html"),
+  percurso: ler("jogos/casa-da-costa/a-mesa/AC-percurso.html"),
+  sala: ler("jogos/casa-da-costa/a-mesa/MOSAICO-26-a-sala-as-escuras.html"),
+  papeis: ler("jogos/casa-da-costa/a-mesa/AC-papeis.html")
 };
 const PAGINAS = [
-  "v1/AC-escrivaninha.html",
-  "v1/AC-maquete.html",
-  "v1/AC-percurso.html",
-  "v1/AC-papeis.html",
-  "v1/MOSAICO-mesa.html",
-  "v1/MOSAICO-26-a-janela-do-norte.html",
-  "v1/MOSAICO-26-a-sala-as-escuras.html",
-  "v1/MOSAICO-26-vidro-embacado.html"
+  "jogos/casa-da-costa/a-mesa/AC-escrivaninha.html",
+  "jogos/casa-da-costa/a-mesa/AC-maquete.html",
+  "jogos/casa-da-costa/a-mesa/AC-percurso.html",
+  "jogos/casa-da-costa/a-mesa/AC-papeis.html",
+  "jogos/casa-da-costa/a-mesa/MOSAICO-mesa.html",
+  "jogos/casa-da-costa/a-mesa/MOSAICO-26-a-janela-do-norte.html",
+  "jogos/casa-da-costa/a-mesa/MOSAICO-26-a-sala-as-escuras.html",
+  "jogos/casa-da-costa/a-mesa/MOSAICO-26-vidro-embacado.html"
 ];
 /* A parte 3 da folha: as faixas d'A Casa. */
 const FAIXAS = JANELAS.slice(JANELAS.indexOf("3. as faixas d'A Casa"));
@@ -112,7 +112,7 @@ describe("A Casa · janelas", () => {
        200 ms: zerar na chegada faria o relógio nunca terminar. */
     assert.match(JANELAS_JS, /const agora=textoDaPilha\(\);\s*if\(agora===ultimoTexto\)return;/,
       "o observador dos painéis deixou de comparar o texto: reescrever o mesmo texto reabriria tudo");
-    const maquete = ler("v1/js/ac-maquete.js");
+    const maquete = ler("jogos/casa-da-costa/a-mesa/js/ac-maquete.js");
     assert.match(maquete, /if \(tip && tip !== ultimoTip\) vida\(\);/, "quem guia precisa do relógio zerado pela ponta do colega andando");
     assert.doesNotMatch(maquete, /function receber\(snapshot\) \{\s*vida\(\)/, "zerar o relógio na chegada do snapshot");
   });
@@ -126,7 +126,7 @@ describe("A Casa · janelas", () => {
   });
 
   it("ninguém é avisado do papel na escrivaninha nem na maquete", () => {
-    const desk = ler("v1/js/ac-investigacao.js");
+    const desk = ler("jogos/casa-da-costa/a-mesa/js/ac-investigacao.js");
     for (const frase of ["PORTADOR DA LUZ", "PORTADOR DO CONHECIMENTO", "Ilumine para seu colega", "só seu colega consegue ver", "Um não vê sem o outro"])
       assert.ok(!desk.includes(frase), "a escrivaninha voltou a anunciar o papel: " + frase);
     assert.ok(!CASA.escrivaninha.includes("portador da luz"), "o Como jogar voltou a explicar os papéis");
@@ -135,7 +135,7 @@ describe("A Casa · janelas", () => {
 
   /* Auditoria de 04/10/2026: o que só a tela mostrou e a leitura pode guardar. */
   it("a maquete não anuncia o papel de guia antes de haver ponto de luz", () => {
-    const maquete = ler("v1/js/ac-maquete.js");
+    const maquete = ler("jogos/casa-da-costa/a-mesa/js/ac-maquete.js");
     assert.ok(!maquete.includes("Nenhum ponto de luz"),
       "voltou a linha que só o aparelho da fechadura mostrava — o aviso de papel");
     assert.match(maquete, /linha\.hidden = !farol\.visible/,
@@ -143,9 +143,9 @@ describe("A Casa · janelas", () => {
   });
 
   it("chave e vela encaixam onde o dedo SAI, não no último pointermove", () => {
-    assert.match(ler("v1/js/ac-maquete.js"), /tipo === 'pointerup'\) \{\s*var fim = pontaNoDedo\(e\.clientX, e\.clientY\)/,
+    assert.match(ler("jogos/casa-da-costa/a-mesa/js/ac-maquete.js"), /tipo === 'pointerup'\) \{\s*var fim = pontaNoDedo\(e\.clientX, e\.clientY\)/,
       "a chave voltou a encaixar no penúltimo lugar do arrasto");
-    assert.match(ler("v1/js/ac-investigacao.js"), /if \(event\.type === 'pointerup'\) moverVela\(event\);/,
+    assert.match(ler("jogos/casa-da-costa/a-mesa/js/ac-investigacao.js"), /if \(event\.type === 'pointerup'\) moverVela\(event\);/,
       "a vela voltou a encaixar no penúltimo lugar do arrasto");
   });
 

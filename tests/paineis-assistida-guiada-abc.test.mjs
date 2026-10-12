@@ -13,10 +13,10 @@ const HPC_SRC = ler("hipoteses-por-camada.js");
 const MPC_SRC = ler("papel-camada.js");
 const DOC = ler("documentos/MOSAICO-ACESSIBILIDADE-PAPEIS.md");
 const README = ler("README.md");
-const GAME = ler("carro-forte/game.js");
+const GAME = ler("jogos/a-manha-do-carro-forte/a-mesa/game.js");
 const ROOM = ler("firebase-room.js");
-const SOLO = ler("solo/mesa-solo.js");
-const MESA = ler("v1/MOSAICO-mesa.html");
+const SOLO = ler("jogos/casa-da-costa/solo/mesa-solo.js");
+const MESA = ler("jogos/casa-da-costa/a-mesa/MOSAICO-mesa.html");
 
 function loadApis(storage = {}) {
   const localStorage = {

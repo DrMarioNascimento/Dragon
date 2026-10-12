@@ -24,13 +24,13 @@ function fnSlice(src, name, nextNames) {
   return src.slice(start, end);
 }
 
-const TS = ler("v1/js/tarefa-sensor.js");
-const MESA = ler("v1/MOSAICO-mesa.html");
-const JANELA = ler("v1/MOSAICO-26-a-janela-do-norte.html");
-const SALA = ler("v1/MOSAICO-26-a-sala-as-escuras.html");
+const TS = ler("jogos/casa-da-costa/a-mesa/js/tarefa-sensor.js");
+const MESA = ler("jogos/casa-da-costa/a-mesa/MOSAICO-mesa.html");
+const JANELA = ler("jogos/casa-da-costa/a-mesa/MOSAICO-26-a-janela-do-norte.html");
+const SALA = ler("jogos/casa-da-costa/a-mesa/MOSAICO-26-a-sala-as-escuras.html");
 const RULES = ler("firestore.rules");
 const ROOM = ler("firebase-room.js");
-const PF = ler("v1/css/profundidade-1mais1.css");
+const PF = ler("jogos/casa-da-costa/a-mesa/css/profundidade-1mais1.css");
 const MPC = ler("papel-camada.js");
 
 function loadTS() {
@@ -65,7 +65,7 @@ function loadTS() {
 describe("elenco · só personagens em jogo + você é X", () => {
   it("filtra pelos assentos ocupados; sem jogadores não despeja o cânone", () => {
     const api = loadTS();
-    const casa = JSON.parse(ler("v1/casos/casa-da-costa.json"));
+    const casa = JSON.parse(ler("jogos/casa-da-costa/a-mesa/casos/casa-da-costa.json"));
     const soEu = api.resolverElenco({
       elenco: casa.elenco,
       eu: { personagem: "jornalista", forma: "f" },
@@ -156,8 +156,8 @@ describe("sala às escuras · Android mais longo + texto das pistas", () => {
   });
 
   it("cópias da Noite não endurecem o iPhone", () => {
-    const noite = ler("mosaico-web/public/modulos/sala-as-escuras.html");
-    const v2 = ler("v2/modulos/sala-as-escuras.html");
+    const noite = ler("desenvolvimento/casa-da-costa/a-noite/public/modulos/sala-as-escuras.html");
+    const v2 = ler("jogos/casa-da-costa/a-noite/modulos/sala-as-escuras.html");
     for (const src of [noite, v2]) {
       const fn = fnSlice(src, "function holdAlvo(", ["function drenoMao("]);
       assert.match(fn, /if\s*\(\s*IPHONE\s*\)\s*return 850/);
