@@ -25,7 +25,7 @@ const MPC = ler("papel-camada.js");
 const SOLO = ler("solo/index.html");
 const SOLO_JS = ler("solo/mesa-solo.js");
 const GAME = ler("carro-forte/game.js");
-const DOC = ler("MOSAICO-ACESSIBILIDADE-PAPEIS.md");
+const DOC = ler("documentos/MOSAICO-ACESSIBILIDADE-PAPEIS.md");
 const README = ler("README.md");
 
 describe("hub · histórias e versões", () => {

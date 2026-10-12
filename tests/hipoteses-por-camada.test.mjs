@@ -14,7 +14,7 @@ const ler = (p) => readFileSync(join(root, p), "utf8").replace(/\r\n/g, "\n");
 const HPC_SRC = ler("hipoteses-por-camada.js");
 const MPC_SRC = ler("papel-camada.js");
 const JSON_SRC = ler("hipoteses-por-camada.json");
-const DOC = ler("MOSAICO-ACESSIBILIDADE-PAPEIS.md");
+const DOC = ler("documentos/MOSAICO-ACESSIBILIDADE-PAPEIS.md");
 const README = ler("README.md");
 const GAME = ler("carro-forte/game.js");
 const CEL = ler("carro-forte/celular.html");

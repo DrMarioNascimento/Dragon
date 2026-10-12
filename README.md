@@ -13,6 +13,21 @@ seus endereços originais permanecem intactos. Telão e opções de O Impostor
 ficam nas páginas de acesso de cada versão. **O Eco do Amanhã — VestChip
 existe somente na versão O Impostor.**
 
+## Onde encontrar os arquivos
+
+| Conteúdo | Pasta |
+|---|---|
+| Entradas do portal por história e versão | [historias/](historias/README.md) |
+| Documentação técnica | [documentos/](documentos/README.md) |
+| Roteiros, matrizes, imagens e modelos de referência | [desenvolvimento/](desenvolvimento/README.md) |
+| Cópias substituídas e mapa de movimentações | [arquivo/](arquivo/README.md) |
+| Marca e avatar | `brand/` |
+| Verificações automáticas | `tests/` e `.github/` |
+
+Nesta etapa, as pastas de implementação dos jogos e seus endereços públicos
+permanecem preservados. A relação fonte/publicação entre `mosaico-web/` e `v2/`
+também permanece intacta.
+
 ## O voo da Dragon
 
 > A tecnologia tece o seu próprio universo,  
@@ -43,7 +58,7 @@ existe somente na versão O Impostor.**
 
 O hub reúne os percursos de A Casa da Costa e A Manhã do Carro-Forte, com entradas para mesa, telão, solo e outros modos descritos abaixo. Há também experiências de O Impostor em desenvolvimento. As pastas históricas e os protótipos não devem ser tratados como lançamentos equivalentes.
 
-Para manutenção, consulte [o padrão de salas](PADRAO-SALA-MULTIPLAYER.md), [a separação entre modo, papel e camada](MOSAICO-ACESSIBILIDADE-PAPEIS.md) e [a segurança do Firebase](FIREBASE-SECURITY.md). A suíte de regras e integridade existe no repositório; ela não substitui partidas com pessoas, verificação de reconexão e teste de todas as perspectivas do mistério. A autoria conjunta de Mário César Nascimento e Osana Melo Nascimento permanece conforme [LICENSE.md](LICENSE.md).
+Para manutenção, consulte [o padrão de salas](documentos/PADRAO-SALA-MULTIPLAYER.md), [a separação entre modo, papel e camada](documentos/MOSAICO-ACESSIBILIDADE-PAPEIS.md) e [a segurança do Firebase](documentos/FIREBASE-SECURITY.md). A suíte de regras e integridade existe no repositório; ela não substitui partidas com pessoas, verificação de reconexão e teste de todas as perspectivas do mistério. A autoria conjunta de Mário César Nascimento e Osana Melo Nascimento permanece conforme [LICENSE.md](LICENSE.md).
 
 
 **English** · [Português](#português)

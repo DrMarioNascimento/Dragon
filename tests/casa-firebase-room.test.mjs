@@ -14,8 +14,8 @@ const ler = (p) => readFileSync(join(root, p), "utf8").replace(/\r\n/g, "\n");
 const ROOM = ler("firebase-room.js");
 const CASA = ler("v1/MOSAICO-mesa.html");
 const BRIDGE = ler("v1/js/casa-firebase-room-bridge.js");
-const PADRAO = ler("PADRAO-SALA-MULTIPLAYER.md");
-const ISO = ler("FIREBASE-ISOLAMENTO.md");
+const PADRAO = ler("documentos/PADRAO-SALA-MULTIPLAYER.md");
+const ISO = ler("documentos/FIREBASE-ISOLAMENTO.md");
 const CEL = ler("carro-forte/celular.html");
 const NOITE = ler("carro-forte/noite/index.html");
 

@@ -17,9 +17,9 @@ const PONTE = ler("carro-forte/celular-para-noite.js");
 const CASA = ler("v1/MOSAICO-mesa.html");
 const TELAO = ler("telao.html");
 const SOLO = ler("solo/index.html");
-const SEC = ler("FIREBASE-SECURITY.md");
-const ISO = ler("FIREBASE-ISOLAMENTO.md");
-const NOITE_DOC = ler("FIREBASE-NOITE.md");
+const SEC = ler("documentos/FIREBASE-SECURITY.md");
+const ISO = ler("documentos/FIREBASE-ISOLAMENTO.md");
+const NOITE_DOC = ler("documentos/FIREBASE-NOITE.md");
 
 test("known() mantém raízes canônicas e aliases legados documentados", () => {
   assert.match(

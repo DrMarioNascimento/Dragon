@@ -29,4 +29,3 @@ firebase deploy --only firestore:rules -P noite
 Clientes usam apenas `mosaico` e `noite` como coleção-raiz de sala.
 `firestore.rules` ainda lista `carroforte` / `carroforte-noite` como aliases
 legados (não remover sem auditar salas antigas). Ver `FIREBASE-SECURITY.md`.
-

@@ -9,7 +9,7 @@ A mesa HTML canônica continua em [`../v1/MOSAICO-mesa.html`](../v1/MOSAICO-mesa
 Este cliente é **independente dela**: projeto Firebase próprio (`mosaico-noite`) e
 árvore própria (`noite/`), com o fluxo da versão 3 (Encene → Janela → cômodo → cor
 → carta → óleo → acusação). Um código de uma não abre a outra — ver
-[`../FIREBASE-ISOLAMENTO.md`](../FIREBASE-ISOLAMENTO.md).
+[`../FIREBASE-ISOLAMENTO.md`](../documentos/FIREBASE-ISOLAMENTO.md).
 
 **Playtest ao vivo:** use as portas Celular · Telão · Solo em [`../casa-da-costa/`](../casa-da-costa/).  
 `/v2/` é linhagem de revisão (A Noite). Não é porta de produção.
