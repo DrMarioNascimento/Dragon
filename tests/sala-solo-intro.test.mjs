@@ -13,10 +13,10 @@ import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 
 const ler = (p) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8").replace(/\r\n/g, "\n");
-const SALA = ler("v1/MOSAICO-26-a-sala-as-escuras.html");
-const CSS = ler("v1/css/ac-janelas.css");
-const JS = ler("v1/js/ac-janelas.js");
-const SOLO = ler("solo/mesa-solo.js");
+const SALA = ler("jogos/casa-da-costa/a-mesa/MOSAICO-26-a-sala-as-escuras.html");
+const CSS = ler("jogos/casa-da-costa/a-mesa/css/ac-janelas.css");
+const JS = ler("jogos/casa-da-costa/a-mesa/js/ac-janelas.js");
+const SOLO = ler("jogos/casa-da-costa/solo/mesa-solo.js");
 
 describe("Solo · Sala às Escuras jogável", () => {
   it("a intro tem corpo rolável e CTA âncora", () => {

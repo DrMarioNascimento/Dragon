@@ -41,8 +41,8 @@ import { dirname, join } from "node:path";
 import vm from "node:vm";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
-const CASO = JSON.parse(readFileSync(join(RAIZ, "v1/casos/casa-da-costa.json"), "utf8"));
-const V5SRC = readFileSync(join(RAIZ, "v1/js/mosaico-v5.js"), "utf8");
+const CASO = JSON.parse(readFileSync(join(RAIZ, "jogos/casa-da-costa/a-mesa/casos/casa-da-costa.json"), "utf8"));
+const V5SRC = readFileSync(join(RAIZ, "jogos/casa-da-costa/a-mesa/js/mosaico-v5.js"), "utf8");
 
 const arg = (n, p) => { const i = process.argv.indexOf("--" + n); return i > 0 && process.argv[i + 1] ? Number(process.argv[i + 1]) : p; };
 const NJOG = arg("jogadores", 6);

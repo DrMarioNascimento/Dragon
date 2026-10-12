@@ -44,12 +44,12 @@ A Casa mantém `MosaicoFB` para as fases do caso, reutilizando a app Auth/Firest
 
 ## O Impostor (03/10/2026)
 
-Projeto próprio, `oimpostor-c30e0`. A mesa (`o-impostor/mesa.html?grupo=1`) carrega o
+Projeto próprio, `oimpostor-c30e0`. A mesa (`jogos/casa-da-costa/o-impostor/mesa.html?grupo=1`) carrega o
 mesmo `firebase-room.js` com `data-project="impostor"`, `data-root="mosaico"`,
 `data-case="o-impostor"`, `data-papel-camada="nao"` (sem papel cognitivo nem camada) e
 `data-retomar="sim"` (quem já está na sala volta sem digitar o nome).
 
-As regras são outras: `o-impostor/firestore-impostor.rules`. Publicar **colando no
+As regras são outras: `jogos/casa-da-costa/o-impostor/firestore-impostor.rules`. Publicar **colando no
 console** (Firestore → Regras). Não usar `firebase deploy` com o `firebase.json` da
 raiz, que publica o `firestore.rules` das outras mesas.
 
@@ -60,9 +60,9 @@ Google e Anônimo, domínio autorizado `drmarionascimento.github.io`, e o docume
 ## A Manhã do Carro-Forte: O Impostor (06/10/2026)
 
 Mesmo projeto e mesmas regras d'O Impostor (`oimpostor-c30e0`,
-`o-impostor/firestore-impostor.rules`): o protocolo da sala é o mesmo (sorteio em
+`jogos/casa-da-costa/o-impostor/firestore-impostor.rules`): o protocolo da sala é o mesmo (sorteio em
 `oi`, capítulos em `cap {n, t0Ms}`, `jogadores.etapa/resumo`, `mensagens`). A mesa
-(`carro-forte-impostor/mesa.html?grupo=1`) carrega `firebase-room.js` com
+(`jogos/a-manha-do-carro-forte/o-impostor/mesa.html?grupo=1`) carrega `firebase-room.js` com
 `data-project="impostor"`, `data-root="mosaico"`, `data-case="carro-forte-impostor"`,
 `data-papel-camada="nao"` e `data-retomar="sim"`. As salas dos dois casos convivem na
 coleção `mosaico/`; o `caseId` gravado na sala separa uma da outra (quem digita o
@@ -71,12 +71,12 @@ Nada a publicar no console: as regras atuais já cobrem este caso.
 
 ## O Eco do Amanhã: O Impostor (10/10/2026; projeto próprio desde 11/10/2026)
 
-Projeto próprio, `vestchip`. A mesa (`vestchip-impostor/mesa.html?grupo=1`) carrega
+Projeto próprio, `vestchip`. A mesa (`jogos/o-eco-do-amanha/o-impostor/mesa.html?grupo=1`) carrega
 `firebase-room.js` com `data-project="vestchip"`, `data-root="mosaico"`,
 `data-case="vestchip-impostor"`, `data-papel-camada="nao"` e `data-retomar="sim"`.
 O protocolo da sala é o mesmo d'O Impostor (sorteio em `oi`, agora com `formas` por papel;
 capítulos em `cap {n, t0Ms}`, `jogadores.etapa/resumo`, `mensagens`), e as regras são as mesmas:
-colar `o-impostor/firestore-impostor.rules` no console do projeto `vestchip`.
+colar `jogos/casa-da-costa/o-impostor/firestore-impostor.rules` no console do projeto `vestchip`.
 O estado local do aparelho usa o prefixo `vci:` no sessionStorage, separado do `cfi:`.
 
 No console do projeto `vestchip`: Firestore (região `southamerica-east1`), Authentication com
@@ -92,7 +92,7 @@ Desde 11/10/2026 o Carro-Forte: O Impostor sai do `oimpostor-c30e0` e usa o proj
 `o-impostor-carro-forte`. A mesa carrega `firebase-room.js?v=20261011-cf` com
 `data-project="carroforte"` (resto igual: `data-root="mosaico"`,
 `data-case="carro-forte-impostor"`, `data-papel-camada="nao"`, `data-retomar="sim"`).
-Regras: as mesmas de `o-impostor/firestore-impostor.rules`, coladas no console.
+Regras: as mesmas de `jogos/casa-da-costa/o-impostor/firestore-impostor.rules`, coladas no console.
 A seção de 06/10/2026 acima fica como histórico.
 
 No console do projeto `o-impostor-carro-forte`: Firestore (região `southamerica-east1`),

@@ -11,7 +11,7 @@ O que muda entre casos e modos é o jogo depois de iniciado. A infraestrutura de
 - **A Casa da Costa** → sempre `mosaico-game`;
 - **A Manhã do Carro-Forte** → sempre `mosaico-noite`;
 - cada caso tem um app com portas **Celular · Telão · Solo** no hub Dragon;
-- `/casa-da-costa/` e `/carro-forte/` redirecionam ao gate Celular (sem segundo seletor);
+- `/casa-da-costa/` e `/jogos/a-manha-do-carro-forte/a-mesa/` redirecionam ao gate Celular (sem segundo seletor);
 - o caso continua identificado na sala por `caseId`.
 
 ## Fluxo obrigatório
@@ -127,7 +127,7 @@ Não criar fluxos paralelos de login, identificação, QR ou lobby sem decisão 
 ## Implementação atual
 
 - **Carro-Forte Celular**, **A Noite (Carro-Forte)** e **A Casa da Costa Celular** usam o mesmo gate/lobby em `firebase-room.js`.
-- Casa: `v1/MOSAICO-mesa.html` carrega `firebase-room.js` com `data-project="mesa"` / `data-root="mosaico"` / `data-case="casa-da-costa"`. A ponte `v1/js/casa-firebase-room-bridge.js` entrega a partida ao motor v1 (personagem, `fase:encenacao`, `MosaicoFB` na app `dragon-mesa`).
-- Porta Solo / hub: CTA **Ensaiar neste aparelho** (no gate da Casa, `?soloLab=1` / ensaio redireciona para `/solo/`).
-- **A Noite v2** (`/v2/`, `mosaico-web/`) não é porta de produção do playtest. A landing da Casa não aponta para ela. Bookmarks antigos ainda abrem o shell; o gate de lá é Abrir | Entrar (sem Ensaiar sozinho). Módulos v2/mosaico-web da Janela usam CTA Casa.
+- Casa: `jogos/casa-da-costa/a-mesa/MOSAICO-mesa.html` carrega `firebase-room.js` com `data-project="mesa"` / `data-root="mosaico"` / `data-case="casa-da-costa"`. A ponte `v1/js/casa-firebase-room-bridge.js` entrega a partida ao motor v1 (personagem, `fase:encenacao`, `MosaicoFB` na app `dragon-mesa`).
+- Porta Solo / hub: CTA **Ensaiar neste aparelho** (no gate da Casa, `?soloLab=1` / ensaio redireciona para `/jogos/casa-da-costa/solo/`).
+- **A Noite v2** (`/jogos/casa-da-costa/a-noite/`, `desenvolvimento/casa-da-costa/a-noite/`) não é porta de produção do playtest. A landing da Casa não aponta para ela. Bookmarks antigos ainda abrem o shell; o gate de lá é Abrir | Entrar (sem Ensaiar sozinho). Módulos v2/mosaico-web da Janela usam CTA Casa.
 - Forma “Tanto faz”: código canônico **`n`** (Casa aceita legado `?` na leitura).

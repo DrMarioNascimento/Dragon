@@ -5,7 +5,7 @@ import {readFileSync} from 'node:fs';
    especificidade de três IDs e tornava position:relative as camadas de tela
    inteira. O Arquivo (#pistas), invisível, ocupava ~400 px no topo da Mesa e
    o quadro da tarefa sensorial ficava com 2 px de altura. */
-const css=readFileSync(new URL('../v1/css/ac-janelas.css',import.meta.url),'utf8');
+const css=readFileSync(new URL('../jogos/casa-da-costa/a-mesa/css/ac-janelas.css',import.meta.url),'utf8');
 test('camadas de tela inteira decoradas pelas janelas continuam fixas',()=>{
  const regra=css.match(/([^{}]*)\{position:fixed!important\}/);
  assert.ok(regra,'existe a regra que devolve position:fixed');

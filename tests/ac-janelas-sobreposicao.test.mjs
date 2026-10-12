@@ -214,7 +214,7 @@ test("janelas d'A Casa: nada se cruza, nada fica coberto, nada sai da tela", { s
     /* ---------- maquete da Mesa ---------- */
     const sala = await (await fetch(base + "/api/ac/rooms?atividade=maquete", { method: "POST" })).json();
     const t = sala.tokens;
-    const pagina = (papel) => `${base}/v1/AC-maquete.html?sala=${sala.id}&papel=${papel}&chave=${t[papel]}`;
+    const pagina = (papel) => `${base}/jogos/casa-da-costa/a-mesa/AC-maquete.html?sala=${sala.id}&papel=${papel}&chave=${t[papel]}`;
     const prontaMaquete = "!!(window.__maquete&&window.__maquete.estado)";
     desligar.push(await conectarComo(base, sala.id, "conhecimento", t.conhecimento));
 
@@ -266,7 +266,7 @@ test("janelas d'A Casa: nada se cruza, nada fica coberto, nada sai da tela", { s
     /* O colega saiu: o aparelho diz isso, e nada se cruza. */
     desligar.splice(0).forEach((f) => f());
     const sozinha = await (await fetch(base + "/api/ac/rooms?atividade=maquete", { method: "POST" })).json();
-    await aba.ir(`${base}/v1/AC-maquete.html?sala=${sozinha.id}&papel=luz&chave=${sozinha.tokens.luz}`);
+    await aba.ir(`${base}/jogos/casa-da-costa/a-mesa/AC-maquete.html?sala=${sozinha.id}&papel=luz&chave=${sozinha.tokens.luz}`);
     await aba.esperar(prontaMaquete); await aba.esperar("document.getElementById('portal').open");
     await aba.avaliar("document.getElementById('portal-mesa').click(),true");
     await aba.esperar("!document.getElementById('coop-status').hidden");
@@ -274,7 +274,7 @@ test("janelas d'A Casa: nada se cruza, nada fica coberto, nada sai da tela", { s
 
     /* A caixa ainda trancada: a escrivaninha não foi registrada. */
     const trancada = await (await fetch(base + "/api/ac/rooms", { method: "POST" })).json();
-    await aba.ir(`${base}/v1/AC-maquete.html?sala=${trancada.id}&papel=luz&chave=${trancada.tokens.luz}`);
+    await aba.ir(`${base}/jogos/casa-da-costa/a-mesa/AC-maquete.html?sala=${trancada.id}&papel=luz&chave=${trancada.tokens.luz}`);
     await aba.esperar(prontaMaquete);
     await aba.esperar("document.getElementById('heading').textContent.includes('continua fechada')");
     defeitos.push(...await medir(aba, "maquete · trancada", ABRIR));
@@ -283,10 +283,10 @@ test("janelas d'A Casa: nada se cruza, nada fica coberto, nada sai da tela", { s
     const mesa = await (await fetch(base + "/api/ac/rooms", { method: "POST" })).json();
     desligar.push(await conectarComo(base, mesa.id, "conhecimento", mesa.tokens.conhecimento));
     const prontaMesa = "!!window.__escrivaninha&&document.getElementById('loading').hidden";
-    await aba.ir(`${base}/v1/AC-escrivaninha.html?sala=${mesa.id}&papel=luz&chave=${mesa.tokens.luz}`);
+    await aba.ir(`${base}/jogos/casa-da-costa/a-mesa/AC-escrivaninha.html?sala=${mesa.id}&papel=luz&chave=${mesa.tokens.luz}`);
     await aba.esperar(prontaMesa);
     defeitos.push(...await medir(aba, "escrivaninha · a vela na mão", ABRIR));
-    await aba.ir(`${base}/v1/AC-escrivaninha.html?sala=${mesa.id}&papel=conhecimento&chave=${mesa.tokens.conhecimento}`);
+    await aba.ir(`${base}/jogos/casa-da-costa/a-mesa/AC-escrivaninha.html?sala=${mesa.id}&papel=conhecimento&chave=${mesa.tokens.conhecimento}`);
     await aba.esperar(prontaMesa);
     defeitos.push(...await medir(aba, "escrivaninha · no escuro", ABRIR));
 
@@ -361,7 +361,7 @@ test("janelas d'A Casa: nada se cruza, nada fica coberto, nada sai da tela", { s
       await abaRa.tamanho(390, 844);
       const sala2 = await (await fetch(base + "/api/ac/rooms", { method: "POST" })).json();
       desligar.push(await conectarComo(base, sala2.id, "conhecimento", sala2.tokens.conhecimento));
-      await abaRa.ir(`${base}/v1/AC-escrivaninha.html?sala=${sala2.id}&papel=luz&chave=${sala2.tokens.luz}`);
+      await abaRa.ir(`${base}/jogos/casa-da-costa/a-mesa/AC-escrivaninha.html?sala=${sala2.id}&papel=luz&chave=${sala2.tokens.luz}`);
       await abaRa.esperar(prontaMesa);
       try { await abaRa.esperar(aparece("#ra-entrar"), 8000); } catch { defeitos.push(`escrivaninha · RA ${nome}: a porta da RA não apareceu`); }
       if (await abaRa.avaliar(aparece("#ra-tela"))) defeitos.push(`escrivaninha · RA ${nome}: o atalho para a tela apareceu antes de a RA falhar`);
@@ -390,7 +390,7 @@ test("janelas d'A Casa: nada se cruza, nada fica coberto, nada sai da tela", { s
       } else {
         /* A maquete no iPhone: a porta da RA, sem atalho de tela. */
         const salaM = await (await fetch(base + "/api/ac/rooms?atividade=maquete", { method: "POST" })).json();
-        await abaRa.ir(`${base}/v1/AC-maquete.html?sala=${salaM.id}&papel=luz&chave=${salaM.tokens.luz}`);
+        await abaRa.ir(`${base}/jogos/casa-da-costa/a-mesa/AC-maquete.html?sala=${salaM.id}&papel=luz&chave=${salaM.tokens.luz}`);
         await abaRa.esperar(prontaMaquete);
         try { await abaRa.esperar("document.getElementById('portal').open&&" + aparece("#portal-ra"), 8000); } catch { defeitos.push("maquete · RA iPhone: a porta da RA não apareceu"); }
         if (await abaRa.avaliar(aparece("#portal-mesa"))) defeitos.push("maquete · RA iPhone: o atalho para a tela apareceu antes de a RA falhar");

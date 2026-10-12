@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import '../v1/js/ac-pontuacao.js';
+import '../jogos/casa-da-costa/a-mesa/js/ac-pontuacao.js';
 import {createRoom,apply,snapshot} from '../ferramentas/ac-cooperacao.mjs';
 const P=globalThis.ACPontuacao;
 /* Recibos versão 2 (19/09/2026): um por integrante, com o que ELE ganhou.
@@ -73,7 +73,7 @@ test('avanço parcial preserva pontos individuais: a sala conta mesmo sem o rest
 });
 
 test('o tempo da escrivaninha: esgotado, a etiqueta aparece e a vela não pontua — o resto segue',async()=>{
- const {earnedStages,PRAZO_ESCRIVANINHA_MS}=await import('../v1/js/ac-core.mjs');
+ const {earnedStages,PRAZO_ESCRIVANINHA_MS}=await import('../jogos/casa-da-costa/a-mesa/js/ac-core.mjs');
  const r=createRoom(0);r.percurso={runId:run,ready:[],paused:[],players:{luz:'ana',conhecimento:'bia'}};
  apply(r,'luz',{type:'sala_concluida',objetos:9,total:9,tempoMs:9000},1000);
  apply(r,'conhecimento',{type:'sala_concluida',objetos:6,total:9,tempoMs:9000},2000);

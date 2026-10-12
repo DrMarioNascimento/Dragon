@@ -27,7 +27,7 @@ escrever `partidaId` na raiz da sala.
 
 ## Gate (`firebase-room.js`)
 
-Casa Celular, Carro Celular e Carro Noite entram pela mesma folha. A Casa liga o motor v1 via `v1/js/casa-firebase-room-bridge.js` sem segundo fluxo de login. As regras (`emailMestre`, `ownPlayerUpdate`, fases conhecidas) não mudam com esse port.
+Casa Celular, Carro Celular e Carro Noite entram pela mesma folha. A Casa liga o motor v1 via `jogos/casa-da-costa/a-mesa/js/casa-firebase-room-bridge.js` sem segundo fluxo de login. As regras (`emailMestre`, `ownPlayerUpdate`, fases conhecidas) não mudam com esse port.
 
 ## Autorização do Mestre
 

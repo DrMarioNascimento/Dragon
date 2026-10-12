@@ -19,8 +19,8 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const ler = (p) => readFileSync(join(root, p), "utf8").replace(/\r\n/g, "\n");
 
 describe("Mesa · sem modo de teste 3D", () => {
-  const html = ler("v1/MOSAICO-mesa.html");
-  const css = ler("v1/css/mosaico-3d.css");
+  const html = ler("jogos/casa-da-costa/a-mesa/MOSAICO-mesa.html");
+  const css = ler("jogos/casa-da-costa/a-mesa/css/mosaico-3d.css");
 
   it("nenhuma função, dock, botão ou atalho de URL do modo de teste", () => {
     for (const resto of ["iniciarTeste3D", "irParaFaseTeste3D", "sairTeste3D", "atualizarDockTeste3D",
@@ -35,8 +35,8 @@ describe("Mesa · sem modo de teste 3D", () => {
   });
 
   it("o esconderijo saiu junto, e a abertura é da Mesa, não do adaptador de nuvem", () => {
-    assert.equal(existsSync(join(root, "v1/js/esconder-teste-3d.js")), false);
-    const cloud = ler("v1/js/ac-cloud.js");
+    assert.equal(existsSync(join(root, "jogos/casa-da-costa/a-mesa/js/esconder-teste-3d.js")), false);
+    const cloud = ler("jogos/casa-da-costa/a-mesa/js/ac-cloud.js");
     assert.doesNotMatch(cloud, /esconder-teste-3d|mesa-fluxo-abertura|abertura-video-casa|createElement\('script'\)/,
       "o adaptador de nuvem voltou a injetar scripts da Mesa nas telas d'A Casa");
     assert.match(html, /<script defer src="js\/abertura-video-casa\.js\?v=/);
@@ -47,7 +47,7 @@ describe("Mesa · sem modo de teste 3D", () => {
 /* Os outros botões extras que saíram na mesma varredura (18/09/2026). */
 describe("A Casa · sem botões extras", () => {
   it("a escrivaninha não tem Girar a mesa, Ver por baixo, Usar movimento nem Reiniciar", () => {
-    const html = ler("v1/AC-escrivaninha.html"), js = ler("v1/js/ac-investigacao.js");
+    const html = ler("jogos/casa-da-costa/a-mesa/AC-escrivaninha.html"), js = ler("jogos/casa-da-costa/a-mesa/js/ac-investigacao.js");
     for (const id of ["orbit", "below", "motion", "restart"]) {
       assert.ok(!html.includes('id="' + id + '"'), "voltou à escrivaninha: #" + id);
       assert.ok(!js.includes("$('" + id + "')"), "o código voltou a usar #" + id);
@@ -56,14 +56,14 @@ describe("A Casa · sem botões extras", () => {
   });
 
   it("olhar por baixo é tocar nas gavetas, não um botão", () => {
-    const js = ler("v1/js/ac-investigacao.js");
+    const js = ler("jogos/casa-da-costa/a-mesa/js/ac-investigacao.js");
     assert.match(js, /function olharPorBaixo\(\)/);
     assert.match(js, /if \(local\.y < alto \* \.85\) olharPorBaixo\(\);/, "o toque nas gavetas deixou de levar para baixo do móvel");
     assert.match(js, /Math\.hypot\(event\.clientX - t\.x, event\.clientY - t\.y\) > 8\) return;/, "arrastar (girar/mirar) não pode contar como toque");
   });
 
   it("dentro da Mesa e do Solo, a sala às escuras não mostra o painel do Mestre", () => {
-    const sala = ler("v1/MOSAICO-26-a-sala-as-escuras.html");
+    const sala = ler("jogos/casa-da-costa/a-mesa/MOSAICO-26-a-sala-as-escuras.html");
     assert.match(sala, /if\(EMBED && !DEV\)\{\s*\["b-mestre","mestre"\]\.forEach/);
     assert.match(sala, /var el=document\.getElementById\("folga"\);\s*if\(el\)/, "pintaFolga quebraria sem o painel");
     assert.match(sala, /if\(inp && inp\.value!==seedStr\)/, "montaSala quebraria sem o campo da semente");

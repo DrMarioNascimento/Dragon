@@ -107,7 +107,7 @@ body{margin:0;width:100%;min-height:100%;background:transparent;color:var(--ink)
 .podio-l.p1{border-left-color:var(--ouro);background:#14202099}
 .podio-l.p1 b,.podio-l.p1 span{color:var(--ouro)}
 </style>
-<link rel="stylesheet" href="v1/css/profundidade-1mais1.css?v=20260930-foco">
+<link rel="stylesheet" href="jogos/casa-da-costa/a-mesa/css/profundidade-1mais1.css?v=20260930-foco">
 </head>
 <body>
 <div class="wall" id="wall"></div>
@@ -148,14 +148,14 @@ import{getFirestore,doc,setDoc,onSnapshot,collection}from'https://www.gstatic.co
 const FB_MESA={apiKey:'AIzaSyDwshZbqaMOKxdRuyLtdpbijPRdrjVOcxE',authDomain:'mosaico-game.firebaseapp.com',projectId:'mosaico-game',storageBucket:'mosaico-game.firebasestorage.app',messagingSenderId:'436141261767',appId:'1:436141261767:web:6a83555a2f7c4ed4550fe2'};
 const FB_NOITE={apiKey:'AIzaSyA160bkgHBrYBwvIxlENax-aAyLWPMaOU4',authDomain:'mosaico-noite.firebaseapp.com',projectId:'mosaico-noite',storageBucket:'mosaico-noite.firebasestorage.app',messagingSenderId:'703343424116',appId:'1:703343424116:web:e6990b5c00d43aca6e9721'};
 const ARTE_CF={
-  parede:'carro-forte/noite/Papel-de-Parede-CarroforteTelao.jpg?v=20260831-wall6',
-  abertura:'carro-forte/noite/AberturaTelão.jpg?v=20260831-opening6',
-  audio:'carro-forte/noite/Amanha-do-carroforte.mp3?v=20260831-opening6',
+  parede:'jogos/a-manha-do-carro-forte/a-noite/Papel-de-Parede-CarroforteTelao.jpg?v=20260831-wall6',
+  abertura:'jogos/a-manha-do-carro-forte/a-noite/AberturaTelão.jpg?v=20260831-opening6',
+  audio:'jogos/a-manha-do-carro-forte/a-noite/Amanha-do-carroforte.mp3?v=20260831-opening6',
 };
 const JOGOS={
   'carro-forte-noite':{fb:FB_NOITE,colecao:'noite',sub:'Carro-Forte · fechamento',...ARTE_CF},
   'carro-forte':{fb:FB_NOITE,colecao:'mosaico',sub:'Carro-Forte · Celular',...ARTE_CF},
-  'casa-da-costa':{fb:FB_MESA,colecao:'mosaico',sub:'Casa da Costa · Telão',parede:'solo/tiles/foto-noite.jpg',abertura:'v1/img/Orizontal.jpg',audio:'v1/audio/A-Casa-da-Costa-Abertura.mp3'},
+  'casa-da-costa':{fb:FB_MESA,colecao:'mosaico',sub:'Casa da Costa · Telão',parede:'jogos/casa-da-costa/solo/tiles/foto-noite.jpg',abertura:'jogos/casa-da-costa/a-mesa/img/Orizontal.jpg',audio:'jogos/casa-da-costa/a-mesa/audio/A-Casa-da-Costa-Abertura.mp3'},
 };
 
 const p=new URLSearchParams(location.search);

@@ -95,7 +95,7 @@ A autorização é pessoal, limitada, revogável, intransferível e não sublice
 - o **8th Wall Engine** (© Niantic Spatial, Inc.), binário carregado do CDN jsDelivr somente quando a realidade aumentada é aberta no iPhone, sob a 8th Wall XR Engine License; a atribuição exigida é exibida nas páginas que o utilizam, e o projeto não é afiliado nem endossado pela Niantic Spatial;
 - fontes da **Google Fonts** (como Cinzel, Cinzel Decorative, Inter, IBM Plex Mono, DM Mono, Cormorant Garamond, Literata, Caveat, Special Elite e Outfit), cada uma sob a licença indicada pela Google Fonts (SIL Open Font License ou Apache License 2.0);
 - nas ferramentas de preparo dos modelos 3D (fora das páginas publicadas), as bibliotecas **glTF Transform** (MIT) e **sharp** (Apache License 2.0);
-- no cliente `mosaico-web/`, as dependências declaradas em seu `package.json` (entre elas React, Vite, TanStack, Tailwind CSS, Zustand e Zod), cada uma sob sua própria licença.
+- no cliente `desenvolvimento/casa-da-costa/a-noite/`, as dependências declaradas em seu `package.json` (entre elas React, Vite, TanStack, Tailwind CSS, Zustand e Zod), cada uma sob sua própria licença.
 
 ## 7. Vínculo institucional
 
@@ -232,7 +232,7 @@ The authorization is personal, limited, revocable, non-transferable and non-subl
 - the **8th Wall Engine** (© Niantic Spatial, Inc.), a binary loaded from the jsDelivr CDN only when augmented reality is opened on iPhone, under the 8th Wall XR Engine License; the required attribution is shown on the pages that use it, and the project is not affiliated with or endorsed by Niantic Spatial;
 - **Google Fonts** typefaces (such as Cinzel, Cinzel Decorative, Inter, IBM Plex Mono, DM Mono, Cormorant Garamond, Literata, Caveat, Special Elite and Outfit), each under the license stated by Google Fonts (SIL Open Font License or Apache License 2.0);
 - in the 3D model preparation tools (outside the published pages), the **glTF Transform** (MIT) and **sharp** (Apache License 2.0) libraries;
-- in the `mosaico-web/` client, the dependencies declared in its `package.json` (including React, Vite, TanStack, Tailwind CSS, Zustand and Zod), each under its own license.
+- in the `desenvolvimento/casa-da-costa/a-noite/` client, the dependencies declared in its `package.json` (including React, Vite, TanStack, Tailwind CSS, Zustand and Zod), each under its own license.
 
 ## 7. Institutional affiliation
 

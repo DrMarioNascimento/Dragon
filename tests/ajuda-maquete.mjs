@@ -54,17 +54,17 @@ export function bancada() {
   /* O three.js pede a fábrica de blobs por `window.URL`, não pelo global. */
   ctx.window.URL = ctx.URL; ctx.self.URL = ctx.URL;
   ctx.window.Blob = ctx.Blob; ctx.self.Blob = ctx.Blob;
-  runInContext(ler('v1/js/three.min.js'), ctx);
+  runInContext(ler('jogos/casa-da-costa/a-mesa/js/three.min.js'), ctx);
   ctx.window.THREE = ctx.THREE;
-  runInContext(ler('v1/js/vendor/GLTFLoader.js'), ctx);
-  runInContext(ler('v1/js/ac-maquete-mundo.js'), ctx);
+  runInContext(ler('jogos/casa-da-costa/a-mesa/js/vendor/GLTFLoader.js'), ctx);
+  runInContext(ler('jogos/casa-da-costa/a-mesa/js/ac-maquete-mundo.js'), ctx);
   Object.assign(ctx, ctx.window);
   return ctx;
 }
 
 export async function montarMundo(opcoes = {}) {
   const ctx = bancada();
-  const bytes = readFileSync(new URL('v1/assets/ac/casa-da-costa-pisos-nova.glb', raiz));
+  const bytes = readFileSync(new URL('jogos/casa-da-costa/a-mesa/assets/ac/casa-da-costa-pisos-nova.glb', raiz));
   const buffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
   const cena = await new Promise((ok, falha) => {
     new ctx.THREE.GLTFLoader().parse(buffer, '', (gltf) => ok(gltf.scene), falha);

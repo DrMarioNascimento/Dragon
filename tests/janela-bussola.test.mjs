@@ -24,7 +24,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-const ARQ = new URL("../v1/MOSAICO-26-a-janela-do-norte.html", import.meta.url);
+const ARQ = new URL("../jogos/casa-da-costa/a-mesa/MOSAICO-26-a-janela-do-norte.html", import.meta.url);
 const FONTE = readFileSync(ARQ, "utf8");
 
 function monta() {

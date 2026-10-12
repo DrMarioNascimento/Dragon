@@ -4,8 +4,8 @@ O repositório usa **dois projetos Firebase**, agora amarrados ao **caso**, não
 
 | Caso | Projeto Firebase | Entradas |
 |---|---|---|
-| **A Casa da Costa** | `mosaico-game` | `casa-da-costa/` → Celular (`v1/`), Telão (`telao.html?jogo=casa-da-costa`), Solo (`solo/`); fluxo alternativo `v2/` também em `mosaico-game` |
-| **A Manhã do Carro-Forte** | `mosaico-noite` | `carro-forte/` → Celular (`celular.html`), Telão (`telao.html?jogo=carro-forte`), Solo; fechamento em `carro-forte/noite/` |
+| **A Casa da Costa** | `mosaico-game` | `casa-da-costa/` → Celular (`jogos/casa-da-costa/a-mesa/`), Telão (`telao.html?jogo=casa-da-costa`), Solo (`jogos/casa-da-costa/solo/`); fluxo alternativo `jogos/casa-da-costa/a-noite/` também em `mosaico-game` |
+| **A Manhã do Carro-Forte** | `mosaico-noite` | `jogos/a-manha-do-carro-forte/a-mesa/` → Celular (`celular.html`), Telão (`telao.html?jogo=carro-forte`), Solo; fechamento em `jogos/a-manha-do-carro-forte/a-noite/` |
 
 ## Coleções
 

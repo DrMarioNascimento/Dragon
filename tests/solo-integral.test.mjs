@@ -2,9 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-const js=readFileSync(new URL('../solo/mesa-solo.js',import.meta.url),'utf8');
-const html=readFileSync(new URL('../solo/index.html',import.meta.url),'utf8');
-const cloud=readFileSync(new URL('../solo/estado-solo.js',import.meta.url),'utf8');
+const js=readFileSync(new URL('../jogos/casa-da-costa/solo/mesa-solo.js',import.meta.url),'utf8');
+const html=readFileSync(new URL('../jogos/casa-da-costa/solo/index.html',import.meta.url),'utf8');
+const cloud=readFileSync(new URL('../jogos/casa-da-costa/solo/estado-solo.js',import.meta.url),'utf8');
 
 test('Solo Casa preserva as etapas da experiência da Mesa',()=>{
   for(const fase of ['marco','percurso3d','sensor','papeis','mosaico','mercado','map','decision','result'])
@@ -66,10 +66,10 @@ test('checkpoint e carimbo incluem o Solo integral',()=>{
 });
 
 test('percurso solo mantém 3D, RA, escrivaninha e maquete com três chaves',()=>{
-  const coop=readFileSync(new URL('../v1/js/ac-cooperacao.js',import.meta.url),'utf8');
-  const desk=readFileSync(new URL('../v1/js/ac-investigacao.js',import.meta.url),'utf8');
-  const escrivaninha=readFileSync(new URL('../v1/AC-escrivaninha.html',import.meta.url),'utf8');
-  const maquete=readFileSync(new URL('../v1/js/ac-maquete.js',import.meta.url),'utf8');
+  const coop=readFileSync(new URL('../jogos/casa-da-costa/a-mesa/js/ac-cooperacao.js',import.meta.url),'utf8');
+  const desk=readFileSync(new URL('../jogos/casa-da-costa/a-mesa/js/ac-investigacao.js',import.meta.url),'utf8');
+  const escrivaninha=readFileSync(new URL('../jogos/casa-da-costa/a-mesa/AC-escrivaninha.html',import.meta.url),'utf8');
+  const maquete=readFileSync(new URL('../jogos/casa-da-costa/a-mesa/js/ac-maquete.js',import.meta.url),'utf8');
   assert.match(js,/MOSAICO-26-a-janela-do-norte\.html\?embed=1/);
   assert.match(js,/AC-escrivaninha\.html\?demo=solo/);
   assert.match(js,/xr-spatial-tracking/);
@@ -95,7 +95,7 @@ test('percurso solo mantém 3D, RA, escrivaninha e maquete com três chaves',()=
   assert.match(maquete,/function guiaDoParceiro\(/,'o parceiro guia a chave pela voz');
   /* As três evidências continuam sendo as mesmas do recibo; quem as define é
      o motor, e o Solo não pode ter uma segunda lista. */
-  const motor=readFileSync(new URL('../v1/js/ac-maquete-state.mjs',import.meta.url),'utf8');
+  const motor=readFileSync(new URL('../jogos/casa-da-costa/a-mesa/js/ac-maquete-state.mjs',import.meta.url),'utf8');
   for(const id of ['chave-exterior','chave-dos-quartos','passagem-sob-despensa'])
     assert.ok(motor.includes(id),id);
   assert.ok(!coop.includes('passagem-sob-despensa'),'o Solo não pode listar as evidências por conta própria');
