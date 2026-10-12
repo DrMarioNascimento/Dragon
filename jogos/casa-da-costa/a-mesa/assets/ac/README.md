@@ -1,8 +1,8 @@
 # Ativos 3D da AC
 
-`escrivaninha.glb` foi copiada do projeto local `lab-ra/escrivaninha.glb`, sem modificar o original. O ativo passa a ser a referencia da bancada `AC-escrivaninha.html`, usada tanto no apagao como na etapa iluminada.
+`escrivaninha.glb` foi copiada do projeto local `lab-ra/escrivaninha.glb`, sem modificar o original. A cópia é independente do repositório de origem e não carrega arquivos do LAB-RA em execução. O ativo passa a ser a referencia da bancada `AC-escrivaninha.html`, usada tanto no apagao como na etapa iluminada.
 
-GLTFLoader e OrbitControls em `jogos/casa-da-costa/a-mesa/js/vendor` sao componentes oficiais Three.js r128, mesma revisao de `jogos/casa-da-costa/a-mesa/js/three.min.js`; licenca MIT incluida. Sem dependencias remotas em tempo de execucao nesta bancada.
+GLTFLoader e OrbitControls em `jogos/casa-da-costa/a-mesa/js/vendor` sao componentes oficiais Three.js r128, mesma revisao de `jogos/casa-da-costa/a-mesa/js/three.min.js`; licenca MIT incluida. As cópias do Three.js são locais. A RA no iPhone pode carregar o 8th Wall Engine pelo CDN, conforme os créditos da experiência.
 
 A marca `EXT` e conteudo de estudo, nao uma nova evidencia canonica. O dossie local usa namespace proprio; nao escreve em Firebase, nao concede pontos e nao emite conclusao de tarefa da sala.
 

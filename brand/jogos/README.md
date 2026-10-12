@@ -10,3 +10,7 @@ o catálogo não precise carregar imagens de outros sites. Nenhuma imagem foi ed
 | `eita-alianca.png` | https://eita-quiz.web.app/assets/alianca.png |
 
 Os créditos e as condições de uso dos jogos de origem permanecem aplicáveis.
+
+Autoria declarada nas fontes: Mosaico Card — Mário César Nascimento e Osana Melo
+Nascimento; Eita! — Mário César Nascimento. Consulte as licenças dos respectivos
+projetos. A inclusão de imagens no catálogo não muda essas atribuições.

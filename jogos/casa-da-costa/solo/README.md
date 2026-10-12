@@ -2,10 +2,12 @@
 
 O Solo é uma adaptação individual da sequência canônica publicada na Mesa.
 
+Esta experiência permanece preservada fora do catálogo principal do Dragon Games.
+
 ## Fonte única
 
-- Caso, fragmentos, relações, perguntas e respostas: `../../../jogos/casa-da-costa/a-mesa/casos/casa-da-costa.json`.
-- Ordem pedagógica: Mesa publicada em `../../../jogos/casa-da-costa/a-mesa/MOSAICO-mesa.html`.
+- Caso, fragmentos, relações, perguntas e respostas: [caso canônico](../a-mesa/casos/casa-da-costa.json).
+- Ordem pedagógica: Mesa publicada em [A Mesa](../a-mesa/MOSAICO-mesa.html).
 - O Solo não mantém uma segunda realidade factual.
 
 ## Sequência individual

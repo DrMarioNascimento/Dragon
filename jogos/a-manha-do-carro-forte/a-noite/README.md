@@ -10,7 +10,7 @@ Primeira implementação do **Captura** como versão noturna de **A Manhã do Ca
 
 Deep link: `?from=celular&sala=CODIGO&pergunta=peso` (ids: peso, janela, roubo, antes, quem, proteger).
 
-A Manhã grava em `mosaico/{sala}` (projeto **mosaico-noite**). A ponte (`celular-para-noite.js`) semeia `noite/{sala}` com:
+A Manhã grava em `mosaico/{sala}` (projeto **mosaico-noite**). A ponte ([celular-para-noite.js](../a-mesa/celular-para-noite.js)) semeia `noite/{sala}` com:
 
 - `partida.pergunta` congelada;
 - `partida.origem = celular` + `partida.continuidade`;

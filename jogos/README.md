@@ -26,7 +26,7 @@ As antigas entradas HTML permanecem como redirecionamentos, preservando os
 parâmetros do convite e o fragmento da URL. Os jogos têm uma única implementação,
 nas pastas acima; as pastas antigas não contêm outra cópia executável dos jogos.
 
-O portal pessoal ainda usa duas imagens em `v1/img/Orizontal.jpg` e
+Os antigos endereços de imagens usados pelo portal pessoal continuam disponíveis em `v1/img/Orizontal.jpg` e
 `solo/tiles/carta-costa.jpg`. Essas cópias de compatibilidade conservam o mesmo
 conteúdo das imagens atuais. O [manifesto](compatibilidade.json) registra os
 endereços preservados. Após alterar essas imagens ou as entradas de jogos,
