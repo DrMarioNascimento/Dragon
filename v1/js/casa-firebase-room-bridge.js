@@ -105,6 +105,20 @@
     return ocupados;
   }
 
+  async function respReservado(FB, codigo, souMestre) {
+    try {
+      var CV = global.CasaVariacoes; if (!CV) return null;
+      await CV.pronto;
+      var mesa = (await FB.obterMesa(codigo)) || {};
+      var vid = mesa.variacaoId || mesa.variacaoReservada;
+      if (!vid && souMestre) {
+        var esc = CV.escolherSemMarcar(codigo, []);
+        if (esc) { vid = esc.variacaoId; await FB.atualizarMesa(codigo, { variacaoReservada: vid }); }
+      }
+      return CV.respDe ? CV.respDe(vid) : null;
+    } catch (e) { console.warn("variação reservada", e); return null; }
+  }
+
   global.DragonSalaAoEntrar = async function (ctx) {
     await esperarCaso();
     var FB = await esperarFB();
@@ -112,6 +126,12 @@
     var codigo = ctx && ctx.code;
     var uid = ctx && ctx.uid;
     var ocupados = codigo ? await ocupadosAtuais(FB, codigo, uid) : [];
+    /* 11/10/2026 (Tarefa 4): a variação é reservada quando o Mestre entra, antes de qualquer sorteio,
+       e quem acobertou nela fica fora do sorteio dos humanos — assim as 15 variações valem para
+       qualquer número de jogadores (antes, de 6 jogadores em diante o núcleo inteiro era humano e
+       as seis variações em que alguém do núcleo acobertou nunca saíam). */
+    var evitar = codigo ? await respReservado(FB, codigo, ctx && ctx.asMaster) : null;
+    if (evitar) ocupados = ocupados.concat([evitar]);
     var personagem = sortearPersonagem(ocupados);
     return {
       personagem: personagem,
@@ -124,7 +144,8 @@
 
   async function completarLacunasMestre(FB, codigo, players) {
     var ja = players && players.length ? players : await FB.listarJogadores(codigo);
-    var ocupados = [];
+    var evitar = await respReservado(FB, codigo, true);
+    var ocupados = evitar ? [evitar] : [];
     ja.forEach(function (j) {
       if (j.personagem) ocupados.push(j.personagem);
     });
@@ -178,6 +199,22 @@
     var room = (ctx && ctx.room) || {};
     var canon = patchPercursoAC(room).patch;
     try { localStorage.setItem("mosaico_ultima_tarefa_interior", canon.tarefaInterior); } catch (e) {}
+    /* 11/10/2026: a pergunta da partida segue a rotação (antes ficava sempre em "sete") */
+    var partidaId = room.partidaId;
+    if (!partidaId && global.CasaRotacao) { partidaId = global.CasaRotacao.proxima(); global.CasaRotacao.marcar(partidaId); }
+    if (partidaId) canon = Object.assign({ partidaId: partidaId }, canon);
+    /* 11/10/2026 (Tarefa 4): a variação da solução e o elenco na casa, escolhidos aqui, uma vez,
+       e gravados na sala para todos os aparelhos (variacoes-casa.js) */
+    if (!room.variacaoId && global.CasaVariacoes) {
+      try {
+        await global.CasaVariacoes.pronto;
+        var js = (await FB.listarJogadores(codigo)) || [];
+        var humanos = js.map(function (j) { return j && j.personagem; }).filter(Boolean);
+        var reservada = room.variacaoReservada || ((await FB.obterMesa(codigo)) || {}).variacaoReservada;
+        var esc = global.CasaVariacoes.escolher(codigo, humanos, reservada);
+        if (esc) canon = Object.assign({ variacaoId: esc.variacaoId, elencoCasa: esc.elencoCasa }, canon);
+      } catch (e) { console.error("variação da Casa", e); }
+    }
     return Object.assign({
       fase: "encenacao",
       vez: 0,
@@ -201,7 +238,8 @@
     if (!meu) throw new Error("Seu assento na sala não foi encontrado.");
 
     if (!meu.personagem) {
-      var ocupados = [];
+      var resv = global.CasaVariacoes && global.CasaVariacoes.respDe ? global.CasaVariacoes.respDe(mesaDoc.variacaoId || mesaDoc.variacaoReservada) : null;
+      var ocupados = resv ? [resv] : [];
       jogadores.forEach(function (j) {
         if (j.id !== uid && j.personagem) ocupados.push(j.personagem);
       });

@@ -271,7 +271,8 @@ test('a lista por nome é sorteada: o esconderijo não nasce sempre em cima', ()
       const ordem = ordemDosAlvos(lista, capitulo.id, 'SALA-' + i);
       if (ordem[ordem.length - 1] === capitulo.fechadura) ultima++;
     }
-    assert.ok(Math.abs(ultima / salas - 1 / 5) < 0.05, capitulo.id + ': a fechadura cai por último em ' + (ultima / salas * 100).toFixed(1) + '%');
+    /* 11/10/2026: com a casa nova o capítulo da portada tem 2 esconderijos (era 4): a fechadura é 1 entre candidatos+1 */
+    assert.ok(Math.abs(ultima / salas - 1 / (capitulo.candidatos.length + 1)) < 0.05, capitulo.id + ': a fechadura cai por último em ' + (ultima / salas * 100).toFixed(1) + '%');
   }
   const a = ordemDosCandidatos(CAPITULOS[0], 'MESMA'), b = ordemDosCandidatos(CAPITULOS[0], 'MESMA');
   assert.deepEqual(a, b, 'a mesma sala tem de ver a mesma ordem ao reabrir a lista');
@@ -280,12 +281,12 @@ test('a lista por nome é sorteada: o esconderijo não nasce sempre em cima', ()
 /* -------------------------------------------------------------- geometria */
 
 test('o modelo publicado está no repositório e a página pede ele', () => {
-  assert.ok(existsSync(new URL('../v1/assets/ac/casa-da-costa-pisos.glb', import.meta.url)),
+  assert.ok(existsSync(new URL('../v1/assets/ac/casa-da-costa-pisos-nova.glb', import.meta.url)),
     'o GLB da maquete precisa estar publicado em v1/assets/ac/');
   const html = ler('v1/AC-maquete.html');
   for (const script of ['ac-maquete-mundo.js', 'ac-maquete-ra.js', 'ac-maquete.js', 'vendor/GLTFLoader.js'])
     assert.ok(html.includes(script), 'a página precisa carregar ' + script);
-  assert.ok(ler('v1/js/ac-maquete-mundo.js').includes('assets/ac/casa-da-costa-pisos.glb'));
+  assert.ok(ler('v1/js/ac-maquete-mundo.js').includes('assets/ac/casa-da-costa-pisos-nova.glb'));
 });
 
 test('geometria real: fechaduras, alvos, camadas e o relógio do caso', async () => {
@@ -456,7 +457,8 @@ test('geometria real: fechaduras, alvos, camadas e o relógio do caso', async ()
   /* 7. A fusão: o telefone não aguenta 2.472 chamadas de desenho por quadro. */
   assert.ok(mundo.desenhos > 0 && mundo.desenhos <= 120,
     'a fusão por camada e material devolveu ' + mundo.desenhos + ' malhas; acima de 120 a RA no telefone cai');
-  assert.ok(mundo.altura > 0.9 && mundo.altura < 1.45, 'a maquete normalizada tem altura ' + mundo.altura);
+  /* 11/10/2026: a casa nova (em pátio, a mesma d'O Impostor) é baixa e larga; a faixa antiga (0,9–1,45) era da casa alta sobre o penhasco. */
+  assert.ok(mundo.altura > 0.4 && mundo.altura < 1.45, 'a maquete normalizada tem altura ' + mundo.altura);
   assert.ok(mundo.baseY >= 0, 'a base da maquete não pode ficar abaixo de zero: pousaria dentro da mesa');
 
   /* 8. O telhado nasce ASSENTADO (18/09/2026: o GLB veio com ele erguido 8,2

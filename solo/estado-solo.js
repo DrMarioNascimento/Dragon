@@ -7,7 +7,7 @@
   var KEY="mosaico_solo_costa_cloud",restaurado=false,ultima="";
   function snap(){
     if(typeof state==="undefined"||!state)return null;
-    return {phase:state.phase,key:state.key,answers:state.answers,correct:state.correct,
+    return {phase:state.phase,key:state.key,variacaoId:state.variacaoId,answers:state.answers,correct:state.correct,
       percursoPronto:state.percursoPronto,percursoResultado:state.percursoResultado,percursoEtapa:state.percursoEtapa,atividades:state.atividades,atividadeI:state.atividadeI,sensorPronto:state.sensorPronto,sensorTempos:state.sensorTempos,mosaico:state.mosaico,mosaicoPick:state.mosaicoPick,
       mercadoEtapa:state.mercadoEtapa,mercadoEscolhas:state.mercadoEscolhas,contraponto:state.contraponto,pontuacao:state.pontuacao,resultadoVista:state.resultadoVista,apuracaoEtapa:state.apuracaoEtapa};
   }

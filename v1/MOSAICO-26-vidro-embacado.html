@@ -396,7 +396,7 @@
      especificidade, quem vem por ultimo vence, e o padrao tem de vencer. -->
 <link rel="stylesheet" href="css/profundidade.css?v=20260902-profundidade">
 <link rel="stylesheet" href="css/profundidade-1mais1.css?v=20260930-foco">
-<link rel="stylesheet" href="css/ac-janelas.css?v=20261004-janelas">
+<link rel="stylesheet" href="css/ac-janelas.css?v=20261011-t4">
 </head>
 <body>
 <canvas id="c"></canvas>
@@ -466,7 +466,7 @@
 </div>
 
 <!-- Protocolo com a Mesa e ativacao de sensor: um so arquivo para as tres tarefas. -->
-<script src="js/tarefa-sensor.js?v=20261004-janelas"></script>
+<script src="js/tarefa-sensor.js?v=20261011-t4"></script>
 <script>
 (function(){
 "use strict";
@@ -499,6 +499,16 @@ var FRAGMENTOS = [
   { hora:"—",     txt:"O hidrômetro registra consumo diário contínuo nos cinco meses em que a casa esteve vazia." }, /* F13 */
   { hora:"—",     txt:"O boiler foi acionado em dias diferentes das visitas semanais do Morador." }              /* F14 */
 ];
+var IDS=["F29", "F02", "F32", "F01", "F13", "F14"];
+/* 11/10/2026 (Tarefa 4): a Casa tem 15 variações da solução. Dentro da Mesa ou do Solo, os textos
+   acima saem da variação desta partida (os mesmos fragmentos do banco, pelo id); fora, ficam como estão. */
+(function(){try{
+  var P=window.parent&&window.parent!==window?window.parent:null; if(!P) return;
+  var C=(P.CASO&&P.CASO.variacao&&P.CASO)||(P.CasaVariacoesSolo&&P.CasaVariacoesSolo.caso&&P.CasaVariacoesSolo.caso());
+  if(!C||!C.fragmentos) return;
+  IDS.forEach(function(id,i){var f=C.fragmentos[id]; if(f&&FRAGMENTOS[i]){FRAGMENTOS[i].txt=f.d; if(f.h&&f.h!=="—")FRAGMENTOS[i].hora=f.h.split("–")[0];}});
+}catch(e){}})();
+
 
 /* ================= MODO EMBUTIDO =================
    Dentro da mesa isto e uma TAREFA: ao revelar, avisa a pagina que
@@ -1375,5 +1385,5 @@ resize(); semeiaGotas(); semeiaChuva(); marcas();
 requestAnimationFrame(passo);
 })();
 </script>
-<script src="js/ac-janelas.js?v=20261004-janelas"></script></body>
+<script src="js/ac-janelas.js?v=20261011-t4"></script></body>
 </html>

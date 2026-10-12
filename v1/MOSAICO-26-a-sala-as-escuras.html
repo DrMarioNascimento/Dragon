@@ -320,7 +320,7 @@
      especificidade, quem vem por ultimo vence, e o padrao tem de vencer. -->
 <link rel="stylesheet" href="css/profundidade.css?v=20260902-profundidade">
 <link rel="stylesheet" href="css/profundidade-1mais1.css?v=20260930-foco">
-<link rel="stylesheet" href="css/ac-janelas.css?v=20261004-janelas">
+<link rel="stylesheet" href="css/ac-janelas.css?v=20261011-t4">
 <style>
   /* O chevron d'A Casa também mora aqui, no mesmo canto das outras telas.
      Acima de TUDO: em jogo a camada visual da sala sobe para z-index 200001
@@ -434,9 +434,9 @@
 </div>
 
 <script src="js/three.min.js"></script>
-<script src="js/vendor/GLTFLoader.js"></script><script src="js/ac-desk.js"></script><script src="js/ac-room-layout.js"></script><script src="js/ac-room-art.js"></script><script src="js/ac-room.js"></script><script src="js/mosaico-ra-engine.js?v=20261004-janelas"></script>
+<script src="js/vendor/GLTFLoader.js"></script><script src="js/ac-desk.js"></script><script src="js/ac-room-layout.js"></script><script src="js/ac-room-art.js"></script><script src="js/ac-room.js"></script><script src="js/mosaico-ra-engine.js?v=20261011-t4"></script>
 <!-- Protocolo com a Mesa e ativacao de sensor: um so arquivo para as tres tarefas. -->
-<script src="js/tarefa-sensor.js?v=20261004-janelas"></script>
+<script src="js/tarefa-sensor.js?v=20261011-t4"></script>
 <script>
 (function(){
 "use strict";
@@ -517,7 +517,7 @@ var OBJETOS = [
 
   { id:"espelho", enigma:"Só diz a verdade — e ainda assim ao contrário.", nome:"O espelho oval", tipo:"Parede", hora:"21:27",
     alt:1.70, larg:0.52, altura:0.74, chao:false,
-    txt:"Moldura de madeira clara, vidro com a prata comendo as bordas. Ele devolve a sua lanterna na cara, e por um segundo você não vê mais nada.",
+    txt:"Moldura de madeira clara, vidro com a prata comendo as bordas. Ele devolve a sua lanterna na cara, e por um segundo você não vê mais nada. Preso no canto da moldura, um retrato antigo e amarelado, com uma legenda à máquina: ARQUIVO DRAGON GAMES.",
     obs:"A prata gasta distorce as bordas, mas o centro ainda devolve a luz da sala." },
 
   { id:"janela", enigma:"Está fechada, e mesmo assim a tempestade entra por ela.", nome:"A janela do mar", tipo:"Parede", hora:"21:28",
@@ -543,7 +543,7 @@ var OBJETOS = [
     escondeAtras:"quadro",
     aviso:"O quadro está no chão. Tem um cofre no reboco.",
     txt:"Embutido no reboco, atrás da marinha. Aço verde-escuro, disco de latão, dobradiças à vista. A porta está apenas encostada. Dentro, o envelope do inventário segue lacrado, e tudo o mais está no lugar.",
-    obs:"Estava aberto e nada foi levado. Quem abriu não veio buscar." },
+    obs:"Estava aberto, e do cofre nada foi levado." },
 
   /* A GAVETA QUE FALA. O enigma da escrivaninha prometia isso desde o começo
      e nunca pagava — a gaveta era só descrição. Agora ela é a segunda capa da
@@ -554,8 +554,8 @@ var OBJETOS = [
     alt:0.66, larg:0.30, altura:0.11, chao:false, herdaAlt:false, final:true,
     escondeAtras:"escrivaninha",
     aviso:"A gaveta é funda. Tem um aparelho no fundo dela.",
-    txt:"No fundo da gaveta, ligada na tomada de rodapé. A luz vermelha volta a piscar quando a energia retorna, a fita rebobina sozinha e toca uma gravação antiga: alguém avisa que chega tarde, e diz um nome.",
-    obs:"O nome não é de nenhum dos seis." }
+    txt:"No fundo da gaveta, ligada na tomada de rodapé. A luz vermelha volta a piscar quando a energia retorna, a fita rebobina sozinha e toca uma gravação: uma voz diz um nome.",
+    obs:"O nome não é de ninguém que está na casa." }
 ];
 (function(){
   var n=document.getElementById("sala-explica-n");
@@ -1741,7 +1741,7 @@ document.getElementById("k-fechar").addEventListener("click",function(){
   }
   if(achados>=OBJETOS.length){
     setStatus("Nove de nove. Nada foi levado — e mesmo assim havia mais alguém.",true);
-    elDica.textContent="e o nome não é de nenhum dos seis.";
+    elDica.textContent="e o nome não é de ninguém que está na casa.";
   }
 });
 
@@ -1920,5 +1920,5 @@ window.__sala={quadro:function(){loop(true);},alvo:alvo,
 
 })();
 </script>
-<script src="js/ac-janelas.js?v=20261004-janelas"></script></body>
+<script src="js/ac-janelas.js?v=20261011-t4"></script></body>
 </html>

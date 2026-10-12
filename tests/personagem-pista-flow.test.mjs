@@ -61,7 +61,7 @@ describe("elenco · destaque uma vez", () => {
 
   it("Janela Casa não bloqueia no elenco — a mesa abre o modal antes da encenação", () => {
     assert.equal(/avisoElencoAntesJanela/.test(JANELA), false);
-    assert.match(JANELA, /tarefa-sensor\.js\?v=20261004-janelas/);
+    assert.match(JANELA, /tarefa-sensor\.js\?v=20261011-t4/);
   });
 
   it("Mesa esconde o mural enquanto o elenco cobre o iframe", () => {

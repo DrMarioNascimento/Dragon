@@ -421,7 +421,7 @@
       var c = campos().find(function (x) { return x.id === p.campoId; }); if (!c) return "";
       return '<div class="card"><span class="eyebrow">' + esc0(c.rotulo) + '</span>' +
         '<p class="muted">Errando, você fica preso a esta resposta na decisão final.</p>' +
-        c.opcoes.map(function (o) {
+        (global.ordemOpcoesCasa ? global.ordemOpcoesCasa(c.id, c.opcoes) : c.opcoes).map(function (o) {
           return '<button class="mkt-campo" onclick="mercadoResponder(\'' + esc0(c.id) + '\',this.dataset.v)" data-v="' + esc0(o) + '">' + esc0(o) + '</button>';
         }).join('') +
         '<button class="btn btn-frio" onclick="mercadoFechaPainel()">Voltar</button></div>';

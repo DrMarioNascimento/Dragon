@@ -64,7 +64,7 @@ export function bancada() {
 
 export async function montarMundo(opcoes = {}) {
   const ctx = bancada();
-  const bytes = readFileSync(new URL('v1/assets/ac/casa-da-costa-pisos.glb', raiz));
+  const bytes = readFileSync(new URL('v1/assets/ac/casa-da-costa-pisos-nova.glb', raiz));
   const buffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
   const cena = await new Promise((ok, falha) => {
     new ctx.THREE.GLTFLoader().parse(buffer, '', (gltf) => ok(gltf.scene), falha);

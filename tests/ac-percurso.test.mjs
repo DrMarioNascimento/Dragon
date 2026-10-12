@@ -21,7 +21,7 @@ test('percurso da Mesa segue sala escura, escrivaninha e maquete depois da Janel
  assert.doesNotMatch(src,/janela:'MOSAICO-26-a-janela-do-norte\.html'/);
  assert.ok(src.indexOf("sala:'1 / 4 · A sala às escuras'") < src.indexOf("mesa:'2 / 4 · Sob outra luz'"));
  assert.ok(src.indexOf("mesa:'2 / 4 · Sob outra luz'") < src.indexOf("maquete:'3 / 4 · O lar em miniatura'"));
- assert.ok(src.indexOf("maquete:'3 / 4 · O lar em miniatura'") < src.indexOf("papeis:'4 / 4 · Os papéis da passagem'"));
+ assert.ok(src.indexOf("maquete:'3 / 4 · O lar em miniatura'") < src.indexOf("papeis:'4 / 4 · Os papéis rasgados'"));
  assert.match(src,/papeis:'AC-papeis\.html'/);
 });
 

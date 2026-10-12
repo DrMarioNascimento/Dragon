@@ -24,7 +24,7 @@
   const RITMO=window.ACRitmo;
   let pontos=[], esgotado=false, dicaVista='', relogio=null;
   const DICAS={
-    planta:['As paredes continuam de um pedaço para o outro. Comece pelos cantos da folha.','Em cima fica a fachada da casa; embaixo, o térreo com as marcas a lápis.'],
+    planta:['As paredes continuam de um pedaço para o outro. Comece pelos cantos da folha.','Procure primeiro os pedaços com as marcas a lápis e o traço vermelho.'],
     bilhete:['Comece pelos cantos: são os pedaços com dois lados retos.','A hora fica no canto de cima, à esquerda; o selo, embaixo, à direita.'],
     relogio:['O XII fica em cima, no meio; o VI, embaixo, no meio.','Monte primeiro a fileira de cima, depois a do meio. A de baixo se acerta girando as três últimas casas.']
   };
@@ -46,10 +46,14 @@
      num telefone em pé ela virava uma tira de 360×228 com rótulos de 9 px
      (medido a 375×812, 18/09/2026). O térreo é onde a pista acontece. */
   const RECORTE={x:40,y:40,w:780,h:920};
+  /* as plantas novas (1600×1000): os cômodos ficam entre x 440–1170 e y 190–900 */
+  const RECORTE_NOVA={x:420,y:170,w:780,h:760};
   async function desenharPlanta(){
-    const {x:X,y:Y,w:W,h:H}=RECORTE,c=tela(W,H),g=c.getContext('2d');
+    const {x:X,y:Y,w:W,h:H}=papeis.planta?RECORTE_NOVA:RECORTE,c=tela(W,H),g=c.getContext('2d');
     let planta=null;
-    try{planta=await carregarImagem('img/casa-da-costa-planta-1867.svg');g.drawImage(planta,X,Y,W,H,0,0,W,H);}
+    /* 11/10/2026 (Tarefa 4): com variação, a planta é a da casa nova, do andar dos sinais (img/plantas), sem a foto da fachada */
+    const nova=!!papeis.planta;
+    try{planta=await carregarImagem(papeis.planta||'img/casa-da-costa-planta-1867.svg');g.drawImage(planta,X,Y,W,H,0,0,W,H);}
     catch(e){g.fillStyle='#d9bf8b';g.fillRect(0,0,W,H);}
     /* A fotografia da fachada é noturna: os três pedaços de cima saíam quase
        lisos (luminância média ~60, desvio ~40, contra 150–196 dos outros —
@@ -57,7 +61,7 @@
        foto virava mancha. Os níveis sobem juntos — brilho E contraste — e a
        silhueta da casa, o céu e o raio voltam a separar um pedaço do outro. */
     const FOTO=[55,58,755,365];
-    if(planta&&'filter' in g){
+    if(planta&&!nova&&'filter' in g){
       g.save();g.beginPath();g.rect(FOTO[0]-X,FOTO[1]-Y,FOTO[2],FOTO[3]);g.clip();
       g.filter='sepia(.45) brightness(2.3) contrast(1.35)';
       g.drawImage(planta,X,Y,W,H,0,0,W,H);g.restore();
@@ -69,7 +73,7 @@
     const onde=papeis.onde||[],quantos={},usados={};
     for(const o of onde)quantos[o.comodo]=(quantos[o.comodo]||0)+1;
     const pontos=onde.map(o=>{
-      const base=COMODOS[o.comodo]||[400,700],n=usados[o.comodo]=(usados[o.comodo]||0)+1;
+      const base=o.xy||COMODOS[o.comodo]||[400,700],n=usados[o.comodo]=(usados[o.comodo]||0)+1;
       const x=base[0]+(quantos[o.comodo]>1?(n-1)*120-60:0);
       return {x:x-X,y:base[1]-Y,abaixo:n>1,t:(caso.fragmentos[o.f]||{}).t||o.f};
     });
@@ -381,8 +385,8 @@
   function lista(xs){return xs.length<2?xs.join(''):xs.slice(0,-1).join(', ')+' e '+xs[xs.length-1];}
   const ETAPAS=[
     {id:'planta',tipo:toque,cols:3,lins:3,desenhar:desenharPlanta,
-      antes:()=>['1 · A PLANTA','Uma planta em pedaços.','Uma folha do inventário de 1867, rasgada em nove. As paredes continuam de um pedaço para o outro.'],
-      depois:()=>['1 · A PLANTA','A planta fecha.','Marcas a lápis no térreo: '+lista(titulos().map(t=>t.toLowerCase()))+'. Um traço liga a sala ao corredor.','Pegar o bilhete']},
+      antes:()=>['1 · A PLANTA','Uma planta em pedaços.',papeis.planta?'Uma planta da casa, rasgada em nove. As paredes continuam de um pedaço para o outro.':'Uma folha do inventário de 1867, rasgada em nove. As paredes continuam de um pedaço para o outro.'],
+      depois:()=>['1 · A PLANTA','A planta fecha.',papeis.planta?'Marcas a lápis '+(papeis.andar||'')+': '+lista(titulos().map(t=>t.toLowerCase()))+'. Um traço liga uma marca à outra.':'Marcas a lápis no térreo: '+lista(titulos().map(t=>t.toLowerCase()))+'. Um traço liga a sala ao corredor.','Pegar o bilhete']},
     {id:'bilhete',tipo:encaixe,cols:2,lins:3,desenhar:desenharBilhete,
       antes:()=>['2 · O BILHETE','Um bilhete rasgado.','Seis pedaços de papel de carta, com as bordas recortadas. A letra corre de um pedaço para o outro.'],
       depois:()=>['2 · O BILHETE','O bilhete se lê inteiro.','“'+(pista.txt||'')+'”','Pegar o relógio']},
@@ -438,7 +442,7 @@ pontos[etapa]=esgotado||Date.now()-inicio>=RITMO.papeis.total*1000?0:RITMO.ponto
     if(atual&&!atual.feito){atual.feito=true;tempos[etapa]=Date.now()-atual.inicio;}
     limparMesa();$('dica').hidden=true;
     $('timer').textContent='⏳ Tempo esgotado · os papéis que faltavam não pontuam';
-    painel(['A PASSAGEM','O tempo acabou.','Os papéis que faltavam se juntaram sozinhos. A pista segue para o dossiê.','Ver o que se juntou']);
+    painel(['OS PAPÉIS','O tempo acabou.','Os papéis que faltavam se juntaram sozinhos. A pista segue para o dossiê.','Ver o que se juntou']);
     etapa=ETAPAS.length-1;
     window.ACJanelas?.aviso?.('O tempo dos papéis acabou. Os que faltavam se montaram sozinhos — sem pontos.',9);
   }
@@ -461,7 +465,7 @@ pontos[etapa]=esgotado||Date.now()-inicio>=RITMO.papeis.total*1000?0:RITMO.ponto
   $('guardar').addEventListener('click',()=>{
     const d=$('achado');try{d.close();}catch(e){d.removeAttribute('open');}
     if(guardado)return;guardado=true;
-    painel(['A PASSAGEM','Os papéis estão guardados.','A pista foi para o dossiê: '+(pista.hora||'')+' · '+(pista.txt||'')]);
+    painel(['OS PAPÉIS','Os papéis estão guardados.','A pista foi para o dossiê: '+(pista.hora||'')+' · '+(pista.txt||'')]);
     clearInterval(relogio);
     const total=pontos.reduce((a,b)=>a+(b||0),0);
     $('timer').textContent='📜 Papéis: '+total+' pontos';
@@ -482,7 +486,9 @@ pontos[etapa]=esgotado||Date.now()-inicio>=RITMO.papeis.total*1000?0:RITMO.ponto
 
   async function iniciar(){
     try{
-      const r=await fetch('casos/casa-da-costa.json?v=20261004-janelas');caso=await r.json();
+      const r=await fetch('casos/casa-da-costa.json?v=20261011-t4');caso=await r.json();
+      /* 11/10/2026 (Tarefa 4): dentro da Mesa ou do Solo, o caso é o da variação desta partida (procurado nas janelas acima) */
+      try{let w=window;while(w.parent&&w.parent!==w){w=w.parent;const v=(w.CASO&&w.CASO.variacao&&w.CASO)||(w.CasaVariacoesSolo&&w.CasaVariacoesSolo.caso&&w.CasaVariacoesSolo.caso());if(v&&v.tarefas){caso=v;break;}}}catch(e){}
       papeis=caso.tarefas.salaEscura.papeis;pista=caso.tarefas.salaEscura.pista;
     }catch(e){$('loading').textContent='Os papéis não puderam ser abertos. Recarregue a página.';return;}
     inicio=Date.now();

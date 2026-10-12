@@ -17,7 +17,7 @@ test('Solo Casa preserva as etapas da experiência da Mesa',()=>{
     assert.ok(js.includes(tarefa),tarefa);
   assert.match(js,/disabled.*sensorPronto|sensorPronto.*disabled/s);
   assert.match(js,/MERCADO DE PISTAS · AÇÃO 3 DE 3/);
-  for(const categoria of ['A Janela do Norte','A Sala às Escuras','A escrivaninha e a vela','As três chaves','Os papéis da passagem','A noite em ordem','Mercado de pistas','Decisão contra o caso'])
+  for(const categoria of ['A Janela do Norte','A Sala às Escuras','A escrivaninha e a vela','As três chaves','Os papéis rasgados','A noite em ordem','Mercado de pistas','Decisão contra o caso'])
     assert.ok(js.includes(categoria),categoria);
   /* Tempo total, duas dicas e pontos (ac-ritmo.js): cada tarefa do Solo tem
      prazo, e esgotar zera só aquela tarefa. */
@@ -61,8 +61,8 @@ test('Solo Casa preserva as etapas da experiência da Mesa',()=>{
 test('checkpoint e carimbo incluem o Solo integral',()=>{
   for(const campo of ['percursoEtapa','atividades','atividadeI','sensorPronto','sensorTempos','mosaico','mercadoEtapa','mercadoEscolhas','pontuacao','resultadoVista','apuracaoEtapa'])
     assert.ok(cloud.includes(campo),campo);
-  assert.match(html,/mesa-solo\.js\?v=20261004-janelas/);
-  assert.match(html,/estado-solo\.js\?v=20261004-janelas/);
+  assert.match(html,/mesa-solo\.js\?v=20261011-t4/);
+  assert.match(html,/estado-solo\.js\?v=20261011-t4/);
 });
 
 test('percurso solo mantém 3D, RA, escrivaninha e maquete com três chaves',()=>{

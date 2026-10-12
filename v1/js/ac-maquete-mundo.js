@@ -22,7 +22,24 @@
   'use strict';
 
   /* O carimbo fura o cache do aparelho quando o modelo muda (18/09/2026). */
-  var ARQUIVO = 'assets/ac/casa-da-costa-pisos.glb?v=20260918-maquete-nova';
+  /* O IMPOSTOR (27/09/2026): a casa com os cômodos do cânone — biblioteca,
+     escritório, quarto de serviço com sacada, corredor de serviço (porta para o
+     jardim e quadro de luz), jardim interno e guarita (o farol fica longe, fora da maquete); o relógio de
+     parede deu lugar ao relógio de caixa alta, ao lado do quadro; a
+     escrivaninha foi para o escritório. O porão continua. */
+  /* SUBSTITUIDO (01/10/2026): var ARQUIVO = 'assets/ac/casa-o-impostor-pisos.glb?v=20260928-cabeceiras';
+     O modelo antigo (casa em bloco, jardim fora) está guardado em
+     assets/ac/casa-o-impostor-pisos_SUBSTITUIDO.glb. O novo é a casa em pátio
+     da revisão 2 (briefing de 30/09), modelada em METROS, base da casa em y=0. */
+  /* SUBSTITUIDO (03/10/2026): var ARQUIVO = 'assets/ac/casa-o-impostor-pisos.glb?v=20261001-patio';
+     O modelo de 01/10 está guardado em assets/ac/casa-o-impostor-pisos_SUBSTITUIDO_0310.glb.
+     Em 03/10 a escrivaninha saiu da biblioteca (térreo) e foi para a sala de mapas
+     (andar de cima), encostada na parede sul, sob a janela — a mesma sala do telefone
+     vermelho. É a escrivaninha do Capítulo 2. */
+  /* A CASA DA COSTA (original), 11/10/2026 · Tarefa 4: a maquete nova, a mesma casa d'O Impostor, copiada
+     para a pasta deste jogo (cada jogo é independente). Este arquivo é a cópia do ac-maquete-mundo.js
+     d'O Impostor; o anterior (casa antiga) está guardado como ac-maquete-mundo_SUBSTITUIDO_2026-10-11.js. */
+  var ARQUIVO = 'assets/ac/casa-da-costa-pisos-nova.glb?v=20261011-t4';
 
   /* Camadas, de cima para baixo. `terreno` nunca se solta. */
   var CAMADAS = ['telhado', 'piso-2', 'piso-1', 'porao', 'terreno'];
@@ -36,8 +53,13 @@
        por defeito de posição, não por engano de dedução. */
     { id: 'pedra-do-caminho', camada: 'terreno', nome: 'pedra-solta', extremo: 'maiorZ' },
     { id: 'pilar-do-portao', camada: 'terreno', nomes: ['pilar-de-portao', 'capitel-de-portao'], extremo: 'menorX' },
-    { id: 'moita-do-caminho', camada: 'terreno', nome: 'moita', extremo: 'menorX' },
-    { id: 'laje-de-chegada', camada: 'terreno', nome: 'laje-de-chegada' },
+    /* 01/10: na casa nova duas moitas ficam a menos de 3 m uma da outra; com a folga
+       padrão (0,06) o alvo juntava as duas e o centro caía no chão ENTRE elas. */
+    { id: 'moita-do-caminho', camada: 'terreno', nome: 'moita', extremo: 'menorX', folga: 0.012 },
+    /* 01/10: na casa nova a primeira laje fica sob o telhado da entrada (não se
+       vê de cima) e as outras são passos no caminho. O alvo é o conjunto dos
+       passos mais ao sul; sem isso o centro caía no cascalho entre eles. */
+    { id: 'laje-de-chegada', camada: 'terreno', nome: 'laje-de-chegada', extremo: 'maiorZ', folga: 0.045 },
     /* Só DOIS dos quatro quartos aparecem quando o telhado sai: a torre fica
        na frente dos outros dois. Medido — `armario` do quarto norte respondia
        a 1 direção de 72, e o do leste a nenhuma. Os alvos deste capítulo são
@@ -46,10 +68,29 @@
     { id: 'castical-do-quarto-distante', camada: 'piso-2', ancestral: 'quarto-oeste', nomes: ['castical', 'vela-de-cabeceira'] },
     { id: 'armario-do-quarto-vizinho', camada: 'piso-2', ancestral: 'quarto-sul', prefixo: 'armario' },
     { id: 'castical-do-quarto-vizinho', camada: 'piso-2', ancestral: 'quarto-sul', nomes: ['castical', 'vela-de-cabeceira'] },
-    { id: 'relogio-de-parede', camada: 'piso-1', ancestral: 'relogio-de-parede' },
-    { id: 'escrivaninha', camada: 'piso-1', ancestral: 'escrivaninha' },
-    { id: 'quadro', camada: 'piso-1', ancestral: 'sala-escura', nomes: ['quadro', 'moldura-do-quadro'] },
-    { id: 'espelho', camada: 'piso-1', ancestral: 'sala-escura', nomes: ['espelho', 'moldura-do-espelho'] }
+    { id: 'relogio-caixa-alta', camada: 'piso-1', ancestral: 'relogio-caixa-alta' },
+    /* SUBSTITUIDO (03/10): { id: 'escrivaninha', camada: 'piso-1', ancestral: 'escrivaninha' },
+       Na casa de 01/10 havia DUAS escrivaninhas (biblioteca e sala de visitas) e o
+       ancestral 'escrivaninha' recolhia as duas num alvo só. Agora o alvo é só a da
+       sala de mapas. */
+    { id: 'escrivaninha', camada: 'piso-2', ancestral: 'sala-de-mapas', nomes: ['escrivaninha'] },
+    /* SUBSTITUIDO (01/10): ancestral 'sala-escura' (a sala do modelo antigo). Na casa
+       nova o quadro e o espelho ficam na sala de visitas. */
+    { id: 'quadro', camada: 'piso-1', ancestral: 'sala-de-visitas', nomes: ['quadro', 'moldura-do-quadro'] },
+    { id: 'espelho', camada: 'piso-1', ancestral: 'sala-de-visitas', nomes: ['espelho', 'moldura-do-espelho'] },
+    /* O IMPOSTOR: o telefone vermelho da sala da torre (não é esconderijo; é o que abre a comunicação). */
+    { id: 'telefone', camada: 'piso-2', ancestral: 'telefone-vermelho' },
+    /* Esconderijos das plantas do térreo (além da escrivaninha e do espelho, que já são alvos). */
+    { id: 'estante-da-biblioteca', camada: 'piso-1', ancestral: 'estante-leste' },
+    { id: 'armario-do-quarto-de-servico', camada: 'piso-1', ancestral: 'quarto-de-servico', prefixo: 'qs-armario' },
+    /* O IMPOSTOR: esconderijos dos envios extras (presentes para quem procura). */
+    { id: 'armario-do-quarto-norte', camada: 'piso-2', ancestral: 'quarto-norte', prefixo: 'armario' },
+    { id: 'castical-do-quarto-norte', camada: 'piso-2', ancestral: 'quarto-norte', nomes: ['castical', 'vela-de-cabeceira'] },
+    { id: 'armario-do-quarto-leste', camada: 'piso-2', ancestral: 'quarto-leste', prefixo: 'armario' },
+    { id: 'castical-do-quarto-leste', camada: 'piso-2', ancestral: 'quarto-leste', nomes: ['castical', 'vela-de-cabeceira'] },
+    { id: 'pipas', camada: 'porao', ancestral: 'porao', nomes: ['pipa', 'arco-da-pipa'] },
+    { id: 'caixotes', camada: 'porao', ancestral: 'porao', nomes: ['caixote'] },
+    { id: 'adega', camada: 'porao', ancestral: 'porao', nomes: ['prateleira-do-porao', 'garrafa'] }
   ];
 
   /* As três fechaduras correm pela CHAMINÉ da casa: a porta abre a caixa, o
@@ -61,7 +102,10 @@
     /* A porta da frente, no modelo de 18/09/2026, recuou para dentro do arco
        da torre: a maçaneta responde a 0 de 72 direções e a folha da porta a 2.
        O degrau de pedra diante dela responde a 52 — a fechadura é o degrau. */
-    { id: 'fechadura-portada', camada: 'piso-1', ancestral: 'portada', nomes: ['degrau'] },
+    /* 11/10/2026 (original, casa nova): o degrau da porta ficou sob o beiral fundo e respondia a 6 de 72
+       direções (o telhado tapava). A primeira fechadura subiu para o alto da MESMA chaminé cujos peitos são
+       as outras duas: o capitel acima do telhado se vê de qualquer lado. O id continua o mesmo. */
+    { id: 'fechadura-portada', camada: 'telhado', ancestral: 'chamine-macica', nomes: ['capitel-chamine'] },
     { id: 'fechadura-chamine', camada: 'piso-2', nomes: ['peito-de-chamine-superior'] },
     { id: 'fechadura-lareira', camada: 'piso-1', nomes: ['peito-de-chamine'] }
   ];
@@ -75,7 +119,14 @@
   /* A descoberta. Medido: com o terreno opaco, a passagem responde a ZERO de
      72 direções — ela corre por baixo do chão, para fora da pegada da casa.
      Por isso, no fim, o terreno fica fantasma em vez de continuar sólido. */
-  var REVELACAO = { id: 'passagem-oculta', camada: 'porao', nomes: ['aduela-da-passagem', 'laje-da-passagem', 'barra', 'porta-de-ferro'] };
+  /* SUBSTITUIDO (01/10): { id: 'passagem-oculta', camada: 'porao', nomes: ['aduela-da-passagem', 'laje-da-passagem', 'barra', 'porta-de-ferro'] }
+     Na revisão 2 a passagem é no TÉRREO (da despensa, por trás do quarto de
+     serviço e da janela dos retratos, até a portinhola da sala do relógio) e
+     só fica pública no Cap. 4. O arquivo a marca com extras.hidden: nasce
+     escondida (ver `montar`). */
+  /* No original não há passagem a revelar: nas 15 variações ninguém a usa, e mostrá-la no fim seria pista falsa.
+     A peça continua no modelo, escondida. */
+  var REVELACAO = { id: 'passagem-oculta', camada: 'piso-1', nomes: [] };
 
   var RELOGIO = { hora: 21, minuto: 29 };
 
@@ -409,7 +460,9 @@
      Quem mudar o fator TEM de remedir FECHADURAS (ac-maquete-state.mjs): a
      casa desce e a pegada normalizada muda um pouco. O teste da geometria
      diz os pontos novos. */
-  var ALTURA_DO_PENHASCO = 0.45; // fração da rocha que fica (1 = original)
+  /* SUBSTITUIDO (01/10): 0.45 — valia para o modelo antigo, em unidades do editor.
+     O modelo novo já vem com a casa no lugar: nada se achata. */
+  var ALTURA_DO_PENHASCO = 1; // fração da rocha que fica (1 = original)
   var CORTE_DO_PENHASCO = 9.5;
   function baixarPenhasco(cena, fator) {
     if (!(fator > 0 && fator < 1)) return 0;
@@ -467,6 +520,34 @@
     return queda;
   }
 
+  /* ---- a borda de pedra (modelo de 01/10/2026) ---------------------------
+     O modelo novo cerca o terreiro com pedras que sobem até 3,4 m acima do
+     chão. Vistas de lado (a vista padrão no celular), elas ficavam NA FRENTE
+     do caminho de chegada e engoliam o toque nos esconderijos da chave (a
+     moita, a pedra solta, o pilar, as lajes): o raio batia na rocha antes.
+     Tudo o que é rocha e passa de LIMITE_DA_BORDA acima do chão é achatado;
+     o que fica abaixo do chão (o penhasco até o mar) não muda. Em metros. */
+  var LIMITE_DA_BORDA = 0.35, FATOR_DA_BORDA = 0.12;
+  function achatarBorda(cena) {
+    var mexidas = 0, v = new THREE.Vector3(), inv = new THREE.Matrix4();
+    cena.updateMatrixWorld(true);
+    cena.traverse(function (o) {
+      if (!o.isMesh || !temAncestral(o, 'penhasco')) return;
+      var g = o.geometry.clone(), pos = g.attributes.position, M = o.matrixWorld, mexeu = false;
+      inv.copy(M).invert();
+      for (var i = 0; i < pos.count; i++) {
+        v.fromBufferAttribute(pos, i).applyMatrix4(M);
+        if (v.y <= LIMITE_DA_BORDA) continue;
+        v.y = LIMITE_DA_BORDA + (v.y - LIMITE_DA_BORDA) * FATOR_DA_BORDA; mexeu = true;
+        v.applyMatrix4(inv); pos.setXYZ(i, v.x, v.y, v.z);
+      }
+      if (!mexeu) return;
+      pos.needsUpdate = true; g.computeVertexNormals(); g.computeBoundingBox(); g.computeBoundingSphere();
+      o.geometry = g; mexidas++;
+    });
+    return mexidas;
+  }
+
   /* ---- a base ------------------------------------------------------------ */
 
   /* A maquete é um penhasco sobre o mar: o fundo do modelo são rochedos e
@@ -476,7 +557,9 @@
      TABULEIRO plano de madeira, e sobre ele o mar como um bloco de resina
      escura até o nível das poças. Os rochedos afundam no mar; o penhasco sobe
      dele. A base fica fora das camadas: não se ergue e não vira fantasma. */
-  var NIVEL_DO_MAR = 2.55; // unidades do editor: logo abaixo das poças (2,61)
+  /* SUBSTITUIDO (01/10): 2.55 (unidades do editor do modelo antigo). No modelo novo
+     é a altura do mar ACIMA DO PONTO MAIS BAIXO do penhasco, em metros. */
+  var NIVEL_DO_MAR = 0.6;
   function criarBase(raiz, escala) {
     var grupo = new THREE.Group();
     grupo.name = 'base-da-maquete';
@@ -530,10 +613,52 @@
     return fora.length;
   }
 
+  /* 05/10/2026 (Mario: "o caminho para chegar à casa, onde dois pilares e tal,
+     dão numa janela quando deveriam estar na porta, que fica mais à esquerda").
+     No modelo casa-o-impostor-pisos.glb, a chegada (estrada de terra, lajes,
+     pilares e capitéis do portão, pedras soltas e moitas) está centrada em
+     x = -0,055 da maquete, diante da janela saliente; a porta, com o degrau e a
+     portada, está em x = -0,188. A chegada inteira desliza em x até o eixo da
+     porta. Nada é criado: só se movem as peças que o modelo já traz. Medido
+     ANTES de recolher alvos e fundir, para que toques, anéis e âncoras nasçam
+     já no lugar novo. */
+  var CHEGADA = ['estrada-de-terra', 'laje-de-chegada', 'pilar-de-portao', 'capitel-de-portao', 'pedra-solta', 'moita'];
+  var CHEGADA_ZONA = { minX: -0.17, maxX: 0.05, minZ: 0.22, maxZ: 0.43 };
+  function alinharChegadaComAPorta(raiz) {
+    var terreno = null, porta = null;
+    raiz.traverse(function (o) {
+      if (!terreno && o.name === 'terreno') terreno = o;
+      if (!porta && o.name === 'portada') porta = o;
+    });
+    if (!terreno || !porta) return null;
+    var eixoDaPorta = new THREE.Box3().setFromObject(porta).getCenter(new THREE.Vector3()).x;
+    var pecas = [];
+    terreno.traverse(function (o) {
+      if (o === terreno || !o.name) return;
+      for (var i = 0; i < CHEGADA.length; i++) if (bate(o.name, CHEGADA[i])) { pecas.push(o); return; }
+    });
+    pecas = pecas.filter(function (o) {
+      for (var a = o.parent; a && a !== terreno; a = a.parent) if (pecas.indexOf(a) >= 0) return false;
+      var b = new THREE.Box3().setFromObject(o);
+      return !b.isEmpty() && b.min.x >= CHEGADA_ZONA.minX && b.max.x <= CHEGADA_ZONA.maxX && b.min.z >= CHEGADA_ZONA.minZ && b.max.z <= CHEGADA_ZONA.maxZ;
+    });
+    var eixo = null;
+    pecas.forEach(function (o) { if (bate(o.name, 'estrada-de-terra')) eixo = new THREE.Box3().setFromObject(o).getCenter(new THREE.Vector3()).x; });
+    if (eixo === null || Math.abs(eixoDaPorta - eixo) < 0.005) return null;
+    var dx = eixoDaPorta - eixo;
+    pecas.forEach(function (o) {
+      var p = o.parent, mundo = o.getWorldPosition(new THREE.Vector3());
+      var novo = p.worldToLocal(mundo.clone().add(new THREE.Vector3(dx, 0, 0)));
+      o.position.copy(novo); o.updateMatrixWorld(true);
+    });
+    return { deslocamento: dx, pecas: pecas.length };
+  }
+
   function montar(cena, opcoes) {
     var botoesDoEditor = tirarBotoesDoEditor(cena);
     var realinhadas = realinharCamadas(cena);
     var quedaDoPenhasco = baixarPenhasco(cena, opcoes.alturaDoPenhasco != null ? opcoes.alturaDoPenhasco : ALTURA_DO_PENHASCO);
+    var bordaAchatada = opcoes.manterBorda ? 0 : achatarBorda(cena);
     cena.updateMatrixWorld(true);
 
     /* 1 — normalizar para pegada 1, base em y=0, centro em x/z. */
@@ -550,6 +675,8 @@
     raiz.name = 'maquete';
     raiz.add(ajuste);
     raiz.updateMatrixWorld(true);
+    var chegadaAlinhada = alinharChegadaComAPorta(raiz);
+    if (chegadaAlinhada) raiz.updateMatrixWorld(true);
 
     var relogio = acertarRelogio(raiz);
 
@@ -608,6 +735,8 @@
     var idsFech = Object.keys(fechaduras);
     for (i = 0; i < idsFech.length; i++) prender(fechaduras[idsFech[i]], camadas, raiz, 'fechadura');
     prender(revelacao, camadas, raiz, 'fechadura');
+    /* A passagem nasce escondida (extras.hidden no arquivo; revisão 2: pública só no Cap. 4). */
+    if (revelacao.grupo && !opcoes.mostrarPassagem) revelacao.grupo.visible = false;
 
     /* 5 — âncoras das fechaduras: o ponto exato que o motor confere. */
     var ancoras = [];
@@ -658,6 +787,7 @@
       chaveModelos: chave.modelos,
       base: base,
       camadasRealinhadas: realinhadas,
+      chegadaAlinhada: chegadaAlinhada,
       revelacao: revelacao,
       baseY: Math.abs(completo.min.y) < 1e-6 ? 0 : completo.min.y,
       altura: completo.max.y - completo.min.y,
@@ -709,7 +839,7 @@
       /* `menorX` recolhe o CONJUNTO do extremo — é o pilar com o seu capitel.
          `maiorZ` recolhe UMA peça: as pedras soltas estão espalhadas, e juntar
          três põe o centro do alvo (e o alfinete) no chão entre elas. */
-      var folga = regra.extremo === 'menorX' ? 0.06 : 0.001;
+      var folga = regra.folga != null ? regra.folga : (regra.extremo === 'menorX' ? 0.06 : 0.001);
       /* Vários nós com o mesmo nome espalhados pelo terreno: fica o CONJUNTO do
          portão, o de menor x. Ficar com uma peça só partia o pilar do seu
          capitel; ficar com todas punha o centro do alvo no vão ENTRE os dois

@@ -45,6 +45,10 @@
 
   function casoModel(caso) {
     var id = normalizarCaso(caso);
+    /* 11/10/2026 (Tarefa 4): na Casa com variação aplicada, hipóteses e perguntas são as da variação
+       (o catálogo embutido é a verdade única antiga) */
+    var vivo = typeof window !== "undefined" && window.CASO;
+    if (id === "casa-da-costa" && vivo && vivo.variacao && vivo.partidas && vivo.hipoteses) return { hipoteses: vivo.hipoteses, partidas: vivo.partidas };
     return (CATALOG.casos && CATALOG.casos[id]) || null;
   }
 
@@ -650,7 +654,8 @@
         parts.push('<label class="hpc-campo" data-hpc-campo="' + esc(c.id) + '"><span>' +
           esc(c.rotulo) + '</span><select name="' + esc(c.id) + '" data-hpc-field="' +
           esc(c.id) + '"><option value="">Selecione…</option>' +
-          c.opcoes.map(function (o) {
+          /* 11/10/2026: na Casa, mesma ordem embaralhada da decisão (a certa não vem mais primeiro) */
+          (typeof window.ordemOpcoesCasa === "function" ? window.ordemOpcoesCasa(c.id, c.opcoes) : c.opcoes).map(function (o) {
             return "<option" + (o === cur ? " selected" : "") + ">" + esc(o) + "</option>";
           }).join("") + "</select></label>");
       });

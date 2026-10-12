@@ -194,7 +194,7 @@
   function alinharRotulos() {
     var c = global.CASO; if (!c) return;
     if(global.CATEGORIAS_APURACAO){
-      var extras=[{id:'salaEscura',curto:'Investigação',titulo:'Individual · sala escura'},{id:'vela',curto:'Vela',titulo:'Cooperação · vela'},{id:'chaves',curto:'Chaves',titulo:'Cooperação · chaves'},{id:'papeis',curto:'Papéis',titulo:'Individual · papéis da passagem'}];
+      var extras=[{id:'salaEscura',curto:'Investigação',titulo:'Individual · sala escura'},{id:'vela',curto:'Vela',titulo:'Cooperação · vela'},{id:'chaves',curto:'Chaves',titulo:'Cooperação · chaves'},{id:'papeis',curto:'Papéis',titulo:'Individual · papéis rasgados'}];
       extras.forEach(function(e){var i=CATEGORIAS_APURACAO.findIndex(function(x){return x.id===e.id;});if(STATE.doc&&STATE.doc.percursoAC===1){if(i<0)CATEGORIAS_APURACAO.push(e);}else if(i>=0)CATEGORIAS_APURACAO.splice(i,1);});
     }
     ["inclinacao", "constelacao"].forEach(function (fase) {

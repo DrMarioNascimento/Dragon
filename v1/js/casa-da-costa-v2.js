@@ -137,11 +137,20 @@
     return modalOrientacaoBase().replace(/acusa&ccedil;&atilde;o final/g,"decis&atilde;o final").replace(/acusa&ccedil;&atilde;o/g,"decis&atilde;o");
   };
 
+  /* 11/10/2026: as opções saíam na ordem do JSON, quase sempre com a certa primeiro.
+     Agora a ordem sai da semente da sala e do campo: igual em todos os aparelhos, diferente por campo e por mesa. */
+  global.ordemOpcoesCasa=function(campoId,opcoes){
+    var cod=(global.STATE&&(STATE.eu&&STATE.eu.codigo||STATE.mesa&&STATE.mesa.codigo))||"solo";
+    var t=String(cod)+"|"+String(campoId||""),h=2166136261;for(var i=0;i<t.length;i++)h=Math.imul(h^t.charCodeAt(i),16777619)>>>0;
+    var a=(opcoes||[]).slice();for(var k=a.length-1;k>0;k--){h=Math.imul(h^(h>>>15),2246822519)>>>0;h=(h+0x6D2B79F5)>>>0;var j=h%(k+1),x=a[k];a[k]=a[j];a[j]=x;}
+    return a;
+  };
+
   global.telaDeducao=function(){
     var eu=meuJogador(); if(!eu)return '';
     if((STATE.v5.deducoes||[]).some(function(d){return d.id===eu.id;}))return '<span class="eyebrow">Decisão final</span><h2>Resposta registrada.</h2><p class="lead">Sua decisão e o horário de envio foram registrados. Aguarde a revelação.</p>';
     var p=partida(), adquiridas=minhasPistas().filter(function(x){return x.adquirida;});
-    function campo(c){return '<label>'+escLocal(c.rotulo)+'<select class="selecao-toque" id="ded-'+escLocal(c.id)+'"><option value="">Toque para escolher…</option>'+c.opcoes.map(function(o){return opcao(o,o);}).join('')+'</select></label>';}
+    function campo(c){return '<label>'+escLocal(c.rotulo)+'<select class="selecao-toque" id="ded-'+escLocal(c.id)+'"><option value="">Toque para escolher…</option>'+ordemOpcoesCasa(c.id,c.opcoes).map(function(o){return opcao(o,o);}).join('')+'</select></label>';}
     var checks=adquiridas.map(function(x){return '<label><input type="checkbox" name="pista-usada" value="'+escLocal(x.id)+'"> '+escLocal(x.hora+' — '+x.txt)+'</label>';}).join('')||'<p class="muted">Você não adquiriu pistas no mercado.</p>';
     return '<span class="eyebrow">Decisão final · '+escLocal(p.natureza)+'</span><h2>O que os fatos permitem concluir?</h2>'+perguntaHtml()+'<div class="card deducao-card">'+p.campos.map(campo).join('')+'<p><b>Pistas adquiridas usadas na decisão</b></p>'+checks+'</div><p class="muted" style="text-align:center">Depois de enviar, você não poderá alterar a resposta.</p><button class="btn btn-ambar" onclick="enviarDeducao()">Enviar decisão final</button>';
   };

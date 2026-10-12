@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="mesa-solo.css?v=20261004-janelas">
 <script src="../v1/js/ac-ritmo.js?v=20261004-janelas"></script>
 <script src="../v1/js/ac-legenda-giro.js?v=20261004-janelas"></script>
-<script src="../hipoteses-por-camada.js?v=20260914-mobile-reading"></script>
+<script src="../hipoteses-por-camada.js?v=20261011-t4"></script>
 <script src="../papel-camada.js?v=20261004-janelas"></script>
 </head>
 <body>
@@ -38,12 +38,18 @@
     document.head.appendChild(ab);
   }
   function carregarJogo(){
-    var jogo=document.createElement('script');
-    jogo.src='mesa-solo.js?v=20261004-janelas';
+    /* 11/10/2026: as variações da solução (o mesmo arquivo da Mesa) carregam antes do jogo */
+    var vari=document.createElement('script');vari.async=false;vari.src='../v1/js/variacoes-casa.js?v=20261011-t4';document.head.appendChild(vari);
+    var jogo=document.createElement('script');jogo.async=false;
+    jogo.src='mesa-solo.js?v=20261011-t4';
     jogo.onload=function(){
       var ponte=document.createElement('script');
-      ponte.src='estado-solo.js?v=20261004-janelas';
+      ponte.src='estado-solo.js?v=20261011-t4';
       document.body.appendChild(ponte);
+      /* 11/10/2026: o aprendizado da tela, o mesmo da Mesa, com os passos do Solo */
+      var ap=document.createElement('script');
+      ap.src='../v1/js/aprendizado-casa.js?v=20261011-t4';
+      document.body.appendChild(ap);
     };
     document.body.appendChild(jogo);
   }

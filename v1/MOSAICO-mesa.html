@@ -1419,13 +1419,13 @@
      especificidade, quem vem por ultimo vence, e o padrao tem de vencer. -->
 <link rel="stylesheet" href="css/profundidade.css?v=20260902-profundidade">
 <link rel="stylesheet" href="css/profundidade-1mais1.css?v=20260930-foco">
-<link rel="stylesheet" href="css/ac-janelas.css?v=20261004-janelas">
-<script src="js/ac-cloud.js?v=20261004-janelas"></script>
+<link rel="stylesheet" href="css/ac-janelas.css?v=20261011-t4">
+<script src="js/ac-cloud.js?v=20261011-t4"></script>
 <!-- A abertura da Mesa (vídeo vertical + voz, um passo de cada vez). Moravam
      pendurados no js/ac-cloud.js, que é o adaptador de nuvem d'A Casa — e por
      isso entravam também na escrivaninha, na maquete e no percurso. -->
-<script defer src="js/abertura-video-casa.js?v=20261004-janelas"></script>
-<script defer src="js/mesa-fluxo-abertura.js?v=20261004-janelas"></script></head>
+<script defer src="js/abertura-video-casa.js?v=20261011-t4"></script>
+<script defer src="js/mesa-fluxo-abertura.js?v=20261011-t4"></script></head>
 <body>
 <div id="arte">
   <!-- Coloque o video em img/abertura.mp4 e ele assume a abertura sozinho.
@@ -1485,15 +1485,16 @@
      enxerga esta pagina. Dentro desta, o caso e o video releem o mesmo
      valor de window.MOSAICO_VERSAO, que sai da tag do mosaico-v5.js. -->
 <script src="js/three.min.js"></script>
-<script src="js/vendor/GLTFLoader.js"></script><script src="js/ac-desk.js"></script><script src="js/ac-room-layout.js"></script><script src="js/ac-room-art.js"></script><script src="js/ac-room.js"></script><script src="js/mosaico-ra-engine.js?v=20261004-janelas"></script>
+<script src="js/vendor/GLTFLoader.js"></script><script src="js/ac-desk.js"></script><script src="js/ac-room-layout.js"></script><script src="js/ac-room-art.js"></script><script src="js/ac-room.js"></script><script src="js/mosaico-ra-engine.js?v=20261011-t4"></script>
 <script src="js/mosaico-3d-engine.js"></script>
-<script src="js/ac-ritmo.js?v=20261004-janelas"></script><script src="js/ac-legenda-giro.js?v=20261004-janelas"></script>
-<script src="js/ac-pontuacao.js?v=20261004-janelas"></script>
-<script src="js/mosaico-v5.js?v=20261004-janelas"></script>
-<script src="../hipoteses-por-camada.js?v=20260906-hpc-pf"></script>
+<script src="js/ac-ritmo.js?v=20261011-t4"></script><script src="js/ac-legenda-giro.js?v=20261011-t4"></script>
+<script src="js/ac-pontuacao.js?v=20261011-t4"></script>
+<script src="js/mosaico-v5.js?v=20261011-t4"></script>
+<script src="../hipoteses-por-camada.js?v=20261011-t4"></script>
 <script src="../papel-camada.js?v=20261004-janelas"></script>
-<script src="js/qr.js?v=20261004-janelas"></script>
-<script src="js/casa-firebase-room-bridge.js?v=20261004-janelas"></script>
+<script src="js/qr.js?v=20261011-t4"></script>
+<script src="js/variacoes-casa.js?v=20261011-t4"></script>
+<script src="js/casa-firebase-room-bridge.js?v=20261011-t4"></script>
 <script type="module" src="../firebase-room.js?v=20261011-sdk12"
         data-retomar="sim"
         data-project="mesa"
@@ -2545,39 +2546,8 @@ function painelCasoMovel(){
     cabecalhoRodada(fase,"rodada-celular")+
     '<div class="card"><span class="eyebrow">O que fazer agora</span><p class="lead" style="margin:8px 0 0">'+esc(orientacaoCaso(fase))+'</p></div>'+
     '<div class="card"><span class="eyebrow">'+(emFragmentos?'Cronologia distribu&iacute;da':'Linha do tempo p&uacute;blica')+'</span>'+linhas+'</div>'+
-    '<details class="card m3d-tilt-box" style="margin-top:10px">'+
-      '<summary style="cursor:pointer;font-weight:700;color:var(--ambar)">🏰 Os C&ocirc;modos da Casa da Costa</summary>'+
-      '<div style="margin-top:10px;font-size:14px;line-height:1.45;display:grid;gap:8px">'+
-        '<div><b>1. A Sala Principal:</b> O cofre fechado com marca fresca de dedo na trava. A cortina balan&ccedil;ando com a janela trancada.</div>'+
-        '<div><b>2. O Corredor:</b> Estreito. O ch&atilde;o s&oacute; range para quem a casa n&atilde;o reconhece. Uma sombra veloz no escuro.</div>'+
-        '<div><b>3. A Escada:</b> O quarto degrau ressoa oco com chapa de metal refor&ccedil;ada. O som sobe ao forro.</div>'+
-        '<div><b>4. O S&oacute;t&atilde;o / Forro:</b> A madeira estalando leve demais para vento; forro usado como travessia.</div>'+
-        '<div><b>5. A Cozinha:</b> Arm&aacute;rio entreaberto 1 cm. O copo excedente no rodap&eacute; da pia com respira&ccedil;&atilde;o recente.</div>'+
-        '<div><b>6. O Jardim Interno:</b> N&eacute;voa rasteira e folha molhada sem chuva perto da passagem de servi&ccedil;o.</div>'+
-      '</div>'+
-    '</details>'+
-    '<details class="card m3d-tilt-box" style="margin-top:8px">'+
-      '<summary style="cursor:pointer;font-weight:700;color:var(--frio)">⚡ A Linha da Noite</summary>'+
-      '<div style="margin-top:10px;font-size:13px;line-height:1.45;display:grid;gap:6px">'+
-        '<div><b>21h03:</b> Primeiro aviso &mdash; a luz oscila e estalo seco no s&oacute;t&atilde;o.</div>'+
-        '<div><b>21h07:</b> Porta da sala entreaberta e cortina balan&ccedil;ando sem vento.</div>'+
-        '<div><b>21h12:</b> Marca de dedo recente na trava do cofre.</div>'+
-        '<div><b>21h14:</b> Movimento contido no andar de cima.</div>'+
-        '<div><b>21h17:</b> Luz oscila forte, sombra precisa no corredor.</div>'+
-        '<div><b>21h20:</b> Tempestade bate forte; n&eacute;voa entra pela fresta.</div>'+
-        '<div><b>21h29:</b> O apag&atilde;o de 122 segundos &mdash; o disjuntor desligado.</div>'+
-      '</div>'+
-    '</details>'+
-    '<details class="card m3d-tilt-box" style="margin-top:8px">'+
-      '<summary style="cursor:pointer;font-weight:700;color:var(--ambar)">📖 A Cr&ocirc;nica da Tempestade</summary>'+
-      '<div style="margin-top:10px;font-size:13px;line-height:1.55;color:#dfeaf5;display:grid;gap:8px;max-height:320px;overflow-y:auto;padding-right:4px">'+
-        '<p>A tempestade chegou antes dos convidados. O vento batia contra as janelas da Casa da Costa como se quisesse entrar. A madeira antiga respondia com estalos curtos, secos, quase impacientes.</p>'+
-        '<p>O primeiro carro parou diante do port&atilde;o. O Investigador desceu, puxando o casaco: <i>&ldquo;Tem algu&eacute;m a&iacute;?&rdquo;</i> A Herdeira apareceu ao lado t&atilde;o r&aacute;pido que parecia ter surgido da n&eacute;voa: <i>&ldquo;Ouvi.&rdquo;</i></p>'+
-        '<p>&Agrave;s 21h03, a luz oscilou pela primeira vez. N&atilde;o foi queda. Foi aviso. &Agrave;s 21h07, a porta da sala estava entreaberta e a cortina balan&ccedil;ava com a janela trancada. &Agrave;s 21h12, o cofre com marca recente de dedo na trava.</p>'+
-        '<p>&Agrave;s 21h29, a energia caiu por dois minutos e dois segundos. Detetive viu os rastros de lama de dentro para fora sob a mesa lateral. Inventariante viu a press&atilde;o sobreposta no cofre. Jornalista sentiu a respira&ccedil;&atilde;o e a barra da cortina &uacute;mida na fresta. Residente conhecia a passagem atr&aacute;s da cozinha e o forro. Policial ouviu o quarto degrau refor&ccedil;ado com chapa met&aacute;lica. Crian&ccedil;a encontrou o copo excedente no rodap&eacute; da pia.</p>'+
-        '<p style="color:#ffd9a0;font-weight:600;border-left:3px solid var(--ambar);padding-left:8px">N&atilde;o havia seis pessoas na Casa da Costa. Havia sete. E a s&eacute;tima n&atilde;o entrou durante a tempestade &mdash; j&aacute; estava dentro antes da primeira batida no port&atilde;o.</p>'+
-      '</div>'+
-    '</details>'+
+    /* SUBSTITUIDO 11/10/2026 (Tarefa 4): saíram daqui três blocos do caso ANTIGO (Os Cômodos, A Linha da Noite e A Crônica da
+       Tempestade: cofre com marca de dedo, disjuntor desligado, "havia sete"), que contradiziam as variações e entregavam a resposta. */
     '<details class="card m3d-tilt-box" style="margin-top:8px">'+
       '<summary style="cursor:pointer;font-weight:700;color:var(--frio)">&#9432; Como jogar &middot; siglas e &iacute;cones</summary>'+
       '<div style="margin-top:10px;font-size:13px;line-height:1.45;display:grid;gap:8px">'+
@@ -2839,7 +2809,26 @@ function render(forcar){
      rodada em que o celular esta sendo sacudido.                     */
   limparBarraInferior();
   app.dataset.acScreen=STATE.tela;
+  /* 11/10/2026 (Tarefa 4): o que a pessoa já escolheu sobrevive ao redesenho. Cada mudança na sala
+     (outro jogador enviando a decisão, uma tarefa concluída) chama render(), que reescreve a tela
+     inteira — e a decisão final pela metade voltava em branco. Guarda os campos preenchidos e devolve
+     só onde a tela nova trouxe o mesmo campo vazio (campo travado pelo Mercado não é tocado). */
+  var preenchidos=[];
+  app.querySelectorAll("select[id],input[id],textarea[id],input[type=checkbox][name]").forEach(function(el){
+    if(el.type==="checkbox"){ if(el.checked) preenchidos.push({ck:1,name:el.name,v:el.value}); }
+    else if(el.value) preenchidos.push({id:el.id,v:el.value});
+  });
   app.innerHTML=h;
+  preenchidos.forEach(function(x){
+    if(x.ck){
+      var cb=Array.prototype.find.call(app.querySelectorAll('input[type=checkbox]'),function(e){return e.name===x.name&&e.value===x.v;});
+      if(cb&&!cb.disabled) cb.checked=true; return;
+    }
+    var el=document.getElementById(x.id);
+    if(!el||!app.contains(el)||el.disabled||el.value) return;
+    if(el.tagName==="SELECT"&&!Array.prototype.some.call(el.options,function(o){return o.value===x.v;})) return;
+    el.value=x.v;
+  });
   if((STATE.tela === "sala3d" || STATE.tela === "ra") && window.MosaicoRA){
     var modoRA = (STATE.tela === "ra") ? "camera-ra" : "sala3d";
     setTimeout(function(){
@@ -5588,5 +5577,6 @@ if(CONFIGURADO) window.MosaicoFB = {
 window.dispatchEvent(new Event("mosaicofb-ready"));
 console.log("MosaicoFB ready");
 </script>
-<script src="js/ac-janelas.js?v=20261004-janelas"></script></body>
+<script src="js/ac-janelas.js?v=20261011-t4"></script>
+<script src="js/aprendizado-casa.js?v=20261011-t4"></script></body>
 </html>

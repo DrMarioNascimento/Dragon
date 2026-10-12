@@ -28,7 +28,7 @@
        5. Os papéis da passagem (individual: cada um monta os seus) */
     const path={sala:'MOSAICO-26-a-sala-as-escuras.html',mesa:'AC-escrivaninha.html',maquete:'AC-maquete.html',papeis:'AC-papeis.html'}[name];
     frame.src=path+'?'+q;frame.hidden=false;
-    $('stage').textContent={sala:'1 / 4 · A sala às escuras',mesa:'2 / 4 · Sob outra luz',maquete:'3 / 4 · O lar em miniatura',papeis:'4 / 4 · Os papéis da passagem'}[name];
+    $('stage').textContent={sala:'1 / 4 · A sala às escuras',mesa:'2 / 4 · Sob outra luz',maquete:'3 / 4 · O lar em miniatura',papeis:'4 / 4 · Os papéis rasgados'}[name];
   }
   /* O bloqueio é um diálogo de decisão: sem ×, sem Esc — sai quando a
      partida retoma ou o colega chega. */
@@ -199,7 +199,7 @@
       const q=new URLSearchParams({run,embed:'1',cenario:params.get('cenario')||'AC-COSTA',v:'20261004-janelas'});
       if(etapa!=='sala')q.set('demo','solo');
       current=etapa;frame.src=cena[etapa]+'?'+q;frame.hidden=false;
-      $('stage').textContent={sala:'1 / 4 · A sala às escuras',mesa:'2 / 4 · Sob outra luz · com parceiro',papeis:'4 / 4 · Os papéis da passagem'}[etapa];
+      $('stage').textContent={sala:'1 / 4 · A sala às escuras',mesa:'2 / 4 · Sob outra luz · com parceiro',papeis:'4 / 4 · Os papéis rasgados'}[etapa];
     }
     window.addEventListener('message',e=>{
       if(e.origin!==location.origin||!e.data||e.source!==frame.contentWindow)return;

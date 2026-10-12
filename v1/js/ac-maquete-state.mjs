@@ -34,10 +34,11 @@ const RITMO = globalThis.ACRitmo;
    `ac-maquete.test.mjs` recalcula as três a partir do arquivo e reprova se
    alguém mexer no modelo sem mexer aqui. */
 /* Remedidas em 19/09/2026, com o penhasco baixado (ac-maquete-mundo.js). */
+/* 11/10/2026 (Tarefa 4): medidas da casa nova, as mesmas d'O Impostor. */
 export const FECHADURAS = [
-  [0.17836, 0.32582, 0.25301],   // degrau de pedra da porta da frente
-  [-0.29224, 0.55338, -0.03934], // peito da chaminé, no corredor dos quartos
-  [-0.29708, 0.44057, -0.03934]  // peito da chaminé do térreo, na sala escura
+  [-0.23511, 0.30391, -0.10244],  // capitel da chaminé, acima do telhado (portada) · medido em 11/10/2026 no mundo do original
+  [-0.21806, 0.21619, -0.10307],  // peito da chaminé, no andar de cima
+  [-0.19517, 0.15983, -0.10024]   // peito da chaminé do térreo, na sala do relógio
 ];
 
 /* Encaixe: distância máxima entre a ponta da chave e a fechadura, na mesma
@@ -49,6 +50,7 @@ export const TOLERANCIA = 0.03;
 /* A segunda pista é a mesma nas três camadas: ela não diz onde, diz COMO. */
 export const SEGUNDA_PISTA = 'Uma é fixa que nem a casa, e a outra mexe igual onda.';
 
+/* 11/10/2026 (Tarefa 4): os capítulos da casa nova (CAPITULOS_AC d'O Impostor, remedidos em 01/10), sem a passagem sob a despensa. */
 export const CAPITULOS = [
   {
     id: 'portada',
@@ -56,29 +58,41 @@ export const CAPITULOS = [
     camada: 'telhado',
     chaveiro: 'luz',
     fechadura: 'fechadura-portada',
-    fechaduraRotulo: 'O degrau da porta da frente',
+    fechaduraRotulo: 'O alto da chaminé',
     esconderijo: 'pedra-do-caminho',
     recorte: 'Onde o caminho do portão chega à casa.',
-    candidatos: ['pedra-do-caminho', 'pilar-do-portao', 'moita-do-caminho', 'laje-de-chegada'],
+    /* 11/10/2026: a moita e o lajeado saíram dos candidatos: na casa nova a moita é pequena demais (mirar nela não a acerta)
+       e o lajeado fica colado no pilar do portão (o toque virava sorteio). Teste da maquete. */
+    candidatos: ['pedra-do-caminho', 'pilar-do-portao'],
     rotulos: {
       'pedra-do-caminho': 'A pedra solta do caminho, diante da porta',
       'pilar-do-portao': 'O pilar do portão',
-      'moita-do-caminho': 'A moita ao lado da varanda',
+      'moita-do-caminho': 'A moita junto ao caminho', // SUBSTITUIDO (01/10, casa nova): 'A moita ao lado da varanda'
       'laje-de-chegada': 'O lajeado diante da porta'
     },
     achado: {
       chave: 'A pedra estava solta. Debaixo dela havia uma coisa pequena e fria.',
-      fechadura: 'O degrau de pedra está oco. No meio dele há um vão de ferro que não é de degrau.'
+      fechadura: 'No capitel da chaminé, acima do telhado, há um vão de ferro que não é de chaminé.'
     },
     dicas: {
       busca: {
         chave: ['Rente ao chão: nem tudo o que fica no caminho está preso.', 'Diante da porta, no fim do caminho: uma pedra ou uma laje saiu do lugar.'],
-        fechadura: ['A casa também tem uma entrada que se pisa.', 'Olhe o que se pisa para entrar pela porta da frente.']
+        fechadura: ['A casa também tem uma entrada por cima.', 'Olhe o alto da chaminé, acima do telhado.']
       },
       encaixe: {
-        chave: ['Pergunte ao colega perto de quê o vão está, e leve a chave até lá.', 'O vão fica diante da porta da frente, embaixo do arco da torre.'],
-        fechadura: ['Diga ao colega onde está o vão: perto de quê, de que lado da casa.', 'Diga: “no degrau de pedra da porta da frente”. O ponto de luz é a chave dele.']
+        chave: ['Pergunte ao colega perto de quê o vão está, e leve a chave até lá.', 'O vão fica no alto da chaminé, acima do telhado.'], // SUBSTITUIDO (01/10): '…embaixo do arco da torre.'
+        fechadura: ['Diga ao colega onde está o vão: perto de quê, de que lado da casa.', 'Diga: “no alto da chaminé”. O ponto de luz é a chave dele.']
       }
+    },
+    porEsconderijo: {
+      'pedra-do-caminho': { achado: 'A pedra estava solta. Debaixo dela havia uma coisa pequena e fria.',
+        busca: ['Rente ao chão: nem tudo o que fica no caminho está preso.', 'Diante da porta, no fim do caminho: uma pedra ou uma laje saiu do lugar.'] },
+      'laje-de-chegada': { achado: 'Uma laje balançou sob o dedo. Debaixo dela havia uma coisa pequena e fria.',
+        busca: ['Rente ao chão: nem tudo o que fica no caminho está preso.', 'Diante da porta, no fim do caminho: uma laje ou uma pedra saiu do lugar.'] },
+      'pilar-do-portao': { achado: 'Uma pedra do pilar estava solta. Atrás dela havia uma coisa pequena e fria.',
+        busca: ['Onde o terreno começa, antes da porta: nem toda pedra está presa.', 'Na entrada: o pilar do portão ou a pedra solta do caminho.'] },
+      'moita-do-caminho': { achado: 'Entre as folhas, rente à terra, havia uma coisa pequena e fria.',
+        busca: ['Nem tudo o que cresce no caminho é só planta.', 'Perto da entrada: a moita junto ao caminho ou o pilar do portão.'] }
     },
     evidencia: 'chave-exterior',
     fecho: 'O telhado se soltou. Debaixo dele havia um andar de quartos.'
@@ -113,8 +127,19 @@ export const CAPITULOS = [
         fechadura: ['Descreva ao colega o caminho até o vão, cômodo por cômodo.', 'Diga: “na chaminé, no corredor dos quartos”.']
       }
     },
+    porEsconderijo: {
+      'armario-do-quarto-distante': { achado: 'O armário tinha fundo falso. O que caiu lá dentro não era roupa.',
+        busca: ['Os quartos guardam roupa — e às vezes outra coisa atrás dela.', 'No quarto mais longe da torre: o armário ou o castiçal.'] },
+      'castical-do-quarto-distante': { achado: 'O castiçal tinha a base oca. O que estava lá dentro não era vela.',
+        busca: ['Nos quartos, o que ilumina também guarda.', 'No quarto mais longe da torre: o castiçal ou o armário.'] },
+      'armario-do-quarto-vizinho': { achado: 'O armário tinha fundo falso. O que caiu lá dentro não era roupa.',
+        busca: ['Os quartos guardam roupa — e às vezes outra coisa atrás dela.', 'No quarto ao lado: o armário ou o castiçal.'] },
+      'castical-do-quarto-vizinho': { achado: 'O castiçal tinha a base oca. O que estava lá dentro não era vela.',
+        busca: ['Nos quartos, o que ilumina também guarda.', 'No quarto ao lado: o castiçal ou o armário.'] }
+    },
     evidencia: 'chave-dos-quartos',
-    fecho: 'O andar dos quartos saiu inteiro. Embaixo está o térreo, com a sala escura e a despensa.'
+    /* SUBSTITUIDO (03/10): '... a sala, a biblioteca, o escritório, a cozinha e o quarto de serviço.' — a casa de 01/10 não tem escritório. */
+    fecho: 'O andar dos quartos saiu inteiro. Embaixo está o térreo: a sala, a biblioteca, a cozinha e o quarto de serviço.'
   },
   {
     id: 'terreo',
@@ -122,32 +147,45 @@ export const CAPITULOS = [
     camada: 'piso-1',
     chaveiro: 'luz',
     fechadura: 'fechadura-lareira',
-    fechaduraRotulo: 'O peito da chaminé, na sala escura',
-    esconderijo: 'relogio-de-parede',
-    recorte: 'Na sala que ficou escura.',
-    candidatos: ['relogio-de-parede', 'escrivaninha', 'quadro', 'espelho'],
+    fechaduraRotulo: 'O peito da chaminé, na sala',
+    esconderijo: 'relogio-caixa-alta',
+    recorte: 'No térreo.',
+    /* 11/10/2026: a escrivaninha fica no andar de cima (sala de mapas), que já saiu quando este
+       capítulo começa; o candidato passou a ser a estante da biblioteca. */
+    candidatos: ['relogio-caixa-alta', 'estante-da-biblioteca', 'quadro', 'espelho'],
     rotulos: {
-      'relogio-de-parede': 'O relógio de parede parado',
-      'escrivaninha': 'A escrivaninha',
+      'relogio-caixa-alta': 'O relógio de caixa alta',
+      'estante-da-biblioteca': 'A estante da biblioteca',
       'quadro': 'O quadro emoldurado',
       'espelho': 'O espelho na parede'
     },
     achado: {
-      chave: 'O relógio de parede parou às 21h29. Atrás do mostrador havia outra coisa.',
+      chave: 'Em cima do relógio de caixa alta, atrás do remate, havia outra coisa.',
       fechadura: 'No peito da chaminé da sala, uma placa de ferro com um vão estreito.'
     },
     dicas: {
       busca: {
-        chave: ['Na sala que ficou escura, uma coisa parou quando a casa apagou.', 'O relógio de parede ou o quadro da sala escura.'],
-        fechadura: ['A chaminé desce até o térreo.', 'Na sala escura, o peito da chaminé tem uma placa de ferro.']
+        chave: ['Na sala, olhe o que é mais alto que todos.', 'O relógio de caixa alta ou o quadro ao lado dele.'],
+        fechadura: ['A chaminé desce até o térreo.', 'Na sala, o peito da chaminé tem uma placa de ferro.']
       },
       encaixe: {
-        chave: ['O vão está na mesma sala do esconderijo.', 'O vão fica no peito da chaminé da sala escura.'],
-        fechadura: ['Diga ao colega em que parede da sala está o vão.', 'Diga: “no peito da chaminé, na sala escura”.']
+        chave: ['O vão está na mesma sala do esconderijo.', 'O vão fica no peito da chaminé da sala.'],
+        fechadura: ['Diga ao colega em que parede da sala está o vão.', 'Diga: “no peito da chaminé, na sala”.']
       }
     },
+    porEsconderijo: {
+      'relogio-caixa-alta': { achado: 'Em cima do relógio de caixa alta, atrás do remate, havia outra coisa.',
+        busca: ['Na sala, olhe o que é mais alto que todos.', 'O relógio de caixa alta ou o quadro ao lado dele.'] },
+      'estante-da-biblioteca': { achado: 'Atrás de uma fileira de livros da estante havia outra coisa.',
+        busca: ['Na biblioteca, nem todo livro está ali para ser lido.', 'A estante da biblioteca ou o relógio de caixa alta.'] },
+      'quadro': { achado: 'Presa em cima da moldura do quadro havia outra coisa.',
+        busca: ['Na sala, uma moldura guarda mais do que a pintura.', 'O quadro ou o relógio de caixa alta, na sala.'] },
+      'espelho': { achado: 'Presa em cima da moldura do espelho havia outra coisa.',
+        /* SUBSTITUIDO 03/10: [..., 'O espelho da sala ou a escrivaninha do escritório.'] */
+        busca: ['Na sala, uma coisa devolve a sala a quem olha.', 'O espelho da sala ou a estante da biblioteca.'] }
+    },
     evidencia: 'passagem-sob-despensa',
-    fecho: 'O térreo se ergueu. Sob a despensa há um porão — e ele não termina onde a casa termina.'
+    fecho: 'O térreo se ergueu. A casa inteira está aberta, do telhado ao porão.'
   }
 ];
 

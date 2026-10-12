@@ -28,5 +28,8 @@
     render(true);
   };
   global.escolherPartidaCasa=function(){return false;};
+  /* 11/10/2026: a sala do Firebase (casa-firebase-room-bridge.js) não passa por criarMesa;
+     sem isto a rotação ficava presa em "sete". O Mestre grava a próxima ao Iniciar. */
+  global.CasaRotacao={proxima:proxima,marcar:function(id){if(!valida(id))return;try{localStorage.setItem(CHAVE,id);}catch(e){}}};
   if(global.CASO&&CASO.partidas&&global.STATE&&!STATE.mesa&&!STATE.doc){STATE.partidaId=proxima();if(typeof render==="function")render(true);}
 })(window);

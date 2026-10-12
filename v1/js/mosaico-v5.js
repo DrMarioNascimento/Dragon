@@ -202,12 +202,12 @@
     setTimeout(function () {
       if (document.querySelector('script[data-casa-costa-v2]')) return;
       var s = document.createElement("script");
-      s.src = "js/casa-da-costa-v2.js?v=20261004-janelas";
+      s.src = "js/casa-da-costa-v2.js?v=20261011-t4";
       s.dataset.casaCostaV2 = "1";
       s.onload=function(){
         if(document.querySelector('script[data-rotacao-casa]'))return;
         var r=document.createElement("script");
-        r.src="js/rotacao-partidas-casa.js?v=20260830-auto";
+        r.src="js/rotacao-partidas-casa.js?v=20261011-t4";
         r.dataset.rotacaoCasa="1";
         /* O banco modular entra DEPOIS da rotação: ele lê a pergunta que a
            rotação escolheu para semear a distribuição. Invertida a ordem, a
@@ -216,14 +216,14 @@
         r.onload=function(){
           if(document.querySelector('script[data-banco-casa]'))return;
           var b=document.createElement("script");
-          b.src="js/banco-casa-da-costa.js?v=20260902-tecnica";
+          b.src="js/banco-casa-da-costa.js?v=20261011-t4";
           b.dataset.bancoCasa="1";
           /* As atividades entram por último: elas envolvem criarMesa depois
              da rotação da pergunta, para lerem a partida já escolhida. */
           b.onload=function(){
             if(document.querySelector('script[data-atividades-casa]'))return;
             var a=document.createElement("script");
-            a.src="js/atividades-casa-da-costa.js?v=20261004-janelas";
+            a.src="js/atividades-casa-da-costa.js?v=20261011-t4";
             a.dataset.atividadesCasa="1";
             /* O rendimento entra por último: ele envolve concluirTarefaSensor
                e MosaicoV5.calcular, e precisa do banco e das atividades já
@@ -247,7 +247,7 @@
                 m.onload=function(){
                   if(document.querySelector("script[data-mercado-casa]"))return;
                   var k=document.createElement("script");
-                  k.src="js/mercado-casa-da-costa.js?v=20260902-mediado";
+                  k.src="js/mercado-casa-da-costa.js?v=20261011-t4";
                   k.dataset.mercadoCasa="1";
                   /* O telão entra por último: ele só publica o que a mesa já
                      sabe (pergunta, fase, resolução). Precisa do CASO e do
@@ -274,4 +274,4 @@
       document.head.appendChild(s);
     }, 0);
   }
-})(window);
+})(window);

@@ -204,6 +204,12 @@
   function distribuirPrivadas() {
     var b = banco(), c = caso(); if (!b || !c || !global.PISTA_PRIVADA) return;
     var elenco = (c.elenco || []).map(function (p) { return p.id; });
+    /* 11/10/2026 (Tarefa 4): com o elenco de 15, a pista privada vai só para quem é jogado por
+       humano — metade de par entregue a personagem do sistema seria pista perdida. Sem jogadores
+       ainda (ensaio), vale o elenco inteiro. */
+    var jogados = ((global.STATE && STATE.jogadores) || []).map(function (j) { return j && j.personagem; })
+      .filter(function (p, i, a) { return p && a.indexOf(p) === i && elenco.indexOf(p) >= 0; });
+    if (jogados.length) elenco = jogados;
     if (!elenco.length) return;
 
     var r = rng(semente() + "|priv"), sel = selecao();
