@@ -10,8 +10,8 @@ e as pastas existentes de cada jogo.
 O bloco **Solo / Ensaiar neste aparelho** e o link **LAB-RA** foram retirados
 somente da página principal. Os jogos, seus recursos, seus modos internos e
 seus endereços originais permanecem intactos. Telão e opções de O Impostor
-ficam nas páginas de acesso de cada versão. A entrada A Mesa de O Eco do
-Amanhã ainda não foi identificada.
+ficam nas páginas de acesso de cada versão. **O Eco do Amanhã — VestChip
+existe somente na versão O Impostor.**
 
 ## O voo da Dragon
 

@@ -39,6 +39,9 @@ describe("hub · histórias e versões", () => {
     for(const historia of ["casa-da-costa", "a-manha-do-carro-forte"])
       assert.ok(HUB.includes(`href="historias/${historia}/a-mesa/"`));
     assert.ok(HUB.includes('href="historias/o-eco-do-amanha/o-impostor/"'));
+    const vestchip=HUB.split('<h3>O Eco do Amanhã</h3>')[1].split('</article>')[0];
+    assert.doesNotMatch(vestchip, /A Mesa|Acesso em verificação/);
+    assert.match(vestchip, />O Impostor</);
   });
   it("o telão permanece acessível dentro de A Mesa", () => {
     for(const [historia,chave] of [["casa-da-costa","casa-da-costa"],["a-manha-do-carro-forte","carro-forte"]])

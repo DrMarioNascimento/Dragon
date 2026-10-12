@@ -27,8 +27,8 @@ historias/
 | A Manhã do Carro-Forte | O Impostor | [Abrir](a-manha-do-carro-forte/o-impostor/) | [carro-forte-impostor/mesa.html](../carro-forte-impostor/mesa.html) |
 | O Eco do Amanhã — VestChip | O Impostor | [Abrir](o-eco-do-amanha/o-impostor/) | [vestchip-impostor/mesa.html](../vestchip-impostor/mesa.html) |
 
-A versão A Mesa de O Eco do Amanhã não foi identificada neste repositório.
-Não há pasta ou botão ativo que simule a existência dessa versão.
+O Eco do Amanhã — VestChip existe somente na versão O Impostor.
+Não há versão A Mesa, pasta reservada ou aviso de acesso pendente no portal.
 
 ## Por que os diretórios de implementação não foram renomeados
 
