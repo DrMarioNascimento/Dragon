@@ -34,9 +34,9 @@ test('as duas imagens consumidas pelo portal pessoal continuam idênticas nos en
     assert.deepEqual(readFileSync(resolve(root, oldPath)), readFileSync(resolve(root, target)), oldPath);
   }
 });
-test('o catálogo mantém cinco versões e VestChip somente O Impostor', () => {
+test('o catálogo mantém cinco versões do MOSAICO, dois jogos externos e VestChip somente O Impostor', () => {
   const home = readFileSync(resolve(root, 'index.html'), 'utf8');
-  assert.equal((home.match(/<article class="game">/g) || []).length, 3);
+  assert.equal((home.match(/<article class="game(?: external-game)?"/g) || []).length, 5);
   assert.equal((home.match(/class="ver"/g) || []).length, 5);
   const vestchip = home.split('<h3>O Eco do Amanhã</h3>')[1].split('</article>')[0];
   assert.doesNotMatch(vestchip, /A Mesa/);

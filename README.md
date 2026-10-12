@@ -2,16 +2,27 @@
 
 ## Organização do portal
 
-O catálogo reúne **A Casa da Costa**, **A Manhã do Carro-Forte** e
-**O Eco do Amanhã — VestChip**, com entradas por história e versão em
-[`historias/`](historias/README.md). Esse mapa identifica as entradas novas
-e as pastas existentes de cada jogo.
+O catálogo reúne **A Casa da Costa**, **A Manhã do Carro-Forte**,
+**O Eco do Amanhã — VestChip**, **Mosaico Card — versão bíblica** e **Eita!**.
+As histórias do MOSAICO têm entradas por versão em
+[`historias/`](historias/README.md). Esse mapa identifica as entradas
+e as pastas de implementação de cada história.
 
 O bloco **Solo / Ensaiar neste aparelho** e o link **LAB-RA** foram retirados
 somente da página principal. Os jogos, seus recursos, seus modos internos e
 seus endereços originais permanecem intactos. Telão e opções de O Impostor
 ficam nas páginas de acesso de cada versão. **O Eco do Amanhã — VestChip
 existe somente na versão O Impostor.**
+
+## Outros jogos da Dragon Games
+
+O portal também apresenta jogos mantidos em repositórios independentes:
+
+- **Mosaico Card — versão bíblica:** [Jogar](https://drmarionascimento.github.io/Mosaico-Card/) · [Repositório](https://github.com/DrMarioNascimento/Mosaico-Card). Pistas, negociação e dedução sobre histórias do Novo Testamento.
+- **Eita!:** [Jogar](https://eita-quiz.web.app/). Quiz em aliança para enfrentar o chefão.
+
+Esses cards têm imagens locais em `brand/jogos/` e links para os sites dos jogos;
+suas implementações não são copiadas nem alteradas neste repositório.
 
 ## Onde encontrar os arquivos
 

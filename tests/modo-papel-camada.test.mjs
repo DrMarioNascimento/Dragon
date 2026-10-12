@@ -29,8 +29,8 @@ const DOC = ler("documentos/MOSAICO-ACESSIBILIDADE-PAPEIS.md");
 const README = ler("README.md");
 
 describe("hub · histórias e versões", () => {
-  it("apresenta três histórias sem o bloco Solo", () => {
-    assert.equal((HUB.match(/<article class="game">/g)||[]).length, 3);
+  it("apresenta cinco jogos sem o bloco Solo", () => {
+    assert.equal((HUB.match(/<article class="game(?: external-game)?"/g)||[]).length, 5);
     assert.match(HUB, />A Mesa</);
     assert.match(HUB, />O Impostor</);
     assert.doesNotMatch(HUB, />Solo<|Ensaiar neste aparelho|lab-ra/);
