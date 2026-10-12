@@ -13,7 +13,7 @@ seus endereços originais permanecem intactos. Telão e opções de O Impostor
 ficam nas páginas de acesso de cada versão. **O Eco do Amanhã — VestChip
 existe somente na versão O Impostor.**
 
-## O voo do Dragon
+## O voo da Dragon
 
 > A tecnologia tece o seu próprio universo,  
 > Na tela escura onde o código desperta.  
