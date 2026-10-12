@@ -1,5 +1,18 @@
 # Dragon Games
 
+## Organização do portal
+
+O catálogo reúne **A Casa da Costa**, **A Manhã do Carro-Forte** e
+**O Eco do Amanhã — VestChip**, com entradas por história e versão em
+[`historias/`](historias/README.md). Esse mapa identifica as entradas novas
+e as pastas existentes de cada jogo.
+
+O bloco **Solo / Ensaiar neste aparelho** e o link **LAB-RA** foram retirados
+somente da página principal. Os jogos, seus recursos, seus modos internos e
+seus endereços originais permanecem intactos. Telão e opções de O Impostor
+ficam nas páginas de acesso de cada versão. A entrada A Mesa de O Eco do
+Amanhã ainda não foi identificada.
+
 ## O voo da Dragon
 
 > A tecnologia tece o seu próprio universo,  

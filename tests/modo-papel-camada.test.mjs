@@ -28,26 +28,24 @@ const GAME = ler("carro-forte/game.js");
 const DOC = ler("MOSAICO-ACESSIBILIDADE-PAPEIS.md");
 const README = ler("README.md");
 
-describe("hub · único seletor de modo", () => {
-  it("hub pergunta Celular · Telão · Solo", () => {
-    assert.match(HUB, />\s*Celular\s*</);
-    assert.match(HUB, />\s*Telão\s*</);
-    assert.match(HUB, />\s*Solo\s*</);
+describe("hub · histórias e versões", () => {
+  it("apresenta três histórias sem o bloco Solo", () => {
+    assert.equal((HUB.match(/<article class="game">/g)||[]).length, 3);
+    assert.match(HUB, />A Mesa</);
+    assert.match(HUB, />O Impostor</);
+    assert.doesNotMatch(HUB, />Solo<|Ensaiar neste aparelho|lab-ra/);
   });
-
-  it("hub Celular vai direto ao gate (não à pasta do caso)", () => {
-    assert.match(HUB, /href="v1\/MOSAICO-mesa\.html"/);
-    assert.match(HUB, /href="carro-forte\/celular\.html"/);
-    assert.equal(/href="casa-da-costa\/"/.test(HUB), false);
-    assert.equal(/href="carro-forte\/"/.test(HUB), false);
+  it("abre as entradas organizadas por história e versão", () => {
+    for(const historia of ["casa-da-costa", "a-manha-do-carro-forte"])
+      assert.ok(HUB.includes(`href="historias/${historia}/a-mesa/"`));
+    assert.ok(HUB.includes('href="historias/o-eco-do-amanha/o-impostor/"'));
   });
-
-  it("hub Telão deep-link aponta telao.html?jogo=… e a página pede sala", () => {
-    assert.match(HUB, /telao\.html\?jogo=casa-da-costa/);
-    assert.match(HUB, /telao\.html\?jogo=carro-forte/);
+  it("o telão permanece acessível dentro de A Mesa", () => {
+    for(const [historia,chave] of [["casa-da-costa","casa-da-costa"],["a-manha-do-carro-forte","carro-forte"]])
+      assert.ok(ler(`historias/${historia}/a-mesa/index.html`).includes(`telao.html?jogo=${chave}`));
     assert.match(TELAO, /telaoSalaInput/);
     assert.match(TELAO, /Digite o código da sala/);
-    assert.ok(!/mpc-papel|papelCognitivo|MosaicoPapelCamada/.test(TELAO), "telão não deve carregar seletor de papel");
+    assert.ok(!/mpc-papel|papelCognitivo|MosaicoPapelCamada/.test(TELAO));
   });
 });
 

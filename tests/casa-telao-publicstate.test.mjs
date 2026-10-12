@@ -89,14 +89,14 @@ test("a Mesa e o hub apontam o telão compartilhado", () => {
   assert.match(MESA, /function linkDoTelao\(/, "sumiu o helper do endereço do telão");
   assert.match(MESA, /jogo","casa-da-costa"/, "o link do telão perdeu a chave do jogo");
   /* Bloco "abra o telão" saiu do painel Sala — entrada é pelo hub. */
-  assert.match(HUB, /telao\.html\?jogo=casa-da-costa/, "hub Telão da Casa");
+  assert.match(ler("historias/casa-da-costa/a-mesa/index.html"), /telao\.html\?jogo=casa-da-costa/, "entrada A Mesa da Casa");
   assert.match(LANDING, /MOSAICO-mesa\.html/, "pasta do caso redireciona ao Celular");
   assert.match(MESA, /#dragonSalaBtn\{display:none/, "Sala flutuante some; fica a do topo");
 });
 
 test("o hub da Casa aponta o telão para a chave certa", () => {
   assert.match(
-    HUB,
+    ler("historias/casa-da-costa/a-mesa/index.html"),
     /telao\.html\?jogo=casa-da-costa/,
     "a porta Telão da Casa no hub deixou de apontar para o telão compartilhado",
   );

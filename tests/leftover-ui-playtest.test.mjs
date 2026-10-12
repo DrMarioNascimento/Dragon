@@ -223,8 +223,8 @@ describe("playtest · pasta do caso não repete Celular|Telão|Solo", () => {
     const hub = ler("index.html");
     const casa = ler("casa-da-costa/index.html");
     const carro = ler("carro-forte/index.html");
-    assert.match(hub, /href="v1\/MOSAICO-mesa\.html"/);
-    assert.match(hub, /href="carro-forte\/celular\.html"/);
+    assert.ok(hub.includes('href="historias/casa-da-costa/a-mesa/"'));
+    assert.ok(hub.includes('href="historias/a-manha-do-carro-forte/a-mesa/"'));
     assert.equal(/href="casa-da-costa\/"/.test(hub), false);
     assert.equal(/href="carro-forte\/"/.test(hub), false);
     assert.match(casa, /location\.replace\(["']\.\.\/v1\/MOSAICO-mesa\.html/);
