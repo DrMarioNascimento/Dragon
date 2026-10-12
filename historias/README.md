@@ -3,6 +3,8 @@
 Estas pastas organizam somente a navegação do portal. Os arquivos dos jogos,
 as regras, os modos internos e seus endereços originais foram preservados.
 O bloco Solo/Ensaio e o link externo LAB-RA foram retirados da página principal.
+O antigo diretório de redirecionamento `laboratorio-ra/` também foi removido;
+as experiências do LAB-RA usam suas próprias cópias de recursos.
 Jogar O Impostor individualmente continua disponível.
 
 ```text

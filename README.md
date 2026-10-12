@@ -69,7 +69,7 @@ Proprietary project in development. The repository is public so that GitHub Page
 | **A Manhã do Carro-Forte** | [Phone](https://drmarionascimento.github.io/Dragon/carro-forte/celular.html) · [Shared screen](https://drmarionascimento.github.io/Dragon/telao.html?jogo=carro-forte) · [Solo](https://drmarionascimento.github.io/Dragon/carro-forte/celular.html?soloLab=1&bots=max&modo=sem-telao) |
 | **A Manhã do Carro-Forte: O Impostor** (in development) | [Phone](https://drmarionascimento.github.io/Dragon/carro-forte-impostor/mesa.html) · [Group play](https://drmarionascimento.github.io/Dragon/carro-forte-impostor/mesa.html?grupo=1) |
 
-After the morning session, *A Manhã do Carro-Forte* continues into its evening closing game, [A Noite](https://drmarionascimento.github.io/Dragon/carro-forte/noite/), with the same room code. The former AR lab now lives in its own repository: [lab-ra](https://drmarionascimento.github.io/lab-ra/).
+After the morning session, *A Manhã do Carro-Forte* continues into its evening closing game, [A Noite](https://drmarionascimento.github.io/Dragon/carro-forte/noite/), with the same room code.
 
 ## How it works
 
@@ -118,7 +118,6 @@ Tudo o que está descrito abaixo é alcançado a partir do hub: [drmarionascimen
 
 - A escolha **Celular · Telão · Solo** existe só no hub. As pastas `casa-da-costa/` e `carro-forte/` redirecionam direto para o gate Celular.
 - **A Noite** do Carro-Forte ([`carro-forte/noite/`](https://drmarionascimento.github.io/Dragon/carro-forte/noite/)) é aberta pelo botão **Ir para a Noite** ao fim do relatório da Manhã, com o mesmo código de sala.
-- O **Lab RA** mudou-se para repositório próprio: [drmarionascimento.github.io/lab-ra](https://drmarionascimento.github.io/lab-ra/) ([código](https://github.com/DrMarioNascimento/lab-ra)). A pasta `laboratorio-ra/` apenas redireciona para lá.
 - Endereços antigos continuam funcionando por redirecionamento, para não quebrar QR codes e favoritos: `MOSAICO-mesa.html` (raiz) → `v1/MOSAICO-mesa.html`; `carro-forte-mesa/` → `carro-forte/celular.html`; `carro-forte-noite/` → `carro-forte/noite/`; `v3/` → `solo/`.
 
 ## Para quem
