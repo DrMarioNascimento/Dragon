@@ -327,3 +327,6 @@ body.fase-vencida .screen.active .sensor-actions{opacity:.45;pointer-events:none
 .fragment.depo{cursor:default}
 .fragment.depo .depo-quem{font:700 14px var(--serif,Georgia,serif);letter-spacing:.02em}
 .fragment.depo .depo-tom{display:block;margin:4px 0 6px;font-size:12px;opacity:.75}
+
+/* 12/10/2026 (Manhã v2): título longo da revelação (a verdade completa da manhã) cabe na tela. */
+.reveal-card h2.longo{font-size:clamp(1.12rem,4.4vw,1.5rem);line-height:1.38}

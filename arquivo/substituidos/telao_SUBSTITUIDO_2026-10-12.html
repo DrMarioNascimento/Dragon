@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MOSAICO · Telão</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!--
+  O TELÃO, UM SÓ, PARA TODAS AS MESAS QUE TIVEREM UM.
+  ==========================================================================
+  Nasceu dentro de carro-forte/noite/ e ia ganhar um irmão quase igual quando
+  A Mesa do Carro-Forte pediu o seu. Duas cópias de 90% do mesmo arquivo é
+  exatamente a doença que custou caro nos módulos sensoriais — 989 linhas de
+  deriva entre duas linhagens que ninguém queria diferentes.
+
+  Então ele é um só, e o que muda entre jogos é UMA TABELA: qual coleção do
+  Firestore ouvir, em que projeto, e qual arte vestir. Acrescentar mesa é
+  acrescentar linha, não arquivo.
+
+  Ele só LÊ. Ninguém opera nada por aqui: o telão entra pela mesma sala, pelo
+  endereço que o painel do Mestre mostra, e desenha o que a mesa publicar em
+  `publicState`. O que não estiver lá não aparece — bloco vazio na tela grande
+  é pior que bloco ausente, porque parece dado e é buraco.
+
+  Entrada:  telao.html?jogo=<chave>&sala=<CÓDIGO>
+-->
+<style>
+:root{color-scheme:dark;--g:#70d6a0;--ink:#eef5f2;--muted:#8fa4ad;--ouro:#efc878}
+*{box-sizing:border-box}
+html{background:#050b12}
+/* O fundo opaco ficava no BODY, e o papel de parede tem z-index negativo:
+   filho de índice negativo é pintado ANTES do fundo do próprio pai, então a
+   arte carregava (200 no servidor) e sumia atrás do preto. Levei a cor para o
+   html — que é quem pinta a tela — e deixei o body transparente. */
+body{margin:0;width:100%;min-height:100%;background:transparent;color:var(--ink);
+  font-family:Inter,system-ui,sans-serif}
+.wall{position:fixed;inset:0;background:#050b12 center/cover no-repeat;z-index:-2}
+.wall:after{content:'';position:absolute;inset:0;background:#02060955}
+.waiting{min-height:100vh;display:grid;place-items:center;text-align:center;padding:8vh 5vw}
+.waiting-card{padding:14px;border-radius:14px}
+.waiting h1{margin:0;font:700 clamp(55px,8vw,120px) Georgia,serif;color:var(--ouro)}
+.waiting p{font-size:clamp(20px,2vw,34px);color:#d2dde2}
+/* O código na tela grande é o que faz o Mestre reconhecer ESTE telão como o
+   da sala dele. Sem ele, "conectado" é uma palavra sem endereço. */
+.wait-code{font:800 clamp(30px,5vw,64px) monospace;letter-spacing:.14em;color:#bdeeff}
+.ready-btn{min-height:58px;border:0;border-radius:10px;padding:12px 22px;
+  font-size:clamp(16px,1.5vw,24px);cursor:pointer}
+.opening{position:fixed;inset:0;z-index:100;background:#020609;display:none;overflow:hidden}
+.opening.on{display:block}
+.opening-media{position:absolute;inset:0;display:grid;place-items:center}
+.opening img{width:100%;height:100%;object-fit:contain}
+.opening-shade{position:absolute;inset:0;background:linear-gradient(180deg,transparent 62%,#020609c9)}
+.openbox{position:absolute;z-index:3;left:50%;bottom:3vh;transform:translateX(-50%);
+  width:min(680px,92vw);padding:14px;text-align:center}
+.openbox h2{font:600 clamp(26px,3vw,44px) Georgia,serif;color:var(--ouro);margin:0}
+.openbox p{color:#b7c4ca}
+.opencontrols{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.opencontrols button{min-height:48px;padding:8px 13px;font-weight:800;cursor:pointer}
+.wrap{padding:2.4vw;display:grid;gap:1.5vw}
+.top,.question,.players,.field,.player{backdrop-filter:blur(12px)}
+.top{display:grid;grid-template-columns:1fr auto;gap:2vw;align-items:center;
+  padding:1.4vw 1.8vw;border-radius:1vw}
+.brand b{font:800 clamp(36px,5vw,78px)/.9 Georgia,serif;color:var(--ouro)}
+.brand span{display:block;color:var(--muted)}
+.turn{text-align:right}
+.turn strong{display:block;font:800 clamp(34px,5vw,78px)/1 monospace}
+.question,.players{padding:1.4vw;border-radius:1vw}
+.question h1{color:var(--g);font:700 clamp(25px,3vw,50px)/1.15 monospace}
+.fields,.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.8vw}
+.field,.player{border:1px solid #526c7b;border-left:.3vw solid #70a8c6;background:#08131be8;
+  padding:.8vw;border-radius:.65vw}
+.player.podio{border-left-color:var(--ouro)}
+/* "Mariopresente" — visto na TV em 05/09/2026. `b` e `span` são os dois
+   inline, então o nome e o estado saíam grudados numa palavra só. Numa tela
+   grande, lida de longe, isso não é um detalhe de espaçamento: é um nome
+   errado. Cada um na sua linha, e o estado em corpo menor. */
+.field b,.player b{display:block;font:700 clamp(17px,1.9vw,34px) Georgia,serif}
+.field span,.player span{display:block;margin-top:.35vh;color:var(--muted);
+  font:600 clamp(12px,1.1vw,20px) Inter,system-ui,sans-serif}
+@media(max-width:800px){.fields,.grid{grid-template-columns:1fr 1fr}}
+/* O FECHO NA TELA GRANDE. A revelação e o pódio são sempre e só daqui — regra
+   do Mario, 04/09/2026. O que NÃO vem para cá é tudo que é de uma pessoa: o
+   dossiê, a composição de pontos, o passo "hipóteses que caem" (que se calcula
+   a partir do dossiê de quem lê). O que é privado continua privado. */
+/* A FASE E O QUE FALTA DELA. Da pauta à decisão a tela grande ficava parada
+   na pergunta enquanto a mesa inteira corria contra um relógio que só existia
+   nos celulares — e o relógio é justamente o que a mesa precisa ver de longe. */
+.fase{display:grid;grid-template-columns:1fr auto;gap:2vw;align-items:center;
+  padding:1.2vw 1.6vw;border-radius:1vw}
+.fase small{display:block;font:700 clamp(10px,1vw,15px) monospace;letter-spacing:.22em;color:var(--muted)}
+.fase b{font:700 clamp(24px,3vw,52px) Georgia,serif;color:var(--ink)}
+.fase strong{font:800 clamp(34px,5vw,84px)/1 monospace;color:var(--ouro)}
+.fase strong.urgente{color:#ff9b8b}
+.fecho{min-height:100vh;display:grid;place-items:center;padding:6vh 5vw;text-align:center}
+.fecho-card{width:min(1200px,94vw);padding:14px;border-radius:14px}
+.fecho-inset{padding:2.4vw 2.8vw}
+.fecho-passo{font:700 clamp(12px,1.4vw,20px) monospace;letter-spacing:.22em;color:var(--ouro)}
+.fecho-card h1{margin:.4em 0 .3em;font:700 clamp(34px,4.6vw,80px)/1.1 Georgia,serif;color:var(--g)}
+.fecho-card p{margin:0;font-size:clamp(17px,1.7vw,30px);color:#c3d2d9;line-height:1.45}
+.fecho-conta{margin-top:2vh;font:700 clamp(12px,1.2vw,18px) monospace;color:var(--muted);letter-spacing:.2em}
+.podio{display:grid;gap:1vh;margin-top:2.5vh;text-align:left}
+.podio-l{display:grid;grid-template-columns:clamp(48px,5vw,90px) 1fr auto;align-items:baseline;gap:1.5vw;
+  padding:1.2vh 1.5vw;border:1px solid #395669;border-left:.35vw solid #70a8c6;background:#08131bee;border-radius:.6vw}
+.podio-l b{font:800 clamp(20px,2.4vw,42px) monospace;color:#8fa4ad}
+.podio-l span{font:600 clamp(20px,2.4vw,44px) Georgia,serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.podio-l i{font:800 clamp(22px,2.6vw,46px) monospace;font-style:normal;color:var(--ouro)}
+.podio-l.p1{border-left-color:var(--ouro);background:#14202099}
+.podio-l.p1 b,.podio-l.p1 span{color:var(--ouro)}
+</style>
+<link rel="stylesheet" href="jogos/casa-da-costa/a-mesa/css/profundidade-1mais1.css?v=20260930-foco">
+</head>
+<body>
+<div class="wall" id="wall"></div>
+<div id="root" class="waiting">
+  <div class="waiting-card pf-card">
+    <div class="waiting-inset pf-inset">
+    <h1>MOSAICO</h1>
+    <p id="waitMsg">📺 Conectando o Telão…</p>
+    <p id="waitCode" class="wait-code"></p>
+    <button id="readyBtn" class="ready-btn pf-btn-gold" style="display:none">🔊 Entendi · ativar som</button>
+    </div>
+  </div>
+</div>
+<div id="opening" class="opening">
+  <div class="opening-media"><img id="openImg" alt="Abertura"><div class="opening-shade"></div></div>
+  <audio id="openingAudio" preload="auto"></audio>
+  <div class="openbox pf-card">
+    <div class="openbox-inset pf-inset">
+    <h2>📓 Abertura</h2><p>A abertura está em andamento.</p>
+    <div class="opencontrols">
+      <button id="openPause">⏸ Pausar</button>
+      <button id="openRestart">↻ Reiniciar</button>
+      <button id="openSkip">Pular abertura</button>
+    </div>
+    </div>
+  </div>
+</div>
+<script type="module">
+import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
+import{getAuth,signInAnonymously}from'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
+import{getFirestore,doc,setDoc,onSnapshot,collection}from'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+
+/* A TABELA. Acrescentar mesa é acrescentar linha.
+   Caso→projeto: Casa da Costa → mosaico-game; Carro-Forte → mosaico-noite.
+   Dentro de cada projeto, Celular canônico usa coleção `mosaico`; fechamento
+   do Carro (e fluxo v2 da Casa) usa `noite`. `colecao` e `fb` andam juntos —
+   ouvir a coleção certa no projeto errado devolve silêncio, não erro. */
+const FB_MESA={apiKey:'AIzaSyDwshZbqaMOKxdRuyLtdpbijPRdrjVOcxE',authDomain:'mosaico-game.firebaseapp.com',projectId:'mosaico-game',storageBucket:'mosaico-game.firebasestorage.app',messagingSenderId:'436141261767',appId:'1:436141261767:web:6a83555a2f7c4ed4550fe2'};
+const FB_NOITE={apiKey:'AIzaSyA160bkgHBrYBwvIxlENax-aAyLWPMaOU4',authDomain:'mosaico-noite.firebaseapp.com',projectId:'mosaico-noite',storageBucket:'mosaico-noite.firebasestorage.app',messagingSenderId:'703343424116',appId:'1:703343424116:web:e6990b5c00d43aca6e9721'};
+const ARTE_CF={
+  parede:'jogos/a-manha-do-carro-forte/a-noite/Papel-de-Parede-CarroforteTelao.jpg?v=20260831-wall6',
+  abertura:'jogos/a-manha-do-carro-forte/a-noite/AberturaTelão.jpg?v=20260831-opening6',
+  audio:'jogos/a-manha-do-carro-forte/a-noite/Amanha-do-carroforte.mp3?v=20260831-opening6',
+};
+const JOGOS={
+  'carro-forte-noite':{fb:FB_NOITE,colecao:'noite',sub:'Carro-Forte · fechamento',...ARTE_CF},
+  'carro-forte':{fb:FB_NOITE,colecao:'mosaico',sub:'Carro-Forte · Celular',...ARTE_CF},
+  'casa-da-costa':{fb:FB_MESA,colecao:'mosaico',sub:'Casa da Costa · Telão',parede:'jogos/casa-da-costa/solo/tiles/foto-noite.jpg',abertura:'jogos/casa-da-costa/a-mesa/img/Orizontal.jpg',audio:'jogos/casa-da-costa/a-mesa/audio/A-Casa-da-Costa-Abertura.mp3'},
+};
+
+const p=new URLSearchParams(location.search);
+const pedido=p.get('jogo')||'carro-forte-noite';
+const jogo=JOGOS[pedido];
+const code=(p.get('sala')||'').toUpperCase();
+const esc=s=>String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+const audio=document.getElementById('openingAudio');
+const stage=document.getElementById('opening');
+
+/* A CONFERÊNCIA VEM ANTES DE USAR, e isto conserta um travamento mudo.
+   O `if(!jogo)` já existia — mas TRÊS LINHAS DEPOIS de ${jogo.parede}. Com um
+   ?jogo= que a tabela não conhece, o módulo morria no primeiro acesso, o `if`
+   nunca chegava a rodar, e a tela grande ficava congelada para sempre no
+   "📺 Conectando o Telão…": sem mensagem, sem pista, e com o erro só no
+   console, que ninguém abre numa TV. Medido em 05/09/2026 com ?jogo=noite.
+
+   A arte também desceu para dentro do `else`: ela é a primeira coisa que
+   depende do jogo, e não há por que pintar parede antes de saber se o jogo
+   existe. E a mensagem diz QUAIS chaves valem — quem digitou errado precisa
+   saber o que digitar, não que errou. */
+if(!jogo){
+  waitMsg.textContent='Este endereço pede um jogo que o telão não conhece: “'+pedido+'”. Os que existem são: '+Object.keys(JOGOS).join(', ')+'.';
+}else if(!code){
+  /* Landing Telão chega sem ?sala= — pedir o código aqui (mesmo padrão do
+     firebase-room formTelao). Sem papel/camada: telão é somente leitura. */
+  waitMsg.innerHTML='Digite o código da sala (aparece no aparelho do Mestre).<br><input id="telaoSalaInput" maxlength="6" autocapitalize="characters" placeholder="CÓDIGO" style="margin-top:14px;min-height:52px;width:min(280px,70vw);border-radius:10px;border:1px solid #3c5d70;background:#071014;color:#eef5f2;font:800 22px monospace;letter-spacing:.14em;text-align:center;padding:10px">';
+  const go=document.createElement('button');
+  go.className='ready-btn pf-btn-gold';go.style.display='inline-block';go.style.marginTop='14px';
+  go.textContent='📺 Abrir o telão';
+  go.onclick=()=>{
+    const c=(document.getElementById('telaoSalaInput').value||'').trim().toUpperCase();
+    if(c.length!==6){waitMsg.insertAdjacentHTML('beforeend','<p style="color:#ff9b8b;font-size:18px">O código tem seis caracteres.</p>');return;}
+    const u=new URL(location.href);u.searchParams.set('sala',c);location.replace(u.toString());
+  };
+  (document.querySelector('.waiting-inset')||document.querySelector('.waiting-card')).appendChild(go);
+  setTimeout(()=>document.getElementById('telaoSalaInput')?.focus(),40);
+}else{
+  document.getElementById('wall').style.backgroundImage=`url('${jogo.parede}')`;
+  document.getElementById('openImg').src=jogo.abertura;
+  audio.src=jogo.audio;
+  const app=initializeApp(jogo.fb,'dragon-telao-'+Date.now());
+  const auth=getAuth(app),db=getFirestore(app);
+  const roomRef=doc(db,jogo.colecao,code);
+  let room=null,players=[],armed=false,lastToken=0,activeToken=0,heartbeat=null,eu='';
+  waitCode.textContent=code;
+
+  /* A PRESENÇA DO TELÃO MUDOU DE LUGAR (04/09/2026), e não por gosto.
+     Ela era carimbada no DOCUMENTO da sala — 'opening.status',
+     'opening.displaySeenMs' —, e a regra de update daquele documento exige ser
+     o Mestre. O telão é anônimo: TODA batida voltava negada. O Mestre então
+     nunca via telão vivo, e a abertura caía sempre no celular dele, com a tela
+     grande ligada na frente da mesa sem receber nada.
+     Agora cada telão escreve o próprio documento em '<sala>/telao/<uid>', que
+     é o mesmo arranjo de 'acoes': cada aparelho só escreve o que é seu. O
+     comando continua vindo do Mestre, no documento da sala. */
+  const meuRef=()=>doc(db,jogo.colecao,code,'telao',eu);
+  async function presenca(data){
+    if(!eu)return;
+    await setDoc(meuRef(),{vistoEmMs:Date.now(),...data},{merge:true});
+  }
+  /* A batida de coração é o que separa "há um telão agora" de "houve um telão
+     algum dia": quem manda a abertura confere a idade dela antes de mandar. */
+  /* A BATIDA TAMBÉM É A SEGUNDA CHANCE.
+     Antes o registro era tentado UMA vez, no carregamento, e a batida só
+     começava se essa vez desse certo. Quem abriu a tela grande antes de a
+     regra do Firestore estar publicada ficava com a mensagem de erro para
+     sempre: a regra entrava no ar minutos depois e a página não tentava mais
+     nada. Foi assim na primeira sala de verdade (05/09/2026) — a regra passou
+     a valer e a TV continuou dizendo que não valia.
+     Agora a batida roda sempre, e cada uma é uma nova tentativa: quando a
+     regra entra, a tela se corrige sozinha. Serve igual para rede que caiu. */
+  let registrado=null;
+  function situacao(ok){
+    if(ok===registrado)return;
+    registrado=ok;
+    if(!ok){
+      readyBtn.style.display='none';
+      waitMsg.textContent='📺 Telão conectado, mas esta sala ainda não aceita o registro dele — falta publicar as regras do Firestore. A tela grande já acompanha a partida, e a abertura vai tocar no aparelho do Mestre. Assim que a regra entrar, isto se corrige sozinho.';
+      return;
+    }
+    if(armed){readyBtn.style.display='none';waitMsg.textContent='📺 Telão conectado ✓ · áudio preparado. Aguardando a mesa.';}
+    else{readyBtn.style.display='inline-block';waitMsg.textContent='📺 Telão conectado. Ative o áudio para continuar.';}
+  }
+  async function bater(){
+    try{await presenca(armed?{status:'ready',error:''}:{status:'conectado'});situacao(true)}
+    catch(e){console.error('telão · presença',e);situacao(false)}
+  }
+  function beat(){clearInterval(heartbeat);heartbeat=setInterval(bater,5000)}
+
+  /* OUVIR SÓ DEPOIS DE ENTRAR.
+     Os dois onSnapshot rodavam no fim do módulo, ANTES de connect() — ou seja,
+     antes de existir conta. Toda regra desta sala começa por signedIn(), então
+     as duas assinaturas nasciam com permission-denied e não tentam de novo:
+     a tela grande ficava para sempre no cartão de espera, sem pergunta, sem
+     fase e sem pódio, mesmo com a presença dela funcionando.
+     Não aparecia em teste nenhum porque em sala falsa tudo é negado do mesmo
+     jeito; apareceu na primeira sala de verdade (05/09/2026, sala 2WYTQE). */
+  function ouvirASala(){
+    onSnapshot(roomRef,s=>{room=s.exists()?s.data():null;if(room){consume(room);render();pintarFase()}},
+      e=>{waitMsg.textContent='Perdi a sala de vista. Reabra o QR.';console.error(e)});
+    onSnapshot(collection(db,jogo.colecao,code,'jogadores'),s=>{
+      players=s.docs.map(d=>d.data()).map(x=>({name:x.nome,state:'presente'}));render();
+    },e=>console.error('jogadores',e));
+  }
+
+  async function connect(){
+    let cred=null;
+    try{
+      cred=await signInAnonymously(auth);
+      eu=cred.user.uid;
+    }catch(e){
+      console.error('telão · login',e);
+      waitMsg.textContent='Não foi possível entrar nesta sala. Confira a conexão e reabra o QR.';
+      return;
+    }
+    /* A leitura vem primeiro e não depende da presença: mesmo que a regra do
+       telão não esteja publicada, a tela grande ainda mostra a pergunta e a
+       fase. O que se perde sem a presença é a abertura, que precisa do
+       Mestre saber que há alguém aqui. */
+    ouvirASala();
+    /* A batida começa mesmo se a primeira tentativa falhar — é ela que
+       transforma um erro momentâneo em atraso, em vez de em tela morta. */
+    await bater();
+    beat();
+  }
+  readyBtn.onclick=async()=>{
+    /* Tocar e parar dentro do gesto é o que arma o áudio: navegador nenhum
+       deixa som começar sozinho depois. */
+    try{audio.muted=true;await audio.play();audio.pause();audio.currentTime=0;audio.muted=false}catch{}
+    /* O áudio fica armado NESTE aparelho mesmo que o registro na sala falhe:
+       o gesto aconteceu e não se repete. O que falta é avisar a sala, e disso
+       cuida a batida — quando ela passar, a mesa descobre que há telão pronto
+       sem ninguém tocar em nada de novo. */
+    armed=true;registrado=null;
+    await bater();
+  };
+  async function startOpening(token){
+    /* QUEM NÃO PODE TOCAR NÃO RESPONDE.
+       Aqui ele carimbava 'audio-not-armed' com o token da abertura — e o
+       Mestre lê qualquer resposta com aquele token como "o telão acabou".
+       Resultado, medido na sala H4S5M9 em 05/09/2026: uma segunda tela aberta
+       sem ninguém ter tocado em "ativar som" ENCERROU a abertura 25 s depois
+       do começo, enquanto a TV de verdade ainda estava narrando, e o jogo
+       abriu a primeira atividade por cima da apresentação.
+       Um telão sem áudio armado nunca foi contado como vivo pelo Mestre, então
+       ele também não tem o que dizer sobre uma abertura que não é dele. Ficar
+       calado é a resposta certa: o teto de 150 s cobre o caso em que nenhuma
+       tela toca. */
+    if(!armed)return;
+    activeToken=token;stage.classList.add('on');audio.currentTime=0;
+    try{await audio.play();await presenca({status:'playing',token,error:''})}
+    catch{
+      stage.classList.remove('on');readyBtn.style.display='inline-block';
+      waitMsg.textContent='🔊 Toque novamente para preparar o áudio.';armed=false;
+      await presenca({status:'error',error:'audio-play-failed',failedToken:token});
+    }
+  }
+  async function finishOpening(){
+    audio.pause();stage.classList.remove('on');
+    await presenca({status:'finished',finishedToken:activeToken,error:''});
+    render();
+  }
+  openPause.onclick=async()=>{
+    if(audio.paused){await audio.play();openPause.textContent='⏸ Pausar'}
+    else{audio.pause();openPause.textContent='▶ Continuar'}
+  };
+  openRestart.onclick=async()=>{audio.currentTime=0;await audio.play();openPause.textContent='⏸ Pausar'};
+  openSkip.onclick=finishOpening;
+  audio.onended=()=>setTimeout(finishOpening,900);
+  function consume(d){
+    const o=d?.opening||{},token=Number(o.token||0);
+    if(o.command==='start'&&token&&token!==lastToken){lastToken=token;startOpening(token)}
+  }
+
+  /* O FECHO TOMA A TELA INTEIRA.
+     Ele vem de `partida.fecho`, escrito só pelo Mestre: a revelação passo a
+     passo e, no fim, o pódio. Enquanto ele existe, mais nada é desenhado —
+     a mesa está olhando para cá, e a pergunta já foi respondida.
+     'detalhe' desenha igual ao pódio de propósito: os celulares abrem a
+     composição de pontos de cada um, e a tela grande segura o resultado. */
+  function renderFecho(f,pub){
+    root.className='fecho';
+    if(f.fase==='revelacao'){
+      const passos=f.passos||[],i=Math.min(Number(f.passo)||0,passos.length-1),s=passos[i]||{};
+      root.innerHTML=
+        `<div class="fecho-card pf-card"><div class="fecho-inset pf-inset"><div class="fecho-passo">${esc(s.k||'REVELAÇÃO')}</div>
+           <h1>${esc(s.h||'')}</h1><p>${esc(s.p||'')}</p>
+           <div class="fecho-conta">${i+1} de ${passos.length}</div></div></div>`;
+      return;
+    }
+    /* O placar do fecho é o caminho normal; o da sala é a rede de segurança.
+       Ele já mora em `partida.placar` como um mapa por uid, e ordenar aqui
+       custa nada — assim um fecho que esqueça de levar a lista não apaga o
+       pódio da parede. Foi o que aconteceu com o 'detalhe' em 4CHRML. */
+    const placar = (f.placar&&f.placar.length) ? f.placar
+      : Object.values(room?.partida?.placar||{}).sort((a,b)=>(b.pontos||0)-(a.pontos||0));
+    root.innerHTML=
+      `<div class="fecho-card pf-card"><div class="fecho-inset pf-inset"><div class="fecho-passo">RESOLUÇÃO</div>
+         <h1>${esc(pub?.resposta||'')}</h1>
+         ${placar.length?`<div class="podio">${placar.map((x,i)=>
+           `<div class="podio-l${i===0?' p1':''}"><b>${i+1}º</b><span>${esc(x.nome||'Investigador')}</span><i>${esc(x.pontos)}</i></div>`).join('')}</div>`:''}
+       </div></div>`;
+  }
+
+  /* Só desenha o que a mesa publicou. Cada bloco é condicional pelo mesmo
+     motivo: dado que não é da mesa não pode ocupar a tela grande fingindo
+     que é — e há mesa onde a vez e o cronômetro ainda são de cada aparelho. */
+  function render(){
+    const pub=room?.publicState,fecho=room?.partida?.fecho;
+    if(fecho&&fecho.fase)return renderFecho(fecho,pub);
+    if(!pub?.questionText)return;
+    const fs=pub.fields||[],ps=pub.players?.length?pub.players:players;
+    root.className='wrap';
+    root.innerHTML=
+      `<section class="top">
+         <div class="brand"><b>MOSAICO</b><span>${esc(jogo.sub)}</span></div>
+         ${pub.turnName?`<div class="turn"><small>VEZ</small><b>${esc(pub.turnName)}</b><strong>${esc(pub.timer||'00:00')}</strong></div>`:''}
+       </section>
+       <section class="question"><small>${esc(pub.questionTitle||'PERGUNTA')}</small><h1>${esc(pub.questionText)}</h1></section>
+       ${agoraHtml(room?.partida?.fase,room?.partida?.atividade)}
+       ${pub.resposta?`<section class="question"><small>RESOLUÇÃO</small><h1>${esc(pub.resposta)}</h1></section>`:''}
+       ${fs.length?`<section class="fields">${fs.map(f=>`<article class="field"><b>${esc(f.label)}</b><span>${f.closed?'FECHADO · '+esc(f.closedBy||'—'):'EM ABERTO'}</span></article>`).join('')}</section>`:''}
+       ${pub.placar&&pub.placar.length?`<section class="players"><h2>Placar</h2><div class="grid">${pub.placar.map((x,i)=>`<article class="player${i===0?' podio':''}"><b>${i+1}º · ${esc(x.nome||'Investigador')}</b><span>${esc(x.pontos)} pontos</span></article>`).join('')}</div></section>`:''}
+       <section class="players"><h2>Na mesa</h2><div class="grid">${ps.map(x=>`<article class="player"><b>${esc(x.name||x.nome||'Jogador')}</b><span>${x.fragments??x.fragmentos??null?esc(x.fragments??x.fragmentos)+' fragmentos · ':''}${esc(x.state||'presente')}</span></article>`).join('')}</div></section>`;
+  }
+
+  /* O relógio da fase é desenhado aqui e atualizado de segundo em segundo sem
+     redesenhar a tela toda: o snapshot só chega quando a sala muda, e a mesa
+     não pode ficar olhando um número parado. */
+  /* O QUE A MESA ESTÁ CORRENDO AGORA.
+     A fase SENSORES não tem prazo próprio — ela dura o que a fila das
+     atividades durar —, e por isso a tela grande ficava MUDA justamente no
+     momento em que a mesa inteira faz a mesma coisa contra o mesmo relógio e
+     olha para cima. Visto na TV em 05/09/2026: pergunta na tela, e mais nada.
+     A atividade tem prioridade sobre a fase porque é o relógio mais curto e é
+     o que está valendo. */
+  let fimAgora=0;
+  function agoraHtml(f,at){
+    const usar = (at&&at.fimMs) ? {rot:'ATIVIDADE',nome:at.rotulo||at.sensor,fim:at.fimMs}
+               : (f&&f.nome&&f.fimMs) ? {rot:'FASE',nome:f.rotulo||f.nome,fim:f.fimMs}
+               : null;
+    fimAgora=usar?usar.fim:0;
+    if(!usar)return '';
+    return `<section class="fase"><div><small>${usar.rot}</small><b>${esc(usar.nome)}</b></div><strong id="faseRelogio">--:--</strong></section>`;
+  }
+  function pintarFase(){
+    const el=document.getElementById('faseRelogio');
+    if(!el||!fimAgora)return;
+    const r=Math.max(0,Math.ceil((fimAgora-Date.now())/1000));
+    el.textContent=`${String(Math.floor(r/60)).padStart(2,'0')}:${String(r%60).padStart(2,'0')}`;
+    el.classList.toggle('urgente',r<=10);
+  }
+  setInterval(pintarFase,1000);
+
+  connect();
+}
+</script>
+</body>
+</html>

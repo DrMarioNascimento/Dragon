@@ -896,7 +896,7 @@ function passosDaRevelacao(incluirCaidas){
   {k:'O QUE ACONTECEU',h:g.answer,p:'Nesta partida foi assim. Na próxima, a mesma manhã pode ter outra pessoa, outro motivo e outro valor.'},
   {k:'PRINCÍPIO',h:'A verdade devolve o dinheiro; a mentira fica com ele.',p:'No MOSAICO, um fato verdadeiro pode estar associado à interpretação errada.'},
   /* 12/10/2026 (Manhã v2): a conclusão máxima que os registros desta manhã sustentavam. */
-  ...(g.ate?[{k:'COM O QUE VOCÊS TINHAM',h:g.ate,p:'O que ainda não tinha chegado à mesa não podia ser afirmado. “Ainda não é possível determinar” também é uma resposta certa.'}]:[])
+  ...(g.ate?[{k:'COM O QUE VOCÊS TINHAM',h:'Dava para afirmar até aqui.',p:(t=>t.charAt(0).toUpperCase()+t.slice(1))(g.ate.replace(/^Com o que vocês tinham, dava para afirmar até isto:\s*/,''))+' O que ainda não tinha chegado à mesa não podia ser afirmado: “Ainda não é possível determinar” também é resposta certa.'}]:[])
  ];
  return incluirCaidas?steps:steps.filter(x=>x.k!=='HIPÓTESES QUE CAEM');
 }
@@ -904,7 +904,8 @@ function renderReveal(){
  const steps=passosDaRevelacao(true);
  state.revealMax=steps.length-1;
  const s=steps[Math.min(state.reveal,state.revealMax)];
- $('revealStage').innerHTML=`<div class="reveal-card depth-card"><span class="eyebrow">${s.k}</span><h2>${s.h}</h2><p>${s.p}</p></div>`;
+ /* 12/10/2026 (Manhã v2): a verdade completa é longa; o título longo desce de tamanho para caber. */
+ $('revealStage').innerHTML=`<div class="reveal-card depth-card"><span class="eyebrow">${s.k}</span><h2${String(s.h).length>110?' class="longo"':''}>${s.h}</h2><p>${s.p}</p></div>`;
  $('nextReveal').hidden=false;
  $('nextReveal').innerHTML=state.reveal>=state.revealMax?'Ver o relatório <span>→</span>':'Continuar revelação <span>→</span>';
 }
