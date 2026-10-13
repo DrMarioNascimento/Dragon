@@ -543,7 +543,7 @@
           var on = hipSel === h.id ? " on" : "";
           parts.push('<label class="hpc-hip' + on + '"><input type="radio" name="hpc-hip" value="' +
             esc(h.id) + '"' + (hipSel === h.id ? " checked" : "") + "> <strong>" +
-            esc(h.id) + " · " + esc(h.t) + "</strong><small>" + esc(h.d) + "</small></label>");
+            esc(h.t) + "</strong><small>" + esc(h.d) + "</small></label>");
         });
         parts.push("</div>");
       } else {
@@ -554,7 +554,7 @@
           parts.push('<label class="hpc-hip' + on + (unex ? " hpc-unex-on" : "") +
             '" data-hpc-hip="' + esc(h.id) +
             '"><input type="radio" name="hpc-hip" value="' + esc(h.id) + '"' +
-            (hipSel === h.id ? " checked" : "") + "> <strong>" + esc(h.id) + " · " +
+            (hipSel === h.id ? " checked" : "") + "> <strong>" +
             esc(h.t) + "</strong><small>" + esc(h.d) + "</small>" +
             '<button type="button" class="hpc-unex-btn" data-hpc-toggle-unexamined="' +
             esc(h.id) + '" aria-pressed="' + (unex ? "true" : "false") + '">' +
@@ -574,7 +574,7 @@
           '</b><select data-hpc-compare-sel="' + slot + '"><option value="">—</option>' +
           hypothesisOptions(pres.caso).map(function (h) {
             return '<option value="' + esc(h.id) + '"' + (cur === h.id ? " selected" : "") +
-              ">" + esc(h.id) + " · " + esc(h.t) + "</option>";
+              ">" + esc(h.t) + "</option>"; /* 12/10/2026: sem o código (H8), que é fixo e seria decorado */
           }).join("") +
           '<option value="__livre__"' + (cur && hypothesisKeys(pres.caso).indexOf(cur) < 0 ? " selected" : "") +
           ">rótulo livre…</option></select>" +

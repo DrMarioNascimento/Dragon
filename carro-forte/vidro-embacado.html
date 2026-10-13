@@ -150,7 +150,7 @@ html,body{height:100%;height:100dvh;margin:0;background:#0a1119;overflow:hidden;
 <script src="fragmentos.js?v=20260901-colheita1"></script>
 <script src="variacoes-carro-dados.js?v=20261011-t4"></script>
 <script src="variacoes-carro.js?v=20261011-t4"></script>
-<script src="atividade.js?v=20260905-cena2"></script>
+<script src="atividade.js?v=20261012-cod"></script>
 <script>
 (function(){
 "use strict";
@@ -282,7 +282,7 @@ function pintaTexto(f){
   txtX.font='700 '+fsCod+'px "Inter",sans-serif';
   txtX.fillStyle='rgba(255,207,143,.98)';
   txtX.shadowColor='rgba(0,0,0,.8)'; txtX.shadowBlur=10;
-  txtX.fillText((f.cod+' · '+f.t).toUpperCase(), W/2, y0-lh*1.2);
+  txtX.fillText(String(f.t||'').toUpperCase(), W/2, y0-lh*1.2); /* 12/10/2026: sem o código F (decorável) */
   txtX.shadowBlur=0;
 }
 
@@ -490,7 +490,7 @@ function revela(){
   travado=true; seguraDesde=null;
   achados.add(atual.cod); A.marcar(achados,itens);
   try{ navigator.vibrate && navigator.vibrate([12,50,22]); }catch(e){}
-  document.getElementById('carta-cod').textContent=atual.cod;
+  document.getElementById('carta-cod').textContent=String(atual.f||'fragmento').toUpperCase(); /* 12/10/2026: o tipo, não o código F */
   document.getElementById('carta-tit').textContent=atual.t;
   document.getElementById('carta-txt').textContent=atual.d;
   document.getElementById('carta').classList.add('on');
@@ -567,7 +567,7 @@ cv.addEventListener('pointerup',pUp); cv.addEventListener('pointercancel',pUp);
 
 /* A fila é o lote da Mesa, com o texto do banco. */
 var banco=window.MOSAICO_FRAGMENTOS||{};
-fila=itens.map(function(c){ return {cod:c, t:(banco[c]||{}).t||c, d:(banco[c]||{}).d||''}; });
+fila=itens.map(function(c){ return {cod:c, t:(banco[c]||{}).t||'Fragmento', f:(banco[c]||{}).f||'', d:(banco[c]||{}).d||''}; });
 
 dimensionar();
 pintarPassos();

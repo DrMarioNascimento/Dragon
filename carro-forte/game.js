@@ -224,6 +224,11 @@ function rngDe(chave){let h=((state.sementeDossie>>>0)^2166136261)>>>0;for(let i
 const embaralharS=(a,r)=>a.map(v=>[r(),v]).sort((x,y)=>x[0]-y[0]).map(p=>p[1]);
 function sementeDaSala(id){const sala=window.MOSAICO_ROOM,c=sala&&!sala.local&&sala.code;if(!c)return (Math.random()*0xffffffff)>>>0;let h=2166136261;const t=String(c).toUpperCase()+'|'+id;for(let i=0;i<t.length;i++)h=Math.imul(h^t.charCodeAt(i),16777619)>>>0;return h>>>0}
 const listar=a=>a.length<2?a.join(''):`${a.slice(0,-1).join(', ')} e ${a[a.length-1]}`;
+/* 12/10/2026 · nenhum código na tela (F31, H8, R-A). Os códigos são fixos entre as 15 variações:
+   à vista, a mesa decora ("o F31 é sempre o desmentido", "a certa é a H10") e pula a dedução.
+   Por dentro tudo continua pelo código; na tela vai o título, entre aspas quando citado em frase. */
+const tituloF=c=>FRAGMENTOS[c]?`“${FRAGMENTOS[c].t}”`:'um fragmento';
+const tituloR=r=>`“${r.t}”`;
 const mao=()=>new Set(state.tercos.slice(0,state.aberto).flat());
 
 function go(name){
@@ -683,7 +688,7 @@ addEventListener('message',e=>{if(e.origin===location.origin)receberAviso(e.data
 
 function cartaoFragmento(cod){
  const f=FRAGMENTOS[cod],m=state.marcados.has(cod);
- return `<button class="fragment depth ${m?'marked':''}" data-f="${cod}" type="button" aria-pressed="${m}"><small class="carta-num">${cod} · ${f.f.toUpperCase()}</small><strong>${f.t}</strong><p>${f.d}</p></button>`;
+ return `<button class="fragment depth ${m?'marked':''}" data-f="${cod}" type="button" aria-pressed="${m}"><small class="carta-num">${f.f.toUpperCase()}</small><strong>${f.t}</strong><p>${f.d}</p></button>`;
 }
 
 function renderDossie(){
@@ -736,12 +741,12 @@ function renderHypothesis(){
  const escolha=(window.MOSAICO_ROOM&&window.MOSAICO_ROOM.papelCamada)||(window.MosaicoPapelCamada&&window.MosaicoPapelCamada.carregar('carro-forte'))||{papel:'investigador',camada:'livre'};
  const camada=escolha.camada||'livre';
  const host=$('hypothesisList');
- host.innerHTML=HIPOTESES.map(h=>{
+ host.innerHTML=ordenar(HIPOTESES,'hipoteses').map(h=>{
   const a=h.apoia.filter(c=>tem.has(c)),e=h.enfraquece.filter(c=>tem.has(c));
   const cls=a.length&&e.length?'tensao':a.length?'apoiada':e.length?'fraca':'neutra';
   const rot=a.length&&e.length?'EM TENSÃO':a.length?'APOIADA':e.length?'ENFRAQUECIDA':'SEM APOIO NA MESA';
-  const marcas=[a.length?`apoiada por ${a.join(', ')}`:'',e.length?`enfraquecida por ${e.join(', ')}`:''].filter(Boolean).join(' · ')||'nenhum fragmento desta mesa a toca';
-  return `<label class="hyp-card depth-card ${cls} ${state.hipoteseProv===h.id?'chosen':''}" data-hip-id="${h.id}"><input type="radio" name="hip" value="${h.id}" ${state.hipoteseProv===h.id?'checked':''}><span class="hyp-body"><small>${h.id} · ${rot}</small><strong>${h.t}</strong><p>${h.d}</p><em>${marcas}</em></span></label>`;
+  const marcas=[a.length?`apoiada por ${listar(a.map(tituloF))}`:'',e.length?`enfraquecida por ${listar(e.map(tituloF))}`:''].filter(Boolean).join(' · ')||'nenhum fragmento desta mesa a toca';
+  return `<label class="hyp-card depth-card ${cls} ${state.hipoteseProv===h.id?'chosen':''}" data-hip-id="${h.id}"><input type="radio" name="hip" value="${h.id}" ${state.hipoteseProv===h.id?'checked':''}><span class="hyp-body"><small>${rot}</small><strong>${h.t}</strong><p>${h.d}</p><em>${marcas}</em></span></label>`;
  }).join('');
  host.querySelectorAll('input').forEach(i=>i.onchange=()=>{state.hipoteseProv=i.value;renderHypothesis()});
  /* Assistida/Guiada: densidade extra ao lado da lista (sem veredito / sem %). */
@@ -785,8 +790,8 @@ function renderRelations(){
  const tem=mao();
  $('relationGrid').innerHTML=RELACOES.map(r=>{
   const completa=relacaoCompleta(r,tem),feita=state.relacoes.has(r.id);
-  const pecas=r.pecas.map(gr=>{const c=gr.find(x=>tem.has(x));return c?`<b>${c}</b>`:`<i>${gr.join(' ou ')}</i>`}).join(' ↔ ');
-  return `<button class="relation-card depth-card ${completa?'':'locked'} ${feita?'selected':''}" data-r="${r.id}" type="button" ${completa?'':'disabled'}><small>${r.id}${completa?'':' · INCOMPLETA'}</small><h3>${r.t}</h3><div class="rel-pecas">${pecas}</div><p>${completa?r.efeito:'Falta o fragmento que permite interpretar o outro. Sem o par, o dado continua neutro.'}</p></button>`;
+  const pecas=r.pecas.map(gr=>{const c=gr.find(x=>tem.has(x));return c?`<b>${tituloF(c)}</b>`:`<i>um fragmento que ainda não está na mesa</i>`}).join(' ↔ ');
+  return `<button class="relation-card depth-card ${completa?'':'locked'} ${feita?'selected':''}" data-r="${r.id}" type="button" ${completa?'':'disabled'}><small>RELAÇÃO${completa?'':' · INCOMPLETA'}</small><h3>${r.t}</h3><div class="rel-pecas">${pecas}</div><p>${completa?r.efeito:'Falta o fragmento que permite interpretar o outro. Sem o par, o dado continua neutro.'}</p></button>`;
  }).join('');
  $('relationGrid').querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{
   const id=b.dataset.r;
@@ -794,10 +799,10 @@ function renderRelations(){
   renderRelations();
  });
  const h=HIPOTESES.find(x=>x.id===state.hipoteseProv);
- $('oldHypothesis').textContent=h?`${h.id} · ${h.t}`:'Nenhuma hipótese registrada';
+ $('oldHypothesis').textContent=h?h.t:'Nenhuma hipótese registrada';
  const inimigas=h?RELACOES.filter(r=>relacaoCompleta(r,tem)&&h.enfraquece.some(c=>r.pecas.flat().includes(c))):[];
  $('counterPrompt').textContent=h
-  ? (inimigas.length?`${listar(inimigas.map(r=>r.id))} contradiz${inimigas.length>1?'em':''} esta leitura sem tornar falso nenhum fato já revelado. Abandonar uma hipótese plausível diante de nova relação conta a favor no relatório.`
+  ? (inimigas.length?`${inimigas.length>1?'As relações ':'A relação '}${listar(inimigas.map(tituloR))} contradiz${inimigas.length>1?'em':''} esta leitura sem tornar falso nenhum fato já revelado. Abandonar uma hipótese plausível diante de nova relação conta a favor no relatório.`
                     :'Nenhuma relação desta mesa contradiz a sua hipótese até aqui. Isso não a confirma: pode apenas significar que a peça que a testaria ainda não foi costurada.')
   : 'Registre uma hipótese provisória para que a contraprova tenha o que atacar.';
 }
@@ -832,7 +837,7 @@ function renderFinal(){
  $('finalPrompt').textContent=g.question;
  $('finalForm').innerHTML=g.fields.map(([label,opts])=>
   `<label class="field depth-card"><span>${label}</span><select name="${label}" required>${optionList(opts,'',state.game+'·'+label)}</select></label>`).join('')
- +`<label class="field depth-card green"><span>Hipótese que você sustenta no fechamento</span><select name="__hip" required>${optionList(HIPOTESES.map(h=>`${h.id} · ${h.t}`),state.hipoteseProv?`${state.hipoteseProv} · ${HIPOTESES.find(h=>h.id===state.hipoteseProv).t}`:'')}</select></label>`
+ +`<label class="field depth-card green"><span>Hipótese que você sustenta no fechamento</span><select name="__hip" required><option value="">Selecione…</option>${ordenar(HIPOTESES,'hipotese-final').map(h=>`<option value="${h.id}" ${h.id===state.hipoteseProv?'selected':''}>${h.t}</option>`).join('')}</select></label>`
  +`<button class="btn primary depth" type="submit">Fechar a decisão <span>→</span></button>`;
 }
 
@@ -881,8 +886,8 @@ function passosDaRevelacao(incluirCaidas){
  const steps=[
   {k:'O QUE PARECIA',h:'R$ 480.000 desapareceram.',p:'Um saco vazio, uma câmera cega e a vigilância afastada organizam a interpretação antes de qualquer conferência.'},
   ...g.reveals.map((x,i)=>({k:`RELAÇÃO ${i+1}`,h:x,p:'Nenhum fato anterior foi alterado. Mudou a relação entre as evidências.'})),
-  {k:'HIPÓTESES QUE CAEM',h:caidas.length?caidas.map(h=>h.id).join(' · '):'Nenhuma hipótese foi derrubada nesta mesa.',
-   p:caidas.length?caidas.map(h=>`${h.id} — ${h.t}`).join('; ')+'. Cada uma nasceu de fatos verdadeiros lidos de forma incompleta.':'As pistas de fechamento não chegaram a se cruzar nesta duração.'},
+  {k:'HIPÓTESES QUE CAEM',h:caidas.length?(caidas.length===1?'Uma leitura plausível cai.':`${caidas.length} leituras plausíveis caem.`):'Nenhuma hipótese foi derrubada nesta mesa.',
+   p:caidas.length?caidas.map(h=>h.t).join('; ')+'. Cada uma nasceu de fatos verdadeiros lidos de forma incompleta.':'As pistas de fechamento não chegaram a se cruzar nesta duração.'},
   {k:'O QUE ACONTECEU',h:g.answer,p:'Nesta partida foi assim. Na próxima, a mesma manhã pode ter outra pessoa, outro motivo e outro valor.'},
   {k:'PRINCÍPIO',h:'A verdade devolve o dinheiro; a mentira fica com ele.',p:'No MOSAICO, um fato verdadeiro pode estar associado à interpretação errada.'}
  ];
@@ -935,7 +940,7 @@ function renderScore(){
   `<article class="ending-card depth-card green"><small>PERGUNTA</small><h3>${g.question}</h3><p>${g.answer}</p></article>`,
   `<article class="ending-card depth-card gold"><small>CAMPOS</small><h3>${s.acertos}/${g.fields.length}</h3><p>Campos corretos da resolução específica desta partida.</p></article>`,
   `<article class="ending-card depth-card blue"><small>RELAÇÕES</small><h3>${s.relFeitas}/${s.relDisp}</h3><p>Relações completas nesta mesa que você efetivamente costurou.</p></article>`,
-  `<article class="ending-card depth-card"><small>HIPÓTESE</small><h3>${hFinal?hFinal.id+' · '+hFinal.t:'—'}</h3><p>${hFinal&&hFinal.canonica?'Sobrevive ao fechamento auditável.':'Continua plausível, mas não sobrevive às relações físicas.'}${s.revisao?' Você abandonou uma leitura anterior diante de nova evidência — isso conta a favor.':''}</p></article>`
+  `<article class="ending-card depth-card"><small>HIPÓTESE</small><h3>${hFinal?hFinal.t:'—'}</h3><p>${hFinal&&hFinal.canonica?'Sobrevive ao fechamento auditável.':'Continua plausível, mas não sobrevive às relações físicas.'}${s.revisao?' Você abandonou uma leitura anterior diante de nova evidência — isso conta a favor.':''}</p></article>`
  ].concat(hpcCards).join('');
  /* A coleção é o que traz a mesa de volta: as seis perguntas caem em rodízio,
     e o que falta fica visível sem revelar qual vem a seguir. */
@@ -984,7 +989,7 @@ function entregarDecisao(){
  }catch(err){}
  const form=$('finalForm');
  const dados=Object.fromEntries(new FormData(form));
- state.hipoteseFinal=(dados.__hip||'').split(' · ')[0];
+ state.hipoteseFinal=(dados.__hip||'').split(' · ')[0]; /* o value é o próprio código (H10); o split segue aceitando o formato antigo */
  delete dados.__hip;
  state.final=dados;state.reveal=0;
  entregarAMesa();

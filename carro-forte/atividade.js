@@ -48,7 +48,7 @@
     return Object.keys(banco).slice(sensor === 'vidro' ? 12 : 0, (sensor === 'vidro' ? 12 : 0) + 4);
   }
 
-  const titulo = (cod) => banco[cod]?.t || cod;
+  const titulo = (cod) => banco[cod]?.t || 'Fragmento';
   const texto = (cod) => banco[cod]?.d || '';
 
   /* ── Estado da página ─────────────────────────────────────────────────── */
@@ -83,7 +83,7 @@
     if (lista)
       lista.innerHTML = todos
         .filter((c) => achados.has(c))
-        .map((c) => `<div class="achado"><b>${c} · ${titulo(c)}</b><span>${texto(c)}</span></div>`)
+        .map((c) => `<div class="achado"><b>${titulo(c)}</b><span>${texto(c)}</span></div>`)
         .join('');
     subirNovos();
     if (contexto && !encerrada && achados.size === todos.length) fechar('completa');

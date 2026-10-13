@@ -186,7 +186,7 @@ html,body{height:100%;height:100dvh;margin:0;background:#03060a;overflow:hidden;
 <script src="variacoes-carro-dados.js?v=20261011-t4"></script>
 <script src="variacoes-carro.js?v=20261011-t4"></script>
 <script src="bussola.js?v=20260905-cena2"></script>
-<script src="atividade.js?v=20260905-cena2"></script>
+<script src="atividade.js?v=20261012-cod"></script>
 <script>
 (function(){
 "use strict";
@@ -629,8 +629,9 @@ function abrir(o){
   });
 
   var f=(window.MOSAICO_FRAGMENTOS||{})[o.cod]||{};
-  document.getElementById('carta-cod').textContent=o.cod+' · '+o.nome;
-  document.getElementById('carta-tit').textContent=f.t||o.cod;
+  /* 12/10/2026: o código do fragmento (F13) não vai à tela; fixo entre variações, ele seria decorado */
+  document.getElementById('carta-cod').textContent=o.nome;
+  document.getElementById('carta-tit').textContent=f.t||'Fragmento';
   document.getElementById('carta-cena').textContent=o.cena;
   document.getElementById('carta-txt').textContent=f.d||'';
   document.getElementById('carta').classList.add('on');
