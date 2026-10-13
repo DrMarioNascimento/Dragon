@@ -702,7 +702,9 @@ function risk() {
 }
 function riskField(i) {
   const q = QUESTIONS[state.question],
-    choices = shuffle([...(q.options?.[i] || [q.answers[i]])]);
+    /* 12/10/2026 (Manhã v2): "Ainda não é possível determinar" fica sempre por último. */
+    embaralhadas = shuffle([...(q.options?.[i] || [q.answers[i]])]),
+    choices = [...embaralhadas.filter((v) => v !== 'Ainda não é possível determinar'), ...embaralhadas.filter((v) => v === 'Ainda não é possível determinar')];
   modal(
     'ARRISCAR · 3 MOEDAS',
     q.fields[i],

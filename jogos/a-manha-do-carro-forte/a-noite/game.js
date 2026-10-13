@@ -11,8 +11,8 @@
   };
   carregar('opening-flow.js?v=20260915-audio-cta', () => {
     /* 11/10/2026 (Tarefa 4): as variações da solução, antes do núcleo */
-    carregar('../../../jogos/a-manha-do-carro-forte/a-mesa/variacoes-carro-dados.js?v=20261011-t4', () => carregar('../../../jogos/a-manha-do-carro-forte/a-mesa/variacoes-carro.js?v=20261011-t4', () => {
-    carregar('game-fixed.js?v=20261011-t4', () => {
+    carregar('../../../jogos/a-manha-do-carro-forte/a-mesa/variacoes-carro-dados.js?v=20261012-v2', () => carregar('../../../jogos/a-manha-do-carro-forte/a-mesa/variacoes-carro.js?v=20261012-v2', () => {
+    carregar('game-fixed.js?v=20261012-v2', () => {
       carregar('layout-compacto.js?v=20260901-toque3', () => {
         carregar('touch-router.js?v=20260901-toque1', () => {
           carregar('telemetria-teste.js?v=20261011-sdk12', () => {

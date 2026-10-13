@@ -39,10 +39,13 @@
 
   /* ── a casa: quem estava na agência ── */
   function faixa(n) { n = Number(n) || 1; return n <= 3 ? 10 : n <= 6 ? 12 : n <= 9 ? 14 : 15; }
+  /* 12/10/2026 (Manhã v2): só entra na casa quem estava na agência naquela quinta (v.presentes:
+     Manutenção nas semanas pares, Telefonia a cada quatro, Informática nas ímpares). */
   function casa(vid, nJogadores, codigo) {
     var v = D.variacoes[vid]; if (!v) return [];
-    var c = v.obrig.slice(), tam = Math.max(faixa(nJogadores), c.length);
-    mist(D.elenco.map(function (e) { return e.id; }).filter(function (id) { return c.indexOf(id) < 0; }), rng(codigo + "|" + vid + "|casa"))
+    var pool = v.presentes || D.elenco.map(function (e) { return e.id; });
+    var c = v.obrig.slice(), tam = Math.min(pool.length, Math.max(faixa(nJogadores), c.length));
+    mist(pool.filter(function (id) { return c.indexOf(id) < 0; }), rng(codigo + "|" + vid + "|casa"))
       .forEach(function (id) { if (c.length < tam) c.push(id); });
     return c;
   }
@@ -83,7 +86,12 @@
   function repartir(lista, vid, codigo, jogadores, meuId) {
     var n = Math.max(1, (jogadores || []).length), eu = 0;
     (jogadores || []).forEach(function (j, i) { if (j && j.id === meuId) eu = i; });
-    var ordem = mist(lista, rng(codigo + "|" + vid + "|depo"));
+    /* 12/10/2026 (Manhã v2): quem fez, quem sabia, quem ajudou e quem esqueceu vão primeiro, um por
+       aparelho; a rotina completa depois. Assim a mentira e o que a desmente caem em aparelhos
+       diferentes sempre que a mesa tem mais de um. */
+    var r = rng(codigo + "|" + vid + "|depo");
+    var ordem = mist(lista.filter(function (d) { return d.papel !== "rotina"; }), r)
+      .concat(mist(lista.filter(function (d) { return d.papel === "rotina"; }), r));
     return ordem.filter(function (_, i) { return i % n === eu; });
   }
 
@@ -125,6 +133,7 @@
     dados: function () { return D; }, escolher: escolher, marcarUso: marcarUso, casa: casa, faixa: faixa,
     aplicar: aplicar, aplicarFragmentos: aplicarFragmentos, noite: noite, tipos: TIPOS, tipoDe: tipoDe,
     atual: function () { return ATUAL; },
+    narracao: function () { var v = ATUAL && D.variacoes[ATUAL.vid]; return (v && v.narracao) || null; },
     meusDepoimentos: function () { return (ATUAL && ATUAL.meus) || []; },
     presentes: function () { return ((ATUAL && ATUAL.presentes) || []).map(pessoa); },
     pessoa: pessoa

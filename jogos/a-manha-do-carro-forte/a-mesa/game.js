@@ -379,7 +379,10 @@ function selectGame(id){
  $('pautaNota').textContent=feitas
   ? `A pauta desta mesa foi sorteada. ${feitas} de ${total} perguntas já foram fechadas aqui — faltam ${total-feitas}.`
   : 'A pauta desta mesa foi sorteada. São seis perguntas sobre a mesma manhã, e você não escolhe qual delas cai.';
+ /* 12/10/2026 (Manhã v2): quando a história é contada decide o que já chegou à mesa. */
+ const narr=window.CarroVariacoes?.narracao?.();
  $('planCards').innerHTML=[
+  ...(narr?[`<article class="plan-card depth-card green"><small>QUANDO A HISTÓRIA É CONTADA</small><strong>${narr.rotulo}</strong><p>A manhã: ${narr.data}. ${narr.texto}</p></article>`]:[]),
   `<article class="plan-card depth-card gold"><small>DOSSIÊ</small><strong>até ${cfg.n} fragmentos</strong><p>${cfg.rot}. ${sensoriais().length} deles só entram se a mesa descobrir nas atividades — o que ficar para trás não volta por outra porta. Depois, o dossiê abre em três terços.</p></article>`,
   `<article class="plan-card depth-card green"><small>CAMPOS DESTA PERGUNTA</small><strong>${g.fields.length} campos</strong><p>${g.fields.map(f=>f[0]).join(' · ')}</p></article>`,
   ...(window.CarroVariacoes?.presentes?.().length?[`<article class="plan-card depth-card"><small>NA AGÊNCIA NESTA MANHÃ</small><strong>${window.CarroVariacoes.presentes().length} pessoas</strong><p>${window.CarroVariacoes.presentes().map(p=>p.nome).join(' · ')}</p></article>`]:[]),
@@ -830,7 +833,9 @@ function ordenar(opts,chave){
  for(let i=a.length-1;i>0;i--){h=Math.imul(h^h>>>15,2246822507)>>>0;const j=(h>>>8)%(i+1);[a[i],a[j]]=[a[j],a[i]]}
  return a;
 }
-function optionList(opts,value='',chave=''){const lista=chave?ordenar(opts,chave):opts;return `<option value="">Selecione…</option>${lista.map(o=>`<option ${o===value?'selected':''}>${o}</option>`).join('')}`}
+/* 12/10/2026 (Manhã v2): "Ainda não é possível determinar" fica sempre por último. */
+const NAO_DET='Ainda não é possível determinar';
+function optionList(opts,value='',chave=''){const lista0=chave?ordenar(opts,chave):opts,lista=[...lista0.filter(o=>o!==NAO_DET),...lista0.filter(o=>o===NAO_DET)];return `<option value="">Selecione…</option>${lista.map(o=>`<option ${o===value?'selected':''}>${o}</option>`).join('')}`}
 
 function renderFinal(){
  const g=PARTIDAS[state.game];
@@ -889,7 +894,9 @@ function passosDaRevelacao(incluirCaidas){
   {k:'HIPÓTESES QUE CAEM',h:caidas.length?(caidas.length===1?'Uma leitura plausível cai.':`${caidas.length} leituras plausíveis caem.`):'Nenhuma hipótese foi derrubada nesta mesa.',
    p:caidas.length?caidas.map(h=>h.t).join('; ')+'. Cada uma nasceu de fatos verdadeiros lidos de forma incompleta.':'As pistas de fechamento não chegaram a se cruzar nesta duração.'},
   {k:'O QUE ACONTECEU',h:g.answer,p:'Nesta partida foi assim. Na próxima, a mesma manhã pode ter outra pessoa, outro motivo e outro valor.'},
-  {k:'PRINCÍPIO',h:'A verdade devolve o dinheiro; a mentira fica com ele.',p:'No MOSAICO, um fato verdadeiro pode estar associado à interpretação errada.'}
+  {k:'PRINCÍPIO',h:'A verdade devolve o dinheiro; a mentira fica com ele.',p:'No MOSAICO, um fato verdadeiro pode estar associado à interpretação errada.'},
+  /* 12/10/2026 (Manhã v2): a conclusão máxima que os registros desta manhã sustentavam. */
+  ...(g.ate?[{k:'COM O QUE VOCÊS TINHAM',h:g.ate,p:'O que ainda não tinha chegado à mesa não podia ser afirmado. “Ainda não é possível determinar” também é uma resposta certa.'}]:[])
  ];
  return incluirCaidas?steps:steps.filter(x=>x.k!=='HIPÓTESES QUE CAEM');
 }
