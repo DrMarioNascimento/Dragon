@@ -5,14 +5,16 @@
 Cada pessoa no próprio telefone. A mesa senta (personagem, vez, cor). 
 O telefone é lanterna. No fim, cada um acusa sozinho.
 
-A mesa HTML canônica continua em [`../../../jogos/casa-da-costa/a-mesa/MOSAICO-mesa.html`](../../../jogos/casa-da-costa/a-mesa/MOSAICO-mesa.html).  
-Este cliente é **independente dela**: projeto Firebase próprio (`mosaico-noite`) e
-árvore própria (`noite/`), com o fluxo da versão 3 (Encene → Janela → cômodo → cor
-→ carta → óleo → acusação). Um código de uma não abre a outra — ver
-[`../FIREBASE-ISOLAMENTO.md`](../documentos/FIREBASE-ISOLAMENTO.md).
+A Mesa canônica fica em [jogos/casa-da-costa/a-mesa](../../../jogos/casa-da-costa/a-mesa/MOSAICO-mesa.html).
+Esta pasta contém a fonte de A Noite da Casa; o build é publicado em
+[jogos/casa-da-costa/a-noite](../../../jogos/casa-da-costa/a-noite/).
 
-**Playtest ao vivo:** use as portas Celular · Telão · Solo em [`../../../casa-da-costa/`](../casa-da-costa/).  
-`/jogos/casa-da-costa/a-noite/` é linhagem de revisão (A Noite). Não é porta de produção.
+São experiências distintas, com fluxos próprios e alguns componentes e mídias
+compartilhados. A configuração atual do cliente publicado usa o projeto Firebase
+`mosaico-game` e a coleção `noite`. Consulte [FIREBASE-ISOLAMENTO.md](../../../documentos/FIREBASE-ISOLAMENTO.md).
+
+O catálogo principal não oferece um card de A Noite da Casa. A entrada de A Mesa
+fica em [historias/casa-da-costa/a-mesa](../../../historias/casa-da-costa/a-mesa/).
 
 ## Como jogar (shell de revisão)
 
@@ -24,7 +26,7 @@ O telefone diz uma frase por vez: *Faça. Aponta. Procura a sua cor. Encosta. Co
 
 ## Firebase
 
-Projeto `mosaico-noite`, só desta versão. Login anônimo para quem entra com o
+Configuração do cliente: projeto `mosaico-game`, coleção `noite`. Login anônimo para quem entra com o
 código; quem **abre** a mesa entra com Google. Domínio autorizado:
 `drmarionascimento.github.io` (e `localhost` para desenvolvimento).
 
@@ -34,7 +36,7 @@ a criação de sala falha — abra a página num domínio já liberado, ou use `
 ## Como rodar
 
 ```bash
-cd mosaico-web
+cd desenvolvimento/casa-da-costa/a-noite
 npm install
 npm run dev
 ```

@@ -10,3 +10,8 @@ São materiais de trabalho; os recursos usados pelos jogos continuam nas pastas 
 - [Pacotes](pacotes/): arquivos compactados de materiais.
 
 Cópias com `SUBSTITUIDO` no nome foram preservadas em [arquivo/substituidos](../arquivo/substituidos/).
+
+## Fonte de aplicação
+
+[A Noite da Casa](casa-da-costa/a-noite/README.md) contém a fonte do cliente
+publicado em [jogos/casa-da-costa/a-noite](../jogos/casa-da-costa/a-noite/).
