@@ -5,8 +5,8 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
-const html = readFileSync(join(root, "solo/index.html"), "utf8");
-const jogo = readFileSync(join(root, "solo/mesa-solo.js"), "utf8");
+const html = readFileSync(join(root, "jogos/casa-da-costa/solo/index.html"), "utf8");
+const jogo = readFileSync(join(root, "jogos/casa-da-costa/solo/mesa-solo.js"), "utf8");
 
 describe("modo solo", () => {
   it("a página publicada carrega o jogo modular", () => {
@@ -26,7 +26,7 @@ describe("modo solo", () => {
     assert.doesNotMatch(jogo, /shuffle\(\[e\.fact/, "as perguntas de fato voltaram ao Solo");
   });
 
-  it("não há uma segunda cópia em solo\/src", () => {
-    assert.equal(existsSync(join(root, "solo/src")), false);
+  it("não há uma segunda cópia em jogos\/casa-da-costa\/jogos\/casa-da-costa\/solo\/src", () => {
+    assert.equal(existsSync(join(root, "jogos/casa-da-costa/solo/src")), false);
   });
 });

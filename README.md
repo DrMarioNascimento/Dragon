@@ -1,5 +1,47 @@
 # Dragon Games
 
+## Organização do portal
+
+O catálogo reúne **A Casa da Costa**, **A Manhã do Carro-Forte**,
+**O Eco do Amanhã — VestChip**, **Mosaico Card — versão bíblica** e **Eita!**.
+As histórias do MOSAICO têm entradas por versão em
+[`historias/`](historias/README.md). Esse mapa identifica as entradas
+e as pastas de implementação de cada história.
+
+O bloco **Solo / Ensaiar neste aparelho** saiu do catálogo principal. O antigo
+atalho para **LAB-RA** e seus links ativos foram removidos deste repositório.
+As experiências complementares e seus recursos continuam preservados; as
+entradas antigas dos jogos funcionam por redirecionamento. Telão e opções de O Impostor
+ficam nas páginas de acesso de cada versão. **O Eco do Amanhã — VestChip
+existe somente na versão O Impostor.**
+
+## Outros jogos da Dragon Games
+
+O portal também apresenta jogos mantidos em repositórios independentes:
+
+- **Mosaico Card — versão bíblica:** [Jogar](https://drmarionascimento.github.io/Mosaico-Card/) · [Repositório](https://github.com/DrMarioNascimento/Mosaico-Card). Pistas, negociação e dedução sobre histórias do Novo Testamento.
+- **Eita!:** [Jogar](https://eita-quiz.web.app/). Quiz em aliança para enfrentar o chefão.
+
+Esses cards têm imagens locais em `brand/jogos/` e links para os sites dos jogos;
+suas implementações não são copiadas nem alteradas neste repositório.
+
+## Onde encontrar os arquivos
+
+| Conteúdo | Pasta |
+|---|---|
+| Implementações por história e versão | [jogos/](jogos/README.md) |
+| Entradas de escolha do portal | [historias/](historias/README.md) |
+| Documentação técnica | [documentos/](documentos/README.md) |
+| Roteiros, matrizes, imagens e modelos de referência | [desenvolvimento/](desenvolvimento/README.md) |
+| Cópias substituídas e mapa de movimentações | [arquivo/](arquivo/README.md) |
+| Marca e avatar | `brand/` |
+| Verificações automáticas | `tests/` e `.github/` |
+
+Os jogos estão em `jogos/<história>/<versão>/`. As entradas antigas preservam
+os convites e os endereços usados pelo portal pessoal. A fonte de A Noite da
+Casa fica em `desenvolvimento/casa-da-costa/a-noite/` e sua publicação em
+`jogos/casa-da-costa/a-noite/`. Veja o [mapa de compatibilidade](jogos/compatibilidade.json).
+
 ## O voo da Dragon
 
 > A tecnologia tece o seu próprio universo,  
@@ -26,11 +68,11 @@
 
 ---
 
-## Estado e manutenção — 10 de outubro de 2026
+## Estado e manutenção — 12 de outubro de 2026
 
-O hub reúne os percursos de A Casa da Costa e A Manhã do Carro-Forte, com entradas para mesa, telão, solo e outros modos descritos abaixo. Há também experiências de O Impostor em desenvolvimento. As pastas históricas e os protótipos não devem ser tratados como lançamentos equivalentes.
+O catálogo apresenta três histórias do MOSAICO, Mosaico Card na versão bíblica e Eita!. A Mesa e O Impostor são versões das duas primeiras histórias; VestChip tem somente O Impostor. Telão e opções de acesso ficam nas páginas de cada versão. Solo e A Noite permanecem como experiências complementares, sem card principal. Materiais históricos não são entradas atuais de jogo.
 
-Para manutenção, consulte [o padrão de salas](PADRAO-SALA-MULTIPLAYER.md), [a separação entre modo, papel e camada](MOSAICO-ACESSIBILIDADE-PAPEIS.md) e [a segurança do Firebase](FIREBASE-SECURITY.md). A suíte de regras e integridade existe no repositório; ela não substitui partidas com pessoas, verificação de reconexão e teste de todas as perspectivas do mistério. A autoria conjunta de Mário César Nascimento e Osana Melo Nascimento permanece conforme [LICENSE.md](LICENSE.md).
+Para manutenção, consulte [o padrão de salas](documentos/PADRAO-SALA-MULTIPLAYER.md), [a separação entre modo, papel e camada](documentos/MOSAICO-ACESSIBILIDADE-PAPEIS.md) e [a segurança do Firebase](documentos/FIREBASE-SECURITY.md). A suíte de regras e integridade existe no repositório; ela não substitui partidas com pessoas, verificação de reconexão e teste de todas as perspectivas do mistério. A autoria conjunta de Mário César Nascimento e Osana Melo Nascimento permanece conforme [LICENSE.md](LICENSE.md).
 
 
 **English** · [Português](#português)
@@ -45,18 +87,23 @@ Proprietary project in development. The repository is public so that GitHub Page
 
 - Groups of 1 to 12 people in the same room, each on their own phone.
 - Game hosts who want to project the table on a TV or projector (optional).
-- Individual players who want to rehearse a case alone.
+- Players who want the preserved complementary Solo experience, outside the main catalog.
 
 ## What is available from the hub
 
-| Case | Doors on the hub |
+| Game / story | Versions and access |
 |---|---|
-| **A Casa da Costa** | [Phone](https://drmarionascimento.github.io/Dragon/v1/MOSAICO-mesa.html) · [Shared screen](https://drmarionascimento.github.io/Dragon/telao.html?jogo=casa-da-costa) · [Solo](https://drmarionascimento.github.io/Dragon/solo/) |
-| **A Casa da Costa: O Impostor** (in development) | [Phone: Prologue](https://drmarionascimento.github.io/Dragon/o-impostor/mesa.html) · [AR lab](https://drmarionascimento.github.io/Dragon/o-impostor/) |
-| **A Manhã do Carro-Forte** | [Phone](https://drmarionascimento.github.io/Dragon/carro-forte/celular.html) · [Shared screen](https://drmarionascimento.github.io/Dragon/telao.html?jogo=carro-forte) · [Solo](https://drmarionascimento.github.io/Dragon/carro-forte/celular.html?soloLab=1&bots=max&modo=sem-telao) |
-| **A Manhã do Carro-Forte: O Impostor** (in development) | [Phone](https://drmarionascimento.github.io/Dragon/carro-forte-impostor/mesa.html) · [Group play](https://drmarionascimento.github.io/Dragon/carro-forte-impostor/mesa.html?grupo=1) |
+| **A Casa da Costa** | [A Mesa](historias/casa-da-costa/a-mesa/) · [O Impostor](historias/casa-da-costa/o-impostor/) |
+| **A Manhã do Carro-Forte** | [A Mesa](historias/a-manha-do-carro-forte/a-mesa/) · [O Impostor](historias/a-manha-do-carro-forte/o-impostor/) |
+| **O Eco do Amanhã — VestChip** | [O Impostor](historias/o-eco-do-amanha/o-impostor/) only |
+| **Mosaico Card** | [Biblical edition — New Testament](https://drmarionascimento.github.io/Mosaico-Card/) |
+| **Eita!** | [Alliance quiz](https://eita-quiz.web.app/) |
 
-After the morning session, *A Manhã do Carro-Forte* continues into its evening closing game, [A Noite](https://drmarionascimento.github.io/Dragon/carro-forte/noite/), with the same room code. The former AR lab now lives in its own repository: [lab-ra](https://drmarionascimento.github.io/lab-ra/).
+The shared-screen option is inside each A Mesa access page. Solo and A Noite are
+preserved complementary experiences, listed in [jogos/README.md](jogos/README.md).
+
+After the morning investigation, A Manhã do Carro-Forte continues into
+[A Noite](jogos/a-manha-do-carro-forte/a-noite/), keeping the room code.
 
 ## How it works
 
@@ -68,7 +115,7 @@ After the morning session, *A Manhã do Carro-Forte* continues into its evening 
 
 ## Technology
 
-Static HTML, CSS and JavaScript published on GitHub Pages; 3D and AR with three.js (WebXR on Android, the 8th Wall engine on iPhone); multiplayer rooms on Firebase (Firestore + Authentication: anonymous sign-in for players, Google sign-in for the host who opens a room), one Firebase project per case. A separate React/Vite client lives in `mosaico-web/`. Automated checks (`npm test`, `npm run test:regras`, and `typecheck`/`test` in `mosaico-web/`) run on GitHub Actions. Details in the Portuguese section.
+Static HTML, CSS and JavaScript published on GitHub Pages; 3D and AR with three.js (WebXR on Android, the 8th Wall engine on iPhone); multiplayer rooms on Firebase (Firestore + Authentication: anonymous sign-in for players, Google sign-in for the host who opens a room), one Firebase project per case. A separate React/Vite client lives in `desenvolvimento/casa-da-costa/a-noite/`. Automated checks (`npm test`, `npm run test:regras`, and `typecheck`/`test` in `desenvolvimento/casa-da-costa/a-noite/`) run on GitHub Actions. Details in the Portuguese section.
 
 ## Authors, license and contact
 
@@ -94,25 +141,26 @@ Cada pessoa joga no próprio celular; um telão (TV ou projetor) é opcional. O 
 
 ## Acesso
 
-Tudo o que está descrito abaixo é alcançado a partir do hub: [drmarionascimento.github.io/Dragon/](https://drmarionascimento.github.io/Dragon/) (`index.html`).
+O [portal Dragon Games](https://drmarionascimento.github.io/Dragon/) apresenta:
 
-| Caso | Portas no hub | Firebase |
-|---|---|---|
-| **A Casa da Costa** | [Celular](https://drmarionascimento.github.io/Dragon/v1/MOSAICO-mesa.html) · [Telão](https://drmarionascimento.github.io/Dragon/telao.html?jogo=casa-da-costa) · [Solo](https://drmarionascimento.github.io/Dragon/solo/) | `mosaico-game` |
-| **A Casa da Costa: O Impostor** — em construção | [Celular — Prólogo](https://drmarionascimento.github.io/Dragon/o-impostor/mesa.html) · [Laboratório de RA](https://drmarionascimento.github.io/Dragon/o-impostor/) | `oimpostor-c30e0` |
-| **A Manhã do Carro-Forte** | [Celular](https://drmarionascimento.github.io/Dragon/carro-forte/celular.html) · [Telão](https://drmarionascimento.github.io/Dragon/telao.html?jogo=carro-forte) · [Solo](https://drmarionascimento.github.io/Dragon/carro-forte/celular.html?soloLab=1&bots=max&modo=sem-telao) | `mosaico-noite` |
-| **A Manhã do Carro-Forte: O Impostor** — em construção | [Jogar](https://drmarionascimento.github.io/Dragon/carro-forte-impostor/mesa.html) · [Jogar em grupo](https://drmarionascimento.github.io/Dragon/carro-forte-impostor/mesa.html?grupo=1) | `oimpostor-c30e0` (caseId `carro-forte-impostor`) |
+| Jogo / história | Versões e acesso |
+|---|---|
+| **A Casa da Costa** | [A Mesa](historias/casa-da-costa/a-mesa/) · [O Impostor](historias/casa-da-costa/o-impostor/) |
+| **A Manhã do Carro-Forte** | [A Mesa](historias/a-manha-do-carro-forte/a-mesa/) · [O Impostor](historias/a-manha-do-carro-forte/o-impostor/) |
+| **O Eco do Amanhã — VestChip** | Somente [O Impostor](historias/o-eco-do-amanha/o-impostor/) |
+| **Mosaico Card** | [Versão bíblica — Novo Testamento](https://drmarionascimento.github.io/Mosaico-Card/) |
+| **Eita!** | [Quiz em aliança](https://eita-quiz.web.app/) |
 
-- A escolha **Celular · Telão · Solo** existe só no hub. As pastas `casa-da-costa/` e `carro-forte/` redirecionam direto para o gate Celular.
-- **A Noite** do Carro-Forte ([`carro-forte/noite/`](https://drmarionascimento.github.io/Dragon/carro-forte/noite/)) é aberta pelo botão **Ir para a Noite** ao fim do relatório da Manhã, com o mesmo código de sala.
-- O **Lab RA** mudou-se para repositório próprio: [drmarionascimento.github.io/lab-ra](https://drmarionascimento.github.io/lab-ra/) ([código](https://github.com/DrMarioNascimento/lab-ra)). A pasta `laboratorio-ra/` apenas redireciona para lá.
-- Endereços antigos continuam funcionando por redirecionamento, para não quebrar QR codes e favoritos: `MOSAICO-mesa.html` (raiz) → `v1/MOSAICO-mesa.html`; `carro-forte-mesa/` → `carro-forte/celular.html`; `carro-forte-noite/` → `carro-forte/noite/`; `v3/` → `solo/`.
+- Telão e opções de acesso ficam nas páginas de cada versão.
+- Solo e A Noite continuam preservados como experiências complementares, fora do catálogo principal; consulte [jogos/README.md](jogos/README.md).
+- A Noite do Carro-Forte é aberta ao fim da Manhã, com o mesmo código de sala e a continuidade da partida.
+- As entradas antigas preservam convites, consultas e fragmentos. As duas imagens usadas em links anteriores do portal pessoal também permanecem disponíveis. Veja [jogos/compatibilidade.json](jogos/compatibilidade.json).
 
 ## Para quem
 
 - Grupos de **1 a 12 pessoas** na mesma sala, cada uma com seu celular.
 - Quem conduz a mesa (**Mestre**) e quer, opcionalmente, projetar código da sala, QR, cronologia, revelação e pódio num telão.
-- Quem quer **ensaiar sozinho** um caso (porta Solo).
+- Quem quer acessar a experiência complementar **Solo**, preservada fora do catálogo principal.
 
 ## O que tem
 
@@ -124,7 +172,7 @@ HTML + Firebase. Telão opcional. QR na sala.
 - **Sem telão:** o criador joga no celular; os controles de mestre ficam em **Sala**.
 - **Barra móvel:** **Caso | Sala | Arquivo** — rodada e cronologia; comandos do mestre; pistas privadas.
 - **Ritmo**, escolhido na criação da sala: **Automaticamente** (avança quando todos terminam) ou **Com minha liberação**. Nos dois, o mestre pode pausar e retomar.
-- Áudio de abertura em `v1/audio/`. A sirene toca só no aparelho do mestre, para evitar eco entre os celulares.
+- Áudio de abertura em `jogos/casa-da-costa/a-mesa/audio/`. A sirene toca só no aparelho do mestre, para evitar eco entre os celulares.
 
 **Fluxo:**
 
@@ -141,7 +189,7 @@ HTML + Firebase. Telão opcional. QR na sala.
 
 **Fragmentos:** Névoa, Tempestade, Farol e Noite. Com 1–3 pessoas, um único Fragmento; de 4 a 12, grupos de 2 ou 3, cada um com um Portador.
 
-**Pontuação — máximo 100** (motor `v1/js/mosaico-v5.js`):
+**Pontuação — máximo 100** (motor `jogos/casa-da-costa/a-mesa/js/mosaico-v5.js`):
 
 | Componente | Máximo |
 |---|---:|
@@ -160,14 +208,14 @@ Pontos inteiros. O escore Z não entra no placar.
 
 ### A Casa da Costa — Solo
 
-Pasta própria ([`solo/`](./solo)): adaptação individual da sequência canônica da Mesa, sem segunda realidade factual — caso, fragmentos, relações, perguntas e respostas vêm de `v1/casos/casa-da-costa.json`. Ações que na Mesa dependem de várias pessoas viram decisão, revisão ou execução individual. O progresso fica vinculado ao usuário (`usuarios/{uid}` no Firestore). Não misturar com A Mesa.
+Pasta própria ([`jogos/casa-da-costa/solo/`](jogos/casa-da-costa/solo)): adaptação individual da sequência canônica da Mesa, sem segunda realidade factual — caso, fragmentos, relações, perguntas e respostas vêm de `jogos/casa-da-costa/a-mesa/casos/casa-da-costa.json`. Ações que na Mesa dependem de várias pessoas viram decisão, revisão ou execução individual. O progresso fica vinculado ao usuário (`usuarios/{uid}` no Firestore). Não misturar com A Mesa.
 
 ### A Casa da Costa: O Impostor — em construção
 
 Nova experiência sobre a mesma casa. No hub estão disponíveis:
 
-- **Celular — Prólogo** ([`o-impostor/mesa.html`](./o-impostor/mesa.html)): vídeo, maquete em RA, a chave, os papéis e o telefone;
-- **Laboratório de RA** ([`o-impostor/`](./o-impostor)): objetos do caso em 3D (relógio, livro, farol, quarto e outros) para ver no celular, sobre a mesa.
+- **Celular — Prólogo** ([`jogos/casa-da-costa/o-impostor/mesa.html`](jogos/casa-da-costa/o-impostor/mesa.html)): vídeo, maquete em RA, a chave, os papéis e o telefone;
+- **Laboratório de RA** ([`jogos/casa-da-costa/o-impostor/`](jogos/casa-da-costa/o-impostor)): objetos do caso em 3D (relógio, livro, farol, quarto e outros) para ver no celular, sobre a mesa.
 
 ### A Manhã do Carro-Forte — Celular (A Mesa)
 
@@ -196,7 +244,7 @@ Partida coletiva e investigativa sobre uma única manhã num banco, com **seis p
 
 ### A Manhã do Carro-Forte: O Impostor — em construção
 
-A mesma manhã da Agência 0688, no modo impostor: o impostor não é um jogador, é o sistema, escondido num dos personagens. Tudo numa página, [`carro-forte-impostor/mesa.html`](./carro-forte-impostor/mesa.html):
+A mesma manhã da Agência 0688, no modo impostor: o impostor não é um jogador, é o sistema, escondido num dos personagens. Tudo numa página, [`jogos/a-manha-do-carro-forte/o-impostor/mesa.html`](jogos/a-manha-do-carro-forte/o-impostor/mesa.html):
 
 - **sozinho ou em grupo** (`?grupo=1`: gate Abrir mesa | Entrar, projeto `oimpostor-c30e0`, caseId `carro-forte-impostor`); os personagens sem jogador são conduzidos pelo sistema;
 - **prólogo** com a planta de evacuação (desenhada a partir da maquete) e **Capítulos 1 a 8**, cada um com relógio, envios contados, debate em voz alta, perguntas com grau de certeza e aposta num número ou num personagem;
@@ -207,7 +255,7 @@ A mesma manhã da Agência 0688, no modo impostor: o impostor não é um jogador
 
 - **Telão:** `telao.html?jogo=carro-forte`, somente exibição.
 - **Solo:** a mesma página Celular em modo de ensaio (`?soloLab=1&bots=max&modo=sem-telao`): você ocupa uma vaga e as demais são preenchidas por bots de teste.
-- **A Noite** (`carro-forte/noite/`): fechamento com economia de fragmentos (comprar, capturar, arriscar). Aberta a partir da Manhã, herda a pergunta e um resumo do fecho; o orçamento inicial deriva do resultado da Manhã. Os valores econômicos da entrada avulsa ainda são experimentais. Detalhes em [`carro-forte/noite/README.md`](./carro-forte/noite/README.md).
+- **A Noite** (`jogos/a-manha-do-carro-forte/a-noite/`): fechamento com economia de fragmentos (comprar, capturar, arriscar). Aberta a partir da Manhã, herda a pergunta e um resumo do fecho; o orçamento inicial deriva do resultado da Manhã. Os valores econômicos da entrada avulsa ainda são experimentais. Detalhes em [`jogos/a-manha-do-carro-forte/a-noite/README.md`](jogos/a-manha-do-carro-forte/a-noite/README.md).
 
 ## Como funciona
 
@@ -297,10 +345,10 @@ Cada atividade exige um gesto próprio, sem atalho: apontar o aparelho (**A Jane
 
 ## Tecnologia
 
-- **HTML, CSS e JavaScript estáticos**, publicados pelo GitHub Pages, sem etapa de build (exceto o cliente `mosaico-web/`).
+- **HTML, CSS e JavaScript estáticos**, publicados pelo GitHub Pages, sem etapa de build (exceto o cliente `desenvolvimento/casa-da-costa/a-noite/`).
 - **Firebase** (Firestore + Authentication), carregado por CDN. Jogadores entram com login anônimo; quem **abre** a sala entra com Google e precisa constar em `config/mestres` do projeto correspondente. O gate de sala (Abrir mesa | Entrar) é compartilhado em `firebase-room.js`.
-- **Um projeto Firebase por caso**: `mosaico-game` (A Casa da Costa) e `mosaico-noite` (A Manhã do Carro-Forte), com coleções de sala `mosaico/{codigo}` e `noite/{codigo}`; os dois jogos no modo impostor usam `oimpostor-c30e0`, separados pelo caseId da sala (regras em `o-impostor/firestore-impostor.rules`). Ver `FIREBASE-SECURITY.md`, `FIREBASE-ISOLAMENTO.md` e `FIREBASE-NOITE.md`.
-- **QR code** gerado localmente (`v1/js/qr.js`), sem serviço externo.
+- **Um projeto Firebase por caso**: `mosaico-game` (A Casa da Costa) e `mosaico-noite` (A Manhã do Carro-Forte), com coleções de sala `mosaico/{codigo}` e `noite/{codigo}`; os dois jogos no modo impostor usam `oimpostor-c30e0`, separados pelo caseId da sala (regras em `jogos/casa-da-costa/o-impostor/firestore-impostor.rules`). Ver `FIREBASE-SECURITY.md`, `FIREBASE-ISOLAMENTO.md` e `FIREBASE-NOITE.md`.
+- **QR code** gerado localmente (`jogos/casa-da-costa/a-mesa/js/qr.js`), sem serviço externo.
 - **3D e RA** com three.js (cópias locais) e, no laboratório de RA de O Impostor, o componente `<model-viewer>` por CDN. A RA das maquetes usa WebXR no Android e, no iPhone, o motor 8th Wall (Niantic Spatial), baixado do CDN só quando a RA é aberta, com a atribuição exigida pela licença dele nas páginas que o usam.
 
 O `firebaseConfig` presente no HTML é público por natureza; a proteção dos dados depende das regras do Firestore (`firestore.rules`).
@@ -313,41 +361,42 @@ O `firebaseConfig` presente no HTML é público por natureza; a proteção dos d
 | `telao.html` | Telão dos dois casos (`?jogo=casa-da-costa` / `?jogo=carro-forte`) |
 | `firebase-room.js` · `firebase-user.js` | gate de sala compartilhado · sessão do usuário (Solo) |
 | `papel-camada.js` · `hipoteses-por-camada.js/.json` | papéis cognitivos, camadas e hipóteses por camada |
-| `v1/MOSAICO-mesa.html` | A Casa da Costa — Celular (interface, fluxo, Firebase) |
-| `v1/casos/casa-da-costa.json` | caso canônico da Casa da Costa |
-| `v1/js/mosaico-v5.js` | motor de pontuação V5 |
-| `v1/js/tarefa-sensor.js` | protocolo das tarefas sensoriais |
-| `v1/MOSAICO-26-*.html` | Janela do Norte, Vidro Embaçado, Sala às Escuras |
-| `v1/AC-*.html` | módulos auxiliares da Casa (percurso, maquete, papéis, escrivaninha, RA) |
-| `v1/sw.js` | service worker — desligado |
-| `solo/` | A Casa da Costa — Solo |
-| `o-impostor/` | O Impostor: Prólogo (`mesa.html`), laboratório de RA, modelos 3D, mídia |
-| `carro-forte/` | A Manhã do Carro-Forte — Celular (`celular.html`, `game.js`, `fragmentos.js`, atividades) |
-| `carro-forte/noite/` | A Noite do Carro-Forte |
-| `carro-forte-impostor/` | A Manhã do Carro-Forte: O Impostor — mesa (`mesa.html`), maquete em RA (`maquete.js`, `modelos/`), mídia e bonecos de contato |
-| `mosaico-web/` · `v2/` | cliente React/Vite de A Noite da Casa da Costa (fonte) · build publicado |
+| `jogos/casa-da-costa/a-mesa/MOSAICO-mesa.html` | A Casa da Costa — Celular (interface, fluxo, Firebase) |
+| `jogos/casa-da-costa/a-mesa/casos/casa-da-costa.json` | caso canônico da Casa da Costa |
+| `jogos/casa-da-costa/a-mesa/js/mosaico-v5.js` | motor de pontuação V5 |
+| `jogos/casa-da-costa/a-mesa/js/tarefa-sensor.js` | protocolo das tarefas sensoriais |
+| `jogos/casa-da-costa/a-mesa/MOSAICO-26-*.html` | Janela do Norte, Vidro Embaçado, Sala às Escuras |
+| `jogos/casa-da-costa/a-mesa/AC-*.html` | módulos auxiliares da Casa (percurso, maquete, papéis, escrivaninha, RA) |
+| `jogos/casa-da-costa/a-mesa/sw.js` | service worker — desligado |
+| `jogos/casa-da-costa/solo/` | A Casa da Costa — Solo |
+| `jogos/casa-da-costa/o-impostor/` | O Impostor: Prólogo (`mesa.html`), laboratório de RA, modelos 3D, mídia |
+| `jogos/a-manha-do-carro-forte/a-mesa/` | A Manhã do Carro-Forte — Celular (`celular.html`, `game.js`, `fragmentos.js`, atividades) |
+| `jogos/a-manha-do-carro-forte/a-noite/` | A Noite do Carro-Forte |
+| `jogos/a-manha-do-carro-forte/o-impostor/` | A Manhã do Carro-Forte: O Impostor — mesa (`mesa.html`), maquete em RA (`maquete.js`, `modelos/`), mídia e bonecos de contato |
+| `jogos/o-eco-do-amanha/o-impostor/` | O Eco do Amanhã — VestChip, somente O Impostor |
+| `desenvolvimento/casa-da-costa/a-noite/` · `jogos/casa-da-costa/a-noite/` | cliente React/Vite de A Noite da Casa da Costa (fonte) · build publicado |
 | `casos/` | material de histórias em desenvolvimento |
 | `ferramentas/` | bancadas de economia e duração, teste das regras, laboratório de bots |
 | `tests/` | testes automatizados da raiz |
 | `firestore.rules` · `.firebaserc` · `firebase.json` | regras e aliases Firebase (`mesa` → `mosaico-game`, `noite` → `mosaico-noite`) |
 | `brand/` | marca Dragon Games |
-| `HANDOFF.md` | documento de passagem e continuidade |
-| `MOSAICO-ACESSIBILIDADE-PAPEIS.md` · `PADRAO-SALA-MULTIPLAYER.md` · `OVERLAP-DECISOES.md` | normas de papéis, de sala multiplayer e de sobreposição |
+| `documentos/HANDOFF.md` | documento de passagem e continuidade |
+| `documentos/MOSAICO-ACESSIBILIDADE-PAPEIS.md` · `documentos/PADRAO-SALA-MULTIPLAYER.md` · `documentos/OVERLAP-DECISOES.md` | normas de papéis, de sala multiplayer e de sobreposição |
 
-### A Noite da Casa da Costa (`mosaico-web/` → `v2/`)
+### A Noite da Casa da Costa (`desenvolvimento/casa-da-costa/a-noite/` → `jogos/casa-da-costa/a-noite/`)
 
-A Mesa (`v1/`) e A Noite (`mosaico-web/`, publicada em `v2/`) são **projetos independentes**: não compartilham código, mídia nem regras, e a duplicação entre eles é aceita. O build em `v2/` **não é porta de produção** — o hub e o redirect `casa-da-costa/` não apontam para ele.
+A Mesa (`jogos/casa-da-costa/a-mesa/`) e A Noite (`desenvolvimento/casa-da-costa/a-noite/`, publicada em `jogos/casa-da-costa/a-noite/`) são **experiências distintas**: possuem fluxos próprios, mas compartilham componentes e algumas mídias. O cliente publicado de A Noite da Casa configura `mosaico-game`, como A Mesa, usando a coleção `noite` para as salas noturnas. O build em `jogos/casa-da-costa/a-noite/` **não é porta de produção** — o hub e o redirect `casa-da-costa/` não apontam para ele.
 
 ```bash
-cd mosaico-web
+cd desenvolvimento/casa-da-costa/a-noite
 npm install
 npm run dev        # desenvolvimento (abrir no celular por HTTPS — sem HTTPS o iPhone bloqueia o giroscópio)
-npm run publicar   # build de Pages e cópia limpa para ../v2/
+npm run publicar   # build de Pages e cópia limpa para jogos/casa-da-costa/a-noite/
 ```
 
-- Nada se escreve à mão em `v2/`: a pasta é apagada inteira a cada publicação. Arquivos que precisam chegar lá moram em `mosaico-web/public/`.
-- No Pages o roteador anda por hash (`.../v2/#/noite`); para mandar alguém a uma rota, use `.../v2/?ir=noite`.
-- Caminho de mídia em JavaScript nunca começa com `/` (o site mora em `/Dragon/v2/`): use `import.meta.env.BASE_URL`.
+- Nada se escreve à mão em `jogos/casa-da-costa/a-noite/`: a pasta é apagada inteira a cada publicação. Arquivos que precisam chegar lá moram em `desenvolvimento/casa-da-costa/a-noite/public/`.
+- No Pages o roteador anda por hash (`.../jogos/casa-da-costa/a-noite/#/noite`); para mandar alguém a uma rota, use `.../jogos/casa-da-costa/a-noite/?ir=noite`.
+- Caminho de mídia em JavaScript nunca começa com `/` (o site mora em `/Dragon/jogos/casa-da-costa/a-noite/`): use `import.meta.env.BASE_URL`.
 
 ### Testes e CI
 
@@ -362,16 +411,16 @@ npm run economia       # bancada da economia do mercado
 npm run duracao        # bancada da duração sensorial
 ```
 
-Em `mosaico-web/`:
+Em `desenvolvimento/casa-da-costa/a-noite/`:
 
 ```bash
-cd mosaico-web
+cd desenvolvimento/casa-da-costa/a-noite
 npm install
 npm run typecheck
 npm test
 ```
 
-O GitHub Actions (`.github/workflows/ci.yml`, Node 24) roda três verificações a cada push, pull request ou disparo manual: `npm test`; `npm run test:regras` no emulador do Firestore (Java 17); e `typecheck` + `test` de `mosaico-web/`.
+O GitHub Actions (`.github/workflows/ci.yml`, Node 24) roda três verificações a cada push, pull request ou disparo manual: `npm test`; `npm run test:regras` no emulador do Firestore (Java 17); e `typecheck` + `test` de `desenvolvimento/casa-da-costa/a-noite/`.
 
 ### Publicação das regras
 

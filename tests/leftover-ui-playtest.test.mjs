@@ -41,16 +41,16 @@ function walk(dir, pred, acc = []) {
 
 const JANELAS = walk(root, (n) => /janela-do-norte/i.test(n) && /\.html$/i.test(n));
 const CASA_JANELAS = [
-  "v1/MOSAICO-26-a-janela-do-norte.html",
-  "v2/modulos/janela-do-norte.html",
-  "mosaico-web/public/modulos/janela-do-norte.html",
+  "jogos/casa-da-costa/a-mesa/MOSAICO-26-a-janela-do-norte.html",
+  "jogos/casa-da-costa/a-noite/modulos/janela-do-norte.html",
+  "desenvolvimento/casa-da-costa/a-noite/public/modulos/janela-do-norte.html",
 ];
 
 describe("Janela do Norte · nenhuma árvore com Descer do carro", () => {
   it("encontrou as cópias conhecidas", () => {
     assert.ok(JANELAS.length >= 4, `janelas: ${JANELAS.join(", ")}`);
     for (const p of CASA_JANELAS) assert.ok(JANELAS.includes(p), p);
-    assert.ok(JANELAS.includes("carro-forte/janela-do-norte.html"));
+    assert.ok(JANELAS.includes("jogos/a-manha-do-carro-forte/a-mesa/janela-do-norte.html"));
   });
 
   it("zero Descer do carro em qualquer janela-do-norte.html", () => {
@@ -65,7 +65,7 @@ describe("Janela do Norte · nenhuma árvore com Descer do carro", () => {
   });
 
   it("Carro não mistura CTA da Casa", () => {
-    const carro = ler("carro-forte/janela-do-norte.html");
+    const carro = ler("jogos/a-manha-do-carro-forte/a-mesa/janela-do-norte.html");
     assert.match(carro, /Atravessar a rua/);
     assert.equal(/Apontar a janela/.test(carro), false);
   });
@@ -103,7 +103,7 @@ describe("gate Celular · sem Ensaiar / Telão / Com·Sem telão", () => {
   });
 
   it("legacy mesa inicio: Abrir | Entrar; sem Entrar como telão / Ensaiar / Com·Sem", () => {
-    const mesa = ler("v1/MOSAICO-mesa.html");
+    const mesa = ler("jogos/casa-da-costa/a-mesa/MOSAICO-mesa.html");
     const inicio = fnSlice(mesa, "function telaInicio()", ["function modalSenha("]);
     const senha = fnSlice(mesa, "function modalSenha()", ["function fecharOrientacaoMestre("]);
     const plain = stripComments(inicio + senha);
@@ -117,7 +117,7 @@ describe("gate Celular · sem Ensaiar / Telão / Com·Sem telão", () => {
   });
 
   it("overrides Casa (rotação / v2 wrapper) também sem telão no gate", () => {
-    for (const p of ["v1/js/rotacao-partidas-casa.js", "v1/js/casa-da-costa-v2.js"]) {
+    for (const p of ["jogos/casa-da-costa/a-mesa/js/rotacao-partidas-casa.js", "jogos/casa-da-costa/a-mesa/js/casa-da-costa-v2.js"]) {
       const src = stripComments(ler(p));
       const gate = src.includes("function()")
         ? src.slice(src.indexOf("global.telaInicio"), src.indexOf("global.telaInicio") + 1800)
@@ -128,7 +128,7 @@ describe("gate Celular · sem Ensaiar / Telão / Com·Sem telão", () => {
   });
 
   it("room-shell v2/mosaico-web: Abrir | Entrar; sem Ensaiar sozinho", () => {
-    for (const p of ["v2/room-shell.js", "mosaico-web/public/room-shell.js"]) {
+    for (const p of ["jogos/casa-da-costa/a-noite/room-shell.js", "desenvolvimento/casa-da-costa/a-noite/public/room-shell.js"]) {
       const menu = fnSlice(ler(p), "function renderMenu()", ["function renderMasterGate"]);
       const plain = stripComments(menu);
       assert.match(plain, /Abrir uma mesa/);
@@ -139,7 +139,7 @@ describe("gate Celular · sem Ensaiar / Telão / Com·Sem telão", () => {
   });
 
   it("fonte React mosaico-web não reintroduz Ensaiar sozinho no menu", () => {
-    const src = ler("mosaico-web/src/routes/index.tsx");
+    const src = ler("desenvolvimento/casa-da-costa/a-noite/src/routes/index.tsx");
     assert.equal(/Ensaiar sozinho/.test(src), false);
   });
 });
@@ -169,7 +169,7 @@ describe("Abrir mesa · nenhum seletor de modo depois do Celular", () => {
   });
 
   it("legacy mesa modalSenha / pedirSenha: sem Com·Sem e sem Celular|Telão|Solo", () => {
-    const mesa = ler("v1/MOSAICO-mesa.html");
+    const mesa = ler("jogos/casa-da-costa/a-mesa/MOSAICO-mesa.html");
     const senha = fnSlice(mesa, "function modalSenha()", ["function fecharOrientacaoMestre("]);
     const pedir = fnSlice(mesa, "function pedirSenha()", ["function fecharSenha("]);
     const plain = stripComments(senha + pedir);
@@ -184,7 +184,7 @@ describe("Abrir mesa · nenhum seletor de modo depois do Celular", () => {
   });
 
   it("room-shell Abrir: sem “Como a mesa será usada?” / cartão Celular", () => {
-    for (const p of ["v2/room-shell.js", "mosaico-web/public/room-shell.js"]) {
+    for (const p of ["jogos/casa-da-costa/a-noite/room-shell.js", "desenvolvimento/casa-da-costa/a-noite/public/room-shell.js"]) {
       const master = fnSlice(ler(p), "function renderMasterGate", ["async function loginGoogle"]);
       const plain = stripComments(master);
       assert.match(plain, /Abrir com Google/);
@@ -196,9 +196,9 @@ describe("Abrir mesa · nenhum seletor de modo depois do Celular", () => {
   it("carimbo firebase-room fura o JS cacheado com o picker Com/Sem", () => {
     const stale = /firebase-room\.js\?v=20260906-(casa-room|ui-mestre)/;
     for (const p of [
-      "v1/MOSAICO-mesa.html",
-      "carro-forte/celular.html",
-      "carro-forte/noite/index.html",
+      "jogos/casa-da-costa/a-mesa/MOSAICO-mesa.html",
+      "jogos/a-manha-do-carro-forte/a-mesa/celular.html",
+      "jogos/a-manha-do-carro-forte/a-noite/index.html",
     ]) {
       const src = ler(p);
       assert.match(src, /firebase-room\.js\?v=/);
@@ -222,12 +222,12 @@ describe("playtest · pasta do caso não repete Celular|Telão|Solo", () => {
   it("hub Celular deep-link e pastas só redirecionam ao gate", () => {
     const hub = ler("index.html");
     const casa = ler("casa-da-costa/index.html");
-    const carro = ler("carro-forte/index.html");
-    assert.match(hub, /href="v1\/MOSAICO-mesa\.html"/);
-    assert.match(hub, /href="carro-forte\/celular\.html"/);
+    const carro = ler("jogos/a-manha-do-carro-forte/a-mesa/index.html");
+    assert.ok(hub.includes('href="historias/casa-da-costa/a-mesa/"'));
+    assert.ok(hub.includes('href="historias/a-manha-do-carro-forte/a-mesa/"'));
     assert.equal(/href="casa-da-costa\/"/.test(hub), false);
-    assert.equal(/href="carro-forte\/"/.test(hub), false);
-    assert.match(casa, /location\.replace\(["']\.\.\/v1\/MOSAICO-mesa\.html/);
+    assert.equal(/href="jogos\/a-manha-do-carro-forte\/a-mesa\/"/.test(hub), false);
+    assert.match(casa, /location\.replace\(["']\.\.\/jogos\/casa-da-costa\/a-mesa\/MOSAICO-mesa\.html/);
     assert.match(carro, /location\.replace\(["']celular\.html/);
     assert.equal(/data-mode-ctas|Tr[eê]s portas/.test(casa), false);
     assert.equal(/data-mode-ctas|Tr[eê]s portas/.test(carro), false);
@@ -237,7 +237,7 @@ describe("playtest · pasta do caso não repete Celular|Telão|Solo", () => {
 describe("produção · v2 não é porta do playtest", () => {
   it("redirect Casa não aponta para /v2/ e vai ao gate Celular", () => {
     const land = ler("casa-da-costa/index.html");
-    assert.equal(/href=["'][^"']*v2\//.test(land), false);
+    assert.equal(/href=["'][^"']*jogos\/casa-da-costa\/a-noite\//.test(land), false);
     assert.match(land, /MOSAICO-mesa\.html/);
     assert.equal(/data-mode/.test(land), false);
   });
@@ -248,7 +248,7 @@ describe("produção · v2 não é porta do playtest", () => {
 
   it("hub não aponta para /v2/", () => {
     const hub = ler("index.html");
-    assert.equal(/href=["'][^"']*v2\//.test(hub), false);
+    assert.equal(/href=["'][^"']*jogos\/casa-da-costa\/a-noite\//.test(hub), false);
   });
 });
 
@@ -267,14 +267,14 @@ describe("produção · escrivaninha/maquete sem RA de ensaio", () => {
   const PROIBIDO_SEM_RA = [/Colocar em RA/, /Ver em RA/, /Explorar em RA/, /id="ar"/, /id="ar-ios"/];
 
   it("HTML publicado da escrivaninha, maquete e percurso não traz controles de ensaio RA", () => {
-    for (const p of ["v1/AC-escrivaninha.html", "v1/AC-maquete.html", "v1/AC-percurso.html"]) {
+    for (const p of ["jogos/casa-da-costa/a-mesa/AC-escrivaninha.html", "jogos/casa-da-costa/a-mesa/AC-maquete.html", "jogos/casa-da-costa/a-mesa/AC-percurso.html"]) {
       const src = ler(p);
       for (const re of PROIBIDO) {
         assert.equal(re.test(src), false, `${p} ainda contém ${re}`);
       }
     }
     /* A escrivaninha voltou a ter RA (18/09/2026): só o percurso segue sem. */
-    for (const p of ["v1/AC-percurso.html"]) {
+    for (const p of ["jogos/casa-da-costa/a-mesa/AC-percurso.html"]) {
       const src = ler(p);
       for (const re of PROIBIDO_SEM_RA) {
         assert.equal(re.test(src), false, `${p} ainda contém ${re}`);
@@ -283,13 +283,13 @@ describe("produção · escrivaninha/maquete sem RA de ensaio", () => {
   });
 
   it("a marca da escrivaninha não abre o atalho ?teste=sala3d", () => {
-    const html = ler("v1/AC-escrivaninha.html");
+    const html = ler("jogos/casa-da-costa/a-mesa/AC-escrivaninha.html");
     assert.equal(/MOSAICO-mesa\.html\?teste=/.test(html), false);
     assert.match(html, /class="brand"/);
   });
 
   it("o Solo publicado não rotula o percurso como ensaio RA", () => {
-    const solo = ler("solo/mesa-solo.js");
+    const solo = ler("jogos/casa-da-costa/solo/mesa-solo.js");
     assert.equal(/PERCURSO 3D E RA/.test(solo), false);
     assert.match(solo, /PERCURSO 3D · /);
     assert.match(solo, /AC-escrivaninha\.html\?demo=solo/);
@@ -297,7 +297,7 @@ describe("produção · escrivaninha/maquete sem RA de ensaio", () => {
 
   /* A RA da Sala voltou em 18/09/2026, sem os rótulos de ensaio. */
   it("a Sala às Escuras publicada não traz Alternar visual nem Prefiro jogar sem RA", () => {
-    const sala = ler("v1/MOSAICO-26-a-sala-as-escuras.html");
+    const sala = ler("jogos/casa-da-costa/a-mesa/MOSAICO-26-a-sala-as-escuras.html");
     assert.equal(/>Alternar visual</.test(sala), false);
     assert.equal(/Prefiro jogar sem RA/.test(sala), false);
     assert.match(sala, /id="b-entrar-ra" type="button" hidden>/, "Entrar em RA nasce escondido e só aparece se o aparelho tem RA");

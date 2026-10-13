@@ -1,1 +1,1 @@
-export * from '../v1/js/ac-maquete-state.mjs';
+export * from '../jogos/casa-da-costa/a-mesa/js/ac-maquete-state.mjs';

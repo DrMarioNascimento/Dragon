@@ -1,7 +1,7 @@
 import test from 'node:test';
 import {CAPITULOS,FECHADURAS} from '../ferramentas/ac-maquete-state.mjs';
 import assert from 'node:assert/strict';
-import {groupPlan,replay,receipts} from '../v1/js/ac-replay.mjs';
+import {groupPlan,replay,receipts} from '../jogos/casa-da-costa/a-mesa/js/ac-replay.mjs';
 const fragmento=groupPlan([{id:'a',nome:'Ana'},{id:'b',nome:'Bia'},{id:'c',nome:'Caio'}],'r')[0];
 const group={id:'g',runId:'r',fragmento,players:Object.fromEntries(fragmento.membros.map(m=>[m.papel,m.id])),endsAt:1000000};
 test('replay converge em tres clientes com eventos fora de ordem e preserva premios',()=>{

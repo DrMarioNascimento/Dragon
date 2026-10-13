@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
-const source = readFileSync(new URL('../v1/js/ac-investigacao-state.js', import.meta.url), 'utf8');
+const source = readFileSync(new URL('../jogos/casa-da-costa/a-mesa/js/ac-investigacao-state.js', import.meta.url), 'utf8');
 const ctx = vm.createContext({}); vm.runInContext(source, ctx); const m = ctx.ACInvestigationState;
 test('encaixe exige proximidade real e rejeita distancia invalida',()=>{assert.equal(m.canDock(.08),true);assert.equal(m.canDock(.12),true);for(const d of [.121,1,Infinity,NaN,-1])assert.equal(m.canDock(d),false);});
 test('a descoberta exige a sequencia e nao registra recompensas repetidas', () => {
@@ -23,7 +23,7 @@ test('permanencia usa segundos, equivalente a 30, 60 e 120 fps',()=>{
 });
 test('inclinar e virar atuam em elementos separados no cartao real',()=>{
   const context=vm.createContext({window:{},document:{readyState:'loading',addEventListener(){}}});
-  vm.runInContext(readFileSync(new URL('../v1/js/mosaico-3d-engine.js',import.meta.url),'utf8'),context);
+  vm.runInContext(readFileSync(new URL('../jogos/casa-da-costa/a-mesa/js/mosaico-3d-engine.js',import.meta.url),'utf8'),context);
   const html=context.window.Mosaico3D.htmlCartao3D('teste','frente','verso');
   assert.match(html,/m3d-card-tilt m3d-tilt-box/);assert.doesNotMatch(html,/m3d-card-3d m3d-tilt-box/);
   assert.match(html,/<button type="button"[^>]*aria-controls="card-3d-teste"/);
@@ -32,9 +32,9 @@ test('inclinar e virar atuam em elementos separados no cartao real',()=>{
 test('a escrivaninha é a original (com o sextante) e ganha só as folhas sobre o tampo',()=>{
   const paint=new Proxy({}, {get:(o,k)=>o[k]??(()=>{}),set:(o,k,v)=>(o[k]=v,true)});
   const context=vm.createContext({window:{},document:{currentScript:{src:'http://localhost/v1/js/ac-desk.js'},createElement:()=>({getContext:()=>paint})},URL,console,Math});
-  vm.runInContext(readFileSync(new URL('../v1/js/three.min.js',import.meta.url),'utf8'),context);
+  vm.runInContext(readFileSync(new URL('../jogos/casa-da-costa/a-mesa/js/three.min.js',import.meta.url),'utf8'),context);
   const T=context.THREE;context.window.THREE=T;
-  vm.runInContext(readFileSync(new URL('../v1/js/ac-desk.js',import.meta.url),'utf8'),context);
+  vm.runInContext(readFileSync(new URL('../jogos/casa-da-costa/a-mesa/js/ac-desk.js',import.meta.url),'utf8'),context);
   const root=new T.Group();
   for(const name of ['Tampo','Madeira','Metal','Gaveta','Sextante','Braco']){const mesh=new T.Mesh(new T.BoxGeometry(.2,.2,.2),new T.MeshStandardMaterial());mesh.name=name;root.add(mesh);}
   const pedestal=root.getObjectByName('Madeira'),geometry=pedestal.geometry;
@@ -54,10 +54,10 @@ test('a planta canonica e os objetos sao compartilhados entre sala e vela',()=>{
   const gradient={addColorStop(){}};
   const canvasContext=new Proxy({}, {get:(target,key)=>target[key]??(key.startsWith('create')?()=>gradient:()=>{}),set:(target,key,value)=>(target[key]=value,true)});
   const context=vm.createContext({window:{},console,document:{createElement:()=>({width:512,height:512,getContext:()=>canvasContext})}});
-  vm.runInContext(readFileSync(new URL('../v1/js/three.min.js',import.meta.url),'utf8'),context);
+  vm.runInContext(readFileSync(new URL('../jogos/casa-da-costa/a-mesa/js/three.min.js',import.meta.url),'utf8'),context);
   context.window.THREE=context.THREE;
-  for(const file of ['ac-room-layout.js','ac-room-art.js']){vm.runInContext(readFileSync(new URL('../v1/js/'+file,import.meta.url),'utf8'),context);Object.assign(context,context.window);}
-  vm.runInContext(readFileSync(new URL('../v1/js/ac-room.js',import.meta.url),'utf8'),context);
+  for(const file of ['ac-room-layout.js','ac-room-art.js']){vm.runInContext(readFileSync(new URL('../jogos/casa-da-costa/a-mesa/js/'+file,import.meta.url),'utf8'),context);Object.assign(context,context.window);}
+  vm.runInContext(readFileSync(new URL('../jogos/casa-da-costa/a-mesa/js/ac-room.js',import.meta.url),'utf8'),context);
   const model=context.ACRoom.create({seed:'TESTE-COSTA',desk:false}),again=context.ACRoom.layout('TESTE-COSTA');
   assert.equal(JSON.stringify(model.layout),JSON.stringify(again));
   assert.equal(JSON.stringify(again.objects),JSON.stringify(context.ACRoom.layout('OUTRA').objects),'a planta fisica nao muda com outra partida');

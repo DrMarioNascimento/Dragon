@@ -21,7 +21,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-const MESA = readFileSync(new URL("../v1/MOSAICO-mesa.html", import.meta.url), "utf8");
+const MESA = readFileSync(new URL("../jogos/casa-da-costa/a-mesa/MOSAICO-mesa.html", import.meta.url), "utf8");
 
 /* O gate sem o relógio é exatamente a trava. Se um dia alguém gravar os dois
    em chamadas separadas, um snapshot pode chegar com o gate fechado e sem

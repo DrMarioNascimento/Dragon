@@ -12,14 +12,14 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const ler = (p) => readFileSync(join(root, p), "utf8").replace(/\r\n/g, "\n");
 
 const ROOM = ler("firebase-room.js");
-const CASA = ler("v1/MOSAICO-mesa.html");
-const CEL = ler("carro-forte/celular.html");
-const NOITE = ler("carro-forte/noite/index.html");
+const CASA = ler("jogos/casa-da-costa/a-mesa/MOSAICO-mesa.html");
+const CEL = ler("jogos/a-manha-do-carro-forte/a-mesa/celular.html");
+const NOITE = ler("jogos/a-manha-do-carro-forte/a-noite/index.html");
 const HUB = ler("index.html");
-const PADRAO = ler("PADRAO-SALA-MULTIPLAYER.md");
+const PADRAO = ler("documentos/PADRAO-SALA-MULTIPLAYER.md");
 const MPC = ler("papel-camada.js");
 const LAND_CASA = ler("casa-da-costa/index.html");
-const LAND_CARRO = ler("carro-forte/index.html");
+const LAND_CARRO = ler("jogos/a-manha-do-carro-forte/a-mesa/index.html");
 
 function stripComments(src) {
   return src
@@ -135,17 +135,17 @@ describe("gate canônico · Casa Celular", () => {
 
   it("DESCER DO CARRO não aparece em nenhuma Janela do Norte", () => {
     for (const p of [
-      "v1/MOSAICO-26-a-janela-do-norte.html",
-      "v2/modulos/janela-do-norte.html",
-      "mosaico-web/public/modulos/janela-do-norte.html",
-      "carro-forte/janela-do-norte.html",
+      "jogos/casa-da-costa/a-mesa/MOSAICO-26-a-janela-do-norte.html",
+      "jogos/casa-da-costa/a-noite/modulos/janela-do-norte.html",
+      "desenvolvimento/casa-da-costa/a-noite/public/modulos/janela-do-norte.html",
+      "jogos/a-manha-do-carro-forte/a-mesa/janela-do-norte.html",
     ]) {
       const janela = ler(p);
       assert.equal(/Descer do carro/i.test(janela), false, p);
     }
-    assert.match(ler("v1/MOSAICO-26-a-janela-do-norte.html"), /Apontar a janela/);
-    assert.match(ler("v2/modulos/janela-do-norte.html"), /Apontar a janela/);
-    assert.match(ler("mosaico-web/public/modulos/janela-do-norte.html"), /Apontar a janela/);
+    assert.match(ler("jogos/casa-da-costa/a-mesa/MOSAICO-26-a-janela-do-norte.html"), /Apontar a janela/);
+    assert.match(ler("jogos/casa-da-costa/a-noite/modulos/janela-do-norte.html"), /Apontar a janela/);
+    assert.match(ler("desenvolvimento/casa-da-costa/a-noite/public/modulos/janela-do-norte.html"), /Apontar a janela/);
   });
 });
 
@@ -157,14 +157,13 @@ describe("HUD / hub · Sala Title Case e landings", () => {
     assert.equal(/>SALA</.test(NOITE), false);
   });
 
-  it("hub alinha Solo a Ensaiar neste aparelho", () => {
-    assert.match(HUB, /Ensaiar neste aparelho/);
-    assert.equal(/Ensaiar sozinho/.test(HUB), false);
+  it("hub remove somente os atalhos Solo e Ensaio", () => {
+    assert.doesNotMatch(HUB, /Ensaiar neste aparelho|Ensaiar sozinho|>Solo</);
   });
 
-  it("hub documenta Celular gate Abrir|Entrar e Telão display-only", () => {
-    assert.match(HUB, /Abrir mesa \| Entrar/);
-    assert.match(HUB, /Display only/i);
+  it("hub organiza histórias e versões mantendo landings antigas", () => {
+    assert.match(HUB, />A Mesa</);
+    assert.match(HUB, />O Impostor</);
     assert.match(LAND_CASA, /MOSAICO-mesa\.html/);
     assert.match(LAND_CARRO, /celular\.html/);
     assert.equal(/data-mode-ctas/.test(LAND_CASA), false);

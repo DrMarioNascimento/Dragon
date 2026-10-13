@@ -2,7 +2,7 @@
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import assert from "node:assert/strict";
-const fonte=readFileSync(new URL("../v1/js/mosaico-v5.js",import.meta.url),"utf8"),janela={};new Function("window",fonte)(janela);const V5=janela.MosaicoV5;
+const fonte=readFileSync(new URL("../jogos/casa-da-costa/a-mesa/js/mosaico-v5.js",import.meta.url),"utf8"),janela={};new Function("window",fonte)(janela);const V5=janela.MosaicoV5;
 test("o módulo se publica com a API esperada",()=>{for(const nome of ["tamanhosNucleos","distribuirNucleos","pontosTempo","pontosQualidade","pontosMoedas","pontosConfiabilidade","pontosEconomia","dividirVoto","calcular"])assert.equal(typeof V5[nome],"function",`faltou ${nome}`)});
 test("toda mesa de 1 a 12 forma Fragmentos que somam o total de pessoas",()=>{for(let n=1;n<=12;n++){const t=V5.tamanhosNucleos(n);assert.ok(t.length>0);assert.equal(t.reduce((a,b)=>a+b,0),n)}});
 test("de 4 pessoas em diante nenhum Fragmento fica sozinho",()=>{for(let n=4;n<=12;n++)for(const t of V5.tamanhosNucleos(n))assert.ok(t>=2)});

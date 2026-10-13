@@ -141,8 +141,8 @@ test('HTTP restaura o mesmo convite apos reiniciar e bloqueia acesso ao arquivo'
 test('entrada raiz redireciona preservando convite e carrega recursos relativos',async()=>{
  const server=createServer(resolve('.'));await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+server.address().port;
  try{
-  const response=await fetch(base+'/?sala=ensaio&papel=luz&chave=teste',{redirect:'manual'});assert.equal(response.status,302);assert.equal(response.headers.get('location'),'/v1/AC-escrivaninha.html?sala=ensaio&papel=luz&chave=teste');
-  const page=await fetch(base+'/');assert.equal(new URL(page.url).pathname,'/v1/AC-escrivaninha.html');const html=await page.text();
+  const response=await fetch(base+'/?sala=ensaio&papel=luz&chave=teste',{redirect:'manual'});assert.equal(response.status,302);assert.equal(response.headers.get('location'),'/jogos/casa-da-costa/a-mesa/AC-escrivaninha.html?sala=ensaio&papel=luz&chave=teste');
+  const page=await fetch(base+'/');assert.equal(new URL(page.url).pathname,'/jogos/casa-da-costa/a-mesa/AC-escrivaninha.html');const html=await page.text();
   const resources=[...html.matchAll(/(?:src|href)="([^"#]+\.(?:css|js)(?:\?[^"#]*)?)"/g)].map(m=>m[1]);assert.ok(resources.length>=3);
   for(const resource of resources){const asset=await fetch(new URL(resource,page.url));assert.equal(asset.status,200,resource);assert.match(asset.headers.get('content-type'),/text\/(css|javascript)/);}
  }finally{server.closeAllConnections();await new Promise(r=>server.close(r));}

@@ -22,9 +22,9 @@ import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 
 const ler = (p) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8").replace(/\r\n/g, "\n");
-const SOLO_JS = ler("solo/mesa-solo.js");
-const SOLO_CSS = ler("solo/mesa-solo.css");
-const MESA = ler("v1/MOSAICO-mesa.html");
+const SOLO_JS = ler("jogos/casa-da-costa/solo/mesa-solo.js");
+const SOLO_CSS = ler("jogos/casa-da-costa/solo/mesa-solo.css");
+const MESA = ler("jogos/casa-da-costa/a-mesa/MOSAICO-mesa.html");
 
 /** Corpo de uma função nomeada, do `function nome(` até a linha `}` na coluna 0. */
 function corpoDaFuncao(src, nome) {
@@ -116,9 +116,9 @@ describe("A Mesa · a janela de envio do Fragmento tem saída", () => {
 });
 
 describe("Sala às Escuras · a intro no Solo tem saída e CTA visível", () => {
-  const SALA = ler("v1/MOSAICO-26-a-sala-as-escuras.html");
-  const SOLO = ler("solo/mesa-solo.js");
-  const JANELAS_JS = ler("v1/js/ac-janelas.js");
+  const SALA = ler("jogos/casa-da-costa/a-mesa/MOSAICO-26-a-sala-as-escuras.html");
+  const SOLO = ler("jogos/casa-da-costa/solo/mesa-solo.js");
+  const JANELAS_JS = ler("jogos/casa-da-costa/a-mesa/js/ac-janelas.js");
 
   it("o botão Entrar na sala fica fora da rolagem, e a intro não tem ×", () => {
     assert.match(SALA, /id="intro-corpo"/,

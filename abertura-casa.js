@@ -10,7 +10,7 @@
 (function () {
   const AQUI = new URL('.', document.currentScript.src);
   const url = (p) => new URL(p, AQUI).href;
-  const AUDIO = url('v1/audio/A-Casa-da-Costa-Abertura.mp3');
+  const AUDIO = url('jogos/casa-da-costa/a-mesa/audio/A-Casa-da-Costa-Abertura.mp3');
   const VIDEO = url('ACasa-Video-Vertical-Abertura.mp4');
 
   let mostrado = false, terminado = false, fim = null, video = null;

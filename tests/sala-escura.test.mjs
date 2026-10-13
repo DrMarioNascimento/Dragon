@@ -14,7 +14,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
 
-const RAIZ = new URL("../v1/", import.meta.url);
+const RAIZ = new URL("../jogos/casa-da-costa/a-mesa/", import.meta.url);
 const ler = (n) => readFileSync(new URL(n, RAIZ), "utf8");
 
 const SALA = ler("MOSAICO-26-a-sala-as-escuras.html");
@@ -173,7 +173,7 @@ test("uma gravação de balaio que não pode acontecer lança, não volta calada
   assert.match(bloco, /throw new Error/, "salvarBalaio voltou a falhar em silêncio");
 });
 
-test("a entrada de /Dragon/v2/ carrega A Noite, não o app React", () => {
+test("a entrada de /Dragon/jogos/casa-da-costa/a-noite/ carrega A Noite, não o app React", () => {
   /* 02/09/2026: a publicação copiava a casca do React por cima de index.html
      e 404.html, e isso trocava o jogo publicado sem quebrar nada visível —
      a página abre, só que abre OUTRO caso (case.ts, TRUTH elias/m-heranca).
@@ -181,7 +181,7 @@ test("a entrada de /Dragon/v2/ carrega A Noite, não o app React", () => {
      sobrescrita na linha seguinte. */
   const RAIZ_REPO = new URL("../", import.meta.url);
   const lerRepo = (n) => readFileSync(new URL(n, RAIZ_REPO), "utf8");
-  for (const nome of ["v2/index.html", "v2/404.html", "v2/_shell.html"]) {
+  for (const nome of ["jogos/casa-da-costa/a-noite/index.html", "jogos/casa-da-costa/a-noite/404.html", "jogos/casa-da-costa/a-noite/_shell.html"]) {
     assert.match(
       lerRepo(nome),
       /room-shell\.js/,
@@ -191,9 +191,9 @@ test("a entrada de /Dragon/v2/ carrega A Noite, não o app React", () => {
   /* E a cadeia inteira: a página carrega room-shell, que carrega noite-auto,
      que lê o banco. Qualquer elo que caia deixa o jogo abrindo em branco ou
      contando a história errada. */
-  assert.match(lerRepo("mosaico-web/public/room-shell.js"), /noite-auto\.js/);
+  assert.match(lerRepo("desenvolvimento/casa-da-costa/a-noite/public/room-shell.js"), /noite-auto\.js/);
   assert.match(
-    lerRepo("mosaico-web/public/noite-auto.js"),
+    lerRepo("desenvolvimento/casa-da-costa/a-noite/public/noite-auto.js"),
     /casos\/casa-da-costa\.json/,
     "A Noite deixou de ler o banco do caso"
   );
@@ -213,11 +213,11 @@ test("nenhum código do banco chega à tela", () => {
   const vazando =
     /(\$\{|\+ *)(esc0?\()?[a-zA-Z.]*\.(id|cod|frag)\)?[^;\n]{0,15}(·|<\/)/;
   const arquivos = [
-    "mosaico-web/public/noite-auto.js",
-    "v1/js/banco-casa-da-costa.js",
-    "v1/js/rendimento-casa-da-costa.js",
-    "v1/js/mercado-casa-da-costa.js",
-    "v1/js/mosaico-casa-da-costa.js",
+    "desenvolvimento/casa-da-costa/a-noite/public/noite-auto.js",
+    "jogos/casa-da-costa/a-mesa/js/banco-casa-da-costa.js",
+    "jogos/casa-da-costa/a-mesa/js/rendimento-casa-da-costa.js",
+    "jogos/casa-da-costa/a-mesa/js/mercado-casa-da-costa.js",
+    "jogos/casa-da-costa/a-mesa/js/mosaico-casa-da-costa.js",
   ];
   for (const arq of arquivos) {
     const linhas = lerRepo(arq)
@@ -226,7 +226,7 @@ test("nenhum código do banco chega à tela", () => {
     assert.deepEqual(linhas, [], `${arq} voltou a mostrar código do banco`);
   }
   /* E o dossiê de A Noite, que era o pior caso: "F11 · A porta do jardim". */
-  const noite = lerRepo("mosaico-web/public/noite-auto.js");
+  const noite = lerRepo("desenvolvimento/casa-da-costa/a-noite/public/noite-auto.js");
   assert.ok(
     !/<strong>\$\{c\} ·/.test(noite),
     "o fragmento voltou a ser rotulado pelo código"
@@ -246,11 +246,11 @@ test("nada que existe só para testar é carregado pela casca do jogo", () => {
   const RAIZ_REPO = new URL("../", import.meta.url);
   const lerRepo = (n) => readFileSync(new URL(n, RAIZ_REPO), "utf8");
   const cascas = [
-    "v1/MOSAICO-mesa.html",
-    "mosaico-web/public/noite-shell.html",
-    "v2/index.html",
-    "v2/404.html",
-    "v2/_shell.html",
+    "jogos/casa-da-costa/a-mesa/MOSAICO-mesa.html",
+    "desenvolvimento/casa-da-costa/a-noite/public/noite-shell.html",
+    "jogos/casa-da-costa/a-noite/index.html",
+    "jogos/casa-da-costa/a-noite/404.html",
+    "jogos/casa-da-costa/a-noite/_shell.html",
   ];
   for (const casca of cascas) {
     const txt = lerRepo(casca);
@@ -276,7 +276,7 @@ test("o mercado não grava direto no documento do jogador nem da sala", () => {
      guarda a separação: fora de aplicar(), que é o lado do Mestre, não pode
      sobrar escrita no documento do jogador nem no da sala. */
   const RAIZ_REPO = new URL("../", import.meta.url);
-  const merc = readFileSync(new URL("v1/js/mercado-casa-da-costa.js", RAIZ_REPO), "utf8");
+  const merc = readFileSync(new URL("jogos/casa-da-costa/a-mesa/js/mercado-casa-da-costa.js", RAIZ_REPO), "utf8");
 
   const iAplicar = merc.indexOf("async function aplicar(");
   assert.ok(iAplicar > 0, "o processador do Mestre sumiu do mercado");
@@ -349,13 +349,13 @@ test("a conferência do build não exige arquivo que ninguém carrega", () => {
      Então a lista tem duas obrigações agora: o arquivo tem de existir na
      fonte, e alguém tem de carregá-lo. */
   const RAIZ = new URL("../", import.meta.url);
-  const publicar = readFileSync(new URL("mosaico-web/scripts/publicar-pages.mjs", RAIZ), "utf8");
+  const publicar = readFileSync(new URL("desenvolvimento/casa-da-costa/a-noite/scripts/publicar-pages.mjs", RAIZ), "utf8");
   const bloco = publicar.match(/const A_MAO = \[([\s\S]*?)\]/);
   assert.ok(bloco, "não achei a lista A_MAO em publicar-pages.mjs");
   const lista = [...bloco[1].matchAll(/"([^"]+)"/g)].map((m) => m[1]);
   assert.ok(lista.length >= 5, "a lista A_MAO encolheu demais");
 
-  const PUB = new URL("mosaico-web/public/", RAIZ);
+  const PUB = new URL("desenvolvimento/casa-da-costa/a-noite/public/", RAIZ);
   const fonte = new Map();
   for (const nome of lista) {
     const arq = new URL(nome, PUB);
@@ -386,7 +386,7 @@ test("a Mesa não guarda uma reserva do caso dentro do HTML", () => {
      noite toda sem desconfiar — elenco na tela, pistas chegando, só a verdade
      era outra. */
   const RAIZ_REPO2 = new URL("../", import.meta.url);
-  const MESA = readFileSync(new URL("v1/MOSAICO-mesa.html", RAIZ_REPO2), "utf8");
+  const MESA = readFileSync(new URL("jogos/casa-da-costa/a-mesa/MOSAICO-mesa.html", RAIZ_REPO2), "utf8");
 
   assert.ok(!/CASO_FALLBACK_COMPLETO/.test(MESA),
     "a reserva embutida do caso voltou ao HTML da Mesa");
@@ -414,7 +414,7 @@ test("sem caso não há partida: a Mesa tranca em vez de jogar o que sobrou", ()
      SUBSTITUI inteira —, então o corpo do HTML não roda no jogo publicado. O
      único ponto que sobrevive a qualquer camada é o .then do fetch. */
   const RAIZ_REPO3 = new URL("../", import.meta.url);
-  const MESA = readFileSync(new URL("v1/MOSAICO-mesa.html", RAIZ_REPO3), "utf8");
+  const MESA = readFileSync(new URL("jogos/casa-da-costa/a-mesa/MOSAICO-mesa.html", RAIZ_REPO3), "utf8");
 
   assert.match(MESA, /var CASO_PRONTO=false, CASO_FALHOU=null;/,
     "a Mesa perdeu a trava do caso");
@@ -443,7 +443,7 @@ test("a fila de atividades d'A Noite mora na sala, não no aparelho", () => {
      queria dizer "concluída neste telefone", e o terço do dossiê abria para
      uma pessoa só — o gesto coletivo virava clique de um. */
   const RAIZ_N = new URL("../", import.meta.url);
-  const NOITE = readFileSync(new URL("mosaico-web/public/noite-auto.js", RAIZ_N), "utf8");
+  const NOITE = readFileSync(new URL("desenvolvimento/casa-da-costa/a-noite/public/noite-auto.js", RAIZ_N), "utf8");
 
   assert.match(NOITE, /window\.MosaicoSala/,
     "A Noite voltou a ignorar a sala que o room-shell entrega");
@@ -465,7 +465,7 @@ test("toda atividade d'A Noite tem nome que a regra do Firestore aceita", () => 
      nela: a fila teria travado naquela atividade, e o sintoma seria uma
      permissão negada no console de uma pessoa só, no meio da noite. */
   const RAIZ_R = new URL("../", import.meta.url);
-  const NOITE = readFileSync(new URL("mosaico-web/public/noite-auto.js", RAIZ_R), "utf8");
+  const NOITE = readFileSync(new URL("desenvolvimento/casa-da-costa/a-noite/public/noite-auto.js", RAIZ_R), "utf8");
   const REGRAS = readFileSync(new URL("firestore.rules", RAIZ_R), "utf8");
 
   const bloco = NOITE.match(/const MODULOS=\{([^}]*)\}/);
