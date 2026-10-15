@@ -1,14 +1,15 @@
 # Entradas do portal por história
 
-Estas páginas oferecem a escolha de acesso antes de abrir os jogos.
-As implementações ficam em [jogos/](../jogos/README.md), organizadas por história e versão.
+Os jogos foram separados em repositórios e subdomínios próprios. Estas pastas do Dragon conservam materiais e entradas de compatibilidade da organização anterior; a manutenção de cada jogo deve considerar seu repositório próprio.
 
-| História | A Mesa | O Impostor |
+Os testes são realizados internamente; a participação externa ainda não está aberta. Os links abaixo são referências de desenvolvimento, sem lançamento público.
+
+| História | Endereço oficial | Repositório |
 |---|---|---|
-| A Casa da Costa | [Abrir](casa-da-costa/a-mesa/) | [Abrir](casa-da-costa/o-impostor/) |
-| A Manhã do Carro-Forte | [Abrir](a-manha-do-carro-forte/a-mesa/) | [Abrir](a-manha-do-carro-forte/o-impostor/) |
-| O Eco do Amanhã — VestChip | Não existe | [Abrir](o-eco-do-amanha/o-impostor/) |
+| A Casa da Costa | https://casa-da-costa.dragongames.dev.br/ | [casa-da-costa](https://github.com/DrMarioNascimento/casa-da-costa) |
+| A Manhã do Carro-Forte | https://carro-forte.dragongames.dev.br/ | [carro-forte](https://github.com/DrMarioNascimento/carro-forte) |
+| O Eco do Amanhã | https://eco-do-amanha.dragongames.dev.br/ | [eco-do-amanha](https://github.com/DrMarioNascimento/eco-do-amanha) |
 
-O bloco Solo/Ensaio e o LAB-RA permanecem fora do catálogo. As experiências
-complementares existentes não foram apagadas. As antigas entradas e as imagens
-usadas pelo portal pessoal estão registradas no [mapa de compatibilidade](../jogos/compatibilidade.json).
+Portal: https://dragongames.dev.br/
+
+Consulte [a organização dos jogos](../documentos/ORGANIZACAO-DRAGON.md) e os READMEs dos repositórios próprios para versões, arquivos e testes. As rotas e os materiais antigos não devem ser tratados como novas entradas públicas. A separação não altera autorias ou licenças de terceiros.
