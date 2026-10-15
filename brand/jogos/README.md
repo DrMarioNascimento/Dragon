@@ -5,9 +5,9 @@ o catálogo não precise carregar imagens de outros sites. Nenhuma imagem foi ed
 
 | Arquivo local | Origem |
 |---|---|
-| `mosaico-card-biblia.png` | https://drmarionascimento.github.io/Mosaico-Card/assets/abertura/biblia-aberta-v1.png |
-| `mosaico-card-peca.png` | https://drmarionascimento.github.io/Mosaico-Card/assets/abertura/peca-dourada-frontal-v2.png |
-| `eita-alianca.png` | https://eita-quiz.web.app/assets/alianca.png |
+| `mosaico-card-biblia.png` | https://mosaico-card.dragongames.dev.br/assets/abertura/biblia-aberta-v1.png |
+| `mosaico-card-peca.png` | https://mosaico-card.dragongames.dev.br/assets/abertura/peca-dourada-frontal-v2.png |
+| `eita-alianca.png` | https://eita.dragongames.dev.br/assets/alianca.png |
 
 Os créditos e as condições de uso dos jogos de origem permanecem aplicáveis.
 
