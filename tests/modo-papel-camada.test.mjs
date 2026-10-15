@@ -36,16 +36,19 @@ describe("hub · histórias e versões", () => {
     assert.doesNotMatch(HUB, />Solo<|Ensaiar neste aparelho|lab-ra/);
   });
   it("abre as entradas organizadas por história e versão", () => {
-    for(const historia of ["casa-da-costa", "a-manha-do-carro-forte"])
-      assert.ok(HUB.includes(`href="historias/${historia}/a-mesa/"`));
+    /* 14/10/2026: a Casa da Costa mudou para o endereço próprio. */
+    assert.ok(HUB.includes('href="https://casa-da-costa.dragongames.dev.br/a-mesa/"'));
+    assert.ok(HUB.includes('href="https://casa-da-costa.dragongames.dev.br/o-impostor/"'));
+    assert.ok(HUB.includes('href="historias/a-manha-do-carro-forte/a-mesa/"'));
     assert.ok(HUB.includes('href="historias/o-eco-do-amanha/o-impostor/"'));
     const vestchip=HUB.split('<h3>O Eco do Amanhã</h3>')[1].split('</article>')[0];
     assert.doesNotMatch(vestchip, /A Mesa|Acesso em verificação/);
     assert.match(vestchip, />O Impostor</);
   });
   it("o telão permanece acessível dentro de A Mesa", () => {
-    for(const [historia,chave] of [["casa-da-costa","casa-da-costa"],["a-manha-do-carro-forte","carro-forte"]])
-      assert.ok(ler(`historias/${historia}/a-mesa/index.html`).includes(`telao.html?jogo=${chave}`));
+    assert.ok(ler("historias/a-manha-do-carro-forte/a-mesa/index.html").includes("telao.html?jogo=carro-forte"));
+    /* 14/10/2026: a entrada da Casa encaminha ao endereço novo, que tem o próprio telão. */
+    assert.ok(ler("historias/casa-da-costa/a-mesa/index.html").includes("https://casa-da-costa.dragongames.dev.br/a-mesa/"));
     assert.match(TELAO, /telaoSalaInput/);
     assert.match(TELAO, /Digite o código da sala/);
     assert.ok(!/mpc-papel|papelCognitivo|MosaicoPapelCamada/.test(TELAO));

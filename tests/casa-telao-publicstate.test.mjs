@@ -89,16 +89,17 @@ test("a Mesa e o hub apontam o telão compartilhado", () => {
   assert.match(MESA, /function linkDoTelao\(/, "sumiu o helper do endereço do telão");
   assert.match(MESA, /jogo","casa-da-costa"/, "o link do telão perdeu a chave do jogo");
   /* Bloco "abra o telão" saiu do painel Sala — entrada é pelo hub. */
-  assert.match(ler("historias/casa-da-costa/a-mesa/index.html"), /telao\.html\?jogo=casa-da-costa/, "entrada A Mesa da Casa");
+  /* 14/10/2026: a entrada A Mesa da Casa mudou para casa-da-costa.dragongames.dev.br; aqui ficou o redirecionamento. */
+  assert.match(ler("historias/casa-da-costa/a-mesa/index.html"), /casa-da-costa\.dragongames\.dev\.br\/a-mesa\//, "entrada A Mesa da Casa");
   assert.match(LANDING, /MOSAICO-mesa\.html/, "pasta do caso redireciona ao Celular");
   assert.match(MESA, /#dragonSalaBtn\{display:none/, "Sala flutuante some; fica a do topo");
 });
 
 test("o hub da Casa aponta o telão para a chave certa", () => {
   assert.match(
-    ler("historias/casa-da-costa/a-mesa/index.html"),
-    /telao\.html\?jogo=casa-da-costa/,
-    "a porta Telão da Casa no hub deixou de apontar para o telão compartilhado",
+    ler("telao.html"),
+    /get\("jogo"\)==="casa-da-costa"\)location\.replace\("https:\/\/casa-da-costa\.dragongames\.dev\.br\/telao\.html"/,
+    "o telão compartilhado deixou de encaminhar a Casa para o telão do endereço novo (14/10/2026)",
   );
 });
 
