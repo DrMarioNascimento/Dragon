@@ -39,14 +39,16 @@ describe("hub · histórias e versões", () => {
     /* 14/10/2026: a Casa da Costa mudou para o endereço próprio. */
     assert.ok(HUB.includes('href="https://casa-da-costa.dragongames.dev.br/a-mesa/"'));
     assert.ok(HUB.includes('href="https://casa-da-costa.dragongames.dev.br/o-impostor/"'));
-    assert.ok(HUB.includes('href="historias/a-manha-do-carro-forte/a-mesa/"'));
+    assert.ok(HUB.includes('href="https://carro-forte.dragongames.dev.br/a-mesa/"'));
+    assert.ok(HUB.includes('href="https://carro-forte.dragongames.dev.br/o-impostor/"'));
     assert.ok(HUB.includes('href="historias/o-eco-do-amanha/o-impostor/"'));
     const vestchip=HUB.split('<h3>O Eco do Amanhã</h3>')[1].split('</article>')[0];
     assert.doesNotMatch(vestchip, /A Mesa|Acesso em verificação/);
     assert.match(vestchip, />O Impostor</);
   });
   it("o telão permanece acessível dentro de A Mesa", () => {
-    assert.ok(ler("historias/a-manha-do-carro-forte/a-mesa/index.html").includes("telao.html?jogo=carro-forte"));
+    /* 14/10/2026: a entrada do Carro-Forte encaminha ao endereço novo, que tem o próprio telão. */
+    assert.ok(ler("historias/a-manha-do-carro-forte/a-mesa/index.html").includes("https://carro-forte.dragongames.dev.br/a-mesa/"));
     /* 14/10/2026: a entrada da Casa encaminha ao endereço novo, que tem o próprio telão. */
     assert.ok(ler("historias/casa-da-costa/a-mesa/index.html").includes("https://casa-da-costa.dragongames.dev.br/a-mesa/"));
     assert.match(TELAO, /telaoSalaInput/);

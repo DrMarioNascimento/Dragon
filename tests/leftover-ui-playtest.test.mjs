@@ -224,7 +224,7 @@ describe("playtest · pasta do caso não repete Celular|Telão|Solo", () => {
     const casa = ler("casa-da-costa/index.html");
     const carro = ler("jogos/a-manha-do-carro-forte/a-mesa/index.html");
     assert.ok(hub.includes('href="https://casa-da-costa.dragongames.dev.br/a-mesa/"')); /* 14/10/2026: Casa no endereço próprio */
-    assert.ok(hub.includes('href="historias/a-manha-do-carro-forte/a-mesa/"'));
+    assert.ok(hub.includes('href="https://carro-forte.dragongames.dev.br/a-mesa/"')); /* 14/10/2026: Carro-Forte no endereço próprio */
     assert.equal(/href="casa-da-costa\/"/.test(hub), false);
     assert.equal(/href="jogos\/a-manha-do-carro-forte\/a-mesa\/"/.test(hub), false);
     assert.match(casa, /location\.replace\(["']\.\.\/jogos\/casa-da-costa\/a-mesa\/MOSAICO-mesa\.html/);

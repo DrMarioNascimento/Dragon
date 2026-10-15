@@ -115,7 +115,7 @@ test("landings e redirects chegam a fluxos que existem", () => {
   assert.match(LANDING_CARRO, /celular\.html/);
   assert.equal(/data-mode-ctas/.test(LANDING_CARRO), false);
   assert.ok(HUB.includes('href="https://casa-da-costa.dragongames.dev.br/a-mesa/"')); /* 14/10/2026: Casa no endereço próprio */
-  assert.ok(HUB.includes('href="historias/a-manha-do-carro-forte/a-mesa/"'));
+  assert.ok(HUB.includes('href="https://carro-forte.dragongames.dev.br/a-mesa/"')); /* 14/10/2026: Carro-Forte no endereço próprio */
   assert.doesNotMatch(HUB, /href="jogos\/casa-da-costa\/jogos\/casa-da-costa\/solo\/"|soloLab=1/);
   assert.match(REDIRECT_MESA, /jogos\/a-manha-do-carro-forte\/a-mesa\/celular\.html/);
   assert.match(REDIRECT_NOITE, /jogos\/a-manha-do-carro-forte\/a-noite\//);
