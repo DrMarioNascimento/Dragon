@@ -41,7 +41,7 @@ describe("hub · histórias e versões", () => {
     assert.ok(HUB.includes('href="https://casa-da-costa.dragongames.dev.br/o-impostor/"'));
     assert.ok(HUB.includes('href="https://carro-forte.dragongames.dev.br/a-mesa/"'));
     assert.ok(HUB.includes('href="https://carro-forte.dragongames.dev.br/o-impostor/"'));
-    assert.ok(HUB.includes('href="historias/o-eco-do-amanha/o-impostor/"'));
+    assert.ok(HUB.includes('href="https://eco-do-amanha.dragongames.dev.br/o-impostor/"')); /* 14/10/2026: Eco no endereço próprio */
     const vestchip=HUB.split('<h3>O Eco do Amanhã</h3>')[1].split('</article>')[0];
     assert.doesNotMatch(vestchip, /A Mesa|Acesso em verificação/);
     assert.match(vestchip, />O Impostor</);
