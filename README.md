@@ -29,7 +29,7 @@ Cada história possui repositório e subdomínio próprios. Consulte [a organiza
 ## Organização do portal
 
 O catálogo reúne **A Casa da Costa**, **A Manhã do Carro-Forte**,
-**O Eco do Amanhã — VestChip**, **Mosaico Card — versão bíblica** e **Eita!**.
+**O Eco do Amanhã — VestChip**, **Mosaico Card — Novo Testamento e Filmes e Séries** e **Eita!**.
 As histórias do MOSAICO têm entradas por versão em
 [`historias/`](historias/README.md). Esse mapa identifica as entradas
 e as pastas de implementação de cada história.
@@ -45,8 +45,8 @@ existe somente na versão O Impostor.**
 
 O portal também apresenta jogos mantidos em repositórios independentes:
 
-- **Mosaico Card — versão bíblica:** [Página do projeto](https://mosaico-card.dragongames.dev.br/) · [Repositório](https://github.com/DrMarioNascimento/Mosaico-Card). Pistas, negociação e dedução sobre histórias do Novo Testamento.
-- **Eita!:** [Página do projeto](https://eita-quiz.web.app/). Quiz em aliança para enfrentar o chefão.
+- **Mosaico Card — duas versões:** [Página do projeto](https://mosaico-card.dragongames.dev.br/) · [Repositório](https://github.com/DrMarioNascimento/Mosaico-Card). Pistas, negociação e dedução nas versões Novo Testamento e Filmes e Séries.
+- **Eita!:** [Página do projeto](https://eita.dragongames.dev.br/). Quiz em aliança para enfrentar o chefão.
 
 Esses cards têm imagens locais em `brand/jogos/` e links para os sites dos jogos;
 suas implementações não são copiadas nem alteradas neste repositório.
@@ -96,7 +96,7 @@ Casa fica em `desenvolvimento/casa-da-costa/a-noite/` e sua publicação em
 
 ## Estado e manutenção — 12 de outubro de 2026
 
-O catálogo apresenta três histórias do MOSAICO, Mosaico Card na versão bíblica e Eita!. A Mesa e O Impostor são versões das duas primeiras histórias; VestChip tem somente O Impostor. Telão e opções de acesso ficam nas páginas de cada versão. Solo e A Noite permanecem como experiências complementares, sem card principal. Materiais históricos não são entradas atuais de jogo.
+O catálogo apresenta três histórias do MOSAICO, Mosaico Card nas versões Novo Testamento e Filmes e Séries e Eita!. A Mesa e O Impostor são versões das duas primeiras histórias; VestChip tem somente O Impostor. Telão e opções de acesso ficam nas páginas de cada versão. Solo e A Noite permanecem como experiências complementares, sem card principal. Materiais históricos não são entradas atuais de jogo.
 
 Para manutenção, consulte [o padrão de salas](documentos/PADRAO-SALA-MULTIPLAYER.md), [a separação entre modo, papel e camada](documentos/MOSAICO-ACESSIBILIDADE-PAPEIS.md) e [a segurança do Firebase](documentos/FIREBASE-SECURITY.md). A suíte de regras e integridade existe no repositório; ela não substitui partidas com pessoas, verificação de reconexão e teste de todas as perspectivas do mistério. A autoria conjunta de Mário César Nascimento e Osana Melo Nascimento permanece conforme [LICENSE.md](LICENSE.md).
 
@@ -122,8 +122,8 @@ Proprietary project in development. The repository is public so that GitHub Page
 | **A Casa da Costa** | [A Mesa](https://casa-da-costa.dragongames.dev.br/a-mesa/) · [O Impostor](https://casa-da-costa.dragongames.dev.br/o-impostor/) |
 | **A Manhã do Carro-Forte** | [A Mesa](https://carro-forte.dragongames.dev.br/a-mesa/) · [O Impostor](https://carro-forte.dragongames.dev.br/o-impostor/) |
 | **O Eco do Amanhã — VestChip** | [O Impostor](https://eco-do-amanha.dragongames.dev.br/o-impostor/) only |
-| **Mosaico Card** | [Biblical edition — New Testament](https://mosaico-card.dragongames.dev.br/) |
-| **Eita!** | [Alliance quiz](https://eita-quiz.web.app/) |
+| **Mosaico Card** | [New Testament](https://mosaico-card.dragongames.dev.br/novo-testamento/) · [Movies and Series](https://mosaico-card.dragongames.dev.br/filmes-e-series/) |
+| **Eita!** | [Alliance quiz](https://eita.dragongames.dev.br/) |
 
 The shared-screen option is inside each A Mesa access page. Solo and A Noite are
 preserved complementary experiences, listed in [jogos/README.md](jogos/README.md).
@@ -174,8 +174,8 @@ O [portal Dragon Games](https://dragongames.dev.br/) apresenta:
 | **A Casa da Costa** | [A Mesa](https://casa-da-costa.dragongames.dev.br/a-mesa/) · [O Impostor](https://casa-da-costa.dragongames.dev.br/o-impostor/) |
 | **A Manhã do Carro-Forte** | [A Mesa](https://carro-forte.dragongames.dev.br/a-mesa/) · [O Impostor](https://carro-forte.dragongames.dev.br/o-impostor/) |
 | **O Eco do Amanhã — VestChip** | Somente [O Impostor](https://eco-do-amanha.dragongames.dev.br/o-impostor/) |
-| **Mosaico Card** | [Versão bíblica — Novo Testamento](https://mosaico-card.dragongames.dev.br/) |
-| **Eita!** | [Quiz em aliança](https://eita-quiz.web.app/) |
+| **Mosaico Card** | [Novo Testamento](https://mosaico-card.dragongames.dev.br/novo-testamento/) · [Filmes e Séries](https://mosaico-card.dragongames.dev.br/filmes-e-series/) |
+| **Eita!** | [Quiz em aliança](https://eita.dragongames.dev.br/) |
 
 - Telão e opções de acesso ficam nas páginas de cada versão.
 - Solo e A Noite continuam preservados como experiências complementares, fora do catálogo principal; consulte [jogos/README.md](jogos/README.md).
