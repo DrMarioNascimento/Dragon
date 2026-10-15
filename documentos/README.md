@@ -1,7 +1,7 @@
 # Documentos técnicos
 
 Documentação de arquitetura, regras de acesso, publicação e manutenção.
-Os arquivos executáveis dos jogos permanecem em suas pastas originais.
+Após a separação, a manutenção dos jogos ocorre nos repositórios próprios. As pastas locais do Dragon preservam materiais da organização anterior e compatibilidade. Consulte [a organização atual](ORGANIZACAO-DRAGON.md).
 
 - [AC-PUBLICACAO.md](AC-PUBLICACAO.md)
 - [FIREBASE-ISOLAMENTO.md](FIREBASE-ISOLAMENTO.md)
