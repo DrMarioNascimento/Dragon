@@ -279,7 +279,7 @@ Esta nota registra a revisão da documentação. Não altera as cláusulas anter
 O catálogo também apresenta jogos mantidos em outros repositórios:
 
 - [Mosaico Card](https://github.com/DrMarioNascimento/Mosaico-Card): autoria declarada de Mário César Nascimento e Osana Melo Nascimento; licença proprietária do projeto.
-- [Eita!](https://eita-quiz.web.app/): autoria e titularidade declaradas de Mário César Nascimento; licença de uso educacional restrito no repositório próprio, cujo acesso segue suas permissões.
+- [Eita!](https://eita.dragongames.dev.br/): autoria e titularidade declaradas de Mário César Nascimento; licença de uso educacional restrito no repositório próprio, cujo acesso segue suas permissões.
 
 Os materiais visuais desses jogos usados no catálogo têm origem registrada em
 [brand/jogos/README.md](brand/jogos/README.md). Esta nota identifica os projetos
