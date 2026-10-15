@@ -1,5 +1,31 @@
 # Dragon Games
 
+## Desenvolvimento e acesso
+
+Os jogos estão em diferentes etapas de desenvolvimento, teste e aperfeiçoamento e ainda não foram lançados ao público. Nesta fase, os testes são realizados internamente, sem participação externa.
+
+Enquanto os jogos estiverem em desenvolvimento, regras, interfaces e funcionalidades poderão mudar. Algumas páginas poderão apresentar demonstrações do projeto, mas isso não significa que os jogos estejam disponíveis para participação do público.
+
+Mário César Nascimento estuda **Game Design e desenvolvimento de jogos**. Estes projetos acompanham esse percurso de formação e experimentação. As autorias e condições de uso de cada projeto estão identificadas em [LICENSE.md](LICENSE.md).
+
+**Development status:** internal testing only; external participation is not open. Demonstration pages do not constitute a public game launch. Rules, interfaces and features may change.
+
+
+## Endereços oficiais
+
+| Projeto | Endereço |
+|---|---|
+| Portal do Prof. Mário | https://www.drmarionascimento.com.br/ |
+| Dragon Games | https://dragongames.dev.br/ |
+| Mosaico Card | https://mosaico-card.dragongames.dev.br/ |
+| A Casa da Costa | https://casa-da-costa.dragongames.dev.br/ |
+| A Manhã do Carro-Forte | https://carro-forte.dragongames.dev.br/ |
+| O Eco do Amanhã | https://eco-do-amanha.dragongames.dev.br/ |
+
+## Organização atual
+
+Cada história possui repositório e subdomínio próprios. Consulte [a organização dos jogos](documentos/ORGANIZACAO-DRAGON.md). Os caminhos locais citados na documentação técnica abaixo registram a estrutura de origem e materiais de compatibilidade; para manutenção atual, consulte o repositório de cada jogo.
+
 ## Organização do portal
 
 O catálogo reúne **A Casa da Costa**, **A Manhã do Carro-Forte**,
@@ -19,8 +45,8 @@ existe somente na versão O Impostor.**
 
 O portal também apresenta jogos mantidos em repositórios independentes:
 
-- **Mosaico Card — versão bíblica:** [Jogar](https://drmarionascimento.github.io/Mosaico-Card/) · [Repositório](https://github.com/DrMarioNascimento/Mosaico-Card). Pistas, negociação e dedução sobre histórias do Novo Testamento.
-- **Eita!:** [Jogar](https://eita-quiz.web.app/). Quiz em aliança para enfrentar o chefão.
+- **Mosaico Card — versão bíblica:** [Página do projeto](https://mosaico-card.dragongames.dev.br/) · [Repositório](https://github.com/DrMarioNascimento/Mosaico-Card). Pistas, negociação e dedução sobre histórias do Novo Testamento.
+- **Eita!:** [Página do projeto](https://eita-quiz.web.app/). Quiz em aliança para enfrentar o chefão.
 
 Esses cards têm imagens locais em `brand/jogos/` e links para os sites dos jogos;
 suas implementações não são copiadas nem alteradas neste repositório.
@@ -79,7 +105,7 @@ Para manutenção, consulte [o padrão de salas](documentos/PADRAO-SALA-MULTIPLA
 
 Dragon Games is a home for deduction and investigation games. The first title is **MOSAICO — A Verdade é um Fragmento** ("The Truth Is a Fragment"), a distributed-deduction mystery for groups on smartphones, with an optional shared screen. No one holds all the facts: players observe, trade, negotiate and deduce.
 
-**Play:** [drmarionascimento.github.io/Dragon/](https://drmarionascimento.github.io/Dragon/)
+**Project page (internal testing):** [dragongames.dev.br/](https://dragongames.dev.br/)
 
 Proprietary project in development. The repository is public so that GitHub Pages can serve the game; it is **not** open source.
 
@@ -93,10 +119,10 @@ Proprietary project in development. The repository is public so that GitHub Page
 
 | Game / story | Versions and access |
 |---|---|
-| **A Casa da Costa** | [A Mesa](historias/casa-da-costa/a-mesa/) · [O Impostor](historias/casa-da-costa/o-impostor/) |
-| **A Manhã do Carro-Forte** | [A Mesa](historias/a-manha-do-carro-forte/a-mesa/) · [O Impostor](historias/a-manha-do-carro-forte/o-impostor/) |
-| **O Eco do Amanhã — VestChip** | [O Impostor](historias/o-eco-do-amanha/o-impostor/) only |
-| **Mosaico Card** | [Biblical edition — New Testament](https://drmarionascimento.github.io/Mosaico-Card/) |
+| **A Casa da Costa** | [A Mesa](https://casa-da-costa.dragongames.dev.br/a-mesa/) · [O Impostor](https://casa-da-costa.dragongames.dev.br/o-impostor/) |
+| **A Manhã do Carro-Forte** | [A Mesa](https://carro-forte.dragongames.dev.br/a-mesa/) · [O Impostor](https://carro-forte.dragongames.dev.br/o-impostor/) |
+| **O Eco do Amanhã — VestChip** | [O Impostor](https://eco-do-amanha.dragongames.dev.br/o-impostor/) only |
+| **Mosaico Card** | [Biblical edition — New Testament](https://mosaico-card.dragongames.dev.br/) |
 | **Eita!** | [Alliance quiz](https://eita-quiz.web.app/) |
 
 The shared-screen option is inside each A Mesa access page. Solo and A Noite are
@@ -121,7 +147,7 @@ Static HTML, CSS and JavaScript published on GitHub Pages; 3D and AR with three.
 
 **Created by** Mário César Nascimento and Osana Melo Nascimento. Maintained by [DrMarioNascimento](https://github.com/DrMarioNascimento).
 
-**License:** see [LICENSE.md](LICENSE.md) (all rights reserved; playing and evaluating on the official deployment is allowed; any other use requires prior written permission).
+**License:** see [LICENSE.md](LICENSE.md) (all rights reserved; internal testing is limited to the authors and authorized collaborators; any other use requires prior written permission).
 
 ---
 
@@ -129,7 +155,7 @@ Static HTML, CSS and JavaScript published on GitHub Pages; 3D and AR with three.
 
 **Dragon Games** — casa de jogos de dedução e investigação. O primeiro é o **MOSAICO — A Verdade é um Fragmento**.
 
-**Entrar:** [drmarionascimento.github.io/Dragon/](https://drmarionascimento.github.io/Dragon/)
+**Página do projeto:** [dragongames.dev.br/](https://dragongames.dev.br/)
 
 ## Visão geral
 
@@ -141,14 +167,14 @@ Cada pessoa joga no próprio celular; um telão (TV ou projetor) é opcional. O 
 
 ## Acesso
 
-O [portal Dragon Games](https://drmarionascimento.github.io/Dragon/) apresenta:
+O [portal Dragon Games](https://dragongames.dev.br/) apresenta:
 
 | Jogo / história | Versões e acesso |
 |---|---|
-| **A Casa da Costa** | [A Mesa](historias/casa-da-costa/a-mesa/) · [O Impostor](historias/casa-da-costa/o-impostor/) |
-| **A Manhã do Carro-Forte** | [A Mesa](historias/a-manha-do-carro-forte/a-mesa/) · [O Impostor](historias/a-manha-do-carro-forte/o-impostor/) |
-| **O Eco do Amanhã — VestChip** | Somente [O Impostor](historias/o-eco-do-amanha/o-impostor/) |
-| **Mosaico Card** | [Versão bíblica — Novo Testamento](https://drmarionascimento.github.io/Mosaico-Card/) |
+| **A Casa da Costa** | [A Mesa](https://casa-da-costa.dragongames.dev.br/a-mesa/) · [O Impostor](https://casa-da-costa.dragongames.dev.br/o-impostor/) |
+| **A Manhã do Carro-Forte** | [A Mesa](https://carro-forte.dragongames.dev.br/a-mesa/) · [O Impostor](https://carro-forte.dragongames.dev.br/o-impostor/) |
+| **O Eco do Amanhã — VestChip** | Somente [O Impostor](https://eco-do-amanha.dragongames.dev.br/o-impostor/) |
+| **Mosaico Card** | [Versão bíblica — Novo Testamento](https://mosaico-card.dragongames.dev.br/) |
 | **Eita!** | [Quiz em aliança](https://eita-quiz.web.app/) |
 
 - Telão e opções de acesso ficam nas páginas de cada versão.
@@ -442,7 +468,7 @@ Consultar este README, `HANDOFF.md` e o histórico Git. Ao criar uma nova perspe
 **Concepção e autoria:** Mário César Nascimento e Osana Melo Nascimento  
 **Manutenção e publicação:** [DrMarioNascimento](https://github.com/DrMarioNascimento)
 
-**Licença:** ver [LICENSE.md](LICENSE.md) (todos os direitos reservados; permitido jogar e avaliar na implantação oficial; demais usos dependem de autorização prévia e escrita). A visibilidade pública do repositório não autoriza copiar, adaptar, redistribuir, comercializar, treinar IA ou criar obra derivada.
+**Licença:** ver [LICENSE.md](LICENSE.md) (todos os direitos reservados; testes internos limitados aos titulares e colaboradores autorizados; demais usos dependem de autorização prévia e escrita). A visibilidade pública do repositório não autoriza copiar, adaptar, redistribuir, comercializar, treinar IA ou criar obra derivada.
 
 **Contato:** pelo perfil [github.com/DrMarioNascimento](https://github.com/DrMarioNascimento).
 
