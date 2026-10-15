@@ -4,7 +4,7 @@ Primeira implementação do **Captura** como versão noturna de **A Manhã do Ca
 
 **Entrada:** `index.html`
 
-**URL:** https://drmarionascimento.github.io/Dragon/jogos/a-manha-do-carro-forte/a-noite/
+**URL:** https://carro-forte.dragongames.dev.br/a-noite/
 
 ## Continuidade Manhã → Noite (Noite rica)
 
