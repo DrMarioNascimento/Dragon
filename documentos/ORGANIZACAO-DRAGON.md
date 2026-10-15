@@ -13,7 +13,11 @@ Decidida em 14/10/2026, pensando no crescimento (10+ jogos).
 - O nome do subdomínio é o nome do repositório, em minúsculas e com hífen (`mosaico-card`, `casa-da-costa`, `carro-forte`, `eco-do-amanha`).
 - No catálogo do Dragon, cada cartão tem botões diretos para as versões e um link para a página do jogo (duas entradas).
 - Código comum (ex.: `firebase-room.js`): cada jogo leva a sua cópia, com a versão anotada.
-- Todos os jogos usam o mesmo projeto Firebase; cada um em sua coleção.
+- Os projetos Firebase e as configurações de autenticação são próprios de cada jogo; consulte seu README. A separação de repositórios não implica unificação dos bancos.
+
+## Acesso
+
+Os jogos estão em testes internos, sem participação externa. Os endereços abaixo não representam lançamento público.
 
 ## Situação
 
@@ -21,9 +25,9 @@ Decidida em 14/10/2026, pensando no crescimento (10+ jogos).
 |---|---|---|
 | Mosaico Card | `mosaico-card.dragongames.dev.br` (`/novo-testamento/`, `/filmes-e-series/`) | No padrão (14/10/2026). Atalho: `/mosaico-card/`. |
 | Eita! | `eita.dragongames.dev.br` | Firebase Hosting. Atalho: `/eita/`. |
-| A Casa da Costa | `historias/casa-da-costa/…` (Dragon) | A migrar para `casa-da-costa.dragongames.dev.br`. |
-| A Manhã do Carro-Forte | `historias/a-manha-do-carro-forte/…` (Dragon) | A migrar para `carro-forte.dragongames.dev.br`. |
-| O Eco do Amanhã | `historias/o-eco-do-amanha/…` (Dragon) | A migrar para `eco-do-amanha.dragongames.dev.br`. |
+| A Casa da Costa | https://casa-da-costa.dragongames.dev.br/ | Repositório próprio `casa-da-costa`; testes internos. |
+| A Manhã do Carro-Forte | https://carro-forte.dragongames.dev.br/ | Repositório próprio `carro-forte`; testes internos. |
+| O Eco do Amanhã | https://eco-do-amanha.dragongames.dev.br/ | Repositório próprio `eco-do-amanha`; testes internos. |
 
 ## Passo a passo para um jogo novo
 
