@@ -1,5 +1,11 @@
 # MOSAICO · A Casa da Costa · Solo
 
+## Manutenção e origem — 19 de outubro de 2026
+
+Material preservado no Dragon após a separação. A manutenção atual do jogo ocorre em [casa-da-costa](https://github.com/DrMarioNascimento/casa-da-costa); compare a revisão antes de transportar alterações. Este registro local não demonstra que uma alteração já foi publicada no repositório de destino.
+
+Consulte o [README principal](../../../README.md) e a [licença da raiz](../../../LICENSE.md). Créditos e licenças específicos deste módulo permanecem nos documentos abaixo.
+
 O Solo é uma adaptação individual da sequência canônica publicada na Mesa.
 
 Esta experiência permanece preservada fora do catálogo principal do Dragon Games.

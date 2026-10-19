@@ -1,5 +1,11 @@
 # Imagens dos jogos no catálogo
 
+## Manutenção e origem — 19 de outubro de 2026
+
+As imagens do catálogo são mantidas localmente. A restauração recente dos arquivos `eco-*.png` preserva as referências visuais do card O Eco do Amanhã. A cópia para apresentação no portal não modifica os créditos e as licenças dos jogos de origem.
+
+Consulte o [README principal](../../README.md) e a [licença da raiz](../../LICENSE.md). Créditos e licenças específicos deste módulo permanecem nos documentos abaixo.
+
 Cópias dos materiais visuais dos próprios jogos, mantidas localmente para que
 o catálogo não precise carregar imagens de outros sites. Nenhuma imagem foi editada.
 

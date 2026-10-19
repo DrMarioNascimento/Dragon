@@ -1,5 +1,11 @@
 # Ativos 3D da AC
 
+## Manutenção e origem — 19 de outubro de 2026
+
+Material preservado no Dragon após a separação. A manutenção atual do jogo ocorre em [casa-da-costa](https://github.com/DrMarioNascimento/casa-da-costa); compare a revisão antes de transportar alterações. Este registro local não demonstra que uma alteração já foi publicada no repositório de destino.
+
+Consulte o [README principal](../../../../../README.md) e a [licença da raiz](../../../../../LICENSE.md). Créditos e licenças específicos deste módulo permanecem nos documentos abaixo.
+
 `escrivaninha.glb` foi copiada do projeto local `lab-ra/escrivaninha.glb`, sem modificar o original. A cópia é independente do repositório de origem e não carrega arquivos do LAB-RA em execução. O ativo passa a ser a referencia da bancada `AC-escrivaninha.html`, usada tanto no apagao como na etapa iluminada.
 
 GLTFLoader e OrbitControls em `jogos/casa-da-costa/a-mesa/js/vendor` sao componentes oficiais Three.js r128, mesma revisao de `jogos/casa-da-costa/a-mesa/js/three.min.js`; licenca MIT incluida. As cópias do Three.js são locais. A RA no iPhone pode carregar o 8th Wall Engine pelo CDN, conforme os créditos da experiência.

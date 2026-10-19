@@ -1,5 +1,11 @@
 # MOSAICO — A Manhã do Carro-Forte · A MESA
 
+## Manutenção e origem — 19 de outubro de 2026
+
+Material preservado no Dragon após a separação. A manutenção atual do jogo ocorre em [carro-forte](https://github.com/DrMarioNascimento/carro-forte); compare a revisão antes de transportar alterações. O endereço oficial pode apontar para uma versão posterior à cópia aqui documentada.
+
+Consulte o [README principal](../../../README.md) e a [licença da raiz](../../../LICENSE.md). Créditos e licenças específicos deste módulo permanecem nos documentos abaixo.
+
 ## O que esta pasta é
 
 A Mesa é a partida **coletiva e investigativa** do caso. Ela não é o Captura.

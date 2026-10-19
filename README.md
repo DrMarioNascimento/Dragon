@@ -1,5 +1,9 @@
 # Dragon Games
 
+## Situação atual — 19 de outubro de 2026
+
+Este repositório mantém o portal Dragon Games e materiais de desenvolvimento, históricos e de compatibilidade. A manutenção dos jogos separados ocorre em `casa-da-costa`, `carro-forte` e `eco-do-amanha`; Mosaico Card e Eita! também têm repositórios próprios. Consulte [a organização atual](documentos/ORGANIZACAO-DRAGON.md). O catálogo usa imagens locais em `brand/jogos/`, incluindo as do Eco do Amanhã. Os jogos permanecem em testes internos.
+
 ## Desenvolvimento e acesso
 
 Os jogos estão em diferentes etapas de desenvolvimento, teste e aperfeiçoamento e ainda não foram lançados ao público. Nesta fase, os testes são realizados internamente, sem participação externa.
@@ -94,7 +98,7 @@ Casa fica em `desenvolvimento/casa-da-costa/a-noite/` e sua publicação em
 
 ---
 
-## Estado e manutenção — 12 de outubro de 2026
+## Registro anterior de manutenção — 12 de outubro de 2026
 
 O catálogo apresenta três histórias do MOSAICO, Mosaico Card nas versões Novo Testamento e Filmes e Séries e Eita!. A Mesa e O Impostor são versões das duas primeiras histórias; VestChip tem somente O Impostor. Telão e opções de acesso ficam nas páginas de cada versão. Solo e A Noite permanecem como experiências complementares, sem card principal. Materiais históricos não são entradas atuais de jogo.
 

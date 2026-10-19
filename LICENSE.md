@@ -266,14 +266,6 @@ Requests for authorization of any use not expressly permitted should be addresse
 
 All rights not expressly granted remain reserved to the rights holders.
 
----
-
-## Nota editorial — 10 de outubro de 2026
-
-Esta revisão mantém a autoria conjunta de Mário César Nascimento e Osana Melo Nascimento e a distinção entre os percursos de jogo, protótipos e componentes de terceiros.
-
-Esta nota registra a revisão da documentação. Não altera as cláusulas anteriores, os titulares, as permissões, as restrições nem as licenças próprias de terceiros.
-
 ## Referências do catálogo — nota documental de 12 de outubro de 2026
 
 O catálogo também apresenta jogos mantidos em outros repositórios:
@@ -304,3 +296,9 @@ A seção 3.1 foi atualizada para refletir os testes internos, sem participaçã
 | A Casa da Costa | https://casa-da-costa.dragongames.dev.br/ |
 | A Manhã do Carro-Forte | https://carro-forte.dragongames.dev.br/ |
 | O Eco do Amanhã | https://eco-do-amanha.dragongames.dev.br/ |
+
+## Revisão documental — 19 de outubro de 2026
+
+Este repositório reúne o portal e componentes de desenvolvimento, históricos e de compatibilidade. Os jogos separados mantêm licenças próprias nos repositórios de destino, preservando a autoria conjunta declarada e os créditos de terceiros.
+
+Esta revisão atualiza a identificação e o escopo documental. Preserva os titulares, as permissões e as restrições existentes. Não substitui nem restringe as licenças próprias de componentes de terceiros.

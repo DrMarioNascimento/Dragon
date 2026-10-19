@@ -1,5 +1,11 @@
 # MOSAICO — cliente web (React)
 
+## Manutenção e origem — 19 de outubro de 2026
+
+Materiais e fontes de desenvolvimento mantidos no Dragon. Não equivalem a uma entrada publicada do jogo. A manutenção das versões separadas deve considerar os repositórios próprios e a organização indicada no README principal.
+
+Consulte o [README principal](../../../README.md) e a [licença da raiz](../../../LICENSE.md). Créditos e licenças específicos deste módulo permanecem nos documentos abaixo.
+
 **Versão 3 — a noite na mesa.** Caso *A Casa da Costa*.
 
 Cada pessoa no próprio telefone. A mesa senta (personagem, vez, cor). 
