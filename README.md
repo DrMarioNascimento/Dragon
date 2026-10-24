@@ -1,18 +1,18 @@
 # Dragon Games
 
-## Situação atual — 19 de outubro de 2026
+## Situação atual — 24 de outubro de 2026
 
-Este repositório mantém o portal Dragon Games e materiais de desenvolvimento, históricos e de compatibilidade. A manutenção dos jogos separados ocorre em `casa-da-costa`, `carro-forte` e `eco-do-amanha`; Mosaico Card e Eita! também têm repositórios próprios. Consulte [a organização atual](documentos/ORGANIZACAO-DRAGON.md). O catálogo usa imagens locais em `brand/jogos/`, incluindo as do Eco do Amanhã. Os jogos permanecem em testes internos.
+Este repositório mantém o portal Dragon Games e materiais de desenvolvimento, históricos e de compatibilidade. A manutenção dos jogos separados ocorre em `casa-da-costa`, `carro-forte` e `eco-do-amanha`; Mosaico Card e Eita! também têm repositórios próprios. Consulte [a organização atual](documentos/ORGANIZACAO-DRAGON.md). O catálogo usa imagens locais em `brand/jogos/`, incluindo as do Eco do Amanhã. As histórias MOSAICO e Mosaico Card permanecem em testes fechados; **Eita! está em testes abertos**, com licença própria.
 
 ## Desenvolvimento e acesso
 
-Os jogos estão em diferentes etapas de desenvolvimento, teste e aperfeiçoamento e ainda não foram lançados ao público. Nesta fase, os testes são realizados internamente, sem participação externa.
+As histórias MOSAICO e Mosaico Card estão em testes fechados, com condução autorizada. **Eita! está aberto ao público desde 20 de outubro de 2026**: qualquer conta Google pode conduzir uma partida; participantes entram pelo código, sem cadastro. A abertura do Eita! não libera os outros jogos.
 
 Enquanto os jogos estiverem em desenvolvimento, regras, interfaces e funcionalidades poderão mudar. Algumas páginas poderão apresentar demonstrações do projeto, mas isso não significa que os jogos estejam disponíveis para participação do público.
 
 Mário César Nascimento estuda **Game Design e desenvolvimento de jogos**. Estes projetos acompanham esse percurso de formação e experimentação. As autorias e condições de uso de cada projeto estão identificadas em [LICENSE.md](LICENSE.md).
 
-**Development status:** internal testing only; external participation is not open. Demonstration pages do not constitute a public game launch. Rules, interfaces and features may change.
+**Availability:** Eita! is in open public testing (Google sign-in for hosts; room code for participants). MOSAICO stories and Mosaico Card remain in closed testing. Each project retains its own license.
 
 
 ## Endereços oficiais
@@ -50,7 +50,7 @@ existe somente na versão O Impostor.**
 O portal também apresenta jogos mantidos em repositórios independentes:
 
 - **Mosaico Card — duas versões:** [Página do projeto](https://mosaico-card.dragongames.dev.br/) · [Repositório](https://github.com/DrMarioNascimento/Mosaico-Card). Pistas, negociação e dedução nas versões Novo Testamento e Filmes e Séries.
-- **Eita!:** [Página do projeto](https://eita.dragongames.dev.br/). Quiz em aliança para enfrentar o chefão.
+- **Eita!:** [Página do projeto](https://eita.dragongames.dev.br/). Quiz em aliança para enfrentar o chefão; testes abertos.
 
 Esses cards têm imagens locais em `brand/jogos/` e links para os sites dos jogos;
 suas implementações não são copiadas nem alteradas neste repositório.
@@ -109,7 +109,7 @@ Para manutenção, consulte [o padrão de salas](documentos/PADRAO-SALA-MULTIPLA
 
 Dragon Games is a home for deduction and investigation games. The first title is **MOSAICO — A Verdade é um Fragmento** ("The Truth Is a Fragment"), a distributed-deduction mystery for groups on smartphones, with an optional shared screen. No one holds all the facts: players observe, trade, negotiate and deduce.
 
-**Project page (internal testing):** [dragongames.dev.br/](https://dragongames.dev.br/)
+**Catalog (access status shown for each game):** [dragongames.dev.br/](https://dragongames.dev.br/)
 
 Proprietary project in development. The repository is public so that GitHub Pages can serve the game; it is **not** open source.
 
@@ -151,7 +151,7 @@ Static HTML, CSS and JavaScript published on GitHub Pages; 3D and AR with three.
 
 **Created by** Mário César Nascimento and Osana Melo Nascimento. Maintained by [DrMarioNascimento](https://github.com/DrMarioNascimento).
 
-**License:** see [LICENSE.md](LICENSE.md) (all rights reserved; internal testing is limited to the authors and authorized collaborators; any other use requires prior written permission).
+**MOSAICO license:** see [LICENSE.md](LICENSE.md). Eita! is a separate project and follows [its own license](https://github.com/DrMarioNascimento/eita-quiz/blob/main/LICENSE.md), including public testing permissions.
 
 ---
 
@@ -472,10 +472,14 @@ Consultar este README, `HANDOFF.md` e o histórico Git. Ao criar uma nova perspe
 **Concepção e autoria:** Mário César Nascimento e Osana Melo Nascimento  
 **Manutenção e publicação:** [DrMarioNascimento](https://github.com/DrMarioNascimento)
 
-**Licença:** ver [LICENSE.md](LICENSE.md) (todos os direitos reservados; testes internos limitados aos titulares e colaboradores autorizados; demais usos dependem de autorização prévia e escrita). A visibilidade pública do repositório não autoriza copiar, adaptar, redistribuir, comercializar, treinar IA ou criar obra derivada.
+**Licença MOSAICO:** ver [LICENSE.md](LICENSE.md) (todos os direitos reservados; testes internos limitados aos titulares e colaboradores autorizados; demais usos dependem de autorização prévia e escrita). A visibilidade pública do repositório não autoriza copiar, adaptar, redistribuir, comercializar, treinar IA ou criar obra derivada.
 
 **Contato:** pelo perfil [github.com/DrMarioNascimento](https://github.com/DrMarioNascimento).
 
 ---
 
 **Prof. Mário César Nascimento, PhD ©**
+
+## Recursos educacionais públicos
+
+Simuladores de Fisiologia, Casos Éticos 1 e 2, Bonde, laboratórios de pesquisa e outros acessos estão reunidos no [portal do autor](https://www.drmarionascimento.com.br/#acesso-publico). O catálogo Dragon não substitui a licença de cada obra.

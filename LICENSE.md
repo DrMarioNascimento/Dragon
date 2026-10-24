@@ -302,3 +302,13 @@ A seção 3.1 foi atualizada para refletir os testes internos, sem participaçã
 Este repositório reúne o portal e componentes de desenvolvimento, históricos e de compatibilidade. Os jogos separados mantêm licenças próprias nos repositórios de destino, preservando a autoria conjunta declarada e os créditos de terceiros.
 
 Esta revisão atualiza a identificação e o escopo documental. Preserva os titulares, as permissões e as restrições existentes. Não substitui nem restringe as licenças próprias de componentes de terceiros.
+
+## Escopo e disponibilidade — 24 de outubro de 2026
+
+Este repositório apresenta um catálogo com diferentes condições de acesso. A licença MOSAICO continua a reger seus componentes originais; as histórias MOSAICO e Mosaico Card conservam seus controles de testes fechados. O Eita!, desenvolvido em repositório próprio, está em testes abertos e segue sua própria licença: https://github.com/DrMarioNascimento/eita-quiz/blob/main/LICENSE.md. A referência no catálogo não aplica ao Eita! as restrições de playtest interno do MOSAICO.
+
+Esta revisão documenta o escopo e a disponibilidade atuais; preserva os titulares, as permissões e as restrições existentes, inclusive os direitos e licenças próprios de terceiros. Acesso público não equivale a licença de código aberto.
+
+Inventário de acessos: https://www.drmarionascimento.com.br/#acesso-publico
+
+**English — scope and availability, October 24, 2026:** This catalog includes projects with different access conditions. MOSAICO components retain their existing terms. Eita! is a separate project in open testing under its own license; MOSAICO closed-playtest restrictions do not override Eita!’s license. Existing ownership, grants, restrictions and third-party terms are preserved; public access does not mean open source.
