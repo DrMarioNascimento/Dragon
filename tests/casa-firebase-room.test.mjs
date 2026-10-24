@@ -32,7 +32,7 @@ describe("Casa carrega firebase-room no projeto certo", () => {
     assert.match(CASA, /data-root="mosaico"/);
     assert.match(CASA, /data-case="casa-da-costa"/);
     assert.match(CASA, /data-ready-event="casa-mesa-ready"/);
-    assert.match(CASA, /data-telao="\.\.\/\.\.\/\.\.\/telao\.html\?jogo=casa-da-costa"/);
+    assert.match(CASA, /data-telao="\.\.\/telao\.html\?jogo=casa-da-costa"/);
     assert.match(CASA, /data-title="A Casa da Costa"/);
   });
 
@@ -46,7 +46,7 @@ describe("Casa carrega firebase-room no projeto certo", () => {
   });
 
   it("Ensaiar no gate redireciona para Solo", () => {
-    assert.match(BRIDGE, /\.\.\/jogos\/casa-da-costa\/solo\//);
+    assert.match(BRIDGE, /\.\.\/solo\//);
     assert.match(BRIDGE, /detail\.ensaio|detail\.local/);
   });
 });

@@ -1,0 +1,4 @@
+# O Pages publica o catálogo e os redirecionamentos, não as fontes do jogo.
+# As fontes de A Noite precisam continuar utilizáveis pelo build e pelos testes.
+exclude:
+  - desenvolvimento/

@@ -66,9 +66,10 @@ describe("pasta do caso · redirect ao Celular, sem três portas", () => {
     assert.equal(/Tr[eê]s portas/.test(CASA), false);
   });
 
-  it("Carro /carro-forte/ redireciona ao gate Celular", () => {
+  it("Carro mantém a escolha normal e encaminha convites ao gate Celular", () => {
     assert.match(CARRO, /location\.replace\(["']celular\.html/);
-    assert.match(CARRO, /http-equiv="refresh"/);
+    assert.match(CARRO, /new URLSearchParams\(location.search\).has\('sala'\)/);
+    assert.doesNotMatch(CARRO, /http-equiv="refresh"/);
     assert.match(CARRO, /href="celular\.html"/);
     assert.equal(/data-mode-ctas/.test(CARRO), false);
     assert.equal(/Tr[eê]s portas/.test(CARRO), false);

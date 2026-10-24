@@ -42,7 +42,7 @@ test("a pauta do Carro-Forte Celular fala com mosaico-noite, não com mosaico-ga
 test("o celular do Carro-Forte carrega firebase-room no projeto noite", () => {
   assert.match(CELULAR, /data-project="noite"/, "celular.html perdeu data-project=noite");
   assert.match(CELULAR, /data-root="mosaico"/, "celular.html perdeu a coleção mosaico");
-  assert.match(CELULAR, /data-telao="\.\.\/\.\.\/\.\.\/telao\.html\?jogo=carro-forte"/);
+  assert.match(CELULAR, /data-telao="\.\.\/telao\.html\?jogo=carro-forte"/);
 });
 
 test("finalizarPartida aplica o placar no STATE local antes da fase resultado", () => {

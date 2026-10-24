@@ -11,7 +11,7 @@ on:
 
 jobs:
   motor-e-caso:
-    name: Motor de pontuação e sincronia do caso
+    name: Catálogo e contratos dos jogos atuais
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,7 +19,24 @@ jobs:
         with:
           node-version: "24"
       - run: npm install --no-audit --no-fund
-      - name: Motor V5 e caso canônico
+      - uses: actions/checkout@v4
+        with:
+          repository: DrMarioNascimento/casa-da-costa
+          path: fontes/casa-da-costa
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: DrMarioNascimento/carro-forte
+          path: fontes/carro-forte
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: DrMarioNascimento/eco-do-amanha
+          path: fontes/eco-do-amanha
+          persist-credentials: false
+      - name: Catálogo, convites e todos os contratos funcionais
+        env:
+          DRAGON_TEST_SOURCES: ${{ github.workspace }}/fontes
         run: npm test
 
   regras:

@@ -62,7 +62,8 @@ test("todo script que a página pede compila, venha de onde vier", () => {
   const deFora = pedidos.filter(src => src.startsWith("../"));
   assert.ok(deFora.length >= 2, "a página deixou de carregar scripts compartilhados; a varredura ficou cega");
   for (const src of new Set(pedidos)) {
-    const url = new URL(src, pasta);
+    // Absolute browser paths start at the current Carro-Forte site root.
+    const url = src.startsWith('/') ? new URL('..' + src, pasta) : new URL(src, pasta);
     let caminho;
     try {
       caminho = fileURLToPath(url);

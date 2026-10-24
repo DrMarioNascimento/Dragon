@@ -2,7 +2,7 @@
  *
  * Este arquivo existe por causa de uma classe inteira de erro que passou por
  * toda a revisão anterior: caminho que funciona em localhost e morre em
- * /Dragon/jogos/casa-da-costa/a-noite/. O Vite reescreve a base dentro do CSS, nunca dentro de string,
+ * /a-noite/. O Vite reescreve a base dentro do CSS, nunca dentro de string,
  * então "/media/foto-agenda.jpg" vai para a raiz do domínio e dá 404 — no
  * site no ar, a fase inteira do Encaixe abria sem uma única imagem.
  *
@@ -17,14 +17,14 @@ import assert from "node:assert/strict";
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), "..");
 const V2 = join(RAIZ, "jogos/casa-da-costa/a-noite");
-const BASE = "/Dragon/jogos/casa-da-costa/a-noite/";
+const BASE = "/a-noite/";
 
 /** Referências que não são arquivo e nunca serão — documentadas, não ignoradas. */
 const NAO_SAO_ARQUIVO = new Set([
   /* Rota de função de servidor do TanStack Start. O GitHub Pages não tem
      servidor e a noite não chama nenhuma; se um dia chamar, dará 404 e este
      comentário é onde a pessoa vai procurar. */
-  "/Dragon/jogos/casa-da-costa/a-noite/_serverFn/",
+  "/a-noite/_serverFn/",
 ]);
 
 function arquivos(dir, filtro) {
@@ -86,9 +86,9 @@ test("todo endereço sob a base resolve para um arquivo do build", () => {
   for (const caminho of textoDoBuild) {
     const texto = readFileSync(caminho, "utf8");
     /* Só o que está em contexto de string ou atributo. Os módulos explicam em
-       comentário por que /Dragon/jogos/casa-da-costa/a-noite/noite dá 404 — citar um endereço não é
+       comentário por que /a-noite/noite dá 404 — citar um endereço não é
        pedi-lo, e um teste que não distingue os dois vira ruído. */
-    for (const m of texto.matchAll(/["'`=(]\s*(\/Dragon\/jogos\/casa-da-costa\/a-noite\/[A-Za-z0-9._/-]*)/g)) {
+    for (const m of texto.matchAll(/["'`=(]\s*(\/a-noite\/[A-Za-z0-9._/-]*)/g)) {
       const url = m[1];
       if (NAO_SAO_ARQUIVO.has(url)) continue;
       if (url === BASE) continue;
@@ -143,7 +143,7 @@ test("o fallback de SPA é o mesmo documento em três nomes", () => {
 });
 
 test("as rotas do build usam hash, senão o 404 do Pages assume", () => {
-  /* Em /Dragon/jogos/casa-da-costa/a-noite/ só existe arquivo na raiz do app. Sem hash history, uma
+  /* Em /a-noite/ só existe arquivo na raiz do app. Sem hash history, uma
      rota digitada na barra de endereço nunca chega ao roteador. */
   const bundles = arquivos(join(V2, "assets"), (n) => n.endsWith(".js"))
     .map((c) => readFileSync(c, "utf8"))

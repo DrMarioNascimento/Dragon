@@ -1,1 +1,27 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><!-- 16/10/2026: cópia antiga substituída; o jogo vive no próprio endereço, com acesso controlado. --><meta http-equiv="refresh" content="0; url=https://dragongames.dev.br/"><title>MOSAICO · endereço atualizado</title><script>location.replace("https://dragongames.dev.br/" + location.search + location.hash);</script></head><body><p><a href="https://dragongames.dev.br/">Abrir o jogo</a></p></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <title>Add {{APP_NAME}} to your Home Screen</title>
+  <link rel="stylesheet" href="/__grok/install/styles.css">
+  <style>
+    main{max-width:38rem;margin:auto;padding:clamp(1.25rem,5vw,3rem);padding-bottom:max(2rem,env(safe-area-inset-bottom))}
+    h1{font-size:clamp(1.7rem,5vw,2.5rem);line-height:1.2}li{margin:1rem 0;line-height:1.6}
+    .open-app{display:inline-block;margin-top:1.5rem;padding:.85rem 1.1rem;border:1px solid #ffffff55;border-radius:.8rem;background:#1d2330;color:#fff;text-decoration:none;box-shadow:inset 0 1px #ffffff33,0 4px #080a10}
+    .open-app:focus-visible{outline:3px solid #a8caff;outline-offset:4px}
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Add {{APP_NAME}} to your Home Screen</h1>
+    <p>You can keep a shortcut to this app on your device.</p>
+    <h2>On iPhone or iPad</h2>
+    <ol><li>Open the app in Safari.</li><li>Open the Share menu.</li><li>Choose <strong>Add to Home Screen</strong>, then confirm <strong>Add</strong>.</li></ol>
+    <h2>On Android or a computer</h2>
+    <p>If your browser offers <strong>Install app</strong> or <strong>Add to Home screen</strong>, select it and follow the instructions. You can also continue using the app in your browser.</p>
+    <a class="open-app" href="{{APP_URL}}">Open {{APP_NAME}}</a>
+  </main>
+</body>
+</html>

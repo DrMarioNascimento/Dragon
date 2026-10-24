@@ -5,13 +5,13 @@
   /* "play" nunca entrava: a guarda so deixava passar from=1 e o ramo do
      /play abaixo era codigo morto. */
   if (from !== "1" && from !== "play") return;
-  /* O MOSAICO e publicado sob /Dragon/jogos/casa-da-costa/a-noite/ no GitHub Pages, e a tarefa mora
+  /* O MOSAICO e publicado sob /a-noite/ no GitHub Pages, e a tarefa mora
      em <base>modulos/<arquivo>.html. Um href absoluto "/noite" saia do site
      inteiro e caia num 404 do dominio — o botao de voltar nao voltava. O
      endereco da propria pagina ja carrega a base: basta cortar o fim. */
   var base = location.pathname.replace(/modulos\/[^/]*$/, "");
   /* E nao "<base>noite": o Pages so tem arquivo na raiz do app, entao pedir
-     /Dragon/jogos/casa-da-costa/a-noite/noite direto na barra de endereco tambem da 404 — quem monta
+     /a-noite/noite direto na barra de endereco tambem da 404 — quem monta
      essa rota e o roteador, depois que a pagina carrega. Voltamos pela raiz
      e dizemos, na busca, para onde ir. */
   function go() {

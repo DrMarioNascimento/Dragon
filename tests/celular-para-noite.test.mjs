@@ -54,11 +54,11 @@ test('parseHandoffSearch lê from=celular, sala e pergunta', () => {
 test('buildNoiteHandoffUrl monta deep link estável (sem payload rico na URL)', () => {
   assert.equal(
     buildNoiteHandoffUrl({ sala: '4chrml', pergunta: 'peso' }),
-    '../../../jogos/a-manha-do-carro-forte/a-noite/?from=celular&sala=4CHRML&pergunta=peso',
+    '../a-noite/?from=celular&sala=4CHRML&pergunta=peso',
   );
   assert.equal(
     buildNoiteHandoffUrl({ fromCelular: true, pergunta: 'roubo' }),
-    '../../../jogos/a-manha-do-carro-forte/a-noite/?from=celular&pergunta=roubo',
+    '../a-noite/?from=celular&pergunta=roubo',
   );
   assert.equal(FROM_CELULAR, 'celular');
   assert.ok(!buildNoiteHandoffUrl({ sala: '4CHRML', pergunta: 'peso' }).includes('fecho'));

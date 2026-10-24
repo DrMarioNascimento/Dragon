@@ -368,7 +368,7 @@ function renderDossie(){
    (proximoExige?`<p class="muted">${proximoExige}</p>`:"")+
   `</section>`+
   `<h2>Ferramentas da reunião</h2><p class="muted">A mesa faz uma de cada vez, junta, na ordem desta pergunta.</p><div class="grid modules">${modulosHtml()}</div>`+
-  `<h2>Mapa coletivo</h2><div class="mapwrap"><img src="../../../jogos/casa-da-costa/a-mesa/img/casa-da-costa-planta-1867.svg?v=20260902-selo" alt="Planta esquemática da Casa da Costa, construída em 1867">${markers()}</div>`+
+  `<h2>Mapa coletivo</h2><div class="mapwrap"><img src="../a-mesa/img/casa-da-costa-planta-1867.svg?v=20260902-selo" alt="Planta esquemática da Casa da Costa, construída em 1867">${markers()}</div>`+
   `<h2>Relações que já fecham</h2><div class="relacoes">${relacoesHtml()}</div>`+
   `<h2>Hipóteses concorrentes</h2><div class="relacoes">${hipotesesHtml()}</div>`+
   `<div class="toolbar"><button class="btn btn-gold" id="decidir" ${aberto<2?"disabled":""}>Fechar decisão</button></div>`+
@@ -460,7 +460,7 @@ estilo.textContent=`
 `;
 document.head.appendChild(estilo);
 
-fetch("../../../jogos/casa-da-costa/a-mesa/casos/casa-da-costa.json?v=20260902-tecnica")
+fetch("../a-mesa/casos/casa-da-costa.json?v=20260902-tecnica")
  .then(r=>r.ok?r.json():Promise.reject())
  .then(c=>{CASO=c;carregar();ouvirSala();render()})
  .catch(()=>{app().innerHTML='<main class="stage shell"><h2>Não foi possível abrir o caso.</h2><p class="lead">Recarregue quando a conexão estiver disponível.</p></main>'});
