@@ -483,3 +483,7 @@ Consultar este README, `HANDOFF.md` e o histórico Git. Ao criar uma nova perspe
 ## Recursos educacionais públicos
 
 Simuladores de Fisiologia, Casos Éticos 1 e 2, Bonde, laboratórios de pesquisa e outros acessos estão reunidos no [portal do autor](https://www.drmarionascimento.com.br/#acesso-publico). O catálogo Dragon não substitui a licença de cada obra.
+
+## Estado das verificações técnicas — 24 de outubro de 2026
+
+A publicação do catálogo no GitHub Pages foi concluída. O workflow `Verificação` mantém falhas **anteriores à atualização documental**, registradas no [commit anterior](https://github.com/DrMarioNascimento/Dragon/actions/runs/39202416080) e [nesta revisão](https://github.com/DrMarioNascimento/Dragon/actions/runs/40112291309). Entre elas, testes procuram funções nas páginas antigas hoje substituídas por redirecionamentos; o teste de instalação de A Noite também espera o HTML antigo. A matriz de regras do Firestore passou. Esses resultados não certificam os jogos fechados nem impedem a publicação da vitrine; exigem manutenção dos testes e referências após a separação dos repositórios.

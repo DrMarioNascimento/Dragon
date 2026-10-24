@@ -1,6 +1,6 @@
 # Organização dos jogos Dragon Games
 
-Decidida em 14/10/2026, pensando no crescimento (10+ jogos).
+Organização definida em 14/10/2026; disponibilidade revisada em 24/10/2026.
 
 ## Regra: um jogo = um repositório = um subdomínio
 
@@ -17,14 +17,14 @@ Decidida em 14/10/2026, pensando no crescimento (10+ jogos).
 
 ## Acesso
 
-Os jogos estão em testes internos, sem participação externa. Os endereços abaixo não representam lançamento público.
+Eita! está em testes abertos desde 20/10/2026: qualquer conta Google pode conduzir e participantes entram por código. Histórias MOSAICO e Mosaico Card continuam em testes fechados, com condução autorizada. A licença de cada projeto define as condições de uso. Consulte também o [catálogo de recursos públicos do autor](https://www.drmarionascimento.com.br/#acesso-publico).
 
 ## Situação
 
 | Jogo | Endereço | Situação |
 |---|---|---|
-| Mosaico Card | `mosaico-card.dragongames.dev.br` (`/novo-testamento/`, `/filmes-e-series/`) | No padrão (14/10/2026). Atalho: `/mosaico-card/`. |
-| Eita! | `eita.dragongames.dev.br` | Firebase Hosting. Atalho: `/eita/`. |
+| Mosaico Card | `mosaico-card.dragongames.dev.br` (`/novo-testamento/`, `/filmes-e-series/`) | Testes fechados; conta de mestre autorizada para criar sala. Atalho: `/mosaico-card/`. |
+| Eita! | `eita.dragongames.dev.br` | Testes abertos; Firebase Hosting. Atalho: `/eita/`. |
 | A Casa da Costa | https://casa-da-costa.dragongames.dev.br/ | Repositório próprio `casa-da-costa`; testes internos. |
 | A Manhã do Carro-Forte | https://carro-forte.dragongames.dev.br/ | Repositório próprio `carro-forte`; testes internos. |
 | O Eco do Amanhã | https://eco-do-amanha.dragongames.dev.br/ | Repositório próprio `eco-do-amanha`; testes internos. |
