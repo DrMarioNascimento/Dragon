@@ -13,3 +13,5 @@ A pasta `desenvolvimento/` foi excluída da publicação Jekyll: restaurar fonte
 A suíte de regras no emulador e a verificação de tipos/testes de A Noite permanecem no workflow. Resultados locais e limites estão registrados no README; os runs do workflow comprovam as verificações no checkout completo.
 
 A automação não substitui login Google real, turma em aparelhos distintos ou inspeção visual. Na sessão desta revisão, o navegador conectado informou ausência de contexto e o alternativo recusou retomar a sessão de credenciais; esses itens continuam sem comprovação prática.
+
+No runner do GitHub, o Chrome disponível executa também a auditoria automatizada de sobreposição. As entradas do percurso, papéis e sala foram atualizadas para os caminhos atuais e recebem o identificador de rodada `run`, como na navegação do jogo. A tentativa antiga sem parâmetros acionava corretamente a proteção da minitarefa e voltava à entrada. As medições em 390×844, 800×540 e 1280×800, os controles e os cenários de RA simulada continuam ativos; isso não é login Google real nem inspeção visual humana.

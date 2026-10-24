@@ -300,11 +300,11 @@ test("janelas d'A Casa: nada se cruza, nada fica coberto, nada sai da tela", { s
        e o dossiê nunca abria — o teste passava ou falhava conforme a medida
        anterior levasse mais ou menos que 3,5 s (04/10/2026). */
     const solo = async (room) => {
-      await aba.ir(`${base}/v1/css/ac-janelas.css`);
+      await aba.ir(`${base}/jogos/casa-da-costa/a-mesa/css/ac-janelas.css`);
       await aba.esperar("location.pathname.endsWith('.css')&&document.readyState==='complete'");
       await aba.avaliar("sessionStorage.setItem('ac:solo-integral:v1'," +
         JSON.stringify(JSON.stringify({ version: 2, janelaConcluida: true, room: { startedAt: Date.now(), ...room } })) + "),true");
-      await aba.ir(`${base}/v1/AC-escrivaninha.html?demo=solo`);
+      await aba.ir(`${base}/jogos/casa-da-costa/a-mesa/AC-escrivaninha.html?demo=solo`);
     };
     await solo({ stage: "iluminar", vela: { ate: 1 } });
     await aba.esperar(prontaMesa + "&&!document.getElementById('fala-parceiro').hidden");
@@ -313,8 +313,11 @@ test("janelas d'A Casa: nada se cruza, nada fica coberto, nada sai da tela", { s
     await aba.esperar(prontaMesa + "&&document.getElementById('fragment').open");
     defeitos.push(...await medir(aba, "escrivaninha · dossiê"));
 
+    /* As minitarefas atuais recusam entrada direta sem contexto de rodada.
+       Use o parâmetro run empregado pelo percurso real. O bloqueio de produção
+       permanece intacto; não desativamos scripts de acesso para medir a tela. */
     /* ---------- percurso ---------- */
-    await aba.ir(`${base}/v1/AC-percurso.html`);
+    await aba.ir(`${base}/jogos/casa-da-costa/a-mesa/AC-percurso.html?run=auditoria-percurso`);
     await aba.esperar("!!document.getElementById('create')");
     defeitos.push(...await medir(aba, "percurso · entrada"));
     await aba.avaliar("document.getElementById('create').click(),true");
@@ -323,7 +326,7 @@ test("janelas d'A Casa: nada se cruza, nada fica coberto, nada sai da tela", { s
 
     /* ---------- os papéis da passagem ---------- */
     const prontosPapeis = "!!window.__papeis&&document.getElementById('loading').hidden&&document.querySelectorAll('.peca').length>0";
-    await aba.ir(`${base}/v1/AC-papeis.html`);
+    await aba.ir(`${base}/jogos/casa-da-costa/a-mesa/AC-papeis.html?run=auditoria-papeis`);
     await aba.esperar(prontosPapeis);
     defeitos.push(...await medir(aba, "papéis · a planta", ABRIR));
     defeitos.push(...await medirPecas(aba, "papéis · a planta"));
@@ -339,7 +342,7 @@ test("janelas d'A Casa: nada se cruza, nada fica coberto, nada sai da tela", { s
     defeitos.push(...await medir(aba, "papéis · o achado"));
 
     /* ---------- sala às escuras ---------- */
-    await aba.ir(`${base}/v1/MOSAICO-26-a-sala-as-escuras.html`);
+    await aba.ir(`${base}/jogos/casa-da-costa/a-mesa/MOSAICO-26-a-sala-as-escuras.html?run=auditoria-sala`);
     await aba.esperar("!!document.getElementById('b-entrar')");
     defeitos.push(...await medir(aba, "sala · abertura"));
 
@@ -377,7 +380,7 @@ test("janelas d'A Casa: nada se cruza, nada fica coberto, nada sai da tela", { s
           await abaRa.run("Input.dispatchMouseEvent", { type: tipo, x: 195, y: 300, button: "left", clickCount: 1 });
         try { await abaRa.esperar("window.__escrivaninha.estado().stage==='castical'", 8000); }
         catch { defeitos.push("escrivaninha · sem RA: tocar no chão não pôs a escrivaninha"); }
-        await abaRa.ir(`${base}/v1/MOSAICO-26-a-sala-as-escuras.html`);
+        await abaRa.ir(`${base}/jogos/casa-da-costa/a-mesa/MOSAICO-26-a-sala-as-escuras.html?run=auditoria-sala`);
         await abaRa.esperar("!!document.getElementById('b-entrar')");
         try { await abaRa.esperar(aparece("#b-entrar-ra"), 8000); } catch { defeitos.push("sala · RA: Entrar em RA não apareceu"); }
         defeitos.push(...await medir(abaRa, "sala · abertura com RA"));
