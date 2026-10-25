@@ -69,7 +69,7 @@ Pátio interno no centro, de pedra e terra vermelha, a céu aberto. Em volta, qu
 | Espaço | Precisa ter |
 |---|---|
 | **Corredor dos retratos** | Corre do sul ao norte, pelo lado de fora da biblioteca e da sala. Quadros nas paredes. No norte, vira para leste, passa na porta da sala do relógio e **termina na janela D**, que fica numa pequena saliência (bay) para dentro do pátio. |
-| **Biblioteca** | Estantes, a **mesa da ata** e a escrivaninha. **Porta de vidro** para o corredor. **Porta-janela** para o pátio. **Porta de correr com um degrau** para a sala do relógio. |
+| **Biblioteca** | Estantes e a **mesa da ata** (a escrivaninha saiu daqui em 03/10: está na sala de mapas, no andar de cima). **Porta de vidro** para o corredor. **Porta-janela** para o pátio. **Porta de correr com um degrau** para a sala do relógio. |
 | **Sala do relógio** | **Relógio de caixa alta** junto à porta-janela, com o flanco virado para ela. Ao lado do relógio, um **painel de madeira com uma portinhola** escondida para a passagem. **Lareira** ligada à chaminé maciça. **Aparador**. Porta para o corredor, que é o posto da guarda. Porta-janela para o pátio. Porta de correr para a biblioteca. |
 
 **Ala norte** (térrea: os fundos)
@@ -116,7 +116,7 @@ Pátio interno no centro, de pedra e terra vermelha, a céu aberto. Em volta, qu
 |---|---|
 | Quarto norte | É "o quarto de cima" do dono, sem uso desde março: cama feita, pó. |
 | Quarto oeste, quarto sul, quarto leste | Cada um com **armário** e **castiçal ou vela de cabeceira** (esconderijos do prólogo). |
-| Sala da torre | **Telefone vermelho** sobre mesinha, com toalhinha e agenda, e **mesa de mapas**. |
+| Sala de mapas (a sala da torre) | **Telefone vermelho** sobre mesinha, com toalhinha e agenda, e **mesa de mapas**. Desde 03/10, também a **escrivaninha do Cap. 2**, encostada na parede sul, sob a janela, com papéis no tampo e seis gavetas. |
 | Galeria de cima, banheiro, quarto de hóspedes | Livres. |
 | Topo da torre | Mirante com grade, só decorativo, sem acesso. |
 | Chaminé maciça | O **peito da chaminé** passa por este andar (o prólogo usa). |
@@ -138,7 +138,7 @@ Aqui estão as dúvidas que mais pesam no jogo, e as regras são rígidas:
 - Jardim externo com sebe (vira pátio interno).
 - Túnel do porão até a guarita, com porta de ferro.
 - Guarita com antena de rádio.
-- Escritório (a escrivaninha vai para a biblioteca).
+- Escritório (a escrivaninha foi primeiro para a biblioteca e, em 03/10, para a sala de mapas, no andar de cima).
 - Relógio de parede antigo.
 - Lacres de papel nos móveis.
 - Quadro de luz no térreo (vai para o porão).
@@ -214,7 +214,7 @@ Os segundos não precisam bater ao metro. Mas nenhum cômodo marcado "Não" pode
 | Nome | O que é | Camada |
 |---|---|---|
 | `relogio-caixa-alta` | O relógio de caixa alta | piso-1 |
-| `escrivaninha` | A escrivaninha (agora na biblioteca) | piso-1 |
+| `escrivaninha` | A escrivaninha, dentro do grupo `sala-de-mapas` (desde 03/10; antes, na biblioteca) | piso-2 |
 | `estante-leste` | A estante da biblioteca | piso-1 |
 | `quarto-de-servico` (com `qs-armario`) | O quarto de serviço e o armário dele | piso-1 |
 | `quadro` / `moldura-do-quadro`, `espelho` / `moldura-do-espelho` | Hoje na "sala-escura". Ficam na sala de estar ou na sala de visitas; avise onde | piso-1 |
