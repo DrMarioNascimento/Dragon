@@ -493,3 +493,7 @@ Na execução local desta revisão: **524 testes aprovados e um teste 3D já mar
 Para executar localmente, mantenha os checkouts completos de `casa-da-costa`, `carro-forte` e `eco-do-amanha` ao lado de `Dragon`, ou defina `DRAGON_TEST_SOURCES` para a pasta que os contém. Cada execução imprime os commits utilizados. Arquivos de desenvolvimento ficam fora da publicação Jekyll do catálogo; as entradas públicas de compatibilidade continuam redirecionando para os jogos oficiais.
 
 **Ainda não verificado nesta revisão:** login Google real e inspeção visual/interação no navegador. O navegador conectado não estava disponível e o alternativo não conseguiu retomar sua sessão. Os testes automáticos não substituem essas verificações nem certificam partidas completas com uma turma.
+
+## Realidade aumentada — 25/10/2026
+
+Revisadas as animações das cenas de RA, com relevo nos textos dinâmicos e clima nas cenas externas pertinentes. Consulte [decisões, compatibilidade e verificações](RA-VOLUME-MOVIMENTO.md).
