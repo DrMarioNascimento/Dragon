@@ -318,6 +318,8 @@ Toda ação importante cumpre pelo menos duas funções. Além de mover a invest
 
 A narração pode saber mais do que uma câmera, mas nunca neutraliza as perspectivas. Mesmo em terceira pessoa, a cena privilegia as sensações, conclusões e lacunas de quem ocupa aquele momento. **O narrador não antecipa o que nenhum personagem ainda poderia compreender.** Isso protege a dedução e impede que a prosa entregue o caso por comentários oniscientes.
 
+**A fala do personagem do jogador** (Mario, 25/10/2026; item 4 da auditoria de 30/09). Quando a cena precisa que o personagem do jogador fale ou aja (dizer onde fica no apagão, responder a uma pergunta, lembrar o que alguém disse), **o narrador fala por ele**, em segunda pessoa: *"Eu fico na despensa", você respondeu.* É a mesma regra do Cap. 5, decidida em 01/10, em que a narração age pelo personagem do jogador no escuro. O jogador não escolhe nem escreve essas falas; dele são as mensagens, os envios e as respostas às perguntas do capítulo. Por isso a fala dita por ele nunca é mentira deliberada nem gesto que só o impostor faria. O sorteio já garante que o personagem do jogador nunca é o impostor nem o Tabelião da P5.
+
 ### 10.4 Os dois testes
 
 - **Teste de literatura.** Retire mentalmente o mistério da cena. Ainda resta uma experiência humana interessante, uma atmosfera reconhecível, uma relação em transformação ou uma escolha difícil? Se não resta, a cena está funcionando só como mecanismo.
