@@ -1,4 +1,14 @@
 # O Pages publica o catálogo e os redirecionamentos, não as fontes do jogo.
 # As fontes de A Noite precisam continuar utilizáveis pelo build e pelos testes.
+# Versões anteriores (_SUBSTITUIDO_), testes e arquivos de projeto ficam no repositório, mas não vão ao ar.
 exclude:
   - desenvolvimento/
+  - tests/
+  - "*_SUBSTITUIDO_*"
+  - "**/*_SUBSTITUIDO_*"
+  - package.json
+  - package-lock.json
+  - FIRESTORE-USUARIOS.rules.snippet
+  - firestore.rules
+  - firebase.json
+  - RA-VOLUME-MOVIMENTO.md
