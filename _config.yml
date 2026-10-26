@@ -12,3 +12,5 @@ exclude:
   - firestore.rules
   - firebase.json
   - RA-VOLUME-MOVIMENTO.md
+  - README.md
+  - "**/README.md"
