@@ -58,7 +58,7 @@
     .btn-ouro{background:linear-gradient(180deg,var(--gold2),var(--gold));color:#1a1206;box-shadow:inset 0 1px rgba(255,255,255,.45),0 5px 0 var(--lip),0 12px 22px rgba(0,0,0,.45)}.btn-ouro:hover{color:#1a1206}
     .btn-ouro:active{box-shadow:inset 0 1px rgba(255,255,255,.2),0 1px 0 var(--lip)}
     .btn-fantasma{background:linear-gradient(180deg,#241c16,var(--plate));color:var(--gold2);box-shadow:inset 0 1px rgba(243,208,120,.22),0 5px 0 var(--ground),0 10px 18px rgba(0,0,0,.4)}
-    .cartao{border-radius:18px;border:1.5px solid var(--line);background:linear-gradient(165deg,#221910 0%,var(--coal) 62%,#0c0908 100%);box-shadow:inset 0 1px rgba(243,208,120,.12),0 6px 0 var(--ground),0 18px 40px rgba(0,0,0,.55)}
+    .cartao,.game{border-radius:18px;border:1.5px solid var(--line);background:linear-gradient(165deg,#221910 0%,var(--coal) 62%,#0c0908 100%);box-shadow:inset 0 1px rgba(243,208,120,.12),0 6px 0 var(--ground),0 18px 40px rgba(0,0,0,.55)}
     .pilula{padding:6px 10px;border-radius:999px;border:1px solid var(--line);font:500 13px var(--mono);color:var(--mist)}
     .status{display:inline-block;padding:5px 10px;border-radius:999px;font:700 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase}
     .status-fechado{border:1px solid rgba(255,106,24,.55);color:#ffb38a}
@@ -132,10 +132,10 @@
     .versoes-card img{width:100%;aspect-ratio:3/2;object-fit:cover;border-radius:8px}
     .versoes-card b{font:700 16px var(--display);letter-spacing:.04em}
     .versoes-card small{font:500 12px var(--mono);color:var(--mist)}
-    .eita{border-color:rgba(243,208,120,.45);background:radial-gradient(circle at 90% 0%,rgba(255,106,24,.13),transparent 40%),linear-gradient(165deg,#221910 0%,var(--coal) 62%,#0c0908 100%)}
-    .eita .linha{display:flex;align-items:center;gap:16px}
-    .eita .linha img{width:110px;height:110px;object-fit:contain;flex:none}
-    .eita .btn{margin-top:auto}
+    #eita-quiz{border-color:rgba(243,208,120,.45);background:radial-gradient(circle at 90% 0%,rgba(255,106,24,.13),transparent 40%),linear-gradient(165deg,#221910 0%,var(--coal) 62%,#0c0908 100%)}
+    #eita-quiz .linha{display:flex;align-items:center;gap:16px}
+    #eita-quiz .linha img{width:110px;height:110px;object-fit:contain;flex:none}
+    #eita-quiz .btn{margin-top:auto}
 
     /* parcerias e quem cria */
     .parceiros{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
@@ -182,7 +182,7 @@
   <a class="brand" href="#inicio"><img src="brand/dragon-mark.webp" alt="" width="44" height="44"/><span><b>DRAGON GAMES</b><small>Jogos na mesa. No celular.</small></span></a>
   <div class="nav-links">
     <a href="#jogos">Jogos</a><a href="#como-se-joga">Como se joga</a><a href="#parcerias">Parcerias</a>
-    <a class="portal" href="https://drmarionascimento.com.br/"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg><span class="so-largo">Voltar pelo&nbsp;</span>portal</a>
+    <a class="portal" href="https://drmarionascimento.com.br/"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg><span class="so-largo">Voltar pelo</span>portal</a>
   </div>
 </nav></header>
 
@@ -244,7 +244,7 @@
   <h2 class="titulo-secao" style="margin-bottom:24px">Os jogos</h2>
   <div class="jogos">
 
-    <article class="game cartao" id="casa-da-costa">
+    <article class="game" id="casa-da-costa">
       <div class="game-texto">
         <div class="topo-card"><span class="eyebrow">MOSAICO · mistério</span><span class="status status-fechado">Testes fechados</span></div>
         <h3>A Casa da Costa</h3>
@@ -258,7 +258,7 @@
       <div class="pecas" aria-hidden="true"><img src="brand/jogos/casos/cc-o-relogio.webp" alt="" width="300" height="450" loading="lazy"/><img src="brand/jogos/casos/cc-21h34.webp" alt="" width="300" height="450" loading="lazy"/><img src="brand/jogos/casos/cc-o-farol.webp" alt="" width="300" height="450" loading="lazy"/></div>
     </article>
 
-    <article class="game cartao" id="carro-forte">
+    <article class="game" id="carro-forte">
       <div class="game-texto">
         <div class="topo-card"><span class="eyebrow">MOSAICO · investigação</span><span class="status status-fechado">Testes fechados</span></div>
         <h3>A Manhã do Carro-Forte</h3>
@@ -272,7 +272,7 @@
       <div class="pecas" aria-hidden="true"><img src="brand/jogos/casos/cf-relogio.webp" alt="" width="300" height="450" loading="lazy"/><img src="brand/jogos/casos/cf-o-malote.webp" alt="" width="300" height="450" loading="lazy"/><img src="brand/jogos/casos/cf-o-carro-forte.webp" alt="" width="300" height="450" loading="lazy"/></div>
     </article>
 
-    <article class="game cartao" id="eco-do-amanha">
+    <article class="game" id="eco-do-amanha">
       <div class="game-texto">
         <div class="topo-card"><span class="eyebrow">MOSAICO · ficção científica</span><span class="status status-fechado">Testes fechados</span></div>
         <h3>O Eco do Amanhã</h3>
@@ -286,7 +286,7 @@
     </article>
 
     <div class="par">
-      <article class="game cartao external-game" id="mosaico-card">
+      <article class="game external-game" id="mosaico-card">
         <div class="topo-card"><span class="eyebrow">Cartas · dedução</span><span class="status status-fechado">Testes fechados</span></div>
         <h3>Mosaico Card</h3>
         <p class="sinopse" style="margin:0">Cada pessoa recebe pistas, negocia informações e usa as cartas para chegar à resposta antes dos outros. O mesmo jogo, em versões com temas diferentes.</p>
@@ -296,7 +296,7 @@
           <a href="https://mosaico-card.dragongames.dev.br/filmes-e-series/"><img src="brand/jogos/mosaico-card-filmes-e-series.webp" alt="" width="800" height="533" loading="lazy"/><b>Filmes e Séries</b><small>Entrada da equipe de testes</small></a>
         </div>
       </article>
-      <article class="game cartao external-game eita" id="eita-quiz">
+      <article class="game external-game" id="eita-quiz">
         <div class="topo-card"><span class="eyebrow">Quiz · cooperação</span><span class="status status-aberto">Testes abertos</span></div>
         <div class="linha"><img src="brand/jogos/eita-alianca.webp" alt="Aliança dos animais do Eita!" width="520" height="520" loading="lazy"/><div><h3>Eita!</h3><p class="sinopse" style="margin:6px 0 0">Um quiz em aliança: cada pessoa escolhe seu animal e ajuda a turma a vencer o chefão.</p></div></div>
         <p class="nota-modos" style="margin:0">Aberto ao público: quem conduz entra com Google; os participantes usam o código da sala.</p>
