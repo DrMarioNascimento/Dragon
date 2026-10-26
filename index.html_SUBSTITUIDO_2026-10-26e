@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<!-- DRAGON GAMES · hub do MOSAICO — A Verdade é um Fragmento.
+     Versão atual: 5.0.0 (a mesma do package.json; atualizar as duas juntas).
+     Esta é a porta de entrada: daqui saem os links para cada caso. -->
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dragon Games · jogos de dedução em grupo, no celular</title>
+  <meta name="description" content="Dragon Games: jogos de dedução para jogar em grupo, cada pessoa com um pedaço da verdade no próprio celular. Conheça o universo MOSAICO — A Verdade é um Fragmento." />
+  <meta property="og:title" content="Dragon Games | Ninguém tem todos os fatos" />
+  <link rel="canonical" href="https://dragongames.dev.br/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Dragon Games" />
+  <meta property="og:url" content="https://dragongames.dev.br/" />
+  <meta property="og:image" content="https://dragongames.dev.br/brand/og-dragon-games.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Dragon Games: Ninguém tem todos os fatos. Peças de quebra-cabeça dos casos MOSAICO." />
+  <meta property="og:locale" content="pt_BR" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://dragongames.dev.br/brand/og-dragon-games.jpg" />
+  <meta name="theme-color" content="#070605" />
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"Dragon Games","url":"https://dragongames.dev.br/","logo":"https://dragongames.dev.br/brand/favicon-192.png","description":"Estúdio de jogos de dedução em grupo: cada pessoa com um pedaço da verdade no próprio celular.","founder":{"@type":"Person","name":"Mário César Nascimento","url":"https://drmarionascimento.com.br/"},"address":{"@type":"PostalAddress","addressLocality":"Florianópolis","addressRegion":"SC","addressCountry":"BR"}}</script>
+  <meta property="og:description" content="Jogos de dedução em grupo, no celular. Histórias MOSAICO em testes fechados e abertas a parcerias com escolas, eventos, empresas e estúdios." />
+  <!-- O ICONE DA ABA e o busto de FUNDO LIMPO, nao a marca de quadro escuro.
+       `dragon-mark.webp` continua sendo o LOGOTIPO do cabecalho, logo abaixo:
+       sao coisas diferentes e trocar as duas juntas mudaria a marca do site. -->
+  <link rel="icon" href="favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="32x32" href="brand/favicon-32.png" />
+  <link rel="icon" type="image/webp" href="brand/dragon-busto.webp" />
+  <!-- O ícone de tela de início do iOS é PNG OPACO e sangrado até a borda. Aqui
+       apontava para a marca em webp, que tem os cantos transparentes: o iPhone
+       não corta nem amplia — desenha o quadrado inteiro, arredonda por cima e
+       preenche de BRANCO o que estava vazio. Era isso que punha quinas brancas
+       no ícone. O arquivo abaixo é medido: 180×180 (a tela @3x), zero pixels com
+       alfa, preto até o canto. E não é pré-arredondado de propósito, porque o
+       iOS já aplica a máscara e canto arredondado duas vezes fica torto. -->
+  <link rel="apple-touch-icon" sizes="180x180" href="brand/dragon-icon-180.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;800&family=IBM+Plex+Mono:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root{--void:#070605;--coal:#110e0c;--plate:#1a1512;--cream:#f4ead0;--mist:#c9bba3;--gold:#e0b13a;--gold2:#f3d078;--lip:#7a4e0e;--ember:#ff6a18;--blood:#c41a12;--line:rgba(224,177,58,.22);--line2:rgba(224,177,58,.38);--ground:#0a0806;
+      --display:Cinzel,"Times New Roman",serif;--body:Inter,system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,monospace;color-scheme:dark}
+    *{box-sizing:border-box}
+    html{overflow-x:clip;scroll-behavior:smooth;scroll-padding-top:84px}
+    html,body{margin:0;font-size:18px;background:radial-gradient(1200px 600px at 50% -10%,#3a1408 0%,transparent 55%),radial-gradient(800px 400px at 80% 120%,#2a0c08 0%,transparent 50%),var(--void);color:var(--cream);font-family:var(--body);line-height:1.55}
+    a{color:var(--gold2)}a:hover{color:#ffe3a1}
+    img{display:block;max-width:100%;height:auto}
+    :where(a,button,input,summary):focus-visible{outline:2px solid var(--gold2);outline-offset:3px}
+    .shell{width:min(1080px,calc(100% - 32px));margin:0 auto}
+    .eyebrow{margin:0;font:700 12px/1.6 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
+    .titulo-secao{margin:8px 0 6px;font:700 2rem/1.15 var(--display);letter-spacing:.08em}
+    .sub-secao{margin:0 0 24px;max-width:40rem;color:var(--mist)}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:50px;padding:0 22px;border-radius:9px;text-decoration:none;font:700 15px var(--mono);letter-spacing:.04em;text-transform:uppercase;transition:transform .16s,box-shadow .16s}
+    .btn:hover{transform:translateY(-2px)}.btn:active{transform:translateY(4px)}
+    .btn-ouro{background:linear-gradient(180deg,var(--gold2),var(--gold));color:#1a1206;box-shadow:inset 0 1px rgba(255,255,255,.45),0 5px 0 var(--lip),0 12px 22px rgba(0,0,0,.45)}.btn-ouro:hover{color:#1a1206}
+    .btn-ouro:active{box-shadow:inset 0 1px rgba(255,255,255,.2),0 1px 0 var(--lip)}
+    .btn-fantasma{background:linear-gradient(180deg,#241c16,var(--plate));color:var(--gold2);box-shadow:inset 0 1px rgba(243,208,120,.22),0 5px 0 var(--ground),0 10px 18px rgba(0,0,0,.4)}
+    .cartao,.game{border-radius:18px;border:1.5px solid var(--line);background:linear-gradient(165deg,#221910 0%,var(--coal) 62%,#0c0908 100%);box-shadow:inset 0 1px rgba(243,208,120,.12),0 6px 0 var(--ground),0 18px 40px rgba(0,0,0,.55)}
+    .pilula{padding:6px 10px;border-radius:999px;border:1px solid var(--line);font:500 13px var(--mono);color:var(--mist)}
+    .status{display:inline-block;padding:5px 10px;border-radius:999px;font:700 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase}
+    .status-fechado{border:1px solid rgba(255,106,24,.55);color:#ffb38a}
+    .status-aberto{border:1px solid rgba(243,208,120,.6);color:var(--gold2)}
+
+    /* topo */
+    .topbar{position:sticky;top:0;z-index:20;background:rgba(7,6,5,.82);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+    .nav{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 18px;min-height:68px;padding:8px 0}
+    .brand{display:flex;align-items:center;gap:12px;text-decoration:none}
+    .brand img{width:44px;height:44px;border-radius:50%;box-shadow:0 0 0 1px var(--line),0 4px 0 var(--lip),0 8px 16px rgba(0,0,0,.45)}
+    .brand b{display:block;font:700 1.05rem var(--display);letter-spacing:.14em;color:var(--gold2)}
+    .brand small{display:block;font-size:13px;letter-spacing:.04em;color:var(--mist)}
+    .nav-links{display:flex;flex-wrap:wrap;align-items:center;gap:0 18px;font-size:15px}
+    .nav-links a{color:var(--mist);text-decoration:none;padding:12px 0}.nav-links a:hover{color:var(--cream)}
+    .nav-links .portal{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 14px;border-radius:999px;border:1px solid var(--line2);color:var(--gold2);font:500 13px var(--mono);letter-spacing:.04em;text-transform:uppercase}
+
+    /* herói */
+    .hero{display:flex;flex-wrap:wrap;align-items:center;gap:16px 28px;padding:48px 0 28px}
+    .hero-texto{flex:999 1 520px;min-width:0}
+    .hero h1{margin:14px 0 0;font:800 clamp(2.4rem,7vw,4.2rem)/.98 var(--display);letter-spacing:.12em}
+    .hero h1 span{background:linear-gradient(180deg,var(--gold2),var(--gold) 55%,var(--ember));-webkit-background-clip:text;background-clip:text;color:transparent}
+    .slogan{margin:22px 0 0;font-size:clamp(1.3rem,2.6vw,1.8rem);font-weight:500;line-height:1.3}
+    .hero .lead{margin:16px 0 0;max-width:34rem;font-size:1.05rem;color:var(--mist)}
+    .acoes{margin-top:28px;display:flex;flex-wrap:wrap;gap:14px}
+    .emblema{flex:1 1 280px;min-width:0;display:flex;justify-content:center}
+    .emblema img{width:min(100%,380px);filter:drop-shadow(0 18px 32px rgba(255,80,8,.35))}
+
+    /* convite */
+    .convite{display:flex;flex-wrap:wrap;align-items:center;gap:18px 28px;padding:22px 24px;border-color:var(--line2)}
+    .convite-texto{flex:999 1 380px;min-width:0}
+    .convite h2{margin:0 0 6px;font:700 1.2rem var(--display);letter-spacing:.06em;color:var(--gold2)}
+    .convite p{margin:0;color:var(--mist);font-size:16px}
+    .convite .nota{margin-top:8px;font:500 13px var(--mono);letter-spacing:.02em}
+    .qr{flex:none;display:flex;align-items:center;gap:14px;margin:0}
+    .qr img{width:132px;height:132px;border-radius:10px;border:3px solid var(--gold);box-shadow:0 5px 0 var(--lip)}
+    .qr figcaption{max-width:9.5rem;font:500 12px/1.45 var(--mono);color:var(--mist)}
+
+    /* como se joga */
+    .secao{padding:64px 0 24px}
+    .passos{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:14px}
+    .passos li{flex:1 1 260px;min-width:0;padding:22px;border-radius:16px}
+    .passos .n{display:block;font:800 30px/1 var(--display);color:rgba(224,177,58,.45);margin-bottom:12px}
+    .passos b,.modo b,.parceiro b{display:block;font:700 1.05rem var(--display);letter-spacing:.04em;margin-bottom:8px}
+    .passos span:not(.n),.modo p,.parceiro span{color:var(--mist);font-size:16px}
+    .modos{margin-top:14px;display:flex;flex-wrap:wrap;gap:14px}
+    .modo{flex:1 1 380px;min-width:0;padding:20px 22px;border-radius:12px;background:rgba(0,0,0,.28);border:1px solid var(--line)}
+    .modo b{color:var(--gold2);font-size:1.15rem;margin:0}.modo p{margin:6px 0 0}
+    .nota-modos{margin:14px 0 0;font:500 13px var(--mono);color:var(--mist)}
+
+    /* jogos */
+    .jogos{display:flex;flex-direction:column;gap:22px}
+    .game{position:relative;padding:28px;display:flex;flex-wrap:wrap;gap:24px 32px}
+    .game-texto{flex:999 1 420px;min-width:0}
+    .game .topo-card{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+    .game h3{margin:10px 0 8px;font:700 2rem/1.15 var(--display);letter-spacing:.06em}
+    .game .sinopse{margin:0 0 14px;color:var(--mist)}
+    .ficha{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px;padding:0;list-style:none}
+    .versoes{display:flex;flex-wrap:wrap;gap:12px}
+    .ver{flex:1 1 200px;min-width:0;padding:16px;border-radius:12px;background:rgba(0,0,0,.28);border:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
+    .ver b{font:700 1.05rem var(--display);letter-spacing:.04em}
+    .ver span{color:var(--mist);font-size:15px}
+    .entrada-equipe{font:500 13px var(--mono);color:var(--mist);text-underline-offset:3px;padding:10px 0 0;min-height:44px;display:inline-flex;align-items:flex-end}
+    .pecas{flex:1 1 300px;min-width:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;align-content:center}
+    .pecas img{width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:8px;box-shadow:0 1px 0 rgba(243,208,120,.35),0 8px 0 var(--ground),0 18px 28px rgba(0,0,0,.55)}
+    .pecas img:nth-child(odd){transform:rotate(-1.5deg)}.pecas img:nth-child(even){transform:rotate(1.5deg)}
+    .par{display:flex;flex-wrap:wrap;gap:22px}
+    .par>.game{flex:1 1 420px;flex-direction:column;gap:14px}
+    .par h3{margin:0;font-size:1.7rem}
+    .versoes-card{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    .versoes-card a{display:flex;flex-direction:column;gap:8px;padding:10px;border-radius:12px;background:rgba(0,0,0,.28);border:1px solid var(--line);text-decoration:none;color:var(--cream)}
+    .versoes-card img{width:100%;aspect-ratio:3/2;object-fit:cover;border-radius:8px}
+    .versoes-card b{font:700 16px var(--display);letter-spacing:.04em}
+    .versoes-card small{font:500 12px var(--mono);color:var(--mist)}
+    #eita-quiz{border-color:rgba(243,208,120,.45);background:radial-gradient(circle at 90% 0%,rgba(255,106,24,.13),transparent 40%),linear-gradient(165deg,#221910 0%,var(--coal) 62%,#0c0908 100%)}
+    #eita-quiz .linha{display:flex;align-items:center;gap:16px}
+    #eita-quiz .linha img{width:110px;height:110px;object-fit:contain;flex:none}
+    #eita-quiz .btn{margin-top:auto}
+
+    /* parcerias e quem cria */
+    .parceiros{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+    .parceiro{padding:22px;border-radius:16px}
+    .parcerias .btn{margin-top:22px}
+    .sobre p{max-width:46rem;color:var(--mist);line-height:1.7}
+    .sobre h2{margin:8px 0 14px;font:700 1.7rem/1.15 var(--display);letter-spacing:.08em}
+    footer{margin-top:40px;border-top:1px solid var(--line)}
+    .rodape{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 18px;padding:24px 0 40px;font-size:15px;color:var(--mist)}
+    .rodape a{display:inline-flex;align-items:center;gap:8px;min-height:44px;text-decoration:none}
+
+    /* entrada com código */
+    .entrar{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px 12px;margin-top:16px}
+    .entrar label{display:flex;flex-direction:column;gap:6px;font:500 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--gold2)}
+    .entrar select,.entrar input{min-height:48px;padding:0 12px;border-radius:10px;border:1.5px solid var(--line2);background:#0c0908;color:var(--cream);font:500 16px var(--sans,Inter,system-ui,sans-serif)}
+    .entrar .campo-jogo{flex:2 1 220px}.entrar .campo-codigo{flex:1 1 130px}
+    .entrar input{text-transform:uppercase;letter-spacing:.2em;font-family:var(--mono)}
+    .entrar .btn{flex:0 0 auto;min-height:48px}
+    .entrar select,.entrar input{width:100%;min-width:0;max-width:100%}
+    .entrar-erro{flex:1 1 100%;margin:0;min-height:1.2em;font:500 13px var(--mono);color:#ffb38a}
+    /* como começa */
+    .na-sala{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin:22px 0 0;padding:0;list-style:none}
+    .na-sala li{padding:18px 20px;border-radius:16px;border:1px dashed var(--line2);color:var(--mist);font-size:15px;line-height:1.55}
+    .na-sala b{display:block;margin-bottom:4px;color:var(--gold2);font:700 12px var(--mono);letter-spacing:.12em;text-transform:uppercase}
+
+    @media(max-width:640px){
+      html{scroll-padding-top:64px}
+      .nav{flex-wrap:nowrap;min-height:56px;padding:6px 0;gap:10px}
+      .brand{gap:8px;min-width:0}.brand img{width:36px;height:36px}
+      .brand small{display:none}.brand b{font-size:.9rem;letter-spacing:.1em;white-space:nowrap}
+      .nav-links{flex-wrap:nowrap;gap:0 12px;font-size:14px}
+      .nav-links>a:not(.portal){display:none}
+      .nav-links .portal{padding:0 12px;font-size:12px;white-space:nowrap}
+      .so-largo{display:none}
+      .hero{padding-top:28px}
+      .acoes .btn{flex:1 1 100%}
+      .game{padding:20px 16px}.game h3{font-size:1.6rem}
+      .qr img{width:112px;height:112px}
+    }
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.btn{transition:none}}
+  </style>
+</head><body>
+<header class="topbar"><nav class="nav shell" aria-label="Principal">
+  <a class="brand" href="#inicio"><img src="brand/dragon-mark.webp" alt="" width="44" height="44"/><span><b>DRAGON GAMES</b><small>Jogos na mesa. No celular.</small></span></a>
+  <div class="nav-links">
+    <a href="#jogos">Jogos</a><a href="#como-se-joga">Como se joga</a><a href="#parcerias">Parcerias</a>
+    <a class="portal" href="https://drmarionascimento.com.br/"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg><span class="so-largo">Voltar pelo</span>portal</a>
+  </div>
+</nav></header>
+
+<main>
+<section class="hero shell" id="inicio">
+  <div class="hero-texto">
+    <p class="eyebrow">Do outro lado do portal · Florianópolis · SC</p>
+    <h1>DRAGON<br/><span>GAMES</span></h1>
+    <p class="slogan">Ninguém tem todos os fatos.</p>
+    <p class="lead">Jogos de dedução para jogar em grupo: todos na mesma sala, cada pessoa com um pedaço da verdade no próprio celular. Conectar pistas, separar fatos de interpretações e chegar a uma conclusão que as evidências sustentam.</p>
+    <div class="acoes"><a class="btn btn-ouro" href="#jogos">Conheça os jogos</a><a class="btn btn-fantasma" href="#parcerias">Levar para o meu grupo</a></div>
+  </div>
+  <div class="emblema"><img src="brand/dragon.webp" alt="Emblema da Dragon Games" width="720" height="857" fetchpriority="high"/></div>
+</section>
+
+<section class="shell" aria-labelledby="convite-titulo">
+  <div class="cartao convite">
+    <div class="convite-texto">
+      <h2 id="convite-titulo">Recebeu um código ou QR?</h2>
+      <p>Alguém já abriu a mesa para você. Aponte a câmera para o QR da partida no telão, ou abra o link que recebeu e digite o código. Abre no navegador, sem instalar nada.</p>
+      <form class="entrar" id="entrar" novalidate>
+        <label class="campo-jogo">Jogo
+          <select id="entrar-jogo" required>
+            <option value="https://casa-da-costa.dragongames.dev.br/a-mesa/MOSAICO-mesa.html">A Casa da Costa · A Mesa</option>
+            <option value="https://casa-da-costa.dragongames.dev.br/o-impostor/mesa.html">A Casa da Costa · O Impostor</option>
+            <option value="https://carro-forte.dragongames.dev.br/a-mesa/celular.html">A Manhã do Carro-Forte · A Mesa</option>
+            <option value="https://carro-forte.dragongames.dev.br/o-impostor/mesa.html">A Manhã do Carro-Forte · O Impostor</option>
+            <option value="https://eco-do-amanha.dragongames.dev.br/o-impostor/mesa.html">O Eco do Amanhã · O Impostor</option>
+          </select></label>
+        <label class="campo-codigo">Código
+          <input id="entrar-codigo" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="8" placeholder="ABC123"/></label>
+        <button class="btn btn-ouro" type="submit">Entrar</button>
+        <p class="entrar-erro" id="entrar-erro" role="alert"></p>
+      </form>
+      <p class="nota">Sem convite não dá para jogar sozinho por aqui: as partidas acontecem com um Mestre na mesa.</p>
+    </div>
+    <figure class="qr"><img src="brand/qr-dragongames.svg" alt="QR Code que abre dragongames.dev.br" width="132" height="132"/><figcaption>Este QR abre esta página. Mostre no telão e todos chegam aqui sem digitar.</figcaption></figure>
+  </div>
+</section>
+
+<section class="secao shell" id="como-se-joga">
+  <p class="eyebrow">Como se joga</p>
+  <h2 class="titulo-secao">Uma sala, um telão, os celulares de todos</h2>
+  <p class="sub-secao">Nenhum aplicativo para instalar: o jogo abre no navegador.</p>
+  <ol class="passos">
+    <li class="cartao"><span class="n">01</span><b>A cena na tela grande</b><span>Um telão, TV ou computador mostra a história e o andamento da partida para todo o grupo.</span></li>
+    <li class="cartao"><span class="n">02</span><b>Um fragmento em cada celular</b><span>Cada pessoa recebe pistas diferentes e examina objetos em realidade aumentada.</span></li>
+    <li class="cartao"><span class="n">03</span><b>Trocar, desconfiar, deduzir</b><span>O grupo negocia informações e discute versões. No fim, cada um dá a sua resposta e o jogo revela quem chegou mais perto.</span></li>
+  </ol>
+  <div class="modos">
+    <div class="modo"><b>A Mesa</b><p>Todos atrás da mesma verdade. A resposta existe; vocês é que ainda não a têm.</p></div>
+    <div class="modo"><b>O Impostor</b><p>Um dos personagens mente. O sistema já sabe quem; vocês têm de descobrir.</p></div>
+  </div>
+  <p class="nota-modos">O jogo é em grupo. A partida é individual.</p>
+</section>
+
+<section class="secao shell" id="jogos">
+  <p class="eyebrow">Catálogo</p>
+  <h2 class="titulo-secao" style="margin-bottom:24px">Os jogos</h2>
+  <div class="jogos">
+
+    <article class="game" id="casa-da-costa">
+      <div class="game-texto">
+        <div class="topo-card"><span class="eyebrow">MOSAICO · mistério</span><span class="status status-fechado">Testes fechados</span></div>
+        <h3>A Casa da Costa</h3>
+        <p class="sinopse">Uma casa isolada, uma tempestade e uma verdade dividida entre os participantes.</p>
+        <ul class="ficha"><li class="pilula">2 a 12 jogadores</li><li class="pilula">até 1 hora</li><li class="pilula">cada um no próprio celular</li></ul>
+        <div class="versoes">
+          <div class="ver"><b>A Mesa</b><span>O grupo inteiro atrás da mesma verdade sobre a noite da tempestade.</span><a class="entrada-equipe" href="https://casa-da-costa.dragongames.dev.br/a-mesa/">Entrada da equipe de testes →</a></div>
+          <div class="ver"><b>O Impostor</b><span>Alguém naquela casa mente sobre a noite. Descubram quem.</span><a class="entrada-equipe" href="https://casa-da-costa.dragongames.dev.br/o-impostor/">Entrada da equipe de testes →</a></div>
+        </div>
+      </div>
+      <div class="pecas" aria-hidden="true"><img src="brand/jogos/casos/cc-o-relogio.webp" alt="" width="300" height="450" loading="lazy"/><img src="brand/jogos/casos/cc-21h34.webp" alt="" width="300" height="450" loading="lazy"/><img src="brand/jogos/casos/cc-o-farol.webp" alt="" width="300" height="450" loading="lazy"/></div>
+    </article>
+
+    <article class="game" id="carro-forte">
+      <div class="game-texto">
+        <div class="topo-card"><span class="eyebrow">MOSAICO · investigação</span><span class="status status-fechado">Testes fechados</span></div>
+        <h3>A Manhã do Carro-Forte</h3>
+        <p class="sinopse">O carro-forte chega cedo. Um malote vazio e versões conflitantes colocam a mesma manhã sob investigação.</p>
+        <ul class="ficha"><li class="pilula">até 1 hora</li><li class="pilula">cada um no próprio celular</li></ul>
+        <div class="versoes">
+          <div class="ver"><b>A Mesa</b><span>O grupo inteiro atrás do que aconteceu com o malote naquela manhã.</span><a class="entrada-equipe" href="https://carro-forte.dragongames.dev.br/a-mesa/">Entrada da equipe de testes →</a></div>
+          <div class="ver"><b>O Impostor</b><span>Uma das versões da manhã é mentira. Descubram de quem.</span><a class="entrada-equipe" href="https://carro-forte.dragongames.dev.br/o-impostor/">Entrada da equipe de testes →</a></div>
+        </div>
+      </div>
+      <div class="pecas" aria-hidden="true"><img src="brand/jogos/casos/cf-relogio.webp" alt="" width="300" height="450" loading="lazy"/><img src="brand/jogos/casos/cf-o-malote.webp" alt="" width="300" height="450" loading="lazy"/><img src="brand/jogos/casos/cf-o-carro-forte.webp" alt="" width="300" height="450" loading="lazy"/></div>
+    </article>
+
+    <article class="game" id="eco-do-amanha">
+      <div class="game-texto">
+        <div class="topo-card"><span class="eyebrow">MOSAICO · ficção científica</span><span class="status status-fechado">Testes fechados</span></div>
+        <h3>O Eco do Amanhã</h3>
+        <p class="sinopse">Às seis da manhã, o Echo, o implante que guarda e devolve memórias, chega ao mundo. Até lá, quem está na Torre de Continuidade fica preso, e noventa e sete segundos de escuridão deixam quinze versões da mesma noite.</p>
+        <ul class="ficha"><li class="pilula">até 1 hora</li><li class="pilula">realidade aumentada</li></ul>
+        <div class="versoes">
+          <div class="ver"><b>O Impostor</b><span>Quinze versões dos noventa e sete segundos, e uma delas mente.</span><a class="entrada-equipe" href="https://eco-do-amanha.dragongames.dev.br/o-impostor/">Entrada da equipe de testes →</a></div>
+        </div>
+      </div>
+      <div class="pecas" aria-hidden="true"><img src="brand/jogos/casos/eco-a-torre.webp" alt="" width="300" height="450" loading="lazy"/><img src="brand/jogos/casos/eco-a-sala-de-crise.webp" alt="" width="300" height="450" loading="lazy"/><img src="brand/jogos/casos/eco-o-subsolo.webp" alt="" width="300" height="450" loading="lazy"/></div>
+    </article>
+
+    <div class="par">
+      <article class="game external-game" id="mosaico-card">
+        <div class="topo-card"><span class="eyebrow">Cartas · dedução</span><span class="status status-fechado">Testes fechados</span></div>
+        <h3>Mosaico Card</h3>
+        <p class="sinopse" style="margin:0">Cada pessoa recebe pistas, negocia informações e usa as cartas para chegar à resposta antes dos outros. O mesmo jogo, em versões com temas diferentes.</p>
+        <ul class="ficha" style="margin:0"><li class="pilula">2 a 12 jogadores</li><li class="pilula">cada um no próprio celular</li><li class="pilula">2 versões</li></ul>
+        <div class="versoes-card">
+          <a href="https://mosaico-card.dragongames.dev.br/novo-testamento/"><img src="brand/jogos/mosaico-card-novo-testamento.webp" alt="" width="800" height="533" loading="lazy"/><b>Novo Testamento</b><small>Entrada da equipe de testes</small></a>
+          <a href="https://mosaico-card.dragongames.dev.br/filmes-e-series/"><img src="brand/jogos/mosaico-card-filmes-e-series.webp" alt="" width="800" height="533" loading="lazy"/><b>Filmes e Séries</b><small>Entrada da equipe de testes</small></a>
+        </div>
+      </article>
+      <article class="game external-game" id="eita-quiz">
+        <div class="topo-card"><span class="eyebrow">Quiz · cooperação</span><span class="status status-aberto">Testes abertos</span></div>
+        <div class="linha"><img src="brand/jogos/eita-alianca.webp" alt="Aliança dos animais do Eita!" width="520" height="520" loading="lazy"/><div><h3>Eita!</h3><p class="sinopse" style="margin:6px 0 0">Um quiz em aliança: cada pessoa escolhe seu animal e ajuda a turma a vencer o chefão.</p></div></div>
+        <p class="nota-modos" style="margin:0">Aberto ao público: quem conduz entra com Google; os participantes usam o código da sala.</p>
+        <a class="btn btn-ouro" href="https://eita.dragongames.dev.br/" target="_blank" rel="noopener noreferrer">Jogar Eita!</a>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="secao shell parcerias" id="parcerias">
+  <p class="eyebrow">Parcerias</p>
+  <h2 class="titulo-secao">Leve o MOSAICO para o seu grupo</h2>
+  <p class="sub-secao">As histórias estão em testes fechados, e a Dragon Games está aberta a parcerias para levar os jogos a novos lugares.</p>
+  <div class="parceiros">
+    <div class="parceiro cartao"><b>Escolas e universidades</b><span>Leitura crítica, argumentação e decisões com base em evidências.</span></div>
+    <div class="parceiro cartao"><b>Eventos e festivais</b><span>Uma investigação coletiva ao vivo, com o público nos celulares.</span></div>
+    <div class="parceiro cartao"><b>Empresas e equipes</b><span>Cooperar e decidir quando ninguém tem a informação completa.</span></div>
+    <div class="parceiro cartao"><b>Estúdios e criadores</b><span>Coprodução, novas histórias, temas e plataformas.</span></div>
+  </div>
+  <ul class="na-sala" aria-label="O que a sala precisa">
+    <li><b>Uma tela grande</b>TV, projetor ou computador para a cena que o grupo inteiro acompanha.</li>
+    <li><b>Um celular por pessoa</b>Com internet e navegador. Ninguém instala aplicativo.</li>
+    <li><b>Até uma hora</b>Uma partida das histórias MOSAICO cabe em um encontro.</li>
+    <li><b>Como começa</b>Conte quem é o grupo, quantas pessoas e onde vão jogar. A partir daí combinamos a história e o teste.</li>
+  </ul>
+  <a class="btn btn-ouro" href="mailto:mariocnascimento@gmail.com?subject=Parceria%20Dragon%20Games">Conversar sobre parceria</a>
+</section>
+
+<section class="secao shell sobre" id="sobre" aria-labelledby="studio-sobre-titulo">
+  <p class="eyebrow">Studio de Games · uma startup ainda sem o Up</p>
+  <h2 id="studio-sobre-titulo">Quem cria</h2>
+  <p>A Dragon Games é o estúdio de <strong>Mário César Nascimento</strong>, professor universitário de Fisiologia Humana, Ética e formação em pesquisa, e de <strong>Osana Melo Nascimento</strong>. Os jogos nascem de uma pergunta que atravessa a sala de aula: como chegar a uma conclusão quando ninguém tem todos os fatos?</p>
+  <p>Para conhecer os simuladores e os recursos de Fisiologia, Ética e Pesquisa, <a href="https://www.drmarionascimento.com.br/#acesso-publico">atravesse de volta para o portal do Prof. Mário</a>.</p>
+</section>
+</main>
+
+<footer><div class="rodape shell">
+  <span>Dragon Games · Florianópolis · SC · Brasil · <a href="mailto:mariocnascimento@gmail.com?subject=Dragon%20Games" style="display:inline;min-height:0">Contato</a></span>
+  <a href="https://drmarionascimento.com.br/"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>Voltar pelo portal ao universo do Prof. Mário</a>
+</div></footer>
+<script>
+(function(){
+  var f=document.getElementById('entrar');if(!f)return;
+  var c=document.getElementById('entrar-codigo'),j=document.getElementById('entrar-jogo'),e=document.getElementById('entrar-erro');
+  c.addEventListener('input',function(){c.value=c.value.toUpperCase().replace(/[^A-Z0-9]/g,'');e.textContent='';});
+  f.addEventListener('submit',function(ev){
+    ev.preventDefault();
+    var v=c.value.trim();
+    if(!/^[A-Z0-9]{4,8}$/.test(v)){e.textContent='Digite o código que aparece no telão.';c.focus();return;}
+    var u=new URL(j.value);
+    if(!/\.dragongames\.dev\.br$/.test(u.hostname))return;
+    u.searchParams.set('sala',v);location.href=u.toString();
+  });
+})();
+</script>
+</body>
+</html>
