@@ -183,6 +183,12 @@
     .entrar .btn{flex:0 0 auto;min-height:48px}
     .entrar select,.entrar input{width:100%;min-width:0;max-width:100%}
     .entrar-erro{flex:1 1 100%;margin:0;min-height:1.2em;font:500 13px var(--mono);color:#ffb38a}
+    /* escolas */
+    .escola{display:flex;flex-wrap:wrap;gap:0;overflow:hidden}
+    .escola img{flex:1 1 360px;min-width:0;width:100%;height:auto;max-height:340px;object-fit:cover;object-position:top}
+    .escola-texto{flex:1 1 380px;min-width:0;padding:26px}
+    .escola-texto h3{margin:0 0 10px;font:700 1.6rem var(--display);letter-spacing:.06em;color:var(--gold2)}
+    .escola-texto p{margin:0 0 14px;color:var(--mist);line-height:1.6;text-wrap:pretty}
     /* como começa */
     .na-sala{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin:22px 0 0;padding:0;list-style:none}
     .na-sala li{padding:18px 20px;border-radius:16px;border:1px dashed var(--line2);color:var(--mist);font-size:15px;line-height:1.55}
@@ -360,6 +366,20 @@
       <div class="pecas" aria-hidden="true"><img src="brand/jogos/casos/eco-a-torre.webp" alt="" width="300" height="450" loading="lazy"/><img src="brand/jogos/casos/eco-a-sala-de-crise.webp" alt="" width="300" height="450" loading="lazy"/><img src="brand/jogos/casos/eco-o-subsolo.webp" alt="" width="300" height="450" loading="lazy"/></div>
     </article>
 
+  </div>
+</section>
+
+<section class="secao shell" id="escolas" aria-labelledby="escolas-titulo">
+  <p class="eyebrow">Para professores e escolas</p>
+  <h2 class="titulo-secao" id="escolas-titulo">A sua aula vira um caso para resolver</h2>
+  <div class="cartao escola">
+    <img src="brand/jogos/mosaico-sala-telao.webp" alt="Telão do MOSAICO Sala com um caso em andamento" width="960" height="640" loading="lazy"/>
+    <div class="escola-texto">
+      <h3>MOSAICO · Sala</h3>
+      <p>O professor transforma o conteúdo em uma atividade de dedução: cada grupo recebe um pedaço da resposta e a turma só chega lá trocando o que sabe. A turma entra com o código que aparece na tela, e você conduz pelo celular.</p>
+      <ul class="ficha"><li class="pilula">a turma inteira</li><li class="pilula">em grupos</li><li class="pilula">você monta a aula</li></ul>
+      <div class="acoes" style="margin-top:18px"><a class="btn btn-ouro" href="https://mosaico-sala.web.app/">Conhecer o MOSAICO Sala</a><a class="btn btn-fantasma" href="https://mosaico-sala.web.app/manual">Ler o manual</a></div>
+    </div>
   </div>
 </section>
 
