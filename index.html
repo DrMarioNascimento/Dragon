@@ -92,9 +92,10 @@
     .convite h2{margin:0 0 6px;font:700 1.2rem var(--display);letter-spacing:.06em;color:var(--gold2)}
     .convite p{margin:0;color:var(--mist);font-size:16px}
     .convite .nota{margin-top:8px;font:500 13px var(--mono);letter-spacing:.02em}
-    .qr{flex:none;display:flex;align-items:center;gap:14px;margin:0}
+    .qr{flex:none;display:flex;flex-direction:column;align-items:center;gap:10px;margin:0 auto}
     .qr img{width:132px;height:132px;border-radius:10px;border:3px solid var(--gold);box-shadow:0 5px 0 var(--lip)}
-    .qr figcaption{max-width:9.5rem;font:500 12px/1.45 var(--mono);color:var(--mist)}
+    .qr figcaption{max-width:12.5rem;font:500 12px/1.45 var(--mono);color:var(--mist);text-align:center;text-wrap:balance}
+    .convite p,.sobre p,.sub-secao{text-wrap:pretty}
 
     /* como se joga */
     .secao{padding:64px 0 24px}
@@ -143,6 +144,14 @@
     .parcerias .btn{margin-top:22px}
     .sobre p{max-width:46rem;color:var(--mist);line-height:1.7}
     .sobre h2{margin:8px 0 14px;font:700 1.7rem/1.15 var(--display);letter-spacing:.08em}
+    .sobre .junto{white-space:nowrap}
+    .sobre .eyebrow{text-wrap:balance}
+    @media(min-width:960px){
+      .sobre{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);column-gap:48px;align-items:start}
+      .sobre .eyebrow{grid-column:1;grid-row:1}.sobre h2{grid-column:1;grid-row:2}
+      .sobre-texto{grid-column:2;grid-row:1/span 3}
+      .sobre-texto p{max-width:none}.sobre-texto p:first-child{margin-top:0}
+    }
     footer{margin-top:40px;border-top:1px solid var(--line)}
     .rodape{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 18px;padding:24px 0 40px;font-size:15px;color:var(--mist)}
     .rodape a{display:inline-flex;align-items:center;gap:8px;min-height:44px;text-decoration:none}
@@ -328,8 +337,10 @@
 <section class="secao shell sobre" id="sobre" aria-labelledby="studio-sobre-titulo">
   <p class="eyebrow">Studio de Games · uma startup ainda sem o Up</p>
   <h2 id="studio-sobre-titulo">Quem cria</h2>
+  <div class="sobre-texto">
   <p>A Dragon Games é o estúdio de <strong>Mário César Nascimento</strong>, professor universitário de Fisiologia Humana, Ética e formação em pesquisa, e de <strong>Osana Melo Nascimento</strong>. Os jogos nascem de uma pergunta que atravessa a sala de aula: como chegar a uma conclusão quando ninguém tem todos os fatos?</p>
-  <p>Para conhecer os simuladores e os recursos de Fisiologia, Ética e Pesquisa, <a href="https://www.drmarionascimento.com.br/#acesso-publico">atravesse de volta para o portal do Prof. Mário</a>.</p>
+  <p>Para conhecer os simuladores e os recursos de Fisiologia, Ética e Pesquisa, <a href="https://www.drmarionascimento.com.br/#acesso-publico">atravesse de volta para o <span class="junto">portal do Prof. Mário</span></a>.</p>
+  </div>
 </section>
 </main>
 
