@@ -8,9 +8,9 @@ import {runInNewContext} from 'node:vm';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const html=readFileSync(resolve(root,'index.html'),'utf8');
 const tracked=new Set(execFileSync('git',['ls-files','-z'],{cwd:root,encoding:'utf8'}).split('\0'));
-test('Eita está aberto e os quatro jogos protegidos continuam identificados como fechados',()=>{
+test('Eita e Mosaico Card estão abertos e os três casos MOSAICO continuam identificados como fechados',()=>{
  const cards=[...html.matchAll(/<article\b[^>]*class="game[^>]*>[\s\S]*?<\/article>/g)].map(m=>m[0]);assert.equal(cards.length,5);
- for(const card of cards){assert.match(card,/id="eita-quiz"/.test(card)?/status-aberto">Testes abertos/:/status-fechado">Testes fechados/);}
+ for(const card of cards){assert.match(card,/id="(?:eita-quiz|mosaico-card)"/.test(card)?/status-aberto">Testes abertos/:/status-fechado">Testes fechados/);}
  assert.match(cards.find(s=>/id="eita-quiz"/.test(s)),/Google/);
  assert.match(html,/https:\/\/www.drmarionascimento.com.br\/#acesso-publico/);
 });
