@@ -82,7 +82,16 @@
     .hero h1 span{background:linear-gradient(180deg,var(--gold2),var(--gold) 55%,var(--ember));-webkit-background-clip:text;background-clip:text;color:transparent}
     .slogan{margin:22px 0 0;font-size:clamp(1.3rem,2.6vw,1.8rem);font-weight:500;line-height:1.3}
     .hero .lead{margin:16px 0 0;max-width:34rem;font-size:1.05rem;color:var(--mist)}
-    .acoes{margin-top:28px;display:flex;flex-wrap:wrap;gap:14px}
+    .acoes{margin-top:24px;display:flex;flex-wrap:wrap;gap:14px}
+    .frase-marca{color:var(--gold2);font-style:italic}
+    .selos{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 0;padding:0;list-style:none}
+    .selos li{padding:7px 12px;border-radius:999px;border:1px solid var(--line2);font:500 13px var(--mono);color:var(--cream);background:rgba(255,255,255,.02)}
+    .hero-grupo{margin:16px 0 0;font-size:15px}.hero-grupo a{color:var(--mist);text-underline-offset:4px}.hero-grupo a:hover{color:var(--gold2)}
+    .aberto-sub{margin:0 0 20px;max-width:44rem;color:var(--mist)}
+    #aberto #eita-quiz{padding:28px;border-color:rgba(243,208,120,.55)}
+    #aberto #eita-quiz .linha img{width:140px;height:140px}
+    .quero-testar{display:inline-flex;align-items:center;min-height:44px;margin-top:6px;font:700 13px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--gold2);text-decoration:none;border-bottom:1px solid rgba(243,208,120,.4)}
+    .quero-testar:hover{color:var(--cream)}
     .emblema{flex:1 1 280px;min-width:0;display:flex;justify-content:center;position:relative;isolation:isolate}
     .chegada{position:absolute;left:50%;top:46%;width:0;height:0;z-index:-1;pointer-events:none}
     .chegada::before{content:"";position:absolute;left:-190px;top:-130px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,#38e1c6 0,rgba(56,225,198,.35) 30%,rgba(56,225,198,0) 70%);opacity:.55}
@@ -209,7 +218,7 @@
 <header class="topbar"><nav class="nav shell" aria-label="Principal">
   <a class="brand" href="#inicio"><img src="brand/dragon-mark.webp" alt="" width="44" height="44"/><span><b>DRAGON GAMES</b><small>Jogos na mesa. No celular.</small></span></a>
   <div class="nav-links">
-    <a href="#jogos">Jogos</a><a href="#como-se-joga">Como se joga</a><a href="#parcerias">Parcerias</a>
+    <a href="#aberto">Jogos</a><a href="#como-se-joga">Como se joga</a><a href="#parcerias">Parcerias</a>
     <a class="portal" href="https://drmarionascimento.com.br/"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg><span class="so-largo">Voltar pelo</span>portal</a>
   </div>
 </nav></header>
@@ -219,18 +228,32 @@
   <div class="hero-texto">
     <p class="eyebrow">Do outro lado do portal · Florianópolis · SC</p>
     <h1>DRAGON<br/><span>GAMES</span></h1>
-    <p class="slogan">Ninguém tem todos os fatos.</p>
-    <p class="lead">Jogos de dedução para jogar em grupo: todos na mesma sala, cada pessoa com um pedaço da verdade no próprio celular. Conectar pistas, separar fatos de interpretações e chegar a uma conclusão que as evidências sustentam.</p>
-    <div class="acoes"><a class="btn btn-ouro" href="#jogos">Conheça os jogos</a><a class="btn btn-fantasma" href="#parcerias">Levar para o meu grupo</a></div>
+    <p class="slogan">Mistérios para resolver em grupo.</p>
+    <p class="lead">Reúna uns amigos: cada pessoa recebe pistas diferentes no próprio celular. Vocês trocam informações, desconfiam das versões e chegam juntos à verdade. <span class="frase-marca">Ninguém tem todos os fatos.</span></p>
+    <ul class="selos" aria-label="Como funciona"><li>Na mesma sala</li><li>Um celular por pessoa</li><li>Sem instalar nada</li><li>TV ou telão opcional</li></ul>
+    <div class="acoes"><a class="btn btn-ouro" href="#aberto">Jogar agora</a><a class="btn btn-fantasma" href="#convite-titulo">Tenho um código</a></div>
+    <p class="hero-grupo"><a href="#parcerias">Quer levar para a sua escola, evento ou equipe? →</a></p>
   </div>
   <div class="emblema"><div class="chegada" aria-hidden="true"><i style="animation-delay:-0.0s"></i><i style="animation-delay:-3.2s"></i><i style="animation-delay:-6.4s"></i><i style="animation-delay:-9.6s"></i><i style="animation-delay:-12.8s"></i><i style="animation-delay:-16.0s"></i><i style="animation-delay:-19.2s"></i><i style="animation-delay:-22.4s"></i><i style="animation-delay:-25.6s"></i><i style="animation-delay:-28.8s"></i></div><img src="brand/dragon.webp" alt="Emblema da Dragon Games" width="720" height="857" fetchpriority="high"/></div>
+</section>
+
+<section class="secao shell" id="aberto" aria-labelledby="aberto-titulo" style="padding-top:8px">
+  <p class="eyebrow">Aberto agora · para qualquer grupo</p>
+  <h2 class="titulo-secao" id="aberto-titulo">Comece pelo Eita!</h2>
+  <p class="aberto-sub">Reúna uns amigos ou a turma. Uma pessoa abre a sala e conduz; os outros entram pelo código, cada um no próprio celular.</p>
+      <article class="game external-game" id="eita-quiz">
+        <div class="topo-card"><span class="eyebrow">Quiz · cooperação</span><span class="status status-aberto">Testes abertos</span></div>
+        <div class="linha"><img src="brand/jogos/eita-alianca.webp" alt="Aliança dos animais do Eita!" width="520" height="520" loading="lazy"/><div><h3>Eita!</h3><p class="sinopse" style="margin:6px 0 0">Um quiz em aliança: cada pessoa escolhe seu animal e ajuda a turma a vencer o chefão.</p></div></div>
+        <p class="nota-modos" style="margin:0">Aberto ao público: quem conduz entra com Google; os participantes usam o código da sala.</p>
+        <a class="btn btn-ouro" href="https://eita.dragongames.dev.br/" target="_blank" rel="noopener noreferrer">Jogar o Eita! agora</a>
+      </article>
 </section>
 
 <section class="shell" aria-labelledby="convite-titulo">
   <div class="cartao convite">
     <div class="convite-texto">
       <h2 id="convite-titulo">Recebeu um código ou QR?</h2>
-      <p>Alguém já abriu a mesa para você. Aponte a câmera para o QR da partida no telão, ou abra o link que recebeu e digite o código. Abre no navegador, sem instalar nada.</p>
+      <p>Alguém já abriu a mesa para você. Aponte a câmera para o QR da partida, ou abra o link que recebeu e digite o código. Abre no navegador, sem instalar nada.</p>
       <form class="entrar" id="entrar" novalidate>
         <label class="campo-jogo">Jogo
           <select id="entrar-jogo" required>
@@ -247,17 +270,17 @@
       </form>
       <p class="nota">Sem convite não dá para jogar sozinho por aqui: as partidas acontecem com um Mestre na mesa.</p>
     </div>
-    <figure class="qr"><img src="brand/qr-dragongames.svg" alt="QR Code que abre dragongames.dev.br" width="132" height="132"/><figcaption>Este QR abre esta página. Mostre no telão e todos chegam aqui sem digitar.</figcaption></figure>
+    <figure class="qr"><img src="brand/qr-dragongames.svg" alt="QR Code que abre dragongames.dev.br" width="132" height="132"/><figcaption>Este QR abre esta página. Mostre numa tela e todos chegam aqui sem digitar.</figcaption></figure>
   </div>
 </section>
 
 <section class="secao shell" id="como-se-joga">
   <p class="eyebrow">Como se joga</p>
-  <h2 class="titulo-secao">Uma sala, um telão, os celulares de todos</h2>
+  <h2 class="titulo-secao">Uma sala e os celulares de todos</h2>
   <p class="sub-secao">Nenhum aplicativo para instalar: o jogo abre no navegador.</p>
   <ol class="passos">
-    <li class="cartao"><span class="n">01</span><b>A cena na tela grande</b><span>Um telão, TV ou computador mostra a história e o andamento da partida para todo o grupo.</span></li>
-    <li class="cartao"><span class="n">02</span><b>Um fragmento em cada celular</b><span>Cada pessoa recebe pistas diferentes e examina objetos em realidade aumentada.</span></li>
+    <li class="cartao"><span class="n">01</span><b>A história começa</b><span>Cada pessoa abre o jogo no próprio celular. Se houver uma TV ou telão, a cena passa ali para o grupo acompanhar junto. É opcional.</span></li>
+    <li class="cartao"><span class="n">02</span><b>Um fragmento em cada celular</b><span>Cada pessoa recebe pistas diferentes. Em alguns jogos, ainda examina objetos em realidade aumentada.</span></li>
     <li class="cartao"><span class="n">03</span><b>Trocar, desconfiar, deduzir</b><span>O grupo negocia informações e discute versões. No fim, cada um dá a sua resposta e o jogo revela quem chegou mais perto.</span></li>
   </ol>
   <div class="modos">
@@ -268,8 +291,9 @@
 </section>
 
 <section class="secao shell" id="jogos">
-  <p class="eyebrow">Catálogo</p>
-  <h2 class="titulo-secao" style="margin-bottom:24px">Os jogos</h2>
+  <p class="eyebrow">Em testes fechados</p>
+  <h2 class="titulo-secao">Os outros jogos</h2>
+  <p class="sub-secao">Estes ainda estão sendo testados com grupos convidados. Quer jogar com o seu? Peça para testar.</p>
   <div class="jogos">
 
     <article class="game" id="casa-da-costa">
@@ -282,6 +306,7 @@
           <div class="ver"><b>A Mesa</b><span>O grupo inteiro atrás da mesma verdade sobre a noite da tempestade.</span><a class="entrada-equipe" href="https://casa-da-costa.dragongames.dev.br/a-mesa/">Entrada da equipe de testes →</a></div>
           <div class="ver"><b>O Impostor</b><span>Alguém naquela casa mente sobre a noite. Descubram quem.</span><a class="entrada-equipe" href="https://casa-da-costa.dragongames.dev.br/o-impostor/">Entrada da equipe de testes →</a></div>
         </div>
+        <a class="quero-testar" href="mailto:contato@dragongames.dev.br?subject=Quero%20testar%3A%20A%20Casa%20da%20Costa">Quero testar este jogo →</a>
       </div>
       <div class="pecas" aria-hidden="true"><img src="brand/jogos/casos/cc-o-relogio.webp" alt="" width="300" height="450" loading="lazy"/><img src="brand/jogos/casos/cc-21h34.webp" alt="" width="300" height="450" loading="lazy"/><img src="brand/jogos/casos/cc-o-farol.webp" alt="" width="300" height="450" loading="lazy"/></div>
     </article>
@@ -296,6 +321,7 @@
           <div class="ver"><b>A Mesa</b><span>O grupo inteiro atrás do que aconteceu com o malote naquela manhã.</span><a class="entrada-equipe" href="https://carro-forte.dragongames.dev.br/a-mesa/">Entrada da equipe de testes →</a></div>
           <div class="ver"><b>O Impostor</b><span>Uma das versões da manhã é mentira. Descubram de quem.</span><a class="entrada-equipe" href="https://carro-forte.dragongames.dev.br/o-impostor/">Entrada da equipe de testes →</a></div>
         </div>
+        <a class="quero-testar" href="mailto:contato@dragongames.dev.br?subject=Quero%20testar%3A%20A%20Manh%C3%A3%20do%20Carro-Forte">Quero testar este jogo →</a>
       </div>
       <div class="pecas" aria-hidden="true"><img src="brand/jogos/casos/cf-relogio.webp" alt="" width="300" height="450" loading="lazy"/><img src="brand/jogos/casos/cf-o-malote.webp" alt="" width="300" height="450" loading="lazy"/><img src="brand/jogos/casos/cf-o-carro-forte.webp" alt="" width="300" height="450" loading="lazy"/></div>
     </article>
@@ -309,6 +335,7 @@
         <div class="versoes">
           <div class="ver"><b>O Impostor</b><span>Quinze versões dos noventa e sete segundos, e uma delas mente.</span><a class="entrada-equipe" href="https://eco-do-amanha.dragongames.dev.br/o-impostor/">Entrada da equipe de testes →</a></div>
         </div>
+        <a class="quero-testar" href="mailto:contato@dragongames.dev.br?subject=Quero%20testar%3A%20O%20Eco%20do%20Amanh%C3%A3">Quero testar este jogo →</a>
       </div>
       <div class="pecas" aria-hidden="true"><img src="brand/jogos/casos/eco-a-torre.webp" alt="" width="300" height="450" loading="lazy"/><img src="brand/jogos/casos/eco-a-sala-de-crise.webp" alt="" width="300" height="450" loading="lazy"/><img src="brand/jogos/casos/eco-o-subsolo.webp" alt="" width="300" height="450" loading="lazy"/></div>
     </article>
@@ -323,12 +350,7 @@
           <a href="https://mosaico-card.dragongames.dev.br/novo-testamento/"><img src="brand/jogos/mosaico-card-novo-testamento.webp" alt="" width="800" height="533" loading="lazy"/><b>Novo Testamento</b><small>Entrada da equipe de testes</small></a>
           <a href="https://mosaico-card.dragongames.dev.br/filmes-e-series/"><img src="brand/jogos/mosaico-card-filmes-e-series.webp" alt="" width="800" height="533" loading="lazy"/><b>Filmes e Séries</b><small>Entrada da equipe de testes</small></a>
         </div>
-      </article>
-      <article class="game external-game" id="eita-quiz">
-        <div class="topo-card"><span class="eyebrow">Quiz · cooperação</span><span class="status status-aberto">Testes abertos</span></div>
-        <div class="linha"><img src="brand/jogos/eita-alianca.webp" alt="Aliança dos animais do Eita!" width="520" height="520" loading="lazy"/><div><h3>Eita!</h3><p class="sinopse" style="margin:6px 0 0">Um quiz em aliança: cada pessoa escolhe seu animal e ajuda a turma a vencer o chefão.</p></div></div>
-        <p class="nota-modos" style="margin:0">Aberto ao público: quem conduz entra com Google; os participantes usam o código da sala.</p>
-        <a class="btn btn-ouro" href="https://eita.dragongames.dev.br/" target="_blank" rel="noopener noreferrer">Jogar Eita!</a>
+        <a class="quero-testar" href="mailto:contato@dragongames.dev.br?subject=Quero%20testar%3A%20Mosaico%20Card">Quero testar este jogo →</a>
       </article>
     </div>
   </div>
@@ -345,7 +367,7 @@
     <div class="parceiro cartao"><b>Estúdios e criadores</b><span>Coprodução, novas histórias, temas e plataformas.</span></div>
   </div>
   <ul class="na-sala" aria-label="O que a sala precisa">
-    <li><b>Uma tela grande</b>TV, projetor ou computador para a cena que o grupo inteiro acompanha.</li>
+    <li><b>TV ou telão, se quiser</b>Opcional: deixa a cena à vista de todos. Sem ela, tudo acontece nos celulares.</li>
     <li><b>Um celular por pessoa</b>Com internet e navegador. Ninguém instala aplicativo.</li>
     <li><b>Até uma hora</b>Uma partida das histórias MOSAICO cabe em um encontro.</li>
     <li><b>Como começa</b>Conte quem é o grupo, quantas pessoas e onde vão jogar. A partir daí combinamos a história e o teste.</li>
@@ -378,7 +400,7 @@
   f.addEventListener('submit',function(ev){
     ev.preventDefault();
     var v=c.value.trim();
-    if(!/^[A-Z0-9]{4,8}$/.test(v)){e.textContent='Digite o código que aparece no telão.';c.focus();return;}
+    if(!/^[A-Z0-9]{4,8}$/.test(v)){e.textContent='Digite o código da partida.';c.focus();return;}
     var u=new URL(j.value);
     if(!/\.dragongames\.dev\.br$/.test(u.hostname))return;
     u.searchParams.set('sala',v);location.href=u.toString();
