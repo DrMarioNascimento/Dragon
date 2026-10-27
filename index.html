@@ -176,6 +176,19 @@
     .na-sala li{padding:18px 20px;border-radius:16px;border:1px dashed var(--line2);color:var(--mist);font-size:15px;line-height:1.55}
     .na-sala b{display:block;margin-bottom:4px;color:var(--gold2);font:700 12px var(--mono);letter-spacing:.12em;text-transform:uppercase}
 
+    /* volta pelo túnel */
+    .volta{display:flex;flex-direction:column;align-items:center;gap:70px;padding:64px 0 100px;text-align:center}
+    .volta p{margin:0;font:500 12px var(--mono);letter-spacing:.18em;text-transform:uppercase;color:#38e1c6}
+    .volta-boca{position:relative;isolation:isolate}
+    .volta-aneis{position:absolute;left:50%;top:50%;width:0;height:0;z-index:-1;pointer-events:none}
+    .volta-aneis::after{content:"";position:absolute;left:-90px;top:-45px;width:180px;height:90px;border-radius:50%;background:radial-gradient(ellipse,rgba(56,225,198,.25),rgba(56,225,198,0) 70%)}
+    .volta-aneis i{position:absolute;left:-190px;top:-95px;width:380px;height:190px;border-radius:50%;border:2px solid #38e1c6;box-shadow:0 0 18px rgba(56,225,198,.16);opacity:0;animation:volta 20s cubic-bezier(.3,.45,.6,1) infinite}
+    @keyframes volta{0%{transform:scale(1);opacity:0;border-color:#f3d078}15%{opacity:.5}60%{border-color:#38e1c6}100%{transform:scale(.14);opacity:0;border-color:#38e1c6}}
+    @media(prefers-reduced-motion:reduce){.volta-aneis i{animation-play-state:paused}}
+    .btn-portal{min-height:56px;padding:0 28px;background:linear-gradient(180deg,#0f2a2a,#081616);color:#7ff0dd;border:1.5px solid rgba(56,225,198,.6);box-shadow:0 5px 0 #06302b,0 0 28px rgba(56,225,198,.18)}
+    .btn-portal:hover{color:#b8fff3;transform:translateY(-2px)}
+    @media(max-width:640px){.volta-aneis i{left:-160px;width:320px;top:-80px;height:160px}}
+
     @media(max-width:640px){
       html{scroll-padding-top:64px}
       .nav{flex-wrap:nowrap;min-height:56px;padding:6px 0;gap:10px}
@@ -348,11 +361,14 @@
   <p>Para conhecer os simuladores e os recursos de Fisiologia, Ética e Pesquisa, <a href="https://www.drmarionascimento.com.br/#acesso-publico">atravesse de volta para o <span class="junto">portal do Prof. Mário</span></a>.</p>
   </div>
 </section>
+<section class="volta shell" aria-label="Voltar ao portal">
+  <p>O túnel também leva de volta</p>
+  <div class="volta-boca"><div class="volta-aneis" aria-hidden="true"><i style="animation-delay:-0.0s"></i><i style="animation-delay:-2.5s"></i><i style="animation-delay:-5.0s"></i><i style="animation-delay:-7.5s"></i><i style="animation-delay:-10.0s"></i><i style="animation-delay:-12.5s"></i><i style="animation-delay:-15.0s"></i><i style="animation-delay:-17.5s"></i></div><a class="btn btn-portal" href="https://drmarionascimento.com.br/"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>Voltar ao portal</a></div>
+</section>
 </main>
 
 <footer><div class="rodape shell">
   <span>Dragon Games · Florianópolis · SC · Brasil · <a href="mailto:contato@dragongames.dev.br?subject=Dragon%20Games" style="display:inline;min-height:0">Contato</a></span>
-  <a href="https://drmarionascimento.com.br/"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>Voltar pelo portal ao universo do Prof. Mário</a>
 </div></footer>
 <script>
 (function(){
