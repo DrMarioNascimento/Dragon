@@ -37,6 +37,10 @@
        alfa, preto até o canto. E não é pré-arredondado de propósito, porque o
        iOS já aplica a máscara e canto arredondado duas vezes fica torto. -->
   <link rel="apple-touch-icon" sizes="180x180" href="brand/dragon-icon-180.png" />
+  <script>
+  // Chegada pelo túnel vindo do portal (?via=portal): a página nasce coberta pela mesma luz dourada em que o portal terminou e ela se dissolve.
+  (function(){try{var u=new URL(location.href);if(u.searchParams.get('via')!=='portal')return;u.searchParams.delete('via');history.replaceState(null,'',u.pathname+u.search+u.hash);if(!window.matchMedia||!matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('chega-portal');}catch(e){}})();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;800&family=IBM+Plex+Mono:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -220,6 +224,20 @@
       .emblema img{width:210px}.hero{padding-bottom:8px}
     }
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.btn{transition:none}}
+    /* travessia pelo túnel: chegada vinda do portal e volta para ele */
+    html.chega-portal body::after{content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;background:radial-gradient(circle at 50% 46%,rgba(255,231,163,.95) 0,rgba(245,181,68,.75) 12vmax,rgba(255,106,24,.35) 30vmax,rgba(7,6,5,0) 60vmax),#070605;animation:chega-luz 1.1s cubic-bezier(.3,.55,.35,1) .1s both}
+    @keyframes chega-luz{from{opacity:1}to{opacity:0}}
+    html.travessia{background:#020203;overflow:hidden}
+    body.avanca{animation:avanca .7s cubic-bezier(.45,0,.75,.4) forwards;pointer-events:none}
+    @keyframes avanca{to{transform:scale(1.14);opacity:0}}
+    .viagem{position:fixed;inset:0;z-index:9998;pointer-events:none;overflow:hidden;opacity:0;background:radial-gradient(circle at 50% 46%,#000 0,#0c0805 10%,#1f1007 28%,#070605 60%);animation:viagem-entra .55s ease-out .1s forwards}
+    @keyframes viagem-entra{to{opacity:1}}
+    .viagem i{position:absolute;left:50%;top:46%;width:130vmax;height:130vmax;margin:-65vmax 0 0 -65vmax;border-radius:50%;border:3px solid #e0b13a;opacity:0;animation:viagem-anel 1.25s cubic-bezier(.62,0,.92,.55) infinite;will-change:transform,opacity}
+    @keyframes viagem-anel{0%{transform:scale(.02);opacity:0;border-color:#ff6a18}14%{opacity:.7}55%{border-color:#f3d078}82%{opacity:.85;border-color:#38e1c6}100%{transform:scale(1.25);opacity:0;border-color:#38e1c6}}
+    .viagem .fim{position:absolute;left:50%;top:46%;width:60vmax;height:60vmax;margin:-30vmax 0 0 -30vmax;border-radius:50%;background:radial-gradient(circle,rgba(220,255,248,.95) 0,rgba(56,225,198,.6) 18%,rgba(78,169,255,.25) 40%,rgba(78,169,255,0) 70%);transform:scale(.08);opacity:.7;animation:viagem-fim 1.1s cubic-bezier(.5,0,.3,1) .45s forwards}
+    @keyframes viagem-fim{to{transform:scale(2.4);opacity:.85}}
+    .viagem .luz{position:absolute;inset:0;background:radial-gradient(circle at 50% 46%,rgba(220,255,248,.95) 0,rgba(56,225,198,.72) 12vmax,rgba(78,169,255,.3) 30vmax,rgba(3,5,10,0) 60vmax),#03050a;opacity:0;animation:viagem-luz .5s ease-in 1.15s forwards}
+    @keyframes viagem-luz{to{opacity:1}}
   </style>
 </head><body>
 <header class="topbar"><nav class="nav shell" aria-label="Principal">
@@ -401,7 +419,7 @@
   <h2 id="studio-sobre-titulo">Quem cria</h2>
   <div class="sobre-texto">
   <p>A Dragon Games é o estúdio de <strong>Mário César Nascimento</strong>, professor universitário de Fisiologia Humana, Ética e formação em pesquisa, e de <strong>Osana Melo Nascimento</strong>. Os jogos nascem de uma pergunta que atravessa a sala de aula: como chegar a uma conclusão quando ninguém tem todos os fatos?</p>
-  <p>Para conhecer os simuladores e os recursos de Fisiologia, Ética e Pesquisa, <a href="https://www.drmarionascimento.com.br/#acesso-publico">atravesse de volta para o <span class="junto">portal do Prof. Mário</span></a>.</p>
+  <p>Para conhecer os simuladores e os recursos de Fisiologia, Ética e Pesquisa, <a href="https://drmarionascimento.com.br/#acesso-publico">atravesse de volta para o <span class="junto">portal do Prof. Mário</span></a>.</p>
   </div>
 </section>
 <section class="volta shell" aria-label="Voltar ao portal">
@@ -426,6 +444,28 @@
     if(!/\.dragongames\.dev\.br$/.test(u.hostname))return;
     u.searchParams.set('sala',v);location.href=u.toString();
   });
+})();
+</script>
+<script>
+// Travessia de volta: os links para o portal atravessam o mesmo túnel, agora do dourado para o verde-água, e o portal abre nessa luz.
+(function(){
+  if(document.documentElement.classList.contains('chega-portal'))setTimeout(function(){document.documentElement.classList.remove('chega-portal');},1400);
+  if(!window.matchMedia||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  function destino(a){var u=new URL(a.href);u.hostname='drmarionascimento.com.br';u.searchParams.set('via','dragon');return u.toString();}
+  var links=[].slice.call(document.querySelectorAll('a[href^="https://drmarionascimento.com.br"]'));
+  var volta=document.querySelector('.volta');
+  if(volta&&'IntersectionObserver' in window){var io=new IntersectionObserver(function(es){if(!es.some(function(e){return e.isIntersecting;}))return;io.disconnect();var l=document.createElement('link');l.rel='prefetch';l.href=destino(links[0]);document.head.appendChild(l);},{rootMargin:'400px'});if(links.length)io.observe(volta);}
+  links.forEach(function(a){a.addEventListener('click',function(ev){
+    if(ev.metaKey||ev.ctrlKey||ev.shiftKey||ev.button)return;
+    ev.preventDefault();
+    var r=a.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,v=document.createElement('div'),html='',ir=destino(a);
+    for(var i=0;i<12;i++)html+='<i style="animation-delay:-'+(i*1.25/12).toFixed(3)+'s"></i>';
+    v.className='viagem';v.innerHTML=html+'<span class="fim"></span><span class="luz"></span>';
+    document.body.style.transformOrigin=(cx+window.scrollX)+'px '+(cy+window.scrollY)+'px';
+    document.documentElement.classList.add('travessia');document.body.classList.add('avanca');document.documentElement.appendChild(v);
+    setTimeout(function(){location.href=ir;},1680);setTimeout(function(){v.remove();},4000);
+  });});
+  window.addEventListener('pageshow',function(){document.querySelectorAll('.viagem').forEach(function(n){n.remove();});document.body.classList.remove('avanca');document.body.style.transformOrigin='';document.documentElement.classList.remove('travessia');});
 })();
 </script>
 </body>
