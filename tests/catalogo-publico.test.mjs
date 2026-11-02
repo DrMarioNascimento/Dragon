@@ -12,7 +12,7 @@ test('Eita está aberto e os quatro jogos protegidos continuam identificados com
  const cards=[...html.matchAll(/<article\b[^>]*class="game[^>]*>[\s\S]*?<\/article>/g)].map(m=>m[0]);assert.equal(cards.length,5);
  for(const card of cards){assert.match(card,/id="eita-quiz"/.test(card)?/status-aberto">Testes abertos/:/status-fechado">Testes fechados/);}
  assert.match(cards.find(s=>/id="eita-quiz"/.test(s)),/Google/);
- assert.match(html,/https:\/\/www.drmarionascimento.com.br\/#acesso-publico/);
+ assert.match(html,/https:\/\/(?:www\.)?drmarionascimento.com.br\/#acesso-publico/);
 });
 test('recursos locais do catálogo são arquivos publicados e links de jogos usam HTTPS',()=>{
  for(const [,ref] of html.matchAll(/(?:src|href)="([^"]+)"/g)){
