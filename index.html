@@ -148,11 +148,13 @@
     .par{display:flex;flex-wrap:wrap;gap:22px}
     .par>.game{flex:1 1 420px;flex-direction:column;gap:14px}
     .par h3{margin:0;font-size:1.7rem}
-    .versoes-card{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    .versoes-card{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px}
     .versoes-card a{display:flex;flex-direction:column;gap:8px;padding:10px;border-radius:12px;background:rgba(0,0,0,.28);border:1px solid var(--line);text-decoration:none;color:var(--cream)}
     .versoes-card img{width:100%;aspect-ratio:3/2;object-fit:cover;border-radius:8px}
     .versoes-card b{font:700 16px var(--display);letter-spacing:.04em}
-    .versoes-card small{font:500 12px var(--mono);color:var(--mist)}
+    .versoes-card small{font:500 12px var(--mono);color:var(--mist);margin-top:auto}
+    .versoes-card .modos{color:var(--mist);font-size:14px;line-height:1.45}
+    .versoes-card .modos{display:block}.versoes-card .modos b{display:inline;margin:0;font-weight:700;font-size:14px;font-family:inherit;color:var(--cream);letter-spacing:0}
     #eita-quiz{border-color:rgba(243,208,120,.45);background:radial-gradient(circle at 90% 0%,rgba(255,106,24,.13),transparent 40%),linear-gradient(165deg,#221910 0%,var(--coal) 62%,#0c0908 100%)}
     #eita-quiz .linha{display:flex;align-items:center;gap:16px}
     #eita-quiz .linha img{width:110px;height:110px;object-fit:contain;flex:none}
@@ -371,10 +373,11 @@
         <div class="topo-card"><span class="eyebrow">Cartas · dedução</span><span class="status status-fechado">Testes fechados</span></div>
         <h3>Mosaico Card</h3>
         <p class="sinopse" style="margin:0">Cada pessoa recebe pistas, negocia informações e usa as cartas para chegar à resposta antes dos outros. O mesmo jogo, em versões com temas diferentes.</p>
-        <ul class="ficha" style="margin:0"><li class="pilula">2 a 12 jogadores</li><li class="pilula">cada um no próprio celular</li><li class="pilula">2 versões</li></ul>
+        <ul class="ficha" style="margin:0"><li class="pilula">2 a 12 jogadores</li><li class="pilula">cada um no próprio celular</li><li class="pilula">3 versões</li></ul>
         <div class="versoes-card">
-          <a href="https://mosaico-card.dragongames.dev.br/novo-testamento/"><img src="brand/jogos/mosaico-card-novo-testamento.webp" alt="" width="800" height="533" loading="lazy"/><b>Novo Testamento</b><small>Já é testador? Entrar →</small></a>
-          <a href="https://mosaico-card.dragongames.dev.br/filmes-e-series/"><img src="brand/jogos/mosaico-card-filmes-e-series.webp" alt="" width="800" height="533" loading="lazy"/><b>Filmes e Séries</b><small>Já é testador? Entrar →</small></a>
+          <a href="https://mosaico-card.dragongames.dev.br/novo-testamento/"><img src="brand/jogos/mosaico-card-novo-testamento.webp" alt="" width="800" height="533" loading="lazy"/><b>Novo Testamento</b><span class="modos"><b>Modos:</b> Devocional e Pastor, para ver se conhece as histórias ou, se preferir, encarar pistas e perguntas aprofundadas de quem estuda a Bíblia.</span><small>Já é testador? Entrar →</small></a>
+          <a href="https://mosaico-card.dragongames.dev.br/filmes-e-series/"><img src="brand/jogos/mosaico-card-filmes-e-series.webp" alt="" width="800" height="533" loading="lazy"/><b>Filmes e Séries</b><span class="modos"><b>Modos:</b> Top 50 e Catálogo completo, para ver se reconhece os títulos mais conhecidos ou, se preferir, encarar o catálogo inteiro.</span><small>Já é testador? Entrar →</small></a>
+          <a href="https://mosaico-card.dragongames.dev.br/lugares/"><img src="brand/jogos/mosaico-card-lugares.webp" alt="" width="1000" height="563" loading="lazy"/><b>Lugares</b><span class="modos"><b>Modos:</b> Viajante e Geógrafo, para ver se conhece os lugares ou, se preferir, interpretar pistas mais complexas sobre os cenários.</span><small>Já é testador? Entrar →</small></a>
         </div>
         <a class="quero-testar" href="mailto:contato@dragongames.dev.br?subject=Quero%20testar%3A%20Mosaico%20Card">Quero testar este jogo →</a>
       </article>
