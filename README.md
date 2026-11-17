@@ -51,6 +51,7 @@ O portal também apresenta jogos mantidos em repositórios independentes:
 
 - **Mosaico Card — duas versões:** [Página do projeto](https://mosaico-card.dragongames.dev.br/) · [Repositório](https://github.com/DrMarioNascimento/Mosaico-Card). Pistas, negociação e dedução nas versões Novo Testamento e Filmes e Séries.
 - **Eita!:** [Página do projeto](https://eita.dragongames.dev.br/). Quiz em aliança para enfrentar o chefão; testes abertos.
+- **Ética em testes abertos (desde 17/11/2026):** a página inicial lista Mosaico Vila Ética, Casos Éticos, Casos Éticos 2 e Dilema do Bonde, hospedados em `etica.drmarionascimento.com.br`, sem cadastro.
 
 Esses cards têm imagens locais em `brand/jogos/` e links para os sites dos jogos;
 suas implementações não são copiadas nem alteradas neste repositório.

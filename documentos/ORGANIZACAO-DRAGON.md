@@ -25,6 +25,7 @@ Eita! está em testes abertos desde 20/10/2026: qualquer conta Google pode condu
 |---|---|---|
 | Mosaico Card | `mosaico-card.dragongames.dev.br` (`/novo-testamento/`, `/filmes-e-series/`) | Testes fechados; conta de mestre autorizada para criar sala. Atalho: `/mosaico-card/`. |
 | Eita! | `eita.dragongames.dev.br` | Testes abertos; Firebase Hosting. Atalho: `/eita/`. |
+| Ética (Mosaico Vila Ética, Casos Éticos 1 e 2, Dilema do Bonde) | `etica.drmarionascimento.com.br` | Testes abertos desde 17/11/2026; só links na página inicial, sem cadastro. |
 | A Casa da Costa | https://casa-da-costa.dragongames.dev.br/ | Repositório próprio `casa-da-costa`; testes internos. |
 | A Manhã do Carro-Forte | https://carro-forte.dragongames.dev.br/ | Repositório próprio `carro-forte`; testes internos. |
 | O Eco do Amanhã | https://eco-do-amanha.dragongames.dev.br/ | Repositório próprio `eco-do-amanha`; testes internos. |
