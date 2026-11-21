@@ -64,6 +64,12 @@
     .btn-fantasma{background:linear-gradient(180deg,#241c16,var(--plate));color:var(--gold2);box-shadow:inset 0 1px rgba(243,208,120,.22),0 5px 0 var(--ground),0 10px 18px rgba(0,0,0,.4)}
     .btn-discord{background:linear-gradient(180deg,#6d79ff,#5865f2);color:#fff;box-shadow:inset 0 1px rgba(255,255,255,.35),0 5px 0 #353ea6,0 12px 22px rgba(0,0,0,.45)}.btn-discord:hover{color:#fff}
     .btn-discord:active{box-shadow:inset 0 1px rgba(255,255,255,.2),0 1px 0 #353ea6}
+    .ico-discord{display:inline-block;margin-bottom:6px;transition:transform .16s}.ico-discord img{display:block;width:96px;height:96px;filter:drop-shadow(0 8px 10px rgba(0,0,0,.5))}
+    .ico-discord:hover{transform:translateY(-3px)}.ico-discord:active{transform:translateY(3px) scale(.97)}
+    .parceria-contato{display:flex;align-items:center;gap:22px;margin-top:22px;flex-wrap:wrap}.parcerias .parceria-contato .btn{margin-top:0}
+    .dragao-carta{display:block;width:150px;height:150px;flex:0 0 auto;filter:drop-shadow(0 10px 12px rgba(0,0,0,.5))}
+    .parceria-email{margin:10px 0 0;font:500 14px var(--mono);color:var(--mist);overflow-wrap:anywhere}
+    @media(prefers-reduced-motion:reduce){.ico-discord{transition:none}}
     .comunidade{text-align:center}.comunidade .sub-secao{margin-left:auto;margin-right:auto}
     .cartao,.game{border-radius:18px;border:1.5px solid var(--line);background:linear-gradient(165deg,#221910 0%,var(--coal) 62%,#0c0908 100%);box-shadow:inset 0 1px rgba(243,208,120,.12),0 6px 0 var(--ground),0 18px 40px rgba(0,0,0,.55)}
     .pilula{padding:6px 10px;border-radius:999px;border:1px solid var(--line);font:500 13px var(--mono);color:var(--mist)}
@@ -442,14 +448,15 @@
     <li><b>Até uma hora</b>Uma partida das histórias MOSAICO cabe em um encontro.</li>
     <li><b>Como começa</b>Conte quem é o grupo, quantas pessoas e onde vão jogar. A partir daí combinamos a história e o teste.</li>
   </ul>
-  <a class="btn btn-ouro" href="mailto:contato@dragongames.dev.br?subject=Parceria%20Dragon%20Games">Conversar sobre parceria</a>
+  <div class="parceria-contato"><img class="dragao-carta" src="brand/dragao-email.webp" alt="" width="150" height="150" loading="lazy"><div><a class="btn btn-ouro" href="mailto:contato@dragongames.dev.br?subject=Parceria%20Dragon%20Games">Conversar sobre parceria</a><p class="parceria-email">contato@dragongames.dev.br</p></div></div>
 </section>
 
 <section class="secao shell comunidade" id="comunidade">
+  <a class="ico-discord" href="https://discord.gg/gMQkGvqJ6a" target="_blank" rel="noopener noreferrer" aria-label="Entrar no Discord da Dragon Games"><img src="brand/icone-discord.webp" alt="" width="96" height="96" loading="lazy"></a>
   <p class="eyebrow">Comunidade</p>
   <h2 class="titulo-secao">Converse com a gente no Discord</h2>
   <p class="sub-secao">Tire dúvidas, dê sugestões e fique sabendo das novidades dos jogos da Dragon Games.</p>
-  <a class="btn btn-discord" href="https://discord.gg/gMQkGvqJ6a" target="_blank" rel="noopener noreferrer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M9 11h.01M12 11h.01M15 11h.01"/></svg>Entrar no Discord</a>
+  <a class="btn btn-discord" href="https://discord.gg/gMQkGvqJ6a" target="_blank" rel="noopener noreferrer">Entrar no Discord</a>
 </section>
 
 <section class="secao shell sobre" id="sobre" aria-labelledby="studio-sobre-titulo">
