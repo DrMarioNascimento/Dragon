@@ -62,15 +62,11 @@
     .btn-ouro{background:linear-gradient(180deg,var(--gold2),var(--gold));color:#1a1206;box-shadow:inset 0 1px rgba(255,255,255,.45),0 5px 0 var(--lip),0 12px 22px rgba(0,0,0,.45)}.btn-ouro:hover{color:#1a1206}
     .btn-ouro:active{box-shadow:inset 0 1px rgba(255,255,255,.2),0 1px 0 var(--lip)}
     .btn-fantasma{background:linear-gradient(180deg,#241c16,var(--plate));color:var(--gold2);box-shadow:inset 0 1px rgba(243,208,120,.22),0 5px 0 var(--ground),0 10px 18px rgba(0,0,0,.4)}
-    .btn-discord{background:linear-gradient(180deg,#6d79ff,#5865f2);color:#fff;box-shadow:inset 0 1px rgba(255,255,255,.35),0 5px 0 #353ea6,0 12px 22px rgba(0,0,0,.45)}.btn-discord:hover{color:#fff}
-    .btn-discord:active{box-shadow:inset 0 1px rgba(255,255,255,.2),0 1px 0 #353ea6}
-    .ico-discord{display:inline-block;margin-bottom:6px;transition:transform .16s}.ico-discord img{display:block;width:96px;height:96px;filter:drop-shadow(0 8px 10px rgba(0,0,0,.5))}
-    .ico-discord:hover{transform:translateY(-3px)}.ico-discord:active{transform:translateY(3px) scale(.97)}
-    .parceria-contato{display:flex;align-items:center;gap:22px;margin-top:22px;flex-wrap:wrap}.parcerias .parceria-contato .btn{margin-top:0}
-    .dragao-carta{display:block;width:150px;height:150px;flex:0 0 auto;filter:drop-shadow(0 10px 12px rgba(0,0,0,.5))}
-    .parceria-email{margin:10px 0 0;font:500 14px var(--mono);color:var(--mist);overflow-wrap:anywhere}
-    @media(prefers-reduced-motion:reduce){.ico-discord{transition:none}}
-    .comunidade{text-align:center}.comunidade .sub-secao{margin-left:auto;margin-right:auto}
+    .canal-linha{display:flex;align-items:center;gap:22px;margin-top:22px}
+    .ico-canal{display:block;flex:0 0 auto;border-radius:22px;transition:transform .16s}.ico-canal img{display:block;width:var(--ico,96px);height:var(--ico,96px);filter:drop-shadow(0 8px 10px rgba(0,0,0,.5))}
+    .ico-canal:hover{transform:translateY(-3px)}.ico-canal:active{transform:translateY(3px) scale(.97)}.ico-canal:focus-visible{outline:3px solid var(--gold2);outline-offset:4px}
+    .canal-texto{flex:1 1 200px;min-width:0;margin:0;font:500 clamp(17px,2vw,21px)/1.5 var(--body);color:var(--cream)}.canal-texto strong{color:var(--gold2);white-space:nowrap}
+    @media(prefers-reduced-motion:reduce){.ico-canal{transition:none}}
     .cartao,.game{border-radius:18px;border:1.5px solid var(--line);background:linear-gradient(165deg,#221910 0%,var(--coal) 62%,#0c0908 100%);box-shadow:inset 0 1px rgba(243,208,120,.12),0 6px 0 var(--ground),0 18px 40px rgba(0,0,0,.55)}
     .pilula{padding:6px 10px;border-radius:999px;border:1px solid var(--line);font:500 13px var(--mono);color:var(--mist)}
     .status{display:inline-block;padding:5px 10px;border-radius:999px;font:700 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase}
@@ -448,15 +444,11 @@
     <li><b>Até uma hora</b>Uma partida das histórias MOSAICO cabe em um encontro.</li>
     <li><b>Como começa</b>Conte quem é o grupo, quantas pessoas e onde vão jogar. A partir daí combinamos a história e o teste.</li>
   </ul>
-  <div class="parceria-contato"><img class="dragao-carta" src="brand/dragao-email.webp" alt="" width="150" height="150" loading="lazy"><div><a class="btn btn-ouro" href="mailto:contato@dragongames.dev.br?subject=Parceria%20Dragon%20Games">Conversar sobre parceria</a><p class="parceria-email">contato@dragongames.dev.br</p></div></div>
+  <div class="canal-linha" style="--ico:150px"><a class="ico-canal" href="mailto:contato@dragongames.dev.br?subject=Parceria%20Dragon%20Games" aria-label="Escrever para contato@dragongames.dev.br" title="E-mail"><img src="brand/dragao-email.webp" alt="" width="150" height="150" loading="lazy"></a><p class="canal-texto">Quer trocar ideia ou conversar sobre parcerias? <strong>Me escreve</strong></p></div>
 </section>
 
-<section class="secao shell comunidade" id="comunidade">
-  <a class="ico-discord" href="https://discord.gg/gMQkGvqJ6a" target="_blank" rel="noopener noreferrer" aria-label="Entrar no Discord da Dragon Games"><img src="brand/icone-discord.webp" alt="" width="96" height="96" loading="lazy"></a>
-  <p class="eyebrow">Comunidade</p>
-  <h2 class="titulo-secao">Converse com a gente no Discord</h2>
-  <p class="sub-secao">Tire dúvidas, dê sugestões e fique sabendo das novidades dos jogos da Dragon Games.</p>
-  <a class="btn btn-discord" href="https://discord.gg/gMQkGvqJ6a" target="_blank" rel="noopener noreferrer">Entrar no Discord</a>
+<section class="secao shell comunidade" id="comunidade" aria-label="Comunidade no Discord">
+  <div class="canal-linha"><a class="ico-canal" href="https://discord.gg/gMQkGvqJ6a" target="_blank" rel="noopener noreferrer" aria-label="Entrar no Discord da Dragon Games" title="Discord"><img src="brand/icone-discord.webp" alt="" width="96" height="96" loading="lazy"></a><p class="canal-texto">Tire dúvidas, dê sugestões e fique sabendo das novidades dos jogos da Dragon Games. <strong>Entre no Discord</strong></p></div>
 </section>
 
 <section class="secao shell sobre" id="sobre" aria-labelledby="studio-sobre-titulo">
